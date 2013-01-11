@@ -1,0 +1,1 @@
+#define CONFIG_SERIAL_CPM 1

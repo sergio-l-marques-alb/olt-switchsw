@@ -1,0 +1,1 @@
+#define CONFIG_IDE_EXT_DIRECT 1
