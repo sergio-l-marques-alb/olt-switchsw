@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+
+<enum name="L7_DHCP_CLIENT_STATE_t">
+<option name="1 Init" macro="DHCPSTATE_INIT"> </option>
+<option name="2 Selecting" macro="DHCPSTATE_SELECTING"> </option>
+<option name="3 Requesting" macro="DHCPSTATE_REQUESTING"> </option>
+<option name="4 Request Recv" macro="DHCPSTATE_REQUEST_RECV"> </option>
+<option name="5 Bound" macro="DHCPSTATE_BOUND"> </option>
+<option name="6 Renewing" macro="DHCPSTATE_RENEWING"> </option>
+<option name="7 Renew Recv" macro="DHCPSTATE_RENEW_RECV"> </option>
+<option name="8 Rebinding" macro="DHCPSTATE_REBINDING"> </option>
+<option name="9 Rebind Recv" macro="DHCPSTATE_REBIND_RECV"> </option>
+<option name="10 BOOTP Fallback" macro="DHCPSTATE_BOOTP_FALLBACK"> </option>
+<option name="11 Not Bound" macro="DHCPSTATE_NOTBOUND"> </option>
+<option name="12 Failed" macro="DHCPSTATE_FAILED"> </option>
+<option name="13 Do Release" macro="DHCPSTATE_DO_RELEASE"> </option>
+</enum>
+
+  </data-types>
+</FastPathXML>

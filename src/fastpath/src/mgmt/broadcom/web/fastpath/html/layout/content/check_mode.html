@@ -1,0 +1,19 @@
+<EMWEB_INCLUDE C='
+     L7_uint32 val;
+     L7_uint32  unit;
+    
+     unit = usmDbThisUnitGet();
+
+     usmDbWebJavaModeGet(unit, &val);
+     if (val==L7_DISABLE)
+     {
+         return "/header.html";
+     }
+     else
+     {
+       if(usmDbIsAChassisPlatform()==L7_TRUE)
+         return "/java/chassis/chassis_applet.html";
+       else  
+         return "/MapApplet.html"; 
+     }
+   ' >

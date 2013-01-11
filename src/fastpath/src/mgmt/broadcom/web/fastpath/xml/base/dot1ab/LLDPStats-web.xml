@@ -1,0 +1,45 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="LLDPStats" title="LLDP Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="SwitchingLLDPStats_LastChangeTime" id="1" name="Last Update"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingLLDPStats_TablesInserts" id="1" name="Total Inserts"/>
+            </node>
+            <node id="3">
+                <element obj-name="SwitchingLLDPStats_TablesDeletes" id="1" name="Total Deletes"/>
+            </node>
+            <node id="4">
+                <element obj-name="SwitchingLLDPStats_TablesDrops" id="1" name="Total Drops"/>
+            </node>
+            <node id="5">
+                <element obj-name="SwitchingLLDPStats_TablesAgeouts" id="1" name="Total Ageouts"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="6">
+                <element properties="filter,iterate" obj-name="SwitchingLLDPStats_LldpEnabledPortNum" id="1" name="Interface"/>
+                <element properties="filter,hidden,noname" cpval="SwitchingLLDPStats_LldpEnabledPortNum" obj-name="SwitchingLLDPStats_TxPortNum" id="2"/>
+                <element properties="filter,hidden,noname" cpval="SwitchingLLDPStats_LldpEnabledPortNum" obj-name="SwitchingLLDPStats_RxPortNum" id="3"/>
+                <element obj-name="SwitchingLLDPStats_TxPortFramesTotal" id="4" name="Transmit Total"/>
+                <element obj-name="SwitchingLLDPStats_RxPortFramesTotal" id="5" name="Receive Total"/>
+                <element obj-name="SwitchingLLDPStats_RxPortFramesDiscardedTotal" id="6" name="Discards"/>
+                <element obj-name="SwitchingLLDPStats_RxPortFramesErrors" id="7" name="Errors"/>
+                <element obj-name="SwitchingLLDPStats_RxPortAgeoutsTotal" id="8" name="Ageouts"/>
+                <element obj-name="SwitchingLLDPStats_RxPortTLVsDiscardedTotal" id="9" name="TLV Discards"/>
+                <element obj-name="SwitchingLLDPStats_RxPortTLVsUnrecognizedTotal" id="10" name="TLV Unknowns"/>
+                <element obj-name="SwitchingLLDPStats_LldpStatsRxPortTLVsMED" id="11" name="TLV MED"/>
+                <element obj-name="SwitchingLLDPStats_LldpStatsRxPortTLVs8021" id="12" name="TLV 802.1"/>
+                <element obj-name="SwitchingLLDPStats_LldpStatsRxPortTLVs8023" id="13" name="TLV 802.3"/>
+            </repeat> 
+            <node id="7">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Enable" obj-name="SwitchingLLDPStats_ClearStatistics" help="Clears LLDP Statistics on the page" id="2" name="Clear"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

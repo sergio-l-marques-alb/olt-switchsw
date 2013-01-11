@@ -1,0 +1,46 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPSGInterfaceConfig" title=" Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" " run_if="IP_SOURCE_GUARD_FEATURE">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingIPSGIntfTable_IpsgIntIfNumber" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+	        <element control="combo" obj-name="SwitchingIPSGIntfTable_IpsgIfVerifySource" id="1" name="IPSG">
+		    <action type="enum" web_name="Enable" />
+	            <action type="enum" web_name="Disable" />	    
+		</element>	    
+            </node>
+            <node id="3">
+		<element control="combo" obj-name="SwitchingIPSGIntfTable_IpsgIfPortSecurity" id="1" name="IPSG Port Security">
+                     <action type="enum" web_name="Enable" />
+     	             <action type="enum" web_name="Disable" />
+		</element>	    
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  " run_if="IP_SOURCE_GUARD_FEATURE">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingIPSGIntfTable_IpsgIntIfNumber" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+		<element control="label" properties="read-only" obj-name="SwitchingIPSGIntfTable_IpsgIfVerifySource" id="1" name="IPSG">
+		     <action type="enum" web_name="Enable" />
+		     <action type="enum" web_name="Disable" />
+	        </element>	     
+            </node>
+            <node id="3">
+		<element control="label" properties="read-only" obj-name="SwitchingIPSGIntfTable_IpsgIfPortSecurity" id="1" name="IPSG Port Security">
+		     <action type="enum" web_name="Enable" />
+		     <action type="enum" web_name="Disable" />
+	        </element>	     
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

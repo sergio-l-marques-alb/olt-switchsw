@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VRRPConfig" title="VRRP Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="routingvrrpConfig_adminState" id="1" name="Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="routingvrrpConfig_adminState" id="1" name="Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

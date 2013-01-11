@@ -1,0 +1,234 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.TH BuildPdu SR_CLIBMAN "27 May 1996"
+.SH NAME
+.HP 5
+BuildPdu, FreePdu, MakePdu, ParsePdu \- SNMP PDU manipulation routines.
+.SH SYNOPSIS
+.LP
+short
+.br
+.BI BuildPdu (pdu_ptr)
+.br
+Pdu *pdu_ptr;
+.LP
+void
+.br
+.BI FreePdu (pdu_ptr)
+.br
+Pdu *pdu_ptr;
+.LP
+Pdu *
+.br
+.BI MakePdu " (type, request_id, error_status_or_non_repeaters, "
+.in+10
+.I error_index_or_max_repetitions, enterprise,
+.br
+.I agent_addr, generic_trap, specific_trap, time_ticks)
+.in
+int type;
+.br
+SR_INT32 request_id;
+.br
+SR_INT32 error_status_or_non_repeaters;
+.br
+SR_INT32 error_index_or_max_repetitions;
+.br
+OID *enterprise;
+.br
+OctetString *agent_addr;
+.br
+SR_INT32 generic_trap;
+.br
+SR_INT32 specific_trap;
+.br
+SR_UINT32 time_ticks;
+.LP
+Pdu *
+.br
+.BI ParsePdu (auth_ptr)
+.br
+AuthHeader *auth_ptr;
+.SH DESCRIPTION
+.I BuildPdu 
+is called with the Pdu pointer created by a call to
+MakePdu(SR_CLIBMAN). It traces down the structure of VarBinds
+that has been added to it and builds the ASN.1 packet in the
+packlet pointer of the Pdu pointer's data structure (pdu_ptr->packlet).
+At this point, Pdu processing is complete and the structure is
+ready to be passed to the authentication layer.
+
+Usual steps:
+.IP 1. 
+Create the Pdu with a call to MakePdu(SR_CLIBMAN).
+.IP 2. 
+Create the VarBind list in the Pdu, using MakeVarBindWithNull(SR_CLIBMAN)
+or MakeVarBindWithValue(SR_CLIBMAN) and a subsequent call to LinkVarbind(SR_CLIBMAN).
+.IP 3. 
+Serialize the Pdu with a call to BuildPdu(SR_CLIBMAN).
+
+Returns 0 on success.
+.br
+Returns -1 on failure.
+
+The parameter, 
+.I pdu_ptr, 
+is a Pdu pointer. The pdu_ptr\->packlet field
+will contain the result of this routine on success.
+.HP 5
+.I FreePdu 
+frees the Pdu data structure allocated and built by calls to
+MakePdu(SR_CLIBMAN), MakeVarBindWithNull(SR_CLIBMAN), MakeVarBindWithValue(SR_CLIBMAN), 
+LinkVarBind(SR_CLIBMAN), and BuildPdu(SR_CLIBMAN).
+
+Returns nothing.
+
+The parameter, pdu_ptr, points to the Pdu structure that needs to be
+freed.
+.HP 5
+.I MakePdu 
+creates a Pdu structure, fills in fields with the supplied
+parameters, and returns the structure on success.  To see what the
+Pdu structure looks like, please refer to sr_snmp.h.
+
+Returns the new Pdu structure on success.
+.br
+Returns NULL on failure.
+
+The parameter, 
+.I type, 
+is the Pdu type.  
+Possible values are:
+.IP
+GET_REQUEST_TYPE, 
+.br
+GET_NEXT_REQUEST_TYPE, 
+.br
+GET_RESPONSE_TYPE,
+.br
+SET_REQUEST_TYPE, 
+.br
+GET_BULK_REQUEST (SNMPv2c and SNMPv2 only), 
+.br
+INFORM_REQUEST_TYPE (SNMPv2c and SNMPv2 only), 
+.br
+REPORT_TYPE (SNMPv2 only), 
+.br
+SNMPv2_TRAP_TYPE(SNMPv2 only), or 
+.br
+TRAP_TYPE (SNMPv1 only).
+
+The parameter, 
+.I request_id, 
+should be the request id used for this 
+SNMP message. This value is usually initialized by a call to
+MakeReqId(SR_CLIBMAN) before sending the first SNMP message. This value is 
+usually incremented for every message sent out after that. 
+
+
+The parameter, 
+.I error_status_or_non_repeaters, 
+performs two functions.
+This value is usually set to 0 when sending all Pdu types except for
+the GET_BULK_REQUEST and the GET_RESPONSE_TYPE. This parameter is the
+error_status field unless sending a get-bulk request.  If sending
+a get-bulk request, this field indicates the number of non-repeater
+variables in the request.  See the getbulk(SR_CMDMAN) utility for more 
+information.
+
+The parameter, 
+.I error_index_or_max_repetitions, 
+performs two functions.
+This value is usually set to 0 when sending all Pdu types except for
+the GET_BULK_REQUEST and the GET_RESPONSE_TYPE. This parameter is the
+error_index field unless sending a get-bulk request. If sending
+a get-bulk request, this field indicates the number of max-repetition
+variables in the request. See the getbulk(SR_CMDMAN) utility for more
+information.
+
+The parameter, 
+.I enterprise, 
+will be NULL and/or ignored unless
+an SNMPv1 trap (type = TRAP_TYPE) is being sent.  If an SNMPv1 trap is
+being sent, this contains the enterprise field for the Trap Pdu.
+
+The parameter, 
+.I agent_addr, 
+will be NULL and/or ignored unless
+an SNMPv1 trap (type = TRAP_TYPE) is being sent.  If an SNMPv1 trap is
+being sent, this contains the agent_addr field for the Trap Pdu.
+
+The parameter, 
+.I generic_trap, 
+will be 0 and/or ignored unless
+an SNMPv1 trap (type = TRAP_TYPE) is being sent.  If an SNMPv1 trap is
+being sent, this contains the value for the generic_trap field of the
+Trap Pdu. 
+
+The parameter, 
+.I specific_trap, 
+will be 0 and/or ignored unless
+an SNMPv1 trap (type = TRAP_TYPE) is being sent.  If an SNMPv1 trap is
+being sent, this contains the value for the specific_trap field of the
+Trap Pdu. 
+
+The parameter, 
+.I time_ticks, 
+will be 0 and/or ignored unless
+an SNMPv1 trap (type = TRAP_TYPE) is being sent.  If an SNMPv1 trap is
+being sent, this contains the value for the time_ticks field of the
+Trap Pdu. 
+.HP 5
+.I ParsePdu 
+takes a PDU from a fully populated authentication
+structure (AuthHeader) and parses the information into the 
+library's internal PDU format, including all VarBind instances.
+This routine is usually called with the AuthHeader pointer returned
+by a call to ParseAuthentication(SR_CLIBMAN). The Pdu is created, filled in,
+and returned on success.
+
+Returns the new Pdu on success.
+.br
+Returns NULL on failure.
+
+The parameter, 
+.I auth_ptr, 
+is a pointer to an AuthHeader structure.
+This value is usually initialized with a call to ParseAuthentication(SR_CLIBMAN).
+.SH EXAMPLES
+For an example of how these routines are used, see the manager utilities.

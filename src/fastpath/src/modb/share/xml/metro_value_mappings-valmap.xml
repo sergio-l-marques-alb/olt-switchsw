@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+<FastPathXML>
+    <misc version="1.0">
+<!--        <valuemap  id="dot1ad_action_access" value="L7_XUI_DOT1AD_ASSIGN_CVID" />
+        <valuemap  id="dot1ad_action_remark" value="L7_XUI_DOT1AD_REMARK_CVID" />
+        <valuemap  id="dot1ad_action_remove" value="L7_XUI_DOT1AD_REMOVE_CTAG" /> 
+        <valuemap  id="dot1ad_action_none" value="L7_XUI_DOT1AD_NONE" /> 
+        <valuemap  id="dot1ad_action_criteria_none" value="L7_DOT1AD_PKTTYPE_NONE" />
+        <valuemap  id="dot1ad_action_criteria_untagg" value="L7_DOT1AD_PKTTYPE_UNTAGGED" />
+        <valuemap  id="dot1ad_action_criteria_tag" value="L7_DOT1AD_PKTTYPE_TAGGED" />
+        <valuemap  id="dot1ad_action_criteria_priority" value="L7_DOT1AD_PKTTYPE_PRIOTAGGED" /> -->
+    </misc>
+</FastPathXML>

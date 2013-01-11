@@ -1,0 +1,216 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<h1 align=center style='text-align:center'>OSPF Help</h1>
+
+
+<hr size=4 width="80%" align=center>
+
+
+
+<h2><a name=ospfintfcfg></a>Help for OSPF Interface Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      Select the interface for which data is to be displayed or
+      configured.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>OSPF Admin Mode</b> - You may select enable or disable from the pull-down menu.
+      The default value is 'disable.'
+      You can configure OSPF parameters without enabling OSPF Admin Mode,
+      but they will have no effect until you enable Admin Mode.
+      The following information will be displayed only
+      if the Admin Mode is enabled: State, Designated Router, Backup
+      Designated Router, Number of Link Events, LSA Ack Interval, and Metric Cost.
+      For OSPF to be fully functional, you must enter
+      a valid IP Address and Subnet Mask
+      via the Interface IP Configuration page or through the CLI command:
+      config ip interface network <emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;> <ipaddr> <subnet mask>.
+      </li>
+  <li><b>OSPF Area ID</b> - Enter the area ID of the area to which the selected router
+        interface connects.  The area ID may be specified as an integer or in dotted
+  decimal notation.If you assign an area ID for an area which does not yet exist,
+  the area is created with default values. </li>
+  <li><b>Router Priority</b> - Enter the OSPF priority for the selected interface.
+        The priority is an integer from 0 to 255.
+        The default is 1, which is the highest router priority.  OSPF uses priority
+  to select a designated router on a LAN. A value
+        of 0 indicates that the router is not eligible to become the
+        designated router.</li>
+  <li><b>Retransmit Interval</b> - Enter the OSPF retransmit interval in seconds.
+        OSPF retransmits link state advertisements when a neighbor does not
+  acknowledge receipt. This value is also used when
+        retransmitting database descriptions and link-state request packets.
+        Valid values range from 1 to 3600 seconds (1 hour).  The default
+        is 5 seconds. </li>
+ <li><b>Hello Interval</b> - Enter the OSPF hello interval in seconds.  This parameter must
+        be the same for all routers on the attached network.  Valid values range
+        from 1 to 65,535 seconds.  The default is 10 seconds.  </li>
+  <li><b>Dead Interval</b> - Enter the OSPF dead interval in seconds.
+        The dead interval is long a router will wait for a neighbor router's
+        Hello packets before declaring that the router is down.
+        This parameter must be the same for all routers on the attached
+        network.  This value should a multiple of the
+        Hello Interval (e.g. 4). Valid values range from 1 to 2,147,483,647 seconds.
+        The default is 40 seconds. </li>
+  <li><b>Transmit Delay</b> - Enter the OSPF Transmit Delay in seconds.
+        The interface transmit delay estimates the time it
+        takes to transmit a link state update packet over the selected interface.
+        Valid values range from 1 to 3600 seconds (1 hour).
+        The default value is 1 second. </li>
+
+  <li><b>MTU Ignore</b> - Disables OSPF MTU mismatch detection on received database description packets.
+        Default value is Disable (MTU mismatch detection is enabled).</li>
+
+  <li><b>Passive Mode</b> - Make an interface passive to prevent OSPF from forming an
+        adjacency on an interface. OSPF advertises networks attached to passive
+  interfaces as stub networks. Interfaces are not passive by default. </li>
+
+  <li><b>Network Type</b> - Sets the OSPF network type on the interface to broadcast or
+        point-to-point. OSPF only selects a designated router and originates network
+  LSAs for broadcast networks. No more than two OSPF routers may be present on a
+  point-to-point link. The default network type for Ethernet interfaces is broadcast. </li>
+
+  <li><b>Authentication Type</b> - You may select an authentication type other than
+        none by clicking on the 'Configure' button.
+        You will then see a new screen, where you can select the authentication type from the pull-down menu.
+        The choices are:
+        <ul type=square>
+         <li><I><b>None</b></I> - This is the initial interface state.  If you select
+         this option from the pull-down menu on the second screen you will be returned to the
+         first screen and no authentication protocols will be run.</LI>
+         <LI><i><B>Simple</b></I></li> - If you select 'Simple' you will be prompted to enter
+         an authentication key. This key will be included, in the clear, in the OSPF header of
+         all packets sent on the network.  All routers on the network must be configured with
+         the same key. </LI>
+         <LI><i><B>Encrypt</B></I> - If you select 'Encrypt' you will be prompted to enter both an
+         authentication key and an authentication ID. Encryption uses the MD5 Message-Digest algorithm.
+         All routers on the network must be configured with
+         the same key and ID.</LI>
+        </ul>
+  </li>
+  <li><b>Authentication Key</b> - Enter the OSPF Authentication Key
+        for the specified interface. If you do not choose to use authentication
+        you will not be prompted to enter a key.  If you choose 'simple' authentication
+        you cannot use a key of more than 8 octets. If you choose 'encrypt' the key may be
+        up to 16 octets long.
+        The key value will only be displayed if you are logged on with
+         Read/Write privileges, otherwise it will be displayed as asterisks.  </li>
+<LI><B>Authentication ID</B> - Enter the ID to be used for authentication.  You will only
+        be prompted to enter an ID when you select 'Encrypt' as the authentication type.
+        The ID is a number between 0 ad 255, inclusive.
+   <li><b>Metric Cost</b> - Enter the link cost. OSPF uses this value in
+        computing shortest paths. The range is from 1 to 65,535.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Address</b> - The IP address of the interface. </li>
+  <li><b>Subnet Mask</b> - The network mask, indicating
+      the portion of the IP address that identifies the attached network.
+      </li>
+  <li><b>LSA Ack Interval</b> - The number of seconds to wait before sending
+       a delayed acknowledgement. </li>
+  <li><b>State</b> - The current state of the selected router interface.  One of:
+         <ul type=square>
+         <li><I><b>Down</b></I> - This is the initial interface state.  In this state, the
+            lower-level protocols have indicated that the interface is
+            unusable.  In this state, interface
+            parameters will be set to their initial values.  All
+            interface timers will be disabled, and there will be no
+            adjacencies associated with the interface. </li>
+         <li><b><I>Loopback</I></b> - In this state, the router's interface to the network is
+            looped back either in hardware
+            or software.  The interface is unavailable for regular
+            data traffic.  However, it may still be desirable to gain
+            information on the quality of this interface, either through
+            sending ICMP pings to the interface or through something
+            like a bit error test.  For this reason, IP packets may
+            still be addressed to an interface in Loopback state.  To
+            facilitate this, such interfaces are advertised in router-
+            LSAs as single host routes, whose destination is the IP
+            interface address. </li>
+         <li><b><I>Waiting</I></b> - The router is trying to determine the
+            identity of the (Backup) Designated Router for the network by
+            monitoring received Hello Packets.  The router is not allowed to elect a Backup
+            Designated Router or a Designated Router until it
+            transitions out of Waiting state.  This prevents unnecessary
+            changes of (Backup) Designated Router. </li>
+         <li><b><I>Designated Router</I></b> - This router is itself the Designated Router
+            on the attached network.  Adjacencies are established to all
+            other routers attached to the network.  The router must also
+            originate a network-LSA for the network node.  The network-
+            LSA will contain links to all routers (including the
+            Designated Router itself) attached to the network.  </li>
+         <li><b><I>Backup Designated Router</I></b> - This router is itself the Backup Designated
+            Router on the attached network.  It will be promoted to
+            Designated Router if the present Designated Router fails.
+The router establishes adjacencies to all other routers
+            attached to the network.  The Backup Designated Router
+            performs slightly different functions during LSA flooding,
+      as compared to the Designated Router. </li>
+         <li><b><I>Other Designated Router</I></b> - The interface is connected to a broadcast
+            network on which other routers have been selected to be the Designated
+            Router and Backup Designated Router.  The router attempts to form
+            adjacencies to both the Designated Router and the Backup
+            Designated Router.</li></b>
+    </ul>
+    The State is only displayed if the OSPF admin mode is enabled.
+    </li>
+  <li><b>Designated Router</b> - The identity of the Designated Router for
+      this network, in the view of the advertising router.  The Designated
+      Router is identified here by its router ID.
+      The value 0.0.0.0 means that there is no Designated Router.
+      This field is only displayed if the OSPF admin mode is enabled.</li>
+  <li><b>Backup Designated Router</b> - The identity of the Backup Designated
+      Router for this network, in the view of the advertising router.  The
+      Backup Designated Router is identified here by its router ID.
+      Set to 0.0.0.0 if there is no Backup Designated Router.
+      This field is only displayed if the OSPF admin mode is enabled.</li>
+  <li><b>Local Link LSAs</b> - The number of opaque LSAs whose flooding scope
+      is the link on this interface.</li>
+  <li><b>Link Local LSA Checksums</b> - The sum of the checksums of local link
+      LSAs for this link.</li>
+  <li><b>Number of Link Events</b> - This is the number of times the specified
+      OSPF interface has changed its state. This field is only displayed if the
+      OSPF admin mode is enabled.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+     <li><b>Configure Authentication</b> - Display a new screen where you can select the
+     authentication method for the virtual link. </li>
+     <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>

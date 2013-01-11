@@ -1,0 +1,67 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RIPConfig" title="RIP Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="routingConfigRipGlobal_AdminState" id="1" name="RIP Admin Mode"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="routingConfigRipGlobal_SplitHorizonMode" id="1" name="Split Horizon Mode"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingConfigRipGlobal_AutoSummaryMode" id="1" name="Auto Summary Mode"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="routingConfigRipGlobal_HostRoutesAcceptMode" id="1" name="Host Routes Accept Mode"/>
+            </node>
+            <node id="5">
+                <element obj-name="routingRip2Global_RouteChanges" id="1" name="Global Route Changes"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingRip2Global_Queries" id="1" name="Global Queries"/>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="routingConfigRipGlobal_DefaultInfoOriginate" id="1" name="Default Information Originate"/>
+            </node>
+            <node id="8">
+                <element arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="routingConfigRipGlobal_DefaultMetric" id="1" name="Default Metric"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_AdminState" id="1" name="RIP Admin Mode"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_SplitHorizonMode" id="1" name="Split Horizon Mode"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_AutoSummaryMode" id="1" name="Auto Summary Mode"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_HostRoutesAcceptMode" id="1" name="Host Routes Accept Mode"/>
+            </node>
+            <node id="5">
+                <element obj-name="routingRip2Global_RouteChanges" id="1" name="Global Route Changes"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingRip2Global_Queries" id="1" name="Global Queries"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_DefaultInfoOriginate" id="1" name="Default Information Originate"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="routingConfigRipGlobal_DefaultMetric" id="1" name="Default Metric"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

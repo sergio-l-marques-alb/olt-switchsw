@@ -1,0 +1,57 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ServicePortv4Config" title="Service Port Configuration">
+        <group id="1" level="ReadWriteUser" heading="IPv4">
+            <node id="1">
+                <element control="combo" obj-name="basesysServicePort_sysAgentBasicConfigServPortConfigProtocol" id="1" name="Service Port Configuration Protocol">
+                    <action invoke="onChange" type="enum" discard="no" enable="1_2_1|1_3_1|1_4_1" setval_ids="1_2_1|1_3_1|1_4_1" setval_args="Default_IPAddress|Default_IPAddress|Default_IPAddress" />
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element obj-name="basesysServicePort_sysServicePortIPAddr" id="1" name="IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <element obj-name="basesysServicePort_sysServicePortNetMask" id="1" name="Subnet Mask" maxLength="15"/>
+            </node>
+            <node id="4">
+                <element obj-name="basesysServicePort_sysServicePortGateway" id="1" name="Default Gateway" maxLength="15"/>
+            </node>
+            <node id="5">
+                <element obj-name="basesysServicePort_sysServicePortMacAddress" id="1" name="Burned-in MAC Address"/>
+            </node>
+        </group>
+        <group id="3" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="3_1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" target-page="ServicePortv4Config.html" value="0" obj-name="basesysServicePort_renewDHCP" help="Submits the form on this page to the Switch" id="2" name="Renew DHCP IP Address">
+                    <action type="button" disable="3_1_1"/>
+                </button>
+            </node>
+        </group>
+        <group id="4" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element control="label" obj-name="basesysServicePort_sysAgentBasicConfigServPortConfigProtocol" id="1" name="Service Port Configuration Protocol"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="basesysServicePort_sysServicePortIPAddr" id="1" name="IP Address"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="basesysServicePort_sysServicePortNetMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="basesysServicePort_sysServicePortGateway" id="1" name="Default Gateway"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="basesysServicePort_sysServicePortMacAddress" id="1" name="Burned In MAC Address"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

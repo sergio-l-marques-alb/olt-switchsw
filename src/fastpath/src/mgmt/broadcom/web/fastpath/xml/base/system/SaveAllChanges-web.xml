@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SaveAllChanges" title="Save All Applied  Changes">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <message>Saving all applied changes will cause all changes to configuration panels that were applied, but not saved, to be saved, thus retaining their new values across a system reboot. </message>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" value="True" obj-name="baseSysMiscObjects_SaveDeviceConfiguration" help="Submits the form on this page to the Switch" id="1" name="Save"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

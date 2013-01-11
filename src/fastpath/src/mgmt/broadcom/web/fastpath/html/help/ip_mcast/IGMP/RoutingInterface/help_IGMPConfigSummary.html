@@ -1,0 +1,97 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IGMP Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+ <hr size=4 width="80%" align=center>
+
+<h2><a name=igmpintfcfgparams></a>Help for IGMP Routing Interface Summary</h2>
+
+
+  <h3>Selection Criteria</h3>
+
+  <ul type=disc>
+   <ul type=circle>
+    <li><b>Interface</b> -
+        Select the slot and port for which data is to be displayed. Slot 0 is the base unit. </li>
+   </ul>
+  </ul>
+
+  <h3>Non-Configurable Data</h3>
+
+  <ul type=disc>
+   <ul type=circle>
+ <h4>Interface Parameters</h4>
+    <li><b>Interface Mode</b> - The administrative status of IGMP on the selected interface. </li>
+    <li><b>Operational Mode</b> - The operational state of IGMP on the selected 
+        interface.</li>
+    <li><b>Version </b> - The version of IGMP configured on the selected interface.</li>
+     <li><b>Query Interval (sec)</b> - The frequency at which IGMP host-query packets are
+               transmitted on the selected interface.</li>
+     <li><b>Query Max Response Time(1/10 th of a sec)</b> - The maximum query response time advertised in IGMPv2
+               queries sent from the selected interface.</li>
+       <li><b>Robustness </b> - The robustness parameter for the selected interface.
+       This variable allows tuning for the expected
+                 packet loss on a subnet.  If a subnet is expected to be lossy, the
+                 robustness variable may be increased.  IGMP is
+                 robust to (robustness variable-1) packet losses. </li>
+     <li><b>Startup Query Interval (sec)</b> - The interval at which startup queries are sent on the selected
+     interface.</li>
+     <li><b>Startup Query Count </b> - The number of queries to be sent on startup.</li>
+     <li><b>Last Member Query Interval (1/10 of a sec)</b> - The last member query interval. The last member query
+      interval is the maximum response time
+                inserted into group-specific queries sent in response to
+                leave group messages, and is also the amount of time between
+                group-specific query messages.  This value may be tuned to
+                modify the leave latency of the network.  A reduced value
+                results in reduced time to detect the loss of the last
+                member of a group.  This value is not used for IGMP version 1.</li>
+      <li><b>Last Member Query Count </b> - The number of queries to be sent on receiving a leave
+      group report. </li>
+<h4>Interface Statistics</h4>
+  <li><b>Querier </b> - The address of the IGMP querier on the IP subnet to which the selected
+   interface is attached.</li>
+  <li><b>Querier Status </b> - Indicates whether the selected interface is in querier or non querier mode.  </li>
+    <li><b>Querier Up Time (hh:mm:ss)</b> - The time in seconds since the IGMP interface querier was last changed. </li>
+  <li><b>Querier Expiry Time (hh:mm:ss)</b> - The time in seconds remaining before the other querier
+            present timer expires.  If the local system is the querier, this
+            will be zero.</li>
+  <li><b>Wrong Version Queries Received</b> - The number of queries that have been received
+          on the selected interface with an IGMP version that does not
+          match the IGMP version configured for the interface, over the lifetime of the entry.
+            IGMP requires that all routers on a LAN be configured to run the same version of IGMP.
+            Therefore, a configuration error is indicated if any queries are received with the wrong
+            version number. </li>
+  <li><b>Number of Joins Received</b> - The number of times a group membership has been added on
+            the selected interface; that is, the number of times an entry for this interface has been
+            added to the cache table.  This gives an indication of the amount of IGMP activity on
+            the interface. </li>
+  <li><b>Number of Groups </b> - The current number of entries for the selected interface in the
+  cache table. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+  </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

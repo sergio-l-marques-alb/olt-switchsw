@@ -1,0 +1,61 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="UserMgrIntAuthServUserDBConfig" title="Internal Authentication Server Users" java-script="UserMgrIntAuthServUserDBConfig">
+        <group id="1" heading="Configuration" level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox" properties="hidden"  obj-name="baseUserMgrIntAuthServUserDBConfig_UserIndex" id="1" name="UserIndex"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter" obj-name="baseUserMgrIntAuthServUserDBConfig_UserName" id="1" name="User">
+                    <action type="default" discard="no" enable="1_9_1|3_1_1|3_1_2" disable="1_3_1|3_1_3|1_11_1" hide="3_1_3" show="1_9_1|1_3_1|3_1_1"/>
+                    <action type="extn" discard="no" setval_ids="1_3_1|1_9_1" setval_args="valMapEmptyString|valMapEmptyString" value="Create" enable="1_3_1|3_1_3|1_11_1|1_9_1" disable="3_1_2|3_1_1|3_1_4|3_1_5|2" hide="3_1_2|3_1_1|3_1_4|3_1_5|2" show="1_3_1|3_1_3|1_9_1"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="textbox"  arghelp="LoginUsername" maxLength="32" obj-name="baseUserMgrIntAuthServUserDBConfig_UserName" id="1" name="User Name"/>
+            </node>
+            <node id="9">
+                <element control="textbox" arghelp="Dot1xPassword" maxLength="64" obj-name="baseUserMgrIntAuthServUserDBConfig_UserPassword" id="1" name="Password" />
+            </node>
+            <node id="11">
+                 <element control="checkbox" uienum="TrueFalse_t" properties="noname,hidden" obj-name="xLibObjects_dummy" id="1" name="" value="False" />
+            </node>
+        </group>
+
+        <group id="3" heading=" ">
+            <node id="1">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="3_1_2" enable="1_11_1"/>
+                </button>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Delete" obj-name="baseUserMgrIntAuthServUserDBConfig_UserStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                <action type="button" disable="3_1_1|1_2_1|1_3_1|1_11_1|1_9_1" />
+                </button>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Add" obj-name="baseUserMgrIntAuthServUserDBConfig_UserStatus" help="Submits the form on this page to the Switch" id="3" name="Add">
+                <action type="button" disable="3_1_1|3_1_2" enable="1_11_1"/>
+                </button>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="TRUE" obj-name="baseUserMgrIntAuthServUserDBConfig_ClearAllUsers" help="Submits the form on this page to the Switch" id="4" name="Clear All Users">
+                  <action type="button" disable="3_1_1|1_2_1|1_3_1|1_11_1|1_9_1|3_1_2|1_1_1"/>
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="5" name="Refresh"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Blank Row" value=""/>
+            </node>
+        </group>
+        <group id="2" heading="Summary">
+            <node id="2">
+                <element control="label" properties="hidden" obj-name="xLibObjects_dummy" id="1" name="Blank Row" value=""/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element control="textbox" properties="hidden,filter,iterate"  obj-name="baseUserMgrIntAuthServUserDBConfig_UserIndex" id="1" name="Index"/>
+                <element control="label" obj-name="baseUserMgrIntAuthServUserDBConfig_UserName" id="2" name="User Name"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>
+
+

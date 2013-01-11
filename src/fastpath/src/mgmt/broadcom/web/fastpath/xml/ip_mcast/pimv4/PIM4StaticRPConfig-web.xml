@@ -1,0 +1,61 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIM4StaticRPConfig" title="PIM Static RP Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="2">
+                <element properties="write-only,hidden" value= "IPv4" obj-name="ipmcastpimStaticRPTable_pimStaticRPAddressType" id="1" name="pimStaticRPAddressType"/>
+            </node>
+            <node id="3">
+                <element properties="filter,iterate,write-only" maxLength="15" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpAddress" id="1" name="Group Address" value="" />
+            </node>
+            <node id="4">
+                <element properties="filter,iterate,write-only" maxLength="15" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpPrefixLength" id="1" name="Group Mask" value="" />
+            </node>
+            <node id="5">
+                <element properties="write-only" maxLength="15" obj-name="ipmcastpimStaticRPTable_pimStaticRPRPAddress" id="1" name="RP Address" value="" />
+            </node>
+            <node id="6">
+                <element control="checkbox" obj-name="ipmcastpimStaticRPTable_pimStaticRPOverrideDynamic" id="1" name="Override"/>
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="7">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastpimStaticRPTable_pimStaticRPAddressType" id="1"/>
+                <element control="label" obj-name="ipmcastpimStaticRPTable_pimStaticRPRPAddress" id="2" name="RP Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpAddress" id="3" name="Group Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpPrefixLength" id="4" name="Group Mask"/>
+                <element control="label" obj-name="ipmcastpimStaticRPTable_pimStaticRPOverrideDynamic" id="5" name="Override"/>
+                <element control="checkbox-neg" properties="edit" obj-name="ipmcastpimStaticRPTable_pimStaticRPRowStatus" id="6" name="Delete">
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="no" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="no" />
+               </element>
+            </repeat>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" obj-name="ipmcastpimStaticRPTable_pimStaticRPRowStatus" value="Add" help="Submits the form on this page to the Switch" id="1" name="Submit" />
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+                <button scope="page" type="buttonSubmit" help="Deletes the form on this page to the Switch" id="3" name="Delete" >
+                  <action type="button" disable="1_8_1|1_2|1_3|1_4|1_5|1_6" />
+                 </button>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+            <repeat present="vtable" edit="inline" heading=" " id="2">
+                <element properties="filter,iterate,hidden" obj-name="ipmcastpimStaticRPTable_pimStaticRPAddressType" id="1"/>
+                <element control="label" properties="edit,read-only" obj-name="ipmcastpimStaticRPTable_pimStaticRPRPAddress" id="2" name="RP Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpAddress" id="3" name="Group Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimStaticRPTable_pimStaticRPGrpPrefixLength" id="4" name="Group Mask"/>
+                <element control="label" obj-name="ipmcastpimStaticRPTable_pimStaticRPOverrideDynamic" id="5" name="Override"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

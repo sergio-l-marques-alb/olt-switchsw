@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_OSPF_INTF_TYPE_t">
+      <option macro="L7_OSPF_INTF_BROADCAST" name="Broadcast"> </option>
+      <option macro="L7_OSPF_INTF_NBMA" name="nbma"> </option>
+      <option macro="L7_OSPF_INTF_PTP" name="PointToPoint"> </option>
+      <option macro="L7_OSPF_INTF_POINTTOMULTIPOINT" name="PointToMultipoint"> </option>
+    </enum>
+    <enum name="L7_OSPF_INTF_STATE_t">
+      <option macro="L7_OSPF_INTF_DOWN" name="Down"> </option>
+      <option macro="L7_OSPF_INTF_LOOPBACK" name="Loopback"> </option>
+      <option macro="L7_OSPF_INTF_WAITING" name="Waiting"> </option>
+      <option macro="L7_OSPF_INTF_POINTTOPOINT" name="Point-to-Point"> </option>
+      <option macro="L7_OSPF_INTF_DESIGNATEDROUTER" name="Designated Router"> </option>
+      <option macro="L7_OSPF_INTF_BACKUPDESIGNATEDROUTER" name="Backup Designated Router"> </option>
+      <option macro="L7_OSPF_INTF_OTHERDESIGNATEDROUTER" name="Other Designated Router"> </option>
+    </enum>
+    <enum name="L7_OSPF_INTF_XUI_TYPE_t">
+      <option macro="L7_OSPF_MULTICAST_FORWARDING_BLOCKED" name="blocked"> </option>
+      <option macro="L7_OSPF_MULTICAST_FORWARDING_MULTICAST" name="multicast"> </option>
+      <option macro="L7_OSPF_MULTICAST_FORWARDING_UNICAST" name="unicast"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>
+

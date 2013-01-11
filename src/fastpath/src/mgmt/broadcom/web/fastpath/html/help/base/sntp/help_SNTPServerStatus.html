@@ -1,0 +1,77 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>SNTP Server Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=sntp_server_status></a>Help for SNTP Server Status</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+ <li><b>Address</b> - Specifies all the existing Server Addresses. If no Server configuration
+ exists, a message saying "No SNTP server exists" flashes on the screen.</li>
+
+  <li><b>Last Update Time</b> - Specifies the local date and time (UTC) that the response from
+  this server was used to update the system clock.</li>
+  <li><b>Last Attempt Time</b> - Specifies the local date and time (UTC) that this SNTP server
+  was last queried.</li>
+  <li><b>Last Attempt Status</b> - Specifies the status of the last SNTP request to this server.
+  If no packet has been received from this server, a status of other is displayed.
+  <UL>
+         <LI><I><B>Other</B></I> - None of the following enumeration values.</LI>
+         <li><I><B>Success</B></I> - The SNTP operation was successful and the system time was
+         updated.</LI>
+         <LI><I><B>Request Timed Out</B></I> - A directed SNTP request timed out without receiving
+         a response from the SNTP server.</li>
+         <LI><I><B>Bad Date Encoded</B></I> - The time provided by the SNTP server is not valid.</li>
+         <LI><I><B>Version Not Supported</B></I> - The SNTP version supported by the server is not
+         compatible with the version supported by the client.</li>
+         <LI><I><B>Server Unsynchronized</B></I> - The SNTP server is not synchronized with its
+         peers. This is indicated via the 'leap indicator' field on the SNTP message.</li>
+         <LI><I><B>Server Kiss Of Death</B></I> - The SNTP server indicated that no further queries
+         were to be sent to this server. This is indicated by a stratum field equal to 0 in a
+         message received from a server.</li>
+    </UL>
+  </li>
+  <li><b>Unicast Server Num Requests</b> - Specifies the number of SNTP requests made to this
+  server since last agent reboot.</li>
+  <li><b>Unicast Server Num Failed Requests</b> - Specifies the number of failed SNTP requests
+  made to this server since last reboot.</li>
+
+ </ul>
+</ul>
+ 
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.
+  </li>
+  
+ </ul>
+</ul>
+
+
+
+ <hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

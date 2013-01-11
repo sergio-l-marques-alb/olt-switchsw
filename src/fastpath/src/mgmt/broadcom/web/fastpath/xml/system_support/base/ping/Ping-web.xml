@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="Ping" java-script="ping_ipv6" title="Ping">
+        <group id="1" heading="" level="ReadWriteUser">
+            <node id="1">
+                <element  arghelp="Ping_IPAddress_Hostname" maxLength="255" obj-name="basepingCtrlConfigweb_TargetAddressweb" id="1" name="Host Name/IP Address"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="basepingCtrlConfigweb_ProbeCountweb" id="1" name="Count"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="basepingCtrlConfigweb_TimeOutweb" id="1" name="Interval"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="basepingCtrlConfigweb_DataSizeweb" id="1" name="Size"/>
+            </node>
+            <node id="5">
+                <element control="textarea" obj-name="basepingCtrlConfigweb_PingResultsweb" id="1" name="Ping"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit"  value="1" obj-name="basepingCtrlConfigweb_PingAction"  help="Submits the form on this page to the Switch" id="1" name="Submit">
+                <action type="button" disable="1_5_1"/>
+               </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

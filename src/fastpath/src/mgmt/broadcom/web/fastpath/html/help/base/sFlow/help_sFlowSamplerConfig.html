@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Sampler Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+<h2><a name=sFlowSampler></a>Help for sFlow Sampler Configuration</h2>
+sFlow agent collects statistical packet-based sampling of switched flows and sends them to the
+configured receivers. A data source configured to collect flow samples is called a sampler.
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b> Sampler Datasource</b> - sFlowDataSource for this flow sampler.
+         This Agent will support Physical ports only.
+    </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Receiver Index</b> - The sFlow Receiver for this flow sampler. 
+         If set to 0, the sampler configuration is set to default and the sampler is deleted. Only active receivers can be set. 
+         If a receiver expires then all samplers associated with the receiver will also expire. Allowed range is 
+         (1 to 8).
+ 
+  </li>
+  <li><b>Sampling Rate</b> - The statistical sampling rate for packet sampling from this source.
+         A sampling rate of 1 counts all packets. A sampling rate of 0 disables sampling. Allowed range is 
+         (1024 to 65536). 
+    </li>
+  <li><b>Maximum Header Size</b> - The maximum number of bytes that should be copied from a
+         sampled packet. Allowed range is (20 to 256 ).         
+  </li>
+</ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+   <li><b> Sampler Datasource</b> - sFlowDataSource for this flow sampler.
+    </li>
+  <li><b>Receiver Index</b> - The sFlowReceiver for this sFlow sampler.
+  </li>
+  <li><b>Sampling Rate</b> - The statistical sampling rate for packet sampling from this source.
+  </li>
+  <li><b>Maximum Header Size</b> - The maximum number of bytes that should be copied from a sampled packet.
+  </li>
+</ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit</b> - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+</EMWEB_IF>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+ </ul>
+</ul>
+</BODY>
+</HTML>

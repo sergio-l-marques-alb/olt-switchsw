@@ -1,0 +1,56 @@
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=EMAILALERTToAddress></a>Help for Email Alert To Address Configuration</h2>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Message Type</b> - To configure the logging email alert message type.</li>
+  
+  <li><b>To Address</b> - To configure the logging email alert to address. Maximum of five addresses can be configured per message type.</li>
+
+  <li><b>Remove</b> - Check Box to delete the selected email alert to address entry.</li>  
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Message Type</b> - Displays the logging email alert message type. Valid values are Urgent and Non-Urgent.</li>
+  
+  <li><b>To Address</b> - Displays the logging email alert to address.</li>
+
+</EMWEB_IF>
+</ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+ 
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();'></li>
+  <li><b>Delete </b> - Deletes the specific row.</li>
+</EMWEB_IF>
+
+  <li><b>Refresh </b>
+ - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();'></li>
+   
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+
+

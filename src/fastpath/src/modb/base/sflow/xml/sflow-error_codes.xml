@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+
+<FastPathXML>
+    <misc version="1.0">
+        <error output="\n Error! Invalid Receiver Timeout Value." name="SFLOW_INVALID_RCVRTIMEOUT"/>
+    </misc>
+</FastPathXML>

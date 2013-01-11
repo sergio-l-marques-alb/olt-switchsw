@@ -1,0 +1,612 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename            xx.ext
+ *
+ * @purpose             portable system services API
+ *
+ * @component           Routing Utils Component
+ *
+ * @comments
+ *
+ * @create              01/09/1993
+ *
+ * @author              Jonathan Masel
+ *                      Igor Bryskin
+ *
+ * @end
+ *
+ *********************************************************************/
+#ifndef XX_EXT
+#define XX_EXT
+
+#include "std.h"
+#include "local.h"
+#include "os_xx.ext"
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+#define MAX_FUNCNAME 30 /* max function name size for tracing XX_Calls */
+
+/* Align buffer on a specified in algn boundary */
+#define ALIGN_ADDRESS(adr,algn,type)                \
+   {                                                \
+      ulng temp = (ulng)(adr) % (algn);             \
+      if(temp)                                      \
+         adr = (type)((t_HandleAsLong)adr + ((algn) - temp)); \
+   }
+
+/* Return TRUE if buffer is aligned */
+#define IS_ALIGNED(adr,algn) ( !(((ulng)(adr)) % (algn)) )
+
+/*  object system label */
+
+typedef struct tagt_SysLabel
+{
+   t_Handle  threadHndle; /* handle the thread object belongs to      */
+#if MULTI_PROCESSOR || L7_IPMS
+   ulng      processorId; /* OS-defined processor ID the object layer */
+                          /*    implementation  located on            */
+#endif
+} t_SysLabel;
+
+typedef enum tagXX_Status
+{
+   XX_STAT_Invalid = 0,
+   XX_STAT_Valid   = 0x7559
+} XX_Status;
+
+#if L7_DEBUG >= 3
+
+void XX_TraceSM(const char *Name, byte Event, byte State);
+
+typedef enum
+{
+   TRC_NONE = 0,
+
+/* frame relay */
+   TRC_FP_TRANSMIT      = 1,
+   TRC_FP_RECEIVE       = 2,
+   TRC_FP_DOWN          = 3,
+   TRC_FP_UP            = 4,
+   TRC_FP_RXALLOCD      = 5,
+   TRC_FP_TXFREED       = 6,
+   TRC_FC_TRANSMIT      = 7,
+   TRC_FC_TXFRAME       = 8,
+   TRC_FC_RECEIVE       = 9,
+   TRC_FC_RXFRAME       = 10,
+   TRC_FE_TRANSMIT      = 11,
+   TRC_FE_RECEIVE       = 12,
+   TRC_FC_TXCONGESTED   = 13,
+   TRC_FC_ACTIVE        = 14,
+   TRC_FC_DEACTIVE      = 15,
+   TRC_FC_DELETE        = 16,
+   TRC_FU_POUR          = 17,
+   TRC_PVCN_RECEIVE     = 18,
+   TRC_PVCU_RECEIVE     = 19,
+   TRC_LMIN_RECEIVE     = 20,
+   TRC_LMIU_RECEIVE     = 21,
+
+/* ATM */
+   TRC_AP_RECEIVE       = 22,
+   TRC_AP_TRANSMIT      = 23,
+   TRC_ATM_RECEIVE      = 24,
+   TRC_ATM_TRANSMIT     = 25,
+   TRC_AAL_RECEIVE      = 26,
+   TRC_AAL_TRANSMIT     = 27,
+   TRC_AAL_TXFRAME      = 28,
+   TRC_AAL_DELETE       = 29,
+   TRC_CP5_TRANSMIT     = 30,
+   TRC_CP5_RECEIVE      = 31,
+   TRC_SA5_TRANSMIT     = 32,
+   TRC_SA5_RECEIVE      = 33,
+   TRC_SA34_RECEIVE     = 34,
+   TRC_SA34_TRANSMIT    = 35,
+   TRC_OAM_TRANSMIT     = 36,
+   TRC_OAM_RECEIVE      = 37,
+   TRC_AE_TRANSMIT      = 38,
+   TRC_AE_RECEIVE       = 39,
+   TRC_CE_TRANSMIT      = 40,
+   TRC_SA1_TRANSMIT     = 41,
+   TRC_SA1_RECEIVE      = 42,
+   TRC_RECEIVED_RM_CELL = 43,
+   TRC_TRANSMIT_RM_CELL = 44,
+   TRC_CP0_TRANSMIT     = 45,
+   TRC_CP0_RECEIVE      = 46,
+   TRC_CP2_TRANSMIT     = 47,
+   TRC_CP2_RECEIVE      = 48,
+   TRC_AL2_TRANSMIT     = 49,
+   TRC_AL2_RECEIVE      = 50,
+   TRC_AL2TR_TRANSMIT   = 51,
+   TRC_AL2TR_RECEIVE    = 52,
+   /* A new entry should be added  */
+   /*   before this line           */
+   TRC_LAST_ENTRY,      
+   TRC_DUMMY = -1
+} e_Trace;
+typedef void (*F_XXTraceSM)(char *, byte, byte);
+
+void    XX_Trace( e_Trace Prim, const char *Id );
+typedef void (*F_XXTrace)(e_Trace, char *);
+F_XXTraceSM XX_RedirectTraceSM(F_XXTraceSM f_traceSM);
+F_XXTrace   XX_RedirectTrace(F_XXTrace f_trace);
+#else
+#define XX_TraceSM(Name, Event, State)
+#define XX_Trace(p,i)
+#define XX_RedirectTrace(f_trace) 
+#define XX_RedirectTraceSM(f_traceSM) 
+#endif
+
+#if L7_DEBUG >= 2
+typedef enum
+{
+   EV_NONE                 = 0,
+   EV_DOWN                 = 1,
+   EV_TOO_LONG             = 2,
+   EV_TRANSMIT_DISCARD     = 3,
+   EV_RECEIVE_DISCARD      = 4,
+   EV_PORT_RX_CONGESTED    = 5,
+   EV_PORT_TX_CONGESTED    = 6,
+   EV_PORT_RX_CLEAR        = 7,
+   EV_PORT_TX_CLEAR        = 8,
+   EV_TIGHTEN_GAUGE        = 9,
+   EV_LOOSEN_GAUGE         = 10,
+   EV_CIR_EXCEDED          = 11,
+   EV_EIR_EXCEDED          = 12,
+   EV_CONN_UPDATE          = 13,
+   EV_DEST_CONN_UPDATE     = 14,
+
+/* ATM */
+   EV_BAD_CRC               = 15,
+   EV_SAR_TRANSMIT_OVERFLOW = 16,
+   EV_OAM_TRANSMIT_OVERFLOW = 17,
+   EV_NO_PERFMON            = 18,
+   EV_INVALID_CELL          = 19,
+   EV_RECEIVED_AIS          = 20,
+   EV_RECEIVED_RDI          = 21,
+   EV_RECEIVED_CC           = 22,
+   EV_AIS_SET               = 23,
+   EV_AIS_CLEARED           = 24,
+   EV_RDI_SET               = 25,
+   EV_RDI_CLEARED           = 26,
+   EV_CC_ACT                = 27,
+   EV_CC_DEACT              = 28,
+   EV_BAD_CPI               = 29,
+   EV_INTERRUPT             = 30,
+
+/* IDTSAR driver */
+   EV_IDTSAR_ALARM          = 31,
+   EV_NO_MEMORY             = 32,
+
+   /* A new entry should be added
+      berofe this line */
+   EV_LAST_EVENT,      
+   EV_DUMMY = -1
+} e_Event;
+
+typedef void (*F_XXEvent)(e_Event, char *);
+F_XXEvent XX_RedirectEvent(F_XXEvent f_event);
+void    XX_Event( e_Event Ev, const char *Parm );
+#else
+#define XX_RedirectEvent(f_event)
+#define XX_Event(e,i)
+#endif
+
+#if L7_DEBUG >= 1
+typedef enum
+{
+     ERR_NONE                 = 0,
+     ERR_SYSTEM_ERROR         = 1,
+     ERR_LOCK_FAILED          = 2,
+     ERR_RECEIVE_DISCARD      = 3,
+     ERR_FLUSH_FAILED         = 4,
+     ERR_INVALID_FMMID        = 5,
+     ERR_FRAME_READ           = 6,
+     ERR_INVALID_PVC_FRAME    = 7,
+     ERR_INVALID_LMI_FRAME    = 8,
+     ERR_INVALID_MSGTYPE      = 9,
+     ERR_FMM_UNEXPECTED       = 10,
+     ERR_TOO_SHORT            = 11,
+     ERR_INVALID_REPORT_TYPE  = 12,
+     ERR_INVALID_INFO_TYPE    = 13,
+     ERR_MISSING_INFO_ELEMENT = 14,
+     ERR_RECEIVE_SEQ          = 15,
+     ERR_PROTOCOL_ERROR       = 16,
+     ERR_BAD_INFO_ELEMENT     = 17,
+     ERR_BAD_SEQUENCE_TYPE    = 18,
+     ERR_BAD_SEQUENCE_NUMBER  = 19,
+     ERR_BAD_REPORT_TYPE      = 20,
+     ERR_BAD_MULTI_STATUS     = 21,
+     ERR_NO_REPORT_TYPE       = 22,
+     ERR_NO_SEQUENCE          = 23,
+     ERR_NO_MATCH             = 24,
+     ERR_INVALID_FRAME        = 25,
+     ERR_BAD_MATCH            = 26,
+     ERR_NO_ROUTING           = 27,
+     ERR_NO_MEMORY            = 28,
+
+/* ATM */
+     ERR_POOL_NOT_EMPTY       = 29,
+     ERR_TOO_MANY_CELLS       = 30,
+     ERR_MATCH_EXISTS         = 31,
+     ERR_NOT_CONFIGURED       = 32,
+     ERR_CONFIG_FAILED        = 33,
+     ERR_BAD_TARGET           = 34,
+
+   /* A new entry should be added
+      berofe this line */
+     ERR_LAST_ENTRY,
+     ERR_DUMMY = -1
+} e_ErrLog;
+
+void XX_Error(e_ErrLog err, const char *Parm);
+#else
+#define XX_Error(err,parm)
+#endif
+
+/* Initiate   system services */
+e_Err XX_InitAll( void *mallocPoolStartAddr, /* start address for the default MALLOC heap */
+                  ulng mallocPoolSize);      /* default MALLOC heap size                  */
+  
+/* Release all resources allocated by  system services */
+void  XX_ShutDown( void);
+
+
+/* Create specific  heap */
+e_Err  XX_InitHeap( const char *name, void *mallocPoolStartAddr, ulng malloc_pool_size, t_Handle *Heap);
+
+
+/* Lock /unlock current thread */
+#define XX_Lock(p) OS_XX_Lock(p)
+#define XX_Unlock(p)  OS_XX_Unlock(p)
+#define XX_CreateMutex(p_handle) OS_XX_CreateMutex(p_handle)
+#define XX_DeleteMutex(p_handle) OS_XX_DeleteMutex(p_handle)
+
+/* Allocate buffer of the specified size (and specified alignment) from MALLOC heap */
+#ifdef MEMCHK
+   void *_XX_MallocExt(t_Handle Heap, ulng size, Bool isExact, const char *file, word line);
+   void *_XX_MallocAlignExt(t_Handle Heap, ulng size, word align, const char *file, word line);
+
+   void _XX_Free(void *memory, const char *file, word line);
+
+   #define XX_Malloc(size) _XX_MallocExt(0, size, TRUE, __FILE__, (word)__LINE__)
+   #define XX_MallocChunk(reqSize) _XX_MallocExt(0, reqSize, FALSE, __FILE__, (word)__LINE__)
+   #define XX_MallocAlign(size, align) _XX_MallocAlignExt(0, size, align, __FILE__, (word)__LINE__)
+   #define XX_MallocExt(heap, size, isExact) _XX_MallocExt(heap, size, isExact, __FILE__, (word)__LINE__)
+   #define XX_MallocAlignExt(heap, size, align) _XX_MallocAlignExt(heap, size, align, __FILE__, (word)__LINE__)
+   #define XX_Free(memory) _XX_Free(memory, __FILE__, (word)__LINE__)
+#else
+   void *XX_MallocExt(t_Handle Heap, ulng size, Bool isExact);
+   void *XX_MallocAlignExt(t_Handle Heap, ulng size, word align);
+   void XX_Free(void *memory);
+
+   #define XX_Malloc(size) XX_MallocExt(0, size, TRUE)
+   #define XX_MallocChunk(reqSize) XX_MallocExt(0, reqSize, FALSE)
+   #define XX_MallocAlign(size, align) XX_MallocAlignExt(0, size, align)
+#endif
+
+/* Returns size of allocated data buffer pointed by buf */
+ulng XX_SizeOfBuf(void *buf);
+
+/* Return memory in bytes currently used from specific MALLOC heap */
+ulng XX_GetCurUsedMemExt(t_Handle Heap);
+#define XX_GetCurUsedMem() XX_GetCurUsedMemExt(0)
+
+/* Return highest so far used memory in bytes from specific MALLOC heap */
+ulng XX_GetHiUsedMemExt(t_Handle Heap);
+#define XX_GetHiUsedMem() XX_GetHiUsedMemExt(0)
+
+
+/* Check resources of specific MALLOC heap */
+e_Err XX_ChkResourcesExt(t_Handle Heap, word *status);/* status gets % of memory,        */
+                                                      /* which is still available in the */
+                                                      /* default MALLOC heap             */
+
+#define XX_ChkResources(status) XX_ChkResourcesExt(0, status)
+
+
+/* Display of the allocated through XX_Malloc memory from specific MALLOC heap  */
+void XX_DisplayMemExt(t_Handle Heap, byte level);
+#define XX_DisplayMem(level) XX_DisplayMemExt(0,level)
+
+
+/* Portable Disable / Enable interrupts  macros*/
+#define XX_Freeze() OS_XX_Freeze()
+#define XX_Thaw()   OS_XX_Thaw()
+
+/* Add an object to a double linked list of objects */
+#define XX_AddToDLList(object,list) \
+{ \
+   t_Handle *hndl; \
+   /*@ignore@*/ \
+   (object)->prev = NULLP; \
+   /*@end@*/ \
+   XX_Freeze(); \
+   hndl = (void**)&(list); \
+   if(list) \
+      (list)->prev = (object); \
+   (object)->next = (list); \
+   (*hndl) = (object); \
+   XX_Thaw(); \
+}
+
+/* Delete an object from a double linked list of objects */
+#define XX_DelFromDLList(object, list) \
+{ \
+    XX_Freeze();\
+    if((object)->prev) \
+        (object)->prev->next = (object)->next; \
+    else \
+       (list) = (object)->next; \
+    if((object)->next) \
+        (object)->next->prev = (object)->prev; \
+    XX_Thaw();\
+}
+
+/* Add an object to tail of double linked list updating head and tail */
+#define XX_AddToDLList2(object,head,tail) \
+{ \
+   (object)->prev = (tail);\
+    XX_Freeze();\
+    if (!(head)) \
+       (head) = (object); \
+    if(tail) \
+       (tail)->next = object; \
+    (object)->prev = (tail); \
+    (tail) = object; \
+    XX_Thaw();\
+}
+
+/* Delete an object from double linked list updating head and tail */
+#define XX_DelFromDLList2(object, head, tail) \
+{ \
+    XX_Freeze();\
+    if((object)->prev) \
+        (object)->prev->next = (object)->next; \
+    else \
+        (head) = (object)->next; \
+    if((object)->next) \
+        (object)->next->prev = (object)->prev; \
+    else \
+       (tail) = (object)->prev; \
+    XX_Thaw();\
+}
+
+#define XX_CreateThread(priority, pTsk, fPermanent, p_Handle, ThreadName)\
+ OS_XX_CreateThread(priority, pTsk, fPermanent, p_Handle, 1, NULL, NULL, ThreadName)
+
+#define XX_CreateThreadMQueue(priority, pTsk, fPermanent, p_Handle, numQueues, \
+                              queueLengths, queueWeights, ThreadName)\
+ OS_XX_CreateThread(priority, pTsk, fPermanent, p_Handle, numQueues, queueLengths, \
+                    queueWeights, ThreadName)
+
+#define XX_KillThreadSelf(threadHandle) OS_XX_KillThread(threadHandle, TRUE)
+
+#define XX_KillThread(threadHandle) OS_XX_KillThread(threadHandle, FALSE)
+
+#define XX_CreateTmrTsk(period,pTsk, p_TskHndle)\
+ OS_XX_CreateTmrTsk(period,pTsk, p_TskHndle)
+
+#define XX_KillTmrTsk(tskHndle) OS_XX_KillTmrTsk(tskHndle)
+
+/* Set default thread Tid */
+void XX_SetL7_tid(t_Handle);
+
+e_Err xxTaskManager(void *param);
+
+/* Check if specified thread is current */
+#define   XX_IsThreadCurrent(threadId) OS_XX_IsThreadCurrent(threadId)
+
+/* Protocol layer types */
+typedef enum tagt_XXLayerType
+{
+ XX_LAYER_FR,              /* Frame Relay */
+ XX_LAYER_Q933,            /* Frame Relay Signaling */
+ XX_LAYER_AP,              /* ATM layer              */
+ XX_LAYER_OAMRM,           /* OAM and RM handling    */
+ XX_LAYER_AAL1,            /* AAL1 layer             */
+ XX_LAYER_AAL2,            /* AAL2 layer             */
+ XX_LAYER_AAL34,           /* AAL3/4 layer           */
+ XX_LAYER_AAL5,            /* AAL5 layer             */
+ XX_LAYER_SAAL,            /* SAAL layer             */
+ XX_LAYER_Q2931,           /* Signaling layer        */
+ XX_LAYER_PNNIROUT,        /* PNNI routing layer     */
+ XX_LAYER_LEC,             /* LEC layer              */
+ XX_LAYER_LE,              /* LE Services layer      */
+ XX_LAYER_IPCLIENT,        /* IP client layer        */
+ XX_LAYER_ARPSERVER,       /* ARP Server layer       */
+ XX_LAYER_MARS,            /* MARS and MCS layer     */
+ XX_LAYER_NHC,             /* NHRP Client layer      */
+ XX_LAYER_NHS,             /* NHRP Server layer      */
+ XX_LAYER_MPC,             /* MPOA Client layer      */
+ XX_LAYER_MPS,             /* MPOA Server layer      */
+ XX_LAYER_SNMP,            /* SNMP layer             */
+ XX_LAYER_IP,              /* IP layer               */
+ XX_LAYER_USERAPP          /* User application layer */
+} t_XXLayerType;
+
+/* Protocol event types */
+typedef enum tagt_XXLayerEvent
+{
+   XX_EVNT_INITREQ,          /*Object creation request      */
+   XX_EVNT_INITCFM,          /*Object creation confirmation */
+   XX_EVNT_BINDREQ,          /*Object binding request       */
+   XX_EVNT_BINDCFM,          /*Object binding confirmation  */
+   XX_EVNT_CONREQ,           /*Connection request           */
+   XX_EVNT_CONIND,           /*Connection indication        */
+   XX_EVNT_CONCFM,           /*Connection confirmation      */
+   XX_EVNT_DISCIND,          /*Disconnection indication     */
+   XX_EVNT_DATREQ,           /*Data request                 */
+   XX_EVNT_DATIND,           /*Data indication              */
+   XX_EVNT_DATCFM            /*Data confirmation            */
+} t_XXLayerEvent;
+
+typedef e_Err (*THREAD_ENTRY_POINT)(void *);
+
+/*XX_Call info structure */
+typedef struct  tagt_XXCallInfo
+{
+ void  *start;                  /* start address of XXCallInfo block */
+#if OS_XXCALL_EXT_WORDS
+ ulng   os_xxcall_ext[OS_XXCALL_EXT_WORDS]; /* Os-specific XX_Call block extension */
+#endif
+ char   funcName[MAX_FUNCNAME]; /* function calling us               */
+ ulng   lineNum;                 /* line number                       */
+ THREAD_ENTRY_POINT unpackFunc; /* unpacking function                */
+ ulng   timeStamp;              /* message timestamp                 */
+ ulng   QueueID;                /* queue to use for this call        */
+ byte   protLayer;              /* protocol layer                    */
+ byte   protEvent;              /* protocol event                    */
+ byte   nmbParams;              /* number of parameters              */
+ byte   paramIndex;             /* index of next pushed parameter    */
+ t_HandleAsLong params;         /* array of parameters starts here   */
+} t_XXCallInfo;
+
+/* Initiate XX_Call info structure */
+#define PACKET_INIT(xxCallInfo, unpackfunc, protlayer, protevent, nmbparams, param1)                   \
+if( (xxCallInfo = (t_XXCallInfo *)XX_Malloc(sizeof(t_XXCallInfo)+ (nmbparams-1) * sizeof(t_Handle)))) \
+{                                          \
+   xxCallInfo->start = (void *)xxCallInfo; \
+   xxCallInfo->timeStamp = XX_GetSysTime();\
+   xxCallInfo->QueueID = 0;                \
+   xxCallInfo->unpackFunc = unpackfunc;    \
+   xxCallInfo->protLayer = protlayer;      \
+   xxCallInfo->protEvent = protevent;      \
+   xxCallInfo->nmbParams = nmbparams;      \
+   if(nmbparams) {                         \
+      xxCallInfo->paramIndex = 1;          \
+      xxCallInfo->params = (t_HandleAsLong)param1; \
+   }  else  xxCallInfo->paramIndex = 0;    \
+} 
+
+/* Initiate XX_Call info structure */
+#define PACKET_INIT_MQUEUE(xxCallInfo, unpackfunc, protlayer, protevent, queueid, nmbparams, param1)  \
+if( (xxCallInfo = (t_XXCallInfo *)XX_Malloc(sizeof(t_XXCallInfo)+ (nmbparams-1) * sizeof(t_Handle)))) \
+{                                          \
+   xxCallInfo->start = (void *)xxCallInfo; \
+   xxCallInfo->timeStamp = XX_GetSysTime();\
+   xxCallInfo->QueueID = queueid;          \
+   xxCallInfo->unpackFunc = unpackfunc;    \
+   xxCallInfo->protLayer = protlayer;      \
+   xxCallInfo->protEvent = protevent;      \
+   xxCallInfo->nmbParams = nmbparams;      \
+   if(nmbparams) {                         \
+      xxCallInfo->paramIndex = 1;          \
+      xxCallInfo->params = (t_HandleAsLong)param1; \
+   }  else  xxCallInfo->paramIndex = 0;    \
+} 
+
+/* Add parameter to be passed in the message */
+#define PACKET_PUT(xxCallInfo, param)\
+ ASSERT(xxCallInfo); \
+ ASSERT((xxCallInfo)->paramIndex < (xxCallInfo)->nmbParams);\
+ if((xxCallInfo) && (xxCallInfo)->paramIndex < (xxCallInfo)->nmbParams) \
+ {\
+   *((&(xxCallInfo)->params) + (xxCallInfo)->paramIndex++) = (t_HandleAsLong)param;\
+ }
+
+/* Get parameter from the message */
+#define PACKET_GET(xxCallInfo, param) ( *((&(xxCallInfo)->params) + param) )
+
+/* Post a message to thread */
+
+#define XX_Call(destThread, xxci)   OS_XX_Call(destThread, xxci, (char *)__FUNCTION__, __LINE__)
+/* Call a thread */
+#define XX_CALL_THREAD(xxc, thEp) \
+{\
+    t_XXCallInfo *xxCallInfo = (t_XXCallInfo *)(xxc); \
+    e_Err (*f_Unpack)(void *); \
+    e_Err (*f_Default)(void *) = (THREAD_ENTRY_POINT)(thEp); \
+    if(xxCallInfo) \
+    {\
+        f_Unpack = xxCallInfo->unpackFunc; \
+        if(f_Unpack) \
+            f_Unpack(xxCallInfo) ;\
+        else if(thEp) \
+            f_Default(xxCallInfo);\
+        else \
+            ASSERT(0);\
+    }\
+}\
+
+
+#define  XX_GetCurProcId()   OS_XX_GetCurProcId()
+
+/* Miscalaneous */
+
+/* Print out message */
+#define XX_Print(string) OS_XX_Print(string)
+
+#define XX_MallocNoCache(size)      OS_XX_MallocNoCache(size)
+#define XX_MallocNoCacheAlign(size, align) OS_XX_MallocNoCacheAlign(size, align)
+#define XX_FreeNoCache(size)        OS_XX_FreeNoCache(size)
+
+/* Input string */
+#define XX_IsCharAvailable() OS_XX_IsCharAvailable()
+/* Redirect print */
+#define XX_RedirectPrint(f_print) OS_XX_RedirectPrint(f_print)
+#define XX_RedirectOSTerminate(f_print) OS_XX_RedirectTerminate(f_print)
+
+#define XX_GetDateTime(dt) OS_XX_GetDateTime(dt)
+#define XX_GetSysTime() ((TIMER_SysTime()) * (OS_TICKS))
+
+#define XX_SysTimerResolution (1000 / (TICKS_PER_SECOND))
+#define XX_GetSysTimerResolution() XX_SysTimerResolution
+
+#define XX_PassStatus(DestConn, DestBoard, Status, Mask)
+
+#define XX_PassFrame(Conn, Board, p_Frame, Flags)
+
+/* Define if pointer is invalid */
+#define XX_IsBadPtr(ptr, length) OS_XX_IsBadPtr(ptr, length)
+
+/* Internal RAM management                          */
+/* Internal RAM manager is memory allocator that is */
+/* very memory-effective (with some RT expense)     */
+/* It is intended to be used for allocations from   */
+/* memory regions that are very limited in size,    */
+/* such as internal device memories.                */
+/* Internal RAM management functions don't call any */
+/* system service and can be used before            */
+/* general initialization.                          */
+
+/* Initialize memory pool */
+e_Err XX_IRAM_Init(byte *Start, ulng Size, t_Handle *phInRAM);
+
+/* Delete memory pool */
+e_Err XX_IRAM_Delete(t_Handle phInRAM);
+
+/* Allocate memory block */
+#ifdef MEMCHK
+   void *_XX_IRAM_Alloc(t_Handle hInRAM, ulng Size, ulng Align, const char *file, word line);
+   #define XX_IRAM_Alloc(hInRAM, Size, Align) _XX_IRAM_Alloc(hInRAM, Size, Align, __FILE__, (word)__LINE__)
+#else
+   void *XX_IRAM_Alloc(t_Handle hInRAM, ulng Size, ulng Align);
+#endif
+
+/* Deallocate memory block */
+e_Err XX_IRAM_Free(t_Handle hInRAM, void *vFreeb);
+
+/* Reserve memory */
+#ifdef MEMCHK
+   void *_XX_IRAM_Reserve(t_Handle hInRAM, byte *Start, ulng Size, const char *file, word line);
+   #define XX_IRAM_Reserve(hInRAM, Start, Size) _XX_IRAM_Reserve(hInRAM, Start, Size, __FILE__, (word)__LINE__)
+#else
+   void *XX_IRAM_Reserve(t_Handle hInRAM, byte *Start, ulng Size);
+#endif
+
+/* Print memory allocation statistics */
+void  XX_IRAM_Display(t_Handle hInRAM);
+
+/*-*******************/
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* XX_EXT */

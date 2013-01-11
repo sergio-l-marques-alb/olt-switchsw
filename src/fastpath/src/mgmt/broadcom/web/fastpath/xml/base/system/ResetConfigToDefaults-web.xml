@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ResetConfigToDefaults" title="Reset Configuration To Defaults">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <message>Exercising this function will cause all configuration parameters to be reset to their default values. </message>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" target-page="ConfirmResetConfig.html" help="Submits the form on this page to the Switch" id="1" name="Reset"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

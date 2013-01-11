@@ -1,0 +1,59 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>CoS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPPREC_SUPPORTED>
+<h2><a name=cos_ip_prec_map_cfg></a>Help for Class of Service IP Precedence Mapping Configuration</h2>
+
+  <h3>Selection Criteria </h3>
+  <ul type=disc>
+    <ul type=circle>
+      <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+        <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_IPPREC_PER_INTF_FEATURE">
+          These may be overridden on a per-interface basis.
+        </EMWEB_IF>
+      </li>
+    </ul>
+  </ul>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <h3>Configurable Data</h3>
+  <EMWEB_ELSE>
+  <h3>Non-Configurable Data</h3>
+  </EMWEB_IF>
+  <ul type=disc>
+    <ul type=circle>
+      <li><b>IP Precedence Traffic Class</b> - Specify which internal traffic class to map the corresponding IP Precedence value.
+Valid Range is
+          <EMWEB_STRING C='
+             L7_uint32 unit, interface=1, numTrafficClasses=0;
+
+             unit = usmDbThisUnitGet();
+             usmDbValidIntIfNumFirstGet(&interface);
+             usmDbDot1dPortNumTrafficClassesGet(unit, interface, &numTrafficClasses);
+
+             return usmWebIntegerRangeHelp(0, (numTrafficClasses - 1));
+             ' >.
+      </li>
+    </ul>
+  </UL>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <h3>Command Buttons </h3>
+    <ul type=disc>
+      <ul type=circle>
+        <li> <b>Submit</b> - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >
+        </li>
+        <li><b>Restore Defaults</b> - Restores default settings.</li>
+      </ul>
+    </ul>
+  </EMWEB_IF>
+</EMWEB_IF>
+

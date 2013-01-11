@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>GARP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2><a name=portgarpcfg></a>Help for GARP Port Configuration</h2>
+
+<P><B>Note:</b> It can take up to 10 seconds for GARP configuration changes to take effect.
+<BR>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> 
+  - Select the physical interface for which data is to be displayed or configured. 
+  It is possible to set the parameters for all ports by selecting 'All'.
+  </li>
+  
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port GVRP Mode</b> -
+      Choose the GARP VLAN Registration Protocol administrative mode for the port
+       by selecting enable or disable from the pull-down menu.
+       If you select disable, the protocol will not be active and the Join Time, Leave Time and Leave All
+      Time will have no effect. The factory default is disable. </li>
+  <li><b>Port GMRP Mode</b> -
+      Choose the GARP Multicast Registration Protocol
+       administrative mode for the port by selecting enable or disable from the pull-down menu.
+        If you select disable, the protocol will not be active, and Join Time, Leave Time and Leave All
+        Time have no effect. The factory default is disable. </li>
+<h4>GARP Timers</h4>
+  <li><b>Join Timer (centisecs)</b>
+      - Specify the time between the transmission of GARP PDUs
+      registering (or re-registering) membership for a VLAN or multicast group
+      in centiseconds.
+      Enter a number between 10 and 100 (0.1 to 1.0 seconds).
+      The factory default is 20 centiseconds (0.2 seconds). 
+      An instance of this timer exists for each GARP participant for each port.
+      </li>
+  <li><b>Leave Timer (centisecs)</b>
+      - Specify the time to wait after receiving an unregister
+      request for a VLAN or multicast group before deleting the associated entry, in centiseconds.
+      This allows time for another station to assert
+      registration for the same attribute in order to maintain uninterrupted
+      service.  Enter a number between 20 and 600 (0.2 to 6.0
+      seconds). The factory default is 60 centiseconds (0.6 seconds).  
+      An instance of this timer exists for each GARP participant for each port.
+       </li>
+  <li><b>Leave All Timer (centisecs)</b>
+      - The Leave All Time controls how frequently LeaveAll PDUs are
+      generated. A LeaveAll PDU indicates that all registrations will shortly
+      be deregistered. Participants will need to rejoin in order to maintain
+      registration.  The Leave All Period Timer is set to a random value in
+      the range of LeaveAllTime to 1.5*LeaveAllTime. 
+      The timer is specified in centiseconds. Enter a number between 200
+      and 6000 (2 to 60 seconds). The factory default is 1000
+      centiseconds (10 seconds). 
+      An instance of this timer exists for each GARP participant for each port. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

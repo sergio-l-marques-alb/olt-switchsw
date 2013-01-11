@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="XUI_L7_OSPF_VIR_INTF_STATE_t">
+      <option macro="L7_XUI_OSPF_INTF_DOWN" name="down"> </option>
+      <option macro="L7_XUI_OSPF_INTF_POINTTOPOINT" name="pointToPoint"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>

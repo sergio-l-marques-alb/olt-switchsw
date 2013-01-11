@@ -1,0 +1,67 @@
+<EMWEB_HEAD C='
+#include "usmdb_unitmgr_api.h"
+'>
+
+<PARAM NAME="company"        VALUE="bcm">             
+
+<PARAM NAME="STACKABLE"      VALUE=emweb:/USMWEB_JAVA_STACKING_ENABLED_GET;>    
+
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="STACKING" >
+
+<PARAM NAME="STACK_MAX_NUM_UNITS"    VALUE="8">    
+
+  <EMWEB_IF ID=USMWEB_IF_XUIBASE_PACKAGE VALUE="TRUE" >
+    <EMWEB_INCLUDE C=' return "/map_stacking.html"; ' >
+  <EMWEB_ELSE>
+    <EMWEB_INCLUDE C=' return "/java/stacking/map_stacking.html"; ' >
+  </EMWEB_IF>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56624.html"; '>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56524.html"; '>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56634.html"; '>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56636.html"; '>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56334.html"; '>
+  <EMWEB_INCLUDE C=' return "/java/xgs4/map_bcm56538.html"; '>
+
+<EMWEB_ELSE>
+
+  <EMWEB_INCLUDE C='
+       
+  L7_uint32 unitNum;
+  L7_uint32 unitType;
+  L7_uint32 boxID;
+  if (usmDbUnitMgrMgrNumberGet(&unitNum) == L7_SUCCESS)
+  {
+    if (usmDbUnitMgrUnitTypeGet(unitNum, &unitType) == L7_SUCCESS)
+    {
+      boxID = ((unitType & 0xFFFF0000)/0x10000);
+      switch (boxID)
+      { 
+        case 0xB624:
+           return "/java/xgs4/map_bcm56624.html";
+           break;
+        case 0xB524:
+          return "/java/xgs4/map_bcm56524.html";
+           break;
+        case 0xB634:
+           return "/java/xgs4/map_bcm56634.html";
+           break;
+        case 0xB538:
+           return "/java/xgs4/map_bcm56538.html";
+           break;
+        case 0xB636:
+          return "/java/xgs4/map_bcm56636.html";
+           break;
+        case 0xB334:
+          return "/java/xgs4/map_bcm56334.html";
+           break;
+        case 0x6820:
+          return "/java/xgs4/map_bcm56820.html";
+           break;
+      }
+    }
+  }
+  return "/java/xgs4/map_bcm56624.html";
+  ' >
+
+</EMWEB_IF>

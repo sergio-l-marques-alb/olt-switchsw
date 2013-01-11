@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="PBVLAN_GROUPID_FAILURE" output="\n Error! Failed to retrieve Group ID."/>
+     <error name="PBVLAN_INTFMASK_FAILURE" output="\n Error! Failed to retrieve Interface."/>
+     <error name="GROUP_PORT_ADD_FAILURE" output="\n Error! Failed to add Group Interface."/>
+     <error name="GROUP_PORT_DEL_FAILURE" output="\n Error! Failed to remove Group Interface."/>
+     <error name="PBVLAN_GROUP_DEL_FAILURE" output="\n Error! Failed to remove Group."/>
+  </misc>
+</FastPathXML>
+

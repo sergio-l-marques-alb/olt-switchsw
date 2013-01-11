@@ -1,0 +1,61 @@
+##############################################################################
+#
+# make.configure
+#
+# Purpose:  
+#      Set the default output directory for the view.
+#
+# Note:
+#      Expects the user to enter out=<out_path> to set the target output
+#      directory for the build.  Use 'cchelper' beforehand to create the
+#      output directory with its specific build configuration parameters.
+#
+##############################################################################
+
+
+outcfg_file := ./make_configure
+temp_file   := __temp_configure__
+
+
+# Changes the active output directory to be processed by make.
+#
+
+# Remove all trailing '/' characters from $(out) since they can ruin path names.
+trim_out = $(patsubst %/,%,$(subst //,,$(out)))
+
+.PHONY: configure
+configure::
+	@if [ ! "$(trim_out)" ] ;\
+	then \
+		$(echo) "Please specify an output directory using the out= parameter." ;\
+		exit 10 ; \
+	fi
+	@if [ ! -d $(trim_out) ] ;\
+	then \
+		$(echo) "Please run 'cchelper' to create output directory '$(trim_out)' within this view." ;\
+		exit 12 ; \
+	fi
+	@if [ ! -s $(trim_out)/package.cfg ] ;\
+	then \
+		$(echo) ">>> Please run 'cchelper' to configure build parameters for output directory '$(trim_out)'" ;\
+		exit 14 ; \
+	fi
+	@cat $(outcfg_file) > $(temp_file)
+	@sed -e 's#^\(export OUTPATH := \).*#\1$(trim_out)#' <$(temp_file) >$(outcfg_file)
+	-@$(RM) $(temp_file)
+	@echo "Project will now build from output location '$(trim_out)'"
+
+
+# Fallback target used only when OUTPATH directory no longer exists.
+#
+# Note: Real target of the same name is in src/l7tools/build/Makefile.
+#
+ifneq (,$(shell if [ ! -d $(OUTPATH) ] ; then echo "missing" ; fi))
+  .PHONY: list-outputs
+  list-outputs::
+	@echo ""
+	@echo "ERROR: The default output path $(OUTPATH) does not exist."
+	@echo "Run 'make configure out=output/xxx' to establish a new default."
+	@echo ""
+endif
+

@@ -1,0 +1,57 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPSnoopingInterfaceConfig" title="IGMP Snooping Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingSnoopingIntfGroup_Interface" id="1" name="Interface">
+                  <action type="extn" value="All" position="0" disable="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" hide="1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" show="1_23_1|1_24_1|1_25_1|1_26_1|1_27_1" enable="1_23_1|1_24_1|1_25_1|1_26_1|1_27_1"/>
+                   <action type="default" disable="1_23_1|1_24_1|1_25_1|1_26_1|1_27_1" hide="1_2_1|1_23_1|1_24_1|1_25_1|1_26_1|1_27_1" show="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" enable="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1"/>
+               </element>
+            </node>
+            <node id="2">
+                 <element control="combo" properties="write-only,hidden" value="IGMPSnooping" obj-name="SwitchingSnoopingIntfGroup_SnoopingProtocol" id="1" name="SnoopingProtocol">
+                   <action type="enum" discard="no" />
+                   <action type="enum" discard="yes" />
+                 </element>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_IGMP_GROUP_MEMBERSHIP_INTERVAL" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfGroupMembershipInterval" id="1" name="Group Membership Interval" maxLength="4"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_IGMP_MAX_RESPONSE_TIME" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfMaxResponseTime" id="1" name="Max Response Time&lt;br&#47;&gt;(Less Than Group Membership Interval)" maxLength="2"/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_IGMP_MCAST_ROUTER" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfMRPExpirationTime" id="1" name="Multicast Router Present Expiration Time" maxLength="4"/>
+            </node>
+
+            <node id="7">
+                <element control="combo" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfFastLeaveAdminMode" id="1" name="Fast Leave Admin Mode"/>
+            </node>
+             <node id="23">
+                <element control="combo" value="Disable" obj-name="SwitchingSnoopingIntfGroup_SnoopingGlobalAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="25">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECS"  value="10" obj-name="SwitchingSnoopingIntfGroup_SnoopingGlobalMaxResponseTime" id="1" name="Max Response Time(Less Than Group Membership Interval)"/>
+            </node>
+            <node id="24">
+                <element arghelp="HELP_IGMPSNOOPING_GRPMEM_INTVL" value="260" obj-name="SwitchingSnoopingIntfGroup_SnoopingGlobalGroupMembershipInterval" id="1" name="Group Membership Interval"/>
+            </node>
+            <node id="26">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECS" value="0" obj-name="SwitchingSnoopingIntfGroup_SnoopingGlobalMRPExpirationTime" id="1" name="Multicast Router Present Expiration Time"/>
+            </node>
+            <node id="27">
+                <element control="combo" value="Disable" obj-name="SwitchingSnoopingIntfGroup_SnoopingGlobalFastLeaveAdminMode" id="1" name="Fast Leave Admin Mode"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+      </group>
+    </webxml>
+</FastPathXML>

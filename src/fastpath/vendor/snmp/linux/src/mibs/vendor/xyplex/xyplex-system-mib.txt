@@ -1,0 +1,1416 @@
+            
+            
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                                   for Xyplex Systems
+            
+                                      17 October 1991
+            
+                            Xyplex Document Number 420-0545-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+            with SNMP over various transport services, such as UDP or 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            Ethernet.  In particular, it defines objects for base 
+            management of Xyplex systems.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            5.  Overview
+            
+            The System MIB contains basic information common to all 
+            Xyplex systems.
+            
+            The System MIB is mandatory for all Xyplex systems.
+            
+            The MIB comprises several base objects and one table, 
+            detailed in the following sections.  The table contains 
+            information on system resources.
+            
+            As a convenience to the reader, the base objects are:
+            
+                sysIdent
+                sysDefineMode
+                sysDateTime
+                sysTimeZone
+                sysLoadSoftware
+                sysDump
+                sysMaintenancePassword
+                sysLocalName
+                sysSoftwareVersionType
+                sysSoftwareVersion
+                sysRomVersion
+                sysHardwareType
+                sysHardwareVersion
+                sysChassisType
+                sysChassisVersion
+                sysCrash
+                sysInitialize
+                sysInitializeDelay
+                sysZeroAll
+                sysZeroBase
+                sysZeroBaseTime
+                sysLoadStatus
+                sysLoaderName
+                sysLoaderAddressType
+                sysLoaderAddress
+                sysDumperAddressType
+                sysDumperAddress
+                sysResourceLacks
+                sysChassisState
+                sysChassisFaultTransitions
+                sysResourceNumber
+                sysFeatureNumber
+            
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            The a resource table entry contains:
+            
+                resType
+                resCurrent
+                resWorst
+                resMaximum
+                resLacks
+                resLackTime
+            
+            The a feature table entry contains:
+            
+                featType
+                featStatus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-SYSTEM-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises, Counter, Gauge, TimeTicks
+                                    FROM RFC1155-SMI
+                            DisplayString
+                                    FROM RFC1158-MIB
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB;
+            
+            xyplex          OBJECT IDENTIFIER ::= { enterprises 33 }
+            xSystem         OBJECT IDENTIFIER ::= { xyplex 1 }
+            
+            -- This MIB module uses the extended OBJECT-TYPE macro as
+            -- defined in [9]
+            
+            -- This is a MIB module for all Xyplex systems
+            
+            -- Textual Conventions
+            
+            DateTime ::=
+                OCTET STRING (SIZE (8))
+            -- This data type is used throughout the Xyplex private MIB
+            -- to model an absolute date and time.
+            -- In order, the octets contain the following information:
+            -- century, year within century (0..99), month (1..12),
+            -- day (1..31), hour (0..23), minute (0..59),
+            -- second (0..59), hundredth (0..99).  If the century
+            -- value is zero, the date and time are unknown, and the
+            -- other values are meaningless.
+            
+            AddressType ::=
+                INTEGER  { unknown(1), other(2), local(3),
+                           ip(4), ethernet(5) }
+            -- This data type is used throughout the Xyplex private MIB
+            -- to indicate the type of an address stored in a related
+            -- octet string.
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            -- the System group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems.
+            
+            sysIdent OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..50))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "An identification string for local and remote 
+                    displays.  Corresponds directly to SERVER 
+                    IDENTIFICATION and the value labeled 
+                    'Identification:' on the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 1 }
+            
+            sysDefineMode OBJECT-TYPE
+                SYNTAX INTEGER { permOnly(1), operAndPerm(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The system's operation with regard to DEFINE 
+                    commands.  'permOnly' indicates that DEFINE commands 
+                    modify only the permanent data base.  'operAndPerm' 
+                    indicates that DEFINE commands modify both 
+                    operational and permanent data bases, unless 
+                    specifically documented to the contrary.  
+                    Corresponds to SERVER CHANGE and the presence of the 
+                    label CHANGE in the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 2 }
+            
+            sysDateTime OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The system's current local date and time.  
+                    Corresponds directly to SERVER DATE and SERVER TIME 
+                    and the value in various displays."
+                ::= { xSystem 3 }
+            
+            sysTimeZone OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (2))
+                ACCESS read-write
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "The adjustment to apply to a universal (Greenwich) 
+                    time received when down-line loaded, comprising two 
+                    octets.  The first octet is the number of hours west 
+                    of universal, the second is the number of minutes.  
+                    Corresponds directly to SERVER TIMEZONE and the 
+                    value labeled 'Timezone:' in the SERVER 
+                    CHARACTERISTICS display."
+                ::= { xSystem 4 }
+            
+            sysLoadSoftware OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..15))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The software file name to request for down-line 
+                    load of the server.  Corresponds directly to SERVER 
+                    SOFTWARE, and the value labeled 'Software:' in the 
+                    SERVER CHARACTERISTICS display."
+                ::= { xSystem 5 }
+            
+            sysDump OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for dumping the system's memory when the 
+                    system crashes.  Corresponds directly to SERVER DUMP 
+                    and the presence of 'Dump' under the label 'Enabled 
+                    Characteristics' in the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 6 }
+            
+            sysMaintenancePassword OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (0..8))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The password a management system must supply to 
+                    force the system to reboot or use the system's 
+                    remote console via the Maintenance Operation 
+                    Protocol (MOP).  Corresponds directly to SERVER 
+                    MAINTENANCE PASSWORD.
+            
+                    When setting this value, the management system must 
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                            supply eight octets, filling with zeros from the 
+                    first octet.  That is, the value '1ab42' would be 
+                    expressed as '0.0.0.0.0.1.ab.42'.  Setting the value 
+                    to zero disables the password check.
+            
+                    When returning this value, the agent always returns 
+                    a zero length OCTET STRING."
+                ::= { xSystem 7 }
+            
+            sysLocalName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The system's local name.  Corresponds directly to 
+                    SERVER NAME and the value labeled 'Name:' in the 
+                    SERVER CHARACTERISTICS display."
+                ::= { xSystem 8 }
+            
+            sysSoftwareVersionType OBJECT-TYPE
+                SYNTAX INTEGER { alpha(1), beta(2),
+                                 production(3), special(4) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The software version variant running in the system.  
+                    Corresponds to the letter in the software version in 
+                    the SERVER CHARACTERISTICS display.
+            
+                    alpha         'A':   alpha test
+                    beta          'B':   beta test
+                    production    null:  normal, production software
+                    special       'S':   special, custom software
+                    "
+                ::= { xSystem 9 }
+            
+            sysSoftwareVersion OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (4))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The software version running in the system.  In 
+                    order, the octets contain major version, minor 
+                    version, ECO, and pre-release number.  Corresponds 
+                    to the numbers in the software version in the SERVER 
+                    CHARACTERISTICS display.
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            
+                    For example, the version display for 
+                    sysSoftwareVersionType 'production' and 
+                    sysSoftwareVersion '2.2.0.0' is 'V2.2'.
+            
+                    The version display for sysSoftwareVersionType 
+                    'beta' and sysSoftwareVersion '3.1.0.4' is 
+                    'V3.1B4'."
+                ::= { xSystem 10 }
+            
+            sysRomVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The firmware version of the bootstrap ROM installed 
+                    in the system.  Corresponds directly to the value 
+                    labeled 'Rom' in the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 11 }
+            
+            sysHardwareType OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of hardware on which the system is 
+                    running, with values as defined in [10].  
+                    Corresponds directly to the value labeled 'Hardware 
+                    Type:' in the UNIT display."
+                ::= { xSystem 12 }
+            
+            sysHardwareVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "This version of hardware on which the system is 
+                    running.  Corresponds directly to part of the value 
+                    labeled 'HW' in the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 13 }
+            
+            sysChassisType OBJECT-TYPE
+                SYNTAX INTEGER { mx45xx(1), other(2) }
+                ACCESS read-only
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of chassis in which the system is running.  
+                    Corresponds directly to part of the value labeled 
+                    'HW' in the SERVER CHARACTERISTICS display."
+                ::= { xSystem 14 }
+            
+            sysChassisVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "This version of chassis in which the system is 
+                    running.  Corresponds directly to part of the value 
+                    labeled 'HW' in the SERVER CHARACTERISTICS 
+                    display."
+                ::= { xSystem 15 }
+            
+            sysCrash OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause this system to crash.  In response 
+                    to a get-request or get-next-request, the agent 
+                    always returns 'ready' for this value.  Setting the 
+                    value to 'ready' has no effect.  Setting it to 
+                    'execute' causes an immediate crash.  Corresponds to 
+                    the CRASH command."
+            ::= { xSystem 16 }
+            
+            sysInitialize OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), conditionalExecute(2),
+                                 unconditionalExecute(3), cancel(4) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause this system to reset its software 
+                    to initial load values, typically by reloading.  
+                    When executing an initialize command, the system 
+                    observes the value of sysInitializeDelay as supplied 
+                    anywhere in the same set request with sysInitialize.  
+                    If this value is not included in the set request, 
+                    the system uses its default value.
+            
+                    In response to a get-request or get-next-request, 
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                            the agent always returns 'ready' for this value.  
+                    Setting the value to 'ready' has no effect.  Setting 
+                    it to 'conditionalExecute' causes initialization if 
+                    the overall system state is acceptible (such as not 
+                    needing to store permanent parameters).  Setting it 
+                    to 'unconditionalExecute' causes initialization 
+                    regardless of the overall system state.  Setting it 
+                    to 'cancel' aborts an initialization that has not 
+                    yet started.  According to standard SNMP operation, 
+                    if the system is not in a proper state to accept a 
+                    given set request for this value, it returns the 
+                    standard SNMP error 'badValue'.
+            
+                    Corresponds to the INITIALIZE command."
+                ::= { xSystem 17 }
+            
+            sysInitializeDelay OBJECT-TYPE
+                SYNTAX INTEGER (0..32768)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of minutes to delay before beginning the 
+                    system initialization process as executed with 
+                    sysInitialize.
+            
+                    This value cannot be set outside a set-request that 
+                    contains the value 'execute' for sysInitialize.  If 
+                    not included in such a set, the default value is 1.
+            
+                    Corresponds to the INITIALIZE command's DELAY 
+                    parameter and to the value labeled 'Minutes to 
+                    shutdown:' in the SYSTEM STATUS display."
+                ::= { xSystem 18 }
+            
+            sysZeroAll OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to zero all counters.  In response to a 
+                    get-request or get-next-request, the agent always 
+                    returns 'ready' for this value.  Setting the value 
+                    to 'ready' has no effect.  Setting it to 'execute' 
+                    causes all the system's counters to be zeroed.  
+                    Corresponds to the ZERO ALL command."
+                ::= { xSystem 19 }
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            
+            sysZeroBase OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to zero all base counters.  In response to 
+                    a get-request or get-next-request, the agent always 
+                    returns 'ready' for this value.  Setting the value 
+                    to 'ready' has no effect.  Setting it to 'execute' 
+                    causes all the system's base counters to be zeroed.  
+                    Examples of counters that are zeroed are the SNMP 
+                    counters or the counters from the SYSTEM COUNTERS 
+                    display.  Examples of counters that are not zeroed 
+                    are Ethernet interface counters or port counters.  
+                    Corresponds to the ZERO SYSTEM command."
+                ::= { xSystem 20 }
+            
+            sysZeroBaseTime OBJECT-TYPE
+                SYNTAX TimeTicks
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number hundredths of a second since the most 
+                    recent zeroing of the base counters, such as through 
+                    execution of sysZeroAll or sysZeroBase.  Corresponds 
+                    directly to the value labeled 'Seconds Since 
+                    Zeroed:' in the SERVER COUNTERS display."
+                ::= { xSystem 21 }
+            
+            sysLoaderName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..40))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The name of the system that provided this system's 
+                    running software.  Corresponds directly to the value 
+                    labeled 'Primary Host:' in the SERVER STATUS 
+                    display."
+                ::= { xSystem 22 }
+            
+            sysLoaderAddressType OBJECT-TYPE
+                SYNTAX AddressType
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+
+            
+            
+                                                               [Page  15]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                    "The type of network address contained in 
+                    sysLoaderAddress.  'unknown' means no address has 
+                    been defined.  'other' means no other type value 
+                    applies.  'local' means there is no address and this 
+                    system's software was loaded from local storage.  
+                    'ip' is an Internet IP address.  'ethernet' is an 
+                    802.3 MAC address.  Corresponds indirectly to the 
+                    value labeled 'Load Address:' in the SERVER STATUS 
+                    display."
+                ::= { xSystem 23 }
+            
+            sysLoaderAddress OBJECT-TYPE
+                SYNTAX OCTET STRING
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The network address of the system that provided 
+                    this system's running software.  Corresponds 
+                    directly to the value labeled 'Load Address:' in the 
+                    SERVER STATUS display."
+                ::= { xSystem 24 }
+            
+            sysDumperAddressType OBJECT-TYPE
+                SYNTAX AddressType
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of network address contained in 
+                    sysDumperAddress.  'unknown' means no address has 
+                    been defined.  'other' means no other type value 
+                    applies.  'local' means there is no address and this 
+                    system's was dumped to local storage.  'ip' is an 
+                    Internet IP address.  'ethernet' is an 802.3 MAC 
+                    address.  Corresponds indirectly to the value 
+                    labeled 'Dump Address:' in the SERVER STATUS 
+                    display."
+                ::= { xSystem 25 }
+            
+            sysDumperAddress OBJECT-TYPE
+                SYNTAX OCTET STRING
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The network address of the system that most 
+                    recently accepted a crash dump from this system.  
+                    Corresponds directly to the value labeled 'Dump 
+
+            
+            
+                                                               [Page  16]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                            Address:' in the SERVER STATUS display."
+                ::= { xSystem 26 }
+            
+            sysResourceLacks OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of times a local resource allocation 
+                    failed, for example due to lack of dynamic memory.  
+                    Corresponds directly to the value labeled 'Resource 
+                    Errors:' in the SERVER STATUS display."
+                ::= { xSystem 27 }
+            
+            sysChassisState OBJECT-TYPE
+                SYNTAX INTEGER { notApplicable(1), noFault(2), fault(3) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "For chassis-based systems, the state of the overall 
+                    chassis.  'notApplicable' indicates the system is 
+                    not chassis based.  'noFault' indicates no current 
+                    chassis problem.  'fault' indicates a current 
+                    chassis problem such as a card or power supply 
+                    failure.  Corresponds directly to the value labeled 
+                    'Crate Current State: in the SERVER ALTERNATE STATUS 
+                    display."
+                ::= { xSystem 28 }
+            
+            sysChassisFaultTransitions OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of times this system has seen 
+                    sysChassisState switch from 'noFault' to 'fault' or 
+                    from 'fault' to 'noFault'.  Corresponds directly to 
+                    the value labeled 'Crate Transition Count: in the 
+                    SERVER ALTERNATE STATUS display."
+                ::= { xSystem 29 }
+            
+            sysResourceNumber OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+
+            
+            
+                                                               [Page  17]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                    "The number of resource entries in the Resource 
+                    table."
+                ::= { xSystem 30 }
+            
+            sysFeatureNumber OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of feature entries in the Feature 
+                    table."
+                ::= { xSystem 31 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  18]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            -- the Resource table
+            
+            resTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF ResEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of resource entries.  The number of entries 
+                    is given by the value of sysResourceNumber."
+                ::= { xSystem 32 }
+            
+            resEntry OBJECT-TYPE
+                SYNTAX ResEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Status values for a system resource."
+                INDEX { resType }
+                ::= { resTable 1 }
+            
+            ResEntry ::=
+                SEQUENCE {
+                    resType
+                        INTEGER,
+                    resCurrent
+                        Gauge,
+                    resWorst
+                        Gauge,
+                    resMaximum
+                        INTEGER,
+                    resLacks
+                        INTEGER,
+                    resLackTime
+                        DateTime
+                }
+            
+            resType OBJECT-TYPE
+                SYNTAX INTEGER { cpuPercent(1), memoryPercent(2),
+                                 process(3), timer(4), packetBuffer(5),
+                                 ipcMessage(6), textPool(7),
+                                 freeMemory(8), globalMemoryPercent(9) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of a resource type.  Typically 
+                    corresponds directly to a label such as 'Processes:' 
+
+            
+            
+                                                               [Page  19]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                            in the SERVER ALTERNATE STATUS display."
+                ::= { resEntry 1 }
+            
+            resCurrent OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of resources currently in use on the 
+                    system.  Typically corresponds directly to a value 
+                    labeled 'Cur' in the SERVER ALTERNATE STATUS 
+                    display."
+                ::= { resEntry 2 }
+            
+            resWorst OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The highest or lowest value of resCurrent since 
+                    system initialization.  Typically corresponds 
+                    directly to a value labeled 'High' or 'Low' in the 
+                    SERVER ALTERNATE STATUS display."
+                ::= { resEntry 3 }
+            
+            resMaximum OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The maximum possible number of resources in the 
+                    system.  In many cases, ACCESS to this object is 
+                    read-only.  Typically corresponds directly to a 
+                    value labeled 'Max' in the SERVER ALTERNATE STATUS 
+                    display."
+                ::= { resEntry 4 }
+            
+            resLacks OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of times since system initialization 
+                    that the system could not obtain the resource 
+                    because none were available.  Typically corresponds 
+                    directly to a value labeled 'Failure' in the SERVER 
+
+            
+            
+                                                               [Page  20]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                            ALTERNATE STATUS display.
+            
+                    If such failures do not apply to the particular 
+                    resource, such as 'cpuPercent', the agent returns 
+                    zero for this object."
+                ::= { resEntry 5 }
+            
+            resLackTime OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The local system date and time when resLack last 
+                    increased.  Typically corresponds directly to a 
+                    value labeled 'Last Occurred' in the SERVER 
+                    ALTERNATE STATUS display.
+                        
+                    If such failures do not apply to the particular 
+                    resource, such as 'cpuPercent', the agent returns 
+                    all zeroes (unknown) for this object."
+            ::= { resEntry 6 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  21]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            -- the Feature table
+            
+            featTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF FeatEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of feature entries.  The number of entries 
+                    is given by the value of sysFeatureNumber."
+                ::= { xSystem 33 }
+            
+            featEntry OBJECT-TYPE
+                SYNTAX FeatEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Status values for a system feature."
+                INDEX { featType }
+                ::= { featTable 1 }
+            
+            FeatEntry ::=
+                SEQUENCE {
+                    featType
+                        INTEGER,
+                    featStatus
+                        INTEGER
+                }
+            
+            featType OBJECT-TYPE
+                SYNTAX INTEGER { help(1), snmp(2), xremote(3),
+                                 tn3270(4), menu(5), multisessions(6),
+                                 lat(7), eventLog(8),
+                                 internetSecurity(9), slip(10),
+                                 scriptServer(11), kerberos(12),
+                                 telnet(13), rlogin(14) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of a feature type.  Corresponds to a 
+                    SERVER feature keyword."
+                ::= { featEntry 1 }
+            
+            featStatus OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+
+            
+            
+                                                               [Page  22]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+                DESCRIPTION
+                    "The status of the feature as of the next system 
+                    initialization.  Corresponds to the presence of the 
+                    feature's lable following the label 'Enabled 
+                    Feature(s): in the UNIT display."
+                ::= { featEntry 2 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  23]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  24]
+
+
+            
+                                   XYPLEX SYSTEM MIB          17 Oct 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Xyplex Assigned Numbers, Xyplex document number 420-
+            0497-B, (July, 1991).
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  25]
+

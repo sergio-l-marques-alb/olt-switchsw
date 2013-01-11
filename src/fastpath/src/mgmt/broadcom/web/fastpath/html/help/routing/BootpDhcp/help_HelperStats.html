@@ -1,0 +1,51 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Routing-IP Helper</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="90%" align=center>
+
+<h2><a name=status></a>Help for IP Helper Statistics</h2>
+
+  <h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DHCP Client Messages Received</b> - The number of valid messages received from a DHCP client.  
+                                             The count is only incremented if IP helper is enabled globally, the ingress routing interface is up, and the packet passes a number of validity checks, such as having a TTL &gt;1 and having valid source and destination IP addresses. </li>
+  <li><b>DHCP Client Messages Relayed</b> - The number of DHCP client messages relayed to a server.  If a message is relayed to multiple servers, the count is incremented once for each server. </li>
+  <li><b>DHCP Server Messages Received</b> - The number of DHCP responses received from the DHCP server.  This count only includes messages that the DHCP server unicasts to the relay agent for relay to the client. </li>
+  <li><b>DHCP Server Messages Relayed</b> - Specifies the number of DHCP server messages relayed to a client. </li>
+  <li><b>UDP Client Messages Received</b> - The number of valid UDP packets received.  This count includes DHCP messages and all other protocols relayed.  Conditions are similar to those for the first statistic in this table. </li>
+  <li><b>UDP Client Messages Relayed</b> - The number of UDP packets relayed.  This count includes DHCP messages relayed as well as all other protocols.  The count is incremented for each server to which a packet is sent. </li>
+  <li><b>DHCP Client Messages with hops greater than Max</b> - Specifies the number of DHCP Client Messages with hops greater than Max.</li>
+  <li><b>DHCP Pkts Received too early</b> - Specifies the number of DHCP Pkts Received too early. </li>
+  <li><b>Received DHCP Client message with giaddr as our own</b> - Specifies the number of DHCP Client messages received with giaddr as our own.</li>
+  <li><b>UDP TTL Expired Pkts Received</b> - Specifies the number of UDP packets received with expired TTL. </li>
+  <li><b>UDP Pkts Discarded</b> - Specifies the number of UDP packets discarded. </li>
+ </ul>
+</ul>
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+     <li><b>Clear Statistics</b> - Resets all helper Statistics. </li> 
+</EMWEB_IF>
+     <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,71 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VRRPTrackIntf" title="VRRP Interface Tracking Configuration" java-script="VRRPTrackIntf_copy">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="label" properties="filter,iterate" obj-name="routingvrrpOperationEntry_ifIndex" id="1" />
+            </node>
+            
+            <node id="2">
+                <element control="label" properties="filter,iterate" obj-name="routingvrrpOperationEntry_VrId" id="1" name="Virtual Router ID"/>
+            </node>
+            
+            <node id="3">
+                <element control="combo"  properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingVrrpTrackIntfTable_ifIndex" id="1" />
+            </node>
+            
+            <node id="4">
+                <element control="combo" properties="hidden"  cpval="routingvrrpOperationEntry_VrId" obj-name="routingVrrpTrackIntfTable_VrrpOperVrId" id="1" name="VRID"/>
+            </node>    
+        </group>
+
+        <group id="2" heading=" ">
+            <repeat present="vtable" edit="inline" heading="VRRP Tracking Interfaces List" id="1">
+                <element properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingVrrpTrackIntfTable_ifIndex" id="1" />
+                <element properties="hidden" cpval="routingvrrpOperationEntry_VrId" obj-name="routingVrrpTrackIntfTable_VrrpOperVrId" id="2" name="VRID"/>
+                <element properties="filter,iterate,read-only"  obj-name="routingVrrpTrackIntfTable_VrrpTrackIntf" id="3" name="Tracking Interface"/>
+                
+                <element control="textbox" properties="read-write" maxLength="10" obj-name="routingVrrpTrackIntfTable_VrrpTrackIfPrioDec" id="4" name="Priority Decrement" />
+                <element control="label" properties="read-only" obj-name="routingVrrpTrackIntfTable_VrrpTrackIfState" id="5" name="Interface State"/>
+
+                <element control="checkbox-neg" properties="edit" obj-name="routingVrrpTrackIntfTable_VrrpTrackIfStatus" id="6" name="Remove">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                </element>
+                
+            </repeat>            
+        </group>
+        
+        <group id="3" heading=" ">
+          <node id="1">
+          
+                <button scope="page" type="buttonClear" target-page="VRRPTrackIntfAdd.html" help="Refreshes the form on this page from the Switch" id="1" name="Add">
+                <action type="button" disable="2_1_4||2_1_6|3_1_2|3_1_3|3_1_4"/>
+                </button>
+                
+                <button scope="page" type="buttonSubmit" help="Submits the page to the Switch" id="2" name="Submit">
+                <action type="button" disable="3_1_1|3_1_3|3_1_4"/>
+                </button>
+
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh">
+                <action type="button" disable="2_1_4|2_1_6|3_1_1|3_1_2|3_1_4"/>
+                </button>
+
+                <button scope="page" type="buttonClear" target-page="VRRPRouterConfig.html" help="Refreshes the form on this page from the Switch" id="4" name="Cancel">
+                <action type="button" disable="2_1_4||2_1_6|3_1_1|3_1_2|3_1_3"/>
+                </button>
+                
+            </node>            
+        </group>
+        
+    </webxml>
+</FastPathXML>

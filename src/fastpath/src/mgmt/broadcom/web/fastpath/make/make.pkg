@@ -1,0 +1,75 @@
+# This is a package-level makefile used to build a partially-linked package library
+#
+#   - PKGID designates package identifier used for customizing common make var names
+#   - PKGNAME designates the output name of this package
+#
+
+MASTERSRC += $(OUT_OBJECTS)/xui/content/obj.tmp
+
+ifeq (1,$(BLD_L7_COMPONENTS_CAPTIVE_PORTAL))
+MASTERSRC += src/mgmt/broadcom/web/fastpath/code/security/captive_portal
+endif
+
+ifeq (1,$(BLD_L7_FLEX_WIRELESS))
+MASTERSRC += src/mgmt/broadcom/web/fastpath/code/wireless
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_SNOOPING))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/switching/dhcp_snooping/base
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_L2_RELAY))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/switching/dhcp_snooping/dhcp_l2relay
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_IPSG))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/switching/dhcp_snooping/IPSG
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DAI))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/switching/dynamic_arp_inspection
+endif
+
+MASTERSRC += src/mgmt/broadcom/web/fastpath/code/base/FDB
+MASTERSRC += src/mgmt/broadcom/web/fastpath/code/base/log
+
+MASTERSRC += src/mgmt/broadcom/web/fastpath/code/switching/MFD
+
+ifeq (1,$(BLD_L7_FLEX_QOS))
+  ifeq (1,$(BLD_L7_COMPONENTS_ACL))
+    MASTERSRC += src/mgmt/broadcom/web/fastpath/code/qos/acl
+  endif
+  ifeq (1,$(BLD_L7_COMPONENTS_DIFFSERV))
+    MASTERSRC += src/mgmt/broadcom/web/fastpath/code/qos/diffserv
+  endif
+endif
+
+
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routing/
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routing/arp
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routing/routing
+  ifeq (1,$(BLD_L7_COMPONENTS_OSPF))
+    MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routing/ospf
+  endif
+endif
+
+ifeq (1,$(BLD_L7_FLEX_IPV6))
+  MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routingv6
+  ifeq (1,$(BLD_L7_COMPONENTS_OSPF))
+    MASTERSRC += src/mgmt/broadcom/web/fastpath/code/routingv6/ospfv3
+  endif
+endif
+
+MASTERSRC += src/mgmt/web/code
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += src/mgmt/broadcom/cli_web_mgr/include
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA += 
+
+include $(FP_ROOT)/src/xui/make/make.common.srcdist
+

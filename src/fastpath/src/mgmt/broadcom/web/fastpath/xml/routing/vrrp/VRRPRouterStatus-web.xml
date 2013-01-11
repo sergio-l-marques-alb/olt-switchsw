@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VRRPRouterStatus" title="Virtual Router Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="routingvrrpOperationEntry_VrId" id="2" name="VRID"/>
+                <element properties="filter,iterate" obj-name="routingvrrpOperationEntry_ifIndex" id="1"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_OperPriority" name="Priority" id="3"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_PreemptMode" id="4" name="Pre-empt&lt;br&#47;&gt;Mode"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_AdvertisementInterval" id="5" name="Advertisement&lt;br&#47;&gt;Interval(secs)"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_PrimaryIpAddr" id="6" name="Virtual &lt;br&#47;&gt;IP Address"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_RouterIntfAddress" id="7" name="Interface &lt;br&#47;&gt;IP Address"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_isOwner" id="8" name="Owner"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_VirtualMacAddr" id="9" name="VMAC &lt;br&#47;&gt;Address"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_AuthType" id="10" name="Auth&lt;br&#47;&gt;Type"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_State" id="11"/>
+                <element control="label" properties="read-only" obj-name="routingvrrpOperationEntry_AdminState" id="12" name="Status"/>
+                <element properties="hidden" cpval="routingvrrpOperationEntry_VrId"  obj-name="routingvrrpAssoIpAddr_VrId" id="13" name="VRID"/>
+                <element properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingvrrpAssoIpAddr_ifIndex" id="14" name="VLAN ID"/>
+                <element control="label" properties="iterate,read-only" obj-name="routingvrrpAssoIpAddr_AssoIpAddrReturnzeroIfnone" id="15" name="Secondary&lt;br&#47;&gt;IP Address"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

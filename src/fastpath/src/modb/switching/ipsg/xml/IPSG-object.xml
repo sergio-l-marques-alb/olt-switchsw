@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+
+<module name="IPSGIntfTable"  >
+<object name="IpsgIntIfNumber" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This object specifies the interface number"/>
+<ui  name="Unit/Slot/Port" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.5.1.1"/>
+</ui>
+</object>
+<object name="IpsgIntIfNumber" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This object specifies the interface number"/>
+<ui  name="Slot/Port" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.5.1.1"/>
+</ui>
+</object>
+<object name="IpsgIfVerifySource" depends="IpsgIntIfNumber" >
+<core  type="enum" xtype="TrueFalse_t" access="read-write" descr="This object indicates whether the interface is enabled for IPSG to forward the data based up on source Ip address."/>
+<ui  name="IPSG Interface Verify Source" style="choiceNselect1" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.5.1.2" />
+</ui>
+</object>
+<object name="IpsgIfPortSecurity" depends="IpsgIntIfNumber" >
+<core  type="enum" xtype="TrueFalse_t" access="read-write" descr="This object indicates whether the interface is enabled for IPSG to forward the data based up on source mac address in fdb table."/>
+<ui  name="IPSG Interface Port Security" style="choiceNselect1" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.5.1.3"/>
+</ui>
+</object>
+</module>
+
+<module name="IPSGStaticBindingTable"  >
+<key-combo list="StaticIpsgBindingIfIndex,StaticIpsgBindingVanId,StaticIpsgBindingMacAddr,StaticIpsgBindingIpAddr"/>
+<object name="StaticIpsgBindingIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This instance specifies the interface on which this IPSG binding is going to be added"/>
+<ui  name="Unit/Slot/Port" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.1"/>
+</ui>
+</object>
+<object name="StaticIpsgBindingIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This instance specifies the interface on which this IPSG binding is going to be added"/>
+<ui  name="Slot/Port" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.1"/>
+</ui>
+</object>
+<object name="StaticIpsgBindingVanId"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the VLAN to which this IPSG binding is going to be added"/>
+<ui  name="Static IPSG Binding VLAN Id" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.2"/>
+</ui>
+</object>
+<object name="StaticIpsgBindingMacAddr"  >
+<core  type="mac" key="yes" access="read-write" descr="This instance specifies the MAC address match value for the IPSG Binding."/>
+<ui  name="Static IPSG Binding MAC Address" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.3"/>
+</ui>
+</object>
+<object name="StaticIpsgBindingIpAddr"  >
+<core  type="ipv4" key="yes" access="read-write" descr="This instance specifies the IP address match value for the IPSG Binding."/>
+<ui  name="Static IPSG Binding Ip Address" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.4"/>
+</ui>
+</object>
+<object name="StaticIpsgBindingRowStatus" depends="StaticIpsgBindingIfIndex,StaticIpsgBindingVanId,StaticIpsgBindingMacAddr,StaticIpsgBindingIpAddr" >
+<core  xtype="L7_ROW_STATUS_t" type="row-status" access="read-write" descr="This instance specifies the status of this conceptual row."/>
+<ui  name="Static IPSG Binding Row Status" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.8.1.5"/>
+</ui>
+</object>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This instance specifies the interface on which this IPSG binding is going to be added"/>
+<ui  name="Unit/Slot/Port" style="inputLine" />
+</object>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-write" descr="This instance specifies the interface on which this IPSG binding is going to be added"/>
+<ui  name="Slot/Port" style="inputLine" />
+</object>
+<object name="VlanId"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the VLAN to which this IPSG binding is going to be added"/>
+<ui  name="IPSG VLAN Id" style="inputLine" />
+</object>
+<object name="MacAddress"  >
+<core  type="mac" access="write-only" descr="This instance specifies the MAC address match value for the IPSG Binding."/>
+<ui  name="IPSG MAC Address" style="inputLine" />
+</object>
+<object name="IpAddress"  >
+<core  type="ipv4" access="write-only" descr="This instance specifies the IP address match value for the IPSG Binding."/>
+<ui  name="IPSG Ip Address" style="inputLine" />
+</object>
+</module>
+
+<module name="IPSGDynamicBindingTable"  >
+<key-combo list="DynamicIpsgBindingIfIndex,DynamicIpsgBindingVanId,DynamicIpsgBindingMacAddr,DynamicIpsgBindingIpAddr"/>
+<object name="DynamicIpsgBindingIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-only" descr="This instance specifies the Interface on which this IPSG binding is added"/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.9.1.1"/>
+</ui>
+</object>
+<object name="DynamicIpsgBindingIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t"  key="yes" access="read-only" descr="This instance specifies the interface on which this IPSG binding is added"/>
+<ui  name="Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.9.1.1"/>
+</ui>
+</object>
+<object name="DynamicIpsgBindingVanId"  >
+<core  type="uint" key="yes" access="read-only" descr="This instance specifies the VLAN to which this IPSG binding is going to be added"/>
+<ui  name="Dynamic IPSG Binding VLAN Id" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.9.1.2"/>
+</ui>
+</object>
+<object name="DynamicIpsgBindingMacAddr"  >
+<core  type="mac" key="yes" access="read-only" descr="This instance specifies the MAC address match value for the IPSG Binding."/>
+<ui  name="Dynamic IPSG Binding MAC Address" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.9.1.3"/>
+</ui>
+</object>
+<object name="DynamicIpsgBindingIpAddr"  >
+<core  type="ipv4" key="yes" access="read-only" descr="This instance specifies the IP address match value for the IPSG Binding."/>
+<ui  name="Dynamic IPSG Binding Ip Address" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.8.23.9.1.4"/>
+</ui>
+</object>
+</module>
+
+</objectxml>
+</FastPathXML>

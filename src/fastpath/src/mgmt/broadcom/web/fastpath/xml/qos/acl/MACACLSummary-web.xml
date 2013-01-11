@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MACACLSummary" title="MAC ACL Summary" java-script="acl_summ">
+        <group id="1" heading=" ">
+            <repeat present="plain" edit="no" heading=" " id="1">
+                <element control="label" properties="iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL Name"/>
+                <element control="label" properties="iterate" obj-name="fastPathQOSACLQOSACL_aclMacName" id="2" name="MAC ACL Name"/>
+                <element control="label" properties="hidden"  obj-name="fastPathQOSACLQOSACL_aclIdSummary" id="3" cpval="fastPathQOSACLQOSACL_aclMacIndex" />
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleCountSummary" id="4"  name="Rules"/>
+                <element control="label" properties="iterate" obj-name="fastPathQOSACLQOSACL_aclIdIfDirectionSummary" id="5"  name="Direction"/>
+                <element control="label" compile_if="IF_STACKING_PACKAGE_PRESENT" obj-name="fastPathQOSACLQOSACL_aclMacInterfaceListSummary" id="6" name="Interface"/>
+                <element control="label" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" obj-name="fastPathQOSACLQOSACL_aclMacInterfaceListSummary" id="6" name="Interface"/>
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclMacVlanListSummary" id="7"  name="VLAN"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

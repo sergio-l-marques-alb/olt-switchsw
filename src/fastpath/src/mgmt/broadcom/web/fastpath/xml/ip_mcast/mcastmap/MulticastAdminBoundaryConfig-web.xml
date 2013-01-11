@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MulticastAdminBoundaryConfig" title="IPv4 Multicast Admin Boundary Configuration">
+
+        <group id="1" heading=" ">
+            <node id="2">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastipMcastBoundaryTable_ipMcastBoundaryAddressType" id="1" name="Boundary Address Type"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastipMcastBoundaryTable_ipMcastBoundaryIfIndex" id="1" name ="Interface" />
+            </node>
+            <node id="4">
+                <element properties="write-only" value="" arghelp="IP_Address" maxLength="15" obj-name="ipmcastipMcastBoundaryTable_ipMcastBoundaryAddress" id="1" name="Group IP"/>
+            </node>
+            <node id="5">
+                <element properties="write-only" value="" arghelp="IP_Address" maxLength="15" obj-name="ipmcastipMcastBoundaryTable_ipMcastBoundaryAddressPrefixLength" id="1" name="Group Mask"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="ipmcastipMcastBoundaryTable_ipMcastBoundaryStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+	 </group>
+	 
+    </webxml>
+</FastPathXML>

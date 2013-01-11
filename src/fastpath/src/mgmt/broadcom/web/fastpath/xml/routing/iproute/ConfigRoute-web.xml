@@ -1,0 +1,67 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ConfigRoute" title="Router Route Preferences Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="label"  properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceLocal" id="1" name="Local"/>
+            </node>
+            <node id="2">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" compile_if="if_traffic_service_package" obj-name="routingipmapGlobalConfig_ipRoutePreferenceMPLS" id="1" name="MPLS"/>
+            </node>
+            <node id="3">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingipmapGlobalConfig_ipRoutePreferenceStatic" id="1" name="Static"/>
+            </node>
+            <node id="4">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfIntraArea" id="1" name="OSPF Intra"/>
+            </node>
+            <node id="5">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfInterArea" id="1" name="OSPF Inter"/>
+            </node>
+            <node id="6">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfExternal" id="1" name="OSPF External"/>
+            </node>
+            <node id="7">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingipmapGlobalConfig_ipRoutePreferenceRIP" id="1" name="RIP"/>
+            </node>
+            <node id="8">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" compile_if="if_bgp_package" obj-name="routingipmapGlobalConfig_ipRoutePreferenceIBGP" id="1" name="BGP4"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+            <node id="1">
+                <element control="label"  properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceLocal" id="1" name="Local"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" compile_if="if_traffic_service_package" obj-name="routingipmapGlobalConfig_ipRoutePreferenceMPLS" id="1" name="MPLS"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceStatic" id="1" name="Static"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfIntraArea" id="1" name="OSPF Intra"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfInterArea" id="1" name="OSPF Inter"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceOspfExternal" id="1" name="OSPF External"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingipmapGlobalConfig_ipRoutePreferenceRIP" id="1" name="RIP"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" compile_if="if_bgp_package" obj-name="routingipmapGlobalConfig_ipRoutePreferenceIBGP" id="1" name="BGP4"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
