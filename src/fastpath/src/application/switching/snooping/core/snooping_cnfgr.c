@@ -210,6 +210,35 @@ L7_RC_t snoopInit(L7_CNFGR_CMD_DATA_t *pCmdData)
     return L7_FAILURE;
   }
 
+/* PTin added: IGMPv3 snooping */
+#if 1
+  L7_uint32           i;
+
+  /* create the semaphore */
+  pSnoopEB->snoopPTinQueryQSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (pSnoopEB->snoopPTinQueryQSema == L7_NULL)
+  {
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID, "snoopInit: Unable to create snoop query queue semaphore\n");
+    cbData.correlator = pCmdData->correlator;
+    cbData.asyncResponse.rc = L7_FAILURE;
+    cbData.asyncResponse.u.reason = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    cnfgrApiCallback(&cbData);
+    return L7_FAILURE;
+  }
+
+  /* Initialize snoopPTinQueryQueueFreePos */
+  for(i=0; i<PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE ;++i)
+  {
+    pSnoopEB->snoopPTinQueryQueueFreeList[i] = i;
+  }
+
+  /* Initialize push and pop indexes */
+  pSnoopEB->snoopPTinQueryQueueFreeListPopIdx = 0;
+  pSnoopEB->snoopPTinQueryQueueFreeListPushIdx = 0;
+  pSnoopEB->snoopPTinQueryQueueFreeListFull = L7_FALSE;
+  pSnoopEB->snoopPTinQueryQueueFreeListEmpty = L7_TRUE;
+#endif
+
   /* Create Snoop Task - Errors are logged inside the called func */
   if (snoopStartTask() != L7_SUCCESS)
   {
@@ -1068,6 +1097,30 @@ L7_RC_t snoopEBInit(void)
                    pSnoopEB->snoopDataHeap, L7_MAX_GROUP_REGISTRATION_ENTRIES,
                    sizeof(snoopInfoData_t), 0x10,
                    sizeof(snoopInfoDataKey_t));
+
+/* DFF - PTin added: IGMPv3 snooping */
+#if 1
+  pSnoopEB->snoopPTinL3TreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  pSnoopEB->snoopPTinL3DataHeap = (snoopPTinL3InfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
+
+  if ((pSnoopEB->snoopPTinL3TreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinL3DataHeap == L7_NULLPTR))
+  {
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
+            "snoopEBInit: Error allocating data for snoop PTin L3 AVL Tree \n");
+    return L7_FAILURE;
+  }
+
+  /* Initialize the storage for all the AVL trees */
+  memset(&pSnoopEB->snoopPTinL3AvlTree, 0x00, sizeof(avlTree_t));
+  memset(pSnoopEB->snoopPTinL3TreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinL3DataHeap, 0x00, sizeof(snoopPTinL3InfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+
+  /* AVL Tree creations - snoopAvlTree*/
+  avlCreateAvlTree(&(pSnoopEB->snoopPTinL3AvlTree), pSnoopEB->snoopPTinL3TreeHeap, pSnoopEB->snoopPTinL3DataHeap,
+                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
+#endif
 
   /* L3 AVL Tree */
 #ifdef L7_MCAST_PACKAGE

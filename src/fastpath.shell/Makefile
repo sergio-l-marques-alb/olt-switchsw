@@ -7,7 +7,7 @@ X2 = $(shell echo $(X1) | bc)
 BUILD=\"$(shell date +%y%m%d)-$(X2)\"
 
 # Makefile for a multifile kernel module
-CROSS ?= /usr/local/pq2-linux-4.0.2/bin/powerpc-e300c3-linux-
+CROSS ?= /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
 LIB ?= /usr/local/pq2-linux-4.0.2/powerpc-e300c3-linux/lib
 CC=$(CROSS)gcc
 LD=$(CROSS)ld

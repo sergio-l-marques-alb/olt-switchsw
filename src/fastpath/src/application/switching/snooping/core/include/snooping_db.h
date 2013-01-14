@@ -122,6 +122,17 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId, L7_uchar8 family)
 L7_RC_t snoopEntryCreate(L7_uchar8* macAddr, L7_uint32 vlanId, L7_uchar8 family, L7_BOOL staticGroup);
 
 /******************************************************************************
+  PTin - SNOOP L3 Mcast DB Entry Processing Routines
+*******************************************************************************/
+#if 1
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t *mcastGroupAddr,
+                                            L7_uint16 vlanId, L7_uint32 flag);
+L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t *mcastGroupAddr, L7_uint16 vlanId);
+L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t *mcastGroupAddr,
+                               L7_uint16 vlanId);
+#endif
+
+/******************************************************************************
   SNOOP L3 Mcast DB Entry Processing Routines
 *******************************************************************************/
 snoopL3InfoData_t *snoopL3EntryFind(L7_inet_addr_t *mcastGroupAddr,

@@ -111,6 +111,8 @@ void help_oltBuga(void)
         "m 1630 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Show absolute evc statistics\n\r"
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
+        "--- Daniel --------------------------------------------------------------------------\r\n"
+        "m 10100 robustness=[1..7] query_interval=[1..255/12] query_response_interval=[<query_interval] - Configure IGMPv3 Variables\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
         "\n\r"
         );
@@ -1786,6 +1788,92 @@ int main (int argc, char *argv[])
         comando.infoDim = sizeof(msg_IgmpProxyCfg_t);
       }
       break;
+
+      case 10100:
+      {
+        msg_IgmpProxyCfg_t *ptr;
+        int index, ret;
+        char param[31], value[21];
+
+        // Pointer to data array
+        ptr = (msg_IgmpProxyCfg_t *) &(comando.info[0]);
+
+        // Clear structure
+        memset(ptr, 0x00, sizeof(msg_IgmpProxyCfg_t));
+
+        ptr->SlotId = (uint8) -1;
+        ptr->querier.mask  |= 0x0001; /* PTIN_IGMP_QUERIER_MASK_VER */
+        ptr->querier.version = 3;
+
+        for (index = (3 + 0); index < argc; index++)
+        {
+          param[0] = '\0';
+          value[0] = '\0';
+          if ((ret = sscanf(argv[index], "%30[^ \t:=]=%30s", param, value)) != 2)
+          {
+            printf("Invalid syntax: use <param1>=<value1> <param2>=<value2> ... (%d param=\"%s\" value=\"%s\")\r\n", ret,
+                   param, value);
+            exit(0);
+          }
+
+          if (strcmp(param, "robustness") == 0)
+          {
+            if (StrToLongLong(value, &valued) < 0)
+            {
+              printf("Invalid robustness value\r\n");
+              exit(0);
+            }
+            ptr->querier.robustness = (uint8) valued;
+            ptr->querier.mask |= 0x0002; /* PTIN_IGMP_QUERIER_MASK_RV */
+          }
+          else if (strcmp(param, "query-interval") == 0)
+          {
+            if (StrToLongLong(value, &valued) < 0)
+            {
+              printf("Invalid query interval value\r\n");
+              exit(0);
+            }
+            ptr->querier.query_interval = (uint16) valued;
+            ptr->querier.mask |= 0x0004; /* PTIN_IGMP_QUERIER_MASK_QI */
+          }
+          else if (strcmp(param, "query-response-interval") == 0)
+          {
+            if (StrToLongLong(value, &valued) < 0)
+            {
+              printf("Invalid query response interval value\r\n");
+              exit(0);
+            }
+            ptr->querier.query_response_interval = (uint16) valued;
+            ptr->querier.mask |= 0x0008; /* PTIN_IGMP_QUERIER_MASK_QRI */
+          }
+          else if (strcmp(param, "last-member-query-interval") == 0)
+          {
+            if (StrToLongLong(value, &valued) < 0)
+            {
+              printf("Invalid last member query interval value\r\n");
+              exit(0);
+            }
+            ptr->querier.last_member_query_interval = (uint16) valued;
+            ptr->querier.mask |= 0x0100; /* PTIN_IGMP_QUERIER_MASK_LMQI */
+          }
+          else
+          {
+            printf("Invalid param\r\n");
+            exit(0);
+          }
+        }
+
+        ptr->querier.flags |= 0x0001; /* PTIN_IGMP_QUERIER_MASK_AUTO_GMI */
+        ptr->querier.flags |= 0x0002; /* PTIN_IGMP_QUERIER_MASK_AUTO_OQPI */
+        ptr->querier.flags |= 0x0004; /* PTIN_IGMP_QUERIER_MASK_AUTO_SQI */
+        ptr->querier.flags |= 0x0008; /* PTIN_IGMP_QUERIER_MASK_AUTO_SQC */
+        ptr->querier.flags |= 0x0010; /* PTIN_IGMP_QUERIER_MASK_AUTO_LMQC */
+        ptr->querier.flags |= 0x0020; /* PTIN_IGMP_QUERIER_MASK_AUTO_OHPT */
+
+        comando.msgId = CCMSG_ETH_IGMP_PROXY_SET;
+        comando.infoDim = sizeof(msg_IgmpProxyCfg_t);
+      }
+        break;
 
       case 1401:
       case 1402:

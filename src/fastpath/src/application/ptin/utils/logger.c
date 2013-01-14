@@ -332,6 +332,13 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
 
     /* Output it... */
     fprintf(stdout, "%s%.*s%s\r\n", color, MAX_OUTBUF_LEN, outbuf, log_colors[LOG_COLOR_DEFAULT]);
+    /*
+     * PTin DFF - Always flush if we are printing an error.
+     */
+    if(!sev && sev<=4)
+    {
+      fflush(stdout);
+    }
 
     return;
 }
