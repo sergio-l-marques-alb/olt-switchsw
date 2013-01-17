@@ -754,10 +754,13 @@ L7_BOOL hapiBroadPktIsArp(L7_uchar8 *pkt)
 *********************************************************************/
 L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
 {
-  L7_uchar8           ip_ethtype[]  = {0x08, 0x00};
-  L7_uchar8           udp_proto[]   = {0x11};
-  L7_ushort16         dhcpc_dport   = osapiHtons(UDP_PORT_DHCP_CLNT);
-  L7_ushort16         dhcps_dport   = osapiHtons(UDP_PORT_DHCP_SERV);
+  L7_uchar8           ip_ethtype[]   = {0x08, 0x00};
+  L7_uchar8           ipv6_ethtype[] = {0x86, 0xdd};
+  L7_uchar8           udp_proto[]    = {0x11};
+  L7_ushort16         dhcpc_dport    = osapiHtons(UDP_PORT_DHCP_CLNT);
+  L7_ushort16         dhcps_dport    = osapiHtons(UDP_PORT_DHCP_SERV);
+  L7_ushort16         dhcp6c_dport   = osapiHtons(UDP_PORT_DHCP6_CLNT);
+  L7_ushort16         dhcp6s_dport   = osapiHtons(UDP_PORT_DHCP6_SERV);
   L7_ushort16         offset;
 
   if ( (pkt[18] & 0x0f) >= 5 )
@@ -769,6 +772,7 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
     offset = 0;
   }
 
+  /* IPv4 */
   if (memcmp(&pkt[16], ip_ethtype, sizeof(ip_ethtype)) == 0)
   {
     if (memcmp(&pkt[27], udp_proto, sizeof(udp_proto)) == 0)
@@ -778,6 +782,22 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
         return L7_TRUE;
       }
       if (memcmp(&pkt[40+offset], &dhcps_dport, sizeof(dhcps_dport)) == 0)
+      {
+        return L7_TRUE;
+      }
+    }
+  }
+
+  /* IPv6 */
+  if (memcmp(&pkt[16], ipv6_ethtype, sizeof(ipv6_ethtype)) == 0)
+  {
+    if (memcmp(&pkt[24], udp_proto, sizeof(udp_proto)) == 0)
+    {
+      if (memcmp(&pkt[60+offset], &dhcp6c_dport, sizeof(dhcp6c_dport)) == 0)
+      {
+        return L7_TRUE;
+      }
+      if (memcmp(&pkt[60+offset], &dhcp6s_dport, sizeof(dhcp6s_dport)) == 0)
       {
         return L7_TRUE;
       }

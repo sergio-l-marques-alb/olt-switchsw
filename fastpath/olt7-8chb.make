@@ -37,13 +37,17 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
-.PHONY: welcome all clean cleanall help h kernel
+.PHONY: welcome all clean cleanall help h kernel transfer
 
 all: welcome
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
+		echo "";\
+	else\
+		echo "Replacing package.cfg with the one with xweb and snmp compilation...";\
+		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg;\
 		echo "";\
 	fi;
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
@@ -56,6 +60,9 @@ all: welcome
 		$(shell $(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE))\
 	fi;
 	@echo ""
+
+transfer:
+	cd $(OUTPATH) && ./transfer_paulo.sh bin
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh

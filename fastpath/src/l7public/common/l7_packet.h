@@ -466,6 +466,8 @@ typedef struct L7_ipHeader_s
 #define UDP_PORT_PIM_AUTO_RP   496
 #define UDP_PORT_ISAKMP        500
 #define UDP_PORT_RIP           520
+#define UDP_PORT_DHCP6_SERV    546
+#define UDP_PORT_DHCP6_CLNT    547
 
 #define TCP_PORT_DNS            53
 #define TCP_PORT_HTTP           80

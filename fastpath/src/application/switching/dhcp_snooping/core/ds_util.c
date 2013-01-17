@@ -28,6 +28,7 @@
 #include "nimapi.h"
 #include "comm_mask.h"
 #include "sysnet_api_ipv4.h"
+#include "sysnet_api_ipv6.h"
 #include <stdlib.h>
 
 #include "ds_util.h"
@@ -246,9 +247,9 @@ L7_RC_t dsAdminModeEnable(void)
 #endif
     /* Intercept IP packets at DTL layer. This is before DHCP relay or
      * DHCP snooping get a crack at the packet in a routing build. */
-    sysnetPduIntercept.addressFamily = L7_AF_INET;
-    sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
-    sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+    sysnetPduIntercept.addressFamily = L7_AF_INET6; //L7_AF_INET;
+    sysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN; //SYSNET_INET_RECV_IN;
+    sysnetPduIntercept.hookPrecedence = L7_SYSNET_HOOK_PRECEDENCE_0; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
     strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
 

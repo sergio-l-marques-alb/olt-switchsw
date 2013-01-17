@@ -68,3 +68,6 @@ cleanall_cxp360g:
 	@$(MAKE) -f cxp360g.make cleanall
 	
 cleanall: cleanall_tolt8g cleanall_olt7-8chb cleanall_cxp360g
+
+transfer_olt7-8chb:
+	@$(MAKE) -f olt7-8chb.make transfer
