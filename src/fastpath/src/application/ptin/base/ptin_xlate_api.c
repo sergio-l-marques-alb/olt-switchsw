@@ -919,7 +919,7 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   /* Validate arguments */
   if (portgroup==0 || 
       outerVlanId>4095 || innerVlanId>4095 || 
-      newOuterVlanId>4095 || newInnerVlanId>4095)
+      newOuterVlanId>4095 || (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095))
   {
     LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
     return L7_FAILURE;
@@ -932,12 +932,13 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   xlate.outerVlan     = outerVlanId;
   xlate.innerVlan     = innerVlanId;
   xlate.outerVlan_new = newOuterVlanId;
-  xlate.innerVlan_new = newInnerVlanId;
+  xlate.innerVlan_new = (newInnerVlanId>4095) ? 0 : newInnerVlanId;
   xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  xlate.innerAction   = (innerVlanId!=0) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
+  xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
+  //xlate.innerAction   = (innerVlanId!=0) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
 #endif
 
   /* DTL call */
