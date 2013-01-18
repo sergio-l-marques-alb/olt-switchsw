@@ -699,6 +699,15 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   L7_netBufHandle bufHandle = L7_NULL;
   ssm_pdu_t *pdu;
   L7_uchar8 *data;
+  L7_uint16 slot, intf;
+
+  /* Convert port to slot/intf */
+  if (ssmPort2SlotIntf(intIfNum, &slot, &intf)!=L7_SUCCESS)
+  {
+    if (ssm_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    return L7_FAILURE;
+  }
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
@@ -750,7 +759,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   pdu->ssm_length = SSM_L4_LENGTH;
 
   /* SSM code */
-  pdu->ssm_code = 0x0f;
+  pdu->ssm_code = pfw_shm->intf[slot][intf].ssm_tx & 0x0f; // 0x0f;
 
   /*FCS calculation*/
   /*done by lower layers*/
@@ -760,6 +769,9 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
     LOG_ERR(LOG_CTX_PTIN_SSM,"Error transmiting packet");
     return L7_FAILURE;
   }
+
+  if (ssm_debug_enable)
+    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x",intIfNum,slot,intf,pfw_shm->intf[slot][intf].ssm_tx);
 
   return L7_SUCCESS;
 }
