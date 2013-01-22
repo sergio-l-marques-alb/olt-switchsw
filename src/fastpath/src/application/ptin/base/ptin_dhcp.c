@@ -22,6 +22,8 @@
  * Defines
  *********************************************/
 
+#define DHCP_ACCEPT_UNSTACKED_PACKETS 0
+
 #define DEFAULT_ACCESS_NODE_ID  "OLT360"   /* No more than 40 characters */
 
 #define DHCP_INVALID_ENTRY    0xFF
@@ -148,7 +150,9 @@ static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint16 UcastEvcId, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
 
+#if DHCP_ACCEPT_UNSTACKED_PACKETS
 static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
+#endif
 
 /*********************************************************** 
  * INLINE FUNCTIONS
@@ -2069,12 +2073,17 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   }
   else
   {
+    #if DHCP_ACCEPT_UNSTACKED_PACKETS
     if (ptin_dhcp_strings_def_get(&ptin_intf,macAddr,circuitId,remoteId)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
         LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting default strings");
       return L7_FAILURE;
     }
+    #else
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"No client defined!");
+    return L7_FAILURE;
+    #endif
   }
 
   return L7_SUCCESS;
@@ -3274,6 +3283,7 @@ static L7_BOOL ptin_dhcp82_validate_inputs(L7_uint32 *intIfNum, L7_uint16 *intVl
 }
 #endif
 
+#if DHCP_ACCEPT_UNSTACKED_PACKETS
 static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint slot = 0;
@@ -3313,4 +3323,5 @@ static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macA
 
   return L7_SUCCESS;
 }
+#endif
 
