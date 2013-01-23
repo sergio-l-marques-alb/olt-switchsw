@@ -53,7 +53,7 @@ all: welcome
 		echo "Saving original $(BIN_FILE) binary...";\
 		$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(BIN_FILE).unstripped;\
 		echo "Stripping $(BIN_FILE) binary...";\
-		$(shell $(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE))\
+		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
 	@echo ""
 
