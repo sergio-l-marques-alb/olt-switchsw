@@ -294,6 +294,8 @@ L7_BOOL ptin_dhcp82_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*
  */
 L7_BOOL ptin_dhcp82_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
 
+L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
+
 /**
  * Get DHCP client data (circuit and remote ids)
  * 

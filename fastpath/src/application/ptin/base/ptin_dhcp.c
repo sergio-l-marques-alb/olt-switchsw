@@ -148,8 +148,6 @@ static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint16 UcastEvcId, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
 
-static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
-
 /*********************************************************** 
  * INLINE FUNCTIONS
  ***********************************************************/
@@ -3274,7 +3272,7 @@ static L7_BOOL ptin_dhcp82_validate_inputs(L7_uint32 *intIfNum, L7_uint16 *intVl
 }
 #endif
 
-static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint slot = 0;
   L7_uint port_type = 0;

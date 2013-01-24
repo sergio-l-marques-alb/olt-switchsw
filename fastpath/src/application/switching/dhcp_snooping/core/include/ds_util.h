@@ -499,12 +499,22 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                                   L7_netBufHandle bufHandle,
                                   sysnet_pdu_info_t *pduInfo,
                                   L7_FUNCPTR_t continueFunc);
+SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
+                                    L7_netBufHandle bufHandle,
+                                    sysnet_pdu_info_t *pduInfo,
+                                    L7_FUNCPTR_t continueFunc);
 L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
                       L7_ushort16 vlanId, L7_uint32 intIfNum,
                       L7_ushort16 innerVlanId, L7_uint *client_idx);           /* PTin modified: DHCP snooping */
 L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                        L7_uchar8 *frame, L7_uint32 frameLen,
                        L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
+L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+                             L7_uchar8 *frame, L7_uint32 frameLen,
+                             L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
+L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+                             L7_uchar8 *frame, L7_uint32 frameLen,
+                             L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
 L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
                       L7_ushort16 innerVlanId, L7_uint *client_idx);          /* PTin modified: DHCP snooping */
