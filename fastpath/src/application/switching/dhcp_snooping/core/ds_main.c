@@ -130,7 +130,7 @@ void dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
 
 static L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRelayFrame, L7_ushort16 dhcpRelayFrameLen);
 
-static L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen, L7_dhcp6_opttype_t dhcpOp);
+static L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen,  L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_dhcp6_opttype_t dhcpOp);
 
 static L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId, L7_uint client_idx);
 
@@ -1618,7 +1618,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Add Interface-id option (option 18)
-   if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, L7_DHCP6_OPT_INTERFACE_ID))
+   if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, L7_DHCP6_OPT_INTERFACE_ID))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
       return L7_SUCCESS;
@@ -1766,11 +1766,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Send the new DHCP message to the client
    if(op_interfaceid_ptr)
    {
-      L7_dhcp6_option_packet_t *op_interfaceid_header;
       L7_uint32 converted_ifnum;
       L7_uchar8 *circuit_id, *ifnum_str;
 
-      op_interfaceid_header = (L7_dhcp6_option_packet_t*) op_interfaceid_ptr;
       circuit_id = op_interfaceid_ptr + sizeof(L7_dhcp6_option_packet_t);
 
       strtok(circuit_id, "/");
@@ -1827,22 +1825,20 @@ L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRel
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen, L7_dhcp6_opttype_t dhcpOp)
+L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen,  L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_dhcp6_opttype_t dhcpOp)
 {
    L7_char8 circuit_id[DS_MAX_REMOTE_ID_STRING], remote_id[DS_MAX_REMOTE_ID_STRING];
    L7_dhcp6_option_packet_t dhcp_op_dhcp_relay = { 0 };
-   ptin_intf_t ptin_intf;
 
-   L7_char8 macAddr[L7_MAC_ADDR_LEN] = {0}; //TODO Remove this in the future
-
+   L7_char8 macAddr[L7_MAC_ADDR_LEN] = { 0 }; //TODO Remove this in the future
    memset(macAddr, 0, L7_MAC_ADDR_LEN);
-   if (ptin_dhcp_stringIds_get(intIfNum,0,0,L7_NULLPTR,circuit_id,remote_id) != L7_SUCCESS)
+
+   if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , macAddr, circuit_id, remote_id) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Error getting default strings");
       return L7_FAILURE;
    }
-   LOG_WARNING(LOG_CTX_PTIN_DHCP, "Built circuit-id: %s", circuit_id);
 
    dhcp_op_dhcp_relay.option_code = L7_DHCP6_OPT_INTERFACE_ID;
    dhcp_op_dhcp_relay.option_len = strlen(circuit_id) + 1;
