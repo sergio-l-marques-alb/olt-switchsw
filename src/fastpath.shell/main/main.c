@@ -87,7 +87,7 @@ int main (int argc, char *argv[])
   // If no command is given, run in loop
   do
   {
-    printf("Broadcom shell > ",shell);
+    printf("Broadcom shell > ");
     request[0]='\0';
 
     // If no command is given, request it
