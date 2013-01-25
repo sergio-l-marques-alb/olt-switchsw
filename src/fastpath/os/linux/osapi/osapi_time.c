@@ -97,7 +97,11 @@ static pthread_mutex_t osapiPeriodicTimerLock = PTHREAD_MUTEX_INITIALIZER;
 
 #define OSAPI_TIMER_PERIODIC_SEM_GIVE pthread_cleanup_pop(1)
 
-static pthread_cond_t osapiTimerCond = PTHREAD_COND_INITIALIZER;
+/* PTin removed: Clock */
+#if 0
+static
+#endif
+pthread_cond_t osapiTimerCond = PTHREAD_COND_INITIALIZER;
 
 /**************************************************************************
 * Provide periodic timer resources
@@ -322,6 +326,10 @@ L7_RC_t osapiStopUserTimer (osapiTimerDescr_t *osapitimer)
 *************************************************************************/
 L7_RC_t osapiRestartUserTimerMain (osapiTimerDescr_t *osapitimer)
 {
+    /* PTin added: Clock */
+    #if 1
+    struct timespec monoTime;
+    #endif
 	struct timeval curTime;
 	osapiTimerListEntry_t *curEntry, *prevEntry;
 	osapiTimerListEntry_t *newEntry = (osapiTimerListEntry_t *)osapitimer;
@@ -345,11 +353,18 @@ L7_RC_t osapiRestartUserTimerMain (osapiTimerDescr_t *osapitimer)
 
 		if (running != 1)
 		{
+            /* PTin modified: Clock */
+            #if 0
 			if (gettimeofday(&curTime, NULL) != 0) {
-
 			   LOG_EVENT(errno);
-
 			}
+            #else
+            if (clock_gettime(CLOCK_MONOTONIC, &monoTime) != 0) {
+			   LOG_EVENT(errno);
+			}
+            curTime.tv_sec = monoTime.tv_sec;
+            curTime.tv_usec = monoTime.tv_nsec / 1000;
+            #endif
 
 			newEntry->ts_expiry.tv_sec = (curTime.tv_sec
 									   + (newEntry->timer.time_count / 1000));

@@ -338,6 +338,17 @@ int fp_main(int argc, char *argv[])
   L7_int32 startupStatusTaskID;
   L7_RC_t rc;
 
+  /* PTin added: Clock */
+  #if 1
+  extern pthread_cond_t osapiTimerCond;
+
+  pthread_condattr_t attr;
+
+  /* Set up the condvar attributes to use CLOCK_MONOTONIC. */
+  pthread_condattr_init( &attr);
+  pthread_condattr_setclock( &attr, CLOCK_MONOTONIC);
+  pthread_cond_init( &osapiTimerCond, &attr);
+  #endif
 
   /* Set up platform-specific functions for storing and retrieving the
   ** error log information.

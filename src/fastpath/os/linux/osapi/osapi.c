@@ -1634,6 +1634,9 @@ L7_uint32 osapiUpTimeMillisecondsGet ( void )
 L7_uint32 osapiTimeMillisecondsGet( void )
 {
   struct timespec tm;
+
+  /* PTin modified: Clock */
+  #if 0
   struct timeval tv;
   memset (&tv, 0, sizeof (tv));
   gettimeofday(&tv,0);
@@ -1642,6 +1645,10 @@ L7_uint32 osapiTimeMillisecondsGet( void )
   memset (&tm, 0, sizeof (tm));
   tm.tv_sec = tv.tv_sec ;
   tm.tv_nsec = tv.tv_usec * 1000;
+  #else
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC, &tm);
+  #endif
 
   return(( tm.tv_sec * 1000 ) + ( tm.tv_nsec / 1000000 ));
 }
@@ -1661,12 +1668,24 @@ L7_uint32 osapiTimeMillisecondsGet( void )
 *************************************************************************/
 L7_uint64 osapiTimeMicrosecondsGet( void )
 {
+  struct timespec tm;
+
+  /* PTin modified: Clock */
+  #if 0
   struct timeval tv;
   memset (&tv, 0, sizeof (tv));
   gettimeofday(&tv,0);
 
-  return(( (L7_uint64) tv.tv_sec * 1000000ULL ) + (L7_uint64) tv.tv_usec );
-  //return ( times(L7_NULLPTR)*(1000000/sysconf(_SC_CLK_TCK)) );
+  /* Return the time in a TIMESPEC structure. */
+  memset (&tm, 0, sizeof (tm));
+  tm.tv_sec = tv.tv_sec ;
+  tm.tv_nsec = tv.tv_usec * 1000;
+  #else
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC, &tm);
+  #endif
+
+  return(( (L7_uint64) tm.tv_sec * 1000000ULL ) + ( (L7_uint64) tm.tv_nsec / 1000 ));
 }
 
 /**************************************************************************
@@ -1684,8 +1703,10 @@ L7_uint64 osapiTimeMicrosecondsGet( void )
 *************************************************************************/
 void osapiClockTimeRaw ( L7_clocktime *ct )
 {
-
   struct timespec tm;
+
+  /* PTin modified: Clock */
+  #if 0
   struct timeval tv;
   memset (&tv, 0, sizeof (tv));
   gettimeofday(&tv,0);
@@ -1694,6 +1715,10 @@ void osapiClockTimeRaw ( L7_clocktime *ct )
   memset (&tm, 0, sizeof (tm));
   tm.tv_sec = tv.tv_sec ;
   tm.tv_nsec = tv.tv_usec * 1000 ;
+  #else
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC,&tm);
+  #endif
 
   ct->seconds = tm.tv_sec;
   ct->nanoseconds = tm.tv_nsec;
@@ -1828,7 +1853,14 @@ struct timespec   tp;
 
  tp.tv_sec  = 0;
  tp.tv_nsec = 0;
+
+ /* PTin modified: Clock */
+ #if 0
  clock_settime(CLOCK_REALTIME, &tp);
+ #else
+ clock_settime(CLOCK_MONOTONIC, &tp);
+ #endif
+
  localClockError=0;
 }
 
