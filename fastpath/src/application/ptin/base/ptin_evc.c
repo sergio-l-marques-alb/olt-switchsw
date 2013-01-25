@@ -740,6 +740,50 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 }
 
 /**
+ * Check if the EVC related to an internal vlan is stacked. 
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * @param is_stacked : Is EVC stacked? (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_check_isStacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked)
+{
+  L7_uint evc_idx;
+
+  /* Validate arguments */
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_idx = evcId_from_internalVlan[intVlan];
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* EVC should be active */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Check if EVC is stacked, and return result */
+  if (is_stacked!=L7_NULLPTR)
+  {
+    *is_stacked = IS_EVC_STACKED(evc_idx);
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Creates or reconfigures an EVC
  * 
  * @param evcConf Pointer to the input struct
@@ -3594,8 +3638,8 @@ static L7_RC_t switching_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_
     return L7_FAILURE;
   }
 
-  /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc) */
-  rc = ptin_xlate_egress_add(intIfNum, int_vlan, leaf_inner_vlan, leaf_out_vlan, 0);
+  /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc); innerVlan is to be removed */
+  rc = ptin_xlate_egress_add(intIfNum, int_vlan, leaf_inner_vlan, leaf_out_vlan, (L7_uint16)-1);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intf %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u => Leaf Out.VLAN %u] (rc=%d)",
@@ -3679,8 +3723,8 @@ static L7_RC_t switching_unstacked_root_add(L7_uint root_intf, L7_uint16 root_ou
     return L7_FAILURE;
   }
 
-  /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan */
-  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, 0);
+  /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan; innerVlan is to be removed */
+  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, (L7_uint16)-1);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (rc=%d)",
