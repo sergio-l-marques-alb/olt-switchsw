@@ -406,8 +406,11 @@ typedef struct dsBindingTreeNode_s
   #endif
 
   /* IP address assigned to the station */
+#if 1 /* PTin modified: DHCPv6 snooping */
+  L7_inet_addr_t ipAddr;
+#else
   L7_uint32 ipAddr;
-
+#endif
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
 
