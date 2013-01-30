@@ -67,6 +67,8 @@ struct ptin_evc_intf_s {
 
   /* Clients queue */
   dl_queue_t clients;
+  /* Queue of used MC probes */
+  dl_queue_t queue_probes;
 };  // sizeof=20+12=32
 
 
@@ -97,6 +99,7 @@ struct ptin_evc_s {
   L7_uint32  n_clients;     /* Number of clients associated with this EVC (ONLY on stacked services) */
   L7_uint32  n_counters;    /* Number of counters associated with this EVC */
   L7_uint32  n_bwprofiles;  /* Number of BW profiles associated with this EVC */
+  L7_uint32  n_probes;      /* Number of probes associated with this EVC */
 
   L7_uint8   n_roots;       /* Number of roots */
   L7_uint8   n_leafs;       /* Number of leafs */
@@ -112,6 +115,18 @@ struct ptin_evc_s {
   dl_queue_t *queue_free_vlans;   /* Pointer to queue of free vlans */
 };  // sizeof=36+32*36=1188
 
+/* Probes statistics (for channel measurements) */
+struct ptin_probe_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_probe_s *next;
+  struct ptin_probe_s *prev;
+
+  L7_BOOL   in_use;       /* Is entry in use? */
+
+  L7_uint32 channel_ip;   /* Channel IP (only for IPv4) */
+
+  void *counter;
+};
 
 /* VLAN entry (for pool queue) */
 struct ptin_vlan_s {
@@ -138,11 +153,14 @@ static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 #if (PTIN_SYSTEM_GROUP_VLANS)
 static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS];
 #endif
+/* Allocated space for all probes */
+static struct ptin_probe_s      probes[PTIN_SYSTEM_MAX_MC_PROBES];
 
 /* Queues */
 static dl_queue_t queue_evcs;         /* Queue of busy EVCs entries */
 static dl_queue_t queue_free_evcs;    /* Queue of free EVCs entries */
 static dl_queue_t queue_free_clients; /* Clients (busy) queues are mapped on each interface per EVC */
+static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 static dl_queue_t queue_unstacked_freeVlan_queues;
@@ -231,6 +249,11 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf);
 static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *profile, void ***bwPolicer_ptr);
 static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t *profile, void ***counters_ptr);
 
+static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
+static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
+static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
+static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port);
+
 /* EVC manipulation functions *************************************************/
 /**
  * Initializes EVCs data structures
@@ -248,9 +271,16 @@ L7_RC_t ptin_evc_init(void)
   dl_queue_init(&queue_free_evcs);
 
   /* Initialize free clients queues */
+  memset(clients,0x00,sizeof(clients));
   dl_queue_init(&queue_free_clients);
   for (i=0; i<(sizeof(clients)/sizeof(clients[0])); i++)
     dl_queue_add(&queue_free_clients, (dl_queue_elem_t*)&clients[i]);
+
+  /* Initialize free probes queue */
+  memset(probes,0x00,sizeof(probes));
+  dl_queue_init(&queue_free_probes);
+  for (i=0; i<PTIN_SYSTEM_MAX_MC_PROBES; i++)
+    dl_queue_add(&queue_free_probes, (dl_queue_elem_t*)&probes[i]);
 
   /* Reset EVCs structs */
   for (i=0; i<(sizeof(evcs)/sizeof(evcs[0])); i++)
@@ -1153,10 +1183,10 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
 
   #ifdef EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL
   /* Check if there are counters pending... */
-  if (evcs[evc_idx].n_counters > 0)
+  if (evcs[evc_idx].n_counters > 0 || evcs[evc_idx].n_probes > 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters are still configured! EVC cannot be removed!",
-            evc_idx, evcs[evc_idx].n_counters);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters + %u probes are still configured! EVC cannot be removed!",
+            evc_idx, evcs[evc_idx].n_counters, evc_idx, evcs[evc_idx].n_probes);
     return L7_FAILURE;
   }
   #endif
@@ -1329,10 +1359,10 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   }
 
   /* Check if there are counters pending... */
-  if (evcs[evc_idx].n_counters > 0)
+  if (evcs[evc_idx].n_counters > 0 || evcs[evc_idx].n_probes > 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters are still configured! EVC cannot be destroyed!",
-            evc_idx, evcs[evc_idx].n_counters);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters + %u probes are still configured! EVC cannot be destroyed!",
+            evc_idx, evcs[evc_idx].n_counters, evcs[evc_idx].n_probes);
     return L7_FAILURE;
   }
   /* Check if there are BW profiles pending... */
@@ -1601,8 +1631,8 @@ L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_idx].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
   if (pclient == NULL)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is does not have any bridge with Inner VID = %u", evc_idx,
-                evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id, evcBridge->intf.vid);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u does not have any bridge with Inner VID = %u", evc_idx,
+                evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id, evcBridge->inn_vlan);
     return L7_NOT_EXIST;
   }
 
@@ -1830,6 +1860,12 @@ L7_RC_t ptin_evc_evcStats_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile,
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
 
+  /* Probe processing */
+  if (profile!=L7_NULLPTR && profile->dst_ip!=0)
+  {
+    return ptin_evc_probe_get(evc_idx, profile, stats);
+  }
+
   /* Verify and update profile data */
   if (ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
   {
@@ -1866,6 +1902,12 @@ L7_RC_t ptin_evc_evcStats_set(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   ptin_evcStats_policy_t *policy_old, *policy_new;
   L7_RC_t rc = L7_SUCCESS;
+
+  /* Probe processing */
+  if (profile!=L7_NULLPTR && profile->dst_ip!=0)
+  {
+    return ptin_evc_probe_add(evc_idx, profile);
+  }
 
   /* Verify and update profile data */
   if (ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
@@ -1932,6 +1974,12 @@ L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profi
 {
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
+
+  /* Probe processing */
+  if (profile!=L7_NULLPTR && profile->dst_ip!=0)
+  {
+    return ptin_evc_probe_delete(evc_idx, profile);
+  }
 
   /* Verify and update profile data */
   rc = ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc);
@@ -2459,6 +2507,9 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_
       if (evcs[evc_idx].n_counters>0)  evcs[evc_idx].n_counters--;
       LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Counter removed from intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
     }
+
+    /* Remove all probes of this interface, if any */
+    ptin_evc_probe_delete_all(evc_idx, intf_idx);
   }
 
   /* Remove bw profile on this interface */
@@ -4676,6 +4727,533 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   return L7_SUCCESS;
 }
 
+/**
+ * Read statistics of a particular probe
+ * 
+ * @param evc_idx : EVC index
+ * @param profile : evcStats profile 
+ * @param stats : Statistics data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FALSE
+ */
+static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats)
+{
+  nimUSP_t  usp;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_int    ptin_port;
+  struct    ptin_probe_s *pprobe;
+  ptin_evcStats_policy_t *policy=L7_NULLPTR;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (profile==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Nothing to do if ip is not valid */
+  if (profile->dst_ip==0 || profile->dst_ip==(L7_uint32)-1)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid DIP address");
+    return L7_FAILURE;
+  }
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  /* If interface is provided, validate it */
+  if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing Interface");
+    /* Get USP interface */
+    usp.unit = profile->ddUsp_src.unit;
+    usp.slot = profile->ddUsp_src.slot;
+    usp.port = profile->ddUsp_src.port + 1;
+    /* Get interface number */
+    if (nimGetIntIfNumFromUSP(&usp,&intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting interface number from USP={%d,%d,%d}",usp.unit,usp.slot,usp.port);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: intIfNum=%u",intIfNum);
+
+    /* Get ptin_port */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting ptin_port from intIfNum=%u",intIfNum);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: ptin_port=%u",ptin_port);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ddUsp_src={%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
+    return L7_FAILURE;
+  }
+
+  /* Verify if interface is in use */
+  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
+    return L7_NOT_EXIST;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
+
+
+  /* Find an existent probe */
+  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  {
+    while ( pprobe != L7_NULLPTR )
+    {
+      /* If probe is found, break cycle */
+      if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        break;
+      }
+      /* Get next client */
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+    }
+  }
+  else
+  {
+    pprobe = L7_NULLPTR;
+  }
+
+  /* Validate policy location */
+  if (pprobe==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+    return L7_FAILURE;
+  }
+
+  /* Save policy pointer */
+  policy = (ptin_evcStats_policy_t *) pprobe->counter;
+
+  /* Read policy information */
+  if ((rc = ptin_evcStats_get(stats,policy))!=L7_SUCCESS)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"Error reading probe policer");
+    return rc;
+  }
+
+  /* Success */
+  return L7_SUCCESS;
+}
+
+/**
+ * Get a new probe node to store counter
+ * 
+ * @param evc_idx : EVC index
+ * @param profile : Stats profile
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+{
+  nimUSP_t  usp;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_int    ptin_port;
+  struct    ptin_probe_s *pprobe;
+  ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
+  ptin_evcStats_policy_t *policy_old, *policy_new;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (profile==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Nothing to do if ip is not valid */
+  if (profile->dst_ip==0 || profile->dst_ip==(L7_uint32)-1)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid DIP address");
+    return L7_FAILURE;
+  }
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  /* If interface is provided, validate it */
+  if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing Interface");
+    /* Get USP interface */
+    usp.unit = profile->ddUsp_src.unit;
+    usp.slot = profile->ddUsp_src.slot;
+    usp.port = profile->ddUsp_src.port + 1;
+    /* Get interface number */
+    if (nimGetIntIfNumFromUSP(&usp,&intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting interface number from USP={%d,%d,%d}",usp.unit,usp.slot,usp.port);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: intIfNum=%u",intIfNum);
+
+    /* Get ptin_port */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting ptin_port from intIfNum=%u",intIfNum);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: ptin_port=%u",ptin_port);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ddUsp_src={%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
+    return L7_FAILURE;
+  }
+
+  /* Verify if interface is in use */
+  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
+    return L7_NOT_EXIST;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
+
+
+  /* Find an existent probe */
+  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  {
+    while ( pprobe != L7_NULLPTR )
+    {
+      /* If probe is found, break cycle */
+      if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        break;
+      }
+      /* Get next client */
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+    }
+  }
+  else
+  {
+    pprobe = L7_NULLPTR;
+  }
+
+  /* If not found, allocate a new probe */
+  if (pprobe==L7_NULLPTR)
+  {
+    /* get a free probe entry */
+    if (dl_queue_remove_head(&queue_free_probes, (dl_queue_elem_t**) &pprobe)!=NOERR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting a free probe");
+      return L7_FAILURE;
+    }
+
+    /* add it to the corresponding interface */
+    if (dl_queue_add_tail(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe)!=NOERR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error adding a new node to queue_probe");
+      dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t*) pprobe);
+      return L7_FAILURE;
+    }
+
+    /* update node */
+    pprobe->in_use      = L7_TRUE;
+    pprobe->channel_ip  = profile->dst_ip;
+    pprobe->counter     = L7_NULLPTR;
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe created: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+  }
+
+  /* Counter pointer */
+  policy_loc = (ptin_evcStats_policy_t **) &(pprobe->counter);
+
+  if (*policy_loc==L7_NULLPTR)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"evcStats address is null");
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Policer address has a valid value");
+  }
+
+  /* Save old policy pointer */
+  policy_old = *policy_loc;
+
+  /* Apply policy */
+  if ((rc = ptin_evcStats_set(profile,policy_loc))!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error adding probing evcStats");
+    /* Restore queues */
+    dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe);
+    dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t*) pprobe);
+    pprobe->in_use      = L7_FALSE;
+    pprobe->channel_ip  = 0;
+    pprobe->counter     = L7_NULLPTR;
+  }
+
+  /* New policy pointer */
+  policy_new = *policy_loc;
+
+  /* One more counter */
+  if (policy_old==L7_NULLPTR && policy_new!=L7_NULLPTR)
+  {
+    evcs[evc_idx].n_probes++;
+  }
+  /* One less counter */
+  else if (policy_old!=L7_NULLPTR && policy_new==L7_NULLPTR)
+  {
+    if (evcs[evc_idx].n_probes>0)  evcs[evc_idx].n_probes--;
+  }
+
+  if (*policy_loc==L7_NULLPTR)
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Returned probing evcStats pointer is null");
+  else
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Returned probing evcStats pointer is valid");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get a new probe node to store counter
+ * 
+ * @param evc_idx : EVC index
+ * @param profile : Stats profile
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+{
+  nimUSP_t  usp;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_int    ptin_port;
+  struct    ptin_probe_s *pprobe;
+  ptin_evcStats_policy_t *policy;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (profile==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Nothing to do if ip is not valid */
+  if (profile->dst_ip==0 || profile->dst_ip==(L7_uint32)-1)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid DIP address");
+    return L7_FAILURE;
+  }
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  /* If interface is provided, validate it */
+  if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing Interface");
+    /* Get USP interface */
+    usp.unit = profile->ddUsp_src.unit;
+    usp.slot = profile->ddUsp_src.slot;
+    usp.port = profile->ddUsp_src.port + 1;
+    /* Get interface number */
+    if (nimGetIntIfNumFromUSP(&usp,&intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting interface number from USP={%d,%d,%d}",usp.unit,usp.slot,usp.port);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: intIfNum=%u",intIfNum);
+
+    /* Get ptin_port */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting ptin_port from intIfNum=%u",intIfNum);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: ptin_port=%u",ptin_port);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ddUsp_src={%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
+    return L7_FAILURE;
+  }
+
+  /* Verify if interface is in use */
+  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
+    return L7_NOT_EXIST;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
+
+  /* Get all clients */
+  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  {
+    while ( pprobe != L7_NULLPTR )
+    {
+      /* If probe is found, break cycle */
+      if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        break;
+      }
+
+      /* Get next client */
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+    }
+  }
+  else
+  {
+    pprobe = L7_NULLPTR;
+  }
+
+  /* Probe not found */
+  if (pprobe == L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+    return L7_SUCCESS;
+  }
+
+  /* Save Policy location */
+  policy = (ptin_evcStats_policy_t *) pprobe->counter;
+
+  /* Remove this node from queue */
+  dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+  /* Add it to free probes */
+  dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t *) pprobe);
+  /* Reset node */
+  pprobe->in_use      = L7_FALSE;
+  pprobe->channel_ip  = 0;
+  pprobe->counter     = L7_NULLPTR;
+
+  /* Apply policy */
+  rc = ptin_evcStats_delete(policy);
+  if ( rc != L7_SUCCESS )
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error removing probing evcStats");
+    return rc;
+  }
+
+  /* One less counter */
+  if (evcs[evc_idx].n_probes>0)   evcs[evc_idx].n_probes--;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove all probes from a specific interface
+ * 
+ * @param evc_idx : EVC index
+ * @param ptin_port : port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
+{
+  L7_int    cnt;
+  struct    ptin_probe_s *pprobe;
+  ptin_evcStats_policy_t *policy;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  /* Validate port */
+  if (ptin_port>=PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid port %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Verify if interface is in use */
+  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
+    return L7_NOT_EXIST;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
+
+  /* Probes counter */
+  cnt = 0;
+
+  /* Get all clients */
+  while (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe) == NOERR)
+  {
+    if (pprobe==L7_NULLPTR)  continue;
+
+    /* Save Policy location */
+    policy = (ptin_evcStats_policy_t *) pprobe->counter;
+
+    /* Remove this node from queue */
+    dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+    /* Add it to free probes */
+    dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t *) pprobe);
+    /* Reset node */
+    pprobe->in_use      = L7_FALSE;
+    pprobe->channel_ip  = 0;
+    pprobe->counter     = L7_NULLPTR;
+
+    /* Apply policy */
+    rc = ptin_evcStats_delete(policy);
+    if ( rc != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error removing probing evcStats (channel=0x%08x)",pprobe->channel_ip);
+      continue;
+    }
+
+    /* Count removed probes */
+    cnt++;
+
+    /* One less counter */
+    if (evcs[evc_idx].n_probes>0)   evcs[evc_idx].n_probes--;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"%d probes removed successfully!",cnt);
+
+  return L7_SUCCESS;
+}
+
 /* DEBUG Functions ************************************************************/
 /**
  * Dumps EVC detailed info 
@@ -4731,7 +5309,7 @@ void ptin_evc_dump(L7_uint evc_idx)
     printf("  MC Flood  = %s (%u)\n", evcs[evc_idx].mc_flood == PTIN_EVC_MC_FLOOD_ALL ? "All":evcs[evc_idx].mc_flood == PTIN_EVC_MC_FLOOD_UNKNOWN ? "Unknown":"None",
            evcs[evc_idx].mc_flood);
               
-    printf("  Roots     = %2u        Counters = %u\n", evcs[evc_idx].n_roots, evcs[evc_idx].n_counters);
+    printf("  Roots     = %2u        Counters = %u\t\tProbes=%u\n", evcs[evc_idx].n_roots, evcs[evc_idx].n_counters, evcs[evc_idx].n_probes);
     printf("  Leafs     = %2u        BW Prof. = %u\n", evcs[evc_idx].n_leafs, evcs[evc_idx].n_bwprofiles);
 
     printf("  Root VLAN = %u\n", evcs[evc_idx].rvlan);
