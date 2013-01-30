@@ -11,13 +11,10 @@
  * INTERNAL VARS
  ********************************************/
 
-/* Maximum number of bandwidth policer rules */
-#define BW_POLICER_RULES_MAX  1024
-
 #define BW_MAX  100000000UL    /* Maximum bandwidth is 100 Gbps (for LAGs) */
 
 /* Array of bw policer structures */
-ptin_bw_policy_t bw_policer_data[BW_POLICER_RULES_MAX];
+ptin_bw_policy_t bw_policer_data[PTIN_SYSTEM_MAX_BW_POLICERS];
 
 /* Database to be managed by ptin_hapi_fp_utils module */
 ptin_hapi_database_t bw_policer_database;
@@ -46,7 +43,7 @@ L7_RC_t hapi_ptin_bwPolicer_init(void)
   ptin_bw_policy_t *policer;
 
   bwp_db->database_base              = (void *) bw_policer_data;
-  bwp_db->database_num_elems         = BW_POLICER_RULES_MAX;
+  bwp_db->database_num_elems         = PTIN_SYSTEM_MAX_BW_POLICERS;
   bwp_db->database_elem_sizeof       = sizeof(ptin_bw_policy_t);
   bwp_db->database_index_first_free  = 0;
   bwp_db->policy_inUse               = bwPolicy_inUse;
@@ -583,7 +580,7 @@ void ptin_bwpolicer_dump_debug(void)
 
   printf("Listing bandwidth policer list...\r\n");
 
-  for (index=0; index<BW_POLICER_RULES_MAX; index++)
+  for (index=0; index<PTIN_SYSTEM_MAX_BW_POLICERS; index++)
   {
     if (!bw_policer_data[index].inUse)  continue;
 

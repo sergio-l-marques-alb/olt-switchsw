@@ -55,7 +55,8 @@
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
 
-# define PTIN_SYSTEM_MAX_MC_PROBES     128   /* Maximum number of Multicast probes */
+# define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
+# define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 # define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
@@ -167,7 +168,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
 
-# define PTIN_SYSTEM_MAX_MC_PROBES     128   /* Maximum number of Multicast probes */
+# define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
+# define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 # define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
@@ -279,7 +281,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
 
-# define PTIN_SYSTEM_MAX_MC_PROBES     128   /* Maximum number of Multicast probes */
+# define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
+# define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 # define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
@@ -411,10 +414,11 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_10G_PORTS_MASK    0x0000001FFFFFFFFFULL
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
-# define PTIN_SYSTEM_N_EVCS            129    /* Maximum nr of EVCs allowed in this equipment */
+# define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
 
-# define PTIN_SYSTEM_MAX_MC_PROBES     128   /* Maximum number of Multicast probes */
+# define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
+# define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 # define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */

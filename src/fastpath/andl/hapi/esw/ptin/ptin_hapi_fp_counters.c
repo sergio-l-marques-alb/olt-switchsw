@@ -15,11 +15,8 @@
  * INTERNAL VARS
  ********************************************/
 
-/* Maximum number of traffic counters (each one will correspond to 4 rules) */
-#define FP_COUNTERS_MAX   128
-
 /* Array of counter structures */
-ptin_evcStats_policy_t fp_counters_data[FP_COUNTERS_MAX];
+ptin_evcStats_policy_t fp_counters_data[PTIN_SYSTEM_MAX_COUNTERS];
 
 /* Database to be managed by ptin_hapi_fp_utils module */
 ptin_hapi_database_t fp_counters_database;
@@ -48,7 +45,7 @@ L7_RC_t hapi_ptin_fpCounters_init(void)
   ptin_evcStats_policy_t *counter;
 
   cnt_db->database_base              = (void *) fp_counters_data;
-  cnt_db->database_num_elems         = FP_COUNTERS_MAX;
+  cnt_db->database_num_elems         = PTIN_SYSTEM_MAX_COUNTERS;
   cnt_db->database_elem_sizeof       = sizeof(ptin_evcStats_policy_t);
   cnt_db->database_index_first_free  = 0;
   cnt_db->policy_inUse               = fpCounters_inUse;
@@ -827,7 +824,7 @@ void ptin_fpcounters_dump_debug(void)
 
   printf("Listing bandwidth counter list...\r\n");
 
-  for (index=0; index<FP_COUNTERS_MAX; index++)
+  for (index=0; index<PTIN_SYSTEM_MAX_COUNTERS; index++)
   {
     if (!fp_counters_data[index].inUse)  continue;
 

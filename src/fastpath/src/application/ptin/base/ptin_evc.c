@@ -154,7 +154,7 @@ static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS];
 #endif
 /* Allocated space for all probes */
-static struct ptin_probe_s      probes[PTIN_SYSTEM_MAX_MC_PROBES];
+static struct ptin_probe_s      probes[PTIN_SYSTEM_MAX_COUNTERS];
 
 /* Queues */
 static dl_queue_t queue_evcs;         /* Queue of busy EVCs entries */
@@ -279,7 +279,7 @@ L7_RC_t ptin_evc_init(void)
   /* Initialize free probes queue */
   memset(probes,0x00,sizeof(probes));
   dl_queue_init(&queue_free_probes);
-  for (i=0; i<PTIN_SYSTEM_MAX_MC_PROBES; i++)
+  for (i=0; i<PTIN_SYSTEM_MAX_COUNTERS; i++)
     dl_queue_add(&queue_free_probes, (dl_queue_elem_t*)&probes[i]);
 
   /* Reset EVCs structs */
