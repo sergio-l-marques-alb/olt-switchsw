@@ -1533,10 +1533,13 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *dhcp_op_header_ptr;
    L7_dhcp6_relay_agent_packet_t relay_agent_header = { 0 };
+   L7_uint32 frame_len, frame_copy_len, lease_time = 0;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
-   L7_uint32 frame_len, frame_copy_len;
+   L7_inet_addr_t client_ip_addr = { 0 };
+   L7_enetMacAddr_t client_mac_addr;
+   L7_enetHeader_t *mac_header = 0;
    L7_dhcp6_packet_t *dhcp_header;
    NIM_INTF_MASK_t portMask;
    L7_ushort16 ethHdrLen;
@@ -1547,17 +1550,20 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       if (L7_INTF_ISMASKBITSET(portMask, intIfNum))
       {
          LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Ignoring DHCP client message received on service root port");
-         return L7_SUCCESS;
+         return L7_FAILURE;
       }
    }
    else
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Unable to get DHCP service root port");
-      return L7_SUCCESS;
+      return L7_FAILURE;
    }
+
+   inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
 
    //Parse the received frame
    eth_header_ptr = frame;
+   mac_header = (L7_enetHeader_t*) frame;
    ethHdrLen = sysNetDataOffsetGet(frame);
    ipv6_header_ptr = eth_header_ptr + ethHdrLen;
    ipv6_header = (L7_ip6Header_t*) ipv6_header_ptr;
@@ -1586,27 +1592,71 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       if (frame_len < (sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len))
       {
          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Invalid DHCPv6 message received: invalid frame length %d/%d", frame_len, (sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len));
-         return L7_SUCCESS;
+         return L7_FAILURE;
       }
-      frame_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
-      dhcp_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
 
       switch (dhcp_op_header->option_code)
       {
          case L7_DHCP6_OPT_INTERFACE_ID:
          case L7_DHCP6_OPT_REMOTE_ID:
          {
-            LOG_TRACE(LOG_CTX_PTIN_DHCP, "Discarding client DHCP request: interface-id was already present");
-            return L7_SUCCESS;
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "Discarding client DHCP request: interface-id/remote-id was already present");
+            return L7_FAILURE;
          }
-         default:
-            break; //Ignore other options
+         case L7_DHCP6_OPT_IA_NA:
+         case L7_DHCP6_OPT_IA_TA:
+         {
+            L7_uchar8 *subop_ptr = 0;
+            L7_int16 subop_len;
+
+            subop_ptr = dhcp_op_header_ptr;
+            subop_len = dhcp_op_header->option_len;
+
+            if(L7_DHCP6_OPT_IA_NA == dhcp_op_header->option_code)
+            {
+               subop_ptr += sizeof(L7_dhcp6_option_packet_t)+3*sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
+               subop_len -= 3*sizeof(L7_int32);
+            }
+            else if(L7_DHCP6_OPT_IA_TA == dhcp_op_header->option_code)
+            {
+               subop_ptr += sizeof(L7_dhcp6_option_packet_t)+sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_TA
+               subop_len -= sizeof(L7_int32);
+            }
+
+            while (subop_len > 0)
+            {
+               L7_dhcp6_option_packet_t *dhcp_ia_subop_header = 0;
+
+               dhcp_ia_subop_header = (L7_dhcp6_option_packet_t*) subop_ptr;
+
+               //Check for an invalid length
+               if (subop_len < (sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len))
+               {
+                  LOG_TRACE(LOG_CTX_PTIN_DHCP, "Invalid DHCPv6 message received: invalid frame length %d/%d", subop_len, (sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len));
+                  return L7_FAILURE;
+               }
+
+               switch (dhcp_ia_subop_header->option_code)
+               {
+                  case L7_DHCP6_OPT_IAADDR:
+                  {
+                     inetAddressSet(L7_AF_INET6, subop_ptr+sizeof(L7_dhcp6_option_packet_t), &client_ip_addr);
+                     lease_time = *(L7_uint32*)(subop_ptr+sizeof(L7_dhcp6_option_packet_t)+IPV6_ADDRESS_LEN+sizeof(L7_int32));
+                     break;
+                  }
+               }
+               subop_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len;
+               subop_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len;
+            }
+         }
       }
+      frame_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
+      dhcp_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
    //Create a new Relay-Agent message
    relay_agent_header.msg_type = L7_DHCP6_RELAY_FORW;
-   memcpy(relay_agent_header.peer_address, ipv6_header->src, 16 * sizeof(L7_uchar8));
+   memcpy(relay_agent_header.peer_address, ipv6_header->src, IPV6_ADDRESS_LEN);
    memcpy(dhcp_copy_header_ptr, &relay_agent_header, sizeof(L7_dhcp6_relay_agent_packet_t));
    frame_copy_len += sizeof(L7_dhcp6_relay_agent_packet_t);
 
@@ -1614,14 +1664,14 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (L7_SUCCESS != dsv6AddOption9(frame_copy, &frame_copy_len, dhcp_header_ptr, udp_header->length - sizeof(L7_dhcp6_packet_t) - L7_FCS_LEN))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 9 to DHCP frame");
-      return L7_SUCCESS;
+      return L7_FAILURE;
    }
 
    //Add Interface-id option (option 18)
    if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, L7_DHCP6_OPT_INTERFACE_ID))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
-      return L7_SUCCESS;
+      return L7_FAILURE;
    }
 
    //Update the UDP and IPv6 headers
@@ -1633,7 +1683,27 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (L7_SUCCESS != dsFrameFlood(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
-      return L7_SUCCESS;
+      return L7_FAILURE;
+   }
+
+   //Add a new entry in the binding table
+   if ((L7_DHCP6_SOLICIT == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_REQUEST == *(L7_uint8*)dhcp_header_ptr))
+   {
+      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
+
+      memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
+
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Adding a new entry in the binding table (%02x:%02x:%02x:%02x:%02x:%02x) %s",
+            client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5], inetAddrPrint(&client_ip_addr, ipAddrStr));
+      dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
+   }
+   else if((L7_DHCP6_DECLINE == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_RELEASE == *(L7_uint8*)dhcp_header_ptr))
+   {
+      memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
+
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Removing existing entry in the binding table (%02x:%02x:%02x:%02x:%02x:%02x)",
+            client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5]);
+      dsBindingRemove(&client_mac_addr);
    }
 
    return L7_SUCCESS;
@@ -1658,13 +1728,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *relay_op_header_ptr;
    L7_uchar8 *op_interfaceid_ptr = 0, *op_relaymsg_ptr = 0, *op_remoteid_ptr = 0;
+   L7_inet_addr_t link_addr = {0}, client_ip_addr = {0};
+   L7_uint32 frame_len, frame_copy_len, lease_time = 0;
+   L7_dhcp6_relay_agent_packet_t *relay_agent_header;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
-   L7_dhcp6_relay_agent_packet_t *relay_agent_header;
-   L7_uint32 frame_len, frame_copy_len;
+   L7_enetMacAddr_t client_mac_addr;
+   L7_enetHeader_t *mac_header = 0;
    NIM_INTF_MASK_t port_mask;
-   L7_inet_addr_t link_addr;
    L7_ushort16 ethHdrLen;
 
    //Check if the port through which the message was received is valid
@@ -1684,6 +1756,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Parse the received frame
    eth_header_ptr = frame;
+   mac_header = (L7_enetHeader_t*) frame;
    ethHdrLen = sysNetDataOffsetGet(frame);
    ipv6_header_ptr = eth_header_ptr + ethHdrLen;
    ipv6_header = (L7_ip6Header_t*) ipv6_header_ptr;
@@ -1729,7 +1802,82 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
          }
          case L7_DHCP6_OPT_RELAY_MSG:
          {
-            op_relaymsg_ptr = relay_op_header_ptr;
+            L7_dhcp6_packet_t *op_relaymsg_header;
+            L7_int16 op_relaymsg_len;
+
+            op_relaymsg_ptr = relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t);
+            op_relaymsg_header = (L7_dhcp6_packet_t*) op_relaymsg_ptr;
+            op_relaymsg_ptr += sizeof(L7_dhcp6_packet_t);
+            op_relaymsg_len = dhcp_op_header->option_len - sizeof(L7_dhcp6_packet_t);
+
+            while (op_relaymsg_len > 0)
+            {
+               L7_dhcp6_option_packet_t *relay_subop_header;
+
+               relay_subop_header = (L7_dhcp6_option_packet_t*)op_relaymsg_ptr;
+
+               //Check for an invalid length
+               if (op_relaymsg_len < (sizeof(L7_dhcp6_option_packet_t) + relay_subop_header->option_len))
+               {
+                  LOG_TRACE(LOG_CTX_PTIN_DHCP, "Invalid DHCPv6 message received: invalid frame length %d/%d", op_relaymsg_len, (sizeof(L7_dhcp6_option_packet_t) + relay_subop_header->option_len));
+                  return L7_SUCCESS;
+               }
+
+               switch (relay_subop_header->option_code)
+               {
+                  case L7_DHCP6_OPT_IA_NA:
+                  case L7_DHCP6_OPT_IA_TA:
+                  {
+                     L7_uchar8 *subop_ptr = 0;
+                     L7_int16 subop_len;
+
+                     subop_ptr = op_relaymsg_ptr;
+                     subop_len = relay_subop_header->option_len;
+
+                     if (L7_DHCP6_OPT_IA_NA == relay_subop_header->option_code)
+                     {
+                        subop_ptr += sizeof(L7_dhcp6_option_packet_t) + 3 * sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
+                        subop_len -= 3 * sizeof(L7_int32);
+                     }
+                     else if (L7_DHCP6_OPT_IA_TA == relay_subop_header->option_code)
+                     {
+                        subop_ptr += sizeof(L7_dhcp6_option_packet_t) + sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_TA
+                        subop_len -= sizeof(L7_int32);
+                     }
+
+                     while (subop_len > 0)
+                     {
+                        L7_dhcp6_option_packet_t *dhcp_ia_subop_header = 0;
+
+                        dhcp_ia_subop_header = (L7_dhcp6_option_packet_t*) subop_ptr;
+
+                        //Check for an invalid length
+                        if (subop_len < (sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len))
+                        {
+                           LOG_TRACE(LOG_CTX_PTIN_DHCP, "Invalid DHCPv6 message received: invalid frame length %d/%d", frame_len, (sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len));
+                           return L7_FAILURE;
+                        }
+
+                        switch (dhcp_ia_subop_header->option_code)
+                        {
+                           case L7_DHCP6_OPT_IAADDR:
+                           {
+                              inetAddressSet(L7_AF_INET6, subop_ptr + sizeof(L7_dhcp6_option_packet_t), &client_ip_addr);
+                              lease_time = *(L7_uint32*) (subop_ptr + sizeof(L7_dhcp6_option_packet_t) + IPV6_ADDRESS_LEN + sizeof(L7_int32));
+                              break;
+                           }
+                        }
+                        subop_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len;
+                        subop_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len;
+                     }
+                  }
+               }
+               op_relaymsg_len -= sizeof(L7_dhcp6_option_packet_t) + relay_subop_header->option_len;
+               op_relaymsg_ptr += sizeof(L7_dhcp6_option_packet_t) + relay_subop_header->option_len;
+            }
+
+            op_relaymsg_ptr = relay_op_header_ptr; //Restore the relay-msg pointer
+
             break;
          }
          default:
@@ -1740,7 +1888,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
-   if(!op_relaymsg_ptr || !op_interfaceid_ptr)
+   if(!op_relaymsg_ptr)
    {
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received DHCPv6 message missing mandatory options");
       return L7_SUCCESS;
@@ -1748,7 +1896,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Validate the DIP and link-addr fields on the received message
    inetAddressSet(L7_AF_INET6, relay_agent_header->link_address, &link_addr);
-   if(!inetIsInAddressAny(&link_addr) || 0 != memcmp(ipv6_header->dst, relay_agent_header->peer_address, 16 * sizeof(L7_uchar8)))
+   if(!inetIsInAddressAny(&link_addr) || 0 != memcmp(ipv6_header->dst, relay_agent_header->peer_address, IPV6_ADDRESS_LEN))
    {
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received DHCPv6 message with invalid fields");
       return L7_SUCCESS;
@@ -1764,7 +1912,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
-   if(op_interfaceid_ptr)
+   if(op_interfaceid_ptr) //Get client interface from interface-id string
    {
       L7_uint32 converted_ifnum;
       L7_uchar8 *circuit_id, *ifnum_str;
@@ -1776,11 +1924,37 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
       converted_ifnum = atoi(ifnum_str);
       ptin_intf_port2intIfNum(converted_ifnum, &intIfNum);
+   }else //Get client interface from DHCP binding table
+   {
+      dhcpSnoopBinding_t dhcp_binding;
+
+      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+
+      memcpy(&dhcp_binding.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+      if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+      {
+         intIfNum = dhcp_binding.intIfNum;
+      }
    }
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
       return L7_SUCCESS;
+   }
+
+   //Add a new dynamic entry in the binding table
+   if (L7_DHCP6_REPLY == *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)))
+   {
+      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
+
+      memcpy(&client_mac_addr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Setting %s and %d for binding table entry with %02x:%02x:%02x:%02x:%02x:%02x",
+              inetAddrPrint(&client_ip_addr, ipAddrStr), lease_time, client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5]);
+
+      //Ignore return codes from this functions. The client may have released first and now the relay agent is unable to find the binding entries for this MAC
+      dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
+      dsBindingLeaseSet(&client_mac_addr, lease_time);
    }
 
    return L7_SUCCESS;
@@ -1845,16 +2019,16 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
 
-   if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
-   {
-      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
-      *frameLen += strlen(circuit_id) + 1;
-   }
-   else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
-   {
-      memcpy(frame + *frameLen, circuit_id, strlen(remote_id) + 1); //Copy remote-id string
-      *frameLen += strlen(remote_id) + 1;
-   }
+//   if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
+//   {
+//      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
+//      *frameLen += strlen(circuit_id) + 1;
+//   }
+//   else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
+//   {
+//      memcpy(frame + *frameLen, circuit_id, strlen(remote_id) + 1); //Copy remote-id string
+//      *frameLen += strlen(remote_id) + 1;
+//   }
 
    return L7_SUCCESS;
 }
