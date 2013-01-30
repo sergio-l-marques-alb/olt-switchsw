@@ -244,22 +244,6 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"No provided profile!");
   }
 
-  /* If counter is not provided, try to find in database an entry with matching inputs of profile */
-  if (counter_ptr==L7_NULLPTR && profile!=L7_NULLPTR)
-  {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Counter ptr is null: Looking to profile to find a match counter...");
-    /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
-    counter_ptr = ptin_hapi_policy_find(profile, L7_NULLPTR, cnt_db);
-    if (counter_ptr!=L7_NULLPTR)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry found!");
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry not found!");
-    }
-  }
-
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Validating profile inputs...");
 
   /* If there is not enough input parameters, remove counter and leave */
@@ -282,41 +266,26 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     return L7_SUCCESS;
   }
 
-  /* Interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
-
-  BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport      = -1;
-  portDescriptor.bcm_port   = -1;
-  portDescriptor.trunk_id   = -1;
-  portDescriptor.class_port =  0;
-
-  if (ptin_hapi_portDescriptor_get(&(profile->ddUsp_src),dapi_g,&portDescriptor,&pbm)!=L7_SUCCESS ||
-      (portDescriptor.bcm_port<0 && portDescriptor.trunk_id<0 && portDescriptor.class_port==0))
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
-    return L7_FAILURE;
-  }
-
   /* AT THIS POINT PROFILE IS A VALID POINTER WITH A VALID CIR */
 
-  /* If counter was not provided, find a new one */
-  /* If not found, we have an error */
-  if (counter_ptr==L7_NULLPTR)
+  /* If counter is not provided, try to find in database an entry with matching inputs of profile */
+  if (counter_ptr==L7_NULLPTR && profile!=L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is null: Trying to find a free database entry...");
-    if ((counter_ptr=ptin_hapi_policy_find_free(cnt_db))==L7_NULLPTR)
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Counter ptr is null: Looking to profile to find a match counter...");
+    /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
+    counter_ptr = ptin_hapi_policy_find(profile, L7_NULLPTR, cnt_db);
+    if (counter_ptr!=L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Free database entry not found... error!");
-      return L7_TABLE_IS_FULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry found!");
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Free entry found!");
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry not found!");
+    }
   }
 
-  /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
-
   /* If we are using a valid database entry, compare input parameters */
-  if (counter_ptr->inUse)
+  if (counter_ptr!=L7_NULLPTR && counter_ptr->inUse)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is in use: comparing inputs...");
     /* If some input parameter is different, we have to destroy fp policy */
@@ -348,6 +317,37 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inputs are the same... there is nothing to do");
       return L7_SUCCESS;
     }
+  }
+
+  /* If counter was not provided, find a new one */
+  /* If not found, we have an error */
+  if (counter_ptr==L7_NULLPTR)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is null: Trying to find a free database entry...");
+    if ((counter_ptr=ptin_hapi_policy_find_free(cnt_db))==L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Free database entry not found... error!");
+      return L7_TABLE_IS_FULL;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Free entry found!");
+  }
+
+  /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
+
+  /* Interfaces mask (for inports field) */
+  hapi_ptin_allportsbmp_get(&pbm_mask);
+
+  BCM_PBMP_CLEAR(pbm);
+  portDescriptor.lport      = -1;
+  portDescriptor.bcm_port   = -1;
+  portDescriptor.trunk_id   = -1;
+  portDescriptor.class_port =  0;
+
+  if (ptin_hapi_portDescriptor_get(&(profile->ddUsp_src),dapi_g,&portDescriptor,&pbm)!=L7_SUCCESS ||
+      (portDescriptor.bcm_port<0 && portDescriptor.trunk_id<0 && portDescriptor.class_port==0))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
+    return L7_FAILURE;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Configuring counter...");
