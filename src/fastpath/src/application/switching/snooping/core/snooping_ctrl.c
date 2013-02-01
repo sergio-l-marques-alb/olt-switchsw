@@ -217,17 +217,21 @@ void snoopTask(void)
     osapiSemaTake(pSnoopEB->snoopMsgQSema, L7_WAIT_FOREVER);
     isPduMsg = L7_FALSE;
     isTimerMsg = L7_FALSE;
+
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: Going to receive message");
+
     rc = osapiMessageReceive(pSnoopEB->snoopQueue, (void *)&msg, SNOOP_MSG_SIZE,
                              L7_NO_WAIT);
 
     if (rc != L7_SUCCESS)
     {
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: First");
       rc = osapiMessageReceive(pSnoopEB->snoopTimerQueue, (void *)&timerMsg, SNOOP_TIMER_MSG_SIZE,
                                L7_NO_WAIT);
       if (rc != L7_SUCCESS)
       {
-
-     idx = pSnoopEB->maxSnoopInstances;
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: Second");
+      idx = pSnoopEB->maxSnoopInstances;
       if (idx)
       {
         do
@@ -248,6 +252,7 @@ void snoopTask(void)
           if (rc == L7_SUCCESS)
           {
             isPduMsg = L7_TRUE;
+            SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: Success receiving message");
             break; /* Got one message */
           }
           idx--;
@@ -277,6 +282,8 @@ void snoopTask(void)
     {
      msgId = snoopMsgTimerTick;
     }
+
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: MsgId=%u",msgId);
 
     switch (msgId)
     {
@@ -354,6 +361,7 @@ void snoopTask(void)
 
     case snoopPDUMsgRecv:
         /* PDU Receive */
+       SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopTask: Going to process message");
        snoopPacketProcess(&pduMsg);
        break;
 

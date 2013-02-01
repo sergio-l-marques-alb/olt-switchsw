@@ -326,6 +326,101 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   memcpy(client.macAddr,smac,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   client.mask = 0;
 
+  /* Apenas se fara atribuicao de cliente, se a interface e' LEAF */
+  if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum,pduInfo->vlanId)==L7_SUCCESS)
+  {
+    /* Apenas se olhara 'a presenca da inner vlan na Linecard */
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    if ( pduInfo->innerVlanId != 0 )
+    {
+      /* Search for the static client */
+      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+      if (ptin_igmp_clientIndex_get(pduInfo->intIfNum, pduInfo->vlanId, &client, &client_idx)!=L7_SUCCESS)
+      {
+        client_idx = (L7_uint) -1;
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: ptin_igmp_clientIndex_get failed");
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        //return L7_FAILURE;
+      }
+    }
+    #endif
+
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    /* For linecards, add clients dynamically if no inner vlan is present, or if it is unknown */
+    if ( pduInfo->innerVlanId == 0 || client_idx == -1 )    /* Uncomment this line, if manager does not configure the MC client for unstacked services */
+    /* For linecards, do not add clients dynamically */
+    //if (0)                                                /* Uncomment this line, if everything works fine on the manager side
+    #endif
+    {
+      /* A adicao dinamica de clientes far-se-a apenas em interfaces leaf da carta matriz, ou, sendo linecard, nao existe inner vlan */
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to add dynamically a client");
+
+      /* Search for the dynamic client */
+      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_MACADDR;
+
+      /* If the client does not exist, it will be created in dynamic mode */
+      if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum, pduInfo->vlanId, &client, &client_idx)!=L7_SUCCESS)
+      {
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        //return L7_FAILURE;
+      }
+    }
+  }
+  else
+  {
+    client_idx = (L7_uint) -1;
+  }
+
+
+  #if 0
+  /* Apenas se fara atribuicao de cliente, se a interface e' LEAF */
+  if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum,pduInfo->vlanId)==L7_SUCCESS)
+  {
+    /* Apenas se olhara 'a presenca da inner vlan na Linecard */
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    if ( pduInfo->innerVlanId != 0 )
+    {
+      /* Search for the static client */
+      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+      if (ptin_igmp_clientIndex_get(pduInfo->intIfNum, pduInfo->vlanId, &client, &client_idx)!=L7_SUCCESS)
+      {
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: ptin_igmp_clientIndex_get failed");
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        //return L7_FAILURE;
+      }
+    }
+    else
+    #endif
+    {
+      /* A adicao dinamica de clientes far-se-a apenas em interfaces leaf da carta matriz, ou, sendo linecard, nao existe inner vlan */
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to add dynamically a client");
+
+      /* Search for the dynamic client */
+      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_MACADDR;
+
+      /* If the client does not exist, it will be created in dynamic mode */
+      if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum, pduInfo->vlanId, &client, &client_idx)!=L7_SUCCESS)
+      {
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+        //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        //return L7_FAILURE;
+      }
+    }
+  }
+  else
+  {
+    client_idx = (L7_uint) -1;
+  }
+  #endif
+
+  #if 0
   /* Validate client information */
   #if ( !PTIN_BOARD_IS_MATRIX )
   /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
@@ -368,6 +463,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
     }
   }
+  #endif
 
   /* Validate client index */
   if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
@@ -436,6 +532,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }
 
+  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to send message to queue");
+
+  L7_int32 n_msg = -1;
+  if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Size of IGMP queue = %u messages",n_msg);
+  }
+  else
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Error reading IGMP queue size");
+  }
+
   memcpy(msg.snoopBuffer, data, dataLength);
   msg.dataLength = dataLength;
 
@@ -459,6 +567,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Message sent to queue");
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
