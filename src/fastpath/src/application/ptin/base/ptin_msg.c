@@ -2140,6 +2140,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile)
 
   /* Add bandwidth profile */
   rc = ptin_evc_bwProfile_delete(evcId,&profile);
+
   if ( rc != L7_SUCCESS )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
@@ -2375,6 +2376,7 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
 
   /* Get config */
   rc = ptin_cfg_ntw_connectivity_get(&ptinNtwConn);
+
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting inband management config");
@@ -2451,6 +2453,7 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
 
   /* Apply config */
   rc = ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
+
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting inband management config");
@@ -2516,6 +2519,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 
   /* Get circuit and remote ids */
   rc = ptin_dhcp_client_get(evc_idx,&client,profile->circuitId,profile->remoteId);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining circuit and remote ids");
@@ -2585,6 +2589,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
     /* Add circuit and remote ids */
     rc = ptin_dhcp_client_add(evc_idx,&client,profile[i].circuitId,profile[i].remoteId);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding circuitId+remoteId entry");
@@ -2650,6 +2655,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
 
     /* Remove circuitId+remoteId entry */
     rc = ptin_dhcp_client_delete(evc_idx,&client);
+
     if ( rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing circuitId+remoteId entry");
@@ -2718,6 +2724,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Get statistics */
   rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id,&client,&stats);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting client statistics");
@@ -2803,6 +2810,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Clear client stats */
   rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id,&client);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing client statistics");
@@ -2859,6 +2867,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   if (dhcp_stats->evc_id==(L7_uint16)-1)
   {
     rc = ptin_dhcp_stat_intf_get(&ptin_intf,&stats);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting global interface statistics");
@@ -2872,6 +2881,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   else
   {
     rc = ptin_dhcp_stat_instanceIntf_get(dhcp_stats->evc_id,&ptin_intf,&stats);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics struct");
@@ -2940,6 +2950,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       /* Clear all stats */
       rc = ptin_dhcp_stat_clearAll();
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing all statistics data");
@@ -2955,6 +2966,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       /* Clear all stats of one interface */
       rc = ptin_dhcp_stat_intf_clear(&ptin_intf);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one complete interface");
@@ -2974,6 +2986,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       /* Clear stats of one dhcp instance */
       rc = ptin_dhcp_stat_instance_clear(dhcp_stats->evc_id);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one DHCP instance");
@@ -2989,6 +3002,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     {
       /* Clear stats of one dhcp instance and one interface */
       rc = ptin_dhcp_stat_instanceIntf_clear(dhcp_stats->evc_id,&ptin_intf);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one DHCP instance + interface");
@@ -3103,7 +3117,9 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_t *table)
 
     memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBinding.macAddr,table->bind_table[i].macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
     rc = ptin_dhcp82_bindtable_remove(&dsBinding);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing entry");
@@ -3188,6 +3204,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
 
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);
+
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting IGMP Proxy config");
@@ -3217,6 +3234,7 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
 
   /* Get config */
   rc = ptin_igmp_proxy_config_get(&ptinIgmpProxy);
+
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting IGMP Proxy config");
@@ -3307,6 +3325,7 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
 
   /* Apply config */
   rc = ptin_igmp_instance_add(msgIgmpInst->multicastEvcId,msgIgmpInst->unicastEvcId);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/updating IGMP instance");
@@ -3400,6 +3419,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
     /* Apply config */
     rc = ptin_igmp_client_add(McastClient[i].mcEvcId,&client);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
@@ -3460,6 +3480,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 
     /* Apply config */
     rc = ptin_igmp_client_delete(McastClient[i].mcEvcId,&client);
+
     if ( rc != L7_SUCCESS )
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing MC client");
@@ -3528,6 +3549,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   /* Get statistics */
   rc = ptin_igmp_stat_client_get(igmp_stats->mcEvcId,&client,&stats);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting client statistics");
@@ -3618,6 +3640,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
 
   /* Clear client stats */
   rc = ptin_igmp_stat_client_clear(igmp_stats->mcEvcId,&client);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing client statistics");
@@ -3674,6 +3697,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   if (igmp_stats->mcEvcId==(L7_uint16)-1)
   {
     rc = ptin_igmp_stat_intf_get(&ptin_intf,&stats);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting global interface statistics");
@@ -3687,6 +3711,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   else
   {
     rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId,&ptin_intf,&stats);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics struct");
@@ -3760,6 +3785,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     {
       /* Clear all stats */
       rc = ptin_igmp_stat_clearAll();
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing all statistics data");
@@ -3775,6 +3801,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     {
       /* Clear all stats of one interface */
       rc = ptin_igmp_stat_intf_clear(&ptin_intf);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one complete interface");
@@ -3794,6 +3821,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     {
       /* Clear stats of one igmp instance */
       rc = ptin_igmp_stat_instance_clear(igmp_stats->mcEvcId);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one IGMP instance");
@@ -3809,6 +3837,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     {
       /* Clear stats of one igmp instance and one interface */
       rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId,&ptin_intf);
+
       if (rc!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one IGMP instance + interface");
@@ -3845,6 +3874,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
   in_addr.s_addr = channel->channelIp.s_addr;
 
   rc = ptin_igmp_static_channel_add(channel->evc_id,&in_addr);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
@@ -3875,6 +3905,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
   in_addr.s_addr = channel->channelIp.s_addr;
 
   rc = ptin_igmp_channel_remove(channel->evc_id,&in_addr);
+
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
@@ -3928,7 +3959,9 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannels_t *channel_list)
 
   /* Get list of channels */
   number_of_channels = MSG_MCACTIVECHANNELS_CHANNELS_MAX;
+
   rc = ptin_igmp_channelList_get(channel_list->evc_id, &client, channel_list->page_index*MSG_MCACTIVECHANNELS_CHANNELS_MAX, &number_of_channels, clist, &total_channels);
+
   if (rc==L7_SUCCESS)
   {
     /* Copy channels to message */
@@ -3980,7 +4013,9 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   /* Get list of channels */
   channel.s_addr = client_list->channelIp.s_addr;
   number_of_clients = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
+
   rc = ptin_igmp_clientList_get(client_list->evc_id, &channel, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, &total_clients);
+
   if (rc==L7_SUCCESS)
   {
     /* Copy channels to message */
