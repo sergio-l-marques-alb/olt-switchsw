@@ -5255,6 +5255,7 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
 }
 
 /* DEBUG Functions ************************************************************/
+
 /**
  * Dumps EVC detailed info 
  * If evc_idx is invalid, all EVCs are dumped 
@@ -5348,6 +5349,37 @@ void ptin_evc_dump(L7_uint evc_idx)
 
     printf("\n");
   }
+}
+
+/**
+ * Dumps the EVC related to the given internal vlan
+ * 
+ * @param int_vlan : internal vlan
+ */
+void ptin_evc_which(L7_uint int_vlan)
+{
+  L7_uint evc_idx;
+
+  printf("Which EVC corresponds to the internal vlan %u ?\r\n",int_vlan);
+
+  if (int_vlan==0 || int_vlan>4095)
+  {
+    printf("Vlan %u is outside range (1-4095)!\r\n",int_vlan);
+    return;
+  }
+
+  evc_idx = evcId_from_internalVlan[int_vlan];
+
+  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  {
+    printf("Vlan %u does not correspond to a valid EVC id (%u)\r\n",int_vlan,evc_idx);
+    return;
+  }
+
+  printf("Internal vlan %u => EVC %u\r\n\n",int_vlan,evc_idx);
+
+  /* Dump EVC */
+  ptin_evc_dump(evc_idx);
 }
 
 #if 0

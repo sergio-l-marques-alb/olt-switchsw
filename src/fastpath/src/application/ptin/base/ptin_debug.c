@@ -83,9 +83,10 @@ void ptin_debug(void)
 {
   printf("PTin debug functions\r\n");
   printf("\r\n");
-  printf("  ptin_intf_dump      - prints info about all PHY interfaces\r\n");
-  printf("  ptin_lag_dump       - prints info about all LAG interfaces\r\n");
-  printf("  ptin_evc_dump <id>  - prints info about EVCs (use -1 to display all)\r\n");
+  printf("  ptin_intf_dump            - prints info about all PHY interfaces\r\n");
+  printf("  ptin_lag_dump             - prints info about all LAG interfaces\r\n");
+  printf("  ptin_evc_dump <id>        - prints info about EVCs (use -1 to display all)\r\n");
+  printf("  ptin_evc_which <vlan_int> - prints info about the EVC related to the given internal vlan\r\n");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>        - Clean all profiles and counters of one interface of an EVC\r\n");
@@ -107,6 +108,10 @@ void ptin_debug(void)
   printf("  ptin_debug_trap_packets_state                             - Show if some redirection packet rule to CPU is defined\r\n");
   printf("  ptin_debug_trap_packets_dump <enable>                     - Print packets content\r\n");
   printf("\r\n");
+  printf("  cpu_intercept_debug_enable <enable>                       - Print all packets intercepted by the processor\r\n");
+  printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
+  printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
+  printf("\r\n");
   printf("  ptin_dhcp_dump                      - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
@@ -117,6 +122,10 @@ void ptin_debug(void)
   printf("  ptin_timers_show                    - Show all processing timers contents\r\n");
   printf("  ptin_msg_runtime_init <msg_id>      - Initialize runtime measurements for msg_id (-1 for all)\r\n");
   printf("  ptin_msg_runtime_show               - Show runtime measurements for all messages\r\n");
+  printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
+  printf("  snoopDebugTraceFlagsSetAF <1/2>     - Activate specific IGMP snoop trace messages\r\n");
+  printf("  snoopDebugTraceEnable               - Enable IGMP snoop trace debugging\r\n");
+  printf("  snoopDebugTraceDisable              - Disable IGMP snoop trace debugging\r\n");
   printf("  ptin_debug_igmp_enable <enable>     - Show more debugging logs for the IGMP module\r\n");
   printf("  ptin_debug_dhcp_enable <enable>     - Show more debugging logs for the DHCP module\r\n");
   printf("\r\n");
