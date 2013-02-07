@@ -200,5 +200,17 @@ extern L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *ports
  */
 extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit);
 
+/**
+ * Show trapped packets (to CPU) according to the configured 
+ * trap rule 
+ * 
+ * @param bcm_port : Input port (bcm representation)
+ * @param ovlan : Outer vlan
+ * @param ivlan : Inner vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uchar8 *packet_data );
+
 #endif /*_PTIN_HAPI_H */
 

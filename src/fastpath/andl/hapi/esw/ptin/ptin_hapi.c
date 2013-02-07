@@ -1681,10 +1681,10 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
     return L7_FAILURE;
   }
 
-  meterInfo.cir       = 128;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = 128;
-  meterInfo.pbs       = 128;
+  meterInfo.cir       = 256;
+  meterInfo.cbs       = 256;
+  meterInfo.pir       = 256;
+  meterInfo.pbs       = 256;
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
   /* Clear saved paremeters */
@@ -1820,6 +1820,73 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
 
   /* Save policy id */
   policyId_trap = policyId;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Show trapped packets (to CPU) according to the configured 
+ * trap rule 
+ * 
+ * @param bcm_port : Input port (bcm representation)
+ * @param ovlan : Outer vlan
+ * @param ivlan : Inner vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uchar8 *packet_data )
+{
+  int i;
+  int trap_bcm_port;
+
+  /* Validate arguments */
+  if ( bcm_port < 0 || packet_data == L7_NULLPTR )
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Rule is defined? */
+  if (policyId_trap == BROAD_POLICY_INVALID)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Check if packet properties match the defined rule */
+  if (trap_port>=0)
+  {
+    /* Validate port */
+    if (hapi_ptin_bcmPort_get(trap_port, &trap_bcm_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting bcm_port of trap_port %d",trap_port);
+      return L7_FAILURE;
+    }
+    if (bcm_port != trap_bcm_port)
+      return L7_SUCCESS;
+  }
+  if (trap_ovlan>0 && trap_ovlan<4096)
+  {
+    if (ovlan != trap_ovlan)
+      return L7_SUCCESS;
+  }
+  if (trap_ivlan>0 && trap_ivlan<4096)
+  {
+    if (ivlan != trap_ivlan)
+      return L7_SUCCESS;
+  }
+
+  printf("Packet received on port %u (bcm_port %u), oVlan=%u, iVlan=%u:\r\n",
+         trap_port, bcm_port, trap_ovlan, trap_ivlan);
+  for (i=0; i<64; i++)
+  {
+    if (i%16==0)
+    {
+      if (i!=0)
+        printf("\r\n");
+      printf(" 0x%02x:",i);
+    }
+    printf(" %02x",packet_data[i]);
+  }
+  printf("\r\n");
 
   return L7_SUCCESS;
 }

@@ -68,6 +68,7 @@ extern fNimSetIntfAdminState nimSetIntfAdminStatePtr;
 
 /* PTin added: IGMP snooping */
 #if 1
+#include "ptin_hapi.h"
 #include "ptin_structs.h"
 #include "logger.h"
 
@@ -2192,6 +2193,9 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     }
     printf("\r\n");
   }
+
+  /* Check if packet needs to be printed out */
+  ptin_debug_trap_packets_show(bcm_pkt->rx_port, bcm_pkt->vlan, bcm_pkt->inner_vlan, bcm_pkt->pkt_data->data);
 
   memset(&cmdInfo, 0, sizeof(cmdInfo));
 
