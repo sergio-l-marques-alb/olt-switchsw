@@ -73,15 +73,20 @@
 #define CCMSG_ETH_SWITCH_CONFIG_GET         0x90A0  // struct msg_switch_config_t
 #define CCMSG_ETH_SWITCH_CONFIG_SET         0x90A1  // struct msg_switch_config_t
 
-#define CCMSG_ETH_DHCP_PROFILE_GET          0x90B0  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90B1  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90B2  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90B3  // struct msg_DhcpClientStatistics_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90B4  // struct msg_DhcpClientStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90B5  // struct msg_DhcpClientStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90B6  // struct msg_DhcpClientStatistics_t
-#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90B7  // struct msg_DHCP_bind_table_t
-#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90B8  // struct msg_DHCP_bind_table_t
+//#define CCMSG_ETH_DHCP_PROFILE_GET          0x90B0  // struct msg_HwEthernetDhcpOpt82Profile_t
+//#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90B1  // struct msg_HwEthernetDhcpOpt82Profile_t
+//#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90B2  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_PROFILE_GET          0x90C0  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90C1  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90C2  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90C3  // struct msg_DhcpClientStatistics_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90C4  // struct msg_DhcpClientStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90C5  // struct msg_DhcpClientStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_DhcpClientStatistics_t
+//#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90B7  // struct msg_DHCP_bind_table_t
+//#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90B8  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
 
 #define CCMSG_ETH_PORT_COS_GET              0x9090  // struct msg_QoSConfiguration_t
 #define CCMSG_ETH_PORT_COS_SET              0x9091  // struct msg_QoSConfiguration_t
@@ -592,8 +597,11 @@ typedef struct {
  * DHCP option 82 configuration messages
  ****************************************************/
 
-#define MSG_INTERFACE_MASK    0x01
-#define MSG_CLIENT_MASK       0x02
+#define MSG_INTERFACE_MASK       0x01
+#define MSG_CLIENT_MASK          0x02
+#define MSG_DHCP_OPTIONS_MASK    0x04
+#define MSG_DHCP_CIRCUITID_MASK  0x010
+#define MSG_DHCP_REMOTEID_MASK   0x020
 
 /* DHCP Profile */
 // Messages CCMSG_ETH_DHCP_PROFILE_GET, CCMSG_ETH_DHCP_PROFILE_ADD and CCMSG_ETH_DHCP_PROFILE_REMOVE
@@ -603,8 +611,9 @@ typedef struct {
   L7_uint8              mask;     /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
-  char circuitId[64];             /* Circuit id */
-  char remoteId[64];              /* Remote id */
+  L7_uint16             options;  /* [mask=0x04] Options to be active: 0x01=Option82; 0x02=Option 37; 0x04=Option18 */
+  char circuitId[64];             /* [mask=0x10] Circuit id */
+  char remoteId[64];              /* [mask=0x20] Remote id */
 } __attribute__((packed)) msg_HwEthernetDhcpOpt82Profile_t;
 
 /* DHCP Statistics */ 
@@ -617,14 +626,20 @@ typedef struct _st_DHCP_Statistics_t
   uint32 dhcp_rx_filtered;
   uint32 dhcp_tx_forwarded;
   uint32 dhcp_tx_failed;
-  uint32 dhcp_rx_client_requests_without_option82;
+
+  uint32 dhcp_rx_client_requests_without_options;
   uint32 dhcp_tx_client_requests_with_option82;
+  uint32 dhcp_tx_client_requests_with_option37;
+  uint32 dhcp_tx_client_requests_with_option18;
   uint32 dhcp_rx_server_replies_with_option82;
-  uint32 dhcp_tx_server_replies_without_option82;
-  uint32 dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  uint32 dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  uint32 dhcp_rx_server_replies_with_option37;
+  uint32 dhcp_rx_server_replies_with_option18;
+  uint32 dhcp_tx_server_replies_without_options;
+
+  L7_uint32 dhcp_rx_client_pkts_onTrustedIntf;
+  L7_uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+  L7_uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics
@@ -652,12 +667,34 @@ typedef struct {
 } __attribute__((packed)) msg_DHCP_bind_entry;
 
 typedef struct {
+  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint16             evc_idx;                // EVCid
+  L7_uint16             outer_vlan;             // Service vlan: not used yet
+  L7_uint16             inner_vlan;             // Client clanId
+  msg_HwEthInterface_t  intf;                   // Interface
+  L7_uint8              macAddr[6];             // MAC Address
+  chmessage_ip_addr_t   ipAddr;                 // IP address
+  L7_uint32             remLeave;               // Remaining Leave time in seconds
+  L7_uint8              bindingType;            // Binding type: 0=Tentative, 1=Static, 2=Dynamic
+} __attribute__((packed)) msg_DHCPv4v6_bind_entry;
+
+typedef struct {
   uint8  SlotId;                         // slot
   uint16 page;                           // Page index
   L7_uint16 bind_table_total_entries;    // Total entries in Bind table
   L7_uint16 bind_table_msg_size;         // Number of entries in this message: up to 128
   msg_DHCP_bind_entry bind_table[128];   // Bind table
 } __attribute__((packed)) msg_DHCP_bind_table_t;
+
+/* DHCP Binding table IPv6 compatible */
+typedef struct {
+  uint8  SlotId;                             // slot
+  uint16 page;                               // Page index
+  L7_uint16 bind_table_total_entries;        // Total entries in Bind table
+  L7_uint16 bind_table_msg_size;             // Number of entries in this message: up to 128
+  msg_DHCPv4v6_bind_entry bind_table[128];   // Bind table
+} __attribute__((packed)) msg_DHCPv4v6_bind_table_t;
+
 
 
 /***************************************************** 

@@ -24,36 +24,45 @@ typedef enum  {
   DHCP_STAT_FIELD_RX_FILTERED,
   DHCP_STAT_FIELD_TX_FORWARDED,
   DHCP_STAT_FIELD_TX_FAILED,
-  DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82,
+
+  DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS,
   DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82,
+  DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37,
+  DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18,
+  DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS,
   DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82,
-  DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITH_OPTION82,
-  DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82,
-  DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTION82,
-  DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTION82,
-  DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82,
-  DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOUTOP82_ON_TRUSTED_INTF,
-  DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOP82_ON_UNTRUSTED_INTF,
-  DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOP82_ON_UNTRUSTED_INTF,
-  DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOP82_ON_TRUSTED_INTF,
+  DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION37,
+  DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION18,
+
+  DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF,
+  DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF,
+  DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF,
+  DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF,
+
   DHCP_STAT_FIELD_ALL
 } ptin_dhcp_stat_enum_t;
 
 typedef struct _ptin_DHCP_Statistics_t
 {
   L7_uint32 dhcp_rx_intercepted;
-  L7_uint32 dhcp_rx;
+  L7_uint32 dhcp_rx;                                     //dhcp_rx_valid
   L7_uint32 dhcp_rx_filtered;
   L7_uint32 dhcp_tx_forwarded;
   L7_uint32 dhcp_tx_failed;
-  L7_uint32 dhcp_rx_client_requests_without_option82;
+
+  L7_uint32 dhcp_rx_client_requests_without_options;
   L7_uint32 dhcp_tx_client_requests_with_option82;
+  L7_uint32 dhcp_tx_client_requests_with_option37;
+  L7_uint32 dhcp_tx_client_requests_with_option18;
   L7_uint32 dhcp_rx_server_replies_with_option82;
-  L7_uint32 dhcp_tx_server_replies_without_option82;
-  L7_uint32 dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  L7_uint32 dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  L7_uint32 dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  L7_uint32 dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  L7_uint32 dhcp_rx_server_replies_with_option37;
+  L7_uint32 dhcp_rx_server_replies_with_option18;
+  L7_uint32 dhcp_tx_server_replies_without_options;
+
+  L7_uint32 dhcp_rx_client_pkts_onTrustedIntf;
+  L7_uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+  L7_uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__ ((packed)) ptin_DHCP_Statistics_t;
 
 extern L7_BOOL ptin_debug_dhcp_snooping;
@@ -124,7 +133,7 @@ extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_char8 *circuitId, L7_char8 *remoteId);
+extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
  * Add a new DHCP client
@@ -136,7 +145,7 @@ extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *clie
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_char8 *circuitId, L7_char8 *remoteId);
+extern L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
  * Remove a DHCP client
@@ -157,6 +166,18 @@ extern L7_RC_t ptin_dhcp_client_delete(L7_uint16 UcastEvcId, ptin_client_id_t *c
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
 L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_entries);
+
+/**
+ * Get DHCP Binding table
+ *
+ * @param table       : Bin table
+ * @param max_entries : Size of table
+ *
+ * @notes   IPv6 compatible
+ *
+ * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
+ */
+L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint16 *max_entries);
 
 /**
  * Removes an entry from the DHCP binding table
@@ -308,6 +329,20 @@ L7_BOOL ptin_dhcp82_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
 extern L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
                                        L7_char8 *circuitId, L7_char8 *remoteId);
 
+/**
+ * Get DHCP client data (DHCP Options)
+ *
+ * @param intIfNum    : FP interface
+ * @param intVlan     : internal vlan
+ * @param innerVlan   : inner/client vlan
+ * @param isActiveOp82: L7_TRUE if op82 is active for this client
+ * @param isActiveOp37: L7_TRUE if op37 is active for this client
+ * @param isActiveOp18: L7_TRUE if op18 is active for this client
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
+                                            L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18);
 
 /**
  * Get the client index associated to a DHCP client 

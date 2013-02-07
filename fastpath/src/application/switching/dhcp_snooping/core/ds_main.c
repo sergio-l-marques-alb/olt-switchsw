@@ -130,11 +130,14 @@ void dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen,
 
 static L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRelayFrame, L7_ushort16 dhcpRelayFrameLen);
 
-static L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen,  L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_dhcp6_opttype_t dhcpOp);
+static L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen, L7_ushort16 vlanId,
+                                   L7_ushort16 innerVlanId, L7_uchar8 *macAddr, L7_dhcp6_opttype_t dhcpOp);
 
-static L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId,
+                                          L7_uint client_idx);
 
-static L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId,
+                                          L7_uint client_idx);
 
 /*********************************************************************
 * @purpose  Main function for the DHCP snooping thread. Read incoming
@@ -1534,6 +1537,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *dhcp_op_header_ptr;
    L7_dhcp6_relay_agent_packet_t relay_agent_header = { 0 };
    L7_uint32 frame_len, frame_copy_len, lease_time = 0;
+   L7_BOOL isActiveOp82, isActiveOp37, isActiveOp18;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
@@ -1541,25 +1545,15 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_enetMacAddr_t client_mac_addr;
    L7_enetHeader_t *mac_header = 0;
    L7_dhcp6_packet_t *dhcp_header;
-   NIM_INTF_MASK_t portMask;
    L7_ushort16 ethHdrLen;
 
    //Check if the port through which the message was received is valid
-   if (ptin_evc_intfType_getList(vlanId, PTIN_EVC_INTF_ROOT, &portMask) == L7_SUCCESS)
+   if (_dsVlanIntfTrustGet(vlanId,intIfNum))
    {
-      if (L7_INTF_ISMASKBITSET(portMask, intIfNum))
-      {
-         LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Ignoring DHCP client message received on service root port");
-         return L7_FAILURE;
-      }
-   }
-   else
-   {
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Unable to get DHCP service root port");
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received client request on server port");
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF);
       return L7_FAILURE;
    }
-
-   inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
 
    //Parse the received frame
    eth_header_ptr = frame;
@@ -1581,6 +1575,15 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dhcp_copy_header_ptr = udp_copy_header_ptr + sizeof(L7_udp_header_t);
    frame_copy_len = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
+   //Get DHCP Options for this client
+   inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
+   memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
+   if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+   {
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get client");
+      return L7_FAILURE;
+   }
+
    //Check DHCPv6 frame for invalid options
    dhcp_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_packet_t);
    frame_len = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_packet_t);
@@ -1600,8 +1603,9 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
          case L7_DHCP6_OPT_INTERFACE_ID:
          case L7_DHCP6_OPT_REMOTE_ID:
          {
-            LOG_TRACE(LOG_CTX_PTIN_DHCP, "Discarding client DHCP request: interface-id/remote-id was already present");
-            return L7_FAILURE;
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
+            LOG_WARNING(LOG_CTX_PTIN_DHCP, "Discarding client DHCP request: interface-id/remote-id was already present");
+            return L7_SUCCESS;
          }
          case L7_DHCP6_OPT_IA_NA:
          case L7_DHCP6_OPT_IA_TA:
@@ -1654,6 +1658,9 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       dhcp_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
+   //If we got here, means the client request did not have any options
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
+
    //Create a new Relay-Agent message
    relay_agent_header.msg_type = L7_DHCP6_RELAY_FORW;
    memcpy(relay_agent_header.peer_address, ipv6_header->src, IPV6_ADDRESS_LEN);
@@ -1668,10 +1675,27 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Add Interface-id option (option 18)
-   if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, L7_DHCP6_OPT_INTERFACE_ID))
+   if (isActiveOp18)
    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
-      return L7_FAILURE;
+      if (L7_SUCCESS
+            != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, client_mac_addr.addr,
+                  L7_DHCP6_OPT_INTERFACE_ID))
+      {
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
+         return L7_FAILURE;
+      }
+   }
+
+   //Add Interface-id option (option 37)
+   if (isActiveOp37)
+   {
+      if (L7_SUCCESS
+            != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, client_mac_addr.addr,
+                  L7_DHCP6_OPT_REMOTE_ID))
+      {
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
+         return L7_FAILURE;
+      }
    }
 
    //Update the UDP and IPv6 headers
@@ -1683,26 +1707,29 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (L7_SUCCESS != dsFrameFlood(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
+
       return L7_FAILURE;
    }
+
+   //Increment client tx counters
+   if (isActiveOp18)
+   {
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18);
+   }
+   if (isActiveOp37)
+   {
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37);
+   }
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Add a new entry in the binding table
    if ((L7_DHCP6_SOLICIT == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_REQUEST == *(L7_uint8*)dhcp_header_ptr))
    {
-      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
-
-      memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
-
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Adding a new entry in the binding table (%02x:%02x:%02x:%02x:%02x:%02x) %s",
-            client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5], inetAddrPrint(&client_ip_addr, ipAddrStr));
       dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
    }
    else if((L7_DHCP6_DECLINE == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_RELEASE == *(L7_uint8*)dhcp_header_ptr))
    {
-      memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
-
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Removing existing entry in the binding table (%02x:%02x:%02x:%02x:%02x:%02x)",
-            client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5]);
       dsBindingRemove(&client_mac_addr);
    }
 
@@ -1728,6 +1755,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *relay_op_header_ptr;
    L7_uchar8 *op_interfaceid_ptr = 0, *op_relaymsg_ptr = 0, *op_remoteid_ptr = 0;
+   L7_BOOL isActiveOp82, isActiveOp37, isActiveOp18;
    L7_inet_addr_t link_addr = {0}, client_ip_addr = {0};
    L7_uint32 frame_len, frame_copy_len, lease_time = 0;
    L7_dhcp6_relay_agent_packet_t *relay_agent_header;
@@ -1736,22 +1764,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
    L7_enetMacAddr_t client_mac_addr;
    L7_enetHeader_t *mac_header = 0;
-   NIM_INTF_MASK_t port_mask;
+   dhcpSnoopBinding_t dhcp_binding;
    L7_ushort16 ethHdrLen;
 
    //Check if the port through which the message was received is valid
-   if (ptin_evc_intfType_getList(vlanId, PTIN_EVC_INTF_LEAF, &port_mask) == L7_SUCCESS)
+   if (!_dsVlanIntfTrustGet(vlanId,intIfNum))
    {
-      if (L7_INTF_ISMASKBITSET(port_mask, intIfNum))
-      {
-         LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Ignoring DHCP server message received on service leaf port");
-         return L7_SUCCESS;
-      }
-   }
-   else
-   {
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Unable to get DHCP service leaf port");
-      return L7_SUCCESS;
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received server reply on client port");
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
+      return L7_FAILURE;
    }
 
    //Parse the received frame
@@ -1774,6 +1795,20 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dhcp_copy_header_ptr = udp_copy_header_ptr + sizeof(L7_udp_header_t);
    frame_copy_len = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
+   //Get client interface from DHCP binding table
+   memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+   memcpy(&client_mac_addr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+   memcpy(&dhcp_binding.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+   if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+   {
+      intIfNum = dhcp_binding.intIfNum;
+   }
+   //Get DHCP Options for this client
+   if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+   {
+      return L7_FAILURE;
+   }
+
    //Check DHCPv6 frame for options
    relay_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_relay_agent_packet_t);
    frame_len = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_relay_agent_packet_t);
@@ -1793,11 +1828,13 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
          case L7_DHCP6_OPT_INTERFACE_ID:
          {
             op_interfaceid_ptr = relay_op_header_ptr;
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION18);
             break;
          }
          case L7_DHCP6_OPT_REMOTE_ID:
          {
             op_remoteid_ptr = relay_op_header_ptr;
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION37);
             break;
          }
          case L7_DHCP6_OPT_RELAY_MSG:
@@ -1888,7 +1925,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
-   if(!op_relaymsg_ptr)
+   //Check if the server reply did not have any options
+   if(!op_interfaceid_ptr && !op_remoteid_ptr)
+   {
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF);
+   }
+
+   if(!op_relaymsg_ptr ||
+         (isActiveOp18 && !op_interfaceid_ptr) ||
+         (isActiveOp37 && !op_remoteid_ptr))
    {
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received DHCPv6 message missing mandatory options");
       return L7_SUCCESS;
@@ -1924,34 +1969,22 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
       converted_ifnum = atoi(ifnum_str);
       ptin_intf_port2intIfNum(converted_ifnum, &intIfNum);
-   }else //Get client interface from DHCP binding table
-   {
-      dhcpSnoopBinding_t dhcp_binding;
-
-      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
-
-      memcpy(&dhcp_binding.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
-      if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
-      {
-         intIfNum = dhcp_binding.intIfNum;
-      }
    }
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
+
       return L7_SUCCESS;
    }
+
+   //Increment server tx counters
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Add a new dynamic entry in the binding table
    if (L7_DHCP6_REPLY == *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)))
    {
-      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
-
-      memcpy(&client_mac_addr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
-
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Setting %s and %d for binding table entry with %02x:%02x:%02x:%02x:%02x:%02x",
-              inetAddrPrint(&client_ip_addr, ipAddrStr), lease_time, client_mac_addr.addr[0], client_mac_addr.addr[1], client_mac_addr.addr[2], client_mac_addr.addr[3], client_mac_addr.addr[4], client_mac_addr.addr[5]);
-
       //Ignore return codes from this functions. The client may have released first and now the relay agent is unable to find the binding entries for this MAC
       dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
       dsBindingLeaseSet(&client_mac_addr, lease_time);
@@ -1999,13 +2032,11 @@ L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRel
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen,  L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_dhcp6_opttype_t dhcpOp)
+L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *frameLen, L7_ushort16 vlanId,
+                            L7_ushort16 innerVlanId, L7_uchar8 *macAddr, L7_dhcp6_opttype_t dhcpOp)
 {
    L7_char8 circuit_id[DS_MAX_REMOTE_ID_STRING], remote_id[DS_MAX_REMOTE_ID_STRING];
    L7_dhcp6_option_packet_t dhcp_op_dhcp_relay = { 0 };
-
-   L7_char8 macAddr[L7_MAC_ADDR_LEN] = { 0 }; //TODO Remove this in the future
-   memset(macAddr, 0, L7_MAC_ADDR_LEN);
 
    if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , macAddr, circuit_id, remote_id) != L7_SUCCESS)
    {
@@ -2019,16 +2050,16 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
 
-//   if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
-//   {
-//      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
-//      *frameLen += strlen(circuit_id) + 1;
-//   }
-//   else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
-//   {
-//      memcpy(frame + *frameLen, circuit_id, strlen(remote_id) + 1); //Copy remote-id string
-//      *frameLen += strlen(remote_id) + 1;
-//   }
+   if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
+   {
+      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
+      *frameLen += strlen(circuit_id) + 1;
+   }
+   else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
+   {
+      memcpy(frame + *frameLen, circuit_id, strlen(remote_id) + 1); //Copy remote-id string
+      *frameLen += strlen(remote_id) + 1;
+   }
 
    return L7_SUCCESS;
 }
@@ -2617,7 +2648,7 @@ L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *mac
                          L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)        /* PTin modified: DHCP snooping */
       {
         dsInfo->debugStats.serverOption82Tx++;
-        ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82);
+        ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
         ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
         return L7_SUCCESS;
       }
@@ -3549,8 +3580,10 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* The packet is put for filtering as the packet might not have Option-82,
          which is expected on L2 Relay trusted interfaces. So drop the packet.*/
       dsIntfInfo[intIfNum].dsIntfStats.trustedServerFramesWithoutOption82++;
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOP82_ON_TRUSTED_INTF);
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTION82);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF);
+#if 0 /* PTin removed: DHCPv6 */
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS);
+#endif
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted",
                          intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
       if (ptin_debug_dhcp_snooping)
@@ -3563,7 +3596,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* The packet is put for filtering as the packet have Option-82,
          which is not expected on L2 Relay untrusted interfaces. So drop the packet.*/
       dsIntfInfo[intIfNum].dsIntfStats.untrustedServerFramesWithOption82++;
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOP82_ON_UNTRUSTED_INTF);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted",
                          intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
       if (ptin_debug_dhcp_snooping)
@@ -3730,13 +3763,15 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       dsInfo->debugStats.clientOption82Rx++;
       if (ptin_debug_dhcp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82");
+#if 0 /* PTin removed: DHCPv6 */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82);
+#endif
     }
     else
     {
       if (ptin_debug_dhcp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82");
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
     }
 
     /* On L2 Relay trusted interfaces, Option-82 is expected.
@@ -3745,7 +3780,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE))   /* PTin modified: DHCP snooping */
     {
       dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOP82_ON_UNTRUSTED_INTF);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82"
                          "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
                          (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
@@ -3758,7 +3793,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if ((relayFlag == L7_FALSE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE))   /* PTin modified: DHCP snooping */
     {
       dsIntfInfo[intIfNum].dsIntfStats.trustedClientFramesWithoutOption82++;
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOUTOP82_ON_TRUSTED_INTF);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF);
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg without Option-82"
                          "rx'ed on L2 Relay trusted", intIfNum, vlanId,
                          (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
@@ -4199,7 +4234,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
       {
         dsInfo->debugStats.serverOption82Tx++;
-        ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82);
+        ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
         ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
         return L7_SUCCESS;
       }

@@ -31,7 +31,6 @@
 #include "ds_ipsg.h"
 #endif
 
-
 extern dsInfo_t *dsInfo;
 #ifdef L7_IPSG_PACKAGE
 extern ipsgInfo_t *ipsgInfo;
@@ -832,7 +831,15 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
 {
   memcpy(extBinding->macAddr, binding->macAddr.addr, L7_ENET_MAC_ADDR_LEN);
 
-  extBinding->ipAddr = binding->ipAddr.addr.ipv4.s_addr;
+  extBinding->ipFamily = binding->ipAddr.family;
+  if(binding->ipAddr.family == L7_AF_INET)
+  {
+     extBinding->ipAddr = binding->ipAddr.addr.ipv4.s_addr;
+  }
+  else if(binding->ipAddr.family == L7_AF_INET6)
+  {
+     memcpy(extBinding->ipv6Addr, binding->ipAddr.addr.ipv6.in6.addr16, 16*sizeof(L7_ushort16));
+  }
   extBinding->vlanId = binding->vlanId;
   extBinding->innerVlanId = binding->innerVlanId;   /* PTin added: DHCP */
   extBinding->intIfNum = binding->intIfNum;

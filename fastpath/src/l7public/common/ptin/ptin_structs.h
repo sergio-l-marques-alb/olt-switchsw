@@ -22,6 +22,18 @@ typedef struct
 
 
 /* General structs */
+/* PTin IP Address */
+#define PTIN_AF_INET    0
+#define PTIN_AF_INET6   1
+typedef struct chmessage_ip_addr_s {
+   L7_uint8       family;     /* IP traffic type: 0=IPv4; 1:IPv6 */
+   union
+   {
+      L7_uint32   ipv4;       /* 32 bit IPv4 address in network byte order */
+      L7_uint8    ipv6[16];   /* 128 bit IPv6 address in network byte order */
+   }__attribute__((packed)) addr;
+}__attribute__((packed)) chmessage_ip_addr_t;
+
 /* PTin Interface */
 typedef struct {
   L7_uint8  intf_type;                          /* Interface type: { 0-Physical, 1-Logical (LAG) } */
@@ -553,6 +565,20 @@ typedef struct {
   L7_uint32             remLeave;               // Remaining Leave time in seconds
   L7_uint8              bindingType;            // Binding type: 0=Tentative, 1=Static, 2=Dynamic
 } ptin_DHCP_bind_entry;
+
+/* DHCP Binding Table - IPv6 Compatible */
+typedef struct {
+  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint16             evc_idx;                // EVCid
+  L7_uint16             outer_vlan;             // Service vlan: not used yet
+  L7_uint16             inner_vlan;             // Client clanId
+  ptin_intf_t           ptin_intf;              // Interface
+  L7_uint8              macAddr[6];             // MAC Address
+  chmessage_ip_addr_t   ipAddr;                 // IP address
+  L7_uint32             remLeave;               // Remaining Leave time in seconds
+  L7_uint8              bindingType;            // Binding type: 0=Tentative, 1=Static, 2=Dynamic
+} ptin_DHCPv4v6_bind_entry;
+
 
 /* L2 Table */
 

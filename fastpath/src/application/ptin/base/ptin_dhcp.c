@@ -87,8 +87,9 @@ typedef struct
 
 typedef struct
 {
-  L7_char8 circuitId[FD_DS_MAX_REMOTE_ID_STRING+1];   /* Circuit ID string */
-  L7_char8 remoteId[FD_DS_MAX_REMOTE_ID_STRING+1];    /* Remote ID string */
+  L7_uint16 dhcp_options;
+  L7_char8  circuitId[FD_DS_MAX_REMOTE_ID_STRING+1];   /* Circuit ID string */
+  L7_char8  remoteId[FD_DS_MAX_REMOTE_ID_STRING+1];    /* Remote ID string */
 } ptinDhcpData_t;
 
 typedef struct
@@ -496,7 +497,7 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx;
   ptinDhcpClientInfoData_t *client_info;
@@ -523,6 +524,10 @@ L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Return string ids */
+  if (options!=L7_NULLPTR)
+  {
+     *options = client_info->client_data.dhcp_options;
+  }
   if (circuitId!=L7_NULLPTR)
     strncpy(circuitId,client_info->client_data.circuitId,FD_DS_MAX_REMOTE_ID_STRING);
   if (remoteId!=L7_NULLPTR)
@@ -541,7 +546,7 @@ L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx, client_idx;
   ptinDhcpClientDataKey_t avl_key;
@@ -801,6 +806,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Fill circuit and remote id fields */
+  avl_infoData->client_data.dhcp_options = options;
   strncpy(avl_infoData->client_data.circuitId,circuitId,FD_DS_MAX_REMOTE_ID_STRING);
   strncpy(avl_infoData->client_data.remoteId ,remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
 
@@ -1115,6 +1121,67 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_en
     table[index].inner_vlan     = dsBinding.innerVlanId;
     memcpy(table[index].macAddr,dsBinding.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
     table[index].ipAddr.s_addr  = dsBinding.ipAddr;
+    table[index].remLeave       = dsBinding.remLease;
+    table[index].bindingType    = dsBinding.bindingType;
+    index++;
+  }
+
+  if (max_entries!=L7_NULLPTR)  *max_entries=index;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get DHCP Binding table
+ *
+ * @param table       : Bin table
+ * @param max_entries : Size of table
+ *
+ * @notes   IPv6 compatible
+ *
+ * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
+ */
+L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint16 *max_entries)
+{
+  dhcpSnoopBinding_t  dsBinding;
+  L7_uint16           index, i;
+  ptin_intf_t         ptin_intf;
+  L7_uint16           evc_idx;
+  L7_uint16           n_max;
+
+  n_max = (max_entries!=L7_NULLPTR && *max_entries<PLAT_MAX_FDB_MAC_ENTRIES) ? (*max_entries) : PLAT_MAX_FDB_MAC_ENTRIES;
+
+  memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
+  for (i=0,index=0; i<n_max && usmDbDsBindingGetNext(&dsBinding)==L7_SUCCESS; i++)
+  {
+    // Calculate port reference and validate it
+    if (ptin_intf_intIfNum2ptintf(dsBinding.intIfNum,&ptin_intf)!=L7_SUCCESS)
+      continue;
+    // Extract vlan and validate it
+    if (dsBinding.vlanId<PTIN_VLAN_MIN || dsBinding.vlanId>PTIN_VLAN_MAX)
+      continue;
+    // Calculate flow id and validate it
+    if (ptin_evc_get_evcIdfromIntVlan(dsBinding.vlanId,&evc_idx)!=L7_SUCCESS)
+      evc_idx = (L7_uint16)-1;
+
+    // Fill mac-table entry
+    table[index].entry_index    = index;
+    table[index].evc_idx        = evc_idx;
+    table[index].ptin_intf      = ptin_intf;
+    table[index].outer_vlan     = dsBinding.vlanId;
+    table[index].inner_vlan     = dsBinding.innerVlanId;
+    memcpy(table[index].macAddr,dsBinding.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+   if ( dsBinding.ipFamily == L7_AF_INET)
+   {
+      table[index].ipAddr.family = 0;
+      table[index].ipAddr.addr.ipv4 = dsBinding.ipAddr;
+   }
+   else if ( dsBinding.ipFamily == L7_AF_INET6)
+   {
+      table[index].ipAddr.family = 1;
+      memcpy(table[index].ipAddr.addr.ipv6, dsBinding.ipv6Addr, 16*sizeof(L7_uchar8));
+   }
+
     table[index].remLeave       = dsBinding.remLease;
     table[index].bindingType    = dsBinding.bindingType;
     index++;
@@ -2090,6 +2157,92 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
 }
 
 /**
+ * Get DHCP client data (DHCP Options)
+ *
+ * @param intIfNum    : FP interface
+ * @param intVlan     : internal vlan
+ * @param innerVlan   : inner/client vlan
+ * @param isActiveOp82: L7_TRUE if op82 is active for this client
+ * @param isActiveOp37: L7_TRUE if op37 is active for this client
+ * @param isActiveOp18: L7_TRUE if op18 is active for this client
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_BOOL *isActiveOp82,
+                                     L7_BOOL *isActiveOp37, L7_BOOL *isActiveOp18)
+{
+   L7_uint dhcp_idx;
+   ptin_intf_t ptin_intf;
+   ptin_client_id_t client;
+   ptinDhcpClientInfoData_t *client_info;
+
+   //Set DHCP options to L7_FALSE
+   *isActiveOp82 = L7_FALSE;
+   *isActiveOp37 = L7_FALSE;
+   *isActiveOp18 = L7_FALSE;
+
+   /* Validate arguments */
+   if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX ||
+    innerVlan==0 || innerVlan>=4096)
+   {
+      if (ptin_debug_dhcp_snooping)
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments");
+      return L7_FAILURE;
+   }
+
+   /* Convert interface to ptin format */
+   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) != L7_SUCCESS)
+   {
+      if (ptin_debug_dhcp_snooping)
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid intIfNum (%u)", intIfNum);
+      return L7_FAILURE;
+   }
+
+   /* Get dhcp instance */
+   if (ptin_dhcp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &dhcp_idx) != L7_SUCCESS)
+   {
+      if (ptin_debug_dhcp_snooping)
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "Internal vlan %u does not correspond to any DHCP instance", intVlan);
+      return L7_FAILURE;
+   }
+
+   if (innerVlan > 0 && innerVlan < 4096)
+   {
+      /* Build client structure */
+      memset(&client, 0x00, sizeof(ptin_client_id_t));
+#if DHCP_CLIENT_INTERF_SUPPORTED
+      client.ptin_intf.intf_type = ptin_intf.intf_type;
+      client.ptin_intf.intf_id = ptin_intf.intf_id;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+#endif
+#if DHCP_CLIENT_INNERVLAN_SUPPORTED
+      client.innerVlan = innerVlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+#endif
+
+      /* Find client information */
+      if (ptin_dhcp_client_find(dhcp_idx, &client, &client_info) != L7_SUCCESS)
+      {
+         if (ptin_debug_dhcp_snooping)
+            LOG_ERR(LOG_CTX_PTIN_DHCP, "Non existent client in DHCP instance %u (EVC id %u)",
+                  dhcp_idx, dhcpInstances[dhcp_idx].UcastEvcId);
+         return L7_FAILURE;
+      }
+
+      *isActiveOp82 = 0x01 & client_info->client_data.dhcp_options;
+      *isActiveOp37 = (0x02 & client_info->client_data.dhcp_options) >> 1;
+      *isActiveOp18 = (0x04 & client_info->client_data.dhcp_options) >> 2;
+   }
+   else
+   {
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "No client defined!");
+      return L7_FAILURE;
+   }
+
+   return L7_SUCCESS;
+}
+
+/**
  * Update DHCP snooping configuration, when interfaces are 
  * added/removed 
  * 
@@ -2243,13 +2396,22 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_failed++;
     break;
 
-  case DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82:
-    break;
-
   case DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_client_requests_with_option82++;
     if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_client_requests_with_option82++;
     if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_client_requests_with_option82++;
+    break;
+
+  case DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_client_requests_with_option37++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_client_requests_with_option37++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_client_requests_with_option37++;
+    break;
+
+  case DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_client_requests_with_option18++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_client_requests_with_option18++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_client_requests_with_option18++;
     break;
 
   case DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82:
@@ -2258,49 +2420,52 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_replies_with_option82++;
     break;
 
-  case DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITH_OPTION82:
+  case DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION37:
+      if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_replies_with_option37++;
+      if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_replies_with_option37++;
+      if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_replies_with_option37++;
+      break;
+
+  case DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION18:
+      if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_replies_with_option18++;
+      if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_replies_with_option18++;
+      if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_replies_with_option18++;
+      break;
+
+  case DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_requests_without_options++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_requests_without_options++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_requests_without_options++;
     break;
 
-  case DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_requests_without_option82++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_requests_without_option82++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_requests_without_option82++;
+  case DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_server_replies_without_options++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_server_replies_without_options++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_server_replies_without_options++;
     break;
 
-  case DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTION82:
+  case DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_pkts_onTrustedIntf++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_pkts_onTrustedIntf++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_pkts_onTrustedIntf++;
     break;
 
-  case DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTION82:
+  case DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_pkts_withOps_onUntrustedIntf++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_pkts_withOps_onUntrustedIntf++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_pkts_withOps_onUntrustedIntf++;
     break;
 
-  case DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_server_replies_without_option82++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_server_replies_without_option82++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_server_replies_without_option82++;
+  case DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_onUntrustedIntf++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_onUntrustedIntf++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_onUntrustedIntf++;
     break;
 
-  case DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOUTOP82_ON_TRUSTED_INTF:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_pkts_withoutOp82_onTrustedIntf++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_pkts_withoutOp82_onTrustedIntf++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_pkts_withoutOp82_onTrustedIntf++;
-    break;
-
-  case DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOP82_ON_UNTRUSTED_INTF:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_client_pkts_withOp82_onUntrustedIntf++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_client_pkts_withOp82_onUntrustedIntf++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_pkts_withOp82_onUntrustedIntf++;
-    break;
-
-  case DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOP82_ON_UNTRUSTED_INTF:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_withOp82_onUntrustedIntf++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_withOp82_onUntrustedIntf++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_withOp82_onUntrustedIntf++;
-    break;
-
-  case DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOP82_ON_TRUSTED_INTF:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_withoutOp82_onTrustedIntf++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_withoutOp82_onTrustedIntf++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_withoutOp82_onTrustedIntf++;
+  case DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
     break;
 
   default:

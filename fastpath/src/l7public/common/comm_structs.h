@@ -283,6 +283,14 @@ typedef struct dhcpSnoopBinding_s
   /* IP address assigned to the station */
   L7_uint32 ipAddr;
 
+  /* PTin added: DHCPv6 */
+#if 1
+   /* Ipv6 compatible IP Address */
+  L7_uchar8 ipFamily;
+  L7_uchar8 ipv6Addr[16];
+//   L7_inet_addr_t ptinIpAddr;
+#endif
+
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
 

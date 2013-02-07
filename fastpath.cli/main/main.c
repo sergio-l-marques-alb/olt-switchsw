@@ -58,7 +58,7 @@ void help_oltBuga(void)
         "m 1042 vlan_id[1-4095] macAddr[xxxxxxxxxxxxh] - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
         "m 1220 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Read DHCPop82 profile\n\r"
-        "m 1221 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
+        "m 1221 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
         "m 1222 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Remove a DHCPop82 profile\n\r"
         "m 1240 <page> - Read DHCP binding table (start reading from page 0)\r\n"
         "m 1242 macAddr[xxxxxxxxxxxxh] - Remove a MAC address from DHCP Binding table\r\n"
@@ -1246,6 +1246,8 @@ int main (int argc, char *argv[])
           ptr->client.inner_vlan = (uint16) valued;
           ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
+          ptr->options = 0x00;
+
           // CircuitId
           ptr->circuitId[0] = '\0';
           // RemoteId
@@ -1260,6 +1262,7 @@ int main (int argc, char *argv[])
         {
           msg_HwEthernetDhcpOpt82Profile_t *ptr;
           int type, intf;
+          int op82=0,op37=0,op18=0;
 
           // Validate number of arguments
           if (argc<3+5)  {
@@ -1302,12 +1305,21 @@ int main (int argc, char *argv[])
           ptr->client.inner_vlan = (uint16) valued;
           ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
+            if (sscanf(argv[3 + 3], "%d/%d/%d", &op82, &op37, &op18) != 3)
+            {
+               help_oltBuga();
+               exit(0);
+            }
+            ptr->options |= 0x01 & op82;
+            ptr->options |= 0x02 & (op37 << 1);
+            ptr->options |= 0x04 & (op18 << 2);
+
           // CircuitId
-          if (strlen(argv[3+3])>63)  argv[3+3][63]='\0';
-          strcpy(ptr->circuitId,argv[3+3]);
-          // RemoteId
           if (strlen(argv[3+4])>63)  argv[3+4][63]='\0';
-          strcpy(ptr->remoteId,argv[3+4]);
+          strcpy(ptr->circuitId,argv[3+4]);
+          // RemoteId
+          if (strlen(argv[3+5])>63)  argv[3+5][63]='\0';
+          strcpy(ptr->remoteId,argv[3+5]);
 
           comando.msgId = CCMSG_ETH_DHCP_PROFILE_ADD;
           comando.infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
@@ -1368,7 +1380,7 @@ int main (int argc, char *argv[])
       // DHCP Bind table reading
       case 1240:
         {
-          msg_DHCP_bind_table_t *ptr;
+          msg_DHCPv4v6_bind_table_t *ptr;
 
           // Validate number of arguments (flow_id + 2 pairs port+svid)
           if (argc<3+1)  {
@@ -1377,8 +1389,8 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_DHCP_bind_table_t *) &(comando.info[0]);
-          memset(ptr,0,sizeof(msg_DHCP_bind_table_t));
+          ptr = (msg_DHCPv4v6_bind_table_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_DHCPv4v6_bind_table_t));
 
           ptr->SlotId = (uint8)-1;
 
@@ -1390,13 +1402,13 @@ int main (int argc, char *argv[])
           ptr->page = valued;
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_GET;
-          comando.infoDim = sizeof(msg_DHCP_bind_table_t);
+          comando.infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
         }
         break;
 
       case 1242:
         {
-          msg_DHCP_bind_table_t *ptr;
+          msg_DHCPv4v6_bind_table_t *ptr;
 
           // Validate number of arguments (flow_id + 2 pairs port+svid)
           if (argc<3+1)  {
@@ -1405,8 +1417,8 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_DHCP_bind_table_t *) &(comando.info[0]);
-          memset(ptr,0,sizeof(msg_DHCP_bind_table_t));
+          ptr = (msg_DHCPv4v6_bind_table_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_DHCPv4v6_bind_table_t));
 
           ptr->SlotId = (uint8)-1;
 
@@ -1419,10 +1431,11 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
+          printf("mac: %d\n", valued);
           memcpy(ptr->bind_table[0].macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_REMOVE;
-          comando.infoDim = sizeof(msg_DHCP_bind_table_t);
+          comando.infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
         }
         break;
 
@@ -3963,16 +3976,16 @@ int main (int argc, char *argv[])
       case 1240:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {
-          msg_DHCP_bind_table_t *ptr;
+          msg_DHCPv4v6_bind_table_t *ptr;
           uint16 i;
           // Validate size
-          if (resposta.infoDim!=sizeof(msg_DHCP_bind_table_t)) {
-            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_DHCP_bind_table_t),resposta.infoDim);
+          if (resposta.infoDim!=sizeof(msg_DHCPv4v6_bind_table_t)) {
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_DHCPv4v6_bind_table_t),resposta.infoDim);
             break;
           }
 
           // Pointer to element
-          ptr = &(((msg_DHCP_bind_table_t *) resposta.info)[i]);
+          ptr = &(((msg_DHCPv4v6_bind_table_t *) resposta.info)[i]);
 
           printf(" Reading page %u of DHCP Binding table (slot=%u):\r\n",ptr->page,ptr->SlotId);
 
@@ -3992,7 +4005,19 @@ int main (int argc, char *argv[])
                    ptr->bind_table[i].macAddr[3],
                    ptr->bind_table[i].macAddr[4],
                    ptr->bind_table[i].macAddr[5]);
-            printf("IPAddr %03lu.%03lu.%03lu.%03lu, ",(ptr->bind_table[i].ipAddr.s_addr>>24) & 0xFF,(ptr->bind_table[i].ipAddr.s_addr>>16) & 0xFF,(ptr->bind_table[i].ipAddr.s_addr>>8) & 0xFF,ptr->bind_table[i].ipAddr.s_addr & 0xFF);
+            if (ptr->bind_table[i].ipAddr.family == 0)
+            {
+               printf("IPAddr %03lu.%03lu.%03lu.%03lu, ", (ptr->bind_table[i].ipAddr.addr.ipv4 >> 24) & 0xFF, (ptr->bind_table[i].ipAddr.addr.ipv4 >> 16) & 0xFF, (ptr->bind_table[i].ipAddr.addr.ipv4 >> 8) & 0xFF,
+                     ptr->bind_table[i].ipAddr.addr.ipv4 & 0xFF);
+            }
+            else if(ptr->bind_table[i].ipAddr.family == 1)
+            {
+               printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x, ", (int) ptr->bind_table[i].ipAddr.addr.ipv6[0], (int) ptr->bind_table[i].ipAddr.addr.ipv6[1], (int) ptr->bind_table[i].ipAddr.addr.ipv6[2],
+                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[3], (int) ptr->bind_table[i].ipAddr.addr.ipv6[4], (int) ptr->bind_table[i].ipAddr.addr.ipv6[5], (int) ptr->bind_table[i].ipAddr.addr.ipv6[6],
+                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[7], (int) ptr->bind_table[i].ipAddr.addr.ipv6[8], (int) ptr->bind_table[i].ipAddr.addr.ipv6[9], (int) ptr->bind_table[i].ipAddr.addr.ipv6[10],
+                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[11], (int) ptr->bind_table[i].ipAddr.addr.ipv6[12], (int) ptr->bind_table[i].ipAddr.addr.ipv6[13], (int) ptr->bind_table[i].ipAddr.addr.ipv6[14],
+                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[15]);
+            }
             printf("Lease time %-6lu, ",ptr->bind_table[i].remLeave);
             printf("%s type\r\n",((ptr->bind_table[i].bindingType==1) ? "Static" : ((ptr->bind_table[i].bindingType==2) ? "Dynamic" : "Tentative")));
           }

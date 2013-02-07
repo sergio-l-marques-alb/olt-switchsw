@@ -2515,13 +2515,14 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   }
 
   /* Get circuit and remote ids */
-  rc = ptin_dhcp_client_get(evc_idx,&client,profile->circuitId,profile->remoteId);
+  rc = ptin_dhcp_client_get(evc_idx,&client,&profile->options,profile->circuitId,profile->remoteId);
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining circuit and remote ids");
     return rc;
   }
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Options     = %02x",  profile->options);
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"circuitId   = \"%s\"",profile->circuitId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"remoteId    = \"%s\"",profile->remoteId);
 
@@ -2559,6 +2560,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     profile[i].client.outer_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options      = %02x",   profile[i].options);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Circuit Id   = \"%s\"", profile[i].circuitId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id    = \"%s\"", profile[i].remoteId);
 
@@ -2584,7 +2586,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     }
 
     /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx,&client,profile[i].circuitId,profile[i].remoteId);
+    rc = ptin_dhcp_client_add(evc_idx,&client,profile[i].options,profile[i].circuitId,profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding circuitId+remoteId entry");
@@ -2734,14 +2736,20 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   dhcp_stats->stats.dhcp_rx_filtered                              = stats.dhcp_rx_filtered;
   dhcp_stats->stats.dhcp_tx_forwarded                             = stats.dhcp_tx_forwarded;
   dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
-  dhcp_stats->stats.dhcp_rx_client_requests_without_option82      = stats.dhcp_rx_client_requests_without_option82;
+
+  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
-  dhcp_stats->stats.dhcp_tx_server_replies_without_option82       = stats.dhcp_tx_server_replies_without_option82;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withoutOp82_onTrustedIntf = stats.dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withOp82_onUntrustedIntf  = stats.dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_withOp82_onUntrustedIntf  = stats.dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOp82_onTrustedIntf = stats.dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
+
+  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
+  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 
   return L7_SUCCESS;
 }
@@ -2889,14 +2897,20 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   dhcp_stats->stats.dhcp_rx_filtered                              = stats.dhcp_rx_filtered;
   dhcp_stats->stats.dhcp_tx_forwarded                             = stats.dhcp_tx_forwarded;
   dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
-  dhcp_stats->stats.dhcp_rx_client_requests_without_option82      = stats.dhcp_rx_client_requests_without_option82;
+
+  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
-  dhcp_stats->stats.dhcp_tx_server_replies_without_option82       = stats.dhcp_tx_server_replies_without_option82;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withoutOp82_onTrustedIntf = stats.dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withOp82_onUntrustedIntf  = stats.dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_withOp82_onUntrustedIntf  = stats.dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOp82_onTrustedIntf = stats.dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
+
+  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
+  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 
   return L7_SUCCESS;
 }
@@ -3013,6 +3027,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
  */
 static L7_uint16 dhcp_bindtable_entries = 0;
 static ptin_DHCP_bind_entry dhcp_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
+static ptin_DHCPv4v6_bind_entry dhcpv4v6_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
 
 L7_RC_t ptin_msg_DHCP_bindTable_get(msg_DHCP_bind_table_t *table)
 {
@@ -3070,6 +3085,61 @@ L7_RC_t ptin_msg_DHCP_bindTable_get(msg_DHCP_bind_table_t *table)
   return L7_SUCCESS;
 }
 
+L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCPv4v6_bind_table_t *table)
+{
+  L7_ushort16 i, page, first, entries, size;
+  L7_RC_t     rc;
+
+  page = table->page;
+
+  // For index null, read all mac entries
+  if (page==0) {
+    size = PLAT_MAX_FDB_MAC_ENTRIES;
+
+    rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable,&size);
+
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading binding table");
+      return rc;
+    }
+    // Total number of entries
+    dhcp_bindtable_entries = size;
+  }
+
+  // Validate page index
+  if ((page*128)>dhcp_bindtable_entries)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
+    return L7_FAILURE;
+  }
+
+  first   = page*128;
+  entries = dhcp_bindtable_entries-first;   // Calculate remaining entries to be read
+  if (entries>128)  entries = 128;          // Overgoes 128? If so, limit to 128
+
+  table->bind_table_msg_size      = entries;
+  table->bind_table_total_entries = dhcp_bindtable_entries;
+
+  // Copy binding table entries
+  for (i=0; i<entries; i++)
+  {
+    memset(&table->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
+
+    table->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
+    table->bind_table[i].evc_idx        = dhcpv4v6_bindtable[first+i].evc_idx;
+    table->bind_table[i].intf.intf_type = dhcpv4v6_bindtable[first+i].ptin_intf.intf_type;
+    table->bind_table[i].intf.intf_id   = dhcpv4v6_bindtable[first+i].ptin_intf.intf_id;
+    table->bind_table[i].outer_vlan     = dhcpv4v6_bindtable[first+i].outer_vlan;
+    table->bind_table[i].inner_vlan     = dhcpv4v6_bindtable[first+i].inner_vlan;
+    memcpy(table->bind_table[i].macAddr, dhcpv4v6_bindtable[first+i].macAddr, sizeof(L7_uint8)*6);
+    memcpy(&table->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));
+    table->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
+    table->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Remove a DHCP bind table entry
@@ -3078,7 +3148,7 @@ L7_RC_t ptin_msg_DHCP_bindTable_get(msg_DHCP_bind_table_t *table)
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_t *table)
+L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
 {
   L7_uint16           i, i_max;
   dhcpSnoopBinding_t  dsBinding;
