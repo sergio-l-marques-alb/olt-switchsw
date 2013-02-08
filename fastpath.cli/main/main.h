@@ -97,10 +97,10 @@ extern int canal_buga;
 #define CCMSG_ETH_DHCP_PROFILE_GET          0x90C0  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_ADD          0x90C1  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90C2  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90B3  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90B4  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90B5  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90B6  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90C3  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90C4  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90C5  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_ClientDhcpStatistics_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
 
@@ -636,14 +636,18 @@ typedef struct _st_DHCP_Statistics_t
   uint32 dhcp_rx_filtered;
   uint32 dhcp_tx_forwarded;
   uint32 dhcp_tx_failed;
-  uint32 dhcp_rx_client_requests_without_option82;
+  uint32 dhcp_rx_client_requests_without_options;
   uint32 dhcp_tx_client_requests_with_option82;
+  uint32 dhcp_tx_client_requests_with_option37;
+  uint32 dhcp_tx_client_requests_with_option18;
   uint32 dhcp_rx_server_replies_with_option82;
-  uint32 dhcp_tx_server_replies_without_option82;
-  uint32 dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  uint32 dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  uint32 dhcp_rx_server_replies_with_option37;
+  uint32 dhcp_rx_server_replies_with_option18;
+  uint32 dhcp_tx_server_replies_without_options;
+  uint32 dhcp_rx_client_pkts_onTrustedIntf;
+  uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+  uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__ ((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics

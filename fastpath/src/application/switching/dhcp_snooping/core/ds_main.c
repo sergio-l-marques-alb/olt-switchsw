@@ -1547,6 +1547,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_dhcp6_packet_t *dhcp_header;
    L7_ushort16 ethHdrLen;
 
+   LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received client request");
+
    //Check if the port through which the message was received is valid
    if (_dsVlanIntfTrustGet(vlanId,intIfNum))
    {
@@ -1707,21 +1709,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (L7_SUCCESS != dsFrameFlood(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
-
       return L7_FAILURE;
    }
-
-   //Increment client tx counters
-   if (isActiveOp18)
-   {
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18);
-   }
-   if (isActiveOp37)
-   {
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37);
-   }
-   ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Add a new entry in the binding table
    if ((L7_DHCP6_SOLICIT == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_REQUEST == *(L7_uint8*)dhcp_header_ptr))
@@ -1766,6 +1755,8 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_enetHeader_t *mac_header = 0;
    dhcpSnoopBinding_t dhcp_binding;
    L7_ushort16 ethHdrLen;
+
+   LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received server reply");
 
    //Check if the port through which the message was received is valid
    if (!_dsVlanIntfTrustGet(vlanId,intIfNum))
@@ -1957,7 +1948,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
-   if(op_interfaceid_ptr) //Get client interface from interface-id string
+   if(op_interfaceid_ptr) //Get client interface from interface-id string (TODO this has to change in the future...)
    {
       L7_uint32 converted_ifnum;
       L7_uchar8 *circuit_id, *ifnum_str;
@@ -1973,8 +1964,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error sending DHCPv6 message");
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
-
       return L7_SUCCESS;
    }
 
@@ -4352,14 +4341,42 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */
           {
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FAILED);
             rc = L7_FAILURE;
           }
           /* PTin added: DHCP snooping */
           #if 1
           else
           {
-              ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82);
-              ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
+             L7_BOOL isActiveOp82, isActiveOp37, isActiveOp18;
+             L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
+             L7_uchar8 ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
+
+             if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+             {
+                return L7_FAILURE;
+             }
+
+             if(L7_IP_VERSION == ipVersion)
+             {
+                if(isActiveOp82)
+                {
+                   ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82);
+                }
+             }
+             else
+             {
+                if (isActiveOp37)
+                {
+                   ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37);
+                }
+                if (isActiveOp18)
+                {
+                   ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18);
+                }
+             }
+
+             ptin_dhcp_stat_increment_field(i, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
           }
           #endif
         }

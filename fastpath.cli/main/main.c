@@ -1246,8 +1246,6 @@ int main (int argc, char *argv[])
           ptr->client.inner_vlan = (uint16) valued;
           ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
-          ptr->options = 0x00;
-
           // CircuitId
           ptr->circuitId[0] = '\0';
           // RemoteId
@@ -3951,6 +3949,7 @@ int main (int argc, char *argv[])
           printf(" Client.Intf  = %u/%u\r\n",ptr->client.intf.intf_type,ptr->client.intf.intf_id);
           printf(" Client.OVlan = %u\r\n",ptr->client.outer_vlan);
           printf(" Client.IVlan = %u\r\n",ptr->client.inner_vlan);
+          printf(" options = 0x%02x\n",ptr->options);
           printf(" CircuitId=\"%s\"\r\n",ptr->circuitId);
           printf(" RemoteId =\"%s\"\r\n",ptr->remoteId);
           printf(" Switch: DHCPop82 profile read successfully\n\r");
@@ -4155,14 +4154,18 @@ int main (int argc, char *argv[])
             printf( "   Packets Filtered     = %lu\r\n",po->stats.dhcp_rx_filtered );
             printf( "   Packets Forwarded    = %lu\r\n",po->stats.dhcp_tx_forwarded );
             printf( "   Transmissions Failed = %lu\r\n",po->stats.dhcp_tx_failed );
-            printf( "   Received Client Requests without Option82   = %lu\r\n",po->stats.dhcp_rx_client_requests_without_option82 );
+            printf( "   Received Client Requests without Options    = %lu\r\n",po->stats.dhcp_rx_client_requests_without_options );
             printf( "   Transmitted Client Requests with Option82   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option82 );
+            printf( "   Transmitted Client Requests with Option37   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option37 );
+            printf( "   Transmitted Client Requests with Option18   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option18 );
             printf( "   Received Server Replies with Option82       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option82 );
-            printf( "   Transmitted Server Replies without Option82 = %lu\r\n",po->stats.dhcp_tx_server_replies_without_option82 );
-            printf( "   Received Client Packets without Option82 on Trusted Interface = %lu\r\n",po->stats.dhcp_rx_client_pkts_withoutOp82_onTrustedIntf );
-            printf( "   Received Client Packets with Option82 on Untrusted Interface  = %lu\r\n",po->stats.dhcp_rx_client_pkts_withOp82_onUntrustedIntf );
-            printf( "   Received Server Packets with Option82 on Untrusted Interface  = %lu\r\n",po->stats.dhcp_rx_server_pkts_withOp82_onUntrustedIntf );
-            printf( "   Received Server Packets without Option82 on Trusted Interface = %lu\r\n",po->stats.dhcp_rx_server_pkts_withoutOp82_onTrustedIntf );
+            printf( "   Received Server Replies with Option37       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option37 );
+            printf( "   Received Server Replies with Option18       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option18 );
+            printf( "   Transmitted Server Replies without Options  = %lu\r\n",po->stats.dhcp_tx_server_replies_without_options );
+            printf( "   Received Client Packets on Trusted Interface                 = %lu\r\n",po->stats.dhcp_rx_client_pkts_onTrustedIntf );
+            printf( "   Received Client Packets with Options on Untrusted Interface  = %lu\r\n",po->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf );
+            printf( "   Received Server Packets on Untrusted Interface               = %lu\r\n",po->stats.dhcp_rx_server_pkts_onUntrustedIntf );
+            printf( "   Received Server Packets without Options on Trusted Interface = %lu\r\n",po->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf );
             printf( "Done!\r\n");
           }
           else  {
