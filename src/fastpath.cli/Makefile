@@ -22,9 +22,11 @@ LDFLAGS		= -Wl,-Bdynamic
 #,-L$(LIB)
 #LDFLAGS=-L/usr/local/pq2-linux-4.0.2/powerpc-e300c3-linux/lib
 
-#LIB=libolt7_8ch
 RM=rm -f
 TARGET=bin/fastpath.cli
+
+INSTALL_DIR1=../../../PR1003/builds_olt360/apps/CXP360G
+INSTALL_DIR2=../../../PR1003/builds_olt360/apps/TOLT8G
 
 #PONJACKET_DIR=../SW-BL3458PONJacket_1_6_1413
 CROSS_DIR=/usr/local/pq2-linux-4.0.2
@@ -48,10 +50,10 @@ all:	Makefile $(OBJ)
 	       	$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET) $(OBJ) -lc -lm -lrt
    
 install:	$(TARGET)
-		cp $(TARGET) $(INSTALL_DIR)
+		cp $(TARGET) $(INSTALL_DIR1)
 		cp $(TARGET) $(INSTALL_DIR2)
 	
-clean:	
+clean cleanall:	
 		rm -f $(OBJ) $(TARGET)
 								 
 vpath %.c       # Search path for *.c files

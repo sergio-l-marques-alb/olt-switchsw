@@ -21,9 +21,11 @@ OPTIMIZACAO = -O6
 LDFLAGS		= -Wl,-Bdynamic,-L$(LIB)
 #LDFLAGS=-L/usr/local/pq2-linux-4.0.2/powerpc-e300c3-linux/lib
 
-#LIB=libolt7_8ch
 RM=rm -f
 TARGET=bin/fastpath.shell
+
+INSTALL_DIR1=../../../PR1003/builds_olt360/apps/CXP360G
+INSTALL_DIR2=../../../PR1003/builds_olt360/apps/TOLT8G
 
 HDRS=-I. -Iutils -Iipc -Imain \
 #-I$(CROSS_DIR)/powerpc-e300c3-linux/include
@@ -38,10 +40,10 @@ all:	Makefile $(OBJ)
 	       	$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET) $(OBJ) -lc -lm -lrt
    
 install:	$(TARGET)
-		cp $(TARGET) $(INSTALL_DIR)
+		cp $(TARGET) $(INSTALL_DIR1)
 		cp $(TARGET) $(INSTALL_DIR2)
 	
-clean:	
+clean cleanall:
 		rm -f $(OBJ) $(TARGET)
 								 
 vpath %.c       # Search path for *.c files

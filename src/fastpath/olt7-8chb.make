@@ -60,6 +60,9 @@ all: welcome
 kernel:
 	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh
 
+install:
+	@echo "Installation not defined for OLT7-8CH-B"
+
 help h:
 	@echo ""
 	@echo "Makefile Help"

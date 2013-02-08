@@ -12,6 +12,9 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
+INSTALL_DIR     = ../../../PR1003/builds_olt360/apps/TOLT8G
+BACKUP_DIR      = ../../../PR1003/builds_olt360/apps_backup/TOLT8G
+
 NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
@@ -20,9 +23,10 @@ OLT_DIR		= $(subst /$(FP_FOLDER),,$(shell pwd))
 USER_NAME	= $(shell whoami)
 
 TMP_FILE	= /tmp/$(USER_NAME)_fp_compiled_$(FP_FOLDER)_$(CPU)_$(BOARD)
-KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/ipl/target
+KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
+DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER		= /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
 export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-2.6.38-rc5-denx
@@ -37,7 +41,7 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
-.PHONY: welcome all clean cleanall help h kernel
+.PHONY: welcome all install clean cleanall help h kernel
 
 all: welcome
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
@@ -56,6 +60,10 @@ all: welcome
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
 	@echo ""
+
+install:
+	$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(DEVSHSYM_FILE) $(KO_PATH)/*.ko $(INSTALL_DIR)
+	$(CP) $(BIN_PATH)/$(BIN_FILE).unstripped $(BACKUP_DIR)
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-tolt8g.sh
