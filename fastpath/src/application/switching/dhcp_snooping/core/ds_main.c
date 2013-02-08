@@ -1695,7 +1695,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
             != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, client_mac_addr.addr,
                   L7_DHCP6_OPT_REMOTE_ID))
       {
-         LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 18 to DHCP frame");
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Error adding op. 37 to DHCP frame");
          return L7_FAILURE;
       }
    }
@@ -2034,8 +2034,15 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
       return L7_FAILURE;
    }
 
-   dhcp_op_dhcp_relay.option_code = L7_DHCP6_OPT_INTERFACE_ID;
-   dhcp_op_dhcp_relay.option_len = strlen(circuit_id) + 1;
+   dhcp_op_dhcp_relay.option_code = dhcpOp;
+   if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
+   {
+      dhcp_op_dhcp_relay.option_len = strlen(circuit_id) + 1;
+   }
+   else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
+   {
+      dhcp_op_dhcp_relay.option_len = strlen(remote_id) + 1;
+   }
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
 
