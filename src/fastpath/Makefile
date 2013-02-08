@@ -128,4 +128,3 @@ install:	install_cxp360g install_tolt8g cli shell
 clean:		clean_cxp360g clean_tolt8g clean_olt7-8chb clean_cli clean_shell
 
 cleanall:	cleanall_cxp360g cleanall_tolt8g cleanall_olt7-8chb cleanall_cli cleanall_shell
-

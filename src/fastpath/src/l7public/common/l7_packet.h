@@ -361,6 +361,8 @@ typedef struct L7_ipHeader_s
 #define L7_IP_HDR_VER_LEN   5
 #define L7_IP_VERSION       4
 
+//Frame Check Sequence field
+#define L7_FCS_LEN      4
 
 /* Start of IP Priority Classifcation Defines */
 /* Start of IP Priority Classifcation Defines */
@@ -466,6 +468,8 @@ typedef struct L7_ipHeader_s
 #define UDP_PORT_PIM_AUTO_RP   496
 #define UDP_PORT_ISAKMP        500
 #define UDP_PORT_RIP           520
+#define UDP_PORT_DHCP6_SERV    546
+#define UDP_PORT_DHCP6_CLNT    547
 
 #define TCP_PORT_DNS            53
 #define TCP_PORT_HTTP           80
@@ -803,7 +807,7 @@ typedef struct L7_ip6Header_s
   L7_uchar8    dst[16];
 } L7_ip6Header_t;
 #define L7_IP6_HEADER_LEN 40
-
+#define L7_IP6_VERSION      6
 
 
 /* IPV6 extensions header */
@@ -895,5 +899,68 @@ typedef struct L7_ip6NdMtu_s
     L7_ushort16 ndmtu_reserved;
     L7_uint32   ndmtu_mtu;
 }L7_ip6NdMtu_t;
+
+typedef enum
+{
+  L7_DHCP6_UNKNOWN = 0,
+  L7_DHCP6_SOLICIT,
+  L7_DHCP6_ADVERTISE ,
+  L7_DHCP6_REQUEST ,
+  L7_DHCP6_CONFIRM ,
+  L7_DHCP6_RENEW ,
+  L7_DHCP6_REBIND ,
+  L7_DHCP6_REPLY ,
+  L7_DHCP6_RELEASE ,
+  L7_DHCP6_DECLINE ,
+  L7_DHCP6_RECONFIGURE ,
+  L7_DHCP6_INFORMATION_REQUEST ,
+  L7_DHCP6_RELAY_FORW ,
+  L7_DHCP6_RELAY_REPL
+} L7_dhcp6_pkt_type_t;
+
+/* DHCP Option types */
+typedef enum
+{
+  L7_DHCP6_OPT_CLIENTID      = 1 ,
+  L7_DHCP6_OPT_SERVERID      = 2 ,
+  L7_DHCP6_OPT_IA_NA         = 3 ,
+  L7_DHCP6_OPT_IA_TA         = 4 ,
+  L7_DHCP6_OPT_IAADDR        = 5 ,
+  L7_DHCP6_OPT_ORO           = 6 ,
+  L7_DHCP6_OPT_PREFERENCE    = 7 ,
+  L7_DHCP6_OPT_ELAPSED_TIME  = 8 ,
+  L7_DHCP6_OPT_RELAY_MSG     = 9 ,
+  L7_DHCP6_OPT_AUTH          = 11,
+  L7_DHCP6_OPT_UNICAST       = 12,
+  L7_DHCP6_OPT_STATUS_CODE   = 13,
+  L7_DHCP6_OPT_RAPID_COMMIT  = 14,
+  L7_DHCP6_OPT_USER_CLASS    = 15,
+  L7_DHCP6_OPT_VENDOR_CLASS  = 16,
+  L7_DHCP6_OPT_VENDOR_OPTS   = 17,
+  L7_DHCP6_OPT_INTERFACE_ID  = 18,
+  L7_DHCP6_OPT_RECONF_MSG    = 19,
+  L7_DHCP6_OPT_RECONF_ACCEPT = 20,
+  L7_DHCP6_OPT_REMOTE_ID     = 37
+}L7_dhcp6_opttype_t;
+
+typedef struct L7_dhcp6_packet_s
+{
+  L7_uchar8    msg_type;            /* Message type */
+  L7_uint8     transaction_id[3];   /* Transaction id */
+}L7_dhcp6_packet_t;
+
+typedef struct L7_dhcp6_option_packet_s
+{
+   L7_uint16     option_code;  /* Option code */
+   L7_uint16     option_len;   /* Option length */
+}L7_dhcp6_option_packet_t;
+
+typedef struct L7_dhcp6_relay_agent_packet_s
+{
+  L7_uchar8      msg_type;          /* Message type */
+  L7_uchar8      hop_count;         /* Hop count */
+  L7_uchar8      link_address[16];  /* Link address */
+  L7_uchar8      peer_address[16];  /* Peer address */
+}L7_dhcp6_relay_agent_packet_t;
 
 #endif

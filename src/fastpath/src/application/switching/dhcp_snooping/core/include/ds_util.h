@@ -406,8 +406,11 @@ typedef struct dsBindingTreeNode_s
   #endif
 
   /* IP address assigned to the station */
+#if 1 /* PTin modified: DHCPv6 snooping */
+  L7_inet_addr_t ipAddr;
+#else
   L7_uint32 ipAddr;
-
+#endif
   /* physical port where client is attached. */
   L7_uint32 intIfNum;
 
@@ -499,12 +502,22 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                                   L7_netBufHandle bufHandle,
                                   sysnet_pdu_info_t *pduInfo,
                                   L7_FUNCPTR_t continueFunc);
+SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
+                                    L7_netBufHandle bufHandle,
+                                    sysnet_pdu_info_t *pduInfo,
+                                    L7_FUNCPTR_t continueFunc);
 L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
                       L7_ushort16 vlanId, L7_uint32 intIfNum,
                       L7_ushort16 innerVlanId, L7_uint *client_idx);           /* PTin modified: DHCP snooping */
 L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                        L7_uchar8 *frame, L7_uint32 frameLen,
                        L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
+L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+                             L7_uchar8 *frame, L7_uint32 frameLen,
+                             L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
+L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+                             L7_uchar8 *frame, L7_uint32 frameLen,
+                             L7_ushort16 innerVlanId, L7_uint client_idx);          /* PTin modified: DHCP snooping */
 L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
                       L7_ushort16 innerVlanId, L7_uint *client_idx);          /* PTin modified: DHCP snooping */
@@ -855,11 +868,14 @@ L7_RC_t dsBindingsTableDelete(void);
 L7_RC_t dsBindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr, 
                      L7_uint32 ipAddr,
                      L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum);
+L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr,
+                       L7_inet_addr_t ipAddr, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 intIfNum);
 L7_RC_t dsBindingRemove(L7_enetMacAddr_t *macAddr);
 L7_BOOL dsBindingExists(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
                         L7_ushort16 vlanId);
 L7_RC_t dsBindingFind(dhcpSnoopBinding_t *dsBinding, L7_uint32 matchType);
 L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr);
+L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr);
 L7_RC_t dsBindingLeaseSet(L7_enetMacAddr_t *macAddr, L7_uint32 leaseTime);
 L7_uint32 _dsBindingsCount(void);
 L7_uint32 _dsStaticBindingsCount(void);

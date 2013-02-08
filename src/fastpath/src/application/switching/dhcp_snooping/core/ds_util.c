@@ -28,6 +28,7 @@
 #include "nimapi.h"
 #include "comm_mask.h"
 #include "sysnet_api_ipv4.h"
+#include "sysnet_api_ipv6.h"
 #include <stdlib.h>
 
 #include "ds_util.h"
@@ -142,29 +143,50 @@ L7_RC_t dsAdminModeApply(L7_uint32 adminMode)
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
 *
-* @notes    none
+* @notes    PTIN - We need to register for both unicast and multicast
+*           messages, as DHCPv6 is multicast in upstream and unicast
+*           in downstream.
 *
 * @end
 *********************************************************************/
 L7_RC_t dsL2RelayAdminModeApply(L7_uint32 adminMode)
 {
   L7_uint32 i;
-  sysnetPduIntercept_t sysnetPduIntercept;
+  sysnetPduIntercept_t sysnetPduIntercept, unicastdhcpv6SysnetPduIntercept, multicastdhcpv6SysnetPduIntercept;
 
+  /* PTin modified - DHCPv6 */
   if (dsCfgData->dsGlobalAdminMode == L7_DISABLE)
   {
 
     /* Intercept IP packets at DTL layer. This is before DHCP relay or
      * DHCP snooping get a crack at the packet in a routing build. */
+
+     /*IPv4*/
     sysnetPduIntercept.addressFamily = L7_AF_INET;
     sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
     sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
     osapiStrncpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept", SYSNET_MAX_FUNC_NAME);
 
+    /*IPv6 unicast*/
+    unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
+    unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_RECV_IN;
+    unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+    unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+    osapiStrncpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept", SYSNET_MAX_FUNC_NAME);
+
+    /*IPv6 multicast*/
+    unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
+    unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN;
+    unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+    unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+    osapiStrncpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept", SYSNET_MAX_FUNC_NAME);
+
     if (adminMode == L7_ENABLE)
     {
-      if (sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS)
+      if ((sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS) &&
+          (sysNetPduInterceptRegister(&unicastdhcpv6SysnetPduIntercept) != L7_SUCCESS) &&
+          (sysNetPduInterceptRegister(&multicastdhcpv6SysnetPduIntercept) != L7_SUCCESS))
       {
         if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
         {
@@ -179,6 +201,8 @@ L7_RC_t dsL2RelayAdminModeApply(L7_uint32 adminMode)
     else
     {
       (void)sysNetPduInterceptDeregister(&sysnetPduIntercept);
+      (void)sysNetPduInterceptDeregister(&unicastdhcpv6SysnetPduIntercept);
+      (void)sysNetPduInterceptDeregister(&multicastdhcpv6SysnetPduIntercept);
     }
   }
 
@@ -201,7 +225,9 @@ L7_RC_t dsL2RelayAdminModeApply(L7_uint32 adminMode)
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
 *
-* @notes    none
+* @notes    PTIN - We need to register for both unicast and multicast
+*           messages, as DHCPv6 is multicast in upstream and unicast
+*           in downstream.
 *
 * @end
 *********************************************************************/
@@ -232,27 +258,48 @@ L7_RC_t dsL2RelayIntfModeApply(L7_uint32 intIfNum, L7_uint32 intfMode)
 *
 * @returns  L7_SUCCESS
 *
-* @notes    none
+* @notes    PTIN - We need to register for both unicast and multicast
+*           messages, as DHCPv6 is multicast in upstream and unicast
+*           in downstream.
 *
 * @end
 *********************************************************************/
 L7_RC_t dsAdminModeEnable(void)
 {
   L7_uint32 i;
-  sysnetPduIntercept_t sysnetPduIntercept;
+  sysnetPduIntercept_t sysnetPduIntercept, unicastdhcpv6SysnetPduIntercept, multicastdhcpv6SysnetPduIntercept;
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
+  /* PTin modified - DHCPv6 */
   if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
   {
 #endif
     /* Intercept IP packets at DTL layer. This is before DHCP relay or
      * DHCP snooping get a crack at the packet in a routing build. */
-    sysnetPduIntercept.addressFamily = L7_AF_INET;
-    sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
-    sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
-    sysnetPduIntercept.interceptFunc = dsPacketIntercept;
-    strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
 
-    if (sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS)
+     /*IPv4*/
+     sysnetPduIntercept.addressFamily = L7_AF_INET; //L7_AF_INET;
+     sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN; //SYSNET_INET_RECV_IN;
+     sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
+     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
+     strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
+
+     /*IPv6 unicast*/
+     unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6; //L7_AF_INET;
+     unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_RECV_IN; //SYSNET_INET6_MCAST_IN;
+     unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
+     unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+     strcpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
+
+     /*IPv6 multicast*/
+     multicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6; //L7_AF_INET;
+     multicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN; //SYSNET_INET6_MCAST_IN;
+     multicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
+     multicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+     strcpy(multicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
+
+     if (sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS ||
+           sysNetPduInterceptRegister(&unicastdhcpv6SysnetPduIntercept) != L7_SUCCESS ||
+           sysNetPduInterceptRegister(&multicastdhcpv6SysnetPduIntercept) != L7_SUCCESS)
       return L7_FAILURE;
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
   }
@@ -283,18 +330,37 @@ L7_RC_t dsAdminModeEnable(void)
 L7_RC_t dsAdminModeDisable(L7_BOOL clearBindings)
 {
   L7_uint32 i;
-  sysnetPduIntercept_t sysnetPduIntercept;
+  sysnetPduIntercept_t sysnetPduIntercept, unicastdhcpv6SysnetPduIntercept, multicastdhcpv6SysnetPduIntercept;
 
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
+  /* PTin modified - DHCPv6 */
   if (dsCfgData->dsL2RelayAdminMode == L7_DISABLE)
   {
 #endif
-    sysnetPduIntercept.addressFamily = L7_AF_INET;
-    sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
-    sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
-    sysnetPduIntercept.interceptFunc = dsPacketIntercept;
-    strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
-    (void)sysNetPduInterceptDeregister(&sysnetPduIntercept);
+
+     /*IPv4*/
+     sysnetPduIntercept.addressFamily = L7_AF_INET;
+     sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
+     sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
+     strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
+     (void)sysNetPduInterceptDeregister(&sysnetPduIntercept);
+
+     /*IPv6 unicast*/
+     unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
+     unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_RECV_IN;
+     unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+     unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+     strcpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
+     (void)sysNetPduInterceptDeregister(&unicastdhcpv6SysnetPduIntercept);
+
+     /*IPv6 multicast*/
+     multicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
+     multicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN;
+     multicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
+     multicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
+     strcpy(multicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
+     (void)sysNetPduInterceptDeregister(&multicastdhcpv6SysnetPduIntercept);
 
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
   }

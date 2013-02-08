@@ -481,6 +481,15 @@ L7_RC_t dtlRecvIP6(L7_netBufHandle netBufHandle,
       }
     } /* End of is IPv6 multicast addr check */
   }/* End of MAC DA Check */
+  else
+   {
+      if (SYSNET_PDU_INTERCEPT(L7_AF_INET6, SYSNET_INET6_RECV_IN, netBufHandle, pduInfo,
+            L7_NULLPTR, L7_NULLPTR) == L7_TRUE)
+      {
+         return L7_SUCCESS;
+      }
+   }
+
 
   if (pduInfo->vlanId == simMgmtVlanIdGet())
   {
@@ -490,10 +499,10 @@ L7_RC_t dtlRecvIP6(L7_netBufHandle netBufHandle,
     rc = L7_FAILURE;
 #endif
   }
-  else
-  {
-    rc = L7_FAILURE;
-  }
+   else
+   {
+      rc = L7_FAILURE;
+   }
 
   return rc;
 }

@@ -27,7 +27,8 @@ BIN_FILE	= switchdrvr
 export COMPILER		= /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
 export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-2.6.38-rc5-denx
 
-CARD_FOLDER = FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_OLT7-8CH_B
+BOARD				= OLT7-8CH_B
+CARD_FOLDER = FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$(BOARD)
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU			= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
@@ -37,13 +38,17 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
-.PHONY: welcome all clean cleanall help h kernel
+.PHONY: welcome all clean cleanall help h kernel transfer
 
 all: welcome
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
+		echo "";\
+	else\
+		echo "Replacing package.cfg with the one with xweb and snmp compilation...";\
+		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg;\
 		echo "";\
 	fi;
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
@@ -56,6 +61,9 @@ all: welcome
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
 	@echo ""
+
+transfer:
+	cd $(OUTPATH) && ./transfer_paulo.sh bin
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh

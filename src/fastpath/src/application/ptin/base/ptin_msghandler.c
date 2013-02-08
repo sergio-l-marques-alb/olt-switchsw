@@ -1540,7 +1540,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       msg_HwEthernetDhcpOpt82Profile_t *ptr;
       ptr = (msg_HwEthernetDhcpOpt82Profile_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / sizeof(msg_HwEthernetDhcpOpt82Profile_t);
+      L7_uint32 n_clients = inbuffer->infoDim / (sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
       /* Execute command */
       rc = ptin_msg_DHCP_profile_add(ptr, n_clients);
@@ -1569,7 +1569,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       msg_HwEthernetDhcpOpt82Profile_t *ptr;
       ptr = (msg_HwEthernetDhcpOpt82Profile_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / sizeof(msg_HwEthernetDhcpOpt82Profile_t);
+      L7_uint32 n_clients = inbuffer->infoDim /(sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
       rc = ptin_msg_DHCP_profile_remove(ptr, n_clients);
 
@@ -1710,15 +1710,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_GET (0x%04X)", CCMSG_ETH_DHCP_BIND_TABLE_GET);
 
-      CHECK_INFO_SIZE(msg_DHCP_bind_table_t);
+      CHECK_INFO_SIZE(msg_DHCPv4v6_bind_table_t);
 
-      msg_DHCP_bind_table_t *ptr;
-      ptr = (msg_DHCP_bind_table_t *) outbuffer->info;
+      msg_DHCPv4v6_bind_table_t *ptr;
+      ptr = (msg_DHCPv4v6_bind_table_t *) outbuffer->info;
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_DHCP_bind_table_t));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_DHCPv4v6_bind_table_t));
 
       /* Execute command */
-      rc = ptin_msg_DHCP_bindTable_get(ptr);
+      rc = ptin_msg_DHCPv4v6_bindTable_get(ptr);
 
       if (L7_SUCCESS != rc)
       {
@@ -1728,7 +1728,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_DHCP_bind_table_t);
+      outbuffer->infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
@@ -1740,10 +1740,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_CLEAR (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_DHCP_bind_table_t);
+      CHECK_INFO_SIZE(msg_DHCPv4v6_bind_table_t);
 
-      msg_DHCP_bind_table_t *ptr;
-      ptr = (msg_DHCP_bind_table_t *) inbuffer->info;
+      msg_DHCPv4v6_bind_table_t *ptr;
+      ptr = (msg_DHCPv4v6_bind_table_t *) inbuffer->info;
 
       /* Execute command */
       rc = ptin_msg_DHCP_bindTable_remove(ptr);

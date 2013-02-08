@@ -499,13 +499,22 @@ extern L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_st
 extern L7_RC_t ptin_msg_DHCP_bindTable_get(msg_DHCP_bind_table_t *table);
 
 /**
+ * Get DHCP bind table
+ *
+ * @param table: bind table entries
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCPv4v6_bind_table_t *table);
+
+/**
  * Remove a DHCP bind table entry
  * 
  * @param table: bind table entries
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_t *table);
+extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table);
 
 /* IGMP Management Functions **************************************************/
 /**
