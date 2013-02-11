@@ -94,15 +94,15 @@ extern int canal_buga;
 #define CCMSG_ETH_MAC_ENTRY_REMOVE          0x90A3  // struct msg_switch_mac_table_t
 #define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_t
 
-#define CCMSG_ETH_DHCP_PROFILE_GET          0x90B0  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90B1  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90B2  // struct msg_HwEthernetDhcpOpt82Profile_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90B3  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90B4  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90B5  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90B6  // struct msg_ClientDhcpStatistics_t
-#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90B7  // struct msg_DHCP_bind_table_t
-#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90B8  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_PROFILE_GET          0x90C0  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90C1  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90C2  // struct msg_HwEthernetDhcpOpt82Profile_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90C3  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90C4  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90C5  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_ClientDhcpStatistics_t
+#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
 
 #define CCMSG_ETH_IGMP_PROXY_GET            0x9070  // struct msg_IgmpProxyCfg_t
 #define CCMSG_ETH_IGMP_PROXY_SET            0x9071  // struct msg_IgmpProxyCfg_t
@@ -139,6 +139,15 @@ typedef struct L7_in_addr_s
 {
     L7_uint32   s_addr;    /* 32 bit IPv4 address in network byte order */
 } __attribute__((packed)) msg_in_addr_t;
+
+typedef struct chmessage_ip_addr_s {
+   L7_uint8       family;     /* IP traffic type: 0=IPv4; 1:IPv6 */
+   union
+   {
+      L7_uint32   ipv4;       /* 32 bit IPv4 address in network byte order */
+      L7_uint8    ipv6[16];   /* 128 bit IPv6 address in network byte order */
+   }__attribute__((packed)) addr;
+}__attribute__((packed)) chmessage_ip_addr_t;
 
 /* Client identification */
 #define MSG_CLIENT_OVLAN_MASK 0x01
@@ -612,8 +621,9 @@ typedef struct {
   L7_uint8              mask;     /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
-  char circuitId[64];             /* Circuit id */
-  char remoteId[64];              /* Remote id */
+  L7_uint16             options;  /* [mask=0x04] Options to be active: 0x01=Option82; 0x02=Option 37; 0x04=Option18 */
+  char circuitId[64];             /* [mask=0x10] Circuit id */
+  char remoteId[64];              /* [mask=0x20] Remote id */
 } __attribute__((packed)) msg_HwEthernetDhcpOpt82Profile_t;
 
 /* DHCP Statistics */ 
@@ -626,14 +636,18 @@ typedef struct _st_DHCP_Statistics_t
   uint32 dhcp_rx_filtered;
   uint32 dhcp_tx_forwarded;
   uint32 dhcp_tx_failed;
-  uint32 dhcp_rx_client_requests_without_option82;
+  uint32 dhcp_rx_client_requests_without_options;
   uint32 dhcp_tx_client_requests_with_option82;
+  uint32 dhcp_tx_client_requests_with_option37;
+  uint32 dhcp_tx_client_requests_with_option18;
   uint32 dhcp_rx_server_replies_with_option82;
-  uint32 dhcp_tx_server_replies_without_option82;
-  uint32 dhcp_rx_client_pkts_withoutOp82_onTrustedIntf;
-  uint32 dhcp_rx_client_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withOp82_onUntrustedIntf;
-  uint32 dhcp_rx_server_pkts_withoutOp82_onTrustedIntf;
+  uint32 dhcp_rx_server_replies_with_option37;
+  uint32 dhcp_rx_server_replies_with_option18;
+  uint32 dhcp_tx_server_replies_without_options;
+  uint32 dhcp_rx_client_pkts_onTrustedIntf;
+  uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+  uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+  uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__ ((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics
@@ -661,12 +675,32 @@ typedef struct {
 } __attribute__((packed)) msg_DHCP_bind_entry;
 
 typedef struct {
+  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint16             evc_idx;                // EVCid
+  L7_uint16             outer_vlan;             // Service vlan: not used yet
+  L7_uint16             inner_vlan;             // Client clanId
+  msg_HwEthInterface_t  intf;                   // Interface
+  L7_uint8              macAddr[6];             // MAC Address
+  chmessage_ip_addr_t   ipAddr;                 // IP address
+  L7_uint32             remLeave;               // Remaining Leave time in seconds
+  L7_uint8              bindingType;            // Binding type: 0=Tentative, 1=Static, 2=Dynamic
+} __attribute__((packed)) msg_DHCP4v6_bind_entry;
+
+typedef struct {
   uint8  SlotId;                         // slot
   uint16 page;                           // Page index
   L7_uint16 bind_table_total_entries;    // Total entries in Bind table
   L7_uint16 bind_table_msg_size;         // Number of entries in this message: up to 128
   msg_DHCP_bind_entry bind_table[128];   // Bind table
 } __attribute__((packed)) msg_DHCP_bind_table_t;
+
+typedef struct {
+  uint8  SlotId;                         // slot
+  uint16 page;                           // Page index
+  L7_uint16 bind_table_total_entries;    // Total entries in Bind table
+  L7_uint16 bind_table_msg_size;         // Number of entries in this message: up to 128
+  msg_DHCP4v6_bind_entry bind_table[128];// Bind table
+} __attribute__((packed)) msg_DHCPv4v6_bind_table_t;
 
 
 /***************************************************** 
