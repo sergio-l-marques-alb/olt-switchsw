@@ -1303,14 +1303,14 @@ int main (int argc, char *argv[])
           ptr->client.inner_vlan = (uint16) valued;
           ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
-            if (sscanf(argv[3 + 3], "%d/%d/%d", &op82, &op37, &op18) != 3)
-            {
-               help_oltBuga();
-               exit(0);
-            }
-            ptr->options |= 0x01 & op82;
-            ptr->options |= 0x02 & (op37 << 1);
-            ptr->options |= 0x04 & (op18 << 2);
+          if (sscanf(argv[3 + 3], "%d/%d/%d", &op82, &op37, &op18) != 3)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->options |= 0x01 & op18;
+          ptr->options |= 0x02 & (op37 << 1);
+          ptr->options |= 0x04 & (op82 << 2);
 
           // CircuitId
           if (strlen(argv[3+4])>63)  argv[3+4][63]='\0';

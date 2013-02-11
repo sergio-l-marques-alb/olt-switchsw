@@ -50,6 +50,10 @@
 #define DHO_PAD                       0
 #define DHO_END                 255
 
+#if 1 /* PTin added: DHCPv6 */
+#define PTIN_ENTERPRISE_NUMBER  4746
+#endif
+
 #define DS_IFACE_INFO_STR_SIZE   L7_NIM_IFNAME_SIZE + 25
 #define DS_DHCP_PACKET_SIZE_MAX  1518
 typedef enum 
