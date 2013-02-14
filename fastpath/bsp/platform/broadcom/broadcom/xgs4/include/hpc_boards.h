@@ -94,6 +94,7 @@
         __BROADCOM_56843_ID,
         NO_CONNECTION_LIST
     },
+#if (PTIN_BOARD == PTIN_BOARD_CXP360G)
     /* 56844 board */
     {
         BCM_SYS_BOARD_56844,
@@ -109,6 +110,23 @@
         __BROADCOM_56843_ID,
         NO_CONNECTION_LIST
     },
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    /* 56846 board */
+    {
+        BCM_SYS_BOARD_56846,	/* XXXX */
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56846_DEVICE_ID, /* XXXX */
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_64_TENGIG_56846_REV_1_ID,
+        __BROADCOM_56843_ID,
+        NO_CONNECTION_LIST
+    },
+#endif
     /* PTin end */
     /* 56820 board */
     {
