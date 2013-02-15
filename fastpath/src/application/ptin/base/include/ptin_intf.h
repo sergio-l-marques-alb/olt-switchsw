@@ -349,6 +349,26 @@ extern L7_RC_t ptin_QoS_cos_config_set(ptin_intf_t *ptin_intf, L7_uint8 cos, pti
  */
 extern L7_RC_t ptin_QoS_cos_config_get(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
 
+/**
+ * Activate PRBS generator/checker
+ *  
+ * @param intIfNum : Interface
+ * @param enable   : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
+
+/**
+ * Read number of PRBS errors
+ *  
+ * @param intIfNum : Interface
+ * @param enable   : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
+
 #endif  /* _PTIN_INTERFACE_H */
 
 

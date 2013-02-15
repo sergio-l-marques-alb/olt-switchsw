@@ -111,6 +111,10 @@ extern int canal_buga;
 #define CCMSG_ETH_IGMP_CLIENT_ADD           0x9075  // struct msg_IgmpClient_t
 #define CCMSG_ETH_IGMP_CLIENT_REMOVE        0x9076  // struct msg_IgmpClient_t
 
+#define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
+#define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
+
+
 /* Fastpath typedefs */
 typedef uint8    L7_uint8;
 typedef uint16   L7_uint16;
@@ -865,6 +869,20 @@ typedef struct _st_MCActiveChannelClients
   L7_uint16 n_clients_msg;             // Numero de canais presentes na mensagem
   msg_client_info_t clients_list[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX]; // List of clients
 } __attribute__((packed)) msg_MCActiveChannelClients_t;
+
+typedef struct
+{
+  L7_uint8             lock;
+  L7_uint32            rxErrors;
+} __attribute__((packed)) msg_rxStatus_t;
+
+typedef struct
+{
+  L7_uint8             SlotId;
+  msg_HwEthInterface_t intf;
+  L7_uint8             enable;
+  msg_rxStatus_t       rxStatus;
+} __attribute__((packed)) msg_ptin_pcs_prbs;
 
 /***************************************************** 
  * INTERNAL MESSAGES

@@ -112,6 +112,8 @@
 #define CCMSG_ETH_IGMP_CLIENT_ADD           0x9075  // struct msg_IgmpClient_t
 #define CCMSG_ETH_IGMP_CLIENT_REMOVE        0x9076  // struct msg_IgmpClient_t
 
+#define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
+#define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -918,6 +920,22 @@ typedef struct
   L7_uint16 flowCounters_available_entries;
 } __attribute__((packed))msg_ptin_hw_resources;
 
+/* PRBS counting */
+typedef struct
+{
+  L7_uint8             lock;
+  L7_uint32            rxErrors;
+} __attribute__((packed)) msg_rxStatus_t;
+
+typedef struct
+{
+  L7_uint8             SlotId;
+  msg_HwEthInterface_t intf;
+  L7_uint8             enable;
+  msg_rxStatus_t       rxStatus;
+} __attribute__((packed)) msg_ptin_pcs_prbs;
+
+/* Hardware resources */
 typedef struct
 {
   L7_uint8  SlotId;

@@ -54,7 +54,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 
 /* Macro to check infoDim consistency (including modulo match) */
 #define CHECK_INFO_SIZE_MOD(msg_st) {             \
-  if ((inbuffer->infoDim != sizeof(msg_st)) || ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
+  if ((inbuffer->infoDim != sizeof(msg_st)) && ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
@@ -2181,6 +2181,67 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_MCActiveChannelClients_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Set PRBS mode */
+    case CCMSG_ETH_PCS_PRBS_ENABLE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PCS_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
+
+      msg_ptin_pcs_prbs *ptr;
+      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_pcs_prbs);
+
+      ptr = (msg_ptin_pcs_prbs *) inbuffer->info;
+
+      /* Execute command */
+      rc  = ptin_msg_pcs_prbs_enable(ptr,n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Get PRBS status */
+    case CCMSG_ETH_PCS_PRBS_STATUS:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PCS_PRBS_STATUS (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
+
+      msg_ptin_pcs_prbs *ptr;
+      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_pcs_prbs);
+
+      ptr = (msg_ptin_pcs_prbs *) outbuffer->info;
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ptin_pcs_prbs)*n);
+
+      /* Execute command */
+      rc = ptin_msg_pcs_prbs_status(ptr,n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_ptin_pcs_prbs)*n;
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }

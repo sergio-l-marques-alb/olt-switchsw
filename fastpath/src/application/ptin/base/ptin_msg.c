@@ -4117,6 +4117,98 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   return L7_SUCCESS;
 }
 
+/**
+ * Enable PRBS tx/rx
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
+{
+  ptin_intf_t ptin_intf;
+  L7_uint32 i, intIfNum;
+  L7_RC_t rc;
+
+  for (i=0; i<n_msg; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg[i].enable);
+
+    ptin_intf.intf_type = msg[i].intf.intf_type;
+    ptin_intf.intf_id   = msg[i].intf.intf_id;
+
+    /* Get intIfNum */
+    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    rc = ptin_pcs_prbs_enable(intIfNum,msg[i].enable);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+      return rc;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Success setting PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read PRBS errors
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
+{
+  ptin_intf_t ptin_intf;
+  L7_uint32 i, intIfNum, rxStatus;
+  L7_RC_t   rc;
+
+  for (i=0; i<n_msg; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
+
+    ptin_intf.intf_type = msg[i].intf.intf_type;
+    ptin_intf.intf_id   = msg[i].intf.intf_id;
+
+    /* Get intIfNum */
+    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* Read number of PRBS errors */
+    rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      return rc;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+
+    if (rxStatus<=0xffff)
+    {
+      msg[i].rxStatus.lock = L7_TRUE;
+      msg[i].rxStatus.rxErrors = rxStatus;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
 /****************************************************************************** 
  * STATIC FUNCTIONS IMPLEMENTATION
  ******************************************************************************/

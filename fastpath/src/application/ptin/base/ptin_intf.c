@@ -2893,6 +2893,66 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 }
 
 
+/**
+ * Activate PRBS generator/checker
+ *  
+ * @param intIfNum : Interface
+ * @param enable   : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  dapiCmd.cmdData.prbsStatus.getOrSet = DAPI_CMD_SET;
+  dapiCmd.cmdData.prbsStatus.enable   = enable;
+
+  rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read number of PRBS errors
+ *  
+ * @param intIfNum : Interface
+ * @param enable   : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  dapiCmd.cmdData.prbsStatus.getOrSet = DAPI_CMD_GET;
+  dapiCmd.cmdData.prbsStatus.enable   = 0;
+  dapiCmd.cmdData.prbsStatus.rxErrors = (L7_uint32)-1;
+
+  rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error getting PRBS errors of intIfNum %u",intIfNum);
+    return rc;
+  }
+
+  /* Return result */
+  if (counter!=L7_NULLPTR)
+  {
+    *counter = dapiCmd.cmdData.prbsStatus.rxErrors;
+  }
+
+  return L7_SUCCESS;
+}
+
+
 #if 0
 /**
  * Reads a LAGs configuration from FP

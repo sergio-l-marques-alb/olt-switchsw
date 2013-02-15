@@ -40,6 +40,8 @@ void help_oltBuga(void)
         "ping [period] [N] - Waits until fastpath application is up or return error code [0-OK, 2-CRASH]\r\n"
         "m 1000 console[/dev/...]\n\r"
         "m 1004 - Get resources state\r\n"
+        "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
+        "m 1007 <port1> <port2> ... - Read number of PRBS errors\r\n"
         "m 1010 port[0-17] enable[0,1] speed[1G=3,2.5G=4] fullduplex[0,1] framemax(bytes) lb[0,1] macLearn[0,1] - switch port configuration\n\r"
         "m 1011 port[0-17] - get switch port configuration\n\r"
         "m 1012 port[0-17] - Get Phy states\n\r"
@@ -368,6 +370,89 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_APPLICATION_RESOURCES;
           comando.infoDim = sizeof(msg_ptin_policy_resources);
+        }
+        break;
+
+      // PRBS machine enable
+      case 1006:
+        {
+          int i;
+          uint8 enable;
+          msg_ptin_pcs_prbs *ptr;
+
+          // Validate number of arguments
+          if (argc<3+2)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_ptin_pcs_prbs *) &(comando.info[0]);
+
+          // enable
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          enable = (uint8) valued;
+
+          for (i=0; i<(argc-3-1); i++)
+          {
+            memset(&ptr[i],0x00,sizeof(msg_ptin_pcs_prbs));
+
+            // Slot id
+            ptr[i].SlotId = (uint8)-1;
+
+            // Port
+            if (StrToLongLong(argv[3+1+i],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr[i].intf.intf_type = 0;
+            ptr[i].intf.intf_id   = (uint8)valued;
+
+            // enable
+            ptr[i].enable = enable;
+          }
+
+          comando.msgId = CCMSG_ETH_PCS_PRBS_ENABLE;
+          comando.infoDim = sizeof(msg_ptin_pcs_prbs)*(argc-3-1);
+        }
+        break;
+
+      // PRBS errors
+      case 1007:
+        {
+          int i;
+          msg_ptin_pcs_prbs *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_ptin_pcs_prbs *) &(comando.info[0]);
+
+          for (i=0; i<(argc-3); i++)
+          {
+            memset(&ptr[i],0x00,sizeof(msg_ptin_pcs_prbs));
+
+            // Slot id
+            ptr[i].SlotId = (uint8)-1;
+
+            // Port
+            if (StrToLongLong(argv[3+i],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr[i].intf.intf_type = 0;
+            ptr[i].intf.intf_id   = (uint8)valued;
+          }
+
+          comando.msgId = CCMSG_ETH_PCS_PRBS_STATUS;
+          comando.infoDim = sizeof(msg_ptin_pcs_prbs)*(argc-3);
         }
         break;
 
@@ -1429,7 +1514,6 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          printf("mac: %d\n", valued);
           memcpy(ptr->bind_table[0].macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_REMOVE;
@@ -2542,7 +2626,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->members_pbmp = (uint64) valued;
+          ptr->members_pbmp = (uint32) valued;
+          ptr->members_pbmp2= (uint32) (valued>>32);
 
           ptr->admin = 1;
           ptr->stp_enable = 0;
@@ -3490,6 +3575,40 @@ int main (int argc, char *argv[])
         }
         break;
 
+    case 1006:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" PRBS enable executed successfully\n\r");
+      else
+        printf(" PRBS enable not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+      break;
+
+    case 1007:
+      {
+        msg_ptin_pcs_prbs *po=(msg_ptin_pcs_prbs *) &resposta.info[0];
+        int i,n;
+
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+          // Validate size
+          if ((resposta.infoDim%sizeof(msg_ptin_pcs_prbs))!=0) {
+            printf(" Switch: Invalid structure size (N*expected=%u, received=%u bytes)\n\r",sizeof(msg_ptin_pcs_prbs),resposta.infoDim);
+            break;
+          }
+          n = resposta.infoDim / sizeof(msg_ptin_pcs_prbs);
+
+          printf(" PRBS status of SlotId=%u\r\n",po->SlotId);
+          for (i=0; i<n; i++)
+          {
+            printf(" Port %u/%-2u:  Lock=%u Errors=%lu\r\n",
+                   po[i].intf.intf_type,po[i].intf.intf_id,
+                   po[i].rxStatus.lock,po[i].rxStatus.rxErrors);
+          }
+          printf("Switch: PRBS status read successfully\n\r");
+        }
+        else
+          printf(" Switch: Error reading resources list\n\r");
+      }
+      break;
+
       case 1010:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch port configuration executed successfully\n\r");
@@ -4370,7 +4489,7 @@ int main (int argc, char *argv[])
             printf("  STP state           = %s\r\n",((ptr->stp_enable) ? "Enabled" : "Disabled"));
             printf("  LAG type            = %s\r\n",((ptr->static_enable) ? "Static" : "Dynamic"));
             printf("  LoadBalance profile = %u\r\n",ptr->loadBalance_mode);
-            printf("  Port bitmap         = 0x%08X\r\n",(unsigned int) ptr->members_pbmp);
+            printf("  Port bitmap         = 0x%08x 0x%08x\r\n",(unsigned int) ptr->members_pbmp2, (unsigned int) ptr->members_pbmp);
           }
           printf(" Switch: LAG configurations read successfully\n\r");
         }
@@ -4411,8 +4530,8 @@ int main (int argc, char *argv[])
             printf("  Admin               = %s\r\n",((ptr->admin) ? "Enabled" : "Disabled"));
             printf("  Link State          = %s\r\n",((ptr->link_status) ? "UP" : "DOWN"));
             printf("  Port channel type   = %s\r\n",((ptr->port_channel_type) ? "Static" : "Dynamic"));
-            printf("  Member Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->members_pbmp1,(unsigned int) ptr->members_pbmp2);
-            printf("  Active Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->active_members_pbmp1,(unsigned int) ptr->active_members_pbmp2);
+            printf("  Member Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->members_pbmp2,(unsigned int) ptr->members_pbmp1);
+            printf("  Active Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->active_members_pbmp2,(unsigned int) ptr->active_members_pbmp1);
           }
           printf(" Switch: LAG status read successfully\n\r");
         }
