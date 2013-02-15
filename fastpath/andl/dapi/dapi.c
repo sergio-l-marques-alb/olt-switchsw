@@ -382,6 +382,7 @@ DAPI_NAME_CONTAINER_t dapi_cmd_name_g[DAPI_NUM_OF_CMDS] =
 {DAPI_CMD_PTIN_FP_COUNTERS_NAME},
 {DAPI_CMD_PTIN_PACKET_RATE_LIMIT_NAME},
 {DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU_NAME},
+{DAPI_CMD_PTIN_PCS_PRBS_NAME},
 };
 
 static osapiRWLock_t dapiCardRemovalRWLock;
@@ -767,6 +768,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
     case DAPI_CMD_PTIN_FP_COUNTERS:
     case DAPI_CMD_PTIN_PACKET_RATE_LIMIT:
     case DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU:
+    case DAPI_CMD_PTIN_PCS_PRBS:
 //  case DAPI_CMD_SYSTEM_SNOOP_CONFIG:        /* For dealing with physical interfaces (not CPU)*/
 //  case DAPI_CMD_SYSTEM_DHCP_CONFIG:         /* For dealing with physical interfaces (not CPU)*/
 

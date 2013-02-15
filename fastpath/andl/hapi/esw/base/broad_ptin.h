@@ -174,6 +174,28 @@ extern L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
 L7_RC_t hapiBroadPtinPktRateLimit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
 /**
+ * Enable PRBS generator/checker
+ * 
+ * @param usp : portInfo
+ * @param enable : enable
+ * @param dapi_g : port driver
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g);
+
+/**
+ * Read number of PRBS errors
+ * 
+ * @param usp : portInfo
+ * @param rxErrors : number of errors (-1 if no lock)
+ * @param dapi_g   : port driver
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *dapi_g);
+
+/**
  * Get system resources
  * 
  * @param usp 

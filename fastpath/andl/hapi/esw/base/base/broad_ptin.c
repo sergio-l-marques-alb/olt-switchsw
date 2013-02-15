@@ -628,6 +628,83 @@ L7_RC_t hapiBroadPtinPktRateLimit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 }
 
 /**
+ * Enable PRBS generator/checker
+ * 
+ * @param usp : portInfo
+ * @param enable : enable
+ * @param dapi_g : port driver
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
+{
+  #if 0
+  DAPI_PORT_t  *dapiPort;
+  BROAD_PORT_t *hapiPort;
+
+  dapiPort = DAPI_PORT_GET( usp, dapi_g );
+  hapiPort = HAPI_PORT_GET( usp, dapi_g );
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPort) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port ({%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+  #endif
+
+  if (bcm_port_control_set(0, usp->port+1, bcmPortControlPrbsTxEnable, enable & 1)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying enable state %u to port {%d,%d,%d}",enable,usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read number of PRBS errors
+ * 
+ * @param usp : portInfo
+ * @param rxErrors : number of errors (-1 if no lock)
+ * @param dapi_g   : port driver
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *dapi_g)
+{
+  int          rxStatus;
+  #if 0
+  DAPI_PORT_t  *dapiPort;
+  BROAD_PORT_t *hapiPort;
+
+  dapiPort = DAPI_PORT_GET( usp, dapi_g );
+  hapiPort = HAPI_PORT_GET( usp, dapi_g );
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPort) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port ({%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+  #endif
+
+  if (bcm_port_control_get(0, usp->port+1, bcmPortControlPrbsRxStatus, &rxStatus)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR reading rx status from port {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+
+  if (rxErrors!=L7_NULLPTR)
+  {
+    *rxErrors = (rxStatus==-1)  ? ((L7_uint32) -1) : rxStatus;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Get system resources
  * 
  * @param usp 

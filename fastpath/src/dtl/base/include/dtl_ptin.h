@@ -155,6 +155,15 @@ extern L7_RC_t dtlPtinDhcpPktsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiC
 extern L7_RC_t dtlPtinRateLimit( L7_uint32 intIfNum, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit );
 
 /**
+ * PRBS tx/rx
+ *  
+ * @param dapiCmd
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinPcsPrbs( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
+
+/**
  * Consult available hardware resources
  *  
  * @param resources: Available resources

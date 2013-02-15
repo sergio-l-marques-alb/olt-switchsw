@@ -227,6 +227,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_FP_COUNTERS                  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinFpCounters;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKET_RATE_LIMIT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinPktRateLimit;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU        ] = (HAPICTLFUNCPTR_t)hapiBroadSystemDhcpConfig;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PCS_PRBS                     ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinPrbs;
   /* PTin end */
 
 
@@ -1909,6 +1910,46 @@ L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 
     case DAPI_CMD_CLEAR:
       status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+      break;
+
+    default:
+      status = L7_FAILURE;
+  }
+
+  return status;
+}
+#endif
+
+/* PTin added: PRBS */
+#if 1
+/*********************************************************************
+*
+* @purpose Configure PRBS tx/rx
+*
+* @param   DAPI_USP_t *usp    - needs to be a valid usp
+* @param   DAPI_CMD_t  cmd
+* @param   void       *data
+* @param   DAPI_t     *dapi_g - the driver object
+*
+* @returns L7_RC_t result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadSystemPTinPrbs(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  DAPI_SYSTEM_CMD_t *dapiCmd   = (DAPI_SYSTEM_CMD_t*)data;
+  L7_RC_t status=L7_SUCCESS;
+
+  switch (dapiCmd->cmdData.prbsStatus.getOrSet)  {
+    case DAPI_CMD_SET:
+      status = hapiBroadPTinPrbsEnable( usp, dapiCmd->cmdData.prbsStatus.enable, dapi_g );
+      break;
+
+    case DAPI_CMD_GET:
+      status = hapiBroadPTinPrbsRxStatus( usp, &dapiCmd->cmdData.prbsStatus.rxErrors, dapi_g );
       break;
 
     default:
