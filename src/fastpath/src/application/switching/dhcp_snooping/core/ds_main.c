@@ -1405,6 +1405,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
        forwarding to the server.*/
     else if (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST)
     {
+#if 1 /* PTin Added: Flexible circuit-id */
+      L7_BOOL isActiveOp82;
+#endif
       /* This 'intIfNumFwd' field is applicable only for L2 Relay server messages.*/
       relayOptIntIfNum = 0;
 
@@ -1414,36 +1417,44 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         {
           L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
           L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-          L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);;
+          L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
+          ;
           nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-          osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN,
-                        "(%s)DHCP L2 Relay is not enabled on SVLAN %u for client request(%s) on iface %s in VLAN %u.",
-                        __FUNCTION__, vlanId, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
+          osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, "(%s)DHCP L2 Relay is not enabled on SVLAN %u for client request(%s) on iface %s in VLAN %u.",
+              __FUNCTION__, vlanId, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
           dsTraceWrite(dsTrace);
         }
         return L7_FAILURE;
       }
-      /* This function adds Option-82 only if it does not already exists.*/
-      if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)
-                              != L7_SUCCESS)
+#if 1 /* PTin Added: Flexible circuit-id */
+      //Get DHCP Options for this client
+      if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
       {
-        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
-        {
-          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                        "(%s)Failed to add DHCP Option-82 for Client request on SVLAN %d",
-                        __FUNCTION__, vlanIdFwd);
-          dsTraceWrite(traceMsg);
-        }
         return L7_FAILURE;
       }
-      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      if (isActiveOp82)
       {
-        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                      "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply",__FUNCTION__, frameLen );
-        dsTraceWrite(traceMsg);
+#endif
+        /* This function adds Option-82 only if it does not already exists.*/
+        if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen) != L7_SUCCESS)
+        {
+          if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+          {
+            L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+            osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, "(%s)Failed to add DHCP Option-82 for Client request on SVLAN %d", __FUNCTION__, vlanIdFwd);
+            dsTraceWrite(traceMsg);
+          }
+          return L7_FAILURE;
+        }
+        if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply", __FUNCTION__, frameLen);
+          dsTraceWrite(traceMsg);
+        }
+#if 1 /* PTin Added: Flexible circuit-id */
       }
+#endif
     }
   }
 #endif
