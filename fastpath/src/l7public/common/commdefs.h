@@ -347,6 +347,8 @@ typedef enum
   L7_PTIN_IGMP_TASK_SYNC,   /* PTin added: ptin task */
   L7_SSM_RX_TASK_SYNC,      /* PTin added: ssm task */
   L7_SSM_TX_TASK_SYNC,      /* PTin added: ssm task */
+  L7_BER_TX_SYNC,           /* PTin added: BER task */
+  L7_BER_RX_SYNC,           /* PTin added: BER task */
   L7_TASK_SYNC_LAST
 } L7_TASK_SYNCS_t;
 
