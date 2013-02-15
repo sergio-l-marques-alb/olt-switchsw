@@ -1366,6 +1366,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsCfgData->dsL2RelayAdminMode == L7_ENABLE &&
       _dsVlanIntfL2RelayGet(vlanId,intIfNum) /*_dsIntfL2RelayGet(intIfNum)*/ == L7_TRUE)    /* PTin modified: DHCP snooping */
   {
+    dhcpSnoopBinding_t dhcp_binding;
+    L7_enetHeader_t *mac_header = 0;
+
     /* all filterations for server replies are done even before the
        frame is posted to DHCP task. So the server frame here is
        expected to be valid. If the packet has come with Option-82
@@ -1397,7 +1400,19 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       "(%s) Packet frameLen = %d after Option-82 Removal from DHCP Reply",__FUNCTION__, frameLen );
         dsTraceWrite(traceMsg);
       }
+      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+      mac_header = (L7_enetHeader_t*) frame;
+      memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+      if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+      {
+        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+        return L7_SUCCESS;
+      }
+#if 1 /* PTin added: Flexible circuit-id */
+      relayOptIntIfNum = dhcp_binding.intIfNum;
+#else
       relayOptIntIfNum = relayAgentInfo.intIfNum;
+#endif
     }
     /* all filterations for client requests are done even before the
        frame is posted to DHCP task. So the client frame here may or may not
@@ -1418,7 +1433,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
           L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
           L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
-          ;
           nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
           osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, "(%s)DHCP L2 Relay is not enabled on SVLAN %u for client request(%s) on iface %s in VLAN %u.",
               __FUNCTION__, vlanId, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
@@ -1428,7 +1442,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
 #if 1 /* PTin Added: Flexible circuit-id */
       //Get DHCP Options for this client
-      if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+      if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR)
+          != L7_SUCCESS)
       {
         return L7_FAILURE;
       }
@@ -1436,12 +1451,15 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
 #endif
         /* This function adds Option-82 only if it does not already exists.*/
-        if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen) != L7_SUCCESS)
+        if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)
+                                != L7_SUCCESS)
         {
           if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
           {
             L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-            osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, "(%s)Failed to add DHCP Option-82 for Client request on SVLAN %d", __FUNCTION__, vlanIdFwd);
+            osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                          "(%s)Failed to add DHCP Option-82 for Client request on SVLAN %d",
+                          __FUNCTION__, vlanIdFwd);
             dsTraceWrite(traceMsg);
           }
           return L7_FAILURE;
@@ -1449,7 +1467,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
         {
           L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply", __FUNCTION__, frameLen);
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                        "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply",__FUNCTION__, frameLen );
           dsTraceWrite(traceMsg);
         }
 #if 1 /* PTin Added: Flexible circuit-id */
@@ -1548,7 +1567,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *dhcp_op_header_ptr;
    L7_dhcp6_relay_agent_packet_t relay_agent_header = { 0 };
    L7_uint32 frame_len, frame_copy_len, lease_time = 0;
-   L7_BOOL isActiveOp82, isActiveOp37, isActiveOp18;
+   L7_BOOL isActiveOp37, isActiveOp18;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
@@ -1591,7 +1610,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Get DHCP Options for this client
    inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
    memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
-   if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+   if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Unknown client");
       return L7_FAILURE;
@@ -1755,7 +1774,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *relay_op_header_ptr;
    L7_uchar8 *op_interfaceid_ptr = 0, *op_relaymsg_ptr = 0, *op_remoteid_ptr = 0;
-   L7_BOOL isActiveOp82, isActiveOp37, isActiveOp18;
+   L7_BOOL isActiveOp37, isActiveOp18;
    L7_inet_addr_t link_addr = {0}, client_ip_addr = {0};
    L7_uint32 frame_len, frame_copy_len, lease_time = 0;
    L7_dhcp6_relay_agent_packet_t *relay_agent_header;
@@ -1806,7 +1825,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       intIfNum = dhcp_binding.intIfNum;
    }
    //Get DHCP Options for this client
-   if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
+   if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       return L7_FAILURE;
    }
@@ -1959,19 +1978,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
-   if(op_interfaceid_ptr) //Get client interface from interface-id string
-   {
-      L7_uint32 converted_ifnum;
-      L7_uchar8 *circuit_id, *ifnum_str;
-
-      circuit_id = op_interfaceid_ptr + sizeof(L7_dhcp6_option_packet_t);
-
-      strtok(circuit_id, "/");
-      ifnum_str = strtok(NULL, "/");
-
-      converted_ifnum = atoi(ifnum_str);
-      ptin_intf_port2intIfNum(converted_ifnum, &intIfNum);
-   }
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
@@ -3482,6 +3488,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8 remoteIdStr[DS_MAX_REMOTE_ID_STRING];
   L7_uchar8 sysMacAddr[L7_MAC_ADDR_LEN];
   L7_RC_t   result = L7_SUCCESS;    /* PTin added: DHCP snooping */
+  dhcpSnoopBinding_t dhcp_binding;
 
   ipPktLen = osapiNtohs(ipHeader->iph_len);
   dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
@@ -3546,7 +3553,6 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     return L7_FALSE;
   }
 
-
   /* Check if L2 Relay of Option-82 filters are needed.*/
   if (dsCfgData->dsL2RelayAdminMode == L7_ENABLE &&
       _dsVlanIntfL2RelayGet(vlanId,intIfNum) /*_dsIntfL2RelayGet(intIfNum)*/ == L7_TRUE)    /* PTin modified: DHCP snooping */
@@ -3563,23 +3569,41 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                     L7_FALSE, &relayAgentInfo) == L7_SUCCESS)
     #endif
     {
+#if 1 /* PTin Added: Flexible circuit-id */
+      L7_enetHeader_t *mac_header = 0;
+
+      mac_header = (L7_enetHeader_t*) frame;
+
+      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+      if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+      {
+        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for a client that is not in the binding table");
+        return L7_FALSE;
+      }
+#endif
       /* PTin added: DHCP snooping */
       #if 1
       /* Recalculate client index according the circuit id, if the packet came from root interfaces */
-      if (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) && relayAgentInfo.circuitIdFlag)
+      if (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum)
+          //&& relayAgentInfo.circuitIdFlag
+          )
       {
         L7_uint client_index;
         ptin_client_id_t client;
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-        client.innerVlan = innerVlanId;
+        client.innerVlan = dhcp_binding.innerVlanId;
         client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
-        if (innerVlanId!=0)
+        if (dhcp_binding.innerVlanId!=0)
         {
           /* Find client index, and validate it */
+#if 1 /* PTin modified: flexible circuit-id */
+          if (ptin_dhcp_clientIndex_get(dhcp_binding.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
+#else
           if (ptin_dhcp_clientIndex_get(relayAgentInfo.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
+#endif
               client_index<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
           {
             *client_idx = client_index;   /* Update to new client index */
@@ -3610,9 +3634,11 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 #endif
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted",
                          intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
+#if 0 /* PTin removed: flexible circuit-id */
       if (ptin_debug_dhcp_snooping)
         LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted");
       return L7_TRUE;
+#endif
     }
     else if ((_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE)   /* PTin modified: DHCP snooping */
              && (relayFlag == L7_TRUE))
@@ -3637,6 +3663,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
 
       /* Validate destination slot (only for TOLT8G) */
+#if 0 /* PTin removed: flexible circuit-id */
       #if ( PTIN_BOARD_IS_LINECARD )
       L7_uint8  board_slot;             /* PTin added: DHCP snooping */
       /* For trusted interfaces, check if destination board_slot matches the current one.
@@ -3653,6 +3680,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"Destination board matches this one (%u)... yeah!",board_slot);
       }
       #endif
+#endif
     #else
     else
     #endif
@@ -3660,8 +3688,8 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       dsInfo->debugStats.serverOption82Rx++;
       ptin_dhcp_stat_increment_field( intIfNum, vlanId, *client_idx,
                                       DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
-      dsL2RelayRelayAgentInfoOptionCfgGet(((relayAgentInfo.circuitIdFlag) ? relayAgentInfo.intIfNum : intIfNum),
-                                          vlanId, innerVlanId, &frame[L7_MAC_ADDR_LEN],
+      dsL2RelayRelayAgentInfoOptionCfgGet(dhcp_binding.intIfNum,
+                                          vlanId, dhcp_binding.innerVlanId, &frame[L7_MAC_ADDR_LEN],
                                           &cIdFlag, circuitIdStr,                                           /* PTin modified: DHCP snooping */
                                           &rIdFlag, remoteIdStr );
       if ((_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE))    /* PTin modified: DHCP snooping */
