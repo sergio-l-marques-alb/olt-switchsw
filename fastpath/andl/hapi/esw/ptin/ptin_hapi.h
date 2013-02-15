@@ -78,6 +78,15 @@ extern L7_RC_t hapi_ptin_config_init(void);
  */
 extern L7_RC_t ptin_hapi_switch_init(void);
 
+/**
+ * Initialize PHY control parameters
+ * 
+ * @author asantos (07/02/2013)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_phy_init(void);
+
 /** 
  * Get bcm unit id for this switch. 
  * Normally is ZERO, but nervertheless it's better to be sure 

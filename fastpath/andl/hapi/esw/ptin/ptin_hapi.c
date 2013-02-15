@@ -112,6 +112,10 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_switch_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
+  /* PHY initializations */
+  if (ptin_hapi_phy_init()!=L7_SUCCESS)
+    rc = L7_FAILURE;
+
   /* ptin_hapi_xlate initializations */
   if (ptin_hapi_xlate_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
@@ -141,6 +145,46 @@ L7_RC_t ptin_hapi_switch_init(void)
   }
 
   return rc;
+}
+
+/**
+ * Initialize PHY control parameters
+ * 
+ * @author asantos (07/02/2013)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+  int i, rv;
+
+  for (i=1; i<=PTIN_SYSTEM_N_PORTS; i++)
+  {
+//  rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_8B10B, 0);
+//
+//  if (!SOC_SUCCESS(rv))
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling 8b10b on port %u", i);
+//    rc = L7_FAILURE;
+//    break;
+//  }
+
+    rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_DEFAULT);
+
+    if (!SOC_SUCCESS(rv))
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u", PTIN_PHY_PREEMPHASIS_DEFAULT, i);
+      rc = L7_FAILURE;
+      break;
+    }
+  }
+  #endif
+
+  return rc;
+
 }
 
 /** 
