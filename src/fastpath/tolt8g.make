@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-INSTALL_DIR     = ../../../PR1003/builds_olt360/apps/TOLT8G
-BACKUP_DIR      = ../../../PR1003/builds_olt360/apps_backup/TOLT8G
+INSTALL_DIR     = /home/olt/fastpath_builds/builds_olt360/apps/TOLT8G
+BACKUP_DIR      = /home/olt/fastpath_builds/builds_olt360/apps_backup/TOLT8G
 
 NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
@@ -62,8 +62,7 @@ all: welcome
 	@echo ""
 
 install:
-	$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(DEVSHSYM_FILE) $(KO_PATH)/*.ko $(INSTALL_DIR)
-	$(CP) $(BIN_PATH)/$(BIN_FILE).unstripped $(BACKUP_DIR)
+	sh tolt8g.update
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-tolt8g.sh

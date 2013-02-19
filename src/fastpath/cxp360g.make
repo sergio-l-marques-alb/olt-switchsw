@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-INSTALL_DIR	= ../../../PR1003/builds_olt360/apps/CXP360G
-BACKUP_DIR	= ../../../PR1003/builds_olt360/apps_backup/CXP360G
+INSTALL_DIR	= /home/olt/fastpath_builds/builds_olt360/apps/CXP360G
+BACKUP_DIR	= /home/olt/fastpath_builds/builds_olt360/apps_backup/CXP360G
 
 NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
@@ -65,8 +65,7 @@ kernel:
 	cd $(KERNEL_PATH) && ./build_ppc_cxo360g.sh
 
 install:
-	$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(DEVSHSYM_FILE) $(KO_PATH)/*.ko $(INSTALL_DIR)
-	$(CP) $(BIN_PATH)/$(BIN_FILE).unstripped $(BACKUP_DIR)
+	sh cxp360g.update
 
 help h:
 	@echo ""

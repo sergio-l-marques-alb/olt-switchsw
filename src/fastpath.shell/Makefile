@@ -24,9 +24,6 @@ LDFLAGS		= -Wl,-Bdynamic,-L$(LIB)
 RM=rm -f
 TARGET=bin/fastpath.shell
 
-INSTALL_DIR1=../../../PR1003/builds_olt360/apps/CXP360G
-INSTALL_DIR2=../../../PR1003/builds_olt360/apps/TOLT8G
-
 HDRS=-I. -Iutils -Iipc -Imain \
 #-I$(CROSS_DIR)/powerpc-e300c3-linux/include
 				
@@ -40,8 +37,7 @@ all:	Makefile $(OBJ)
 	       	$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET) $(OBJ) -lc -lm -lrt
    
 install:	$(TARGET)
-		cp $(TARGET) $(INSTALL_DIR1)
-		cp $(TARGET) $(INSTALL_DIR2)
+		sh shell.update
 	
 clean cleanall:
 		rm -f $(OBJ) $(TARGET)

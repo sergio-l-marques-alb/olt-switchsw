@@ -8,7 +8,7 @@
 ################################################
 
 
-.PHONY: help h all tolt8g olt7-8chb cxp360g cli shell install_cxp360g install_tolt8g install_cli install_shell clean_tolt8g clean_olt7-8chb clean_cxp360g clean_cli clean_shell cleanall_tolt8g cleanall_olt7-8chb cleanall_cxp360g cleanall_cli cleanall_shell install clean cleanall kernel_tolt8g kernel_olt7-8chb kernel_cxp360g 
+.PHONY: help h all tolt8g olt7-8chb cxp360g cli shell install_cxp360g install_tolt8g install_cli install_shell clean_tolt8g clean_olt7-8chb clean_cxp360g clean_cli clean_shell cleanall_tolt8g cleanall_olt7-8chb cleanall_cxp360g cleanall_cli cleanall_shell install clean cleanall kernel_tolt8g kernel_olt7-8chb kernel_cxp360g olt360 install_olt360 clean_olt360 cleanall_olt360
 
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
@@ -24,6 +24,7 @@ help h:
 	@echo " make kernel_olt7-8chb   "
 	@echo ""
 	@echo " make all                "
+	@echo " make olt360             "
 	@echo " make cxp360g            "	
 	@echo " make tolt8g             "
 	@echo " make olt7-8chb          "
@@ -31,6 +32,7 @@ help h:
 	@echo " make shell              "
 	@echo ""
 	@echo " make clean              "
+	@echo " make clean_olt360       "
 	@echo " make clean_cxp360g      "	
 	@echo " make clean_tolt8g       "
 	@echo " make clean_olt7-8chb    "
@@ -38,6 +40,7 @@ help h:
 	@echo " make clean_shell        "
 	@echo ""
 	@echo " make cleanall           "
+	@echo " make cleanall_olt360    "
 	@echo " make cleanall_cxp360g   "
 	@echo " make cleanall_tolt8g    "
 	@echo " make cleanall_olt7-8chb "
@@ -45,6 +48,7 @@ help h:
 	@echo " make cleanall_shell     "
 	@echo ""
 	@echo " make install            "
+	@echo " make install_olt360     "
 	@echo " make install_tolt8g     "
 	@echo " make install_cxp360g    "
 	@echo " make install_olt7-8chb  "
@@ -61,7 +65,9 @@ kernel_olt7-8chb:
 kernel_cxp360g:
 	@$(MAKE) -f cxp360g.make kernel
 
-all:	cxp360g tolt8g cli shell
+all:	cxp360g tolt8g olt7-8chb cli shell
+
+olt360:	cxp360g tolt8g cli shell
 
 cxp360g:
 	@$(MAKE) -f cxp360g.make
@@ -123,8 +129,15 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxp360g install_tolt8g cli shell
+install_olt360:		install
+
+clean_olt360:		clean_cxp360g clean_tolt8g clean_cli clean_shell
+
+cleanall_olt360:	cleanall_cxp360g cleanall_tolt8g cleanall_cli cleanall_shell
+
+install:	install_cxp360g install_tolt8g install_cli install_shell
 
 clean:		clean_cxp360g clean_tolt8g clean_olt7-8chb clean_cli clean_shell
 
 cleanall:	cleanall_cxp360g cleanall_tolt8g cleanall_olt7-8chb cleanall_cli cleanall_shell
+
