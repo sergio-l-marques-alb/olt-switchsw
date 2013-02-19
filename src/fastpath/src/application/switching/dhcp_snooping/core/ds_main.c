@@ -1191,7 +1191,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
          L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
          L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
-         ;
+         
          memset(ifName, 0, sizeof(ifName));
          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
          osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, "(%s)DHCP snooping received %s on interface %s in VLAN %u.", __FUNCTION__, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
@@ -1471,6 +1471,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                         "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply",__FUNCTION__, frameLen );
           dsTraceWrite(traceMsg);
         }
+
+        ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
+
 #if 1 /* PTin Added: Flexible circuit-id */
       }
 #endif
