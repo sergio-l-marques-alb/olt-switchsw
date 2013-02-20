@@ -759,6 +759,15 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       dsInfo->debugStats.badSrcAddr++;
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
+
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                      "(%s) Packet ignored, because of ip source (0x%08x)",
+                      __FUNCTION__, ipHeader->iph_src);
+        dsTraceWrite(traceMsg);
+      }
       return SYSNET_PDU_RC_IGNORED;
     }
 
@@ -766,7 +775,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_CLNT))
 
-      {
+    {
       /* This is used only when the packet comes double tagged.*/
       vlanId = pduInfo->vlanId;
       innerVlanId = pduInfo->innerVlanId;
@@ -783,6 +792,14 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
+        if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                        "(%s) Packet rate limited",
+                        __FUNCTION__);
+          dsTraceWrite(traceMsg);
+        }
         return SYSNET_PDU_RC_CONSUMED;
       }
 
@@ -853,6 +870,14 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
           LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
+        if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                        "(%s) Packet denied to be stored in packet queue",
+                        __FUNCTION__);
+          dsTraceWrite(traceMsg);
+        }
         return SYSNET_PDU_RC_CONSUMED;
       }
       if (rc == L7_SUCCESS)
@@ -890,8 +915,30 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
       }
-   }
- }
+    }
+    else
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                      "(%s) Packet is neither server nor client (%u)",
+                      __FUNCTION__, udpHeader->destPort);
+        dsTraceWrite(traceMsg);
+      }
+    }
+  }
+  else
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s) Invalid protocol received (%u), or invalid versLen (0x%02x)",
+                    __FUNCTION__, ipHeader->iph_prot, ipHeader->iph_versLen);
+      dsTraceWrite(traceMsg);
+    }
+  }
 
   return SYSNET_PDU_RC_IGNORED;
 }
@@ -3539,6 +3586,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
       if (ptin_debug_dhcp_snooping)
         LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP snooping dropping DHCP server message received on untrusted interface");
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       return L7_TRUE;
     }
   }

@@ -2638,9 +2638,9 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   /* Interface must be Root */
   if (uc_intf_cfg.type!=PTIN_EVC_INTF_LEAF)
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not client/leaf for ucEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->UcastEvcId,intVlan);
+//  if (ptin_debug_igmp_snooping)
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not client/leaf for ucEvcId=%u (intVlan=%u)",
+//            ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->UcastEvcId,intVlan);
     return L7_FAILURE;
   }
 
