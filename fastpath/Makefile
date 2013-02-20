@@ -8,7 +8,7 @@
 ################################################
 
 
-.PHONY: help h all all_olt360 all_olt640 tolt8g tg16g olt7-8chb cxp360g cxo640g cli shell install_cxp360g install_cxo640g install_tolt8g install_tg16g install_cli install_shell clean_tolt8g clean_tg16g clean_olt7-8chb clean_cxp360g clean_cxo640g clean_cli clean_shell cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cxp360g cleanall_cxo640g cleanall_cli cleanall_shell install install_olt360 install_olt640 clean clean_olt360 clean_olt640 cleanall cleanall_olt360 cleanall_olt640 kernel_tolt8g kernel_tg16g kernel_olt7-8chb kernel_cxp360g kernel_cxo640g
+.PHONY: help h all olt360 olt640 cxp360g cxo640g tolt8g tg16g olt7-8chb cli shell clean clean_olt360 clean_olt640 clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt640 cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt640 install_cxp360g install_cxo640g install_tolt8g install_tg16g install_olt7-8chb install_cli install_shell kernel_cxp360g kernel_cxo640g kernel_tolt8g kernel_tg16g kernel_olt7-8chb
 
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
@@ -26,15 +26,19 @@ help h:
 	@echo " make kernel_olt7-8chb   "
 	@echo ""
 	@echo " make all                "
-	@echo " make cxp360g            "
+	@echo " make olt360             "
+	@echo " make olt640             "
+	@echo " make cxp360g            "	
 	@echo " make cxo640g            "
 	@echo " make tolt8g             "
-	@echo " make tg16g             "
+	@echo " make tg16g              "
 	@echo " make olt7-8chb          "
 	@echo " make cli                "
 	@echo " make shell              "
 	@echo ""
 	@echo " make clean              "
+	@echo " make clean_olt360       "
+	@echo " make clean_olt640       "
 	@echo " make clean_cxp360g      "
 	@echo " make clean_cxo640g      "
 	@echo " make clean_tolt8g       "
@@ -44,6 +48,8 @@ help h:
 	@echo " make clean_shell        "
 	@echo ""
 	@echo " make cleanall           "
+	@echo " make cleanall_olt360    "
+	@echo " make cleanall_olt640    "
 	@echo " make cleanall_cxp360g   "
 	@echo " make cleanall_cxo640g   "
 	@echo " make cleanall_tolt8g    "
@@ -53,6 +59,8 @@ help h:
 	@echo " make cleanall_shell     "
 	@echo ""
 	@echo " make install            "
+	@echo " make install_olt360     "
+	@echo " make install_olt640     "
 	@echo " make install_cxp360g    "
 	@echo " make install_cxo640g    "
 	@echo " make install_tolt8g     "
@@ -60,15 +68,6 @@ help h:
 	@echo " make install_olt7-8chb  "
 	@echo " make install_cli        "
 	@echo " make install_shell      "
-	@echo ""
-	@echo " make all_olt360         "
-	@echo " make all_olt640         "
-	@echo " make clean_olt360       "
-	@echo " make clean_olt640       "
-	@echo " make cleanall_olt360    "
-	@echo " make cleanall_olt640    "
-	@echo " make install_olt360     "
-	@echo " make install_olt640     "
 	@echo ""
 
 kernel_tolt8g:
@@ -86,11 +85,11 @@ kernel_cxp360g:
 kernel_cxo640g:
 	@$(MAKE) -f cxo640g.make kernel
 
-all:	cxp360g cxo640g tolt8g tg16g cli shell
+all:	cxp360g cxo640g tolt8g tg16g olt7-8chb cli shell
 
-all_olt360:	cxp360g tolt8g cli shell
+olt360:	cxp360g tolt8g cli shell
 
-all_olt640:	cxo640g tg16g cli shell
+olt640:	cxo640g tg16g cli shell
 
 cxp360g:
 	@$(MAKE) -f cxp360g.make

@@ -2177,9 +2177,18 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    ptinDhcpClientInfoData_t *client_info;
 
    //Set DHCP options to L7_FALSE
-   *isActiveOp82 = L7_FALSE;
-   *isActiveOp37 = L7_FALSE;
-   *isActiveOp18 = L7_FALSE;
+   if(L7_NULLPTR != isActiveOp82)
+   {
+     *isActiveOp82 = L7_FALSE;
+   }
+  if (L7_NULLPTR != isActiveOp37)
+  {
+    *isActiveOp37 = L7_FALSE;
+  }
+  if (L7_NULLPTR != isActiveOp18)
+  {
+    *isActiveOp18 = L7_FALSE;
+  }
 
    /* Validate arguments */
    if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX ||
@@ -2229,9 +2238,15 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
          return L7_FAILURE;
       }
 
-      *isActiveOp82 = 0x01 & client_info->client_data.dhcp_options;
-      *isActiveOp37 = (0x02 & client_info->client_data.dhcp_options) >> 1;
-      *isActiveOp18 = (0x04 & client_info->client_data.dhcp_options) >> 2;
+      if (L7_NULLPTR != isActiveOp82) {
+        *isActiveOp82 = 0x01 & client_info->client_data.dhcp_options;
+      }
+      if (L7_NULLPTR != isActiveOp37) {
+        *isActiveOp37 = (0x02 & client_info->client_data.dhcp_options) >> 1;
+      }
+      if (L7_NULLPTR != isActiveOp18) {
+        *isActiveOp18 = (0x04 & client_info->client_data.dhcp_options) >> 2;
+      }
    }
    else
    {
