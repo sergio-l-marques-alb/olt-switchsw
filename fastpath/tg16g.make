@@ -62,8 +62,7 @@ all: welcome
 	@echo ""
 
 install:
-	$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(DEVSHSYM_FILE) $(KO_PATH)/*.ko $(INSTALL_DIR)
-	$(CP) $(BIN_PATH)/$(BIN_FILE).unstripped $(BACKUP_DIR)
+	sh tg16g.update
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-tolt8g.sh

@@ -65,8 +65,7 @@ kernel:
 	cd $(KERNEL_PATH) && ./build_ppc_cxo360g.sh
 
 install:
-	$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(DEVSHSYM_FILE) $(KO_PATH)/*.ko $(INSTALL_DIR)
-	$(CP) $(BIN_PATH)/$(BIN_FILE).unstripped $(BACKUP_DIR)
+	sh cxo640g.update
 
 help h:
 	@echo ""
