@@ -1500,6 +1500,66 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      * DHCP Relay Agent
      **************************************************************************/
 
+    /* Configure DHCP circuit-id global components ****************************/
+    case CCMSG_ETH_DHCP_EVC_CIRCUITID_SET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DHCP_EVC_CIRCUITID_SET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
+
+      msg_AccessNodeCircuitId_t *ptr;
+      ptr = (msg_AccessNodeCircuitId_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_AccessNodeCircuitId_t));
+
+      /* Execute command */
+      rc = ptin_msg_DHCP_circuitid_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Get DHCP profile data **************************************************/
+    case CCMSG_ETH_DHCP_EVC_CIRCUITID_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
+
+      msg_AccessNodeCircuitId_t *ptr;
+      ptr = (msg_AccessNodeCircuitId_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_AccessNodeCircuitId_t));
+
+      /* Execute command */
+      rc = ptin_msg_DHCP_circuitid_get(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /* Get DHCP profile data **************************************************/
     case CCMSG_ETH_DHCP_PROFILE_GET:
     {

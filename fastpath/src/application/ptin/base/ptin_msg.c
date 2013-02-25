@@ -2467,6 +2467,98 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
 /* DHCP Management Functions **************************************************/
 
 /**
+ * Set DHCP circuit-id global data
+ *
+ * @param profile: DHCP profile
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
+{
+  L7_uint           evc_idx;
+  L7_RC_t           rc;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+
+  /* Validate input parameters */
+  if (circuitid==L7_NULLPTR)  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id             = %u",      circuitid->evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask               = 0x%04X",  circuitid->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
+
+  /* Extract input data */
+  evc_idx = circuitid->evc_id;
+
+  /* Set circuit-id global data */
+  rc = ptin_dhcp_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get DHCP circuit-id global data
+ *
+ * @param profile: DHCP profile
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
+{
+  L7_uint           evc_idx;
+  L7_RC_t           rc;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+
+  /* Validate input parameters */
+  if (circuitid==L7_NULLPTR)  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    return L7_FAILURE;
+  }
+
+  /* Extract input data */
+  evc_idx = circuitid->evc_id;
+
+  /* Set circuit-id global data */
+  rc = ptin_dhcp_circuitid_get(evc_idx, circuitid->template_str, &circuitid->mask, circuitid->access_node_id, &circuitid->chassis, &circuitid->rack,
+      &circuitid->frame, &circuitid->ethernet_priority, &circuitid->s_vid);
+
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    return rc;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id             = %u",      circuitid->evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask               = 0x%04X",  circuitid->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get DHCP profile data
  * 
  * @param profile: DHCP profile
@@ -2518,7 +2610,8 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   }
 
   /* Get circuit and remote ids */
-  rc = ptin_dhcp_client_get(evc_idx,&client,&profile->options,profile->circuitId,profile->remoteId);
+  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &profile->circuitId.onuid, &profile->circuitId.slot, &profile->circuitId.port,
+      &profile->circuitId.q_vid, &profile->circuitId.c_vid, profile->remoteId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -2526,9 +2619,13 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Options     = %02x",  profile->options);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"circuitId   = \"%s\"",profile->circuitId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"remoteId    = \"%s\"",profile->remoteId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Options                      = %02x",  profile->options);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.onuid              = %u",    profile->circuitId.onuid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.slot               = %u",    profile->circuitId.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.port               = %u",    profile->circuitId.port);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.q_vid              = %u",    profile->circuitId.q_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.c_vid              = %u",    profile->circuitId.c_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
 
   return L7_SUCCESS;
 }
@@ -2554,19 +2651,22 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
   for (i=0; i<n_clients; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message %u",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Processing message %u",i);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Slot Id      = %u",     profile[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     profile[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", profile[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", profile[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     profile[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options      = %02x",   profile[i].options);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Circuit Id   = \"%s\"", profile[i].circuitId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id    = \"%s\"", profile[i].remoteId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Slot Id                      = %u",     profile[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx                      = %u",     profile[i].evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask                         = 0x%02x", profile[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface                    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask                  = 0x%02x", profile[i].client.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan                 = %u",     profile[i].client.outer_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan                 = %u",     profile[i].client.inner_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf                  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options                      = %02x",   profile[i].options);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.onuid              = %u",     profile[i].circuitId.onuid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.slot               = %u",     profile[i].circuitId.slot);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.port               = %u",     profile[i].circuitId.port);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.q_vid              = %u",     profile[i].circuitId.q_vid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
 
     /* Extract input data */
     evc_idx = profile[i].evc_id;
@@ -2590,7 +2690,8 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     }
 
     /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx,&client,profile[i].options,profile[i].circuitId,profile[i].remoteId);
+    rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
+        profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
 
     if (rc!=L7_SUCCESS)
     {
