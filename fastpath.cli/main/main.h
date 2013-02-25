@@ -103,6 +103,8 @@ extern int canal_buga;
 #define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_ClientDhcpStatistics_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_EVC_CIRCUITID_SET    0x90C9  // struct msg_AccessNodeCircuitId_t
+#define CCMSG_ETH_DHCP_EVC_CIRCUITID_GET    0x90CA  // struct msg_AccessNodeCircuitId_t
 
 #define CCMSG_ETH_IGMP_PROXY_GET            0x9070  // struct msg_IgmpProxyCfg_t
 #define CCMSG_ETH_IGMP_PROXY_SET            0x9071  // struct msg_IgmpProxyCfg_t
@@ -613,7 +615,29 @@ typedef struct {
 #define MSG_INTERFACE_MASK    0x01
 #define MSG_CLIENT_MASK       0x02
 
+/* DHCP Circuit-id */
+typedef struct {
+  L7_uint16   evc_id;               /* EVC ID */
+
+  char        template_str[256];    /* Circuit-id template string, as configured by the user */
+  L7_uint32   mask;                 /* Circuit-id mask, identifying which variables are present in the template string */
+
+  char        access_node_id[63];   /* [mask=0x0001] Access Node ID */
+  L7_uint8    chassis;              /* [mask=0x0002] Access Node Chassis */
+  L7_uint8    rack;                 /* [mask=0x0004] Access Node Rack */
+  L7_uint8    frame;                /* [mask=0x0008] Access Node Frame */
+  L7_uint8    ethernet_priority;    /* [mask=0x0010] Ethernet Priority bits on V interface */
+  L7_uint16   s_vid;                /* [mask=0x0020] S-VLAN on V interface */
+} __attribute__((packed)) msg_AccessNodeCircuitId_t;
+
 /* DHCP Profile */
+typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
+  L7_uint16   onuid;                /* [mask=0x0040] ONU ID */
+  L7_uint8    slot;             	   /* [mask=0x0080] Slot */
+  L7_uint16   port;                 /* [mask=0x0100] Slot Port*/
+  L7_uint16   q_vid;                /* [mask=0x0200] VLAN ID on U interface */
+  L7_uint16   c_vid;                /* [mask=0x0400] C-VLAN on U interface */
+} __attribute__((packed)) msg_clientCircuitId_t;
 // Messages CCMSG_ETH_DHCP_PROFILE_GET, CCMSG_ETH_DHCP_PROFILE_ADD and CCMSG_ETH_DHCP_PROFILE_REMOVE
 typedef struct {
   L7_uint8  SlotId;               /* slot id */
@@ -622,7 +646,7 @@ typedef struct {
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
   L7_uint16             options;  /* [mask=0x04] Options to be active: 0x01=Option82; 0x02=Option 37; 0x04=Option18 */
-  char circuitId[64];             /* [mask=0x10] Circuit id */
+  msg_clientCircuitId_t circuitId;/* [mask=0x10] Circuit id */
   char remoteId[64];              /* [mask=0x20] Remote id */
 } __attribute__((packed)) msg_HwEthernetDhcpOpt82Profile_t;
 

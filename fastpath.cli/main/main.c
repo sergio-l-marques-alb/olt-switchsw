@@ -57,9 +57,11 @@ void help_oltBuga(void)
         "m 1041 vlan_id[1-4095] macAddr[xxxxxxxxxxxxh] [0-Phy,1-Lag]/[intf#] - Add a static entry to the MAC table\r\n"
         "m 1042 vlan_id[1-4095] macAddr[xxxxxxxxxxxxh] - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
-        "m 1220 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Read DHCPop82 profile\n\r"
-        "m 1221 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
-        "m 1222 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Remove a DHCPop82 profile\n\r"
+        "m 1220 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Read DHCP profile\n\r"
+        "m 1221 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] op82/op37/op18 <circuitId> <remoteId> - Define a DHCP profile\n\r"
+        "m 1222 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Remove a DHCP profile\n\r"
+        "m 1223 flow_id[1-127] <template> <accessnode_id> <mask> <rack> <subrack> <shelf> <ethernet_priority> <s-vlan>- Configure Circuit-ID string global data\n\r"
+        "m 1224 flow_id[1-127] - Read Circuit-ID string global data\n\r"
         "m 1240 <page> - Read DHCP binding table (start reading from page 0)\r\n"
         "m 1242 macAddr[xxxxxxxxxxxxh] - Remove a MAC address from DHCP Binding table\r\n"
         "m 1310 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
@@ -1247,7 +1249,7 @@ int main (int argc, char *argv[])
           ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
           // CircuitId
-          ptr->circuitId[0] = '\0';
+//          ptr->circuitId[0] = '\0';
           // RemoteId
           ptr->remoteId[0] = '\0';
 
@@ -1313,8 +1315,8 @@ int main (int argc, char *argv[])
           ptr->options |= 0x04 & (op82 << 2);
 
           // CircuitId
-          if (strlen(argv[3+4])>63)  argv[3+4][63]='\0';
-          strcpy(ptr->circuitId,argv[3+4]);
+//          if (strlen(argv[3+4])>63)  argv[3+4][63]='\0';
+//          strcpy(ptr->circuitId,argv[3+4]);
           // RemoteId
           if (strlen(argv[3+5])>63)  argv[3+5][63]='\0';
           strcpy(ptr->remoteId,argv[3+5]);
@@ -1372,6 +1374,113 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_DHCP_PROFILE_REMOVE;
           comando.infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
+        }
+        break;
+
+      case 1223:
+        {
+          msg_AccessNodeCircuitId_t *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+8)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_AccessNodeCircuitId_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_AccessNodeCircuitId_t));
+
+          // flow_id
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evc_id = (uint16) valued;
+
+          // template string
+          if (strlen(argv[3+1])>253)  argv[3+1][253]='\0';
+          strcpy(ptr->template_str,argv[3+1]);
+
+          // Mask
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->mask = valued;
+
+          // Access Node ID
+          if (strlen(argv[3+3])>63)  argv[3+3][63]='\0';
+          strcpy(ptr->access_node_id,argv[3+3]);
+
+          // Subrack
+          if (StrToLongLong(argv[3+5],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->chassis = (uint16) valued;
+
+          // Rack
+          if (StrToLongLong(argv[3 + 4], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->rack = (uint16) valued;
+
+          // Shelf
+          if (StrToLongLong(argv[3 + 6], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->frame = (uint16) valued;
+
+          // Ethernet Priority
+          if (StrToLongLong(argv[3 + 7], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ethernet_priority = (uint16) valued;
+
+          // S-VLAN
+          if (StrToLongLong(argv[3 + 8], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->s_vid = (uint16) valued;
+
+          comando.msgId = CCMSG_ETH_DHCP_EVC_CIRCUITID_SET;
+          comando.infoDim = sizeof(msg_AccessNodeCircuitId_t);
+        }
+        break;
+
+      case 1224:
+        {
+          msg_AccessNodeCircuitId_t *ptr;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_AccessNodeCircuitId_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_AccessNodeCircuitId_t));
+
+          // page
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evc_id = valued;
+
+          comando.msgId = CCMSG_ETH_DHCP_EVC_CIRCUITID_GET;
+          comando.infoDim = sizeof(msg_AccessNodeCircuitId_t);
         }
         break;
 
@@ -3950,7 +4059,7 @@ int main (int argc, char *argv[])
           printf(" Client.OVlan = %u\r\n",ptr->client.outer_vlan);
           printf(" Client.IVlan = %u\r\n",ptr->client.inner_vlan);
           printf(" options = 0x%02x\n",ptr->options);
-          printf(" CircuitId=\"%s\"\r\n",ptr->circuitId);
+//          printf(" CircuitId=\"%s\"\r\n",ptr->circuitId);
           printf(" RemoteId =\"%s\"\r\n",ptr->remoteId);
           printf(" Switch: DHCPop82 profile read successfully\n\r");
         }
@@ -3970,6 +4079,39 @@ int main (int argc, char *argv[])
           printf(" Switch: DHCPop82 profile removed successfully\n\r");
         else
           printf(" Switch: DHCPop82 profile not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1223:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: DHCP circuit-id global data configured successfully\n\r");
+        else
+          printf(" Switch: DHCP circuit-id global data not configured - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1224:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          msg_AccessNodeCircuitId_t *ptr;
+
+          if (resposta.infoDim!=sizeof(msg_AccessNodeCircuitId_t)) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+            break;
+          }
+
+          ptr = (msg_AccessNodeCircuitId_t *) &resposta.info[0];
+
+          printf(" DHCP Circuit-ID (EVC=%u):\r\n",ptr->evc_id);
+          printf(" Template      = %s\r\n",       ptr->template_str);
+          printf(" Mask          = 0x%04X\r\n",   ptr->mask);
+          printf(" AccessNode ID = %s\r\n",       ptr->access_node_id);
+          printf(" Chassis       = %u\r\n",       ptr->chassis);
+          printf(" Rack          = %u\r\n",       ptr->rack);
+          printf(" Frame         = %u\r\n",       ptr->frame);
+          printf(" Slot          = %u\r\n",       ptr->slot);
+          printf(" Switch: DHCPop82 profile read successfully\n\r");
+        }
+        else
+          printf(" Switch: DHCP circuit-id global data not read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1240:
