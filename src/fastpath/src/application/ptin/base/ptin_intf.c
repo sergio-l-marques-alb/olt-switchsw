@@ -232,6 +232,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_enable              = L7_TRUE;
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
+  mefExt.macLearn_stationMove_samePrio= L7_TRUE;
 
   /* Only apply to physical interfaces */
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
