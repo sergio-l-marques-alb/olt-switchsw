@@ -3358,7 +3358,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         relayAgentInfo->circuitIdFlag = L7_TRUE;
 
         // PTin replaced: DHCP snooping
-        #if 1
+        #if 0
         L7_int board_slot;
         L7_int unit, slot, port, ind;
 
@@ -3416,11 +3416,13 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
           LOG_TRACE(LOG_CTX_PTIN_DHCP,"{unit,slot,port}={%d,%d,%d}\r\n",unit,slot,port);
 
         relayOffset += optLen;
-        #else
+        #endif
+        #if 0
         relayAgentInfo->usp.unit = *relayOffset++;
         relayAgentInfo->usp.slot = *relayOffset++;
         relayAgentInfo->usp.port = *relayOffset++;
         #endif
+        #if 0
         if (nimGetIntIfNumFromUSP(&relayAgentInfo->usp, &relayAgentInfo->intIfNum) != L7_SUCCESS)
         {
           /* The received data does not represent a valid interface.*/
@@ -3444,6 +3446,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
             LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success here");
           return L7_SUCCESS;
         }
+        #endif
       }
       break;
     case DHCP_RELAY_AGENT_REMOTE_ID_SUBOPTION:
