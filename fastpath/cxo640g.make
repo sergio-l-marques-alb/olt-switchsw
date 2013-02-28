@@ -65,14 +65,15 @@ kernel:
 	cd $(KERNEL_PATH) && ./build_ppc_cxo360g.sh
 
 install:
-	sh cxo640g.update
+	sh cxo640g.install
 
 help h:
 	@echo ""
 	@echo "Makefile Help"
 	@echo "	make     		"
 	@echo "	make clean		"
-	@echo "	make cleanall	"
+	@echo "	make cleanall	        "
+	@echo " make install            "
 	@echo "	make kernel		"
 	@echo ""
 

@@ -1,11 +1,11 @@
 #!/bin/sh
 
 PLATFORM=CXO640G
-ipaddr=10.112.15.243
-user=mruas
-pass=mruas
 
-DST_DIR=/home/olt/fastpath_builds/builds_olt640
+IP_ADDR=10.112.15.243
+USER=bcmfastpath
+
+DST_DIR=/home/olt/fastpath_builds/builds_olt1t3
 
 INSTALL_DIR=$DST_DIR/apps/$PLATFORM
 BACKUP_DIR=$DST_DIR/apps_backup/$PLATFORM
@@ -17,6 +17,6 @@ BIN_FILE=switchdrvr
 DEVSHSYM_FILE=devshell_symbols.gz
 
 echo "Copying $PLATFORM binaries to $DST_DIR"
-cp $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $INSTALL_DIR
-cp $BIN_PATH/$BIN_FILE.unstripped $BACKUP_DIR
+scp $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $USER@$IP_ADDR:$INSTALL_DIR
+scp $BIN_PATH/$BIN_FILE.unstripped $USER@$IP_ADDR:$BACKUP_DIR
 echo "Done!"

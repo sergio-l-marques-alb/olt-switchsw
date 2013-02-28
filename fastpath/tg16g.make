@@ -62,7 +62,7 @@ all: welcome
 	@echo ""
 
 install:
-	sh tg16g.update
+	sh tg16g.install
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-tolt8g.sh
