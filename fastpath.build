@@ -1,0 +1,144 @@
+#!/bin/sh
+
+# These variables are defined by the calling script
+#MODULE=fastpath-olt
+#PLATFORMS="CXO640G-MX CXO360G-MX TG16G TOLT8G"
+#APPLICATION=fastpath
+
+BUILDS_FOLDER=./output
+APPS_PATH=./apps
+
+USERNAME=olt
+DST_IPADDR=10.112.15.243
+DST_PATH=/home/olt/fastpath_builds
+
+n_args=$#
+version=$1
+
+image_tgz=$MODULE.image-v$version.tgz
+backup_tgz=$MODULE.backup-v$version.tgz
+relnotes_file=$MODULE.releasenotes-v$version.txt
+
+colorNotice="\033[1m\033[34m"
+colorWarn="\033[1m\033[33m"
+colorOk="\033[1m\033[32m"
+colorKo="\033[1m\033[31m"
+colorReq="\033[1m\033[7m"
+colorTitle="\033[1m\033[4m"
+colorWhite="\033[1m\033[1m"
+colorReset="\033[0m"
+
+if [ $n_args -lt 1 ]
+  then
+  echo -en $colorKo
+  echo "Erro de parametros: $0 <version>"
+  echo -en $colorReset
+  exit;
+fi
+
+mkdir $BUILDS_FOLDER
+
+echo -en $colorTitle
+echo "Building $MODULE version $version ..."
+echo -en $colorReset
+
+DATE=`date`
+
+# Check for folder existence
+if [ ! -e $APPS_PATH ]; then
+  echo -en $colorKo
+  echo "$APPS_PATH folder is missing!"
+  echo -en $colorReset
+  exit 1;
+fi
+if [ ! -e $APPS_PATH/image ]; then
+  echo -en $colorKo
+  echo "Missing folders in $APPS_PATH"
+  echo -en $colorReset
+  exit 1;
+fi
+
+echo echo Modular OLT $MODULE $version > ./$APPLICATION.ver
+echo echo $DATE >> ./$APPLICATION.ver
+chmod 777 ./$APPLICATION.ver
+
+if [ -e ./$APPLICATION.releasenotes ]; then
+  echo "=== FASTPATH $version RELEASE NOTES ======================================" > ./$APPLICATION.releasenotes.txt
+  cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
+  echo "=======================================================================" >> ./$APPLICATION.releasenotes.txt
+  echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
+  chmod 666 ./$APPLICATION.releasenotes.txt
+elif [ ! -e ./$APPLICATION.releasenotes.txt ]; then
+  echo -en $colorKo
+  echo "Release Notes file is missing! ($APPLICATION.releasenotes)"
+  echo -en $colorReset
+  exit 1;
+fi
+
+echo -en $colorNotice
+echo "Transferring release notes to matrix board files..."
+echo -en $colorReset
+
+for plat in $PLATFORMS; do
+  cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
+done
+
+sync
+
+echo -en $colorNotice
+echo "Saving binaries..."
+echo -en $colorReset
+
+rm -f $BUILDS_FOLDER/$image_tgz
+sync
+cd $APPS_PATH/image
+tar czpvf $image_tgz $PLATFORMS --owner=root --group=root
+cd -
+mv $APPS_PATH/image/$image_tgz $BUILDS_FOLDER
+
+# Only if backup exists
+if [ -e $APPS_PATH/backup ]; then
+  rm -f $BUILDS_FOLDER/$backup_tgz
+  for plat in $PLATFORMS; do
+    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
+    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
+  done
+  sync
+  cd $APPS_PATH/backup
+  tar czvf $backup_tgz $PLATFORMS
+  cd -
+  mv $APPS_PATH/backup/$backup_tgz $BUILDS_FOLDER
+fi
+
+echo -en $colorNotice
+echo "Saving release notes..."
+echo -en $colorReset
+
+rm -f $BUILDS_FOLDER/$relnotes_file
+cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
+
+echo -en $colorNotice
+echo "Cleaning..."
+echo -en $colorReset
+rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
+
+echo -en $colorNotice
+echo "Transferring tarballs to final destination..."
+echo -en $colorReset
+echo -en $colorReq
+echo -en "What is your username on $DST_IPADDR machine?"
+echo -en $colorReset
+echo -en " "
+read USERNAME
+if [ -z $USERNAME ]; then
+  USERNAME=`whoami`
+  echo -en $colorReq
+  echo "Using '$USERNAME' user name."
+  echo -en $colorReset
+fi
+
+scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$backup_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
