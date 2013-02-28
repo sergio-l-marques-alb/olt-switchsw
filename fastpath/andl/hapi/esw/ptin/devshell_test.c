@@ -787,6 +787,8 @@ int remote_reg_write(unsigned int ip_addr, int port, int mmd, int addr, int valu
 int remote_var_read(unsigned int ip_addr, int port, int mmd, int addr, unsigned int *values, unsigned int *n_values);
 int remote_var_write(unsigned int ip_addr, int port, int mmd, int addr, int value);
 
+#define TEST_TIME 10
+
 void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 {
   int tap_main, tap_post;
@@ -798,7 +800,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
   char iter_str[10];
   char file[128];
   FILE *fd;
-  unsigned int vitesse_res[N_LANES_MAX], n_res;
+  unsigned int tx_ber, tx_ber_sum, vitesse_res[N_LANES_MAX], n_res;
+  unsigned int max_count, count;
+  unsigned int results_iter[N_SLOTS_MAX][N_LANES_MAX];
 
   rc = osapiTaskInitDone(L7_BER_TX_SYNC);
 
@@ -831,7 +835,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
       /* Only apply multiple iteration mode if n_iter!=0 */
       if (p_tx.n_iter > 1) {
         printf("\nRunning iteration %u of %u\n", iter, p_tx.n_iter);
-        sprintf(iter_str, "_iter%03u", iter);
+        sprintf(iter_str, "_iter%04u", iter);
         strcat(file, iter_str);
       }
 
@@ -864,70 +868,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
         fprintf(fd, " slot = %-2u  port list = {%-2d,%-2d,%-2d,%-2d}  IP = 0x%08X\n",
                 p_tx.slot[i], p_tx.port_list[i][0], p_tx.port_list[i][1], p_tx.port_list[i][2], p_tx.port_list[i][3], p_tx.ip_addr[i]);
       }
-
+      fprintf(fd, "\n");
       fflush(fd);
-
-      #if 0
-      /* For each slot and for each port... */
-      if ( p_tx.optimize_lc & 0x02 )
-      {
-        fprintf(fd, "Applying initializatin 2 ...\n");
-        fflush(fd);
-        for (slot=0; slot<p_tx.n_slots; slot++)
-        {
-          /* Set SFI mode */
-          if (remote_var_write(p_tx.ip_addr[slot], -1, 0, 0x94, 2)!=0)
-          {
-            fprintf(fd, "[ERROR] Failed setting SFI mode for slot %u\n", p_tx.slot[slot]);
-          }
-        }
-        sleep(1);
-        for (slot=0; slot<p_tx.n_slots; slot++)
-        {
-          /* Set standard library on remote vitesses: 0 */
-          if (remote_reg_write(p_tx.ip_addr[slot], -1, 1, 0x8036, 0x8000) != 0)
-          {
-            fprintf(fd, "[ERROR] Failed aggressive track phase activation for slot %u\n",p_tx.slot[slot]);
-          }
-          /* Restart aggressive track phase */
-          if (remote_var_write(p_tx.ip_addr[slot], -1, 0, 0xb0, 0)!=0)
-          {
-            fprintf(fd, "[ERROR] Failed setting SFI mode for slot %u\n", p_tx.slot[slot]);
-          }
-        }
-        sleep(1);
-        for (slot=0; slot<p_tx.n_slots; slot++)
-        {
-          /* Get back to Copper mode */
-          if (remote_var_write(p_tx.ip_addr[slot], -1, 0, 0x94, 3)!=0)
-          {
-            fprintf(fd, "[ERROR] Failed setting Copper mode for slot %u\n", p_tx.slot[slot]);
-          }
-        }
-        sleep(3);
-        fflush(fd);
-      }
-      if ( p_tx.optimize_lc & 0x01 )
-      {
-        fprintf(fd, "Applying initializatin 1 ...\n");
-        fflush(fd);
-        for (slot=0; slot<p_tx.n_slots; slot++)
-        {
-          /* Set standard library on remote vitesses: 0 */
-          if (remote_reg_write(p_tx.ip_addr[slot], -1, 1, 0x8036, 0x8000) != 0)
-          {
-            fprintf(fd, "[ERROR] Failed aggressive track phase activation for slot %u\n",p_tx.slot[slot]);
-          }
-          /* Restart aggressive track phase */
-          if (remote_var_write(p_tx.ip_addr[slot], -1, 0, 0xb0, 0)!=0)
-          {
-            fprintf(fd, "[ERROR] Failed setting SFI mode for slot %u\n", p_tx.slot[slot]);
-          }
-        }
-        sleep(3);
-        fflush(fd);
-      }
-      #endif
 
       /* For each TAP setting... */
       idx = 0;
@@ -939,9 +881,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           /* Only apply tap settings and reset BER in the first iteration
            * For the next ones, just monitor BER values after each test_time
            */
-          if (iter == 1) {
-
-            fprintf(fd, "\n=> Main=%2u Post=%2u Reg=0x%04X\n\n", tap_main, tap_post, reg);
+          if (iter == 1 || (p_tx.mode & 0x2) )
+          {
+            fprintf(fd, "=> Main=%2u Post=%2u Reg=0x%04X\n\n", tap_main, tap_post, reg);
 
             /* Update tap settings */
             for (slot=0; slot<p_tx.n_slots; slot++)
@@ -962,12 +904,12 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               for (slot=0; slot<p_tx.n_slots; slot++)
               {
                 /* Set SFI mode */
-                if (remote_var_write(p_tx.ip_addr[slot], -1, 2, 0x94, 2)!=0)
+                if (remote_var_write(p_tx.ip_addr[slot], -1, 1, 0x94, 2)!=0)
                 {
                   fprintf(fd, "   [ERROR] Failed setting SFI mode for slot %u\n", p_tx.slot[slot]);
                 }
                 /* Get back to Copper mode */
-                if (remote_var_write(p_tx.ip_addr[slot], -1, 2, 0x94, 3)!=0)
+                if (remote_var_write(p_tx.ip_addr[slot], -1, 1, 0x94, 3)!=0)
                 {
                   fprintf(fd, "   [ERROR] Failed setting Copper mode for slot %u\n", p_tx.slot[slot]);
                 }
@@ -984,20 +926,20 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               for (slot=0; slot<p_tx.n_slots; slot++)
               {
                 /* Set standard library on remote vitesses: 0 */
-                if ((ret=remote_reg_write(p_tx.ip_addr[slot], -1, 1, 0x8036, 0x8000)) != 0)
+                if ((ret=remote_reg_write(p_tx.ip_addr[slot], -1, 0x101, 0x8036, 0x8000)) != 0)
                 {
                   fprintf(fd, "   [ERROR] Failed setting new value for 1x8036 in slot %u\n",p_tx.slot[slot]);
-                  break;
+                  continue;
                 }
                 /* Reset counter to start aggresive track phase */
-                if ((ret=remote_var_write(p_tx.ip_addr[slot], -1, 2, 0xb0, 0)) != 0)
+                if ((ret=remote_var_write(p_tx.ip_addr[slot], -1, 1, 0xb0, 0)) != 0)
                 {
                   fprintf(fd, "   [ERROR] Failed aggressive track phase activation in slot %u\n",p_tx.slot[slot]);
-                  break;
+                  continue;
                 }
               }
-              if (ret != 0)
-                break;
+//            if (ret != 0)
+//              break;
             }
 
             fflush(fd);
@@ -1010,7 +952,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
             for (slot=0; slot<p_tx.n_slots; slot++)
             {
               /* Read status of Vitesse firmware */
-              if (remote_reg_read(p_tx.ip_addr[slot], -1, 1, 0x8036, vitesse_res, &n_res)==0 && n_res==4)
+              if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8036, vitesse_res, &n_res)==0 && n_res==4)
               {
                 fprintf(fd, "   Slot=%-2u: 1x8036 = { ", p_tx.slot[slot]);
                 for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
@@ -1030,7 +972,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
             for (slot=0; slot<p_tx.n_slots; slot++)
             {
               /* Read status of Vitesse firmware */
-              if (remote_reg_read(p_tx.ip_addr[slot], -1, 1, 0x8037, vitesse_res, &n_res)==0 && n_res==4)
+              if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8037, vitesse_res, &n_res)==0 && n_res==4)
               {
                 fprintf(fd, "   Slot=%-2u: 1x8037 = { ", p_tx.slot[slot]);
                 for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
@@ -1075,79 +1017,125 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
               ret = send_data (canal_ipc, 6100, p_tx.ip_addr[slot], &txmsg, &rxmsg);
               if (ret != 0) {
                 fprintf(fd, "   [ERROR] Failed remote values extraction from slot %u\n", p_tx.slot[slot]);
-                fclose(fd);
-                break;
+                //fclose(fd);
+                continue;
               }
-              if (ret != 0)
-                break;
+//            if (ret != 0)
+//              break;
 
               usleep(1*1000);
             }
-            if (ret != 0)
-              break;
+//          if (ret != 0)
+//            break;
           }
 
           fflush(fd);
 
-          /* Wait the integration time... */
-          sleep(p_tx.test_time);
+          /* Maximum number of readings for one iteration */
+          max_count = (p_tx.mode>>8) & 0xff;
 
-          /* For each slot, get the final values (4 ports at once) */
-          for (slot=0; slot<p_tx.n_slots; slot++)
+          for (count=0; count<max_count; count++)
           {
-            memset(rxmsg.info, 0xFF, 4*sizeof(int));
-            ret = send_data (canal_ipc, 6100, p_tx.ip_addr[slot], &txmsg, &rxmsg);
-            if (ret != 0) {
-              fprintf(fd, "   [ERROR] Failed remote values extraction from slot %u\n", p_tx.slot[slot]);
-              fclose(fd);
-              break;
-            }
-            usleep(1*1000);
-//
-            for (port_idx = 0; port_idx<4; port_idx++) {
-              /* Save results */
-              results_tx[slot][port_idx][idx].main = tap_main;
-              results_tx[slot][port_idx][idx].post = tap_post;
-              results_tx[slot][port_idx][idx].reg  = reg;
-              results_tx[slot][port_idx][idx].ber  = ((unsigned int *)rxmsg.info)[port_idx];
-              if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
-                results_tx[slot][port_idx][idx].ber = 99999;
-            }
+            /* Wait the integration time... */
+            sleep(p_tx.test_time);
 
-            fprintf(fd, "   Slot %-2u: BER -> ", p_tx.slot[slot]);
-            for ( port_idx=0; port_idx < N_LANES_MAX; port_idx++)
+            tx_ber_sum = 0;
+            memset(results_iter,0xff,sizeof(results_iter));
+
+            fprintf(fd, "  Time Instant: t = %u s\n", count*p_tx.test_time);
+            /* For each slot, get the final values (4 ports at once) */
+            for (slot=0; slot<p_tx.n_slots; slot++)
             {
-              port = p_tx.port_list[slot][port_idx];
-              if ( port < 0 )  continue;
+              memset(rxmsg.info, 0xFF, 4*sizeof(int));
+              ret = send_data (canal_ipc, 6100, p_tx.ip_addr[slot], &txmsg, &rxmsg);
+              if (ret != 0) {
+                fprintf(fd, "   [ERROR] Failed remote values extraction from slot %u\n", p_tx.slot[slot]);
+                //fclose(fd);
+                continue;
+              }
+              usleep(1*1000);
+  //
+              for (port_idx = 0; port_idx<4; port_idx++) {
 
-              fprintf(fd, " xe%-2d=%-5u", port, results_tx[slot][port_idx][idx].ber);
+                tx_ber = ((unsigned int *)rxmsg.info)[port_idx];
+
+                /* Only consider valid lanes */
+                if (p_tx.port_list[slot][port_idx]>=0)
+                {
+                  tx_ber_sum += tx_ber;
+                }
+
+                /* Save results */
+                if (count==0)
+                {
+                  results_tx[slot][port_idx][idx].main = tap_main;
+                  results_tx[slot][port_idx][idx].post = tap_post;
+                  results_tx[slot][port_idx][idx].reg  = reg;
+                  results_tx[slot][port_idx][idx].ber  = tx_ber;
+                  if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
+                    results_tx[slot][port_idx][idx].ber = 99999;
+                }
+
+                results_iter[slot][port_idx] = tx_ber;
+              }
+
+              fprintf(fd, "   Slot %-2u: BER -> ", p_tx.slot[slot]);
+              for ( port_idx=0; port_idx < N_LANES_MAX; port_idx++)
+              {
+                port = p_tx.port_list[slot][port_idx];
+                if ( port < 0 )  continue;
+
+                fprintf(fd, " xe%-2d=%-5u", port, results_iter[slot][port_idx]);
+              }
+              fprintf(fd, "\n");
             }
-            fprintf(fd, "\n");
+
+            /* Stop test, if we have errors */
+            if ( !(p_tx.mode & 0xff00) ||
+                  ( (p_tx.mode & 0xf0)==0x10 && tx_ber_sum == 0   ) ||
+                  ( (p_tx.mode & 0xf0)==0x20 && tx_ber_sum < 3    ) ||
+                  ( (p_tx.mode & 0xf0)==0x30 && tx_ber_sum < 5    ) ||
+                  ( (p_tx.mode & 0xf0)==0x40 && tx_ber_sum < 10   ) ||
+                  ( (p_tx.mode & 0xf0)==0x50 && tx_ber_sum < 20   ) ||
+                  ( (p_tx.mode & 0xf0)==0x60 && tx_ber_sum < 50   ) ||
+                  ( (p_tx.mode & 0xf0)==0x70 && tx_ber_sum < 100  ) ||
+                  ( (p_tx.mode & 0xf0)==0x80 && tx_ber_sum < 200  ) ||
+                  ( (p_tx.mode & 0xf0)==0x90 && tx_ber_sum < 500  ) ||
+                  ( (p_tx.mode & 0xf0)==0xa0 && tx_ber_sum < 1000 ) ||
+                  ( (p_tx.mode & 0xf0)==0xb0 && tx_ber_sum < 2000 ) ||
+                  ( (p_tx.mode & 0xf0)==0xc0 && tx_ber_sum < 10000) ||
+                  ( (p_tx.mode & 0xf0)==0xd0 && tx_ber_sum < 20000) ||
+                  ( (p_tx.mode & 0xf0)==0xe0 && tx_ber_sum < 50000) ||
+                  ( (p_tx.mode & 0xf0)==0xf0 && tx_ber_sum < 65535) )   break;
+
+            if (stop)
+              break;
+
+//          if (ret != 0)
+//            break;
           }
-          if (ret != 0)
-            break;
 
           fprintf(fd, "--------------------------------------------------------------------------------------\n");
           fflush(fd);
 
-          if (p_tx.mode == 1) {
+          if ( (p_tx.mode & 1) == 1) {
             tap_main -= p_tx.main_step;
           }
 
           if (stop)
             break;
         }
-        if (ret != 0)
-          break;
+//      if (ret != 0)
+//        break;
 
         if (stop)
           break;
       }
-      if (ret != 0) {
-        fflush(fd);
-        fclose(fd);
-        break;
-      }
+//    if (ret != 0) {
+//      fflush(fd);
+//      fclose(fd);
+//      break;
+//    }
 
       if (stop) {
         fprintf(fd, "\nBER tx task forced to stop!\n");
@@ -1239,7 +1227,9 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
   char iter_str[10];
   char file[128];
   FILE *fd;
-  int rx_ber;
+  int rx_ber, rx_ber_sum;
+  unsigned int max_count, count;
+  unsigned int results_iter[N_SLOTS_MAX][N_LANES_MAX];
 
   rc = osapiTaskInitDone(L7_BER_RX_SYNC);
 
@@ -1272,7 +1262,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
       /* Only apply multiple iteration mode if n_iter!=0 */
       if (p_rx.n_iter > 1) {
         printf("\nRunning iteration %u of %u\n", iter, p_rx.n_iter);
-        sprintf(iter_str, "_iter%03u", iter);
+        sprintf(iter_str, "_iter%04u", iter);
         strcat(file, iter_str);
       }
 
@@ -1318,7 +1308,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           /* Only apply tap settings and reset BER in the first iteration
            * For the next ones, just monitor BER values after each test_time
            */
-          if (iter == 1) {
+          if ( iter == 1 || (p_rx.mode & 0x02) ) {
             /* For each slot, set remote tap values (4 ports at once) */
             for (slot=0; slot<p_rx.n_slots; slot++) {
               txmsg.info[0] = 0x0F; /* pre cursor - default 0x0F */
@@ -1330,13 +1320,13 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
               ret = send_data (canal_ipc, 6100, p_rx.ip_addr[slot], &txmsg, &rxmsg);
               if (ret != 0) {
                 fprintf(fd, "Error setting remote tap values slot %u\n", p_rx.slot[slot]);
-                fclose(fd);
-                break;
+                //fclose(fd);
+                continue;
               }
               usleep(1*1000);
             }
-            if (ret != 0)
-              break;
+//          if (ret != 0)
+//            break;
 
             /* Let local partner stabilize... */
             sleep(p_rx.start_delay);
@@ -1351,82 +1341,127 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 rc = bcm_port_control_get(0, port+1, bcmPortControlPrbsRxStatus, &rx_ber);
                 if (rc != L7_SUCCESS) {
                   fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                  fclose(fd);
-                  break;
+                  //fclose(fd);
+                  continue;
                 }
               }
-              if (rc != L7_SUCCESS)
-                break;
+//            if (rc != L7_SUCCESS)
+//              break;
             }
-            if (rc != L7_SUCCESS)
-              break;
+//          if (rc != L7_SUCCESS)
+//            break;
           }
 
-          /* Wait the integration time... */
-          sleep(p_rx.test_time);
+          /* Maximum number of readings for one iteration */
+          max_count = (p_rx.mode>>8) & 0xff;
 
-          /* For each slot, get the final values (4 ports at once) */
-          for (slot=0; slot<p_rx.n_slots; slot++) {
-            for (port_idx=0; port_idx<N_LANES_MAX; port_idx++) {
+          for (count=0; count<max_count; count++)
+          {
+            /* Wait the integration time... */
+            sleep(p_rx.test_time);
 
-              /* Save tap settings and register address into results_rx */
-              results_rx[slot][port_idx][idx].main = tap_main;
-              results_rx[slot][port_idx][idx].post = tap_post;
-              results_rx[slot][port_idx][idx].reg  = reg;
+            rx_ber_sum = 0;
+            memset(results_iter,0xff,sizeof(results_iter));
 
-              port = p_rx.port_list[slot][port_idx];
-              if ( port < 0 )  continue;
+            fprintf(fd, "  Time Instant: t = %u s\n", count*p_rx.test_time);
 
-              rc = bcm_port_control_get(0, port+1, bcmPortControlPrbsRxStatus, &rx_ber);
-              if (rc != L7_SUCCESS) {
-                fprintf(fd, "ERROR reading rx status from port %u\n", port);
-                fclose(fd);
-                break;
+            /* For each slot, get the final values (4 ports at once) */
+            for (slot=0; slot<p_rx.n_slots; slot++) {
+              for (port_idx=0; port_idx<N_LANES_MAX; port_idx++) {
+
+                /* Save tap settings and register address into results_rx */
+                if (count==0)
+                {
+                  results_rx[slot][port_idx][idx].main = tap_main;
+                  results_rx[slot][port_idx][idx].post = tap_post;
+                  results_rx[slot][port_idx][idx].reg  = reg;
+                }
+
+                /* Only valid lanes will continue */
+                port = p_rx.port_list[slot][port_idx];
+                if ( port < 0 )  continue;
+
+                rc = bcm_port_control_get(0, port+1, bcmPortControlPrbsRxStatus, &rx_ber);
+                if (rc != L7_SUCCESS) {
+                  fprintf(fd, "ERROR reading rx status from port %u\n", port);
+                  //fclose(fd);
+                  continue;
+                }
+
+                /* Sum errors */
+                rx_ber_sum += rx_ber;
+
+                /* Save results */
+                if (count==0)
+                {
+                  results_rx[slot][port_idx][idx].ber  = rx_ber;
+                  if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
+                    results_rx[slot][port_idx][idx].ber = 99999;
+                }
+
+                results_iter[slot][port_idx] = rx_ber;
               }
 
-              /* Save results */
-              results_rx[slot][port_idx][idx].ber  = rx_ber;
-              if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
-                results_rx[slot][port_idx][idx].ber = 99999;
+              fprintf(fd, "Slot %-2d -> main=%2u post=%2u reg=0x%04X BER:", slot, tap_main, tap_post, reg);
+              for (port_idx=0; port_idx<N_LANES_MAX; port_idx++)
+              {
+                port = p_rx.port_list[slot][port_idx];
+                if ( port < 0 )  continue;
+
+                fprintf(fd, " xe%-2d=%-5u", port, results_iter[slot][port_idx]);
+              }
+              fprintf(fd, "\n");
+
+  //          if (rc != L7_SUCCESS)
+  //            break;
             }
 
-            fprintf(fd, "Slot %-2d -> main=%2u post=%2u reg=0x%04X BER:", slot, tap_main, tap_post, reg);
-            for (port_idx=0; port_idx<N_LANES_MAX; port_idx++)
-            {
-              port = p_rx.port_list[slot][port_idx];
-              if ( port < 0 )  continue;
+            /* One more test, if we have errors */
+            if ( !(p_rx.mode & 0xff00) ||
+                  ( (p_rx.mode & 0xf0)==0x10 && rx_ber_sum == 0   ) ||
+                  ( (p_rx.mode & 0xf0)==0x20 && rx_ber_sum < 3    ) ||
+                  ( (p_rx.mode & 0xf0)==0x30 && rx_ber_sum < 5    ) ||
+                  ( (p_rx.mode & 0xf0)==0x40 && rx_ber_sum < 10   ) ||
+                  ( (p_rx.mode & 0xf0)==0x50 && rx_ber_sum < 20   ) ||
+                  ( (p_rx.mode & 0xf0)==0x60 && rx_ber_sum < 50   ) ||
+                  ( (p_rx.mode & 0xf0)==0x70 && rx_ber_sum < 100  ) ||
+                  ( (p_rx.mode & 0xf0)==0x80 && rx_ber_sum < 200  ) ||
+                  ( (p_rx.mode & 0xf0)==0x90 && rx_ber_sum < 500  ) ||
+                  ( (p_rx.mode & 0xf0)==0xa0 && rx_ber_sum < 1000 ) ||
+                  ( (p_rx.mode & 0xf0)==0xb0 && rx_ber_sum < 2000 ) ||
+                  ( (p_rx.mode & 0xf0)==0xc0 && rx_ber_sum < 10000) ||
+                  ( (p_rx.mode & 0xf0)==0xd0 && rx_ber_sum < 20000) ||
+                  ( (p_rx.mode & 0xf0)==0xe0 && rx_ber_sum < 50000) ||
+                  ( (p_rx.mode & 0xf0)==0xf0 && rx_ber_sum < 65535) )   break;
 
-              fprintf(fd, " xe%-2d=%-5u", port, results_rx[slot][port_idx][idx].ber);
-            }
-            fprintf(fd, "\n");
-
-            if (rc != L7_SUCCESS)
+            if (stop)
               break;
           }
-          if (rc != L7_SUCCESS)
-            break;
 
-          if (stop)
-            break;
+//        if (rc != L7_SUCCESS)
+//          break;
 
           fprintf(fd, "--------------------------------------------------------------------------------------\n");
           fflush(fd);
 
-          if (p_rx.mode == 1) {
+          if ( (p_rx.mode & 1) == 1) {
             tap_main -= p_rx.main_step;
           }
+
+          if (stop)
+            break;
         }
-        if (ret != 0 || rc != L7_SUCCESS)
-          break;
+//      if (ret != 0 || rc != L7_SUCCESS)
+//        break;
 
         if (stop)
           break;
       }
-      if (ret != 0 || rc != L7_SUCCESS) {
-        fflush(fd);
-        fclose(fd);
-        break;
-      }
+//    if (ret != 0 || rc != L7_SUCCESS) {
+//      fflush(fd);
+//      fclose(fd);
+//      break;
+//    }
 
       if (stop) {
         fprintf(fd, "\nBER rx task forced to stop!\n");
@@ -1661,8 +1696,8 @@ int get_tx_ber(char *file,
     printf("main_step or post_step must be greater than zero!\n");
     return -1;
   }
-  if (n_iter < 1 || n_iter > 1000) {
-    printf("Number of iterations must be in the range of [1..999]\n");
+  if (n_iter < 1 || n_iter > 9999 ) {
+    printf("Number of iterations must be in the range of [1..9999]\n");
     return -1;
   }
 
