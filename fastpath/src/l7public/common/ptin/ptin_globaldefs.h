@@ -489,7 +489,10 @@ extern volatile st_fpga_map_t *fpga_map;
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
-# define PTIN_PHY_PREEMPHASIS_DEFAULT  0xBF00 /* main=48 post=15 */
+# define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
+# define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
+# define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xAF40 /* main=52 post=11 */
+
 
 # define PTIN_PORTMAP_SLOT_WORK { \
    1,  2,  3,  4,  5,  6,  7,  8, \
