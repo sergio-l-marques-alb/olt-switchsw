@@ -62,7 +62,7 @@ all: welcome
 	@echo ""
 
 install:
-	sh tolt8g.update
+	sh tolt8g.install
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-tolt8g.sh
