@@ -427,6 +427,24 @@ extern L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn);
 /* DHCP Management Functions **************************************************/
 
 /**
+ * Set DHCP circuit-id global data
+ *
+ * @param profile: DHCP profile
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid);
+
+/**
+ * Get DHCP circuit-id global data
+ *
+ * @param profile: DHCP profile
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid);
+
+/**
  * Get DHCP profile data
  * 
  * @param profile: DHCP profile

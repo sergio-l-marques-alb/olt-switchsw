@@ -15,6 +15,34 @@
 #include "ptin_include.h"
 
 /*********************************************************** 
+ * Defines
+ ***********************************************************/
+
+#define CIRCUITID_ACCESSNODEID          0x0001
+#define CIRCUITID_CHASSIS               0x0002
+#define CIRCUITID_RACK                  0x0004
+#define CIRCUITID_FRAME                 0x0008
+#define CIRCUITID_ETHERNETPRIORITY      0x0010
+#define CIRCUITID_SVID                  0x0020
+#define CIRCUITID_ONUID                 0x0040
+#define CIRCUITID_SLOT                  0x0080
+#define CIRCUITID_PORT                  0x0100
+#define CIRCUITID_QVID                  0x0200
+#define CIRCUITID_CVID                  0x0400
+
+#define CIRCUITID_ACCESSNODEID_STR      "$name"   
+#define CIRCUITID_CHASSIS_STR           "$rack"   
+#define CIRCUITID_RACK_STR              "$subrack"
+#define CIRCUITID_FRAME_STR             "$shelf"  
+#define CIRCUITID_ETHERNETPRIORITY_STR  "$ethprty"
+#define CIRCUITID_S_VID_STR             "$onuid"  
+#define CIRCUITID_ONUID_STR             "$slot"   
+#define CIRCUITID_SLOT_STR              "$port"   
+#define CIRCUITID_PORT_STR              "$qvid"   
+#define CIRCUITID_Q_VID_STR             "$svid"   
+#define CIRCUITID_C_VID_STR             "$cvid"   
+
+/***********************************************************
  * Typedefs
  ***********************************************************/
 
@@ -124,28 +152,74 @@ extern L7_RC_t ptin_dhcp_instance_remove(L7_uint16 UcastEvcId);
 extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
 
 /**
+ * Set DHCP circuit-id global data
+ *
+ * @param evcId           : evc index
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+
+/**
+ * Get DHCP circuit-id global data
+ *
+ * @param evcId           : evc index
+ * @param template_str    : Circuit-id template string (output)
+ * @param mask            : Circuit-id mask (output)
+ * @param access_node_id  : Access Node ID (output)
+ * @param chassis         : Access Node Chassis (output)
+ * @param rack            : Access Node Rack (output)
+ * @param frame           : Access Node Frame (output)
+ * @param slot            : Access Node Chassis/Rack/Frame Slot (output)
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+                                       L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid);
+
+/**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param UcastEvcId  : Unicast evc id
- * @param client      : client identification parameters
- * @param circuitId   : circuit id (output)
- * @param remoteId    : remote id (output)
+ * @param UcastEvcId        : Unicast evc id
+ * @param client            : client identification parameters
+ * @param options           : DHCP options (output)
+ * @param onuid             : ONU ID (output)
+ * @param sub_slot          : Client Sub-Slot (output)
+ * @param port              : Client Port (output)
+ * @param q_vid             : Q VID (output)
+ * @param ethernet_priority : Ethernet Priority (output)
+ * @param remoteId          : remote id (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_char8 *circuitId, L7_char8 *remoteId);
+extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_uint16 *onuid, L7_uint8 *slot,
+                                    L7_uint16 *port, L7_uint16 *q_vid, L7_uint16 *c_vid, L7_char8 *remoteId);
 
 /**
  * Add a new DHCP client
  * 
- * @param UcastEvcId  : Unicast evc id
- * @param client      : client identification parameters
- * @param circuitId   : circuit id
- * @param remoteId    : remote id
+ * @param UcastEvcId        : Unicast evc id
+ * @param client            : client identification parameters
+ * @param options           : DHCP options
+ * @param onuid             : ONU ID
+ * @param sub_slot          : Client Sub-Slot
+ * @param port              : Client Port
+ * @param q_vid             : Q VID
+ * @param ethernet_priority : Ethernet Priority
+ * @param remoteId          : remote id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_char8 *circuitId, L7_char8 *remoteId);
+extern L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_uint16 onuid, L7_uint8 slot,
+                                    L7_uint16 port, L7_uint16 q_vid, L7_uint16 c_vid, L7_char8 *remoteId);
 
 /**
  * Remove a DHCP client

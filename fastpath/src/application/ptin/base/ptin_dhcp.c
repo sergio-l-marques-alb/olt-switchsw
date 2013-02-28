@@ -85,11 +85,19 @@ typedef struct
   #endif
 } ptinDhcpClientDataKey_t;
 
+typedef struct {
+  L7_uint16   onuid;
+  L7_uint8    slot;
+  L7_uint16   port;
+  L7_uint16   q_vid;
+  L7_uint16   c_vid;
+} ptin_clientCircuitId_t;
+
 typedef struct
 {
-  L7_uint16 dhcp_options;
-  L7_char8  circuitId[FD_DS_MAX_REMOTE_ID_STRING+1];   /* Circuit ID string */
-  L7_char8  remoteId[FD_DS_MAX_REMOTE_ID_STRING+1];    /* Remote ID string */
+  L7_uint16               dhcp_options;
+  ptin_clientCircuitId_t  circuitId;                              /* Circuit ID parameters */
+  L7_char8                remoteId[FD_DS_MAX_REMOTE_ID_STRING+1]; /* Remote ID string */
 } ptinDhcpData_t;
 
 typedef struct
@@ -114,12 +122,25 @@ typedef struct {
   ptinDhcpClientsAvlTree_t avlTree;
 } ptinDhcpClients_t;
 
+typedef struct {
+  char template_str[256];
+  L7_uint32 mask;
+
+  char access_node_id[63];
+  L7_uint8    chassis;
+  L7_uint8    rack;
+  L7_uint8    frame;
+  L7_uint8    ethernet_priority;
+  L7_uint16   s_vid;
+} ptin_AccessNodeCircuitId_t;
+
 /* DHCP Instance config struct */
 typedef struct {
   L7_BOOL   inUse;
   L7_uint16 UcastEvcId;
   ptinDhcpClients_t dhcpClients;
   ptin_DHCP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
+  ptin_AccessNodeCircuitId_t circuitid;
 } st_DhcpInstCfg_t;
 
 /*********************************************************** 
@@ -150,6 +171,8 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
 static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint16 UcastEvcId, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
+static void    ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
+static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
 
 #if DHCP_ACCEPT_UNSTACKED_PACKETS
 static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
@@ -488,6 +511,129 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
 }
 
 /**
+ * Set DHCP circuit-id global data
+ *
+ * @param evcId           : evc index
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+{
+  L7_uint dhcp_idx;
+
+  /* Validate arguments */
+  if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
+    return L7_FAILURE;
+  }
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    return L7_FAILURE;
+  }
+
+  /* Validate dhcp instance */
+  if (!dhcpInstances[dhcp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  memcpy(dhcpInstances[dhcp_idx].circuitid.template_str, template_str, strlen(template_str) + 1);
+  dhcpInstances[dhcp_idx].circuitid.mask = mask;
+
+  if (CIRCUITID_ACCESSNODEID & mask)
+  {
+    memcpy(dhcpInstances[dhcp_idx].circuitid.access_node_id, access_node_id, strlen(access_node_id) + 1);
+  }
+  if (CIRCUITID_CHASSIS & mask)
+  {
+    dhcpInstances[dhcp_idx].circuitid.chassis = chassis;
+  }
+  if (CIRCUITID_RACK & mask)
+  {
+    dhcpInstances[dhcp_idx].circuitid.rack = rack;
+  }
+  if (CIRCUITID_FRAME & mask)
+  {
+    dhcpInstances[dhcp_idx].circuitid.frame = frame;
+  }
+  if (CIRCUITID_ETHERNETPRIORITY & mask)
+  {
+    dhcpInstances[dhcp_idx].circuitid.ethernet_priority = ethernet_priority;
+  }
+  if (CIRCUITID_SVID & mask)
+  {
+    dhcpInstances[dhcp_idx].circuitid.s_vid = s_vid;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get DHCP circuit-id global data
+ *
+ * @param evcId           : evc index
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+                                L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid)
+{
+  L7_uint dhcp_idx;
+
+  /* Validate arguments */
+  if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR || mask == 0x00)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
+    return L7_FAILURE;
+  }
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    return L7_FAILURE;
+  }
+
+  /* Validate dhcp instance */
+  if (!dhcpInstances[dhcp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  memcpy(template_str,   dhcpInstances[dhcp_idx].circuitid.template_str,   strlen(dhcpInstances[dhcp_idx].circuitid.template_str)   + 1);
+  memcpy(access_node_id, dhcpInstances[dhcp_idx].circuitid.access_node_id, strlen(dhcpInstances[dhcp_idx].circuitid.access_node_id) + 1);
+  *mask              = dhcpInstances[dhcp_idx].circuitid.mask;
+  *chassis           = dhcpInstances[dhcp_idx].circuitid.chassis;
+  *rack              = dhcpInstances[dhcp_idx].circuitid.rack;
+  *frame             = dhcpInstances[dhcp_idx].circuitid.frame;
+  *ethernet_priority = dhcpInstances[dhcp_idx].circuitid.ethernet_priority;
+  *s_vid             = dhcpInstances[dhcp_idx].circuitid.s_vid;
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get DHCP client data (circuit and remote ids)
  * 
  * @param UcastEvcId  : Unicast evc id
@@ -497,7 +643,8 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_uint16 *onuid, L7_uint8 *slot,
+                             L7_uint16 *port, L7_uint16 *q_vid, L7_uint16 *c_vid, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx;
   ptinDhcpClientInfoData_t *client_info;
@@ -528,8 +675,25 @@ L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   {
      *options = client_info->client_data.dhcp_options;
   }
-  if (circuitId!=L7_NULLPTR)
-    strncpy(circuitId,client_info->client_data.circuitId,FD_DS_MAX_REMOTE_ID_STRING);
+  *onuid = client_info->client_data.circuitId.onuid;
+  *slot  = client_info->client_data.circuitId.slot;
+  *port  = client_info->client_data.circuitId.port;
+  *q_vid = client_info->client_data.circuitId.q_vid;
+  *c_vid = client_info->client_data.circuitId.c_vid;
+  {
+    L7_uint32 intIfNum;
+    L7_char8 circuitId[FD_DS_MAX_REMOTE_ID_STRING]={0};
+
+    /* Convert interface to intIfNum format */
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum) != L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid intIfNum (%u)", intIfNum);
+      return L7_FAILURE;
+    }
+    ptin_dhcp_circuitId_get(&dhcpInstances[dhcp_idx].circuitid,&client_info->client_data.circuitId,circuitId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "%s", circuitId);
+  }
   if (remoteId!=L7_NULLPTR)
     strncpy(remoteId ,client_info->client_data.remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
 
@@ -546,7 +710,8 @@ L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_char8 *circuitId, L7_char8 *remoteId)
+L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 options, L7_uint16 onuid, L7_uint8 slot,
+                             L7_uint16 port, L7_uint16 q_vid, L7_uint16 c_vid, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx, client_idx;
   ptinDhcpClientDataKey_t avl_key;
@@ -805,9 +970,13 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
     osapiSemaGive(ptin_dhcp_stats_sem);
   }
 
-  /* Fill circuit and remote id fields */
-  avl_infoData->client_data.dhcp_options = options;
-  strncpy(avl_infoData->client_data.circuitId,circuitId,FD_DS_MAX_REMOTE_ID_STRING);
+  /* Fill DHCP options, circuit and remote id fields */
+  avl_infoData->client_data.dhcp_options     = options;
+  avl_infoData->client_data.circuitId.onuid  = onuid;
+  avl_infoData->client_data.circuitId.slot   = slot;
+  avl_infoData->client_data.circuitId.port   = port;
+  avl_infoData->client_data.circuitId.q_vid  = q_vid;
+  avl_infoData->client_data.circuitId.c_vid  = c_vid;
   strncpy(avl_infoData->client_data.remoteId ,remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
 
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success inserting Key {"
@@ -2134,7 +2303,16 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
 
     /* Return string ids */
     if (circuitId!=L7_NULLPTR)
-      strncpy(circuitId,client_info->client_data.circuitId,FD_DS_MAX_REMOTE_ID_STRING);
+    {
+      L7_char8 temp_str[FD_DS_MAX_REMOTE_ID_STRING];
+
+      ptin_dhcp_circuitId_get(&dhcpInstances[dhcp_idx].circuitid,&client_info->client_data.circuitId,temp_str);
+      strncpy(circuitId,temp_str,FD_DS_MAX_REMOTE_ID_STRING);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "circuitId is NULL");
+    }
     if (remoteId!=L7_NULLPTR)
       strncpy(remoteId ,client_info->client_data.remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
   }
@@ -2884,6 +3062,69 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
   return L7_SUCCESS;
 }
 
+void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid)
+{
+  L7_uchar8 temp_str[255] = { 0 };
+  L7_uchar8 chassis[3] = { 0 };
+  L7_uchar8 rack[3] = { 0 };
+  L7_uchar8 frame[3] = { 0 };
+  L7_uchar8 ethernet_priority[2] = { 0 };
+  L7_uchar8 s_vid[5] = { 0 };
+  L7_uchar8 onuid[4] = { 0 };
+  L7_uchar8 slot[3] = { 0 };
+  L7_uchar8 port[4] = { 0 };
+  L7_uchar8 q_vid[5] = { 0 };
+  L7_uchar8 c_vid[5] = { 0 };
+
+  sprintf(chassis,            "%d", evc_circuitid->chassis);
+  sprintf(rack,               "%d", evc_circuitid->rack);
+  sprintf(frame,              "%d", evc_circuitid->frame);
+  sprintf(ethernet_priority,  "%d", evc_circuitid->ethernet_priority);
+  sprintf(s_vid,              "%d", evc_circuitid->s_vid);
+  sprintf(onuid,              "%d", client_circuitid->onuid);
+  sprintf(slot,               "%d", client_circuitid->slot);
+  sprintf(port,               "%d", client_circuitid->port);
+  sprintf(q_vid,              "%d", client_circuitid->q_vid);
+  sprintf(c_vid,              "%d", client_circuitid->c_vid);
+
+  strcpy(temp_str, evc_circuitid->template_str);
+
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ACCESSNODEID_STR,     evc_circuitid->access_node_id);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_CHASSIS_STR,          chassis);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_RACK_STR,             rack);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_FRAME_STR,            frame);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ETHERNETPRIORITY_STR, ethernet_priority);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            s_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ONUID_STR,            onuid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_SLOT_STR,             slot);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_PORT_STR,             port);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            q_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            c_vid);
+
+  memset(circuitid, 0, FD_DS_MAX_REMOTE_ID_STRING);
+  strcpy(circuitid, temp_str);
+}
+
+void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter)
+{
+  L7_char8 *found_pos;
+
+  if (L7_NULLPTR != (found_pos = strstr(circuitid_str, str_to_replace)))
+  {
+    L7_uchar8 copy_circuitid[253] = { 0 };
+    L7_uint32 aux_len = 0;
+
+    memcpy(copy_circuitid, circuitid_str, 254);
+    memset(circuitid_str, 0, 254);
+
+    memcpy(circuitid_str, copy_circuitid, found_pos - circuitid_str);
+    aux_len += found_pos - circuitid_str;
+    memcpy(circuitid_str + aux_len, parameter, strlen(parameter));
+    aux_len += strlen(parameter);
+    memcpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), 254-((found_pos-circuitid_str)+strlen(str_to_replace)));
+  }
+}
+
 /* DEBUG Functions ************************************************************/
 /**
  * Dumps EVC detailed info 
@@ -2959,7 +3200,7 @@ void ptin_dhcp_dump(void)
                   avl_info->dhcpClientDataKey.macAddr[5],
              #endif
              avl_info->client_index,
-             avl_info->client_data.circuitId,
+             dhcpInstances[i].circuitid.template_str,
              avl_info->client_data.remoteId);
 
       i_client++;

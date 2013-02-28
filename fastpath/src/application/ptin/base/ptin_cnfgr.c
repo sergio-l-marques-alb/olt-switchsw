@@ -293,7 +293,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Create PTin task */
   if (osapiTaskCreate("PTin task", ptinTask, 0, 0,
-                      L7_DEFAULT_STACK_SIZE,
+                      L7_DEFAULT_STACK_SIZE*10,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
