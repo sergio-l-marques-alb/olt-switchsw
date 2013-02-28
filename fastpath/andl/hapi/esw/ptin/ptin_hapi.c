@@ -156,11 +156,11 @@ L7_RC_t ptin_hapi_switch_init(void)
  */
 L7_RC_t ptin_hapi_phy_init(void)
 {
-  L7_uint32 preemphasis;
   L7_RC_t rc = L7_SUCCESS;
 
   #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
   int i, rv;
+  L7_uint32 preemphasis;
 
   for (i=1; i<=PTIN_SYSTEM_N_PORTS; i++)
   {
