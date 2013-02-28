@@ -47,7 +47,7 @@ all:	Makefile $(OBJ)
 	       	$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET) $(OBJ) -lc -lm -lrt
    
 install:	$(TARGET)
-		sh cli.update
+		sh cli.install
 	
 clean cleanall:	
 		rm -f $(OBJ) $(TARGET)
