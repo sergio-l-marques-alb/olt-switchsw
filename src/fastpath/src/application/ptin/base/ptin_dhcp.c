@@ -171,6 +171,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
 static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint16 UcastEvcId, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
+static void    ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
 static void    ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
 
@@ -2335,6 +2336,79 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
 }
 
 /**
+ * Get DHCP EVC ethernet priority
+ * 
+ * @param intIfNum    : FP interface
+ * @param intVlan     : internal vlan
+ * @param innerVlan   : inner/client vlan 
+ * @param circuitId   : circuit id (output) 
+ * @param remoteId    : remote id (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty)
+{
+  L7_uint dhcp_idx;
+  ptin_intf_t ptin_intf;
+  ptin_client_id_t client;
+  ptinDhcpClientInfoData_t *client_info;
+
+  /* Validate arguments */
+  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
+      intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX  ||
+      L7_NULLPTR == ethPrty                         /*||
+      innerVlan==0 || innerVlan>=4096*/)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Convert interface to ptin format */
+  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum (%u)",intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Get dhcp instance */
+  if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+    return L7_FAILURE;
+  }
+
+  if (innerVlan>0 && innerVlan<4096)
+  {
+    /* Build client structure */
+    memset(&client,0x00,sizeof(ptin_client_id_t));
+    #if DHCP_CLIENT_INTERF_SUPPORTED
+    client.ptin_intf.intf_type = ptin_intf.intf_type;
+    client.ptin_intf.intf_id   = ptin_intf.intf_id;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    #endif
+    #if DHCP_CLIENT_INNERVLAN_SUPPORTED
+    client.innerVlan = innerVlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    #endif
+
+    /* Find client information */
+    if (ptin_dhcp_client_find(dhcp_idx,&client,&client_info)!=L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].UcastEvcId);
+      return L7_FAILURE;
+    }
+
+    ptin_dhcp_evc_ethprty_get(&dhcpInstances[dhcp_idx].circuitid, ethPrty);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get DHCP client data (DHCP Options)
  *
  * @param intIfNum    : FP interface
@@ -3060,6 +3134,16 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
   }
 
   return L7_SUCCESS;
+}
+
+void ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty)
+{
+   if(L7_NULLPTR == evc_circuitid || L7_NULLPTR == ethprty)
+   {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+   }
+
+   *ethprty = evc_circuitid->ethernet_priority;
 }
 
 void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid)

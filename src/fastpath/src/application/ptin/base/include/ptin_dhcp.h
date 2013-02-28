@@ -404,6 +404,18 @@ extern L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7
                                        L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
+ * Get DHCP EVC ethPrty
+ * 
+ * @param intIfNum    : FP interface
+ * @param intVlan     : internal vlan
+ * @param innerVlan   : inner/client vlan 
+ * @param ethPrty     : ethernet priority (output) 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty);
+
+/**
  * Get DHCP client data (DHCP Options)
  *
  * @param intIfNum    : FP interface
