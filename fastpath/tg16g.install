@@ -1,0 +1,32 @@
+#!/bin/sh
+
+PLATFORM=TG16G
+PLATFORM_FOLDER=$PLATFORM
+FILESYSTEM=rootfs
+
+BASE=../../builds
+APPS_FOLDER=$BASE/apps
+
+KO_PATH=./output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$PLATFORM/ipl
+
+BIN_FILE=switchdrvr
+DEVSHSYM_FILE=devshell_symbols.gz
+
+# Base folder, where install scripts are, should exist
+if [ ! -e $BASE ]; then
+  echo "'$BASE' folder is missing."
+  exit 1;
+fi
+
+echo "Creating folders for $PLATFORM"
+mkdir -p $APPS_FOLDER/backup
+rm -rf $APPS_FOLDER/backup/$PLATFORM_FOLDER
+mkdir -p $APPS_FOLDER/backup/$PLATFORM_FOLDER
+
+mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
+
+echo "Copying $PLATFORM binaries"
+cp $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
+cp $BIN_PATH/$BIN_FILE.unstripped $APPS_FOLDER/backup/$PLATFORM_FOLDER
+echo "Done!"
