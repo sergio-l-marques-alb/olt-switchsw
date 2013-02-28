@@ -551,33 +551,15 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
     return L7_FAILURE;
   }
 
-  memcpy(dhcpInstances[dhcp_idx].circuitid.template_str, template_str, strlen(template_str) + 1);
-  dhcpInstances[dhcp_idx].circuitid.mask = mask;
+   memcpy(dhcpInstances[dhcp_idx].circuitid.template_str, template_str, strlen(template_str) + 1);
+   dhcpInstances[dhcp_idx].circuitid.mask                = mask;
 
-  if (CIRCUITID_ACCESSNODEID & mask)
-  {
-    memcpy(dhcpInstances[dhcp_idx].circuitid.access_node_id, access_node_id, strlen(access_node_id) + 1);
-  }
-  if (CIRCUITID_CHASSIS & mask)
-  {
-    dhcpInstances[dhcp_idx].circuitid.chassis = chassis;
-  }
-  if (CIRCUITID_RACK & mask)
-  {
-    dhcpInstances[dhcp_idx].circuitid.rack = rack;
-  }
-  if (CIRCUITID_FRAME & mask)
-  {
-    dhcpInstances[dhcp_idx].circuitid.frame = frame;
-  }
-  if (CIRCUITID_ETHERNETPRIORITY & mask)
-  {
-    dhcpInstances[dhcp_idx].circuitid.ethernet_priority = ethernet_priority;
-  }
-  if (CIRCUITID_SVID & mask)
-  {
-    dhcpInstances[dhcp_idx].circuitid.s_vid = s_vid;
-  }
+   memcpy(dhcpInstances[dhcp_idx].circuitid.access_node_id, access_node_id, strlen(access_node_id) + 1);
+   dhcpInstances[dhcp_idx].circuitid.chassis             = chassis;
+   dhcpInstances[dhcp_idx].circuitid.rack                = rack;
+   dhcpInstances[dhcp_idx].circuitid.frame               = frame;
+   dhcpInstances[dhcp_idx].circuitid.ethernet_priority   = ethernet_priority;
+   dhcpInstances[dhcp_idx].circuitid.s_vid               = s_vid;
 
   return L7_SUCCESS;
 }
