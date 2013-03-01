@@ -30,7 +30,7 @@
 #define CIRCUITID_QVID                  0x0200
 #define CIRCUITID_CVID                  0x0400
 
-#define CIRCUITID_ACCESSNODEID_STR      "$name"   
+#define CIRCUITID_ACCESSNODEID_STR      "$accessnode"   
 #define CIRCUITID_CHASSIS_STR           "$rack"   
 #define CIRCUITID_RACK_STR              "$subrack"
 #define CIRCUITID_FRAME_STR             "$shelf"  
@@ -402,6 +402,18 @@ L7_BOOL ptin_dhcp82_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
  */
 extern L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uchar8 *macAddr,
                                        L7_char8 *circuitId, L7_char8 *remoteId);
+
+/**
+ * Get DHCP EVC ethPrty
+ * 
+ * @param intIfNum    : FP interface
+ * @param intVlan     : internal vlan
+ * @param innerVlan   : inner/client vlan 
+ * @param ethPrty     : ethernet priority (output) 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty);
 
 /**
  * Get DHCP client data (DHCP Options)

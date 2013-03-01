@@ -3315,6 +3315,9 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   relayOffset += DHCP_OPTION_CONTENT_OFFSET;
   while ((relayOffset < relayEnd) && (*relayOffset != DHO_END))
   {
+    if (ptin_debug_dhcp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Suboption detected? %u (relayOffset=%u)",*relayOffset,relayOffset);
+
     switch (*relayOffset)
     {
     case DHCP_RELAY_AGENT_CIRCUIT_ID_SUBOPTION:
@@ -3415,8 +3418,8 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (ptin_debug_dhcp_snooping)
           LOG_TRACE(LOG_CTX_PTIN_DHCP,"{unit,slot,port}={%d,%d,%d}\r\n",unit,slot,port);
 
-        relayOffset += optLen;
         #endif
+        relayOffset += optLen;
         #if 0
         relayAgentInfo->usp.unit = *relayOffset++;
         relayAgentInfo->usp.slot = *relayOffset++;
@@ -4455,6 +4458,17 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
          *   problems for the client if IPSG or DAI are enabled on the port. */
         if (!_dsVlanEnableGet(vlanId) || _dsVlanIntfTrustGet(vlanId,i) /*_dsIntfTrustGet(i)*/)    /* PTin modified: DHCP snooping */
         {
+          L7_uint8      ethPrty;
+          L7_ushort16   *frameEthPrty;
+
+          //Change ethernet priority bit
+          if (ptin_dhcp_ethPrty_get(i, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+          {
+             return L7_FAILURE;
+          }
+          frameEthPrty  = (L7_ushort16*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+          *frameEthPrty = (L7_ushort16)ethPrty;
+
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */
           {
