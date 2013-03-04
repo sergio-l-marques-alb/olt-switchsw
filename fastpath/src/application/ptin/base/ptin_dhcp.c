@@ -957,7 +957,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   avl_infoData->client_data.dhcp_options     = options;
   avl_infoData->client_data.circuitId.onuid  = onuid;
   avl_infoData->client_data.circuitId.slot   = slot;
-  avl_infoData->client_data.circuitId.port   = port;
+  avl_infoData->client_data.circuitId.port   = port + 1;
   avl_infoData->client_data.circuitId.q_vid  = q_vid;
   avl_infoData->client_data.circuitId.c_vid  = c_vid;
   strncpy(avl_infoData->client_data.remoteId ,remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
