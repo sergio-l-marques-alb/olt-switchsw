@@ -35,11 +35,11 @@
 #define CIRCUITID_RACK_STR              "$subrack"
 #define CIRCUITID_FRAME_STR             "$shelf"  
 #define CIRCUITID_ETHERNETPRIORITY_STR  "$ethprty"
-#define CIRCUITID_S_VID_STR             "$onuid"  
-#define CIRCUITID_ONUID_STR             "$slot"   
-#define CIRCUITID_SLOT_STR              "$port"   
-#define CIRCUITID_PORT_STR              "$qvid"   
-#define CIRCUITID_Q_VID_STR             "$svid"   
+#define CIRCUITID_S_VID_STR             "$svid"  
+#define CIRCUITID_ONUID_STR             "$onuid"   
+#define CIRCUITID_SLOT_STR              "$slot"   
+#define CIRCUITID_PORT_STR              "$port"   
+#define CIRCUITID_Q_VID_STR             "$qvid"   
 #define CIRCUITID_C_VID_STR             "$cvid"   
 
 /***********************************************************

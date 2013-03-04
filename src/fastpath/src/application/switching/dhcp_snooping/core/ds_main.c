@@ -4458,16 +4458,16 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
          *   problems for the client if IPSG or DAI are enabled on the port. */
         if (!_dsVlanEnableGet(vlanId) || _dsVlanIntfTrustGet(vlanId,i) /*_dsIntfTrustGet(i)*/)    /* PTin modified: DHCP snooping */
         {
-          L7_uint8      ethPrty;
-          L7_ushort16   *frameEthPrty;
-
-          //Change ethernet priority bit
-          if (ptin_dhcp_ethPrty_get(i, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
-          {
-             return L7_FAILURE;
-          }
-          frameEthPrty  = (L7_ushort16*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-          *frameEthPrty = (L7_ushort16)ethPrty;
+//        L7_uint8      ethPrty;
+//        L7_ushort16   *frameEthPrty;
+//
+//        //Change ethernet priority bit
+//        if (ptin_dhcp_ethPrty_get(i, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+//        {
+//           return L7_FAILURE;
+//        }
+//        frameEthPrty  = (L7_ushort16*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+//        *frameEthPrty = (L7_ushort16)ethPrty;
 
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */
