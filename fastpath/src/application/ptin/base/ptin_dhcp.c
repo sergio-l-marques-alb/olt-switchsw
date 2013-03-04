@@ -558,7 +558,7 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
    dhcpInstances[dhcp_idx].circuitid.chassis             = chassis;
    dhcpInstances[dhcp_idx].circuitid.rack                = rack;
    dhcpInstances[dhcp_idx].circuitid.frame               = frame;
-   dhcpInstances[dhcp_idx].circuitid.ethernet_priority   = ethernet_priority;
+   dhcpInstances[dhcp_idx].circuitid.ethernet_priority   = 0x7 & ethernet_priority;
    dhcpInstances[dhcp_idx].circuitid.s_vid               = s_vid;
 
   return L7_SUCCESS;
@@ -3160,12 +3160,12 @@ void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_cli
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_RACK_STR,             rack);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_FRAME_STR,            frame);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ETHERNETPRIORITY_STR, ethernet_priority);
-  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            s_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_S_VID_STR,            s_vid);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ONUID_STR,            onuid);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_SLOT_STR,             slot);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_PORT_STR,             port);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            q_vid);
-  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            c_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_C_VID_STR,            c_vid);
 
   memset(circuitid, 0, FD_DS_MAX_REMOTE_ID_STRING);
   strcpy(circuitid, temp_str);
