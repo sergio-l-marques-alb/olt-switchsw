@@ -1835,6 +1835,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_enetHeader_t *mac_header = 0;
    dhcpSnoopBinding_t dhcp_binding;
    L7_ushort16 ethHdrLen;
+// L7_uint8  ethPrty, *frameEthPrty;
 
    LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply");
 
@@ -2026,6 +2027,16 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    udp_copy_header->destPort = 546;
    udp_copy_header->length = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
+
+   //Change ethernet priority bit
+// if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+// {
+//   LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+//   return L7_FAILURE;
+// }
+// frameEthPrty  = (L7_uint8*)(eth_header_ptr + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+// *frameEthPrty &= 0x1F; //Reset p-bit
+// *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
 
    //Send the new DHCP message to the client
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
@@ -4318,6 +4329,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_ipHeader_t *ipHeader = (L7_ipHeader_t*)(frame + ethHdrLen);
   L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
   L7_BOOL requestFlag = L7_FALSE;
+//L7_uint8 ethPrty, *frameEthPrty;
 
   udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
   dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
@@ -4351,6 +4363,16 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
     else
     {
+       //Change ethernet priority bit
+//    if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+//    {
+//       LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+//       return L7_FAILURE;
+//    }
+//    frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+//    *frameEthPrty &= 0x1F; //Reset p-bit
+//    *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+
       /* If there is no Circuit-id information in the Reply pakcets,
          Forward the DHCP replies to the interface based on the DHCP Snooping
          binding for the client. */
@@ -4458,16 +4480,20 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
          *   problems for the client if IPSG or DAI are enabled on the port. */
         if (!_dsVlanEnableGet(vlanId) || _dsVlanIntfTrustGet(vlanId,i) /*_dsIntfTrustGet(i)*/)    /* PTin modified: DHCP snooping */
         {
-          L7_uint8      ethPrty;
-          L7_ushort16   *frameEthPrty;
+          L7_uint8  ethPrty;
+          L7_uint8  *frameEthPrty;
 
           //Change ethernet priority bit
-          if (ptin_dhcp_ethPrty_get(i, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+          if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
           {
-             return L7_FAILURE;
+            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+            return L7_FAILURE;
           }
-          frameEthPrty  = (L7_ushort16*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-          *frameEthPrty = (L7_ushort16)ethPrty;
+          frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+          LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
+          *frameEthPrty &= 0x1F; //Reset p-bit
+          *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+          LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */
@@ -4485,6 +4511,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
              if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
              {
+                LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP options");
                 return L7_FAILURE;
              }
 

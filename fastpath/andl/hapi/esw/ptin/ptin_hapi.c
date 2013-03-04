@@ -175,12 +175,12 @@ L7_RC_t ptin_hapi_phy_init(void)
 
     /* Define preemphasis value according to port */
     /* Nearest slots, will use main=52, post=11 */
-    if ( i < 16 )
+    if ( i <= 16 )
     {
       preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
     }
     /* Farthest slots, will use main=44, post=19 */
-    else if ( i >= 40 )
+    else if ( i > 40 )
     {
       preemphasis = PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS;
     }
