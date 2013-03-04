@@ -1,1 +1,0 @@
-#define CONFIG_SERIAL_CPM_SMC1 1
