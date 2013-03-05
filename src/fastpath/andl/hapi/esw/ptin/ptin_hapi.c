@@ -1769,6 +1769,7 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Drop qualifier added (drop=%u/0x%02x)",drop,drop_mask);
   }
 
+  #if 0
   /* Ingress priority */
   rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_LOWEST_PRIORITY_COS, 0, 0);
   if (rc != L7_SUCCESS)
@@ -1778,6 +1779,7 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
     return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Ingress priority action added");
+  #endif
 
   /* Trap to cpu action */
   rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
