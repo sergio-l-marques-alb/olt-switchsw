@@ -1534,19 +1534,25 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 }
 
 
-int ber_init(int matrix)
+int ber_init(void)
 {
   int ret;
+  int matrix;
 
   if (ptin_ber_tx_sem != L7_NULLPTR) {
     printf("BER has already been initialized!\n");
     return -1;
   }
 
+  /* Read slot id: 0->Working; 1->Protection */
+  matrix = cpld_map->reg.slot_id;
+
   if (matrix != 0 && matrix != 1) {
-    printf("Must select matrix: Work:0  Prot:1\n");
+    printf("Unknown matrix: %u\n",matrix);
     return -1;
   }
+  printf("We are in matrix: %s\n",((matrix) ? "Protection" : "Working"));
+
   mx = matrix & 1;
 
   ptin_ber_tx_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
@@ -1979,26 +1985,24 @@ int init_remote_ber(int enable,
   txmsg.info[2] = 0;
 
   /* For each slot, get remote values (just to reset them!) (4 ports at once) */
-  for (i=0; i<n_slots; i++) {
-    for (j=0; j<N_LANES_MAX; j++)
-    {
-      txmsg.info[1] = j;
-      txmsg.info[2] = enable & 1;
-      ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
-      if (ret != 0) {
-        printf("Error initing remote BER in slot %u (lane %u)\n", slot[i],j);
-        return -1;
-      }
-      if (rxmsg.flags != 0x01)
-      {
-        printf("Request not acknowledged in slot %u (lane %u)\n", slot[i],j);
-        continue;
-      }
-      printf("Success %s BER tx/rx in slot %u, lane %u\n",
-             ((enable) ? "enabling" : "disabling"),
-             slot[i], j);
-      usleep(1*1000);
+  for (i=0; i<n_slots; i++)
+  {
+    txmsg.info[1] = 0xff;   /* All 4 lanes */
+    txmsg.info[2] = enable & 1;
+    ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
+    if (ret != 0) {
+      printf("Error initing remote BER in slot %u\n", slot[i]);
+      return -1;
     }
+    if (rxmsg.flags != 0x01)
+    {
+      printf("Request not acknowledged in slot %u\n", slot[i]);
+      continue;
+    }
+    printf("Success %s BER tx/rx in slot %u\n",
+           ((enable) ? "enabling" : "disabling"),
+           slot[i]);
+    usleep(1*1000);
   }
 
   printf("\nDone!\n");
@@ -2994,7 +2998,7 @@ int ptin_ber_help(void)
          "   fastpath.cli m 1007 <port#1> <port#2>\n"
          "\n"
          " Initialize BER meter functions\n"
-         "   fastpath.shell dev ber_init <work/prot: 0/1>\n"
+         "   fastpath.shell dev ber_init\n"
          "\n"
          " Stop running BER threads\n"
          "   fastpath.shell dev ber_stop\n"
@@ -3008,7 +3012,6 @@ int ptin_ber_help(void)
          "                                   <n_slots0>, <start_slot0>,\n"
          "                                   <n_slots1>, <start_slot1>,\n"
          "                                   <...>)\"\n"
-         "\n"
          " Run BER meter at RX Line Card\n"
          "   fastpath.shell dev \"get_tx_ber('<file>', <optimize_lc>, <n_iters>,"
          "                                   <start delay>, <test time>, <mode>,\n"
@@ -3018,6 +3021,23 @@ int ptin_ber_help(void)
          "                                   <n_slots0>, <start_slot0>,\n"
          "                                   <n_slots1>, <start_slot1>,\n"
          "                                   <...>)\"\n"
+         " Input parameters for get_rx_ber and get_tx_ber routines:\n"
+         "   lc_optimize   : 0x00 -> No optimization\n"
+         "                   0x02 -> Reset Copper mode on LC for each iteration\n"
+         "   n_iters       : Number of test repetitions\n"
+         "   start_delay   : Time delay in seconds before start a PRBS test\n"
+         "   test_delay    : PRBS test duration\n"
+         "   mode[bit 0]   : 0 -> Only decrement main cursor, after running all post cursors range;\n"
+         "                   1 -> Increment post cursor and decrement main cursor simultaneously\n"
+         "   mode[bit 1]   : 0 -> When <n_iters> is not null, only apply start_delay for the first iteration\n"
+         "                   1 -> When <n_iters> is not null, apply start_delay for all iterations\n"
+         "                   1 -> Increment post cursor and decrement main cursor simultaneously\n"
+         "   mode[bit 3]   : 0 -> Do not touch in tap settings\n"
+         "                   1 -> Update main and post cursors\n"
+         "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for > 0)\n"
+         "   mode[bit 8-15]: Maximum number of suplementary PRBS readings (only for mode[bit 4-7]>0)\n"
+         "   main_start, main_end, main_step : Maximum and minimum main cusor (in this order), and step unit\n"
+         "   post_start, post_end, post_step : Minimum and maximum post cusor (in this order), and step unit\n"
          "\n"
          " Init BER in remote linecards\n"
          "   fastpath.shell dev init_remote_ber <enable>\n"
