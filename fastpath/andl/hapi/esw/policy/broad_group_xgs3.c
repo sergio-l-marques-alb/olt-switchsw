@@ -1642,8 +1642,8 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
     {
       if ((group2_type != BROAD_POLICY_TYPE_SYSTEM_PORT) &&
           (group2_type != BROAD_POLICY_TYPE_COSQ) &&
-          (group1_type != BROAD_POLICY_TYPE_STAT_EVC) &&  /* PTin modified: stats */
-          (group1_type != BROAD_POLICY_TYPE_STAT_CLIENT)) /* PTin modified: stats */
+          (group2_type != BROAD_POLICY_TYPE_STAT_EVC) &&  /* PTin modified: stats */
+          (group2_type != BROAD_POLICY_TYPE_STAT_CLIENT)) /* PTin modified: stats */
       {
         groupTypesCompatible = L7_FALSE;
       }
