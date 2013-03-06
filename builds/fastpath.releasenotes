@@ -1,8 +1,10 @@
 Fastpath 6.3.0.2 Release Notes
-Version 1.4.0
- - New: Adicionado suporte para a configuração da sintaxe flexível da string circuit-id.
- - Fix: DHCP server packets entering in a client/untrusted interface were not
-        incrementing 'Server Packets Untrusted' field in DHCP statistics.
-Version 1.4.1
- - Fix: Switch não estava a permitir o movimento de MACs entre portas de igual prioridade.
- - Fix: Validação de pacotes DHCP ainda estava a considerar o esquema antigo com sintaxe estatica.
+Version 1.5.1-r135
+ - New: Added circuit-id and dhcp options configuration globally to the EVC.
+ - New: Optimized PRBS tests for OLT1T3.
+ - New: Rearranged PRBS output information to be more user friendly (for OLT1T3)
+ - New: KO modules for OLT1T3 replaced by the ones of SDK 5.9.4
+ - Fix: Bug detected for FFP rules management (broad_group_xgs3.c)
+Version 1.6.0-r153
+ - New: Added support to OLT1T3 platform - CXO640G and TG16G boards supported.
+ - New: 'make image' will also execute previously the install procedure.

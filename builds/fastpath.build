@@ -7,6 +7,7 @@
 
 BUILDS_FOLDER=./output
 APPS_PATH=./apps
+TMP_PATH=./tmp
 
 USERNAME=olt
 DST_IPADDR=10.112.15.243
@@ -63,7 +64,7 @@ echo echo $DATE >> ./$APPLICATION.ver
 chmod 777 ./$APPLICATION.ver
 
 if [ -e ./$APPLICATION.releasenotes ]; then
-  echo "=== FASTPATH $version RELEASE NOTES ======================================" > ./$APPLICATION.releasenotes.txt
+  echo "=== FASTPATH $version RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
   cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
   echo "=======================================================================" >> ./$APPLICATION.releasenotes.txt
   echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
@@ -82,6 +83,12 @@ echo -en $colorReset
 for plat in $PLATFORMS; do
   cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
 done
+
+echo -en $colorNotice
+echo "Replacing some files by backup ones..."
+echo -en $colorReset
+
+cp -r $TMP_PATH/* $APPS_PATH/image
 
 sync
 
