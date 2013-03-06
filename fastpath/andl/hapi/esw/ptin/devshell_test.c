@@ -1110,9 +1110,6 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           fprintf(fd, "--------------------------------------------------------------------------------------\n");
           fflush(fd);
 
-//        if ( p_tx.mode & 0x08 )
-//          break;
-
           if ( (p_tx.mode & 1) == 1) {
             tap_main -= p_tx.main_step;
           }
@@ -1120,9 +1117,6 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           if (stop)
             break;
         }
-
-//      if ( p_tx.mode & 0x08 )
-//        break;
 
         if (stop)
           break;
@@ -1164,7 +1158,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           if ( port < 0 )  continue;
 
           strcat(str1, "-------+");
-          sprintf(tmp, " xe%-2d  |", port);
+          sprintf(tmp, " s%02d:%d |", slot, port+1);
           strcat(str2, tmp);
         }
       }
@@ -1436,9 +1430,6 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           fprintf(fd, "--------------------------------------------------------------------------------------\n");
           fflush(fd);
 
-//        if ( p_rx.mode & 0x08 )
-//          break;
-
           if ( (p_rx.mode & 1) == 1) {
             tap_main -= p_rx.main_step;
           }
@@ -1446,9 +1437,6 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           if (stop)
             break;
         }
-
-//      if ( p_rx.mode & 0x08 )
-//        break;
 
         if (stop)
           break;
@@ -1490,7 +1478,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           if ( port < 0 )  continue;
 
           strcat(str1, "-------+");
-          sprintf(tmp, " xe%-2d  |", port);
+          sprintf(tmp, " s%02d:%d |", slot, port+1);
           strcat(str2, tmp);
         }
       }
