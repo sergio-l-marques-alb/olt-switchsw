@@ -198,19 +198,19 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxp360g install_cxo640g install_tolt8g install_tg16g install_cli install_shell
+install:	install_cxo640g install_cxp360g install_tg16g install_tolt8g install_cli install_shell
 
 clean:		clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell
 
 cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell
 
 
-image:
-	cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_used)
+image:		install
+		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_used)
 
-image_olt360:
-	cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version_used)
+image_olt360:	install_olt360
+		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version_used)
 
-image_olt1t3:
-	cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_used)
+image_olt1t3:	install_olt1t3
+		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_used)
 
