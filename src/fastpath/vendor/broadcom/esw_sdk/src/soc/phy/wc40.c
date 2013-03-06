@@ -5967,17 +5967,23 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
 {
     uint16      data16;
     uint16      mask16;
+    #if 0
     int an;
     int an_done;
+    #endif
     soc_port_if_t intf;
     int prbs_lanes = 0;
     int lane;
     phy_ctrl_t *pc = INT_PHY_SW_STATE(unit, port);
 
+    printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+
     /* If mode is autoneg KR/KR4, do it thru CL49 PRBS and configure KR forced mode and disable autoneg
      * This way the FIR settings negotiated thru CL72 is preserved
      */
 
+    /* PTin modified: PRBS */
+    #if 0
     if (DEV_CTRL_PTR(pc)->prbs.type != WC40_PRBS_TYPE_CL49) {
         SOC_IF_ERROR_RETURN
             (phy_wc40_an_get(unit,port,&an,&an_done));
@@ -5991,12 +5997,21 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
             }
         }
     }
+    #else
+    /* check interface */
+    SOC_IF_ERROR_RETURN
+        (phy_wc40_interface_get(unit,port,&intf));
+    DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
+    printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+    #endif
 
     if (DEV_CTRL_PTR(pc)->prbs.type == WC40_PRBS_TYPE_CL49) {
+        printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
         SOC_IF_ERROR_RETURN
             (phy_wc40_interface_get(unit,port,&intf));
 
         if (!enable) {  /* disable */
+            printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
             if (intf == SOC_PORT_IF_KR4) {
                 for (lane = 0; lane < 4; lane++) {
                     SOC_IF_ERROR_RETURN
@@ -6009,6 +6024,14 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
             DEV_CTRL_PTR(pc)->prbs.type = 0;
         } 
 
+        printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+
+        /* PTin added: PRBS */
+        #if 1
+        if (intf==SOC_PORT_IF_KR4 || intf==SOC_PORT_IF_KR)
+        {
+        printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+        #endif
         if (intf == SOC_PORT_IF_KR4) {
             SOC_IF_ERROR_RETURN
                 (MODIFY_WC40_SERDESDIGITAL_MISC1r(unit, pc, 0x00, 
@@ -6058,14 +6081,30 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
             (MODIFY_WC40_COMBO_IEEE0_MIICNTLr(unit, pc, 0x00, 
                                   enable? 0: MII_CTRL_AE | MII_CTRL_RAN,
                                       MII_CTRL_AE | MII_CTRL_RAN));
-
+      
         SOC_IF_ERROR_RETURN
             (READ_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, pc, 0x00, 
-                                          &data16));
+                                        &data16));
+
+        /* PTin added: PRBS */
+        #if 1
+        }
+        else if (enable)
+        {
+          printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+          SOC_IF_ERROR_RETURN
+              (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, WC40_PRBS_CL49_POLY31));
+          printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+        }
+        #endif
+
+        printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
+
         /* not to enable PRBS here. Once PRBS is enabled, the link will go down.
          * Autoneg will be restarted by link partner and Tx settings will be lost.
          * It will be enabled in get function when first time called 
          */ 
+        /* PTin added: PRBS */
         return SOC_E_NONE;
     }
 

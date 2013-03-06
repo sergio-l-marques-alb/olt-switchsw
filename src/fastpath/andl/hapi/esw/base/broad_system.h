@@ -423,6 +423,27 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 #endif
 
+/* PTin added: PRBS */
+#if 1
+/*********************************************************************
+*
+* @purpose Configure PRBS tx/rx
+*
+* @param   DAPI_USP_t *usp    - needs to be a valid usp
+* @param   DAPI_CMD_t  cmd
+* @param   void       *data
+* @param   DAPI_t     *dapi_g - the driver object
+*
+* @returns L7_RC_t result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadSystemPTinPrbs(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+#endif
+
 /*********************************************************************
 *
 * @purpose Get board family (Strata for 5615 and Draco(XGS) for 5690)

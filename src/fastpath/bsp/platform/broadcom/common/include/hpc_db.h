@@ -186,7 +186,7 @@
                                         L7_PHY_CAP_PORTSPEED_FULL_1000),    \
                                        L7_RJ45
 
-/* PTin added (2.5G) */
+/* PTin added (2.5G + 10G-KR) */
 /* Interfaces without Auto-Negotiation and connector */
 #define L7_PORT_DESC_BCOM_1G_NO_AN     L7_IANA_GIGABIT_ETHERNET,            \
                                        L7_PORTCTRL_PORTSPEED_FULL_1000SX,   \
@@ -199,6 +199,12 @@
                                        (L7_PHY_CAP_PORTSPEED_FULL_1000 |    \
                                         L7_PHY_CAP_PORTSPEED_FULL_2500),    \
                                        L7_CONNECTOR_NONE
+
+#define L7_PORT_DESC_BCOM_10G_KR       L7_IANA_10G_ETHERNET,                \
+                                       L7_PORTCTRL_PORTSPEED_FULL_10GSX,    \
+                                       (L7_PHY_CAP_PORTSPEED_FULL_10G),     \
+                                       L7_CONNECTOR_NONE
+
 /* PTin end */
 
 #define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \

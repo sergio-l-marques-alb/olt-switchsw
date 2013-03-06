@@ -458,6 +458,38 @@ L7_RC_t dtlPtinRateLimit( L7_uint32 intIfNum, L7_BOOL enable, ptin_pktRateLimit_
 }
 
 /**
+ * PRBS tx/rx
+ *  
+ * @param dapiCmd
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinPcsPrbs( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_PCS_PRBS, (void *) dapiCmd);
+}
+
+/**
  * Consult available hardware resources
  *  
  * @param resources: Available resources

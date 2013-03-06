@@ -366,6 +366,7 @@
 #define  DAPI_CMD_PTIN_FP_COUNTERS_NAME                  "DAPI_CMD_PTIN_FP_COUNTERS"
 #define  DAPI_CMD_PTIN_PACKET_RATE_LIMIT_NAME            "DAPI_CMD_PTIN_PACKET_RATE_LIMIT"
 #define  DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU_NAME        "DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU"
+#define  DAPI_CMD_PTIN_PCS_PRBS_NAME                     "DAPI_CMD_PTIN_PCS_PRBS"
 /* PTin end */
 
 #define DAPI_PORT_GET(_pDapiUsp,_dapi_g)     (_dapi_g->unit[(_pDapiUsp)->unit]->slot[(_pDapiUsp)->slot]->port[(_pDapiUsp)->port])

@@ -112,6 +112,10 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_switch_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
+  /* PHY initializations */
+  if (ptin_hapi_phy_init()!=L7_SUCCESS)
+    rc = L7_FAILURE;
+
   /* ptin_hapi_xlate initializations */
   if (ptin_hapi_xlate_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
@@ -141,6 +145,64 @@ L7_RC_t ptin_hapi_switch_init(void)
   }
 
   return rc;
+}
+
+/**
+ * Initialize PHY control parameters
+ * 
+ * @author asantos (07/02/2013)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+  int i, rv;
+  L7_uint32 preemphasis;
+
+  for (i=1; i<=PTIN_SYSTEM_N_PORTS; i++)
+  {
+//  rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_8B10B, 0);
+//
+//  if (!SOC_SUCCESS(rv))
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling 8b10b on port %u", i);
+//    rc = L7_FAILURE;
+//    break;
+//  }
+
+    /* Define preemphasis value according to port */
+    /* Nearest slots, will use main=52, post=11 */
+    if ( i <= 16 )
+    {
+      preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
+    }
+    /* Farthest slots, will use main=44, post=19 */
+    else if ( i > 40 )
+    {
+      preemphasis = PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS;
+    }
+    /* Middle slots, will use default main=48, post=15*/
+    else
+    {
+      preemphasis = PTIN_PHY_PREEMPHASIS_DEFAULT;
+    }
+    
+    rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
+
+    if (!SOC_SUCCESS(rv))
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u", preemphasis, i);
+      rc = L7_FAILURE;
+      break;
+    }
+  }
+  #endif
+
+  return rc;
+
 }
 
 /** 

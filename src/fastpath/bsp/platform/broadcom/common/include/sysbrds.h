@@ -52,6 +52,7 @@ typedef enum bcm_sys_board_ids_e {
     BCM_SYS_BOARD_56820,
     BCM_SYS_BOARD_56843,    /* PTin added: new platform BCM56843 (trident) */
     BCM_SYS_BOARD_56844,    /* PTin added: new platform BCM56844 (trident) */
+    BCM_SYS_BOARD_56846,    /* PTin added: new platform BCM56846 (trident) */
     BCM_SYS_BOARD_56524,
     BCM_SYS_BOARD_56634,
     BCM_SYS_BOARD_53115,        /* ROBO - Vulcan */

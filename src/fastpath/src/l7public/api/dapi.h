@@ -520,6 +520,7 @@ typedef enum
   DAPI_CMD_PTIN_FP_COUNTERS,
   DAPI_CMD_PTIN_PACKET_RATE_LIMIT,
   DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU,
+  DAPI_CMD_PTIN_PCS_PRBS,
   /* PTin end */
 
   DAPI_NUM_OF_CMDS
@@ -866,6 +867,14 @@ typedef struct
       DAPI_CMD_GET_SET_t          getOrSet;
       L7_BOOL                     blink;
     } ledConfig;
+
+    /* PRBS statisitics */
+    struct
+    {
+      DAPI_CMD_GET_SET_t          getOrSet;
+      L7_BOOL                     enable;
+      L7_uint32                   rxErrors;
+    } prbsStatus;
 
   } cmdData;
 

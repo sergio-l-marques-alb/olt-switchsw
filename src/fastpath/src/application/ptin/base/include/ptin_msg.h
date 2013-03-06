@@ -663,4 +663,22 @@ extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannels_t *channel_lis
  */
 extern L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list);
 
+/**
+ * Enable PRBS tx/rx
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg);
+
+/**
+ * Read PRBS errors
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg);
+
 #endif /* _PTIN_MSG_H */
