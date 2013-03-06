@@ -1158,7 +1158,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           if ( port < 0 )  continue;
 
           strcat(str1, "-------+");
-          sprintf(tmp, " s%02d:%d |", slot, port+1);
+          sprintf(tmp, " s%02d:%d |", p_tx.slot[slot], port_idx+1);
           strcat(str2, tmp);
         }
       }
@@ -1478,7 +1478,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           if ( port < 0 )  continue;
 
           strcat(str1, "-------+");
-          sprintf(tmp, " s%02d:%d |", slot, port+1);
+          sprintf(tmp, " s%02d:%d |", p_rx.slot[slot], port_idx+1);
           strcat(str2, tmp);
         }
       }
