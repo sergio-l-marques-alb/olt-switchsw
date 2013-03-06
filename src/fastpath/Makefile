@@ -96,7 +96,7 @@ kernel_olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make kernel
 
 
-all:	cxp360g tolt8g olt7-8chb cli shell
+all:	cxo640g cxp360g tg16g tolt8g cli shell
 
 olt360:	cxp360g tolt8g cli shell
 
