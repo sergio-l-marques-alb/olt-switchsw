@@ -427,6 +427,15 @@ extern L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn);
 /* DHCP Management Functions **************************************************/
 
 /**
+ * Reconfigure a global DHCP EVC
+ *
+ * @param dhcpEvcInfo: DHCP EVC info
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo);
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param profile: DHCP profile

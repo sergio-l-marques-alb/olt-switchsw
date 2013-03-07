@@ -152,6 +152,17 @@ extern L7_RC_t ptin_dhcp_instance_remove(L7_uint16 UcastEvcId);
 extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
 
 /**
+ * Reconfigure global DHCP EVC
+ *
+ * @param evcId         : evc index
+ * @param dhcp_flag     : DHCP flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options);
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param evcId           : evc index

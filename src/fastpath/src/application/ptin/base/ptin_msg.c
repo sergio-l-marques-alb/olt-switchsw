@@ -2467,6 +2467,45 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
 /* DHCP Management Functions **************************************************/
 
 /**
+ * Reconfigure a global DHCP EVC
+ *
+ * @param dhcpEvcInfo: DHCP EVC info
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
+{
+   L7_uint           evc_idx;
+   L7_RC_t           rc;
+
+   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+
+   /* Validate input parameters */
+   if (dhcpEvcInfo==L7_NULLPTR)  {
+     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+     return L7_FAILURE;
+   }
+
+   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id     = %u",      dhcpEvcInfo->evc_id);
+   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
+   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %s",      dhcpEvcInfo->dhcp_flag);
+   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
+
+   /* Extract input data */
+   evc_idx = dhcpEvcInfo->evc_id;
+
+   rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+
+   if (rc!=L7_SUCCESS)
+   {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
+      return rc;
+   }
+
+   return L7_SUCCESS;
+}
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param profile: DHCP profile

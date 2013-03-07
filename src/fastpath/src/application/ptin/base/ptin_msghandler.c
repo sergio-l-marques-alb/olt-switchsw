@@ -1500,6 +1500,36 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      * DHCP Relay Agent
      **************************************************************************/
 
+    /* Reconfigure Global DHCP EVC ****************************/
+    case CCMSG_ETH_DHCP_EVC_RECONF:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DHCP_EVC_RECONF (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_DhcpEvcReconf_t);
+
+      msg_DhcpEvcReconf_t *ptr;
+      ptr = (msg_DhcpEvcReconf_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_DhcpEvcReconf_t));
+
+      /* Execute command */
+      rc = ptin_msg_DHCP_evc_reconf(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_DhcpEvcReconf_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /* Configure DHCP circuit-id global components ****************************/
     case CCMSG_ETH_DHCP_EVC_CIRCUITID_SET:
     {

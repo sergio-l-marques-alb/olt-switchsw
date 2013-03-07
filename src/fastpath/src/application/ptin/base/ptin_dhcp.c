@@ -514,6 +514,51 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
 }
 
 /**
+ * Reconfigure global DHCP EVC
+ *
+ * @param evcId         : evc index
+ * @param dhcp_flag     : DHCP flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options)
+{
+   L7_uint dhcp_idx;
+   ptinDhcpClientDataKey_t avl_key;
+   ptinDhcpClientInfoData_t *avl_info;
+
+   /* Get DHCP instance index */
+   if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    return L7_FAILURE;
+   }
+
+   /* Validate dhcp instance */
+   if (!dhcpInstances[dhcp_idx].inUse)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+   }
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                          avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+      avl_info->client_data.dhcp_options = options;
+    }
+
+
+   return L7_SUCCESS;
+}
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param evcId           : evc index

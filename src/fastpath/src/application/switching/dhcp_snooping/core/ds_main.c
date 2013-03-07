@@ -1324,7 +1324,7 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
      ret = dsDHCPv4FrameProcess(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx);
   }
-  else
+  else if(L7_IP6_VERSION == ipVersion)
   {
      ret = dsDHCPv6FrameProcess(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx);
   }
@@ -2022,15 +2022,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       return L7_SUCCESS;
    }
 
-   //Create a new DHCPv6 message
-   memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
-   frame_copy_len += *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16));
-
-   //Update the UDP and IPv6 headers
-   udp_copy_header->destPort = 546;
-   udp_copy_header->length = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
-   dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
-
    //Change ethernet priority bit
    if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
    {
@@ -2040,6 +2031,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    frameEthPrty  = (L7_uint8*)(frame_copy + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
    *frameEthPrty &= 0x1F; //Reset p-bit
    *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+
+   //Create a new DHCPv6 message
+   memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
+   frame_copy_len += *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16));
+
+   //Update the UDP and IPv6 headers
+   udp_copy_header->destPort = 546;
+   udp_copy_header->length = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
+   dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
