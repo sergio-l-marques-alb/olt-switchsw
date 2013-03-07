@@ -2029,8 +2029,10 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      return L7_FAILURE;
    }
    frameEthPrty  = (L7_uint8*)(frame_copy + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+   LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
    *frameEthPrty &= 0x1F; //Reset p-bit
    *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+   LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
    //Create a new DHCPv6 message
    memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
@@ -4352,6 +4354,19 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
   {
     requestFlag = L7_FALSE;
+
+      //Change ethernet priority bit
+      if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+      {
+         LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+         return L7_FAILURE;
+      }
+      frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
+      *frameEthPrty &= 0x1F; //Reset p-bit
+      *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
+
     if (relayOptIntIfNum != L7_NULL)
     {
       /* PTin modified: DHCP snooping */
@@ -4366,16 +4381,6 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
     else
     {
-       //Change ethernet priority bit
-       if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
-       {
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
-          return L7_FAILURE;
-       }
-       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-       *frameEthPrty &= 0x1F; //Reset p-bit
-       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-
       /* If there is no Circuit-id information in the Reply pakcets,
          Forward the DHCP replies to the interface based on the DHCP Snooping
          binding for the client. */
