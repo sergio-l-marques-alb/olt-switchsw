@@ -35,11 +35,11 @@
 #define CIRCUITID_RACK_STR              "$subrack"
 #define CIRCUITID_FRAME_STR             "$shelf"  
 #define CIRCUITID_ETHERNETPRIORITY_STR  "$ethprty"
-#define CIRCUITID_S_VID_STR             "$onuid"  
-#define CIRCUITID_ONUID_STR             "$slot"   
-#define CIRCUITID_SLOT_STR              "$port"   
-#define CIRCUITID_PORT_STR              "$qvid"   
-#define CIRCUITID_Q_VID_STR             "$svid"   
+#define CIRCUITID_S_VID_STR             "$svid"  
+#define CIRCUITID_ONUID_STR             "$onuid"   
+#define CIRCUITID_SLOT_STR              "$slot"   
+#define CIRCUITID_PORT_STR              "$port"   
+#define CIRCUITID_Q_VID_STR             "$qvid"   
 #define CIRCUITID_C_VID_STR             "$cvid"   
 
 /***********************************************************
@@ -150,6 +150,17 @@ extern L7_RC_t ptin_dhcp_instance_remove(L7_uint16 UcastEvcId);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
+
+/**
+ * Reconfigure global DHCP EVC
+ *
+ * @param evcId         : evc index
+ * @param dhcp_flag     : DHCP flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options);
 
 /**
  * Set DHCP circuit-id global data

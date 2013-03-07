@@ -838,7 +838,7 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
   }
   else if(binding->ipAddr.family == L7_AF_INET6)
   {
-     memcpy(extBinding->ipv6Addr, binding->ipAddr.addr.ipv6.in6.addr16, 16*sizeof(L7_ushort16));
+     memcpy(extBinding->ipv6Addr, binding->ipAddr.addr.ipv6.in6.addr16, 16*sizeof(L7_uchar8));
   }
   extBinding->vlanId = binding->vlanId;
   extBinding->innerVlanId = binding->innerVlanId;   /* PTin added: DHCP */

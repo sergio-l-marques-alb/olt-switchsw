@@ -123,15 +123,15 @@ typedef struct {
 } ptinDhcpClients_t;
 
 typedef struct {
-  char template_str[256];
-  L7_uint32 mask;
+  char         template_str[256];
+  L7_uint32    mask;
 
-  char access_node_id[63];
-  L7_uint8    chassis;
-  L7_uint8    rack;
-  L7_uint8    frame;
-  L7_uint8    ethernet_priority;
-  L7_uint16   s_vid;
+  char         access_node_id[63];
+  L7_uint8     chassis;
+  L7_uint8     rack;
+  L7_uint8     frame;
+  L7_uint8     ethernet_priority;
+  L7_uint16    s_vid;
 } ptin_AccessNodeCircuitId_t;
 
 /* DHCP Instance config struct */
@@ -512,6 +512,51 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
 }
 
 /**
+ * Reconfigure global DHCP EVC
+ *
+ * @param evcId         : evc index
+ * @param dhcp_flag     : DHCP flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options)
+{
+   L7_uint dhcp_idx;
+   ptinDhcpClientDataKey_t avl_key;
+   ptinDhcpClientInfoData_t *avl_info;
+
+   /* Get DHCP instance index */
+   if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    return L7_FAILURE;
+   }
+
+   /* Validate dhcp instance */
+   if (!dhcpInstances[dhcp_idx].inUse)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+   }
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                          avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+      avl_info->client_data.dhcp_options = options;
+    }
+
+
+   return L7_SUCCESS;
+}
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param evcId           : evc index
@@ -558,7 +603,7 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
    dhcpInstances[dhcp_idx].circuitid.chassis             = chassis;
    dhcpInstances[dhcp_idx].circuitid.rack                = rack;
    dhcpInstances[dhcp_idx].circuitid.frame               = frame;
-   dhcpInstances[dhcp_idx].circuitid.ethernet_priority   = ethernet_priority;
+   dhcpInstances[dhcp_idx].circuitid.ethernet_priority   = 0x7 & ethernet_priority;
    dhcpInstances[dhcp_idx].circuitid.s_vid               = s_vid;
 
   return L7_SUCCESS;
@@ -957,7 +1002,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   avl_infoData->client_data.dhcp_options     = options;
   avl_infoData->client_data.circuitId.onuid  = onuid;
   avl_infoData->client_data.circuitId.slot   = slot;
-  avl_infoData->client_data.circuitId.port   = port;
+  avl_infoData->client_data.circuitId.port   = port + 1;
   avl_infoData->client_data.circuitId.q_vid  = q_vid;
   avl_infoData->client_data.circuitId.c_vid  = c_vid;
   strncpy(avl_infoData->client_data.remoteId ,remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
@@ -3160,12 +3205,12 @@ void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_cli
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_RACK_STR,             rack);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_FRAME_STR,            frame);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ETHERNETPRIORITY_STR, ethernet_priority);
-  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            s_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_S_VID_STR,            s_vid);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ONUID_STR,            onuid);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_SLOT_STR,             slot);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_PORT_STR,             port);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            q_vid);
-  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_Q_VID_STR,            c_vid);
+  ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_C_VID_STR,            c_vid);
 
   memset(circuitid, 0, FD_DS_MAX_REMOTE_ID_STRING);
   strcpy(circuitid, temp_str);

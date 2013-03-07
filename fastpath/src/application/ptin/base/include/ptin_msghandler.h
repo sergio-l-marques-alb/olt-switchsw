@@ -73,22 +73,22 @@
 #define CCMSG_ETH_SWITCH_CONFIG_GET         0x90A0  // struct msg_switch_config_t
 #define CCMSG_ETH_SWITCH_CONFIG_SET         0x90A1  // struct msg_switch_config_t
 
-//#define CCMSG_ETH_DHCP_PROFILE_GET          0x90B0  // struct msg_HwEthernetDhcpOpt82Profile_t
-//#define CCMSG_ETH_DHCP_PROFILE_ADD          0x90B1  // struct msg_HwEthernetDhcpOpt82Profile_t
-//#define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90B2  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_GET          0x90C0  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_ADD          0x90C1  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90C2  // struct msg_HwEthernetDhcpOpt82Profile_t
+                                                    //
 #define CCMSG_ETH_DHCP_CLIENT_STATS_GET     0x90C3  // struct msg_DhcpClientStatistics_t
 #define CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR   0x90C4  // struct msg_DhcpClientStatistics_t
 #define CCMSG_ETH_DHCP_INTF_STATS_GET       0x90C5  // struct msg_DhcpClientStatistics_t
 #define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_DhcpClientStatistics_t
-//#define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90B7  // struct msg_DHCP_bind_table_t
-//#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90B8  // struct msg_DHCP_bind_table_t
+
 #define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
+                                                    //
 #define CCMSG_ETH_DHCP_EVC_CIRCUITID_SET    0x90C9  // struct msg_AccessNodeCircuitId_t
 #define CCMSG_ETH_DHCP_EVC_CIRCUITID_GET    0x90CA  // struct msg_AccessNodeCircuitId_t
+
+#define CCMSG_ETH_DHCP_EVC_RECONF           0x90CB  // struct msg_DhcpEvcReconf_t
 
 #define CCMSG_ETH_PORT_COS_GET              0x9090  // struct msg_QoSConfiguration_t
 #define CCMSG_ETH_PORT_COS_SET              0x9091  // struct msg_QoSConfiguration_t
@@ -618,6 +618,17 @@ typedef struct {
 #define MSG_DHCP_CIRCUITID_MASK_PARAMETER_CVID     0x0400
 
 /* DHCP Profile */
+typedef struct {
+  L7_uchar8    slot_id;       /* Slot ID */ 
+  L7_uint16    evc_id;        /* EVC ID */
+
+  L7_uint32    mask;          /* Mask */
+
+  L7_uint8     dhcp_flag;     /* [mask=0x0001] DHCP status for this EVC (not used) */
+
+  L7_uint32    options;       /* [mask=0x0002] DHCP Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
+} __attribute__((packed)) msg_DhcpEvcReconf_t;
+
 typedef struct {
   L7_uchar8   slot_id;              /* Slot ID */ 
   L7_uint16   evc_id;               /* EVC ID */
