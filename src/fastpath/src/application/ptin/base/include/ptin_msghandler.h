@@ -627,7 +627,7 @@ typedef struct {
   char        template_str[256];    /* Circuit-id template string, as configured by the user */
   L7_uint32   mask;                 /* Circuit-id mask, identifying which variables are present in the template string */
 
-  char        access_node_id[63];   /* [mask=0x0001] Access Node ID */
+  char        access_node_id[64];   /* [mask=0x0001] Access Node ID */
   L7_uint8    chassis;              /* [mask=0x0002] Access Node Chassis */
   L7_uint8    rack;                 /* [mask=0x0004] Access Node Rack */
   L7_uint8    frame;                /* [mask=0x0008] Access Node Frame */

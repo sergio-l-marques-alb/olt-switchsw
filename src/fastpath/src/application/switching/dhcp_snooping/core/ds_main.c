@@ -1313,9 +1313,12 @@ L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                        L7_uchar8 *frame, L7_uint32 frameLen,
                        L7_ushort16 innerVlanId, L7_uint client_idx)
 {
-  L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
-  L7_uchar8 ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
+  L7_ushort16 ethHdrLen;
+  L7_uchar8 ipVersion;
   L7_RC_t ret = L7_SUCCESS;
+
+  ethHdrLen = sysNetDataOffsetGet(frame);
+  ipVersion = (0xF0 & *(L7_uchar8*)(frame + ethHdrLen)) >> 4 ;
 
   if(L7_IP_VERSION == ipVersion)
   {
