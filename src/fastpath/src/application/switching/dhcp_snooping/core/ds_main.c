@@ -1641,24 +1641,24 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Parse the received frame
-   eth_header_ptr = frame;
-   mac_header = (L7_enetHeader_t*) frame;
-   ethHdrLen = sysNetDataOffsetGet(frame);
-   ipv6_header_ptr = eth_header_ptr + ethHdrLen;
-   ipv6_header = (L7_ip6Header_t*) ipv6_header_ptr;
-   udp_header_ptr = ipv6_header_ptr + L7_IP6_HEADER_LEN;
-   udp_header = (L7_udp_header_t *) udp_header_ptr;
-   dhcp_header_ptr = udp_header_ptr + sizeof(L7_udp_header_t);
-   dhcp_header = (L7_dhcp6_packet_t*) dhcp_header_ptr;
+   eth_header_ptr    = frame;
+   mac_header        = (L7_enetHeader_t*) frame;
+   ethHdrLen         = sysNetDataOffsetGet(frame);
+   ipv6_header_ptr   = eth_header_ptr + ethHdrLen;
+   ipv6_header       = (L7_ip6Header_t*) ipv6_header_ptr;
+   udp_header_ptr    = ipv6_header_ptr + L7_IP6_HEADER_LEN;
+   udp_header        = (L7_udp_header_t *) udp_header_ptr;
+   dhcp_header_ptr   = udp_header_ptr + sizeof(L7_udp_header_t);
+   dhcp_header       = (L7_dhcp6_packet_t*) dhcp_header_ptr;
 
    //Copy received frame up to the end of the UDP header
    memcpy(frame_copy, frame, ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t));
    ipv6_copy_header_ptr = frame_copy + ethHdrLen;
-   ipv6_copy_header = (L7_ip6Header_t*) ipv6_copy_header_ptr;
-   udp_copy_header_ptr = ipv6_copy_header_ptr + L7_IP6_HEADER_LEN;
-   udp_copy_header = (L7_udp_header_t*) udp_copy_header_ptr;
+   ipv6_copy_header     = (L7_ip6Header_t*) ipv6_copy_header_ptr;
+   udp_copy_header_ptr  = ipv6_copy_header_ptr + L7_IP6_HEADER_LEN;
+   udp_copy_header      = (L7_udp_header_t*) udp_copy_header_ptr;
    dhcp_copy_header_ptr = udp_copy_header_ptr + sizeof(L7_udp_header_t);
-   frame_copy_len = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
+   frame_copy_len       = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
    //Get DHCP Options for this client
    inetAddressZeroSet(L7_AF_INET6, &client_ip_addr);
@@ -1671,7 +1671,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Check DHCPv6 frame for invalid options
    dhcp_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_packet_t);
-   frame_len = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_packet_t);
+   frame_len          = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_packet_t);
    while (frame_len > 0)
    {
       dhcp_op_header = (L7_dhcp6_option_packet_t*) dhcp_op_header_ptr;
@@ -1696,19 +1696,19 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
          case L7_DHCP6_OPT_IA_TA:
          {
             L7_uchar8 *subop_ptr = 0;
-            L7_int16 subop_len;
+            L7_int16  subop_len;
 
             subop_ptr = dhcp_op_header_ptr;
             subop_len = dhcp_op_header->option_len;
 
             if(L7_DHCP6_OPT_IA_NA == dhcp_op_header->option_code)
             {
-               subop_ptr += sizeof(L7_dhcp6_option_packet_t)+3*sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
+               subop_ptr += sizeof(L7_dhcp6_option_packet_t) + 3*sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
                subop_len -= 3*sizeof(L7_int32);
             }
             else if(L7_DHCP6_OPT_IA_TA == dhcp_op_header->option_code)
             {
-               subop_ptr += sizeof(L7_dhcp6_option_packet_t)+sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_TA
+               subop_ptr += sizeof(L7_dhcp6_option_packet_t) + sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_TA
                subop_len -= sizeof(L7_int32);
             }
 
@@ -1739,7 +1739,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
             }
          }
       }
-      frame_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
+      frame_len          -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
       dhcp_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
@@ -1784,8 +1784,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Update the UDP and IPv6 headers
-   udp_copy_header->sourcePort = 547;
-   udp_copy_header->length = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
+   udp_copy_header->sourcePort   = 547;
+   udp_copy_header->length       = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the server
@@ -1851,29 +1851,29 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Parse the received frame
-   eth_header_ptr = frame;
-   mac_header = (L7_enetHeader_t*) frame;
-   ethHdrLen = sysNetDataOffsetGet(frame);
-   ipv6_header_ptr = eth_header_ptr + ethHdrLen;
-   ipv6_header = (L7_ip6Header_t*) ipv6_header_ptr;
-   udp_header_ptr = ipv6_header_ptr + L7_IP6_HEADER_LEN;
-   udp_header = (L7_udp_header_t *) udp_header_ptr;
-   dhcp_header_ptr = udp_header_ptr + sizeof(L7_udp_header_t);
-   relay_agent_header = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
+   eth_header_ptr       = frame;
+   mac_header           = (L7_enetHeader_t*) frame;
+   ethHdrLen            = sysNetDataOffsetGet(frame);
+   ipv6_header_ptr      = eth_header_ptr + ethHdrLen;
+   ipv6_header          = (L7_ip6Header_t*) ipv6_header_ptr;
+   udp_header_ptr       = ipv6_header_ptr + L7_IP6_HEADER_LEN;
+   udp_header           = (L7_udp_header_t *) udp_header_ptr;
+   dhcp_header_ptr      = udp_header_ptr + sizeof(L7_udp_header_t);
+   relay_agent_header   = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
 
    //Copy received frame up to the end of the UDP header
    memcpy(frame_copy, frame, ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t));
    ipv6_copy_header_ptr = frame_copy + ethHdrLen;
-   ipv6_copy_header = (L7_ip6Header_t*) ipv6_copy_header_ptr;
-   udp_copy_header_ptr = ipv6_copy_header_ptr + L7_IP6_HEADER_LEN;
-   udp_copy_header = (L7_udp_header_t*) udp_copy_header_ptr;
+   ipv6_copy_header     = (L7_ip6Header_t*) ipv6_copy_header_ptr;
+   udp_copy_header_ptr  = ipv6_copy_header_ptr + L7_IP6_HEADER_LEN;
+   udp_copy_header      = (L7_udp_header_t*) udp_copy_header_ptr;
    dhcp_copy_header_ptr = udp_copy_header_ptr + sizeof(L7_udp_header_t);
-   frame_copy_len = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
+   frame_copy_len       = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
    //Get client interface from DHCP binding table
-   memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
-   memcpy(&client_mac_addr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
-   memcpy(&dhcp_binding.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+   memset(&dhcp_binding,         0,                      sizeof(dhcpSnoopBinding_t));
+   memcpy(&client_mac_addr,      mac_header->dest.addr,  L7_ENET_MAC_ADDR_LEN);
+   memcpy(&dhcp_binding.macAddr, mac_header->dest.addr,  L7_ENET_MAC_ADDR_LEN);
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
       intIfNum = dhcp_binding.intIfNum;
@@ -1886,7 +1886,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Check DHCPv6 frame for options
    relay_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_relay_agent_packet_t);
-   frame_len = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_relay_agent_packet_t);
+   frame_len           = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_relay_agent_packet_t);
    while (frame_len > 0)
    {
       dhcp_op_header = (L7_dhcp6_option_packet_t*) relay_op_header_ptr;
@@ -1917,10 +1917,10 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
             L7_dhcp6_packet_t *op_relaymsg_header;
             L7_int16 op_relaymsg_len;
 
-            op_relaymsg_ptr = relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t);
-            op_relaymsg_header = (L7_dhcp6_packet_t*) op_relaymsg_ptr;
-            op_relaymsg_ptr += sizeof(L7_dhcp6_packet_t);
-            op_relaymsg_len = dhcp_op_header->option_len - sizeof(L7_dhcp6_packet_t);
+            op_relaymsg_ptr      = relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t);
+            op_relaymsg_header   = (L7_dhcp6_packet_t*) op_relaymsg_ptr;
+            op_relaymsg_ptr      += sizeof(L7_dhcp6_packet_t);
+            op_relaymsg_len      = dhcp_op_header->option_len - sizeof(L7_dhcp6_packet_t);
 
             while (op_relaymsg_len > 0)
             {
@@ -1941,14 +1941,14 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
                   case L7_DHCP6_OPT_IA_TA:
                   {
                      L7_uchar8 *subop_ptr = 0;
-                     L7_int16 subop_len;
+                     L7_int16  subop_len;
 
                      subop_ptr = op_relaymsg_ptr;
                      subop_len = relay_subop_header->option_len;
 
                      if (L7_DHCP6_OPT_IA_NA == relay_subop_header->option_code)
                      {
-                        subop_ptr += sizeof(L7_dhcp6_option_packet_t) + 3 * sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
+                        subop_ptr += sizeof(L7_dhcp6_option_packet_t) + 3*sizeof(L7_int32); //Advance the pointer to the options field of the L7_DHCP6_OPT_IA_NA
                         subop_len -= 3 * sizeof(L7_int32);
                      }
                      else if (L7_DHCP6_OPT_IA_TA == relay_subop_header->option_code)
@@ -1996,7 +1996,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
             break; //Ignore other options
       }
 
-      frame_len -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
+      frame_len           -= sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
       relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len;
    }
 
@@ -2029,10 +2029,8 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      return L7_FAILURE;
    }
    frameEthPrty  = (L7_uint8*)(frame_copy + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-   LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
    *frameEthPrty &= 0x1F; //Reset p-bit
    *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-   LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
    //Create a new DHCPv6 message
    memcpy(dhcp_copy_header_ptr, op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t), *(L7_uint16*)(op_relaymsg_ptr + sizeof(L7_uint16)));
@@ -2040,7 +2038,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Update the UDP and IPv6 headers
    udp_copy_header->destPort = 546;
-   udp_copy_header->length = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
+   udp_copy_header->length   = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
@@ -2082,11 +2080,11 @@ L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRel
    L7_dhcp6_option_packet_t dhcp_op_dhcp_relay = { 0 };
 
    dhcp_op_dhcp_relay.option_code = L7_DHCP6_OPT_RELAY_MSG;
-   dhcp_op_dhcp_relay.option_len = dhcpRelayFrameLen;
+   dhcp_op_dhcp_relay.option_len  = dhcpRelayFrameLen;
 
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
-   memcpy(frame + *frameLen, dhcpRelayFrame, dhcp_op_dhcp_relay.option_len); //Copy DHCP-relay-message
+   memcpy(frame + *frameLen, dhcpRelayFrame,      dhcp_op_dhcp_relay.option_len); //Copy DHCP-relay-message
    *frameLen += dhcp_op_dhcp_relay.option_len;
 
    return L7_SUCCESS;
@@ -4363,10 +4361,8 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
          return L7_FAILURE;
       }
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
       *frameEthPrty &= 0x1F; //Reset p-bit
       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
       /* PTin modified: DHCP snooping */
       if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanId, frame, frameLen, L7_FALSE, innerVlanId, client_idx) == L7_SUCCESS)
@@ -4387,10 +4383,8 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
          return L7_FAILURE;
       }
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
       *frameEthPrty &= 0x1F; //Reset p-bit
       *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
       /* If there is no Circuit-id information in the Reply pakcets,
          Forward the DHCP replies to the interface based on the DHCP Snooping
@@ -4509,10 +4503,8 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
             return L7_FAILURE;
           }
           frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY before: 0x%04X", *frameEthPrty );
           *frameEthPrty &= 0x1F; //Reset p-bit
           *frameEthPrty |= ((0x7 & ethPrty) << 5); //Set p-bit
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "ETH_PRTY after:  0x%04X", *frameEthPrty );
 
           if (dsFrameIntfFilterSend(i, vlanId, frame, frameLen,
                          requestFlag, innerVlanId, client_idx) != L7_SUCCESS)                     /* PTin modified: DHCP snooping */

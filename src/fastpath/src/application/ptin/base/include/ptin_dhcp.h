@@ -30,7 +30,7 @@
 #define CIRCUITID_QVID                  0x0200
 #define CIRCUITID_CVID                  0x0400
 
-#define CIRCUITID_ACCESSNODEID_STR      "$accessnode"   
+#define CIRCUITID_ACCESSNODEID_STR      "$accessnodeid"   
 #define CIRCUITID_CHASSIS_STR           "$rack"   
 #define CIRCUITID_RACK_STR              "$subrack"
 #define CIRCUITID_FRAME_STR             "$shelf"  
