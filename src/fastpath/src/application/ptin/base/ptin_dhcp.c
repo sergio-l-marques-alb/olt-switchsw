@@ -122,11 +122,13 @@ typedef struct {
   ptinDhcpClientsAvlTree_t avlTree;
 } ptinDhcpClients_t;
 
+#define CIRCUITID_TEMPLATE_MAX_STRING   256
+
 typedef struct {
-  char template_str[256];
+  char template_str[CIRCUITID_TEMPLATE_MAX_STRING];
   L7_uint32 mask;
 
-  char access_node_id[63];
+  char access_node_id[FD_DS_MAX_REMOTE_ID_STRING];
   L7_uint8    chassis;
   L7_uint8    rack;
   L7_uint8    frame;
@@ -512,6 +514,51 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
 }
 
 /**
+ * Reconfigure global DHCP EVC
+ *
+ * @param evcId         : evc index
+ * @param dhcp_flag     : DHCP flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options)
+{
+   L7_uint dhcp_idx;
+   ptinDhcpClientDataKey_t avl_key;
+   ptinDhcpClientInfoData_t *avl_info;
+
+   /* Get DHCP instance index */
+   if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    return L7_FAILURE;
+   }
+
+   /* Validate dhcp instance */
+   if (!dhcpInstances[dhcp_idx].inUse)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+   }
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                          avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+      avl_info->client_data.dhcp_options = options;
+    }
+
+
+   return L7_SUCCESS;
+}
+
+/**
  * Set DHCP circuit-id global data
  *
  * @param evcId           : evc index
@@ -536,6 +583,17 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
     LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
+  /* Validate string lengths */
+  if ( strnlen(template_str, CIRCUITID_TEMPLATE_MAX_STRING) >= CIRCUITID_TEMPLATE_MAX_STRING )
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Template string length is invalid!");
+    return L7_FAILURE;
+  }
+  if ( strnlen(access_node_id, FD_DS_MAX_REMOTE_ID_STRING) >= FD_DS_MAX_REMOTE_ID_STRING )
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Access node identifier length is invalid!");
+    return L7_FAILURE;
+  }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
@@ -551,10 +609,14 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
     return L7_FAILURE;
   }
 
-   memcpy(dhcpInstances[dhcp_idx].circuitid.template_str, template_str, strlen(template_str) + 1);
+   memcpy(dhcpInstances[dhcp_idx].circuitid.template_str, template_str, CIRCUITID_TEMPLATE_MAX_STRING);
+   dhcpInstances[dhcp_idx].circuitid.template_str[CIRCUITID_TEMPLATE_MAX_STRING-1] = '\0';      /* Just to be sure */
+
    dhcpInstances[dhcp_idx].circuitid.mask                = mask;
 
-   memcpy(dhcpInstances[dhcp_idx].circuitid.access_node_id, access_node_id, strlen(access_node_id) + 1);
+   memcpy(dhcpInstances[dhcp_idx].circuitid.access_node_id, access_node_id, FD_DS_MAX_REMOTE_ID_STRING);
+   dhcpInstances[dhcp_idx].circuitid.access_node_id[FD_DS_MAX_REMOTE_ID_STRING-1] = '\0';       /* Just to be sure */
+
    dhcpInstances[dhcp_idx].circuitid.chassis             = chassis;
    dhcpInstances[dhcp_idx].circuitid.rack                = rack;
    dhcpInstances[dhcp_idx].circuitid.frame               = frame;
@@ -2291,13 +2353,17 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
 
       ptin_dhcp_circuitId_get(&dhcpInstances[dhcp_idx].circuitid,&client_info->client_data.circuitId,temp_str);
       strncpy(circuitId,temp_str,FD_DS_MAX_REMOTE_ID_STRING);
+      circuitId[FD_DS_MAX_REMOTE_ID_STRING - 1] = '\0';
     }
     else
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP, "circuitId is NULL");
     }
     if (remoteId!=L7_NULLPTR)
+    {
       strncpy(remoteId ,client_info->client_data.remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
+      remoteId[FD_DS_MAX_REMOTE_ID_STRING - 1] = '\0';
+    }
   }
   else
   {
@@ -3130,7 +3196,7 @@ void ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uin
 
 void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid)
 {
-  L7_uchar8 temp_str[255] = { 0 };
+  L7_uchar8 temp_str[CIRCUITID_TEMPLATE_MAX_STRING] = { 0 };
   L7_uchar8 chassis[3] = { 0 };
   L7_uchar8 rack[3] = { 0 };
   L7_uchar8 frame[3] = { 0 };
@@ -3153,7 +3219,7 @@ void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_cli
   sprintf(q_vid,              "%d", client_circuitid->q_vid);
   sprintf(c_vid,              "%d", client_circuitid->c_vid);
 
-  strcpy(temp_str, evc_circuitid->template_str);
+  strncpy(temp_str, evc_circuitid->template_str, CIRCUITID_TEMPLATE_MAX_STRING);
 
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_ACCESSNODEID_STR,     evc_circuitid->access_node_id);
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_CHASSIS_STR,          chassis);
@@ -3168,7 +3234,7 @@ void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_cli
   ptin_dhcp_circuitid_convert(temp_str, CIRCUITID_C_VID_STR,            c_vid);
 
   memset(circuitid, 0, FD_DS_MAX_REMOTE_ID_STRING);
-  strcpy(circuitid, temp_str);
+  strncpy(circuitid, temp_str, FD_DS_MAX_REMOTE_ID_STRING);
 }
 
 void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter)
@@ -3177,17 +3243,18 @@ void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repla
 
   if (L7_NULLPTR != (found_pos = strstr(circuitid_str, str_to_replace)))
   {
-    L7_uchar8 copy_circuitid[253] = { 0 };
+    L7_uchar8 copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING] = { 0 };
     L7_uint32 aux_len = 0;
 
-    memcpy(copy_circuitid, circuitid_str, 254);
-    memset(circuitid_str, 0, 254);
+    memcpy(copy_circuitid, circuitid_str, CIRCUITID_TEMPLATE_MAX_STRING);
+    memset(circuitid_str, 0, CIRCUITID_TEMPLATE_MAX_STRING);
 
     memcpy(circuitid_str, copy_circuitid, found_pos - circuitid_str);
     aux_len += found_pos - circuitid_str;
     memcpy(circuitid_str + aux_len, parameter, strlen(parameter));
     aux_len += strlen(parameter);
-    memcpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), 254-((found_pos-circuitid_str)+strlen(str_to_replace)));
+    memcpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), 
+           CIRCUITID_TEMPLATE_MAX_STRING-((found_pos-circuitid_str)+strlen(str_to_replace)));
   }
 }
 
