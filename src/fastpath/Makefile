@@ -9,10 +9,15 @@
 
 .PHONY: help h all kernel_cxp360g kernel_cxo640g kernel_tolt8g kernel_tg16g kernel_olt7-8chb olt360 olt1t3 cxp360g cxo640g tolt8g tg16g olt7-8chb cli shell clean clean_olt360 clean_olt1t3 clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt1t3 cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt1t3 install_cxp360g install_cxo640g install_tolt8g install_tg16g install_olt7-8chb install_cli install_shell image image_olt360 image_olt1t3
 
-FASTPATH_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
+SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
-version = 0.0.0
-version_used = $(version)-r$(FASTPATH_REV)
+version = "test"
+
+ifeq ($(version),"test")
+ version_final = $(version)-r$(SVN_REV)
+else
+ version_final = $(version)-r1
+endif
 
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
@@ -206,11 +211,11 @@ cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g clean
 
 
 image:		install
-		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_used)
+		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_final)
 
 image_olt360:	install_olt360
-		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version_used)
+		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version_final)
 
 image_olt1t3:	install_olt1t3
-		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_used)
+		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_final)
 
