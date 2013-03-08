@@ -123,9 +123,10 @@ void ptin_debug(void)
   printf("  ptin_msg_runtime_init <msg_id>      - Initialize runtime measurements for msg_id (-1 for all)\r\n");
   printf("  ptin_msg_runtime_show               - Show runtime measurements for all messages\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
-  printf("  snoopDebugTraceFlagsSetAF <1/2>     - Activate specific IGMP snoop trace messages\r\n");
   printf("  snoopDebugTraceEnable               - Enable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceDisable              - Disable IGMP snoop trace debugging\r\n");
+  printf("  snoopDebugTraceFlagsSetAF <1/2>     - Activate specific IGMP snoop trace messages\r\n");
+  printf("  dsTraceFlagsSet <flags_mask>        - Enable detailed debug for DHCP snooping (flags_mask=0xff)\r\n");
   printf("  ptin_debug_igmp_enable <enable>     - Show more debugging logs for the IGMP module\r\n");
   printf("  ptin_debug_dhcp_enable <enable>     - Show more debugging logs for the DHCP module\r\n");
   printf("\r\n");
@@ -351,7 +352,7 @@ void ptin_intf_dump(void)
     ptin_intf_counters_read(&portStats);
 
     /* Switch port: ge/xe (indexes changed according to the board) */
-#if (PTIN_BOARD == PTIN_BOARD_MATRIX_FAMILY)
+#if (PTIN_BOARD_IS_MATRIX)
     sprintf(bcm_port, "xe%u", hapiSlotMapPtr[port].bcm_port - 1);
 #else
     sprintf(bcm_port, "%2.2s%u",
@@ -360,7 +361,7 @@ void ptin_intf_dump(void)
 #endif
 
     printf("|  %2u  |  %2u  |    %2u    | %4.4s | %-8.8s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
-#if (PTIN_BOARD == PTIN_BOARD_MATRIX_FAMILY)
+#if (PTIN_BOARD_IS_MATRIX)
            port%(PTIN_SYSTEM_N_PORTS/2) + 2,
 #else
            0,
