@@ -661,7 +661,7 @@ typedef struct {
   L7_uint8              mask;         /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;         /* [mask=0x01] Interface */
   msg_client_info_t     client;       /* [mask=0x02] Client reference */
-  L7_uint16             options;      /* [mask=0x04] Options to be active: 0x01=Option82; 0x02=Option 37; 0x04=Option18 */
+  L7_uint16             options;      /* [mask=0x04] 0x01=Option82; 0x02=UseEvcOp82; 0x04=Option37; 0x08=UseEvcOp37; 0x10=Option18; 0x20=UseEvcOp18 */
   msg_clientCircuitId_t circuitId;    /* [mask=0x10] Circuit id */
 //  char                  circuitId[64];/* [mask=0x20] Remote id */
   char                  remoteId[64]; /* [mask=0x20] Remote id */

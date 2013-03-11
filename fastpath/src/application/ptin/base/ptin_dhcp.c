@@ -95,6 +95,7 @@ typedef struct {
 
 typedef struct
 {
+  L7_BOOL                 useEvcDhcpOptions;
   L7_uint16               dhcp_options;
   ptin_clientCircuitId_t  circuitId;                              /* Circuit ID parameters */
   L7_char8                remoteId[FD_DS_MAX_REMOTE_ID_STRING+1]; /* Remote ID string */
@@ -117,7 +118,7 @@ typedef struct {
 
 /* DHCP AVL Tree data */
 typedef struct {
-  L7_uint16 number_of_clients;
+  L7_uint16                number_of_clients;
   ptinDhcpClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE];
   ptinDhcpClientsAvlTree_t avlTree;
 } ptinDhcpClients_t;
@@ -138,11 +139,12 @@ typedef struct {
 
 /* DHCP Instance config struct */
 typedef struct {
-  L7_BOOL   inUse;
-  L7_uint16 UcastEvcId;
-  ptinDhcpClients_t dhcpClients;
-  ptin_DHCP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
-  ptin_AccessNodeCircuitId_t circuitid;
+  L7_BOOL                     inUse;
+  L7_uint16                   UcastEvcId;
+  ptinDhcpClients_t           dhcpClients;
+  L7_uint16                   evcDhcpOptions;   /* DHCP Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
+  ptin_DHCP_Statistics_t      stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
+  ptin_AccessNodeCircuitId_t  circuitid;
 } st_DhcpInstCfg_t;
 
 /*********************************************************** 
@@ -542,17 +544,24 @@ L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 opti
     return L7_FAILURE;
    }
 
-    /* Run all cells in AVL tree */
-    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
-    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
-                          avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-            ) != L7_NULLPTR )
-    {
+   /* Save EVC DHCP Options */
+   dhcpInstances[dhcp_idx].evcDhcpOptions = options;
+
+   /* Run all cells in AVL tree */
+   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+   while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                       avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+         ) != L7_NULLPTR )
+   {
       /* Prepare next key */
       memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
 
-      avl_info->client_data.dhcp_options = options;
-    }
+      /* Reconfigure DHCP options for clients that are using Global EVC DHCP options */
+      if(L7_TRUE == avl_info->client_data.useEvcDhcpOptions)
+      {
+         avl_info->client_data.dhcp_options = options;
+      }
+   }
 
 
    return L7_SUCCESS;
@@ -1016,7 +1025,19 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Fill DHCP options, circuit and remote id fields */
-  avl_infoData->client_data.dhcp_options     = options;
+  if( ((options&0x02) >> 1) == 0 ) // Check if this client is using the EVC options
+  {
+     avl_infoData->client_data.useEvcDhcpOptions   = L7_TRUE;
+     avl_infoData->client_data.dhcp_options        = dhcpInstances[dhcp_idx].evcDhcpOptions;
+  }
+  else
+  {
+     avl_infoData->client_data.useEvcDhcpOptions   = L7_FALSE;
+     avl_infoData->client_data.dhcp_options        = 0;
+     avl_infoData->client_data.dhcp_options        |= (options & 0x0001);
+     avl_infoData->client_data.dhcp_options        |= (options & 0x0004) >> 1;
+     avl_infoData->client_data.dhcp_options        |= (options & 0x0010) >> 2;
+  }
   avl_infoData->client_data.circuitId.onuid  = onuid;
   avl_infoData->client_data.circuitId.slot   = slot;
   avl_infoData->client_data.circuitId.port   = port + 1;

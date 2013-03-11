@@ -2680,7 +2680,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 {
   L7_uint           i, evc_idx;
   ptin_client_id_t  client;
-  L7_RC_t           rc;
+  L7_RC_t           rc = L7_SUCCESS;
 
   /* Validate input parameters */
   if (profile==L7_NULLPTR)  {
@@ -2706,6 +2706,18 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.port               = %u",     profile[i].circuitId.port);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.q_vid              = %u",     profile[i].circuitId.q_vid);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
+
+    /* Check if all UseGlobal_DHCP_options match */
+    if( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
+    {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+       return L7_FAILURE;
+    }
+    if( ((profile[i].options & 0x08) >> 3) != ((profile[i].options & 0x20) >> 5) )
+    {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+       return L7_FAILURE;
+    }
 
     /* Extract input data */
     evc_idx = profile[i].evc_id;
