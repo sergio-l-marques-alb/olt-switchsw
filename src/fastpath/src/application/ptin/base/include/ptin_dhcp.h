@@ -31,8 +31,8 @@
 #define CIRCUITID_CVID                  0x0400
 
 #define CIRCUITID_ACCESSNODEID_STR      "$accessnodeid"   
-#define CIRCUITID_CHASSIS_STR           "$rack"   
-#define CIRCUITID_RACK_STR              "$subrack"
+#define CIRCUITID_CHASSIS_STR           "$subrack"   
+#define CIRCUITID_RACK_STR              "$rack"
 #define CIRCUITID_FRAME_STR             "$shelf"  
 #define CIRCUITID_ETHERNETPRIORITY_STR  "$ethprty"
 #define CIRCUITID_S_VID_STR             "$svid"  
