@@ -3241,20 +3241,38 @@ void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repla
 {
   L7_char8 *found_pos;
 
+  /* Search for the pointer to the field to search... if not null, it was found! */
   if (L7_NULLPTR != (found_pos = strstr(circuitid_str, str_to_replace)))
   {
     L7_uchar8 copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING] = { 0 };
     L7_uint32 aux_len = 0;
+    L7_uint32 copy_len = 0;
 
+    /* Save original circuitId_str (template), and then clear it */
     memcpy(copy_circuitid, circuitid_str, CIRCUITID_TEMPLATE_MAX_STRING);
     memset(circuitid_str, 0, CIRCUITID_TEMPLATE_MAX_STRING);
 
+    /* Copy beginning of the template string (before the field id) */
     memcpy(circuitid_str, copy_circuitid, found_pos - circuitid_str);
+    circuitid_str[found_pos - circuitid_str] = '\0';
+
+    /* Copy parameter value */
     aux_len += found_pos - circuitid_str;
-    memcpy(circuitid_str + aux_len, parameter, strlen(parameter));
-    aux_len += strlen(parameter);
-    memcpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), 
-           CIRCUITID_TEMPLATE_MAX_STRING-((found_pos-circuitid_str)+strlen(str_to_replace)));
+    copy_len = strlen(parameter);
+    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING )
+      copy_len = CIRCUITID_TEMPLATE_MAX_STRING - aux_len - 1;
+
+    memcpy(circuitid_str + aux_len, parameter, copy_len );
+    circuitid_str[aux_len + copy_len] = '\0';
+
+    /* Copy the remainning template string (after field id) */
+    aux_len += copy_len;
+    copy_len = CIRCUITID_TEMPLATE_MAX_STRING-((found_pos-circuitid_str)+strlen(str_to_replace));
+    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING )
+      copy_len = CIRCUITID_TEMPLATE_MAX_STRING - aux_len - 1;
+
+    memcpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), copy_len);
+    circuitid_str[aux_len + copy_len] = '\0';
   }
 }
 
