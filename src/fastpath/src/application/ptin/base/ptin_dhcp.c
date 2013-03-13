@@ -3200,9 +3200,11 @@ void ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uin
    *ethprty = evc_circuitid->ethernet_priority;
 }
 
+#define CIRCUITID_TEMPLATE_MAX_STRING_TMP   (CIRCUITID_TEMPLATE_MAX_STRING*2)
+
 void ptin_dhcp_circuitId_get(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid)
 {
-  L7_uchar8 temp_str[CIRCUITID_TEMPLATE_MAX_STRING] = { 0 };
+  L7_uchar8 temp_str[CIRCUITID_TEMPLATE_MAX_STRING_TMP] = { 0 };
   L7_uchar8 chassis[3] = { 0 };
   L7_uchar8 rack[3] = { 0 };
   L7_uchar8 frame[3] = { 0 };
@@ -3251,33 +3253,31 @@ void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repla
   /* Search for the pointer to the field to search... if not null, it was found! */
   if (L7_NULLPTR != (found_pos = strstr(circuitid_str, str_to_replace)))
   {
-    L7_uchar8 copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING] = { 0 };
+    L7_uchar8 copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING_TMP] = { 0 };
     L7_uint32 aux_len = 0;
     L7_uint32 copy_len = 0;
 
     /* Save original circuitId_str (template), and then clear it */
-    strncpy(copy_circuitid, circuitid_str, CIRCUITID_TEMPLATE_MAX_STRING);
-    copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING-1] = '\0';
+    strncpy(copy_circuitid, circuitid_str, CIRCUITID_TEMPLATE_MAX_STRING_TMP);
+    copy_circuitid[CIRCUITID_TEMPLATE_MAX_STRING_TMP-1] = '\0';
 
     /* Copy beginning of the template string (before the field id) */
     copy_len = found_pos - circuitid_str;
     strncpy(circuitid_str, copy_circuitid, copy_len);
-    circuitid_str[copy_len] = '\0';
 
     /* Copy parameter value */
     aux_len += found_pos - circuitid_str;
     copy_len = strlen(parameter);
-    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING )
-      copy_len = CIRCUITID_TEMPLATE_MAX_STRING - aux_len - 1;
+    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING_TMP )
+      copy_len = CIRCUITID_TEMPLATE_MAX_STRING_TMP - aux_len - 1;
 
     strncpy(circuitid_str + aux_len, parameter, copy_len );
-    circuitid_str[aux_len + copy_len] = '\0';
 
     /* Copy the remainning template string (after field id) */
     aux_len += copy_len;
-    copy_len = CIRCUITID_TEMPLATE_MAX_STRING-((found_pos-circuitid_str)+strlen(str_to_replace));
-    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING )
-      copy_len = CIRCUITID_TEMPLATE_MAX_STRING - aux_len - 1;
+    copy_len = CIRCUITID_TEMPLATE_MAX_STRING_TMP-((found_pos-circuitid_str)+strlen(str_to_replace));
+    if ( (aux_len + copy_len) >= CIRCUITID_TEMPLATE_MAX_STRING_TMP )
+      copy_len = CIRCUITID_TEMPLATE_MAX_STRING_TMP - aux_len - 1;
 
     strncpy(circuitid_str + aux_len, copy_circuitid+(found_pos-circuitid_str)+strlen(str_to_replace), copy_len);
     circuitid_str[aux_len + copy_len] = '\0';
