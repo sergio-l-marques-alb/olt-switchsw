@@ -1025,7 +1025,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Fill DHCP options, circuit and remote id fields */
-  if( ((options&0x02) >> 1) == 0 ) // Check if this client is using the EVC options
+  if( ((options&0x02) >> 1) == 1 ) // Check if this client is using the EVC options
   {
      avl_infoData->client_data.useEvcDhcpOptions   = L7_TRUE;
      avl_infoData->client_data.dhcp_options        = dhcpInstances[dhcp_idx].evcDhcpOptions;
