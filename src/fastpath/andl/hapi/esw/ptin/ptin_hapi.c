@@ -1569,7 +1569,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   bcm_unit = usp_map[0].unit;
 
   /* Initialize PTP interface port in XAUI mode (4 lanes) */
-#if (PTIN_BOARD == PTIN_BOARD_CXP360G)
+#if ( PTIN_BOARD_IS_MATRIX )
   int ret;
   ret = bcm_port_control_set(0, PTIN_PTP_PORT, bcmPortControlLanes, 4);
   if (BCM_E_NONE != ret)
