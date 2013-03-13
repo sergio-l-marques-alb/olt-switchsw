@@ -482,7 +482,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 //# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
-# define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.101: Protection Matrix */
+# define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
 # define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
 
 
@@ -601,7 +601,9 @@ typedef union
 extern volatile st_fpga_map_t *fpga_map;
 
 //# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
-# define IPC_SERVER_IPADDR             0xC0A8C865  /* 192.168.200.101 Hardcoded!!! */
+# define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
+# define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
+# define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
 
 #endif
 
