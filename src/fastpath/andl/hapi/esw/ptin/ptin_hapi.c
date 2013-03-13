@@ -173,6 +173,7 @@ L7_RC_t ptin_hapi_phy_init(void)
 //    break;
 //  }
 
+    #if 0
     /* Define preemphasis value according to port */
     /* Nearest slots, will use main=52, post=11 */
     if ( i <= 16 )
@@ -189,6 +190,10 @@ L7_RC_t ptin_hapi_phy_init(void)
     {
       preemphasis = PTIN_PHY_PREEMPHASIS_DEFAULT;
     }
+    #else
+    /* Use these settings for all slots */
+    preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
+    #endif
     
     rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
 
