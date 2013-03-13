@@ -1535,11 +1535,11 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXP360G)
+#if (PTIN_BOARD_IS_MATRIX)
   const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "CXP360G detected on %s slot",
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Matrix board detected on %s slot",
            cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_WORK ? "working" : "protection");
 
   for (i = 0; i < min((sizeof(portmap_work)/portmap_work[0]), PTIN_SYSTEM_N_PORTS); i++)
@@ -1569,7 +1569,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   bcm_unit = usp_map[0].unit;
 
   /* Initialize PTP interface port in XAUI mode (4 lanes) */
-#if ( PTIN_BOARD_IS_MATRIX )
+#if ( PTIN_BOARD == PTIN_BOARD_CXP360G )
   int ret;
   ret = bcm_port_control_set(0, PTIN_PTP_PORT, bcmPortControlLanes, 4);
   if (BCM_E_NONE != ret)

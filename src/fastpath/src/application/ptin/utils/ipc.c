@@ -869,7 +869,7 @@ static void ipc_server_ipaddr_init(void)
 {
   server_ipaddr = IPC_SERVER_IPADDR;
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXP360G)
+  #if (PTIN_BOARD_IS_MATRIX)
   if (cpld_map->reg.slot_id==0)
     server_ipaddr = IPC_SERVER_IPADDR_WORKING;
   else
