@@ -489,6 +489,11 @@ extern volatile st_fpga_map_t *fpga_map;
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
+/* If SSM is not supported, comment this line */
+#define SYNC_SSM_IS_SUPPORTED
+#define PTIN_PTP_PORT     56  /* PTP interface port nr (xe56) */
+
+
 # define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
 # define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
 # define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
@@ -529,7 +534,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFFFFFFFFFFFFFFULL
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
-# define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
+# define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */

@@ -4359,6 +4359,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
@@ -4475,6 +4476,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclient->out_vlan;
+          profile->inner_vlan_out = pclient->inn_vlan;
           *bwPolicer_ptr = &(pclient->bwprofile[PTIN_EVC_INTF_LEAF]);
         }
         else
@@ -4540,6 +4542,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
@@ -4580,6 +4583,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," Dest_IP   = %u",profile->dst_ip);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
@@ -4694,6 +4698,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclient->out_vlan;
+          profile->inner_vlan_out = pclient->inn_vlan;
           *counters_ptr = &(pclient->counter[PTIN_EVC_INTF_LEAF]);
         }
         else
@@ -4722,6 +4727,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," Dst_IP    = %u",profile->dst_ip);
 
   return L7_SUCCESS;
@@ -4937,6 +4943,19 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   }
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
+  /* We should have an outer vlan for this interface */
+  if (evcs[evc_idx].intf[ptin_port].out_vlan==0 ||
+      evcs[evc_idx].intf[ptin_port].out_vlan>=4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not unstacked!",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Update outer vlans */
+  profile->outer_vlan_out = 0;
+  profile->outer_vlan_in  = evcs[evc_idx].intf[ptin_port].int_vlan;
+  profile->inner_vlan_out = 0;
+  profile->inner_vlan_out = 0;
 
   /* Find an existent probe */
   if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
