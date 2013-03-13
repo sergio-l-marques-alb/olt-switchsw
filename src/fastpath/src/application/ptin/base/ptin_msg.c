@@ -2650,7 +2650,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 
   /* Get circuit and remote ids */
   rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &profile->circuitId.onuid, &profile->circuitId.slot, &profile->circuitId.port,
-      &profile->circuitId.q_vid, &profile->circuitId.c_vid, profile->remoteId);
+      &profile->circuitId.q_vid, &profile->circuitId.c_vid, L7_NULLPTR, profile->remoteId);
 
   if (rc!=L7_SUCCESS)
   {

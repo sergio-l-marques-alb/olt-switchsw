@@ -212,7 +212,8 @@ extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_dhcp_client_get(L7_uint16 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, L7_uint16 *onuid, L7_uint8 *slot,
-                                    L7_uint16 *port, L7_uint16 *q_vid, L7_uint16 *c_vid, L7_char8 *remoteId);
+                                    L7_uint16 *port, L7_uint16 *q_vid, L7_uint16 *c_vid,
+                                    L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
  * Add a new DHCP client
