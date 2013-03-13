@@ -16,7 +16,7 @@ version = "test"
 ifeq ($(version),"test")
  version_final = $(version)-r$(SVN_REV)
 else
- version_final = $(version)-r1
+ version_final = $(version)-r$(SVN_REV)
 endif
 
 FP_CLI_DIR	= ../fastpath.cli
