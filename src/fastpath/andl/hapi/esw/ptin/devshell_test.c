@@ -639,6 +639,9 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
   return(0);
 }
 
+/* BER tests only for the CXO640G */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+
 #include <bcm/port.h>
 #include <unistd.h>
 //#include <application/ptin/utils/include/ipc_lib.h>
@@ -675,56 +678,10 @@ extern int  send_data       (int canal_id,
 
 #define N_SLOTS_MAX   18
 #define N_GROUPS_MAX  7
-#define N_LANES_MAX   4
+#define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-const int xe_slot_map[2][20][N_LANES_MAX] = {
-  /* Working */
-  {
-    { -1, -1, -1, -1 },
-    { -1, -1, -1, -1 },
-    { -1, -1,  0,  1 },
-    { -1, -1,  2,  3 },
-    {  4,  5,  6,  7 },
-    {  8,  9, 10, 11 },
-    { -1, -1, 12, 13 },
-    { -1, -1, 14, 15 },
-    { 16, 17, 18, 19 },
-    { 20, 21, 22, 23 },
-    { 24, 25, 26, 27 },
-    { 28, 29, 30, 31 },
-    { 32, 33, 34, 35 },
-    { 36, 37, 38, 39 },
-    { -1, -1, 40, 41 },
-    { -1, -1, 42, 43 },
-    { 44, 45, 46, 47 },
-    { 48, 49, 50, 51 },
-    { -1, -1, 52, 53 },
-    { -1, -1, 54, 55 }
-  },
-  /* Protection */
-  {
-    { -1, -1, -1, -1 },
-    { -1, -1, -1, -1 },
-    { -1, -1, 54, 55 },
-    { -1, -1, 52, 53 },
-    { 48, 49, 50, 51 },
-    { 44, 45, 46, 47 },
-    { -1, -1, 42, 43 },
-    { -1, -1, 40, 41 },
-    { 36, 37, 38, 39 },
-    { 32, 33, 34, 35 },
-    { 28, 29, 30, 31 },
-    { 24, 25, 26, 27 },
-    { 20, 21, 22, 23 },
-    { 16, 17, 18, 19 },
-    { -1, -1, 14, 15 },
-    { -1, -1, 12, 13 },
-    {  8,  9, 10, 11 },
-    {  4,  5,  6,  7 },
-    { -1, -1,  2,  3 },
-    { -1, -1,  0,  1 }
-  }
-};
+const int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP_WORK, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
+
 
 /* To save BER results */
 struct ber_t {
@@ -3093,5 +3050,31 @@ int ptin_ber_help(void)
          );
 
   return 0;
+}
+
+#else
+
+int ptin_ber_help(void)
+{
+  printf("\nPRBS/BER tests are not supported for this board!\n");
+
+  return 0;
+}
+
+int ber_init(void)
+{
+  return ptin_ber_help();
+}
+
+int init_remote_ber(void)
+{
+  return ptin_ber_help();
+}
+
+#endif
+
+int ber_help(void)
+{
+  return ptin_ber_help();
 }
 

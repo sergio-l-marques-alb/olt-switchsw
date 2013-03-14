@@ -82,8 +82,7 @@ L7_RC_t ssmPduHeaderTagRemove(L7_netBufHandle bufHandle);
 L7_RC_t ssmCodesInit(void);
 L7_RC_t ssmTimersUpdate(void);
 L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code);
-L7_RC_t ssmPort2SlotIntf(L7_uint32 intIfNum, L7_uint16 *slot_ret, L7_uint16 *intf_ret);
-L7_RC_t ssmSlotIntf2Port(L7_uint16 slot, L7_uint16 intf, L7_uint32 *intIfNum_ret);
+
 
 L7_BOOL ssm_debug_enable = 0;
 
@@ -661,14 +660,14 @@ void ssmPDUSend(void)
 
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
-    for (intf=0; intf<SSM_N_INTFS; intf++)
+    for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
       /* Check if tranmission is allowed for this slot/intf */
       if ( !((pfw_shm->intf[slot][intf].ssm_tx >> 16) & 1) )
         continue;
 
       /* Find the respective intIfNum, and proceed to tranmission */
-      if (ssmSlotIntf2Port(slot,intf,&intIfNum)==L7_SUCCESS)
+      if (ptin_intf_slotPort2IntIfNum(slot,intf,&intIfNum)==L7_SUCCESS)
       {
         ssmPDUTransmit(intIfNum);
       }
@@ -702,10 +701,10 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   L7_uint16 slot, intf;
 
   /* Convert port to slot/intf */
-  if (ssmPort2SlotIntf(intIfNum, &slot, &intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf)!=L7_SUCCESS)
   {
-    if (ssm_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    //if (ssm_debug_enable)
+    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
 
@@ -937,7 +936,7 @@ L7_RC_t ssmCodesInit(void)
     /* Initialize reception zone */
     for (slot=0; slot<SSM_N_SLOTS; slot++)
     {
-      for (intf=0; intf<SSM_N_INTFS; intf++)
+      for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
       {
         pfw_shm->intf[slot][intf].ssm_rx = 0x00000000UL;
         pfw_shm->intf[slot][intf].ssm_tx = 0x00000000UL;
@@ -975,7 +974,7 @@ L7_RC_t ssmTimersUpdate(void)
   /* Run all slots and timers */
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
-    for (intf=0; intf<SSM_N_INTFS; intf++)
+    for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
       /* Increment timer */
       if (ssm_timer[slot][intf]<=6)
@@ -984,7 +983,7 @@ L7_RC_t ssmTimersUpdate(void)
       }
 
       /* Update link status */
-      if (ssmSlotIntf2Port(slot,intf,&intIfNum)==L7_SUCCESS &&
+      if (ptin_intf_slotPort2IntIfNum(slot,intf,&intIfNum)==L7_SUCCESS &&
           nimGetIntfLinkState(intIfNum,&linkState)==L7_SUCCESS)
       {
         pfw_shm->intf[slot][intf].link = (linkState==L7_UP);
@@ -1029,10 +1028,10 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   L7_uint16 slot, intf;
 
   /* Convert port to slot/intf */
-  if (ssmPort2SlotIntf(intIfNum, &slot, &intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf)!=L7_SUCCESS)
   {
-    if (ssm_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    //if (ssm_debug_enable)
+    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
 
@@ -1050,109 +1049,10 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   return L7_SUCCESS;
 }
 
-/**
- * Convert physical port to 
- * 
- * @author mruas (11/29/2012)
- * 
- * @param intIfNum 
- * @param slot_ret 
- * @param intf_ret 
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ssmPort2SlotIntf(L7_uint32 intIfNum, L7_uint16 *slot_ret, L7_uint16 *intf_ret)
-{
-  ptin_intf_t ptin_intf;
-  L7_uint16 slot, intf;
-
-  /* Convert intIfNum to ptin_intf */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
-  {
-    //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid intIfNum (%u)",intIfNum);
-    return L7_FAILURE;
-  }
-
-  /* Do not accept non physical interfaces */
-  if (ptin_intf.intf_type!=PTIN_EVC_INTF_PHYSICAL)
-  {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface (%u/%u)", ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Validate interface id */
-  if (ptin_intf.intf_id >= (PTIN_SYSTEM_N_PORTS-1))
-  {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface id (%u/%u)", ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Calculate slot and intf */
-  slot = ptin_intf.intf_id + 2 - 1;
-  intf = 0;
-  if (ptin_intf.intf_id >= (PTIN_SYSTEM_N_PORTS-1)/2 )
-  {
-    slot -= (PTIN_SYSTEM_N_PORTS-1)/2;
-    intf  = 1;
-  }
-
-  /* Validate slot and intf */
-  if (slot>=SSM_N_SLOTS || intf>=SSM_N_INTFS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot (%u) or intf (%u) for ptin_intf=%u/%u", slot, intf, ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-
-  if (slot_ret!=L7_NULLPTR)  *slot_ret = slot;
-  if (intf_ret!=L7_NULLPTR)  *intf_ret = intf;
-
-  return L7_SUCCESS;
-}
-
-/**
- * Convert slot/intf to intIfNum
- * 
- * @author mruas (11/29/2012)
- * 
- * @param slot 
- * @param intf 
- * @param intIfNum_ret  
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ssmSlotIntf2Port(L7_uint16 slot, L7_uint16 intf, L7_uint32 *intIfNum_ret)
-{
-  L7_uint32   intIfNum;
-  ptin_intf_t ptin_intf;
-
-  /* Validate slot and intf */
-  if (slot<1 || slot>=(SSM_N_SLOTS-1) || intf>=SSM_N_INTFS)
-  {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / intf %u is out of range",slot,intf);
-    return L7_FAILURE;
-  }
-
-  /* Determine ptin_intf */
-  ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
-  ptin_intf.intf_id   = (intf==0) ? (slot-1) : (slot+18-1);
-
-  /* Convert ptin_intf to intIfNum */
-  if (ptin_intf_ptintf2intIfNum(&ptin_intf,&intIfNum)!=L7_SUCCESS)
-  {
-    //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid ptin_intf (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-
-  if (intIfNum_ret!=L7_NULLPTR)  *intIfNum_ret = intIfNum;
-
-  return L7_SUCCESS;
-}
 
 void ssm_debug_dump(void)
 {
-  L7_uint slot, intf;
+  L7_uint slot, intf, n_intf;
 
   if (pfw_shm==L7_NULLPTR)
   {
@@ -1160,11 +1060,17 @@ void ssm_debug_dump(void)
     return;
   }
 
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G )
+  n_intf = 4;
+  #else
+  n_intf = 2;
+  #endif
+
   printf("Dumping SSM shared memory:\r\n");
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
     printf("slot=%02u: { ",slot);
-    for (intf=0; intf<SSM_N_INTFS; intf++)
+    for (intf=0; intf<n_intf; intf++)
     {
       printf("rx=0x%08x/tx=0x%08x/lnk=%u ",pfw_shm->intf[slot][intf].ssm_rx, pfw_shm->intf[slot][intf].ssm_tx, pfw_shm->intf[slot][intf].link);
     }

@@ -21,6 +21,17 @@
 
 #define MAP_EMTPY_ENTRY     0xFFFFFFFF  /* 32bits unsigned */
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+static const int ptin_sys_slotport_to_intf_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] =
+                  { PTIN_SLOTPORT_TO_INTF_MAP_WORK, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
+
+static const int ptin_sys_intf_to_slot_map[2][PTIN_SYSTEM_N_PORTS] =
+                  { PTIN_INTF_TO_SLOT_MAP_WORK    , PTIN_INTF_TO_SLOT_MAP_PROT      };
+
+static const int ptin_sys_intf_to_port_map[2][PTIN_SYSTEM_N_PORTS] =
+                  { PTIN_INTF_TO_PORT_MAP_WORK    , PTIN_INTF_TO_PORT_MAP_PROT      };
+#endif
+
 /**
  * Data Structures
  */
@@ -802,6 +813,144 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
 /****************************************************************************** 
  * Port, LAGs and Interfaces convertion functions
  ******************************************************************************/
+
+/**
+ * Get slot and port location in the system, from the intIfNum
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param intIfNum 
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_ret, L7_uint16 *port_ret)
+{
+  ptin_intf_t ptin_intf;
+  L7_uint slot, port;
+
+  /* Convert intIfNum to ptin_intf */
+  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  {
+    //if (ssm_debug_enable)
+    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid intIfNum (%u)",intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Do not accept non physical interfaces */
+  if (ptin_intf.intf_type!=PTIN_EVC_INTF_PHYSICAL)
+  {
+    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface (%u/%u)", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Validate interface id */
+  if (ptin_intf.intf_id >= PTIN_SYSTEM_N_PORTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface id (%u/%u)", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Calculate slot and port */
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+
+  L7_BOOL protection;
+
+  protection = cpld_map->reg.slot_id & 1;   /* Check if we are in working or pretection side */
+
+  /* Check if interface is used */
+  if ( ptin_sys_intf_to_slot_map[protection][ptin_intf.intf_id] < 0 ||
+       ptin_sys_intf_to_port_map[protection][ptin_intf.intf_id] < 0 )
+  {
+    //LOG_ERR(LOG_CTX_PTIN_SSM,"ptin_intf=%u/%u is not mapped!", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+  slot = ptin_sys_intf_to_slot_map[protection & 1][ptin_intf.intf_id];
+  port = ptin_sys_intf_to_port_map[protection & 1][ptin_intf.intf_id];
+
+  #else
+  slot = ptin_intf.intf_id + 2 - 1;
+  port = 0;
+  if (ptin_intf.intf_id >= (PTIN_SYSTEM_N_PORTS-1)/2 )
+  {
+    slot -= (PTIN_SYSTEM_N_PORTS-1)/2;
+    port  = 1;
+  }
+  #endif
+
+  /* Validate slot and port */
+  if (slot>=PTIN_SYS_SLOTS_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot (%u) or port (%u) for ptin_intf=%u/%u", slot, port, ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  if (slot_ret!=L7_NULLPTR)  *slot_ret = slot;
+  if (port_ret!=L7_NULLPTR)  *port_ret = port;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the intIfNum from the slot and port location in the 
+ * system.
+ * 
+ * @param slot_ret 
+ * @param intf_ret 
+ * @param intIfNum (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 port, L7_uint32 *intIfNum_ret)
+{
+  L7_uint32   intIfNum;
+  ptin_intf_t ptin_intf;
+
+  /* Validate slot and port */
+  if (slot>=PTIN_SYS_SLOTS_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
+  {
+    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is out of range",slot,port);
+    return L7_FAILURE;
+  }
+
+  /* Determine ptin_intf */
+
+  /* Calculate slot and port */
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+
+  L7_BOOL protection;
+
+  protection = cpld_map->reg.slot_id & 1;   /* Check if we are in working or pretection side */
+
+  /* Check if interface is valid */
+  if ( ptin_sys_slotport_to_intf_map[protection][slot][port] < 0 )
+  {
+    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is not mapped",slot,port);
+    return L7_FAILURE;
+  }
+
+  ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+  ptin_intf.intf_id   = ptin_sys_slotport_to_intf_map[protection][slot][port];
+
+  #else
+  ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+  ptin_intf.intf_id   = (port==0) ? (slot-1) : (slot+18-1);
+  #endif
+
+  /* Convert ptin_intf to intIfNum */
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf,&intIfNum)!=L7_SUCCESS)
+  {
+    //if (ssm_debug_enable)
+    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid ptin_intf (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  if (intIfNum_ret!=L7_NULLPTR)  *intIfNum_ret = intIfNum;
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Get current slot_id for this board
