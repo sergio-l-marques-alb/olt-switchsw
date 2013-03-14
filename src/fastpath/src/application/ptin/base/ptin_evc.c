@@ -4476,7 +4476,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclient->out_vlan;
-          profile->inner_vlan_out = pclient->inn_vlan;
+          profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
           *bwPolicer_ptr = &(pclient->bwprofile[PTIN_EVC_INTF_LEAF]);
         }
         else
@@ -4698,7 +4698,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclient->out_vlan;
-          profile->inner_vlan_out = pclient->inn_vlan;
+          profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
           *counters_ptr = &(pclient->counter[PTIN_EVC_INTF_LEAF]);
         }
         else
