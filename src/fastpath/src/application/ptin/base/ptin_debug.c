@@ -112,6 +112,10 @@ void ptin_debug(void)
   printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
   printf("\r\n");
+  printf("  ptin_bwpolicer_dump_debug           - Dump configured bandwidth policers\r\n");
+  printf("  ptin_fpcounters_dump_debug          - Dump configured EVC/client counters (at request)\r\n");
+  printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
+  printf("\r\n");
   printf("  ptin_dhcp_dump                      - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
@@ -122,7 +126,7 @@ void ptin_debug(void)
   printf("  ptin_timers_show                    - Show all processing timers contents\r\n");
   printf("  ptin_msg_runtime_init <msg_id>      - Initialize runtime measurements for msg_id (-1 for all)\r\n");
   printf("  ptin_msg_runtime_show               - Show runtime measurements for all messages\r\n");
-  printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
+  printf("\r\n");
   printf("  snoopDebugTraceEnable               - Enable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceDisable              - Disable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceFlagsSetAF <1/2>     - Activate specific IGMP snoop trace messages\r\n");
