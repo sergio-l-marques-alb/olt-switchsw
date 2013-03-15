@@ -37,6 +37,9 @@
 /* OLT7-8CH */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
 
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+
 # define PTIN_SYSTEM_N_PORTS           18
 # define PTIN_SYSTEM_N_PONS            8 
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
@@ -153,6 +156,9 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TOLT8G */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+
 # define PTIN_SYSTEM_N_PORTS           12
 # define PTIN_SYSTEM_N_PONS            8 
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
@@ -265,6 +271,9 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* TG16G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
 # define PTIN_SYSTEM_N_PORTS           20
 # define PTIN_SYSTEM_N_PONS            16 
@@ -383,6 +392,9 @@ extern volatile st_fpga_map_t *fpga_map;
 
 #define PTIN_PTP_PORT               41  /* PTP interface port nr (xe40) */
 
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+
 # define PTIN_PORTMAP_SLOT_WORK { \
    2,  1, 16, 15, 14, 13,  8,  7, \
    6,  5, 20, 19, 18, 17, 12, 11, \
@@ -497,6 +509,125 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
 # define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
 # define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
+
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 4
+
+/* Slot/port TO to interface map */
+# define PTIN_SLOTPORT_TO_INTF_MAP_WORK  \
+          { { -1, -1, -1, -1 }, \
+            { -1, -1, -1, -1 }, \
+            { -1, -1,  0,  1 }, \
+            { -1, -1,  2,  3 }, \
+            {  4,  5,  6,  7 }, \
+            {  8,  9, 10, 11 }, \
+            { -1, -1, 12, 13 }, \
+            { -1, -1, 14, 15 }, \
+            { 16, 17, 18, 19 }, \
+            { 20, 21, 22, 23 }, \
+            { 24, 25, 26, 27 }, \
+            { 28, 29, 30, 31 }, \
+            { 32, 33, 34, 35 }, \
+            { 36, 37, 38, 39 }, \
+            { -1, -1, 40, 41 }, \
+            { -1, -1, 42, 43 }, \
+            { 44, 45, 46, 47 }, \
+            { 48, 49, 50, 51 }, \
+            { -1, -1, 52, 53 }, \
+            { -1, -1, 54, 55 } }
+# define PTIN_SLOTPORT_TO_INTF_MAP_PROT  \
+          { { -1, -1, -1, -1 }, \
+            { -1, -1, -1, -1 }, \
+            { -1, -1, 54, 55 }, \
+            { -1, -1, 52, 53 }, \
+            { 48, 49, 50, 51 }, \
+            { 44, 45, 46, 47 }, \
+            { -1, -1, 42, 43 }, \
+            { -1, -1, 40, 41 }, \
+            { 36, 37, 38, 39 }, \
+            { 32, 33, 34, 35 }, \
+            { 28, 29, 30, 31 }, \
+            { 24, 25, 26, 27 }, \
+            { 20, 21, 22, 23 }, \
+            { 16, 17, 18, 19 }, \
+            { -1, -1, 14, 15 }, \
+            { -1, -1, 12, 13 }, \
+            {  8,  9, 10, 11 }, \
+            {  4,  5,  6,  7 }, \
+            { -1, -1,  2,  3 }, \
+            { -1, -1,  0,  1 } }
+
+/* Interface to slot map */
+# define PTIN_INTF_TO_SLOT_MAP_WORK  \
+          {  2,  2,  3,  3, \
+             4,  4,  4,  4, \
+             5,  5,  5,  5, \
+             6,  6,  7,  7, \
+             8,  8,  8,  8, \
+             9,  9,  9,  9, \
+            10, 10, 10, 10, \
+            11, 11, 11, 11, \
+            12, 12, 12, 12, \
+            13, 13, 13, 13, \
+            14, 14, 15, 15, \
+            16, 16, 16, 16, \
+            17, 17, 17, 17, \
+            18, 18, 19, 19, \
+            -1, -1, -1, -1, \
+            -1, -1, -1, -1 }       
+# define PTIN_INTF_TO_SLOT_MAP_PROT  \
+          { 19, 19, 18, 18, \
+            17, 17, 17, 17, \
+            16, 16, 16, 16, \
+            15, 15, 14, 14, \
+            13, 13, 13, 13, \
+            12, 12, 12, 12, \
+            11, 11, 11, 11, \
+            10, 10, 10, 10, \
+             9,  9,  9,  9, \
+             8,  8,  8,  8, \
+             7,  7,  6,  6, \
+             5,  5,  5,  5, \
+             4,  4,  4,  4, \
+             3,  3,  2,  2, \
+            -1, -1, -1, -1, \
+            -1, -1, -1, -1 }       
+
+/* Interface to port map */
+# define PTIN_INTF_TO_PORT_MAP_WORK  \
+          {  0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+            -1, -1, -1, -1, \
+            -1, -1, -1, -1 }       
+# define PTIN_INTF_TO_PORT_MAP_PROT  \
+          {  0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1, \
+            -1, -1, -1, -1, \
+            -1, -1, -1, -1 }       
 
 
 # define PTIN_PORTMAP_SLOT_WORK { \
