@@ -667,7 +667,7 @@ void ssmPDUSend(void)
         continue;
 
       /* Find the respective intIfNum, and proceed to tranmission */
-      if (ptin_intf_slotPort2IntIfNum(slot,intf,&intIfNum)==L7_SUCCESS)
+      if (ptin_intf_slotPort2IntIfNum(slot+1,intf,&intIfNum)==L7_SUCCESS)
       {
         ssmPDUTransmit(intIfNum);
       }
@@ -707,6 +707,9 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
+
+  /* Adjust slot value */
+  if (slot>0)  slot--;
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
@@ -983,7 +986,7 @@ L7_RC_t ssmTimersUpdate(void)
       }
 
       /* Update link status */
-      if (ptin_intf_slotPort2IntIfNum(slot,intf,&intIfNum)==L7_SUCCESS &&
+      if (ptin_intf_slotPort2IntIfNum(slot+1,intf,&intIfNum)==L7_SUCCESS &&
           nimGetIntfLinkState(intIfNum,&linkState)==L7_SUCCESS)
       {
         pfw_shm->intf[slot][intf].link = (linkState==L7_UP);
@@ -1034,6 +1037,9 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
+
+  /* Adjust slot value */
+  if (slot>0)  slot--;
 
   osapiSemaTake(ssmTimersSyncSema, L7_WAIT_FOREVER);
   /* Reset timer */

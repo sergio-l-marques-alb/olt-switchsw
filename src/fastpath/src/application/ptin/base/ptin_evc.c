@@ -321,10 +321,25 @@ L7_BOOL ptin_evc_is_in_use(L7_uint evc_idx)
  */
 L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx)
 {
+  L7_int evc_idx;
+
   if (intf_idx>=PTIN_SYSTEM_N_INTERF)
     return L7_FALSE;
 
-  return (evcs_intfs_in_use[intf_idx] != 0);
+  /* Run all EVCs */
+  for ( evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++ )
+  {
+    /* Skip not used EVCs */
+    if (!evcs[evc_idx].in_use)
+      continue;
+
+    /* If any EVC is using this interface, return TRUE immediately */
+    if (evcs[evc_idx].intf[intf_idx].in_use)
+      return L7_TRUE;
+  }
+
+  /* At this point no EVC with this interface was found */
+  return L7_FALSE;
 }
 
 /**
