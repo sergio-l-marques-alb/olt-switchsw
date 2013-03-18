@@ -1864,13 +1864,15 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 {
   L7_uint32 lag_idx;
-  L7_uint32 lag_intf;
+  L7_uint32 lag_intIfNum;
+  L7_uint   lag_port;
   L7_uint32 value;
   L7_uint   i;
   L7_uint64 ptin_pbmp;
   L7_uint32 intIfNum = 0;
 
   lag_idx = lagInfo->lagId;
+  lag_port = PTIN_SYSTEM_N_PORTS + lag_idx;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
@@ -1886,17 +1888,17 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     return L7_SUCCESS;
   }
 
-  ptin_intf_lag2intIfNum(lag_idx, &lag_intf);
+  ptin_intf_lag2intIfNum(lag_idx, &lag_intIfNum);
 
   /* Check if LAG is being used in any EVC */
-  if (ptin_evc_is_intf_in_use(lag_intf))
+  if (ptin_evc_is_intf_in_use(lag_port))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is being used in EVCs! Cannot be removed", lag_idx);
     return L7_FAILURE;
   }
 
   /* Remove LAG */
-  if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
+  if (usmDbDot3adRemoveSet(1, lag_intIfNum) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: failed to remove this LAG", lag_idx);
     return L7_FAILURE;
@@ -1904,7 +1906,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 
   /* Wait until lag exists */
   do {
-    if ((usmDbIntfStatusGet(lag_intf, &value) == L7_SUCCESS) && (value == L7_INTF_UNINITIALIZED))
+    if ((usmDbIntfStatusGet(lag_intIfNum, &value) == L7_SUCCESS) && (value == L7_INTF_UNINITIALIZED))
       break;
 
     osapiSleepMSec(10);
