@@ -1058,7 +1058,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
 
 void ssm_debug_dump(void)
 {
-  L7_uint slot, intf, n_intf;
+  L7_uint slot, intf;
 
   if (pfw_shm==L7_NULLPTR)
   {
@@ -1066,19 +1066,16 @@ void ssm_debug_dump(void)
     return;
   }
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G )
-  n_intf = 4;
-  #else
-  n_intf = 2;
-  #endif
-
   printf("Dumping SSM shared memory:\r\n");
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
     printf("slot=%02u: { ",slot);
-    for (intf=0; intf<n_intf; intf++)
+    for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
-      printf("rx=0x%08x/tx=0x%08x/lnk=%u ",pfw_shm->intf[slot][intf].ssm_rx, pfw_shm->intf[slot][intf].ssm_tx, pfw_shm->intf[slot][intf].link);
+      printf("rx=0x%05x/tx=0x%05x/lnk=%u ",
+             pfw_shm->intf[slot][intf].ssm_rx & 0xfffff,
+             pfw_shm->intf[slot][intf].ssm_tx & 0xfffff,
+             pfw_shm->intf[slot][intf].link);
     }
     printf("}\r\n");
   }
@@ -1093,7 +1090,7 @@ void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32
   }
 
   /* Validate args */
-  if (slot>=SSM_N_SLOTS || intf>=SSM_N_SLOTS)
+  if (slot>=SSM_N_SLOTS || intf>=SSM_N_INTFS_IN_USE)
   {
     printf("Slot (%u) or intf (%u) is out of range.\r\n",slot, intf);
     return;
