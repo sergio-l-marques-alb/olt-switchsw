@@ -176,7 +176,8 @@ L7_RC_t ssm_init(void)
   /* Open shared memory zone */
   if (fw_shm_open()!=0)
   {
-    pfw_shm = L7_NULLPTR;
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing shared memory");
+    return L7_FAILURE;
   }
 
   /* Initialize shared memory and internal structures */

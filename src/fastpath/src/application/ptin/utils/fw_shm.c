@@ -7,6 +7,9 @@
 #undef __FW_SHM_C__
 
 #include <stdio.h>
+#include <errno.h>
+#include "logger.h"
+
 
 //******************************************************************************
 //
@@ -24,31 +27,29 @@ t_fw_shm   *pfw_shm;
 int
 fw_shm_open( void )
 {
-  int  shmid;
+  int  shmid, err;
 
-  /* Check if shared memory key already exists */
-  if ( ( shmid = shmget( FW_SHM_KEY , sizeof( t_fw_shm ) , /*IPC_CREAT |*/ 0666 ) ) >= 0 ) {
-    printf("%s(%d) shmid is already in use: %d\n", __FUNCTION__, __LINE__,shmid);
-  }
-  else
+  /* If not (exists), create it */
+  shmid = shmget( FW_SHM_KEY , sizeof( t_fw_shm ) , IPC_CREAT | 0666 );
+  err = errno;
+
+  /* Creation successfull? */
+  if (shmid < 0)
   {
-    /* If not (exists), create it */
-    shmid = shmget( FW_SHM_KEY , sizeof( t_fw_shm ) , IPC_CREAT | 0666 );
-
-    /* Creation successfull? */
-    if (shmid < 0)
-    {
-      pfw_shm = &fw_shm;
-      printf("%s(%d) New shmid: %d\n", __FUNCTION__, __LINE__,shmid);
-      return -1;
-    }
+    pfw_shm = &fw_shm;
+    LOG_ERR(LOG_CTX_PTIN_CNFGR, "Failed acquiring new shmid (%d), errno=%d (sizeof=%u)",shmid,err,sizeof(fw_shm));
+    return -1;
   }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "Success acquiring new shmid: %d", shmid);
 
   /* Make the attach */
   if ( ( pfw_shm = (t_fw_shm*)shmat( shmid , NULL , 0 ) ) == (t_fw_shm*)(-1) ) {
     pfw_shm = &fw_shm;
+    LOG_ERR(LOG_CTX_PTIN_CNFGR, "Failed attaching shared memory");
     return -1;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "Success attaching shared memory\n");
 
   return (0);
 }
