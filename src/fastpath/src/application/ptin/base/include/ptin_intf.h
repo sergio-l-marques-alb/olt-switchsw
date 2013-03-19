@@ -149,6 +149,31 @@ extern L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portA
 extern L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id);
 
 /**
+ * Get slot and port location in the system, from the ptin_intf
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param ptin_intf
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret);
+
+/**
+ * Get the ptin_intf from the slot and port location in the 
+ * system. 
+ * 
+ * @param slot_ret 
+ * @param intf_ret 
+ * @param ptin_intf (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *ptin_intf);
+
+/**
  * Get slot and port location in the system, from the intIfNum
  * 
  * @author mruas (3/14/2013)

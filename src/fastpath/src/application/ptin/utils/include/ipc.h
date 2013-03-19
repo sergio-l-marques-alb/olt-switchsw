@@ -20,15 +20,18 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 #define TRAP_ARRANQUE       0x3001
 #define TRAP_ALARME_INTF    0x3004
 #define TRAP_ALARME_SWITCH  0x3007
+#define TRAP_LINECARD_INTF  0x300f
 
 #define TRAP_ALARM_LINK_DOWN_END                0x9001
 #define TRAP_ALARM_LINK_DOWN_START              0x9002
-#define TRAP_ALARM_LAG_INACTIVE_MEMBER_END   0x9003
-#define TRAP_ALARM_LAG_INACTIVE_MEMBER_START 0x9004
+#define TRAP_ALARM_LAG_INACTIVE_MEMBER_END      0x9003
+#define TRAP_ALARM_LAG_INACTIVE_MEMBER_START    0x9004
 //#define TRAP_ALARM_PORT_ENABLED                 0x9005
 //#define TRAP_ALARM_PORT_DISABLED                0x9006
 //#define TRAP_ALARM_MAC_DUPLICATED               0x9010
+#define TRAP_LINECARD_TRAFFIC_RX                0x900F
 
+#define TRAP_LC_TYPE_INTERFACE    4   // For alarmtype
 #define TRAP_ALARM_TYPE_INTERFACE 3   // For alarmtype
 #define TRAP_ALARM_STATUS_END     0   // For alarmstatus
 #define TRAP_ALARM_STATUS_START   1   // For alarmstatus
@@ -38,6 +41,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 //#define IPC_SERVER_IPADDR     IPC_LOCALHOST_IPADDR
 
 #define IPC_CHMSG_TRAP_PORT   5001
+#define IPC_TRAP_LC_PORT      6102
 
    #define IPC_MAINTENANCE_PORT  5200
    #define IPC_AGENT_PORT        5100
@@ -87,6 +91,7 @@ extern uint8 ptin_board_slotId;
    EXTERN_C int send_trap(int porto, int trap_type, int arg);
    EXTERN_C int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status, int param);
    EXTERN_C int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status, int param1, int param2);
+   EXTERN_C int send_trap_to_linecard(unsigned char intfType, int porto, int code, int status, int param);
 
    EXTERN_C void EnableHandling        (BOOLEAN enable);
    EXTERN_C void SwapIPCHeader         (ipc_msg *inbuffer, ipc_msg *outbuffer);
