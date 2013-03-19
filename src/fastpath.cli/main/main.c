@@ -1429,7 +1429,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          printf("mac: %d\n", valued);
+          //printf("mac: %d\n", valued);
           memcpy(ptr->bind_table[0].macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_REMOVE;
@@ -4370,7 +4370,7 @@ int main (int argc, char *argv[])
             printf("  STP state           = %s\r\n",((ptr->stp_enable) ? "Enabled" : "Disabled"));
             printf("  LAG type            = %s\r\n",((ptr->static_enable) ? "Static" : "Dynamic"));
             printf("  LoadBalance profile = %u\r\n",ptr->loadBalance_mode);
-            printf("  Port bitmap         = 0x%08X\r\n",(unsigned int) ptr->members_pbmp);
+            printf("  Port bitmap         = 0x%08X 0x%08X\r\n",(unsigned int) ptr->members_pbmp2, (unsigned int) ptr->members_pbmp);
           }
           printf(" Switch: LAG configurations read successfully\n\r");
         }
@@ -4411,8 +4411,8 @@ int main (int argc, char *argv[])
             printf("  Admin               = %s\r\n",((ptr->admin) ? "Enabled" : "Disabled"));
             printf("  Link State          = %s\r\n",((ptr->link_status) ? "UP" : "DOWN"));
             printf("  Port channel type   = %s\r\n",((ptr->port_channel_type) ? "Static" : "Dynamic"));
-            printf("  Member Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->members_pbmp1,(unsigned int) ptr->members_pbmp2);
-            printf("  Active Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->active_members_pbmp1,(unsigned int) ptr->active_members_pbmp2);
+            printf("  Member Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->members_pbmp2,(unsigned int) ptr->members_pbmp1);
+            printf("  Active Ports bitmap = 0x%08X 0x%08X\r\n",(unsigned int) ptr->active_members_pbmp2,(unsigned int) ptr->active_members_pbmp1);
           }
           printf(" Switch: LAG status read successfully\n\r");
         }

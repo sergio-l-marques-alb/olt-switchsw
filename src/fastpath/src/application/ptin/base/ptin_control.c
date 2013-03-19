@@ -36,6 +36,7 @@ static L7_uint32 lagIdList[PTIN_SYSTEM_N_PORTS];          /* LAG id that belongs
 
 /* Local prototypes */
 static void startup_trap_send(void);
+static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
 
@@ -49,8 +50,6 @@ static void monitor_matrix_commutation(void);
 void ptinTask(L7_uint32 numArgs, void *unit)
 {
   L7_RC_t rc;
-  ptin_HWEth_PortsActivity_t portsActivity = {ports_mask:   0xFFFFFFFF,
-                                              activity_mask:0xFFFFFFFF};
 
   rc = osapiTaskInitDone(L7_PTIN_TASK_SYNC);
 
@@ -124,10 +123,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 //    LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task is Sleeping (%us)...", PTIN_LOOP_TICK/1000);
     osapiPeriodicUserTimerWait(ptin_loop_handle);
 
-    if (dtlPtinCountersActivityGet(&portsActivity) != L7_SUCCESS) {
-      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error reading counters activity");
-      continue;
-    }
+    /* Monitor throughput */
+    monitor_throughput();
 
     /* Port commutation process for TOLT8G boards */
     monitor_matrix_commutation();
@@ -170,6 +167,44 @@ static void startup_trap_send(void)
   }
 }
 
+/* Monitor throughput, and send traps to linecards */
+static void monitor_throughput(void)
+{
+  #if 0
+  L7_int  port;
+  ptin_HWEth_PortsActivity_t portsActivity = {ports_mask:   0xFFFFFFFF,
+                                              activity_mask:0xFFFFFFFF};
+  static L7_uint counter=0;
+  //L7_uint32 intIfNum, admin, link_state;
+
+  if (dtlPtinCountersActivityGet(&portsActivity) != L7_SUCCESS) {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error reading counters activity");
+    return;
+  }
+
+  /* For ports with throughput not null, send a trap message */
+  for (port=counter; port<PTIN_SYSTEM_N_PORTS; port+=4)
+  {
+    //if (ptin_intf_port2intIfNum(port,&intIfNum)!=L7_SUCCESS)
+    //  continue;
+
+    //if (nimGetIntfAdminState(intIfNum,&admin)==L7_SUCCESS && admin==L7_ENABLE &&
+    //    nimGetIntfLinkState(intIfNum,&link_state)==L7_SUCCESS && link_state==L7_UP)
+    {
+      if (portsActivity.activity_bmap[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY)
+      {
+        send_trap_to_linecard(PTIN_EVC_INTF_PHYSICAL, port, TRAP_LINECARD_TRAFFIC_RX, TRAP_ALARM_STATUS_START, 0);
+      }
+      else
+      {
+        send_trap_to_linecard(PTIN_EVC_INTF_PHYSICAL, port, TRAP_LINECARD_TRAFFIC_RX, TRAP_ALARM_STATUS_END, 0);
+      }
+    }
+  }
+
+  counter = (counter+1)%4;
+  #endif
+}
 
 /**
  * Monitor alarms

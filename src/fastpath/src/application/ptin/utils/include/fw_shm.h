@@ -39,10 +39,14 @@ typedef struct {
 
 #elif (defined(SYNC_SSM_IS_SUPPORTED) && PTIN_BOARD_IS_MATRIX)
 
-#define FW_SHM_KEY      9890
+#define FW_SHM_KEY          9890
 
 #define SSM_N_SLOTS         20
-#define SSM_N_INTFS         8
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+ #define SSM_N_INTFS         8
+#else
+ #define SSM_N_INTFS         2
+#endif
 #define SSM_N_INTFS_IN_USE  PTIN_SYS_INTFS_PER_SLOT_MAX
 
 typedef struct {
@@ -81,7 +85,8 @@ typedef struct {
 //*****************************************************************************
 
 #if ( defined(SYNC_SSM_IS_SUPPORTED) || PTIN_BOARD_IS_STANDALONE )
-_VAR_ t_fw_shm   *pfw_shm;
+_VAR_ t_fw_shm  fw_shm;
+_VAR_ t_fw_shm  *pfw_shm;
 #endif
 
 //*****************************************************************************

@@ -10,7 +10,7 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 #include "sirerrors.h"
-//#include "dtl_ptin.h"
+#include "ptin_intf.h"
 
 /* Slot id */
 uint8 ptin_board_slotId = 0;
@@ -247,6 +247,58 @@ int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status,
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
   return(ret);
 }
+
+
+/* Envia trap to linecard */
+int send_trap_to_linecard(unsigned char intfType, int porto, int code, int status, int param)
+{
+  ipc_msg	comando;
+  int ret;
+  st_alarmGeral *alarm;
+  L7_uint16 slot_to_send;
+  ptin_intf_t ptin_intf;
+  L7_uint32 ipaddr;
+
+//if (!global_var_system_ready)  return S_OK;
+
+  if(g_iInterfaceSW==-1) 
+      return(-1);
+
+  /* Which slot to send? */
+  ptin_intf.intf_type = intfType;
+  ptin_intf.intf_id   = porto;
+  if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", porto);
+    return -1;
+  }
+  /* Which ipaddr? */
+  ipaddr = (server_ipaddr & (~((L7_uint32) 0xff))) | ((slot_to_send+2) & 0xff);
+
+  comando.protocolId= SIR_IPCPROTOCOL_ID;
+  comando.flags		= IPCLIB_FLAGS_CMD;
+  comando.counter   = GetMsgCounter ();
+  comando.msgId		= TRAP_LINECARD_INTF;
+  comando.infoDim   = sizeof(st_alarmGeral);
+  alarm             = (st_alarmGeral *) &comando.info[0];
+
+  memset(alarm,0x00,sizeof(st_alarmGeral));
+  alarm->SlotId      = slot_to_send;
+  alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
+  alarm->oltiftype   = intfType;
+  alarm->oltifindex  = porto;
+  alarm->alarmtype   = TRAP_LC_TYPE_INTERFACE;
+  alarm->alarmcode   = code;
+  alarm->alarmstatus = status;
+  alarm->param1      = param;
+  alarm->param2      = 0;
+
+  ret=send_data(g_iInterfaceSW, IPC_TRAP_LC_PORT, ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  if(ret<0)
+      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_TRAP_LC_PORT, porto, code, status, ret);
+  return(ret);
+}
+
 
 //// --------------------------------------------------------------
 //// Função:		int SendSetMessage ([in]int msg,
