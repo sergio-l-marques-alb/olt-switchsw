@@ -73,7 +73,11 @@
 /* Note that the value below of 2K is not appropriate for Triumph, Triumph2, etc.
    However, Scorpion can support 2K (HW actually supports 8K), so we'll use the 
    higher value here to enable the testing of Fastpath w/ higher limits. */
-#define PLAT_MAX_MFDB_MAC_ENTRIES                2048
+#if ( PTIN_BOARD_IS_MATRIX )
+ #define PLAT_MAX_MFDB_MAC_ENTRIES                4096    /* Only for matrix boards with Trident switch */
+#else
+ #define PLAT_MAX_MFDB_MAC_ENTRIES                1024    /* Safe limit for others */
+#endif
 #define PLAT_IPMC_ENTRIES_USED_FOR_L2            0
 #endif
 

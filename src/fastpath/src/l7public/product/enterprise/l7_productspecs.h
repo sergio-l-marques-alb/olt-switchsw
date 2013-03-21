@@ -58,7 +58,7 @@
 **  Start of L2 paramters 
 **********************************************************************/
 
-#define PROD_MFDB_MAX_MAC_ENTRIES                         2048
+#define PROD_MFDB_MAX_MAC_ENTRIES                         4096    /* Maximum limit extended */
 #define PROD_MAX_VLANS                                    4094
 #define PROD_MAX_FDB_STATIC_FILTER_ENTRIES                20 
 #define PROD_VLAN_IPSUBNET_MAX_VLANS                      128
