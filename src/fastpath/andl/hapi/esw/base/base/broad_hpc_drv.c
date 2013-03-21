@@ -1352,7 +1352,15 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: debug/test new switch */
         if (SOC_IS_TRIDENT(i))
         {
-          LOG_CRITICAL(LOG_CTX_MISC, "bcm_cosq_mapping_set is NOT INVOKED!");
+          LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
+          PBMP_PORT_ITER (i, port)
+          {
+            rv = bcm_cosq_port_mapping_set(i, port, priority, cosq);
+            if ((rv != BCM_E_NONE) && (rv != BCM_E_PARAM))
+            {
+              LOG_ERROR (rv);
+            }
+          }
         }
         else
         {
@@ -1383,7 +1391,20 @@ void hpcHardwareDefaultConfigApply(void)
        /* PTin added: debug/test new switch */
        if (SOC_IS_TRIDENT(i))
        {
-         LOG_CRITICAL(LOG_CTX_MISC, "bcm_cosq_sched_set is NOT INVOKED!");
+         bcm_pbmp_t pbmp;
+
+         LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_sched_set invoked for all physical ports");
+         
+         BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
+         rv = bcm_cosq_port_sched_set (i,
+                                       pbmp,
+                                       schedulerMode,
+                                       wrr_default_weights,
+                                       0);
+         if (rv != BCM_E_NONE)
+         {
+           LOG_ERROR (rv);
+         }         
        }
        else
        {
