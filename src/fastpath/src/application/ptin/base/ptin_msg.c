@@ -3192,71 +3192,14 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
 static L7_uint16 dhcp_bindtable_entries = 0;
-static ptin_DHCP_bind_entry dhcp_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
 static ptin_DHCPv4v6_bind_entry dhcpv4v6_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
 
-L7_RC_t ptin_msg_DHCP_bindTable_get(msg_DHCP_bind_table_t *table)
+L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, msg_DHCPv4v6_bind_table_t *output)
 {
   L7_ushort16 i, page, first, entries, size;
   L7_RC_t     rc;
 
-  page = table->page;
-
-  // For index null, read all mac entries
-  if (page==0) {
-    size = PLAT_MAX_FDB_MAC_ENTRIES;
-
-    rc = ptin_dhcp82_bindtable_get(dhcp_bindtable,&size);
-
-    if (rc!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading binding table");
-      return rc;
-    }
-    // Total number of entries
-    dhcp_bindtable_entries = size;
-  }
-
-  // Validate page index
-  if ((page*128)>dhcp_bindtable_entries)
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
-    return L7_FAILURE;
-  }
-
-  first   = page*128;
-  entries = dhcp_bindtable_entries-first;   // Calculate remaining entries to be read
-  if (entries>128)  entries = 128;          // Overgoes 128? If so, limit to 128
-
-  table->bind_table_msg_size      = entries;
-  table->bind_table_total_entries = dhcp_bindtable_entries;
-
-  // Copy binding table entries
-  for (i=0; i<entries; i++)
-  {
-    memset(&table->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
-
-    table->bind_table[i].entry_index    = dhcp_bindtable[first+i].entry_index;
-    table->bind_table[i].evc_idx        = dhcp_bindtable[first+i].evc_idx;
-    table->bind_table[i].intf.intf_type = dhcp_bindtable[first+i].ptin_intf.intf_type;
-    table->bind_table[i].intf.intf_id   = dhcp_bindtable[first+i].ptin_intf.intf_id;
-    table->bind_table[i].outer_vlan     = dhcp_bindtable[first+i].outer_vlan;
-    table->bind_table[i].inner_vlan     = dhcp_bindtable[first+i].inner_vlan;
-    memcpy(table->bind_table[i].macAddr,dhcp_bindtable[first+i].macAddr,sizeof(L7_uint8)*6);
-    table->bind_table[i].ipAddr.s_addr  = dhcp_bindtable[first+i].ipAddr.s_addr;
-    table->bind_table[i].remLeave       = dhcp_bindtable[first+i].remLeave;
-    table->bind_table[i].bindingType    = dhcp_bindtable[first+i].bindingType;
-  }
-
-  return L7_SUCCESS;
-}
-
-L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCPv4v6_bind_table_t *table)
-{
-  L7_ushort16 i, page, first, entries, size;
-  L7_RC_t     rc;
-
-  page = table->page;
+  page = input->page;
 
   // For index null, read all mac entries
   if (page==0) {
@@ -3284,25 +3227,28 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCPv4v6_bind_table_t *table)
   entries = dhcp_bindtable_entries-first;   // Calculate remaining entries to be read
   if (entries>128)  entries = 128;          // Overgoes 128? If so, limit to 128
 
-  table->bind_table_msg_size      = entries;
-  table->bind_table_total_entries = dhcp_bindtable_entries;
+  output->bind_table_msg_size      = entries;
+  output->bind_table_total_entries = dhcp_bindtable_entries;
 
+  LOG_ERR(LOG_CTX_PTIN_MSG,"Size estrutura %d", sizeof(msg_DHCPv4v6_bind_table_t));
   // Copy binding table entries
   for (i=0; i<entries; i++)
   {
-    memset(&table->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
+     LOG_ERR(LOG_CTX_PTIN_MSG,"Writing entry %d ",i);
+    memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
 
-    table->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
-    table->bind_table[i].evc_idx        = dhcpv4v6_bindtable[first+i].evc_idx;
-    table->bind_table[i].intf.intf_type = dhcpv4v6_bindtable[first+i].ptin_intf.intf_type;
-    table->bind_table[i].intf.intf_id   = dhcpv4v6_bindtable[first+i].ptin_intf.intf_id;
-    table->bind_table[i].outer_vlan     = dhcpv4v6_bindtable[first+i].outer_vlan;
-    table->bind_table[i].inner_vlan     = dhcpv4v6_bindtable[first+i].inner_vlan;
-    memcpy(table->bind_table[i].macAddr, dhcpv4v6_bindtable[first+i].macAddr, sizeof(L7_uint8)*6);
-    memcpy(&table->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));
-    table->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
-    table->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
+    output->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
+    output->bind_table[i].evc_idx        = dhcpv4v6_bindtable[first+i].evc_idx;
+    output->bind_table[i].intf.intf_type = dhcpv4v6_bindtable[first+i].ptin_intf.intf_type;
+    output->bind_table[i].intf.intf_id   = dhcpv4v6_bindtable[first+i].ptin_intf.intf_id;
+    output->bind_table[i].outer_vlan     = dhcpv4v6_bindtable[first+i].outer_vlan;
+    output->bind_table[i].inner_vlan     = dhcpv4v6_bindtable[first+i].inner_vlan;
+    memcpy(output->bind_table[i].macAddr, dhcpv4v6_bindtable[first+i].macAddr, sizeof(L7_uint8)*6);
+    memcpy(&output->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));
+    output->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
+    output->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
   }
+  LOG_ERR(LOG_CTX_PTIN_MSG,"Size final %d", i*sizeof(msg_DHCPv4v6_bind_table_t));
 
   return L7_SUCCESS;
 }
