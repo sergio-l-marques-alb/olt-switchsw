@@ -2038,7 +2038,8 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   /* Send one join */
   if (fwdFlag)
   {
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
+    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS ||
+        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending join to router interfaces");

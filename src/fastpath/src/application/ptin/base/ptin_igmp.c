@@ -102,6 +102,7 @@ typedef struct {
 /* IGMP AVL Tree data */
 typedef struct {
   L7_uint16 number_of_clients;
+  L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];
   ptinIgmpClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
   ptinIgmpClientsAvlTree_t  avlTree;
   L7_APP_TMR_CTRL_BLK_t     timerCB;       /* Entry App Timer Control Block */
@@ -180,7 +181,7 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
   return i;
 }
 
-inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, ptinIgmpClientInfoData_t *infoData)
+inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port, ptinIgmpClientInfoData_t *infoData)
 {
   ptinIgmpClients_t *clients;
 
@@ -189,13 +190,23 @@ inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, ptinIgm
 
   clients = &igmpInstances[igmp_idx].igmpClients;
 
-  if (clients->clients_in_use[client_idx]==L7_NULLPTR && clients->number_of_clients<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
-    clients->number_of_clients++;
+  /* Update number of clients */
+  if (clients->clients_in_use[client_idx]==L7_NULLPTR)
+  {
+    if (clients->number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+      clients->number_of_clients++;
+
+    if (ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      if (clients->number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+        clients->number_of_clients_per_intf[ptin_port]++;
+    }
+  }
 
   clients->clients_in_use[client_idx] = infoData;
 }
 
-inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx)
+inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port)
 {
   ptinIgmpClients_t *clients;
 
@@ -204,8 +215,18 @@ inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx)
 
   clients = &igmpInstances[igmp_idx].igmpClients;
 
-  if (clients->clients_in_use[client_idx]!=L7_NULLPTR && clients->number_of_clients>0)
-    clients->number_of_clients--;
+  /* Update number of clients */
+  if (clients->clients_in_use[client_idx]!=L7_NULLPTR)
+  {
+    if (clients->number_of_clients>0)
+      clients->number_of_clients--;
+
+    if (ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      if (clients->number_of_clients_per_intf[ptin_port] > 0 )
+        clients->number_of_clients_per_intf[ptin_port]--;
+    }
+  }
 
   clients->clients_in_use[client_idx] = L7_NULLPTR;
 }
@@ -2760,8 +2781,9 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
 {
   st_IgmpInstCfg_t *igmpInst;
   ptin_HwEthMef10Evc_t evcCfg;
-  L7_uint intf_idx;
-  L7_uint32 intIfNum;
+  L7_uint     intf_idx;
+  L7_uint32   intIfNum;
+  L7_uint     ptin_port;
   ptin_intf_t ptin_intf;
 
   /* IGMP instance, from internal vlan */
@@ -2794,18 +2816,23 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
   {
+    /* Client ports are EVC leafs */
     if (evcCfg.intf[intf_idx].mef_type==PTIN_EVC_INTF_LEAF)
     {
       ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
       ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
 
-      if (ptin_intf_ptintf2intIfNum(&ptin_intf,&intIfNum)==L7_SUCCESS)
-      {
-        L7_INTF_SETMASKBIT(*intfList,intIfNum);
-      }
-      else
+      /* Validate interface */
+      if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS ||
+          ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
       {
         return L7_FAILURE;
+      }
+
+      /* It must have at least one client on this interface */
+      if (igmpInst->igmpClients.number_of_clients_per_intf[ptin_port] > 0)
+      {
+        L7_INTF_SETMASKBIT(*intfList,intIfNum);
       }
     }
   }
@@ -3754,8 +3781,8 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *avl_infoData;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
   L7_uint32 ptin_port;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
   ptin_evc_intfCfg_t intfCfg;
   #endif
 
@@ -3798,8 +3825,8 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   #endif
 
   /* Get ptin_port value */
-  #if (MC_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     /* Get interface configuration in the MC EVC */
@@ -4039,7 +4066,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   avl_infoData->isDynamic = isDynamic & 1;
 
   /* Mark one more client for AVL tree */
-  igmp_clientIndex_mark(igmp_idx,client_idx,avl_infoData);
+  igmp_clientIndex_mark(igmp_idx, client_idx, ptin_port, avl_infoData);
 
   /* Clear igmp statistics */
   osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
@@ -4111,9 +4138,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   ptinIgmpClientDataKey_t   avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *avl_infoData;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
   L7_uint32 ptin_port;
-  #endif
 
   /* Validate igmp index */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
@@ -4162,8 +4187,8 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
 
   /* Convert interface to ptin_port format */
   intIfNum = 0;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
@@ -4341,7 +4366,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
     }
 
     /* Remove client for AVL tree */
-    igmp_clientIndex_unmark(igmp_idx,client_idx);
+    igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
 
     osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -4414,6 +4439,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *avl_infoData;
+  L7_uint   ptin_port;
   L7_uint32 intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -4460,10 +4486,12 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
 
     /* Convert interface port to intIfNum format */
     intIfNum = 0;
+    ptin_port = 0;
     #if (MC_CLIENT_INTERF_SUPPORTED)
-    if (ptin_intf_port2intIfNum(avl_infoData->igmpClientDataKey.ptin_port, &intIfNum)!=L7_SUCCESS)
+    ptin_port = avl_infoData->igmpClientDataKey.ptin_port;
+    if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client port %u to intIfNum format",avl_infoData->igmpClientDataKey.ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client port %u to intIfNum format",ptin_port);
       continue;
     }
     #endif
@@ -4521,7 +4549,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
     else
     {
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx,client_idx);
+      igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
 
       if (ptin_debug_igmp_snooping)
       {
@@ -4604,6 +4632,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
  */
 static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_BOOL remove_static, L7_BOOL force_remove )
 {
+  L7_uint ptin_port;
   L7_uint32 intIfNum;
   L7_uint16 McastRootVlan;
   st_IgmpInstCfg_t         *igmpInst;
@@ -4644,6 +4673,19 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Provided client_idx (%u) does not exist",client_idx);
     return L7_FAILURE;
   }
+
+  /* Get intIfNum related to this client */
+  intIfNum = 0;
+  ptin_port = 0;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+  ptin_port = clientInfo->igmpClientDataKey.ptin_port;
+  if ( ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS )
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Error getting port of this client");
+    rc = L7_FAILURE;
+  }
+  #endif
 
   /* If there is no channels, or channels are forced to be removed... */
   if ( force_remove || clientInfo->stats_client.active_groups==0 )
@@ -4711,7 +4753,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
       }
 
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx,client_idx);
+      igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
     }
   }
 
@@ -4730,22 +4772,12 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Error getting root vlan of MC EVC id (%u)",igmpInst->McastEvcId);
       rc = L7_FAILURE;
     }
-    /* Get intIfNum related to this client */
-    intIfNum = 0;
-    #if (MC_CLIENT_INTERF_SUPPORTED)
-    if ( ptin_intf_port2intIfNum(clientInfo->igmpClientDataKey.ptin_port, &intIfNum)!=L7_SUCCESS )
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Error getting port of this client");
-      rc = L7_FAILURE;
-    }
-    #endif
 
     if ( rc == L7_SUCCESS )
     {
       if (ptin_debug_igmp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: McastVlan=%u (evcId=%u), intIfNum=%u (port=%u)",
-                  McastRootVlan,igmpInst->McastEvcId,intIfNum,clientInfo->igmpClientDataKey.ptin_port);
+                  McastRootVlan,igmpInst->McastEvcId,intIfNum, ptin_port);
 
       /* Remove client from all snooping entries */
       if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
