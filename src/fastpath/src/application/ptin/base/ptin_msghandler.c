@@ -1800,15 +1800,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_GET (0x%04X)", CCMSG_ETH_DHCP_BIND_TABLE_GET);
 
-      CHECK_INFO_SIZE(msg_DHCPv4v6_bind_table_t);
+      CHECK_INFO_SIZE(msg_DHCP_bind_table_request_t);
 
-      msg_DHCPv4v6_bind_table_t *ptr;
-      ptr = (msg_DHCPv4v6_bind_table_t *) outbuffer->info;
-
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_DHCPv4v6_bind_table_t));
+      msg_DHCP_bind_table_request_t *pin;
+      msg_DHCPv4v6_bind_table_t     *pout;
+      pin  = (msg_DHCP_bind_table_request_t*) inbuffer->info;
+      pout = (msg_DHCPv4v6_bind_table_t *) outbuffer->info;
 
       /* Execute command */
-      rc = ptin_msg_DHCPv4v6_bindTable_get(ptr);
+      rc = ptin_msg_DHCPv4v6_bindTable_get(pin, pout);
 
       if (L7_SUCCESS != rc)
       {
