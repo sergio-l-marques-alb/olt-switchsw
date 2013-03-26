@@ -155,7 +155,7 @@
 #define L7_TASK_PRIORITY_LEVEL(x)                           (x)
 /* Maximum number of records in the buffered log. */
 #define L7_LOG_IN_MEMORY_LOG_COUNT                         128
-#define OSAPI_MAX_TIMERS                                  4000
+#define OSAPI_MAX_TIMERS                                  8192
 
 /* Maximum number of BCM devices in a single FASTPATH unit */
 #define L7_MAX_BCM_DEVICES_PER_UNIT                          8
