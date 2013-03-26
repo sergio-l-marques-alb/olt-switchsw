@@ -1096,7 +1096,7 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
   /* Validate output */
   if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF)
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum# %u is not assigned!", intIfNum);
+    //LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum# %u is not assigned!", intIfNum);
     return L7_FAILURE;
   }
 
