@@ -74,7 +74,7 @@
    However, Scorpion can support 2K (HW actually supports 8K), so we'll use the 
    higher value here to enable the testing of Fastpath w/ higher limits. */
 #if ( PTIN_BOARD_IS_MATRIX )
- #define PLAT_MAX_MFDB_MAC_ENTRIES                4096    /* Only for matrix boards with Trident switch */
+ #define PLAT_MAX_MFDB_MAC_ENTRIES                2048    /* Only for matrix boards with Trident switch */
 #else
  #define PLAT_MAX_MFDB_MAC_ENTRIES                1024    /* Safe limit for others */
 #endif
