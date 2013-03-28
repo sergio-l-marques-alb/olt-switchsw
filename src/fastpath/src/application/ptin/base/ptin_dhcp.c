@@ -1994,7 +1994,8 @@ L7_BOOL ptin_dhcp82_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*
   if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
        intVlanId<PTIN_VLAN_MIN || intVlanId>PTIN_VLAN_MAX )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
     return L7_FALSE;
   }
 
