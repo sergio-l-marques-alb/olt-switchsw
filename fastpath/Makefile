@@ -7,7 +7,7 @@
 #                                              #
 ################################################
 
-.PHONY: help h all kernel_cxp360g kernel_cxo640g kernel_tolt8g kernel_tg16g kernel_olt7-8chb olt360 olt1t3 cxp360g cxo640g tolt8g tg16g olt7-8chb cli shell clean clean_olt360 clean_olt1t3 clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt1t3 cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt1t3 install_cxp360g install_cxo640g install_tolt8g install_tg16g install_olt7-8chb install_cli install_shell image image_olt360 image_olt1t3
+.PHONY: help h all kernel_matrix kernel_linecard kernel_standalone olt360 olt1t3 cxp360g cxo640g tolt8g tg16g ta24ge olt7-8chb cli shell clean clean_olt360 clean_olt1t3 clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_ta24ge clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt1t3 cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_ta24ge cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt1t3 install_cxp360g install_cxo640g install_tolt8g install_tg16g install_ta24ge install_olt7-8chb install_cli install_shell image image_olt360 image_olt1t3
 
 SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
@@ -30,11 +30,9 @@ IMAGE_DIR       = ../../builds
 help h:
 	@echo ""
 	@echo "Makefile Help            "
-	@echo " make kernel_cxp360g     "
-	@echo " make kernel_cxo640g     "
-	@echo " make kernel_tolt8g      "
-	@echo " make kernel_tg16g       "
-	@echo " make kernel_olt7-8chb   "
+	@echo " make kernel_matrix      "
+	@echo " make kernel_linecard    "
+	@echo " make kernel_standalone  "
 	@echo ""
 	@echo " make all                "
 	@echo " make olt360             "
@@ -43,6 +41,7 @@ help h:
 	@echo " make cxo640g            "
 	@echo " make tolt8g             "
 	@echo " make tg16g              "
+	@echo " make ta24ge             "
 	@echo " make olt7-8chb          "
 	@echo " make cli                "
 	@echo " make shell              "
@@ -54,6 +53,7 @@ help h:
 	@echo " make clean_cxo640g      "
 	@echo " make clean_tolt8g       "
 	@echo " make clean_tg16g        "
+	@echo " make clean_ta24ge       "
 	@echo " make clean_olt7-8chb    "
 	@echo " make clean_cli          "
 	@echo " make clean_shell        "
@@ -65,6 +65,7 @@ help h:
 	@echo " make cleanall_cxo640g   "
 	@echo " make cleanall_tolt8g    "
 	@echo " make cleanall_tg16g     "
+	@echo " make cleanall_ta24ge    "
 	@echo " make cleanall_olt7-8chb "
 	@echo " make cleanall_cli       "
 	@echo " make cleanall_shell     "
@@ -76,6 +77,7 @@ help h:
 	@echo " make install_cxo640g    "
 	@echo " make install_tolt8g     "
 	@echo " make install_tg16g      "
+	@echo " make install_ta24ge     "
 	@echo " make install_olt7-8chb  "
 	@echo " make install_cli        "
 	@echo " make install_shell      "
@@ -85,27 +87,21 @@ help h:
 	@echo " make image_olt1t3       "
 	@echo ""
 
-kernel_cxp360g:
+kernel_matrix:
 	@$(MAKE) -f cxp360g.make kernel
 
-kernel_cxo640g:
-	@$(MAKE) -f cxo640g.make kernel
-
-kernel_tolt8g:
+kernel_linecard:
 	@$(MAKE) -f tolt8g.make kernel
 
-kernel_tg16g:
-	@$(MAKE) -f tg16g.make kernel
-
-kernel_olt7-8chb:
+kernel_standalone:
 	@$(MAKE) -f olt7-8chb.make kernel
 
 
-all:	cxo640g cxp360g tg16g tolt8g cli shell
+all:	cxo640g cxp360g tg16g tolt8g ta24ge cli shell
 
 olt360:	cxp360g tolt8g cli shell
 
-olt1t3:	cxo640g tg16g cli shell
+olt1t3:	cxo640g tg16g ta24ge cli shell
 
 cxp360g:
 	@$(MAKE) -f cxp360g.make
@@ -119,6 +115,9 @@ tolt8g:
 tg16g:
 	@$(MAKE) -f tg16g.make
 
+ta24ge:
+	@$(MAKE) -f ta24ge.make
+
 olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make
 
@@ -130,7 +129,7 @@ shell:
 
 clean_olt360:		clean_cxp360g clean_tolt8g clean_cli clean_shell
 
-clean_olt1t3:		clean_cxo640g clean_tg16g clean_cli clean_shell
+clean_olt1t3:		clean_cxo640g clean_tg16g clean_ta24ge clean_cli clean_shell
 
 clean_cxp360g:
 	@$(MAKE) -f cxp360g.make clean
@@ -144,6 +143,9 @@ clean_tolt8g:
 clean_tg16g:
 	@$(MAKE) -f tg16g.make clean
 
+clean_ta24ge:
+	@$(MAKE) -f ta24ge.make clean
+
 clean_olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make clean
 
@@ -155,7 +157,7 @@ clean_shell:
 
 cleanall_olt360:	cleanall_cxp360g cleanall_tolt8g cleanall_cli cleanall_shell
 
-cleanall_olt1t3:	cleanall_cxo640g cleanall_tg16g cleanall_cli cleanall_shell
+cleanall_olt1t3:	cleanall_cxo640g cleanall_tg16g cleanall_ta24ge cleanall_cli cleanall_shell
 
 cleanall_cxp360g:
 	@$(MAKE) -f cxp360g.make cleanall
@@ -169,6 +171,9 @@ cleanall_tolt8g:
 cleanall_tg16g:
 	@$(MAKE) -f tg16g.make cleanall
 
+cleanall_ta24ge:
+	@$(MAKE) -f ta24ge.make cleanall
+
 cleanall_olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make cleanall
 
@@ -180,7 +185,7 @@ cleanall_shell:
 
 install_olt360:		install_cxp360g install_tolt8g install_cli install_shell
 
-install_olt1t3: 	install_cxo640g install_tg16g install_cli install_shell
+install_olt1t3: 	install_cxo640g install_tg16g install_ta24ge install_cli install_shell
 
 install_cxp360g:
 	@$(MAKE) -f cxp360g.make install
@@ -194,6 +199,9 @@ install_tolt8g:
 install_tg16g:
 	@$(MAKE) -f tg16g.make install
 
+install_ta24ge:
+	@$(MAKE) -f ta24ge.make install
+
 install_olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make install
 
@@ -203,11 +211,11 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxo640g install_cxp360g install_tg16g install_tolt8g install_cli install_shell
+install:	install_cxo640g install_cxp360g install_tg16g install_tolt8g install_ta24ge install_cli install_shell
 
-clean:		clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell
+clean:		clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_ta24ge clean_olt7-8chb clean_cli clean_shell
 
-cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell
+cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_ta24ge cleanall_olt7-8chb cleanall_cli cleanall_shell
 
 
 image:		install

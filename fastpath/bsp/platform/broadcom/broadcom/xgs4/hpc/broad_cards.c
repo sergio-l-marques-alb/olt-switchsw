@@ -781,6 +781,35 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 {       0,      25,          0,      51},
 {       0,      26,          0,      52},
 {       0,      27,          0,      53},
+#elif (PTIN_BOARD == PTIN_BOARD_TA24GE)
+{       0,       0,          0,      30}, /* eth0 */
+{       0,       1,          0,      31},
+{       0,       2,          0,      32},
+{       0,       3,          0,      33},
+{       0,       4,          0,      34},
+{       0,       5,          0,      35},
+{       0,       6,          0,      36},
+{       0,       7,          0,      37},
+{       0,       8,          0,      38},
+{       0,       9,          0,      39},
+{       0,      10,          0,      40},
+{       0,      11,          0,      41},
+{       0,      12,          0,      42},
+{       0,      13,          0,      43},
+{       0,      14,          0,      44},
+{       0,      15,          0,      45},
+{       0,      16,          0,      46},
+{       0,      17,          0,      47},
+{       0,      18,          0,      48},
+{       0,      19,          0,      49},
+{       0,      20,          0,      50},
+{       0,      21,          0,      51},
+{       0,      22,          0,      52},
+{       0,      23,          0,      53}, /* eth 24 */
+{       0,      24,          0,      29}, /* 10G_eth1 */
+{       0,      25,          0,      27},
+{       0,      26,          0,      28},
+{       0,      27,          0,      26}, /* 10G_eth4 */
 #else
 {       0,       0,          0,      30}, /* pon1 */
 {       0,       1,          0,      31},
@@ -1681,6 +1710,15 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 {L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
 {L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+#elif (PTIN_BOARD == PTIN_BOARD_TA24GE)
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 28 ports (24x1G + 4x10G */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 #else
 {L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
 {L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
