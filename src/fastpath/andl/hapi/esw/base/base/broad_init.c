@@ -455,6 +455,10 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
   return result;
 }
 
+/* PTin added: Only allow packets trap and copy to CPU */
+#define PTIN_BROAD_INIT_TRAP_TO_CPU       1
+#define PTIN_BROAD_INIT_ALLOW_COS_CHANGE  1
+
 /*********************************************************************
 *
 * @purpose Install system policies for prioritizing traffic.
@@ -472,41 +476,41 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 {
   BROAD_SYSTEM_t     *hapiSystem;
   L7_RC_t             result;
-#if 0
+
+#if PTIN_BROAD_INIT_TRAP_TO_CPU
   L7_ushort16         arp_ethtype = L7_ETYPE_ARP;
   L7_ushort16         ip_ethtype  = L7_ETYPE_IP;
-#ifdef L7_IPV6_PACKAGE
-  L7_ushort16         ipV6_ethtype = L7_ETYPE_IPV6;
-#endif
   L7_ushort16         eap_ethtype = L7_ETYPE_EAPOL;
-  L7_uchar8           ospf_proto[]  = {IP_PROT_OSPFIGP};
   L7_uchar8           vrrp_proto[]  = {IP_PROT_VRRP};
-  L7_uchar8           icmp_proto[]        = {IP_PROT_ICMP};
-  L7_ushort16         icmp_rtr_solicit = 0x0a00;
-  L7_ushort16         icmp_type_match  = 0xff00;
   L7_uchar8           udp_proto[]   = {IP_PROT_UDP};
-  L7_uchar8           tcp_proto[]   = {IP_PROT_TCP};
-  L7_ushort16         rip_dport   = 0x0208;
-  L7_ushort16         bgp_dport   = TCP_PORT_BGP;
-
   L7_uchar8           dhcp_serverPort[] = {0x00, 0x43}; /* DHCP Port 67 */
   L7_uchar8           dhcp_clientPort[] = {0x00, 0x44}; /* DHCP Port 68 */
   L7_uchar8           res_macda[]   = {0x01, 0x80, 0xC2, 0x00, 0x00, 0x00};
-  L7_uchar8           bcast_macda[]   = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-#endif
 #ifdef L7_ISDP_PACKAGE
-#if 0
   L7_uchar8           isdp_macda[]  = {0x01, 0x00, 0x0c, 0xcc, 0xcc, 0xcc};
   BROAD_POLICY_t      isdpId;
   BROAD_POLICY_RULE_t isdpRuleId;
 #endif
-#endif
-#if 0
   L7_uchar8           res_macmask[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, 0xC0};
   L7_uchar8           res_mac_drop_mask[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                              FIELD_MASK_ALL, FIELD_MASK_ALL, FIELD_MASK_ALL};
 #endif
+
+#if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
+#ifdef L7_IPV6_PACKAGE
+  L7_ushort16         ipV6_ethtype = L7_ETYPE_IPV6;
+#endif
+  L7_uchar8           ospf_proto[]  = {IP_PROT_OSPFIGP};
+  L7_uchar8           icmp_proto[]        = {IP_PROT_ICMP};
+  L7_ushort16         icmp_rtr_solicit = 0x0a00;
+  L7_ushort16         icmp_type_match  = 0xff00;
+  L7_uchar8           tcp_proto[]   = {IP_PROT_TCP};
+  L7_ushort16         rip_dport   = 0x0208;
+  L7_ushort16         bgp_dport   = TCP_PORT_BGP;
+  L7_uchar8           bcast_macda[]   = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+#endif
+
   L7_uchar8           exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_POLICY_t      sysId1=0, sysId2=0, arpPolicyId=0;
@@ -538,7 +542,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);   /* Policy 2 of 2 */
 
   /* PTin removed: Packets priority not modified */
-  #if 0
+  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* give dot1x EAPOL packets high priority so they reach the cpu */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&eap_ethtype, exact_match);
@@ -602,7 +606,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     return result;
 
   /* PTin removed: Packets priority not modified */
-  #if 0
+  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* Create system policy to apply to all Ethernet ports (FE/GE/XG) - not stack ports.
   ** Add rules with highest precedence first. Note that until Rule Chaining is
   ** implemented on XGS3 it is not possible to combine all L2/3/4 fields into a single
@@ -639,11 +643,13 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   ** guarantee that these get to the CPU if the CPU is getting slammed w/
   ** other data traffic.
   */
+  #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   udp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&rip_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  #endif
 
   /* give OSPF frames high priority. We give multicast frames
   ** high priority in hapiBroadRoutingIntfLocalMcastAdd(), but OSPF
@@ -651,18 +657,22 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   ** guarantee that these get to the CPU if the CPU is getting slammed w/
   ** other data traffic.
   */
+  #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   ospf_proto, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  #endif
 
   /* give BGP frames high priority. We need to gaurantee that these get to the CPU if the CPU
    * is slammed with other data traffic.
    */
+  #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   tcp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&bgp_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  #endif
 
   /* Copy VRRP frames to cpu */
   hapiBroadPolicyRuleAdd(&ruleId);
@@ -677,6 +687,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if ((board_family != BCM_FAMILY_DRACO)  &&
       (board_family != BCM_FAMILY_TUCANA))
   {
+    #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
     hapiBroadPolicyRuleAdd(&ruleId);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   icmp_proto, exact_match);
@@ -686,6 +697,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
      */
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SPORT,   (L7_uchar8 *)&icmp_rtr_solicit, (L7_uchar8 *)&icmp_type_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+    #endif
   }
 
   result = hapiBroadPolicyCommit(&sysId1);
@@ -697,7 +709,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   /* all link-local icmpv6 and OSPFv3 to cpu */
   {
     /* PTin removed: Packets priority not modified */
-    #if 0
+    #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
     BROAD_POLICY_t      Ip6SysId;
     L7_uchar8  hoplim = 255;
     L7_uchar8  icmp_prot = 58;
@@ -729,7 +741,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 #endif /* L7_IPV6_PACKAGE */
 
   /* PTin removed: Packets priority not modified */
-  #if 0
+  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* Dynamic ARP Inspection: ARP packets on untrusted ports must go to the CPU and be rate limited to 64 kbps */
   meterInfo.cir       = 64;
   meterInfo.cbs       = 64;
@@ -756,7 +768,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   #endif
 
   /* PTin removed: Packets priority not modified */
-  #if 0
+  #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
   hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
 
   /* give ARP requests high priority, so if the CPU is slammed w/ data traffic, it will
@@ -785,7 +797,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
      if (hapiSystem->fpsSysId == BROAD_POLICY_INVALID)
      {
        /* PTin removed: Packets priority not modified */
-       #if 0
+       #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
        BROAD_POLICY_t      fpsId = BROAD_POLICY_INVALID;
        BROAD_POLICY_RULE_t fpsRuleId;
        L7_ushort16         vlanId = HPC_STACKING_VLAN_ID;
@@ -810,7 +822,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
    if(cnfgrIsFeaturePresent(L7_LLPF_COMPONENT_ID, L7_LLPF_BLOCK_ISDP_FEATURE_ID) == L7_FALSE)
    {
      /* PTin removed: packet trap */
-     #if 0
+     #if PTIN_BROAD_INIT_TRAP_TO_CPU
      /* trap cdp/udld/dtp/vtp/pagp traffic */
      if (L7_SUCCESS == hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT))
      {
@@ -838,7 +850,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
       (BROAD_POLICY_INVALID == hapiSystem->voiceDhcpSysId))
   {
     /* PTin removed: Packets priority not modified */
-    #if 0
+    #if PTIN_BROAD_INIT_TRAP_TO_CPU
     BROAD_POLICY_t      voiceId;
     BROAD_POLICY_RULE_t voiceRuleId;
 
