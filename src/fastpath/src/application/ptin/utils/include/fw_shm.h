@@ -42,11 +42,7 @@ typedef struct {
 #define FW_SHM_KEY          9890
 
 #define SSM_N_SLOTS         20
-#if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
- #define SSM_N_INTFS         8
-#else
- #define SSM_N_INTFS         2
-#endif
+#define SSM_N_INTFS         8
 #define SSM_N_INTFS_IN_USE  PTIN_SYS_INTFS_PER_SLOT_MAX
 
 typedef struct {
