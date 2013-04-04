@@ -65,6 +65,7 @@
 
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)
+#define CCMSG_APP_LOGGER_OUTPUT             0x91F2  // (To be used with fastpath.cli)
 
 /* To be tested */
 
