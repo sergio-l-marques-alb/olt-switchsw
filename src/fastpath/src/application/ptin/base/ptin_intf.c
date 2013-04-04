@@ -883,7 +883,7 @@ L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint
 L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *ptin_intf)
 {
   /* Validate slot and port */
-  if (slot>=PTIN_SYS_SLOTS_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
+  if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
     //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is out of range",slot,port);
     return L7_FAILURE;
@@ -911,7 +911,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
   if (ptin_intf!=L7_NULLPTR)
   {
     ptin_intf->intf_type = PTIN_EVC_INTF_PHYSICAL;
-    ptin_intf->intf_id   = (port==0) ? (slot-1) : (slot+18-1);
+    ptin_intf->intf_id   = (port==0) ? (slot-2) : (slot+18-2);
   }
   #endif
 
@@ -968,7 +968,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   port = ptin_sys_intf_to_port_map[ptin_intf->intf_id];
 
   #else
-  slot = ptin_intf->intf_id + 2 - 1;
+  slot = ptin_intf->intf_id + 2;
   port = 0;
   if (ptin_intf->intf_id >= (PTIN_SYSTEM_N_PORTS-1)/2 )
   {
@@ -978,7 +978,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   #endif
 
   /* Validate slot and port */
-  if (slot>=PTIN_SYS_SLOTS_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
+  if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot (%u) or port (%u) for ptin_intf=%u/%u", slot, port, ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;

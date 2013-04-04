@@ -37,6 +37,8 @@
 /* OLT7-8CH */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
 
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
@@ -156,6 +158,8 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TOLT8G */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
@@ -272,6 +276,8 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TG16G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
@@ -392,6 +398,8 @@ extern volatile st_fpga_map_t *fpga_map;
 
 #define PTIN_PTP_PORT               41  /* PTP interface port nr (xe40) */
 
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
@@ -510,6 +518,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
 # define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
 
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
