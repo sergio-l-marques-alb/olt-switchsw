@@ -147,9 +147,6 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
   rc = L7_SUCCESS;
   do
   {
-/* Only allow inBand IP, netmask and gateway configurations on OLT7-8CH board */
-#if ( PTIN_BOARD_IS_STANDALONE )
-
     /* IP Address */
     if (ntwConn->mask & PTIN_NTWCONN_MASK_IPADDR)
     {
@@ -185,8 +182,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       }
       undo_mask |= PTIN_NTWCONN_MASK_GATEWAY;
     }
-/* Only allow inBand IP, netmask and gateway configurations on OLT7-8CH board */
-#elif ( PTIN_BOARD_IS_MATRIX )
+
     /* IP Address */
     if (ntwConn->mask & PTIN_NTWCONN_MASK_IPADDR &&
         ntwConn->ipaddr == 0)
@@ -196,7 +192,6 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       if (ptin_evc_get(&evcConf) == L7_SUCCESS)
         ptin_evc_delete(evcConf.index);
     }
-#endif
 
     /* Create EVC for inBand (when either intf or vlan change */
     if (ntwConn->mask & PTIN_NTWCONN_MASK_INTF ||
@@ -210,7 +205,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       /* Create a new EVC */
       memset(&evcConf, 0x00, sizeof(evcConf));
       evcConf.index             = PTIN_EVC_INBAND;
-      evcConf.flags             = PTIN_EVC_MASK_MACLEARNING;
+      evcConf.flags             = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
       evcConf.mc_flood          = PTIN_EVC_MC_FLOOD_ALL;
       evcConf.n_intf            = ntwConn->n_intf;
       for (i=0; i<evcConf.n_intf; i++)
