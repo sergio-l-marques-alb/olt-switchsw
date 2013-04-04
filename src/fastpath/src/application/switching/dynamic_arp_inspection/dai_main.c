@@ -1639,7 +1639,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         if(arp_pkt->arp_op == L7_ARPOP_REPLY)
         {
-          if(memcmp(systemMac, eth_header->dest.addr, L7_ENET_MAC_ADDR_LEN) == 0)
+          if(memcmp(systemMac, eth_header->dest.addr, 3 /*L7_ENET_MAC_ADDR_LEN*/) == 0)
           {
             dtlArpPacketHook(intIfNum, vlanId, frame, frameLen);
             return L7_SUCCESS;

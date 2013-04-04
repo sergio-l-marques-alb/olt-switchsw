@@ -14,6 +14,17 @@
 
 #include <stdio.h>
 
+#define LOG_OUTPUT_FILE_DEFAULT "/usr/local/ptin/log/fastpath/fastpath.log"
+
+#define LOG_OUTPUT_DEFAULT  LOG_OUTOUT_STDOUT
+
+typedef enum {
+  LOG_OUTPUT_UNINIT=0,
+  LOG_OUTPUT_STDERR,
+  LOG_OUTOUT_STDOUT,
+  LOG_OUTPUT_FILE
+}log_output_t;
+
 /* Context
  * NOTE: new items must be added to default config (log_cfg[])* 
  *       and to log_ctx_str[] !!! */
@@ -88,6 +99,30 @@ struct log_cfg_entry_s {
     int  color;
 };
 
+/**
+ * Initialize logger
+ * 
+ * @param output : type of output
+ */
+extern void log_init(log_output_t output);
+
+/**
+ * Deinitialize logger
+ */
+extern void log_deinit(void);
+
+/**
+ * Redirect logger to a specific file
+ *  
+ * @param output : type of output
+ * @param output_file_path : path and file name
+ */
+extern void log_redirect(log_output_t output, char* output_file_path);
+
+/**
+ * Log help
+ */
+extern void log_help(void);
 
 /**
  * Sets severity level for a group of contexts

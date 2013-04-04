@@ -680,7 +680,7 @@ extern int  send_data       (int canal_id,
 #define N_GROUPS_MAX  7
 #define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-const int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP_WORK, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
+const int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
 
 
 /* To save BER results */
@@ -2976,9 +2976,8 @@ int ptin_ber_help(void)
          "                   1 -> Increment post cursor and decrement main cursor simultaneously\n"
          "   mode[bit 1]   : 0 -> When <n_iters> is not null, only apply start_delay for the first iteration\n"
          "                   1 -> When <n_iters> is not null, apply start_delay for all iterations\n"
-         "                   1 -> Increment post cursor and decrement main cursor simultaneously\n"
-         "   mode[bit 3]   : 0 -> Do not touch in tap settings\n"
-         "                   1 -> Update main and post cursors\n"
+         "   mode[bit 3]   : 0 -> Update main and post cursors\n"
+         "                   1 -> Do not touch in tap settings\n"
          "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for > 0)\n"
          "   mode[bit 8-15]: Maximum number of suplementary PRBS readings (only for mode[bit 4-7]>0)\n"
          "   main_start, main_end, main_step : Maximum and minimum main cusor (in this order), and step unit\n"

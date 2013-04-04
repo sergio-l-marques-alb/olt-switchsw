@@ -173,6 +173,38 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
+    case CCMSG_APP_LOGGER_OUTPUT:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", CCMSG_APP_LOGGER_OUTPUT);
+      LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "Redirecting logger output...");
+
+      /* If infodim is null, use stdout */
+      if (inbuffer->infoDim==0)
+      {
+        log_redirect(LOG_OUTOUT_STDOUT, L7_NULLPTR);
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to stdout :-)");
+      }
+      /* Else if null length, use default filename */
+      else if (inbuffer->info[0]=='\0')
+      {
+        log_redirect(LOG_OUTPUT_FILE, L7_NULLPTR);
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
+      }
+      /* Otherwise, use the specified filename */
+      else
+      {
+        log_redirect(LOG_OUTPUT_FILE, (char *) &inbuffer->info[0]);
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", (char *) &inbuffer->info[0]);
+      }
+
+      SETIPCACKOK(outbuffer);
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_APP_CHANGE_STDOUT */
+    }
 
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
     case CCMSG_APP_SHELL_CMD_RUN:
