@@ -15,7 +15,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
-
+#include <errno.h>
 
 #define MAX_OUTBUF_LEN          512 /* Output buffer max length */
 #define MAX_FILE_LEN            15  /* Filename max length */
@@ -139,6 +139,17 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_MISC,              LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
 };
 
+typedef enum {
+  WRITE_UNLOCK,
+  WRITE_LOCK
+}write_lock_t;
+
+static struct s_outFile {
+  log_output_t output;
+  write_lock_t lock;
+  FILE *stream;
+} outFile = { LOG_OUTPUT_UNINIT, WRITE_UNLOCK, NULL };
+
 
 /**
  * Outputs (stdout) help on how to configure logger on-the-fly
@@ -165,6 +176,168 @@ void log_help(void) {
         printf("  #%02d - %s%s%s\n", i, log_colors[i], log_colors_str[i], log_colors[LOG_COLOR_DEFAULT]);
 }
 
+/**
+ * Initialize logger
+ * 
+ * @param output : type of output
+ */
+void log_init(log_output_t output)
+{
+  if (outFile.output != LOG_OUTPUT_UNINIT)
+  {
+    fprintf(stderr,"log already initialized with output = %u\r\n", outFile.output );
+    return;
+  }
+
+  if ( output == LOG_OUTOUT_STDOUT )
+  {
+    outFile.lock    = WRITE_LOCK;
+    outFile.output  = LOG_OUTOUT_STDOUT;
+    outFile.stream  = stdout;
+    outFile.lock    = WRITE_UNLOCK;
+  }
+  else if ( output == LOG_OUTPUT_STDERR )
+  {
+    outFile.lock    = WRITE_LOCK;
+    outFile.output  = LOG_OUTPUT_STDERR;
+    outFile.stream  = stderr;
+    outFile.lock    = WRITE_UNLOCK;
+  }
+  else if ( output == LOG_OUTPUT_FILE )
+  {
+    if ( NULL != outFile.stream)
+      return;
+    
+    outFile.lock = WRITE_LOCK;
+
+    outFile.stream = fopen( LOG_OUTPUT_FILE_DEFAULT , "a+");
+
+    if (NULL == outFile.stream)
+    {
+      fprintf(stderr,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
+    }
+    else
+    {
+      outFile.output  = LOG_OUTPUT_FILE;
+      fprintf(stdout,"log initialized at \"%s\"\r\n", LOG_OUTPUT_FILE_DEFAULT );
+      LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log initialized at \"%s\"", LOG_OUTPUT_FILE_DEFAULT );
+    }
+
+    outFile.lock = WRITE_UNLOCK;
+  }
+  else
+  {
+    outFile.output = LOG_OUTPUT_UNINIT;
+    fprintf(stderr,"Invalid output identifier: %d \r\n", output );
+  }
+}
+
+/**
+ * Deinitialize logger
+ */
+void log_deinit(void)
+{
+  if (outFile.output == LOG_OUTPUT_UNINIT)
+  {
+    fprintf(stderr,"log already uninitialized!\r\n" );
+    return;
+  }
+
+  outFile.lock = WRITE_LOCK;
+
+  if ( outFile.output == LOG_OUTPUT_FILE )
+  {
+    fclose( outFile.stream );
+  }
+    
+  outFile.output  = LOG_OUTPUT_UNINIT;
+  outFile.stream  = (FILE *) NULL;
+  outFile.lock = WRITE_UNLOCK;
+
+  fprintf(stdout,"log uninitialized!\r\n" );
+}
+
+/**
+ * Redirect logger to a specific file
+ *  
+ * @param output : type of output
+ * @param output_file_path : path and file name
+ */
+void log_redirect(log_output_t output, char* output_file_path)
+{
+  FILE * temp_stream;
+  char * file_name;
+  
+  /* Check if logger is initialized */
+  if (outFile.output == LOG_OUTPUT_UNINIT)
+  {
+    log_init(output);
+    return;
+  }
+
+  /* If output is a file */
+  if ( output == LOG_OUTPUT_FILE )
+  {
+    file_name = (output_file_path!=NULL && output_file_path[0]!='\0') ? output_file_path : LOG_OUTPUT_FILE_DEFAULT;
+
+    /* Firstly, try to open the new file */
+    temp_stream = fopen( file_name, "a+");
+
+    /* If error, do nothing */
+    if (NULL == outFile.stream)
+    {
+      fprintf(stdout,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
+      return;
+    }
+
+    /* Otherwise, close the previous file */
+    outFile.lock = WRITE_LOCK;
+    if ( outFile.output == LOG_OUTPUT_FILE )
+    {
+      fclose(outFile.stream);
+    }
+    outFile.output  = LOG_OUTPUT_FILE;
+    outFile.stream  = temp_stream;
+    outFile.lock    = WRITE_UNLOCK;
+    fprintf(stdout,"log redirected to \"%s\"\r\n", file_name );
+    LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log redirected to \"%s\"", file_name );
+  }
+  else
+  {
+    /* Unconfig previous configuration */
+    outFile.lock = WRITE_LOCK;
+    if ( outFile.output == LOG_OUTPUT_FILE)
+    {
+      fclose(outFile.stream);
+    }
+    outFile.output  = LOG_OUTPUT_UNINIT;
+    outFile.stream  = (FILE *) NULL;
+    outFile.lock = WRITE_UNLOCK;
+
+    /* Make new configuration */
+    if ( output == LOG_OUTOUT_STDOUT )
+    {
+      outFile.lock    = WRITE_LOCK;
+      outFile.output  = LOG_OUTOUT_STDOUT;
+      outFile.stream  = stdout;
+      outFile.lock    = WRITE_UNLOCK;
+      fprintf(stdout,"log redirected to stdout\r\n");
+    }
+    else if ( output == LOG_OUTPUT_STDERR )
+    {
+      outFile.lock    = WRITE_LOCK;
+      outFile.output  = LOG_OUTPUT_STDERR;
+      outFile.stream  = stderr;
+      outFile.lock    = WRITE_UNLOCK;
+      fprintf(stdout,"log redirected to stderr\r\n");
+    }
+    else
+    {
+      fprintf(stderr,"Invalid output identifier: %d \r\n", output );
+      LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "Invalid output identifier: %d", output );
+    }
+  }
+}
 
 /**
  * Sets severity level for a group of contexts
@@ -273,6 +446,7 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
     int     offset;
     int     nchars;
     char   *color;
+    FILE   *stream = stdout;
 
     /* Validate input parameters */
     if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
@@ -330,8 +504,23 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
     vsnprintf (outbuf + nchars, MAX_OUTBUF_LEN-nchars, fmt, vargs);
     va_end(vargs);
 
+    /* Can we print? */
+    if (outFile.lock==WRITE_LOCK)  return;
+
+    /* Print to where? */
+    if ( outFile.output!=LOG_OUTPUT_UNINIT && outFile.stream!=NULL )
+    {
+      stream = outFile.stream;
+    }
+
     /* Output it... */
-    fprintf(stdout, "%s%.*s%s\r\n", color, MAX_OUTBUF_LEN, outbuf, log_colors[LOG_COLOR_DEFAULT]);
+    fprintf( stream, "%s%.*s%s\r\n", color, MAX_OUTBUF_LEN, outbuf, log_colors[LOG_COLOR_DEFAULT]);
+
+    /* fflush for files */
+    if (stream!=stdout && stream!=stderr)
+    {
+      fflush(stream);
+    }
 
     return;
 }
