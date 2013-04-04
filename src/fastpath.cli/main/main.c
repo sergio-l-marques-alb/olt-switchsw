@@ -39,6 +39,7 @@ void help_oltBuga(void)
         "help [comando]\n\r"
         "ping [period] [N] - Waits until fastpath application is up or return error code [0-OK, 2-CRASH]\r\n"
         "m 1000 console[/dev/...]\n\r"
+        "m 1001 console[/dev/...] - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
         "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
         "m 1007 <port1> <port2> ... - Read number of PRBS errors\r\n"
@@ -327,7 +328,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-        // Redirect stdout
+      // Redirect stdout
       case 1000:
         {
           char *tty_name;
@@ -341,7 +342,7 @@ int main (int argc, char *argv[])
 
           tty_name = (argc>3) ? argv[3+0] : ttyname(1);
 
-          len = strlen((char *) &comando.info[0]);
+          len = strlen((char *) tty_name);
           if (len>100) {
             printf("tty device name too long\n");
             exit(0);
@@ -351,6 +352,57 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_APP_CHANGE_STDOUT;
           comando.infoDim = strlen(tty_name)+1;
+        }
+        break;
+
+        // Redirect Logger output
+        case 1001:
+        {
+          uint16 len = 0;
+
+          // Validate number of arguments
+          if (argc<3+0)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          /* If argument is provided, redirect logger to file */
+          /* Otherwise, will be stdout */
+          if (argc>3)
+          {
+            /* File direction */
+            len = strlen(argv[3+0]);
+
+            /* Validate length */
+            if (len>100) {
+              printf("File name too long\n");
+            }
+
+            /* $ character referes to default filename */
+            if (len==1 && argv[3+0][0]=='$')
+            {
+              comando.info[0] = '\0';
+              printf("Going to use default filename...\n");
+            }
+            /* Otherwise, use specified filename */
+            else
+            {
+              strncpy((char *) &comando.info[0], argv[3+0], 101 );
+              comando.info[100] = '\0';
+              printf("Going to use \"%s\" filename...\n",comando.info);
+            }
+
+            /* Consider also the null character */
+            comando.infoDim = len+1;
+          }
+          else
+          {
+            /* Stdout direction */
+            comando.info[0] = '\0';
+            comando.infoDim = 0;
+          }
+
+          comando.msgId = CCMSG_APP_LOGGER_OUTPUT;
         }
         break;
 
@@ -3528,6 +3580,13 @@ int main (int argc, char *argv[])
           printf(" Stdout redirected successfully\n\r");
         else
           printf(" Error redirecting Stdout - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1001:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Logger redirected successfully\n\r");
+        else
+          printf(" Error redirecting logger - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1004:
