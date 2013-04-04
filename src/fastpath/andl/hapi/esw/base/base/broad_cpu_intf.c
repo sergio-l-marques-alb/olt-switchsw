@@ -5444,7 +5444,8 @@ L7_BOOL hapiBroadMacDaCheck(BROAD_PKT_RX_MSG_t *pktRxMsg,
     }
   }
 #endif
-  if (memcmp(hapiSystemPtr->bridgeMacAddr.addr, user_data, 6) == 0)
+
+  if (memcmp(hapiSystemPtr->bridgeMacAddr.addr, user_data, 3 /*6*/) == 0)
   {
     return L7_TRUE;
   }
@@ -5487,8 +5488,7 @@ L7_BOOL hapiBroadMacDaCheck(BROAD_PKT_RX_MSG_t *pktRxMsg,
         }
       }
 #endif
-
-      if (memcmp (user_data, router_mac, 6) == 0)
+      if (memcmp (user_data, router_mac, 3 /*6*/) == 0)
       {
           return L7_TRUE;
         }

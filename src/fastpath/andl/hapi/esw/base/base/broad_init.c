@@ -2515,8 +2515,9 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
                                 L7_uchar8   *new_mac_addr)
 {
   BROAD_SYSTEM_t *hapiSystemPtr;
+  /* PTin modified: inband -> Only consider bytes identifying PTIn related packets */
   L7_uchar8       exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
-                                   FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+                                   FIELD_MASK_ALL,  FIELD_MASK_ALL,  FIELD_MASK_ALL };
 
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
