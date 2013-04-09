@@ -259,8 +259,12 @@ extern int sal_flash_sync(void);
 #define vprintk sal_appl_vprintk
 #endif
 
+#if defined(LVL7_FIXUP)  && defined(_L7_OS_ECOS_)
+#define printk printf
+#else
 extern int printk(const char *, ...)		/* To console and/or file */
     COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+#endif
 extern int vprintk(const char *, va_list ap)
     COMPILER_ATTRIBUTE ((format (printf, 1, 0)));
 

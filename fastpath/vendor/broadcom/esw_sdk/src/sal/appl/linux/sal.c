@@ -46,9 +46,15 @@
  * Purpose:	Defines sal routines for Kernel-mode Linux targets.
  */
 
+#ifdef LVL7_FIXUP
+#include <ctype.h>
+#include <stdlib.h>
+#include "bspapi.h"
+#else
 #include <linux/ctype.h>
 #include <linux/kernel.h>
 #include <linux/random.h>
+#endif
 
 #include <sal/core/time.h>
 #include <sal/core/thread.h>
@@ -240,6 +246,9 @@ sal_appl_init(void)
 void
 sal_reboot(void)
 {
+#ifdef LVL7_FIXUP
+  bspapiSwitchReset();
+#endif
 }
 
 /*
@@ -359,7 +368,11 @@ sal_rand(void)
 {
     int rv;
 
+#ifdef LVL7_FIXUP
+    rv = rand();
+#else
     get_random_bytes(&rv, sizeof(rv));
+#endif
 
     return ((rv ^ sort_of_seed) & SAL_RAND_MAX);
 }

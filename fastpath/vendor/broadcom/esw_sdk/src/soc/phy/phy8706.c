@@ -64,6 +64,9 @@
 
 #include "phydefs.h"      /* Must include before other phy related includes */
 
+///LTX for printf
+#include <stdio.h>
+
 #if defined(INCLUDE_PHY_8706)
 #include "phyconfig.h"    /* Must be the first phy include after phydefs.h */
 #include "phyident.h"
@@ -542,6 +545,9 @@ _8727_rom_load_war(int unit, int port, phy_ctrl_t *pc)
 STATIC int
 _8726_rom_load(int unit, int port, phy_ctrl_t *pc)
 {
+	printf("LTX: aborting _8726_rom_load\n");
+    return SOC_E_NONE;
+
     SOC_IF_ERROR_RETURN
         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca85, 0x0001));
     sal_usleep(1000);
@@ -572,6 +578,10 @@ _8726_rom_load(int unit, int port, phy_ctrl_t *pc)
 STATIC int
 _8747_rom_load(int unit, int port, phy_ctrl_t *pc)
 {
+//	printf("LTX: aborting _8747_rom_load\n");
+//    return SOC_E_NONE;
+
+
     uint16  phy_addr;
     int i;
 
@@ -583,7 +593,8 @@ _8747_rom_load(int unit, int port, phy_ctrl_t *pc)
         pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc840), 0x000C);
 
         /* Set bit SPI Download (15), SER Boot (14) And SPI Port Enable (0) In C848, SPI_PORT_CTRL */
-        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
+//        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
+        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0x80F1);
     }
 
     /* Place Micro in reset */
@@ -710,8 +721,13 @@ phy_8706_init(int unit, soc_port_t port)
     
     PHY_FLAGS_SET(unit, port,  PHY_FLAGS_FIBER | PHY_FLAGS_C45);
 
-    phy_ext_rom_boot = soc_property_port_get(unit, port, 
-                                            spn_PHY_EXT_ROM_BOOT, 1);
+    ///LTX
+//    phy_ext_rom_boot = soc_property_port_get(unit, port,
+//                                            spn_PHY_EXT_ROM_BOOT, 1);
+    phy_ext_rom_boot=1;
+
+
+
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PMA_PMD_REG(unit, pc, MII_PHY_ID1_REG, &phyid1));
 
@@ -1178,6 +1194,16 @@ phy_8706_init(int unit, soc_port_t port)
             PHYDRV_CALL_NOARG(pc,PHY_INIT);
         }
     }
+
+    ///LTX
+
+    printf("LTX: Hacking phy_8706_init to enable tx on address 0xc800\n");
+
+    (PHY8706_REG_WRITE(unit, pc,
+                      SOC_PHY_CLAUSE45_ADDR(PHY8706_C45_DEV_PMA_PMD,
+                                            0xC800),
+                      0xFF00));
+
 
     /* Enable Squelch */
     SOC_IF_ERROR_RETURN(_phy_8706_squelch_enable(unit, port, TRUE));
@@ -1739,6 +1765,7 @@ phy_8706_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     switch(pc->speed_max) {
         case 10000:
         default:
+//        	printf("LTX: phy_8706_ability_local_get setting full duplex to SOC_PA_SPEED_10GB\n");
             ability->speed_full_duplex |= SOC_PA_SPEED_10GB;
             break;
     }
@@ -1809,10 +1836,15 @@ _phy_8706_link_get(int unit, soc_port_t port, int *link)
         SOC_IF_ERROR_RETURN
             (READ_PHY8706_PMA_PMD_STATr(unit, pc, &pma_mii_stat));
 
+//        printf("LTX: pcs_mii_stat= 0x%X\n", pcs_mii_stat);
+//        printf("LTX: pma_mii_stat= 0x%X\n", pma_mii_stat);
+
         link_stat = pma_mii_stat & pcs_mii_stat;
 
         *link = (link_stat == 0xffff) ? FALSE :
                 (link_stat & MII_STAT_LA) ? TRUE : FALSE;
+//        printf("LTX: link on port %d is %s\n", port, (link_stat & MII_STAT_LA) ? "UP" : "DOWN");
+
     } else {
         /* in 1G mode, the PMA/PMD and PCS status register's link bit always
          * show link down.
@@ -1848,11 +1880,15 @@ _phy_5942_link_get(int unit, soc_port_t port, int *link)
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PHYXS_GP_STATUS_STATUS1000X1r(unit, pc, &status1000x1));
 
+//    printf("LTX: _phy_5942_link_get on port %d  XGXSSTATUS1r = 0x%X\n", port, xgxsstatus1);
+//    printf("LTX: _phy_5942_link_get on port %d  STATUS1000X1r= 0x%X\n", port, status1000x1);
+
     if (xgxsstatus1 == 0xffff) {
       *link = 0;
     } else {
       *link =  ((xgxsstatus1 & (1U << 9)) | (status1000x1 & (1U << 1))) ? 1 : 0;
     }
+//    printf("LTX: _phy_5942_link_get  link on port %d is %s\n", port, ((xgxsstatus1 & (1U << 9)) | (status1000x1 & (1U << 1))) ? "UP" : "DOWN");
 
     soc_cm_debug(DK_PHY | DK_VERBOSE,
          "_phy_5942_link_get: u=%d port%d: link:%s\n",
@@ -1865,7 +1901,9 @@ _phy_5942_link_get(int unit, soc_port_t port, int *link)
 STATIC int
 phy_8706_link_get(int unit, soc_port_t port, int *link)
 {
-    phy_ctrl_t *pc; 
+    phy_ctrl_t *pc;
+
+//    printf("LTX: phy_8706_link_get called for port %d\n", port);
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
@@ -2134,6 +2172,7 @@ phy_8706_lb_set(int unit, soc_port_t port, int enable)
 
     if (PHY_IS_BCM5942(pc)) {
         SOC_IF_ERROR_RETURN
+//        (_phy_8706_lb_set(unit, port, enable));
             (_phy_5942_lb_set(unit, port, enable));
     } else {
         SOC_IF_ERROR_RETURN
@@ -2920,9 +2959,12 @@ _phy_8706_speed_set(int unit, soc_port_t port, int speed)
     if (NULL != int_pc) {
         if (PHY_IS_BCM5942(pc)) {
             SOC_IF_ERROR_RETURN
-                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_SFI));
+//            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
+                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
+            printf("LTX: internal phy on port %d set to SOC_PORT_IF_XFI\n", port);
             SOC_IF_ERROR_RETURN
                 (PHY_AUTO_NEGOTIATE_SET (int_pc->pd, unit, port, 0));
+            printf("LTX: internal phy on port %d set to AUTONEG OFF\n", port);
         }
         rv = PHY_SPEED_SET(int_pc->pd, unit, port, speed);
     }
@@ -2940,6 +2982,10 @@ STATIC int
 phy_8706_speed_set(int unit, soc_port_t port, int speed)
 {
     phy_ctrl_t  *pc;
+    printf("LTX: Called phy_8706_speed_set for port %d\n", port);
+
+//    return SOC_E_NONE;
+
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
@@ -3135,6 +3181,21 @@ _phy_8747_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
                     port,data16);
         return SOC_E_FAIL;
     }
+
+    ///LTX
+//    printf("LTX: Will hack _phy_8747_firmware_ram_set to configure port speed, autoneg and internal phy interface...\n");
+//    if (PHY_IS_BCM5942(pc)) {
+//        SOC_IF_ERROR_RETURN
+////            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
+//            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
+//        printf("LTX: internal phy on port %d set to SOC_PORT_IF_XFI\n", port);
+//        SOC_IF_ERROR_RETURN
+//            (PHY_AUTO_NEGOTIATE_SET (int_pc->pd, unit, port, 0));
+//        printf("LTX: internal phy on port %d set to AUTONEG OFF\n", port);
+//    }
+//    PHY_SPEED_SET(int_pc->pd, unit, port, speed);
+    ///LTX end
+
 
     return SOC_E_NONE;
 }
@@ -4284,6 +4345,10 @@ phy_8706_probe(int unit, phy_ctrl_t *pc)
         if (soc_property_port_get(unit, pc->port, spn_PORT_PHY_MODE_REVERSE, 0)) {
             pi->phy_name = "BCM5942";
             PHY_FLAGS_SET(pc->unit, pc->port, PHY_FLAGS_SECONDARY_SERDES);
+//            ///ltx: hack to set the speed
+//            phy_8706_speed_set(unit, pc->port, 10000);
+//            ///
+
         }
     break;
 

@@ -195,6 +195,10 @@ extern void soc_i2c_clear_log(int unit);
 extern void soc_i2c_show_speeds(int unit);
 extern char *soc_i2c_saddr_to_string(int unit, i2c_saddr_t saddr);
 
+#ifdef LVL7_FIXUP
+extern int soc_i2c_read_test(int unit, uint8 devid, uint8 *ptr, int len);
+extern int soc_i2c_write_test(int unit, uint8 devid, uint8 *ptr, int len);
+#endif
 /*
  * SMB commands
  */

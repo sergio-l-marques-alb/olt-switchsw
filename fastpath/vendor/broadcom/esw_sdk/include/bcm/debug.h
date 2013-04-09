@@ -154,9 +154,24 @@ extern void _bcm_debug_api(
 #if defined(BROADCOM_DEBUG)
 #define BCM_DEBUG_CHECK(flags)  \
     (((flags) & bcm_debug_level) == (flags)) 
+#ifndef LVL7_FIXUP
 #define BCM_DEBUG(flags, stuff)  \
     if (BCM_DEBUG_CHECK(flags) && bcm_debug_print != 0) \
         (*bcm_debug_print) stuff 
+#else
+extern int (*bcm_debug_error)(const char *format, ... );
+extern int (*bcm_debug_warn)(const char *format, ... );
+extern int (*bcm_debug_debug)(const char *format, ... );
+#define BCM_DEBUG(flags, stuff)  \
+    do { \
+      if (BCM_DEBUG_CHECK(flags) && bcm_debug_print != 0) \
+      { \
+        if (BCM_DBG_ERR & (flags)) (*bcm_debug_error) stuff; \
+        else if (BCM_DBG_WARN & (flags)) (*bcm_debug_warn) stuff; \
+        else (*bcm_debug_debug) stuff ; \
+      } \
+    }while (0)
+#endif
 #define BCM_WARN(stuff)         \
     BCM_DEBUG(BCM_DBG_WARN, stuff) 
 #define BCM_ERR(stuff)          \

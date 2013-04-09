@@ -4981,6 +4981,13 @@ soc_cm_sflush(int dev, void *addr, int length)
 int
 soc_cm_sinval(int dev, void *addr, int length)
 {
+#if defined(LVL7_FIXUP) && defined(LVL7_DNI8541)
+/* The cache doesn't need to be synced on the PPC85XX processor. 
+** Invoking the function causes a crash on the PPC85XX devices.
+*/
+    return SOC_E_NONE;
+#endif	
+
     if (CMVEC(dev).sinval) {
         return CMVEC(dev).sinval(&CMDEV(dev).dev, addr, length);
     }
@@ -5215,6 +5222,58 @@ soc_cm_print(const char *format, ...)
     return rc; 
 }
 
+#ifdef LVL7_FIXUP
+int
+soc_cm_debug_error(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(DK_ERR, format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+
+int
+soc_cm_debug_warn(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(DK_WARN, format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+
+int
+soc_cm_debug_debug(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(~(DK_WARN | DK_ERR), format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+#endif
 /*
  * Function:    soc_cm_vprint
  * Purpose:     Direct a message from the driver.

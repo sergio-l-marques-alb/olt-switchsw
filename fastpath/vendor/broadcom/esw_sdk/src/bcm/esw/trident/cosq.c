@@ -1704,7 +1704,7 @@ _bcm_td_cosq_config_set(int unit, int numq)
     uint32 i;
 #ifdef BCM_COSQ_HIGIG_MAP_DISABLE
     port_cos_map_entry_t hg_cos_map_entries[16];
-    uint32 rval;
+//    uint32 rval;  /* PTin removed: unused variable */
 #endif
 
     if (numq < 1 || numq > 8) {

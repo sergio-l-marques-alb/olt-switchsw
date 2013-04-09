@@ -372,6 +372,9 @@ _bcm_board_trunk_remove(int unit,
  *     for remote CPU entries.
  */
 
+#ifdef LVL7_FIXUP
+extern int lvl7_internal_hg_trunkid;
+#endif
 
 STATIC int
 _bcm_board_trunk_unit(int unit, cpudb_entry_t *entry, cpudb_ref_t db_ref,
@@ -392,6 +395,14 @@ _bcm_board_trunk_unit(int unit, cpudb_entry_t *entry, cpudb_ref_t db_ref,
     /* Destroy any pre-existing fabric trunks */
     if (flags & BCM_BOARD_TRUNK_DESTROY) {
         for (tid = start;; tid++) {
+#ifdef LVL7_FIXUP
+        /* Don't destroy the internal HG trunk */
+        if ((lvl7_internal_hg_trunkid != -1) && (tid == lvl7_internal_hg_trunkid))
+        {
+          continue;            
+        }
+#endif
+
             rv = bcm_trunk_destroy(unit, tid);
             if (rv < 0) {
                 break;

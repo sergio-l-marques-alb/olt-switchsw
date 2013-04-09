@@ -58,5 +58,10 @@
 uint32		bcmx_debug_level = BCMX_DBG_DEFAULT;
 char		*bcmx_debug_names[] = {BCMX_DBG_NAMES};
 int		(*bcmx_debug_print)(const char *format, ...) = soc_cm_print;
+#ifdef LVL7_FIXUP
+int		(*bcmx_debug_error)(const char *format, ...) = soc_cm_debug_error;
+int		(*bcmx_debug_warn)(const char *format, ...) = soc_cm_debug_warn;
+int		(*bcmx_debug_debug)(const char *format, ...) = soc_cm_debug_debug;
+#endif
 
 #endif /* BROADCOM_DEBUG */

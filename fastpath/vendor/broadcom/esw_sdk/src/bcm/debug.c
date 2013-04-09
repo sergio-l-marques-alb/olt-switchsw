@@ -62,6 +62,12 @@ uint32		bcm_debug_level = BCM_DBG_DEFAULT;
 char		*bcm_debug_names[] = {BCM_DBG_NAMES};
 int		(*bcm_debug_print)(const char *format, ...) = soc_cm_print;
 
+#ifdef LVL7_FIXUP
+int		(*bcm_debug_error)(const char *format, ...) = soc_cm_debug_error;
+int		(*bcm_debug_warn)(const char *format, ...) = soc_cm_debug_warn;
+int		(*bcm_debug_debug)(const char *format, ...) = soc_cm_debug_debug;
+#endif
+
 /*
  * API Debug Message Helper.
  * Called from the BCM_API macro in <bcm/debug.h>

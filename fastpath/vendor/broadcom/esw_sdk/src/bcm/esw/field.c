@@ -27168,7 +27168,21 @@ _bcm_field_group_status_calc(int unit, _field_group_t *fg)
 
     while (fs != NULL)
     {
+#ifdef LVL7_FIXUP
+        /* Need to consider whether the group being queried is intraslice mode. */
+        if (fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE)
+        {
+          status->entries_total += fs->entry_count / 2;
+          status->natural_depth = fs->entry_count / 2;
+        }
+        else
+        {
+          status->entries_total += fs->entry_count;
+          status->natural_depth = fs->entry_count;
+        }
+#else
         status->entries_total += fs->entry_count;
+#endif
         fs = fs->next;
     }
 
@@ -27225,8 +27239,23 @@ _bcm_field_group_status_calc(int unit, _field_group_t *fg)
             {
                 fs = stage_fc->slices + slice_index;
 
+#ifdef LVL7_FIXUP
+                /* Need to consider whether the group being queried is intraslice mode.
+                   This will affect the number of rules available when expanding this group. */
+                if (fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE)
+                {
+                  status->entries_total += fs->entry_count / 2;
+                  status->entries_free += fs->entry_count / 2;
+                }
+                else
+                {
+                  status->entries_total += fs->entry_count;
+                  status->entries_free += fs->entry_count;
+                }
+#else
                 status->entries_total += fs->entry_count;
                 status->entries_free += fs->entry_count;
+#endif
 
                 /* If device supports Per Slice Counters, need to account the counters 
                  * associated to the secondary slice.
@@ -27315,6 +27344,31 @@ bcm_esw_field_group_status_get(int unit,
         FP_UNLOCK(fc);
         return (rv);
     }
+
+#ifdef LVL7_FIXUP
+    if (fg->flags & _FP_GROUP_SPAN_SINGLE_SLICE)
+    {
+      fg->group_status.slice_width_physical = 1;
+    }
+    else if (fg->flags & _FP_GROUP_SPAN_DOUBLE_SLICE)
+    {
+      fg->group_status.slice_width_physical = 2;
+    }
+    else 
+    {
+      fg->group_status.slice_width_physical = 4;
+    }
+
+    if (fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE)
+    {
+      fg->group_status.intraslice_mode_enable = 1;
+    }
+    else
+    {
+      fg->group_status.intraslice_mode_enable = 0;
+    }
+#endif
+
 
     *status = fg->group_status;
     FP_UNLOCK(fc);

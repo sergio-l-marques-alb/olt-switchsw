@@ -49,6 +49,10 @@
 #ifndef _SAL_ALLOC_H
 #define _SAL_ALLOC_H
 
+#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
+#include "osapi.h"
+#endif
+
 /*
  * SAL Memory and Cache Support
  *
@@ -58,8 +62,21 @@
  *    or after DMA operations.
  */
 
+/* Map sal_alloc/sal_free to osapi Api's except for 
+** - MIPS64 cpu: SDK has some special code for MIPS64 in sal_alloc.
+** - Linux kernel mode
+** - Smartpath product
+*/
+#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
+#define sal_alloc(sz,str) osapiMalloc(L7_DRIVER_COMPONENT_ID, sz)
+#define sal_free(ptr) osapiFree(L7_DRIVER_COMPONENT_ID, ptr)
+
+#else
+
 extern void	*sal_alloc(unsigned int, char *);
 extern void 	sal_free(void *);
+
+#endif
 
 /*
  * DMA Memory allocation

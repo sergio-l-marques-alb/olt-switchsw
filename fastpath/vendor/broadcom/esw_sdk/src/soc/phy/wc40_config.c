@@ -321,17 +321,17 @@ phy_wc40_config_init(phy_ctrl_t *pc)
     }
 
     if (PHY_INDEPENDENT_LANE_MODE(unit, port)) {
-        pCfg->cl73an     = WC40_CL73_AND_CL73BAM; /*WC40_CL73_WO_CL73BAM; */
+        pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/     /* PTin modified: WC40 */
     } else {
        if (IS_HG_PORT(unit, port)) {
            pCfg->cl73an     = FALSE;
        } else {
-           pCfg->cl73an     = WC40_CL73_AND_CL73BAM;
+           pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/  /* PTin modified: WC40 */
        }
     }
    
     /* Default setting for CL37 */ 
-    pCfg->cl37an     = WC40_CL37_AND_CL37BAM; 
+    pCfg->cl37an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/         /* PTin modified: WC40 */
 
     if ((PHY_FIBER_MODE(unit, port) && !PHY_EXTERNAL_MODE(unit, port)) ||
         PHY_PASSTHRU_MODE(unit, port) ||

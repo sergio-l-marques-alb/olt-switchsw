@@ -106,9 +106,26 @@ extern int (*bcmx_debug_print)(const char *format, ... )
 #if defined(BROADCOM_DEBUG)
 #define BCMX_DEBUG_CHECK(flags)  \
     (((flags) & bcmx_debug_level) == (flags)) 
+
+#ifndef LVL7_FIXUP
 #define BCMX_DEBUG(flags, stuff)  \
     if (BCMX_DEBUG_CHECK(flags) && bcmx_debug_print != 0) \
         (*bcmx_debug_print) stuff 
+#else
+extern int (*bcmx_debug_error)(const char *format, ...);
+extern int (*bcmx_debug_warn)(const char *format, ...);
+extern int (*bcmx_debug_debug)(const char *format, ...);
+#define BCMX_DEBUG(flags, stuff) \
+  do { \
+    if (BCMX_DEBUG_CHECK(flags) && bcmx_debug_print != 0) \
+    { \
+      if ((flags) & BCMX_DBG_ERR) (*bcmx_debug_error) stuff ; \
+      else if ((flags) & BCMX_DBG_WARN) (*bcmx_debug_warn) stuff ; \
+      else (*bcmx_debug_debug) stuff ; \
+    } \
+  } while(0)
+#endif
+
 #else
 #define BCMX_DEBUG_CHECK(flags)  0          
 #define BCMX_DEBUG(flags, stuff)             

@@ -74,6 +74,16 @@ extern int      soc_cm_vprint(const char *fmt, va_list varg)
                              COMPILER_ATTRIBUTE ((format (printf, 1, 0)));
 extern int      soc_cm_debug(uint32 flags, const char *format, ...)
                              COMPILER_ATTRIBUTE ((format (printf, 2, 3)));
+
+#ifdef LVL7_FIXUP
+extern int      soc_cm_debug_error(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+extern int      soc_cm_debug_warn(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+extern int      soc_cm_debug_debug(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+#endif
+
 extern int      soc_cm_debug_check(uint32 flags);
 extern int      soc_cm_dump(int dev);
 

@@ -122,10 +122,26 @@ extern int (*tks_debug_print)(const char *format, ...)
     COMPILER_ATTRIBUTE_FUNCTION_POINTER ((format (printf, 1, 2)));
 
 #define TKS_DEBUG_CHECK(flags) (((flags) & tks_debug_level) == (flags))
+#ifndef LVL7_FIXUP
 #define TKS_DEBUG(flags, stuff) \
     if (TKS_DEBUG_CHECK(flags) && tks_debug_print != 0) \
 	(*tks_debug_print) stuff
+#else
+extern int (*tks_debug_error)(const char *format, ...);
+extern int (*tks_debug_warn)(const char *format, ...);
+extern int (*tks_debug_debug)(const char *format, ...);
 
+#define TKS_DEBUG(flags, stuff) \
+    do { \
+    if (TKS_DEBUG_CHECK(flags) && tks_debug_print != 0) \
+      { \
+        if ((flags) & TKS_DBG_ERR) (*tks_debug_error) stuff ; \
+        else if ((flags) & TKS_DBG_WARN)(*tks_debug_warn) stuff ; \
+        else (*tks_debug_debug) stuff ; \
+      } \
+    } while(0) 
+
+#endif
 #else
 
 #define TKS_DEBUG_CHECK(flags) 0

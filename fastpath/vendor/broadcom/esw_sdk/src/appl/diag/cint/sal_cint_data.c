@@ -64,6 +64,14 @@ int sal_core_cint_data_not_empty;
 #include <sal/appl/sal.h>
 
 
+/* PTin added: solve an incompatibility of CINT with LVL7_FIXUP definition */
+#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
+#undef sal_alloc
+#undef sal_free
+extern void *sal_alloc(unsigned int, char *);
+extern void sal_free(void *);
+#endif
+
 CINT_FWRAPPER_CREATE_RP2(void*, void, 1, 0, 
                          sal_alloc, 
                          int,int,size,0,0,

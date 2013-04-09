@@ -201,8 +201,20 @@ extern uint32 soc_debug_level;
 extern char *soc_debug_names[];
 
 #define SOC_DEBUG_CHECK(flags) (((flags) & soc_debug_level) == (flags))
+#ifndef LVL7_FIXUP
 #define SOC_DEBUG(flags, stuff) \
     if (SOC_DEBUG_CHECK(flags)) soc_cm_print stuff
+#else
+#define SOC_DEBUG(flags, stuff) \
+  do { \
+    if (SOC_DEBUG_CHECK(flags)) { \
+    if (SOC_DBG_ERR & (flags)) soc_cm_debug_error stuff ; \
+    else if (SOC_DBG_WARN & (flags)) soc_cm_debug_warn stuff ; \
+    else soc_cm_debug_debug stuff; \
+    } \
+  }while(0)
+
+#endif
 
 /*
  * Unified message format for all modules 

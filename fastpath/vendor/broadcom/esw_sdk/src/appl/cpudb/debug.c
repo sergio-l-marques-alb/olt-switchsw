@@ -58,4 +58,10 @@ uint32		tks_debug_level = TKS_DBG_DEFAULT;
 char		*tks_debug_names[] = {TKS_DBG_NAMES};
 int		(*tks_debug_print)(const char *format, ...) = soc_cm_print;
 
+#ifdef LVL7_FIXUP
+int (*tks_debug_error)(const char *format, ...) = soc_cm_debug_error;
+int (*tks_debug_warn)(const char *format, ...) = soc_cm_debug_warn;
+int (*tks_debug_debug)(const char *format, ...) = soc_cm_debug_debug;
+#endif
+
 #endif /* BROADCOM_DEBUG */

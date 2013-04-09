@@ -128,7 +128,8 @@
 
 MODULE_AUTHOR("Broadcom Corporation");
 MODULE_DESCRIPTION("Kernel BDE");
-MODULE_LICENSE("Proprietary");
+MODULE_LICENSE("GPL");
+//MODULE_LICENSE("Proprietary");
 
 /* DMA memory pool size */
 static char *dmasize;
@@ -143,7 +144,7 @@ MODULE_PARM_DESC(himem,
 "Use high memory for DMA (default no)");
 
 /* PCIe max payload */
-int maxpayload = 256;
+int maxpayload = 128; //256;  /* PTin modified: Max payload limited to 128B */
 LKM_MOD_PARAM(maxpayload, "i", int, 0);
 MODULE_PARM_DESC(maxpayload,
 "Limit maximum payload size and request size on PCIe devices");
@@ -235,7 +236,7 @@ MODULE_PARM_DESC(eadevices,
 #define MEM_MAP_RESERVE mem_map_reserve
 #define MEM_MAP_UNRESERVE mem_map_unreserve
 #else /* LKM_2_6 */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28))
 #define _ISR_RET irqreturn_t
 #else
 #define _ISR_RET int
@@ -1181,6 +1182,11 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
             gprintk("Cannot enable PCI device : vendor_id = %x, device_id = %x\n",
                     dev->vendor, dev->device);
         }
+/* PTin added */
+        else {
+            gprintk("LTX: Enabled pci device : vendor_id = %x, device_id = %x\n",dev->vendor, dev->device);
+        }
+/* PTin end */
 
         
         /*
@@ -1195,9 +1201,11 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
          */
         if (pci_resource_start(dev, baroff) < _pci_mem_start) {
             _pci_mem_start = pci_resource_start(dev, baroff);
+            gprintk("LTX: Adjusted _pci_mem_start\n");
         }
         if (pci_resource_end(dev, baroff) > _pci_mem_end) {
             _pci_mem_end = pci_resource_end(dev, baroff);
+            gprintk("LTX: Adjusted _pci_mem_end\n");
         }
 
 #ifdef CONFIG_SANDPOINT
@@ -1309,6 +1317,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         if (cap_base) {
             int max_val, max_cap;
             uint16 devcap, devctl;
+            gprintk("LTX: Will parse PCI_CAPABILITY_LIST\n");
 
             /* Get current device control settings */
             pci_read_config_word(dev, cap_base + PCI_EXP_DEVCTL, &devctl);
@@ -1382,6 +1391,41 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     }
 #endif /* BCM_DFE_SUPPORT */
 
+
+    if (debug >= 1) {
+        uint8 aux8;
+        uint32 aux32;
+
+        gprintk("***********PCI Conf registers: api 5.9.2**********\n");
+        pci_read_config_dword(dev, 0x0, &aux32);
+        gprintk("* Vendor ID | Device ID :  0x%08X *\n", aux32);
+        pci_read_config_dword(dev, 0x4, &aux32);
+        gprintk("* Class Code| rev ID    :  0x%08X *\n", aux32);
+        pci_read_config_byte(dev, 0xC, &aux8);
+        gprintk("* Cache line syze       :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0xD, &aux8);
+        gprintk("* Latency Timer         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0xE, &aux8);
+        gprintk("* Header Type           :  0x%02X       *\n", aux8);
+        pci_read_config_dword(dev, 0x10, &aux32);
+        gprintk("* BASE ADDRESS LOW      :  0x%08X *\n", aux32);
+        pci_read_config_dword(dev, 0x14, &aux32);
+        gprintk("* BASE ADDRESS HIGH     :  0x%08X *\n", aux32);
+        pci_read_config_byte(dev, 0x3C, &aux8);
+        gprintk("* Interrupt Line        :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3D, &aux8);
+        gprintk("* Interrupt Pin         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3E, &aux8);
+        gprintk("* Minimum Grant         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3F, &aux8);
+        gprintk("* Maximum Latency       :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x40, &aux8);
+        gprintk("* Retry Count           :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x41, &aux8);
+        gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
+        gprintk("****************************\n");
+    }
+
     /* Prevent compiler warning */
     if (ctrl == NULL) {
         return 0;
@@ -1453,6 +1497,8 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         ctrl->phys_address1 = paddr;
     }
     
+    gprintk("LTX: BCM: Mapped the device\n");
+
     /*
      * Since the GMAC driver of Robo chips needs access to the
      * ChipCommon and Wrapper registers, we set the base address
@@ -1512,6 +1558,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 #endif
 
     /* Let's boogie */
+    gprintk("LTX: BCM: Reached end of _probe\n");
     return 0;
 }
 
@@ -3024,7 +3071,9 @@ _init(void)
     if (himem) {
         if ((himem[0] & ~0x20) == 'Y' || himem[0] == '1') {
             _use_himem = 1;
+            gprintk("LTX: Using himem dma allocation\n");
         } else if ((himem[0] & ~0x20) == 'N' || himem[0] == '0') {
+            gprintk("LTX: NOT Using himem dma allocation\n");
             _use_himem = 0;
         }
     }
@@ -3037,6 +3086,7 @@ _init(void)
         else {
             mpool_init();
             _dma_pool = mpool_create(_dma_vbase, _dma_mem_size);
+            gprintk("Allocated %d bytes for DMA memory\n", _dma_mem_size);  /* PTin added */
         }
     }
 
@@ -3536,6 +3586,15 @@ _interrupt_connect(int d,
     int isr2_dev;
     int isr_active;
 
+    /* PTin added: Kernel */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
+    struct device_node *np = NULL;
+    unsigned int eirq;
+#endif
+
+    gprintk("Setting IRQ...\n");
+    /* PTin end */
+
     isr2_dev = d & LKBDE_ISR2_DEV;
     d &= ~LKBDE_ISR2_DEV;
 
@@ -3578,11 +3637,31 @@ _interrupt_connect(int d,
         }
     }
 
+    /* PTin added: Kernel */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
+    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
+	  if (np == NULL){
+      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
+      return -1;
+    }
+    eirq = irq_of_parse_and_map(np, 0);
+    if (eirq == NO_IRQ)
+    {
+      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
+      return -1;
+    }
+    ctrl->iLine = eirq;
+#endif
+    gprintk("irq to be used: %d\n",ctrl->iLine);
+    /* PTin end */
+
     if (ctrl->iLine != -1) {
 #if defined(CONFIG_PCI_MSI) && defined(BDE_LINUX_USE_MSI_INTERRUPT)
         use_msi = 1;
+        gprintk ("LTX: Trying to enable MSI\n");
         if (pci_enable_msi(ctrl->pci_device)) {
             use_msi = 0;
+            gprintk ("LTX: FAILED to enable MSI\n");
         }
 #else
         use_msi = 0;
@@ -3606,6 +3685,7 @@ _interrupt_connect(int d,
 #endif /* defined(CONFIG_PCI_MSI) && defined(BDE_LINUX_USE_MSI_INTERRUPT) */
             return -1;
         }
+        gprintk("Success requesting irq %d for device %d\n",ctrl->iLine,ctrl->pci_device->irq);
     }
 
     return 0;
