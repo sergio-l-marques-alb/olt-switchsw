@@ -1,1 +1,0 @@
-#undef CONFIG_PCI_LEGACY_PROC
