@@ -3230,11 +3230,9 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   output->bind_table_msg_size      = entries;
   output->bind_table_total_entries = dhcp_bindtable_entries;
 
-  LOG_ERR(LOG_CTX_PTIN_MSG,"Size estrutura %d", sizeof(msg_DHCPv4v6_bind_table_t));
   // Copy binding table entries
   for (i=0; i<entries; i++)
   {
-     LOG_ERR(LOG_CTX_PTIN_MSG,"Writing entry %d ",i);
     memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
 
     output->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
@@ -3248,7 +3246,6 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
     output->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
     output->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
   }
-  LOG_ERR(LOG_CTX_PTIN_MSG,"Size final %d", i*sizeof(msg_DHCPv4v6_bind_table_t));
 
   return L7_SUCCESS;
 }
