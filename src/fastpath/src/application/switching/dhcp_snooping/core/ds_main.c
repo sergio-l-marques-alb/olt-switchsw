@@ -3646,10 +3646,12 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       mac_header = (L7_enetHeader_t*) frame;
 
       memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+      memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
       if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
       {
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for a client that is not in the binding table");
-        return L7_FALSE;
+        LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for a client (%02X:%02X:%02X:%02X:%02X:%02X) that is not in the binding table", 
+                  dhcp_binding.macAddr[0], dhcp_binding.macAddr[1], dhcp_binding.macAddr[2], dhcp_binding.macAddr[3], dhcp_binding.macAddr[4], dhcp_binding.macAddr[5]);
+        return L7_TRUE;
       }
 #endif
       /* PTin added: DHCP snooping */
@@ -3765,6 +3767,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                           &rIdFlag, remoteIdStr );
       if ((_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE))    /* PTin modified: DHCP snooping */
       {
+#if 0 /* PTIN Removed: Optional DHCP Op.82 */
         if (cIdFlag == L7_TRUE && relayAgentInfo.circuitIdFlag != L7_TRUE)
         {
           /* Filter the packet as the expected Circuit Id is not seen in the
@@ -3789,6 +3792,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
             LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without expected remote-id rx'ed on trusted");
           return L7_TRUE;
         }
+#endif
       }
       if (ptin_debug_dhcp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"No discard");
