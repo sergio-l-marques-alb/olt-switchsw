@@ -629,7 +629,10 @@ _bcm_stat_ge_get(int unit, bcm_port_t port, int sync_mode,
                REG_SUB(unit, port, sync_mode, GRUNDr, count); /* - undersize, ok FCS */
                REG_SUB(unit, port, sync_mode, GRFRGr, count); /* - Receive Fragment Counter */
                REG_SUB(unit, port, sync_mode, GRJBRr, count); /* - Jabber Frame Counter */
-               REG_SUB(unit, port, sync_mode, GRIPDr, count); /* - discards */
+               /* PTin removed: SDK 6.3.0 */
+               #if 0
+               REG_SUB(unit, port, sync_mode, GRIPDr, count); /* - discards (incompatible with version 6.3.0) */
+               #endif
         }
 #else
         if (soc_feature(unit, soc_feature_hw_stats_calc)) {
