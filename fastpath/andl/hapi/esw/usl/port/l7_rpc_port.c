@@ -61,7 +61,12 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
 
   memcpy(args, &bcast_limit, sizeof(bcast_limit));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, sizeof(bcast_limit)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -130,7 +135,12 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
 
   memcpy(args, &mcast_limit, sizeof(mcast_limit));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, sizeof(mcast_limit)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -200,7 +210,12 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
 
   memcpy(args, &dlf_limit, sizeof(dlf_limit));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, sizeof(dlf_limit)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -269,7 +284,12 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
 
   memcpy(args, &mode, sizeof(mode));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, sizeof(mode)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -338,7 +358,12 @@ int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port,
 
   memcpy(args, &priority, sizeof(priority));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, sizeof(priority)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -408,7 +433,12 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
 
   memcpy(args, &max_frame_size, sizeof(max_frame_size));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, sizeof(max_frame_size)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -478,7 +508,12 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 
   memcpy(args, &learn_mode, sizeof(learn_mode));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, sizeof(learn_mode)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -548,7 +583,12 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
 
   memcpy(args, &dtag_mode, sizeof(dtag_mode));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, sizeof(dtag_mode)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -619,7 +659,12 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   memcpy(args, &tpid, sizeof(tpid));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, sizeof(tpid)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -651,7 +696,12 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   memcpy(args, &tpid, sizeof(tpid));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, sizeof(tpid)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -683,7 +733,12 @@ int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   memcpy(args, &tpid, sizeof(tpid));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, sizeof(tpid)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -824,7 +879,12 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
 
   memcpy(args, &vid, sizeof(vid));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, sizeof(vid)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -894,7 +954,12 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
 
   memcpy(args, &mode, sizeof(mode));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, sizeof(mode)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -974,7 +1039,12 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
   memcpy(argPtr, config, sizeof(*config));
   argPtr += sizeof(*config);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, sizeof(*config)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1054,7 +1124,12 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
 
   memcpy(args, &pauseConfig, sizeof(pauseConfig));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, sizeof(pauseConfig)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1125,7 +1200,12 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
 
   memcpy(args, &cosqSchedConfig, sizeof(cosqSchedConfig));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, sizeof(cosqSchedConfig)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1195,7 +1275,12 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
 
   memcpy(args, &shaperConfig, sizeof(shaperConfig));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, sizeof(shaperConfig)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1276,7 +1361,12 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
   memcpy (argPtr, vlanConfig, sizeof (*vlanConfig));
   argPtr += sizeof(*vlanConfig);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, sizeof(*vlanConfig)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1361,7 +1451,12 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
   memcpy (argPtr, &stpState, sizeof (stpState));
   argPtr += sizeof(stpState);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, sizeof(stpState)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1450,7 +1545,12 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
   memcpy (argPtr, &pbvlanConfig, sizeof (pbvlanConfig));
   argPtr += sizeof(pbvlanConfig);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, sizeof(pbvlanConfig)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1527,7 +1627,12 @@ int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
 
   memcpy (args, &dot1xStatus, sizeof (dot1xStatus));
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, sizeof(dot1xStatus)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 
@@ -1596,7 +1701,14 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_SFP_DIAG_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
+
   if (rv >= 0) {
     *temperature = args[0];
     *voltage     = args[1];
@@ -1629,7 +1741,14 @@ l7_rpc_client_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_COPPER_DIAG_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
+
   if (rv >= 0) 
   {
     memcpy(cd, args, sizeof(bcm_port_cable_diag_t));
@@ -1825,7 +1944,13 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, sizeof(usl_bcm_port_dot1x_client_t)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -1856,7 +1981,13 @@ l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, sizeof(usl_bcm_port_dot1x_client_t)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -1952,7 +2083,14 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
+
   if (rv >= 0) 
   {
     pReturnClient = (usl_bcm_port_dot1x_client_t *) args;
@@ -2031,7 +2169,14 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   int     rv, argi, s;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
  
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_STATS_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
+
   if (rv >= 0) 
   {
     argi = 0;
@@ -2065,7 +2210,14 @@ l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   int     rv, argi, s;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
  
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_STATS_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
+
   if (rv >= 0) 
   {
     argi = 0;
@@ -2210,7 +2362,13 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
   }
 
   memcpy (args, &mirrorConfig, sizeof (mirrorConfig));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, sizeof(mirrorConfig)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2319,7 +2477,13 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
   }
 
   memcpy (args, &enable, sizeof (enable));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, sizeof(enable)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2387,7 +2551,13 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
   }
 
   memcpy (args, wredParams, sizeof (*wredParams));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, sizeof(*wredParams)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2455,7 +2625,13 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
   }
 
   memcpy (args, sflowConfig, sizeof (*sflowConfig));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, sizeof(*sflowConfig)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2516,7 +2692,13 @@ int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_B
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &enable, sizeof (enable));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, sizeof(enable)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2577,7 +2759,13 @@ int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &drop, sizeof (drop));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, sizeof(drop)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2638,7 +2826,13 @@ int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BO
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &enable, sizeof (enable));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, sizeof(enable)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2699,7 +2893,13 @@ int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &drop, sizeof (drop));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, sizeof(drop)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2760,7 +2960,13 @@ int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &key, sizeof (key));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, sizeof(key)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2821,7 +3027,13 @@ int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   memcpy (args, &key, sizeof (key));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, sizeof(key)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2887,7 +3099,13 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
   }
 
   memcpy (args, &pfcConfig, sizeof (pfcConfig));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, sizeof(pfcConfig)/sizeof(L7_uint32), args);
+  #endif
+
   return rv;
 }
 
@@ -2958,7 +3176,13 @@ int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port,
   }
 
   memcpy (args, stat, sizeof (*stat));
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_PFC_STAT_GET, args);
+  #else
+  L7_int len;
+  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  #endif
 
   if (BCM_E_NONE == rv)
   {
@@ -3018,7 +3242,12 @@ int l7_rpc_client_port_pfc_stats_clear(bcmx_lport_t port)
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, 0, args);
+  #endif
 
   return rv;
 }

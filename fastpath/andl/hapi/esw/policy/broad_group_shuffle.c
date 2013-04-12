@@ -949,14 +949,29 @@ static int _policy_policy_destroy_with_counter_backup(int unit, BROAD_POLICY_t p
         rv = BCM_E_EMPTY;
         if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
+          /* TODO: SDK 6.3.0 */
+          #if 1
+          rv = BCM_E_NONE;
+          #else
           rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val2);
+          #endif
         }
         else
         {
+          /* TODO: SDK 6.3.0 */
+          #if 1
+          rv = BCM_E_NONE;
+          #else
           rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val1);
+          #endif
           if (rv == BCM_E_NONE)
           {
+            /* TODO: SDK 6.3.0 */
+            #if 1
+            rv = BCM_E_NONE;
+            #else
             rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 1, &val2);
+            #endif
           }
         }
         if (rv == BCM_E_NONE)
@@ -1031,7 +1046,12 @@ static int _policy_counters_restore(int unit)
       {
         if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
+          /* TODO: SDK 6.3.0 */
+          #if 1
+          rv = BCM_E_NONE;
+          #else
           rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val2);
+          #endif
           if (rv != BCM_E_NONE)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -1040,14 +1060,24 @@ static int _policy_counters_restore(int unit)
         }
         else
         {
+          /* TODO: SDK 6.3.0 */
+          #if 1
+          rv = BCM_E_NONE;
+          #else
           rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val1);
+          #endif
           if (rv != BCM_E_NONE)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
           }
   
+          /* TODO: SDK 6.3.0 */
+          #if 1
+          rv = BCM_E_NONE;
+          #else
           rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 1, counterPtr->val2);
+          #endif
           if (rv != BCM_E_NONE)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)

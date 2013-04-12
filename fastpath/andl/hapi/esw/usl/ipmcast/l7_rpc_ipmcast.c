@@ -477,7 +477,12 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   ipmc_cmd->vlan_id = vlan_id;
   ipmc_cmd->tagged = tagged;
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -566,8 +571,12 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   ipmc_cmd->vlan_id = vlan_id;
   ipmc_cmd->tagged = 0;
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
-
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -660,7 +669,12 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   memcpy (ipmc_cmd->mac, mac, 6);
   ipmc_cmd->ttl = ttl;
   
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -730,7 +744,12 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 
   ipmc_cmd->encap_id = encap_id;
   
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -814,7 +833,12 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 
   ipmc_cmd->vlan_id = vlan_id;
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }
@@ -882,7 +906,12 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
 
   ipmc_cmd->encap_id = encap_id;
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  #endif
 
   return rv;
 }

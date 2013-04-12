@@ -187,6 +187,8 @@ L7_RC_t hapiBroadDebugL3McastRepl(ip_addr_t  groupIp,
                                   L7_uint32  slot,
                                   L7_uint32  port)
 {
+  /* TODO: SDK 6.3.0 */
+  #if 0
     DAPI_USP_t       usp;
     bcmx_ipmc_addr_t ipmc_data;
     L7_uint32        i;
@@ -229,6 +231,7 @@ L7_RC_t hapiBroadDebugL3McastRepl(ip_addr_t  groupIp,
     }
     printf("\n");
     bcmx_ipmc_addr_free(&ipmc_data);
+  #endif
     return L7_SUCCESS;
 }
 

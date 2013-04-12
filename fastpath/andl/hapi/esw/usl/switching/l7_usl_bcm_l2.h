@@ -32,6 +32,10 @@
 #include "bcm/trunk.h"
 #include "bcm/vlan.h"
 
+/* PTin added: SDK 6.3.0 */
+#if 1
+#include "bcm_int/common/trunk.h"
+#endif
 
 /* Number of bytes in mask */
 #define L7_CAPWAP_INDICES   ((L7_MAX_NUM_CAPWAP_TUNNEL_INTF) / (sizeof(L7_uchar8) * 8) + 1)

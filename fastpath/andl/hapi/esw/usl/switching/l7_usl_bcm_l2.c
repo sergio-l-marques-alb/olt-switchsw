@@ -552,11 +552,21 @@ int usl_bcm_trunk_create(L7_uint32 appId, L7_uint32 flags, bcm_trunk_t *tid)
       {
         if (flags & USL_BCM_TRUNK_CREATE_WITH_ID)
         {
+          /* TODO: SDK 6.3.0 */
+          #if 0
           rv = bcm_trunk_create_id(i, *tid);
+          #else
+          rv = bcm_trunk_create(i, BCM_TRUNK_FLAG_WITH_ID, tid);
+          #endif
         }
         else
         {
+          /* TODO: SDK 6.3.0 */
+          #if 0
           rv = bcm_trunk_create(i, tid);
+          #else
+          rv = bcm_trunk_create(i, 0, tid);
+          #endif
         }
         if (L7_BCMX_OK(rv) != L7_TRUE)
           break;
@@ -631,6 +641,13 @@ int usl_bcm_trunk_set(L7_uint32 appId, bcm_trunk_t tid,
 {
   int                  i, rv = BCM_E_NONE;
 
+  /* PTin added: SDK 6.3.0 */
+  #if 1
+  bcm_trunk_info_t trunk_info;
+  int member_count, count;
+  bcm_trunk_member_t member_array[BCM_TRUNK_MAX_PORTCNT];
+  #endif
+
   /* Check if the hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L2_TRUNK_DB_ID) == L7_TRUE)
   {
@@ -638,7 +655,29 @@ int usl_bcm_trunk_set(L7_uint32 appId, bcm_trunk_t tid,
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         rv = bcm_trunk_set(i, tid, addInfo); 
+        #else
+        memset(&trunk_info ,0, sizeof(trunk_info));
+        memset(member_array,0, sizeof(member_array));
+        trunk_info.flags        = addInfo->flags;
+        trunk_info.psc          = addInfo->psc;
+        trunk_info.ipmc_psc     = addInfo->ipmc_psc;
+        trunk_info.dlf_index    = addInfo->dlf_index;
+        trunk_info.mc_index     = addInfo->mc_index;
+        trunk_info.ipmc_index   = addInfo->ipmc_index;
+        trunk_info.dynamic_size = addInfo->dynamic_size;
+        trunk_info.dynamic_age  = addInfo->dynamic_age;
+        trunk_info.dynamic_load_exponent          = addInfo->dynamic_load_exponent;
+        trunk_info.dynamic_expected_load_exponent = addInfo->dynamic_expected_load_exponent;
+        member_count = addInfo->num_ports;
+        for (count=0; count<member_count && count<BCM_TRUNK_MAX_PORTCNT; count++)
+        {
+          BCM_GPORT_LOCAL_SET(member_array[count].gport, addInfo->tp[count]);
+        }
+        rv = bcm_trunk_set(i, tid, &trunk_info, member_count, member_array);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
           break;
       }
@@ -857,9 +896,13 @@ int usl_bcm_vlan_ip4_add(usl_bcm_vlan_ipsubnet_t *ipSubnetData)
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
-
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_vlan_ip4_add(i, ipSubnetData->ipSubnet, ipSubnetData->netMask,
                               ipSubnetData->vlanId, ipSubnetData->prio);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
           break;
       }
@@ -902,7 +945,12 @@ int usl_bcm_vlan_ip4_delete(usl_bcm_vlan_ipsubnet_t *ipSubnetData)
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        tmpRv = BCM_E_NONE;
+        #else
         tmpRv = bcm_vlan_ip4_delete(i, ipSubnetData->ipSubnet, ipSubnetData->netMask);
+        #endif
         if (L7_BCMX_OK(tmpRv) != L7_TRUE)
         {
           break;    

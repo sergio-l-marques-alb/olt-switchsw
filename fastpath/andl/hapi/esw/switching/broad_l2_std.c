@@ -54,10 +54,16 @@
 #include "bcmx/stg.h"
 #include "bcmx/auth.h"
 #include "bcmx/vlan.h"
+/* PTin removed: SDK 6.3.0 */
+#if 0
 #include "bcm_int/esw/draco.h"
+#endif
 #include "bcm_int/robo/l2.h"
 #include "bcm_int/esw/firebolt.h"
+/* PTin removed: SDK 6.3.0 */
+#if 0
 #include "bcm_int/esw/easyrider.h"
+#endif
 #include "ibde.h"
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_bcmx_port.h"

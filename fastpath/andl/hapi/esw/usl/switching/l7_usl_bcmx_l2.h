@@ -27,6 +27,11 @@
 #include "bcm/vlan.h"
 #include "bcmx/l2.h"
 
+/* PTin added: SDK 6.3.0 */
+#if 1
+#include "bcm_int/common/trunk.h"
+#endif
+
 /*********************************************************************
 * @purpose  Flush dynamic MAC addresses for specified trunk.
 *

@@ -66,7 +66,10 @@
 #include "bcmx/bcmx.h"
 #include "bcmx/bcmx_int.h"
 #include "bcm_int/rpc/rlink.h"
+/* PTin removed: SDK 6.3.0 */
+#if 0
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/l3.h"
 #include "bcm/vlan.h"
 
@@ -1306,7 +1309,12 @@ void hpcHardwareDefaultConfigApply(void)
       LOG_ERROR (i);
     }
 #endif
+    /* PTin modified: SDK 6.3.0 */
+    #if 0
     rv = bcm_custom_register(i, custom_bcmx_port_handler);
+    #else
+    rv = bcm_custom_register(i, custom_bcmx_port_handler, (void *) 0);
+    #endif
      if (rv != BCM_E_NONE)
      {
        LOG_ERROR (rv);
@@ -2272,6 +2280,8 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
   return rc;
 }
 
+/* PTin removed: SDK 6.3.0 */
+#if 0
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
 *
@@ -2363,6 +2373,7 @@ void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter)
 
  bcmx_lplist_free(&portList);
 }
+#endif
 
 /* The following code is a patch to support Ax-B0 XGS3 parts 
  *  It addresses the Higig Problem Opcode 0 issue

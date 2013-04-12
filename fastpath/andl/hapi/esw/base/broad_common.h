@@ -44,7 +44,10 @@
 #include <appl/cpudb/cpudb.h>
 
 #include <bcm/error.h>
+/* PTIn removed: SDK 6.3.0 */
+#if 0
 #include <bcm/filter.h>
+#endif
 #include <bcm/stg.h>
 #include <bcm/port.h>
 #include <bcm/link.h>
@@ -1028,7 +1031,8 @@ L7_BOOL hpcIsBcmPortStacking (L7_uint32 bcm_unit, L7_uint32 bcm_port);
 *********************************************************************/
 void hpcStackPortEnable (L7_BOOL enable);
 
-
+/* PTin removed: SDK 6.3.0 */
+#if 0
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
 *
@@ -1045,6 +1049,7 @@ void hpcStackPortEnable (L7_BOOL enable);
 * @end
 *********************************************************************/
 void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter);
+#endif
 
 /*********************************************************************
 *

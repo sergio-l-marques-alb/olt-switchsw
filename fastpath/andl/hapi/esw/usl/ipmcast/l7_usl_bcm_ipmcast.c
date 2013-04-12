@@ -85,6 +85,9 @@ int l7_ipmc_to_bcm(usl_bcm_ipmc_addr_t  *ipmc,
   bcm_ipmc->mod_id = ipmc->mod_id; 
   bcm_ipmc->v = 1;   /* VALID */
   bcm_ipmc->flags = ipmc->flags;
+
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   bcm_ipmc->ipmc_index = ipmc->ipmc_index; 
   if (ipmc->ipmc_index >= 0)
   {
@@ -100,6 +103,9 @@ int l7_ipmc_to_bcm(usl_bcm_ipmc_addr_t  *ipmc,
   BCM_PBMP_OR(bcm_ipmc->l2_pbmp, PBMP_HL_ALL(bcm_unit));
   BCM_PBMP_ASSIGN (bcm_ipmc->l2_ubmp, ipmc->l2_ubmp[my_modid]);
   BCM_PBMP_ASSIGN (bcm_ipmc->l3_pbmp, ipmc->l3_pbmp[my_modid]);
+  #else
+  bcm_ipmc->group = ipmc->ipmc_index;
+  #endif
 
   return rv;
 }
@@ -121,6 +127,10 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
   bcm_pbmp_t    pbmp;
   L7_uint32     port;
   bcm_ipmc_addr_t bcm_ipmc;
+  /* PTin added: SDK 6.3.0 */
+  #if 1
+  bcm_multicast_t group;
+  #endif
 
   /* Check if the hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
@@ -145,7 +155,24 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
         {
           bcm_ipmc.flags |= BCM_IPMC_REPLACE;
         }
-        rv = bcm_ipmc_add(bcm_unit, &bcm_ipmc);      
+
+        /* PTin added: SDK 6.3.0 */
+        #if 1
+        group = ipmc->ipmc_index;
+        /* Ig group id is not positive, we should create it */
+        if ( group <= 0 )
+        {
+          rv = bcm_multicast_create(bcm_unit, BCM_MULTICAST_TYPE_L2, &group);
+          if (L7_BCMX_OK(rv) != L7_TRUE)
+          {
+            break;
+          }
+          ipmc->ipmc_index = group;
+          bcm_ipmc.group   = group;
+        }
+        #endif
+
+        rv = bcm_ipmc_add(bcm_unit, &bcm_ipmc);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
@@ -160,7 +187,12 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
 
         BCM_PBMP_ITER(pbmp, port)
         {
+          /* PTin modified: SDK 6.3.0 */
+          #if 0
           rv = bcm_ipmc_bitmap_set(bcm_unit, bcm_ipmc.ipmc_index, port, pbmp);
+          #else
+          rv = bcm_ipmc_bitmap_set(bcm_unit, ipmc->ipmc_index, port, pbmp);
+          #endif
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             break;
@@ -211,12 +243,25 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
 
       /* Set the replication config for all L3 ports to an empty VLAN vector. */
       memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, ipmc->ipmc_index, &bcm_ipmc);
+      #endif
       if (rv == BCM_E_NONE)
       {
         BCM_VLAN_VEC_ZERO(vlan_vector);
 
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
+        #if 0
         BCM_PBMP_ITER(bcm_ipmc.l3_pbmp, port)
+        #else
+        BCM_PBMP_ITER(ipmc->l3_pbmp, port)
+        #endif
         {
           rv = bcm_ipmc_repl_set(bcm_unit, ipmc->ipmc_index, port, vlan_vector);
           if (rv != BCM_E_NONE)
@@ -225,6 +270,7 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
                     ipmc->ipmc_index, bcm_unit, port, rv);
           }
         }
+        #endif
       }
 
       rv = l7_ipmc_to_bcm(ipmc, bcm_unit, &bcm_ipmc);
@@ -309,7 +355,20 @@ int usl_bcm_ipmc_rpf_set (usl_bcm_ipmc_addr_t  *ipmc)
       }
 
       memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
+      /* PTin modified: SDK 6.3.0 */
+      #if 0
       rv = bcm_ipmc_get_by_index(bcm_unit, ipmc->ipmc_index, &bcm_ipmc);
+      #else
+      if (ipmc->ipmc_index > 0)
+      {
+        bcm_ipmc.group = ipmc->ipmc_index;
+        rv = BCM_E_NONE;
+      }
+      else
+      {
+        rv = BCM_E_BADID;
+      }
+      #endif
       if (rv != BCM_E_NONE)
       {
         break;
@@ -325,6 +384,18 @@ int usl_bcm_ipmc_rpf_set (usl_bcm_ipmc_addr_t  *ipmc)
       bcm_ipmc.port_tgid = ipmc->port_tgid;
       bcm_ipmc.ts = ipmc->ts;
       bcm_ipmc.flags |= BCM_IPMC_REPLACE;
+
+      /* PTin added: SDK 6.3.0 */
+      #if 1
+      memcpy(&bcm_ipmc.s_ip_addr , ipmc->s_ip_addr , sizeof(uint32));
+      memcpy(&bcm_ipmc.mc_ip_addr, ipmc->mc_ip_addr, sizeof(uint32));
+      bcm_ipmc.vid        = ipmc->vid;
+      bcm_ipmc.vrf        = ipmc->vrf;
+      bcm_ipmc.cos        = ipmc->cos;
+      bcm_ipmc.v          = ipmc->v;
+      bcm_ipmc.lookup_class        = ipmc->lookup_class;
+      bcm_ipmc.distribution_class  = ipmc->distribution_class;
+      #endif
 
       if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
       {
@@ -384,7 +455,12 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
         continue;
       }
    
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, index, &bcm_ipmc);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         break;
@@ -402,10 +478,13 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
         break;
       }
 
+      /* TODO: SDK 6.3.0 */
+      #if 0
       BCM_PBMP_ASSIGN (bcm_ipmc.l2_pbmp, ipmc_addr->l2_pbmp[modid]);
       BCM_PBMP_OR(bcm_ipmc.l2_pbmp, PBMP_HG_ALL(bcm_unit));
       BCM_PBMP_OR(bcm_ipmc.l2_pbmp, PBMP_HL_ALL(bcm_unit));
       BCM_PBMP_ASSIGN (bcm_ipmc.l2_ubmp, ipmc_addr->l2_ubmp[modid]);
+      #endif
 
       bcm_ipmc.flags |= BCM_IPMC_REPLACE;
       if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
@@ -491,7 +570,12 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
       /* Check if the hw should be configured */
       if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
       {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+        #endif
         if (rv != BCM_E_NONE)
         {
           continue;
@@ -510,9 +594,12 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
           BCM_PBMP_PORT_SET (untagged_pbmp, port);
         }
 
+        /* TODO: SDK 6.3.0 */
+        #if 0        
         BCM_PBMP_OR(ipmc.l2_pbmp, tagged_pbmp);
         BCM_PBMP_REMOVE(ipmc.l2_ubmp, tagged_pbmp);
         BCM_PBMP_OR(ipmc.l2_ubmp, untagged_pbmp);
+        #endif
 
         ipmc.flags |= BCM_IPMC_REPLACE;
         if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
@@ -616,7 +703,12 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
       /* Check if the hw should be configured */
       if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
       {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+        #endif
         if (rv != BCM_E_NONE)
         {
           continue;
@@ -627,9 +719,11 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
           continue;
         }
 
-
+        /* TODO: SDK 6.3.0 */
+        #if 0
         BCM_PBMP_PORT_REMOVE(ipmc.l2_pbmp, port);
         BCM_PBMP_PORT_REMOVE(ipmc.l2_ubmp, port);
+        #endif
 
         ipmc.flags |= BCM_IPMC_REPLACE;
         if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
@@ -691,7 +785,10 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
   int                       rv = BCM_E_NONE;
   bcm_ipmc_addr_t           ipmc;
   int                       index;
+  /* TODO: SDK 6.3.0 */
+  #if 0
   bcm_pbmp_t                l3_pbmp;
+  #endif
   L7_uint32                 i;
   int                       ipmc_untag_flag;
   L7_uint32                 myModid;
@@ -741,7 +838,12 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
@@ -753,8 +855,11 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
         continue;
       }
 
+      /* TODO: SDK 6.3.0 */
+      #if 0
       BCM_PBMP_PORT_SET (l3_pbmp, port);
       BCM_PBMP_OR(ipmc.l3_pbmp, l3_pbmp);
+      #endif
 
       ipmc.flags |= BCM_IPMC_REPLACE;
       if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
@@ -770,7 +875,12 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
 
       /* Set up VLAN replication.
       */
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_repl_get(unit, index, port, vlan_vector);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get replication info for IPMC entry index %d, rv %d", index, rv);
@@ -778,7 +888,12 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
       }
 
       BCM_VLAN_VEC_SET(vlan_vector, ipmc_cmd->vlan_id);
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_repl_set(unit, index, port, vlan_vector);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
@@ -880,7 +995,12 @@ int usl_bcm_ipmc_egress_port_add (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
@@ -988,7 +1108,12 @@ int usl_bcm_ipmc_egress_port_delete (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
@@ -1143,7 +1268,12 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
@@ -1157,7 +1287,12 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
 
       /* Set up VLAN replication.
       */
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_repl_get(unit, index, port, vlan_vector);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get replication info for IPMC entry index %d, rv %d", index, rv);
@@ -1165,7 +1300,12 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
       }
 
       BCM_VLAN_VEC_CLR(vlan_vector, ipmc_cmd->vlan_id);
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_repl_set(unit, index, port, vlan_vector);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
@@ -1177,7 +1317,10 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
       */
       if (usl_db_ipmc_vlan_vector_is_empty(vlan_vector))
       {
+        /* TODO: SDK 6.3.0 */
+        #if 0
         BCM_PBMP_PORT_REMOVE(ipmc.l3_pbmp, port);
+        #endif
         ipmc.flags |= BCM_IPMC_REPLACE;
         if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
         {
@@ -1233,7 +1376,12 @@ int usl_bcm_ipmc_inuse_get(usl_bcm_ipmc_addr_t *usl_ipmc, L7_uint32 *flags)
         break;    
       }
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, bcm_ipmc.ipmc_index, &bcm_ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         continue;
@@ -1298,7 +1446,12 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
       }
       if (myModid == modid)
       {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_ipmc_get_by_index(bcm_unit, ipmcEntry->ipmc_index, &bcm_ipmc);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
@@ -1312,18 +1465,31 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
 
         vlanVectorIsEmpty = usl_db_ipmc_vlan_vector_is_empty(vlanVector);
         ipmcEntryChanged = L7_FALSE;
+        /* TODO: SDK 6.3.0 */
+        #if 0
         if ((vlanVectorIsEmpty == L7_TRUE) && (BCM_PBMP_MEMBER(bcm_ipmc.l3_pbmp, bcmPort)))
         {
           /* Remove the port. */
+          /* PTin modified: SDK 6.3.0 */
+          #if 0
           BCM_PBMP_PORT_REMOVE(bcm_ipmc.l3_pbmp, bcmPort);
+          #else
+          BCM_PBMP_PORT_REMOVE(ipmcEntry->l3_pbmp, bcmPort);
+          #endif
           ipmcEntryChanged = L7_TRUE;
         }
         else if ((vlanVectorIsEmpty == L7_FALSE) && (!BCM_PBMP_MEMBER(bcm_ipmc.l3_pbmp, bcmPort)))
         {
           /* Add the port. */
+          /* PTin modified: SDK 6.3.0 */
+          #if 0
           BCM_PBMP_PORT_ADD(bcm_ipmc.l3_pbmp, bcmPort);
+          #else
+          BCM_PBMP_PORT_ADD(ipmcEntry->l3_pbmp, bcmPort);
+          #endif
           ipmcEntryChanged = L7_TRUE;
         }
+        #endif
 
         if (ipmcEntryChanged == L7_TRUE)
         {
@@ -1339,7 +1505,12 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
           }
         }
 
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_ipmc_repl_set(bcm_unit, ipmcEntry->ipmc_index, bcmPort, vlanVector);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;

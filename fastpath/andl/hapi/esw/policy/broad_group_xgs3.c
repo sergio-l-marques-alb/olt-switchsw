@@ -29,6 +29,11 @@
 #include "platform_config.h"
 #include "logger.h"         /* PTin added: for debug purposes */
 
+/* PTin added: SDK 6.3.0 */
+#if 1
+#include "bcm_int/ea/tk371x/field.h"
+#endif
+
 /* used for the Higig B0 workaround */
 #include <soc/drv.h>
 #include <bcm_int/control.h>
@@ -66,7 +71,12 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
     //bcmFieldQualifyLookupClass0,    /* Class ID from VFP, to be used in IFP */
+/* PTin modified: SDK 6.3.0 */
+#if 0
     bcmFieldQualifySrcMacGroup,     /* Class ID from L2X, to be used in IFP */
+#else
+    bcmFieldQualifySrcClassL2,
+#endif
     customFieldQualifyUdf1,         /* iSCSI PDU opCode field */
     customFieldQualifyUdf1,         /* iSCSI PDU opCode field, w/ TCP options */
     bcmFieldQualifyTcpControl,
@@ -77,7 +87,12 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyInPorts,        /* InPorts, PTin added: FP */
     bcmFieldQualifyOutPort,        /* OutPort, PTin added: FP */
     bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
+/* PTin modified: SDK 6.3.0 */
+#if 0
     bcmFieldQualifyPortClass,      /* PortClass, PTin added: FP */
+#else
+    bcmFieldQualifyInterfaceClassPort,
+#endif
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     //bcmFieldQualifyL2StationMove   /* L2 Station move, PTin added: FP */
 };
@@ -2120,7 +2135,12 @@ int _policy_group_calc_qset(int                             unit,
       if (entryPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP)
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #endif
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
@@ -2129,7 +2149,12 @@ int _policy_group_calc_qset(int                             unit,
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyOutPort);
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #else
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #endif
       }
       break;
 
@@ -2421,6 +2446,9 @@ static int _policy_group_delete_group(int unit, BROAD_POLICY_STAGE_t policyStage
 static void _policy_group_lookupstatus_convert(L7_ushort16 hapiStatus, L7_ushort16 *bcmStatus, L7_BOOL isMask)
 {
   *bcmStatus = 0;
+
+  /* TODO: SDK 6.3.0 */
+  #if 0
   if (hapiStatus & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
   {
     *bcmStatus |= BCM_FIELD_LOOKUP_DOS_ATTACK;
@@ -2503,6 +2531,7 @@ static void _policy_group_lookupstatus_convert(L7_ushort16 hapiStatus, L7_ushort
   {
     *bcmStatus |= BCM_FIELD_LOOKUP_L3_TUN_HIT;
   }
+  #endif
 }
 
 static int _policy_group_add_std_field(int                   unit,
@@ -2610,7 +2639,12 @@ static int _policy_group_add_std_field(int                   unit,
           }
           if ((BCM_E_NONE == rv) && ((tempVlan != 0) || (tempVlanMask != 0)))
           {
+            /* TODO: SDK 6.3.0 */
+            #if 1
+            rv = BCM_E_NONE;
+            #else
             rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
+            #endif
           }
         }
         break;
@@ -2690,7 +2724,12 @@ static int _policy_group_add_std_field(int                   unit,
 //      rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
 //      break;
     case BROAD_FIELD_L2_CLASS_ID:
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         rv = bcm_field_qualify_SrcMacGroup(unit, eid, *((uint8*)value), 0xF);
+        #else
+        rv = bcm_field_qualify_SrcClassL2(unit, eid, *((uint8*)value), 0xF);
+        #endif
         break;
     case BROAD_FIELD_LOOKUP_STATUS:
         tempValue16 = value[0]<<8;
@@ -2789,7 +2828,12 @@ static int _policy_group_add_std_field(int                   unit,
         rv = bcm_field_qualify_SrcTrunk(unit, eid, *((bcm_trunk_t*)value), *((bcm_trunk_t*)mask));
         break;
     case BROAD_FIELD_PORTCLASS:
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         rv = bcm_field_qualify_PortClass(unit, eid, *((uint32*)value), *((uint32*)mask));
+        #else
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, *((uint32*)value), *((uint32*)mask));
+        #endif
         break;
     case BROAD_FIELD_DROP:
         rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value),1);
@@ -2807,6 +2851,8 @@ static int _policy_group_add_std_field(int                   unit,
 }
 static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry, L7_uint32 data, L7_uint32 mask)
 {
+  /* TODO: SDK 6.3.0 */
+  #if 0
   uint32 value;
 
   if (mask & BCM_FIELD_LOOKUP_DOS_ATTACK)
@@ -2938,7 +2984,7 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
     BCM_IF_ERROR_RETURN
       (bcm_field_qualify_L3Routable(unit, entry, value, 0x1));
   }
-
+  #endif
   return (BCM_E_NONE);
 }
 static L7_uchar8 udfL4SrcDestPortData[4];
@@ -3304,24 +3350,44 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
 
         src_eid = BROAD_ENTRY_TO_BCM_ENTRY(rulePtr->meterSrcEntry);
 
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_meter_share(unit, src_eid, eid);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
     }
     else
     {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_meter_create(unit, eid);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
 
         /* all meters have cir/cbs and pir/pbs, so we always use trTCM */
+                /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_meter_set(unit, eid, BCM_FIELD_METER_COMMITTED,
                                  meterPtr->cir, meterPtr->cbs * 8);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
 
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_meter_set(unit, eid, BCM_FIELD_METER_PEAK,
                                  meterPtr->pir, meterPtr->pbs * 8);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
     }
@@ -3335,14 +3401,22 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
         return rv;
 
     /* add counter to support stats per entry */
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_counter_create(unit, eid);
+    #endif
     if (BCM_E_NONE != rv)
         return rv;
 
     /* zero values prior to first use */
     COMPILER_64_ZERO(zero64);
+    /* TODO: SDK 6.3.0 */
+    #if 0
     (void)bcm_field_counter_set(unit, eid, 0, zero64);
     (void)bcm_field_counter_set(unit, eid, 1, zero64);
+    #endif
 
     counter_flags = BCM_FIELD_COUNTER_MODE_PACKETS;
     if (stage != BROAD_POLICY_STAGE_EGRESS)
@@ -3376,22 +3450,35 @@ static int _policy_group_add_counter(int unit, bcm_field_entry_t eid, BROAD_POLI
 
         src_eid = BROAD_ENTRY_TO_BCM_ENTRY(rulePtr->meterSrcEntry);
 
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_counter_share(unit, src_eid, eid);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
     }
     else
     {
         /* add counter to support stats */
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_field_counter_create(unit, eid);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
     }
 
     /* zero values prior to first use */
     COMPILER_64_ZERO(zero64);
+    /* TODO: SDK 6.3.0 */
+    #if 0
     (void)bcm_field_counter_set(unit, eid, 0, zero64);
     (void)bcm_field_counter_set(unit, eid, 1, zero64);
+    #endif
 
     /* update flags to indicate packet or byte counter */
     flags = BCM_FIELD_COUNTER_MODE_YES_NO;
@@ -4264,7 +4351,12 @@ int policy_group_set_portclass(int                  unit,
           break;
         }
 
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
+        #else
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
       }
@@ -4283,7 +4375,13 @@ int policy_group_set_portclass(int                  unit,
               return rv;
         }
         portClassBmp = 1 << portClass;
+
+        /* PTin modified: SDK 6.3.0 */
+        #if 0
         rv = bcm_field_qualify_PortClass(unit, eid, portClassBmp, portClassBmp);
+        #else
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClassBmp, portClassBmp);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
       }
@@ -4598,17 +4696,32 @@ int policy_group_get_stats(int                  unit,
 
     if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_field_counter_get(unit, eid, 0, val2);
+      #endif
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
           return rv;
     }
     else
     {
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_field_counter_get(unit, eid, 0, val1);
+      #endif
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
           return rv;
 
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_field_counter_get(unit, eid, 1, val2);  /* empty means no counter */
+      #endif
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
           return rv;
     }
@@ -4628,13 +4741,23 @@ int policy_group_stats_clear(int                  unit,
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_counter_set(unit, eid, 0, val1);
+    #endif
     if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
         return rv;
 
     if (policyStage != BROAD_POLICY_STAGE_EGRESS)
     {
+      /* TODO: SDK 6.3.0 */
+      #if 1
+      rv = BCM_E_NONE;
+      #else
       rv = bcm_field_counter_set(unit, eid, 1, val1);  /* empty means no counter */
+      #endif
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
           return rv;
     }
@@ -4810,8 +4933,13 @@ int policy_group_create_default_rule(int unit,
 
     *entry = BCM_ENTRY_TO_BROAD_ENTRY(eid);
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_qualify_PacketFormat(unit, eid, BCM_FIELD_PKT_FMT_IPV4,
                                         BCM_FIELD_PKT_FMT_IPV4);
+    #endif
     if (BCM_E_NONE != rv)
       return rv;
 
@@ -5135,13 +5263,23 @@ void debug_entry_counter(int unit, bcm_field_entry_t eid)
     int    rv;
     uint64 val64;
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_counter_get(unit, eid, 0, &val64);
+    #endif
     if (BCM_E_NONE == rv)
         sysapiPrintf("Counter 0: %08x %08x\n", u64_H(val64), u64_L(val64));
     else
         sysapiPrintf("error code = %d\n", rv);
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_counter_get(unit, eid, 1, &val64);
+    #endif
     if (BCM_E_NONE == rv)
         sysapiPrintf("Counter 1: %08x %08x\n", u64_H(val64), u64_L(val64));
     else

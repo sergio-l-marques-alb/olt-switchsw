@@ -762,7 +762,12 @@ int l7_rpc_client_policy_port_apply(BROAD_POLICY_t policyId,
 
   RPC_DEBUG_PRINT("l7_rpc_client_policy_port_apply: Policy-%d sending BROAD_CUSTOM_POLICY_APPLY port 0x%x\r\n", policyId, port);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
+  #endif
   if (L7_BCMX_OK(rv) == L7_TRUE)
     rv = BCM_E_NONE;
 
@@ -793,7 +798,12 @@ int l7_rpc_client_policy_port_remove(BROAD_POLICY_t policyId,
 
   RPC_DEBUG_PRINT("l7_rpc_client_policy_port_remove: Policy-%d sending BROAD_CUSTOM_POLICY_REMOVE port 0x%x\r\n", policyId, port);
 
+  /* PTin modified: SDK 6.3.0 */
+  #if 0
   rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, args);
+  #else
+  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
+  #endif
   if (L7_BCMX_OK(rv) == L7_TRUE)
     rv = BCM_E_NONE;
 

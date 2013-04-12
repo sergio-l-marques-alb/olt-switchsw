@@ -41,7 +41,10 @@
 #include "bcm/l2.h"
 #include "bcm/rate.h"
 #include "bcm/mirror.h"
+/* TODO: SDK 6.3.0 */
+#if 0
 #include "bcm/filter.h"
+#endif
 #include "soc/cmic.h"
 #include "soc/drv.h"
 #include "soc/macipadr.h"
@@ -54,10 +57,16 @@
 #include "bcmx/lport.h"
 #include "bcmx/mirror.h"
 #include "bcmx/rate.h"
+/* PTin removed: SDK 6.3.0 */
+#if 0
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/switch.h"
 #include "bcmx/bcmx_int.h"
+/* TODO: SDK 6.3.0 */
+#if 0
 #include "bcmx/igmp.h"
+#endif
 #include "bcmx/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"
@@ -265,7 +274,12 @@ void hapiBroadMirrorEnable (void)
        LOG_ERROR (rv);
     }
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcmx_mirror_pfmt_set(1);
+    #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       LOG_ERROR (rv);
@@ -3128,7 +3142,10 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
   if (hapiBroadRoboCheck() == L7_TRUE)
   {
+    /* TODO: SDK 6.3.0 */
+    #if 0
     bcmx_igmp_snooping_enable_set(enableFilter);
+    #endif
   }
 
   /* If vlan value is valid, Find igmp index */
@@ -5074,7 +5091,12 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     if (numElems == maxElems) 
     {
       *(L7_uint32 *)&msg[0] = numElems;
+      /* PTin modified: SDK 6.3.0 */
+      #if 0
       rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+      #else
+      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result = L7_FAILURE;
@@ -5093,7 +5115,12 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
   if (numElems > 0) 
   {
     *(L7_uint32 *)&msg[0] = numElems;
+    /* PTin modified: SDK 6.3.0 */
+    #if 0
     rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+    #else
+    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+    #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;
