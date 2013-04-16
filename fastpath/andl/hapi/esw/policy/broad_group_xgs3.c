@@ -1348,14 +1348,15 @@ static int _policy_super_qset_init_ifp(int unit)
 
     if (policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
     {
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if ( SOC_IS_TRIUMPH2(unit) ||
            SOC_IS_TRIUMPH(unit)  ||
            SOC_IS_APOLLO(unit)   ||
            SOC_IS_ENDURO(unit)   ||
            SOC_IS_SCORPION(unit) ||
            SOC_IS_VALKYRIE2(unit)||
-           SOC_IS_TRIDENT(unit)     /* PTin added: new switch BCM56843 */
+           SOC_IS_TRIDENT(unit)  || /* PTin added: new switch BCM56843 */
+           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch BCM56643 */
          )
       {
         _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1407,8 +1408,9 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
-  // PTin added: new switch => SOC_IS_VALKYRIE2 + SOC_IS_TRIDENT
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit))
+  /* PTin updated: platform */
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
+      SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
   {
     if (SOC_IS_TRIDENT(unit))
       LOG_WARNING(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
@@ -1540,14 +1542,15 @@ static int _policy_super_qset_init(int unit)
 
 static int _policy_action_map_init(int unit)
 {
-  // PTin added: new switch => SOC_IS_VALKYRIE2
+  /* PTin updated: platform */
   if ((SOC_IS_TR_VL(unit)) ||
       (SOC_IS_SCORPION(unit)) || 
       (SOC_IS_TRIUMPH2(unit)) || 
       (SOC_IS_APOLLO(unit)) ||
       (SOC_IS_ENDURO(unit)) ||
       (SOC_IS_VALKYRIE2(unit)) ||
-      (SOC_IS_TRIDENT(unit)))   /* PTin added: new switch BCM56843 */
+      (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch BCM56843 */
+      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch BCM56643 */
   {
     /* Modify action maps for certain actions. */
     memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],     &xgs4_ingress_set_cosq_action_map,     sizeof(action_map_entry_t));
@@ -2076,8 +2079,9 @@ int _policy_group_calc_qset(int                             unit,
 
                 if (temp16 & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
                 {
-                  // PTin added: new switch => SOC_IS_VALKYRIE2
-                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit))
+                  /* PTin updated: platform */
+                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
+                      SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
                   {
                     /* TunnelTerminated not supported in IFP, so check for TunnelType instead. */
                     BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelType);
@@ -2963,8 +2967,9 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
 
   if (mask & BCM_FIELD_LOOKUP_L3_TUN_HIT)
   {
-    // PTin added: new switch => SOC_IS_VALKYRIE2
-    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit))
+    /* PTin updated: platform */
+    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
+        SOC_IS_TRIUMPH3(unit))      /* PTin added: new switch BCM56643 */
     {
       /* TunnelTerminated not supported in IFP, use TunnelType instead. */
       BCM_IF_ERROR_RETURN
@@ -3557,14 +3562,15 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
 
   /* Although Scorpion, TR2, and Apollo support intraslice doublewide mode,
      their system qsets end up using doublewide mode. */
-  // PTin added: new switch => SOC_IS_VALKYRIE2
+  /* PTin updated: platform */
   if (_policy_supports_intraslice_doublewide_mode(unit) && 
       !SOC_IS_SCORPION(unit) && 
       !SOC_IS_TRIUMPH2(unit) && 
       !SOC_IS_APOLLO(unit) &&
       !SOC_IS_ENDURO(unit) &&
       !SOC_IS_VALKYRIE2(unit) &&
-      !SOC_IS_TRIDENT(unit))        /* PTin added: new switch BCM56843 */
+      !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch BCM56843 */
+      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch BCM56643 */
   {
     /* System rules in slice 0. */
     groupid_rev = 1;
@@ -3825,7 +3831,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
     switch (policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if (SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
           SOC_IS_SCORPION(unit) || 
@@ -3833,7 +3839,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_APOLLO(unit)   ||
           SOC_IS_ENDURO(unit)   ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit))     /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch BCM56643 */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -3843,12 +3850,13 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       {
         total_slices = 8;
       }
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       else if ((SOC_IS_FIREBOLT(unit)  || 
           SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
-          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit))
-           && !SOC_IS_TRIDENT(unit)) /* PTin added: new switch BCM56843 */
+          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
+          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+           && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch BCM56843 */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
       { 
@@ -3877,7 +3885,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       }
       break;
     case BROAD_POLICY_STAGE_EGRESS:
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if (SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit)     ||
           SOC_IS_SCORPION(unit)  || 
@@ -3885,7 +3893,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_APOLLO(unit)    ||
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit))     /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIDENT(unit)   || /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch BCM56643 */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -3904,7 +3913,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
   switch (policyStage)
   {
   case BROAD_POLICY_STAGE_LOOKUP:
-    // PTin added: new switch => SOC_IS_VALKYRIE2
+    /* PTin updated: platform */
     if (SOC_IS_FIREBOLT2(unit) ||
         SOC_IS_TR_VL(unit)     ||
         SOC_IS_SCORPION(unit)  || 
@@ -3912,7 +3921,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_APOLLO(unit)    ||
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit))       /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch BCM56643 */
     {
       supported = L7_TRUE;
     }
@@ -3923,7 +3933,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
     break;
 
   case BROAD_POLICY_STAGE_EGRESS:
-    // PTin added: new switch => SOC_IS_VALKYRIE2
+    /* PTin updated: platform */
     if (SOC_IS_FIREBOLT2(unit) ||
         SOC_IS_TR_VL(unit)     ||
         SOC_IS_SCORPION(unit)  || 
@@ -3931,7 +3941,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_APOLLO(unit)    ||
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit))       /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch BCM56643 */
     {
       supported = L7_TRUE;
     }

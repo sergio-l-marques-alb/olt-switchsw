@@ -38,6 +38,7 @@
 #define L7_BCM_ENDURO                              5
 #define L7_BCM_VALKYRIE2                           6  /* PTin added: new switch */
 #define L7_BCM_TRIDENT                             7  /* PTin added: new switch */
+#define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch */
 
 /* PTin added: boards definition */
 #define PTIN_BOARD_OLT7_8CH_B                      1

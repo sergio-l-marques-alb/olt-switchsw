@@ -1526,11 +1526,13 @@ static L7_BOOL cnfgrLlpfIsFeaturePresent(L7_uint32 featureId)
          cannot support this feature, even though it has a VFP). */
       switch (techSubType)
       {
+      /* PTin updated: new platform */
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5668x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x:  /* PTin added: new switch BCM56843 */
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+      case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:  /* PTin added: new switch BCM56643 */
         rc = L7_TRUE;
         break;
 
@@ -2127,8 +2129,10 @@ static L7_BOOL cnfgrDvlantagIsFeaturePresent(L7_uint32 featureId)
         {
           switch (techSubType)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:    /* PTin added: new switch BCM56643 */
               retVal = L7_TRUE;
               break;
             default:
@@ -2751,6 +2755,7 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
 
   switch (npdType)
   {
+    /* PTin updated: new platform */
     case __BROADCOM_5615_ID:
     case __BROADCOM_5645_ID:
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA;
@@ -2782,13 +2787,14 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
 
     case __BROADCOM_56624_ID:
     case __BROADCOM_56680_ID:
-    case __BROADCOM_56685_ID:  /* PTin added: new switch */
-    case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+    case __BROADCOM_56685_ID:   /* PTin added: new switch */
+    case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
     case __BROADCOM_56820_ID:
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56636_ID:
     case __BROADCOM_56334_ID:
+    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4;
       break;
 
@@ -2837,6 +2843,7 @@ L7_BASE_TECHNOLOGY_SUBTYPES_t cnfgrBaseTechnologySubtypeGet(void)
 
   switch (npdType)
   {
+    /* PTin updated: new platform */
     case __BROADCOM_5690_ID:
     case __BROADCOM_5691_ID:
     case __BROADCOM_5692_ID:
@@ -2910,6 +2917,10 @@ L7_BASE_TECHNOLOGY_SUBTYPES_t cnfgrBaseTechnologySubtypeGet(void)
     case __BROADCOM_56636_ID:
     case __BROADCOM_56334_ID:
       tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520;
+      break;
+    /* PTin updated: new platform */
+    case __BROADCOM_56643_ID:
+      tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x;       /* PTin added: new switch BCM56643 */
       break;
     case __BROADCOM_53115_ID:
       tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115;

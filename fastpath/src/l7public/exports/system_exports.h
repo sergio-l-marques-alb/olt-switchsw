@@ -221,6 +221,7 @@ typedef enum
 /*  be sure to add an entry to the       */
 /*  L7_BASE_TECHNOLOGY_TYPES_t below.    */
 /*---------------------------------------*/
+/* PTin updated: new platform */
 typedef enum
 {
   __BROADCOM_5615_ID = 1,
@@ -255,6 +256,7 @@ typedef enum
   __BROADCOM_56334_ID,
   __BROADCOM_56685_ID,  /* PTin added: new switch */
   __BROADCOM_56843_ID,  /* PTin added: new switch 56843 */
+  __BROADCOM_56643_ID,  /* PTin added: new switch 56643 */
   __MASTER_DRIVER_ID,
 } L7_NPD_ID_t;
 
@@ -305,6 +307,7 @@ typedef enum
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x, /* triumph */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x, /* scorpion */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520, /* triumph2 family */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x, /* triumph3 family */   /* PTin added: new switch BCM56643 */ /* PTin updated: new platform */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x, /* PTin added: new switch: trident */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115,  /* vulcan */
   L7_BASE_TECHNOLOGY_SUBTYPE_MASTERDRIVER_NETAPPL,  /* network appliance */

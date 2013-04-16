@@ -322,7 +322,7 @@ static void hapiBroadMirrorDisable (void)
 *********************************************************************/
 L7_BOOL hapiBroadSystemTrueEgrMirroring(void)
 {
-#ifdef BCM_TRIUMPH2_SUPPORT
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
   L7_short16 bcm_unit;
    
   for (bcm_unit=0; bcm_unit < soc_ndev; bcm_unit++)
@@ -2222,6 +2222,7 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
 
   switch (board_info->npd_id)
   {
+    /* PTin updated: new platform */
     case __BROADCOM_56214_ID:
     case __BROADCOM_56218_ID:
     case __BROADCOM_56224_ID:
@@ -2244,7 +2245,8 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56636_ID:
-    case __BROADCOM_56685_ID:  /* PTin added: new switch */
+    case __BROADCOM_56685_ID:   /* PTin added: new switch */
+    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
       *board_family = BCM_FAMILY_TRIUMPH2;
       break;
     case __BROADCOM_56820_ID:

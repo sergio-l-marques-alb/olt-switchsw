@@ -604,9 +604,11 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
       if (soc_feature(unit, soc_feature_packet_rate_limit)) {
 #ifdef BCM_TRX_SUPPORT
         extern int _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps, int burst);
-#ifdef BCM_TRIUMPH2_SUPPORT
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/) {
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
+        /* PTin updated: platform */
+        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/ ||
+            SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+        {
           extern int bcm_tr2_cosq_port_pps_set(int unit, bcm_port_t port,
                                                bcm_cos_queue_t cosq, int pps);   
           rv = bcm_tr2_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
@@ -1334,8 +1336,9 @@ void hpcHardwareDefaultConfigApply(void)
 
 #ifdef L7_STACKING_PACKAGE
         static int xgs_stack_cos_map[] = {0,1,2,3,4,5,6,6};
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) ||
+            SOC_IS_TRIUMPH3(i))       /* PTin added: new switch BCM56643 */
         {
           /* 
            * XGS3 does not suffer from the same problem that caused us to map 7 -> 6
@@ -1573,8 +1576,9 @@ void hpcHardwareDefaultConfigApply(void)
         {
           rv = bcm_switch_control_set (i, bcmSwitchCpuProtoBpduPriority, HAPI_BROAD_INGRESS_BPDU_COS);
         }
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/)
+        /* PTin updated: platform */
+        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
+                 SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1652,8 +1656,9 @@ void hpcHardwareDefaultConfigApply(void)
           LOG_ERROR (rv);
         }
 
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
+            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1701,8 +1706,9 @@ void hpcHardwareDefaultConfigApply(void)
           }
         }
 
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
+            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */

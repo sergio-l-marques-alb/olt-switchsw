@@ -389,11 +389,13 @@ static L7_BOOL cnfgrFlexMgmdIsFeaturePresent(L7_uint32 featureId)
   {
     switch (cnfgrBaseTechnologySubtypeGet())
     {
+      /* PTin updated: new platform */
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5651x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+      case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
            return L7_TRUE;
            break;
       default:
@@ -1107,16 +1109,18 @@ static L7_BOOL cnfgrFlexDhcpSnoopingIsFeaturePresent(L7_uint32 featureId)
       switch (npd_id)
       {
         /* The following devices support IPSG. */
+        /* PTin updated: new platform */
         case __BROADCOM_56514_ID:
         case __BROADCOM_56624_ID:
         case __BROADCOM_56680_ID:
-        case __BROADCOM_56685_ID:  /* PTin added: new switch */
-        case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+        case __BROADCOM_56685_ID:   /* PTin added: new switch */
+        case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
         case __BROADCOM_56820_ID:
         case __BROADCOM_56634_ID:
         case __BROADCOM_56524_ID:
         case __BROADCOM_56636_ID:
         case __BROADCOM_56334_ID:
+        case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
           dsMatrix[L7_DHCP_SNOOPING_IPSG] = L7_TRUE;
 
         default:
@@ -1207,7 +1211,9 @@ static L7_BOOL cnfgrFlexWirelessIsFeaturePresent(L7_uint32 featureId)
                 default:
                     break;
                 case L7_WIRELESS_L2_CENTTNNL_FEATURE_ID:
-                    if (techSubtype == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520)
+                    /* PTin updated: new platform */
+                    if (techSubtype == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520 ||
+                        techSubtype == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x)        /* PTin added: new switch BCM56643 */
                     {
                       return L7_TRUE;
                     }
@@ -1325,8 +1331,10 @@ static L7_BOOL cnfgrFlexMetroIsDot1adPresent()
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
           switch(techSubtype)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
               result = L7_TRUE;
             default:
               break;
@@ -1372,8 +1380,10 @@ L7_BOOL cnfgrFlexMetroDot1adIsFeaturePresent(L7_uint32 featureId)
         {
           switch(techSubtype)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
               result = L7_TRUE;
             break;
             default:
@@ -1420,8 +1430,10 @@ L7_BOOL cnfgrFlexMetroDot1adIsFeaturePresent(L7_uint32 featureId)
         {
           switch(techSubtype)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
               result = L7_TRUE;
             break;
             default:
@@ -1464,8 +1476,10 @@ L7_BOOL cnfgrFlexMetroDot1adIsFeaturePresent(L7_uint32 featureId)
         {
           switch(techSubtype)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
               result = L7_TRUE;
             break;
             default:
@@ -1487,8 +1501,10 @@ L7_BOOL cnfgrFlexMetroDot1adIsFeaturePresent(L7_uint32 featureId)
         {
           switch(techSubtype)
           {
+            /* PTin updated: new platform */
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
             case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+            case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
               result = L7_TRUE;
             break;
             default:

@@ -400,11 +400,13 @@ L7_RC_t snoopCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   */
   switch (cnfgrBaseTechnologySubtypeGet())
   {
+    /* PTin updated: new platform */
     case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x:
     case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5651x:
     case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
     case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x:
     case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
+    case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x:        /* PTin added: new switch BCM56643 */
          snoopEB.ipv6OptionsSupport = L7_TRUE;
          break;
     default:

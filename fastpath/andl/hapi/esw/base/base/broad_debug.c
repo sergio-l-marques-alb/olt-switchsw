@@ -377,8 +377,10 @@ void hapiBroadDebugHelp()
 
 void hapiBroadDebugSpecial(L7_ushort16 unit)
 {
-  // PTin added: new switch => SOC_IS_VALKYRIE2
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit)) {
+  /* PTin updated: platform */
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
+      SOC_IS_TRIUMPH3(unit))      /* PTin added: new switch BCM56643 */
+  {
       uint64 egr_val_64;
       uint32 bitmap;
       int rv;

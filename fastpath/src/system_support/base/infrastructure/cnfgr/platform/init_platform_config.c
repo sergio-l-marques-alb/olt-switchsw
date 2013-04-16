@@ -1190,8 +1190,10 @@ L7_ushort16 platDVLANTagDefaultEthTypeGet(void)
   L7_BASE_TECHNOLOGY_SUBTYPES_t techSubType;
 
   techSubType = cnfgrBaseTechnologySubtypeGet();
+  /* Ptin updated: new platform */
   if (techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520 ||
-      techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x)
+      techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x ||
+      techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5664x)        /* PTin added: new switch BCM56643 */
   {
     return FD_DVLANTAG_VMAN_ETHERTYPE;
   }
