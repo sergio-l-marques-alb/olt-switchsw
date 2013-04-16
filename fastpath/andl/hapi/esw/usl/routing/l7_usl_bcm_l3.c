@@ -508,7 +508,12 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
+        /* TODO: SDK 6.3.0 */
+        #if 1
+        rv = BCM_E_NONE;
+        #else
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;

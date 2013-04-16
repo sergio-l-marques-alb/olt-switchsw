@@ -3392,11 +3392,16 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
             return rv;
     }
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_action_add(unit, eid, bcmFieldActionMeterConfig,
                               (meterPtr->colorMode == BROAD_METER_COLOR_BLIND ?
                                BCM_FIELD_METER_MODE_trTCM_COLOR_BLIND :
                                BCM_FIELD_METER_MODE_trTCM_COLOR_AWARE),
                               0);
+    #endif
     if (BCM_E_NONE != rv)
         return rv;
 
@@ -3427,8 +3432,14 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
     {
       counter_flags |= BCM_FIELD_COUNTER_MODE_YES_NO;
     }
+
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_action_add(unit, eid, bcmFieldActionUpdateCounter,
                   counter_flags, 0);
+    #endif
     if (BCM_E_NONE != rv)
         return rv;
 
@@ -3487,7 +3498,12 @@ static int _policy_group_add_counter(int unit, bcm_field_entry_t eid, BROAD_POLI
     else
         flags |= BCM_FIELD_COUNTER_MODE_BYTES;
 
+    /* TODO: SDK 6.3.0 */
+    #if 1
+    rv = BCM_E_NONE;
+    #else
     rv = bcm_field_action_add(unit, eid, bcmFieldActionUpdateCounter, flags, 0);
+    #endif
     if (BCM_E_NONE != rv)
         return rv;
 
@@ -4269,7 +4285,10 @@ int policy_group_set_pbm(int                  unit,
         return rv;
 
     BCM_PBMP_OR(maskPbm, PBMP_PORT_ALL(unit));
+    /* PTin removed: SDK 6.3.0 */
+    #if 0
     BCM_PBMP_OR(maskPbm, PBMP_LB(unit));
+    #endif
     rv = bcm_field_qualify_InPorts(unit, eid, pbm, maskPbm);
     if (BCM_E_NONE != rv)
         return rv;

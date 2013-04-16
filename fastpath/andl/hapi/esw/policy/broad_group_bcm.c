@@ -205,7 +205,10 @@ static void _policy_group_set_default_pbm(int unit, BROAD_POLICY_TYPE_t type, BR
     case BROAD_POLICY_TYPE_ISCSI:
         /* by default applies to all non-stacking ports */
         SOC_PBMP_OR(tempPbm, PBMP_E_ALL(unit));
+        /* PTin removed: SDK 6.3.0 */
+        #if 0
         SOC_PBMP_OR(tempPbm, PBMP_LB(unit));
+        #endif
         SOC_PBMP_ASSIGN(policyPtr->pbm, tempPbm);
         break;
     case BROAD_POLICY_TYPE_PORT:
