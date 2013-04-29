@@ -295,7 +295,7 @@
 # endif
 #endif
 
-/* PTin added: new switch */
+/* PTin added: new platform */
 #ifdef BCM_ESW_SUPPORT
 # if !defined(NO_BCM_56689_A0)
 #  define BCM_56685_A0
@@ -307,6 +307,12 @@
 # if !defined(NO_BCM_56689_B0)
 #  define BCM_56685_B0
 #  define BCM_56689_B0
+# endif
+#endif
+
+#ifdef BCM_ESW_SUPPORT
+# if !defined(NO_BCM_56643_B0)
+#  define BCM_56643_B0
 # endif
 #endif
 /* PTin end */

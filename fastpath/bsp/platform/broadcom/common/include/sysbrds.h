@@ -58,7 +58,8 @@ typedef enum bcm_sys_board_ids_e {
     BCM_SYS_BOARD_53115,        /* ROBO - Vulcan */
     BCM_SYS_BOARD_56636,
     BCM_SYS_BOARD_56538,
-    BCM_SYS_BOARD_56334,    
+    BCM_SYS_BOARD_56334,
+    BCM_SYS_BOARD_56643,    /* PTin added: new platform BCM56643 (Triumph3) */
 BCM_SYS_BOARD_COUNT         /* Last please */
 } bcm_sys_board_ids_t;
 

@@ -350,11 +350,15 @@ int fp_main(int argc, char *argv[])
   pthread_cond_init( &osapiTimerCond, &attr);
   #endif
 
+  LOG_INFO(LOG_CTX_MISC,"Hello World!\r\n");
+
   /* Set up platform-specific functions for storing and retrieving the
   ** error log information.
   ** The logging utility is initialized inside sysapiInit ().
   */
   loggingCalloutsInit(logNvStore, logNvRetrieve);
+
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
 
   /* Initialize internal DIM structures */
   if (dimInitialize() < 0)
@@ -362,15 +366,21 @@ int fp_main(int argc, char *argv[])
     printf("Dual Image Manager Initialization failed. \n\n");
   }
 
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
+
   /* PTin added: CPLD and FPGA mapping */
   rc = hapi_ptin_fpga_map();
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
+
   /* Initialize file system, timers, event log, HPC, and other
   ** system services.
   */
   sysapiInit (bspapiSwitchReset);
+
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
 
   /*
   ** We will try to change the directory to the configuration
@@ -389,6 +399,8 @@ int fp_main(int argc, char *argv[])
             " Second message logged at bootup, right "
             "after \'Starting code...\'. Always logged.", rc);
 
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
+
   /*
    * Start the Startup Status task
    */
@@ -401,6 +413,8 @@ int fp_main(int argc, char *argv[])
                         L7_DEFAULT_TASK_SLICE);
 
   /* diagnostics? */
+
+  printf("%s: %s(%d) ...\r\n",__FILE__,__FUNCTION__,__LINE__);
 
 /* PTin commented... */
 //  LOG_EVENT (0xaaaaaaaa);    /* Start of new execution. */

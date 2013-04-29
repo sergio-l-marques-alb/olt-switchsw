@@ -398,8 +398,10 @@
 #endif
 #endif
 
-#if defined(BCM_56640_A0) || defined(BCM_56640_B0)
+/* PTin modified: new platform */
+#if defined(BCM_56640_A0) || defined(BCM_56640_B0) || defined(BCM_56643_A0) || defined(BCM_56643_B0)
 #define BCM_56640
+#define BCM_56643     /* New switch BCM56643 */
 #define BCM_56840
 #define BCM_56634
 #define BCM_56624
