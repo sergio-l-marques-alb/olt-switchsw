@@ -43,6 +43,15 @@
 #define SNOOP_LITTLE_ENDIAN 0
 #define SNOOP_BIG_ENDIAN 1
 
+/* PTin added: IGMPv3 snooping */
+#if 1
+typedef enum
+{
+  PTIN_SNOOP_FILTERMODE_UNKNOWN = 0,
+  PTIN_SNOOP_FILTERMODE_INCLUDE,
+  PTIN_SNOOP_FILTERMODE_EXCLUDE
+} snoop_ptin_filtermode_t;
+#endif
 
 typedef enum
 {
@@ -267,6 +276,99 @@ typedef struct snoopInfoData_s
   void               *next;
 } snoopInfoData_t;
 
+/* PTin DFF - AVL Tree Snooping L3 Entry Structure */
+#if 1
+typedef struct snoopPTinL3InfoData_s snoopPTinL3InfoData_t;
+
+typedef struct
+{
+  L7_sll_member_t   *next;
+
+  L7_uint16             interfaceIdx;
+  snoopPTinL3InfoData_t *groupData;
+
+  L7_uchar8         timerType;
+  L7_APP_TMR_HNDL_t timer;
+  L7_uint32         timerHandle;
+} snoopPTinL3Querytimer_t;
+
+typedef struct
+{
+  L7_sll_member_t       *next;
+
+  L7_uint16             sourceIdx;
+  L7_uint16             interfaceIdx;
+  snoopPTinL3InfoData_t *groupData;
+
+  L7_uint8              isRunning;
+
+  L7_uchar8             timerType;
+  L7_APP_TMR_HNDL_t     timer;
+  L7_uint32             timerHandle;
+} snoopPTinL3Sourcetimer_t;
+
+typedef struct
+{
+  L7_sll_member_t       *next;
+
+  L7_uint16             interfaceIdx;
+  snoopPTinL3InfoData_t *groupData;
+
+  L7_uchar8             timerType;
+  L7_APP_TMR_HNDL_t     timer;
+  L7_uint32             timerHandle;
+} snoopPTinL3Grouptimer_t;
+
+typedef struct
+{
+  L7_uint32                clients[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE];
+  L7_uint32                sourceAddr;
+  snoopPTinL3Sourcetimer_t sourceTimer;
+  L7_uint8                 active;
+  L7_uint16                numberOfClients;
+} snoopPTinL3Source_t;
+
+typedef struct
+{
+  snoop_ptin_filtermode_t filtermode;
+  snoopPTinL3Source_t     sources[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+  snoopPTinL3Grouptimer_t groupTimer;
+  L7_uint8                numberOfSources;
+  L7_uint8                active;
+} snoopPTinL3Interface_t;
+
+typedef struct snoopPTinL3InfoDataKey_s
+{
+  L7_uint32 mcastGroupAddr;
+  L7_uint32 vlanId;
+} snoopPTinL3InfoDataKey_t;
+
+typedef struct snoopPTinL3InfoData_s
+{
+  snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
+  snoopPTinL3Interface_t   interfaces[L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF];
+
+  snoopInfoData_t          *L2MC;
+
+  void                     *next;
+} snoopPTinL3InfoData_t;
+#endif
+
+/* PTin DFF: IGMPv3 Query Queue */
+#if 1
+typedef struct snoopPTinQueryData_s
+{
+  L7_uint32         queuePos;
+  L7_uint32         retransmissions;
+  L7_BOOL           sFlag;
+  L7_uint16         vlanId;
+  L7_uint32         groupAddr;
+  L7_uint32         sourceList[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+  L7_uint8          sourcesCnt;
+  osapiTimerDescr_t *queryTimer;
+}snoopPTinQueryData_t;
+#endif
+
 /* AVL Tree Snooping L3 Entry Strucutre */
 typedef struct snoopL3InfoDataKey_s
 {
@@ -343,6 +445,14 @@ typedef struct snoop_eb_s
   avlTreeTables_t       *snoopCkptTreeHeap;
   snoopCkptInfoData_t   *snoopCkptDataHeap;
 
+/* PTin added: IGMPv3 snooping */
+#if 1
+  /* L3 PTin AVL Tree data */
+  avlTree_t               snoopPTinL3AvlTree;
+  avlTreeTables_t        *snoopPTinL3TreeHeap;
+  snoopPTinL3InfoData_t  *snoopPTinL3DataHeap;
+#endif
+
   /* Checkpoint/Backup L3 AVL Tree data */
   avlTree_t           snoopCkptL3AvlTree;
   avlTreeTables_t    *snoopCkptL3TreeHeap;
@@ -350,6 +460,20 @@ typedef struct snoop_eb_s
 
   /* Semaphores */
   void               *snoopMsgQSema;
+/* PTin added: IGMPv3 snooping */
+#if 1
+  void               *snoopPTinQueryQSema;
+#endif
+
+/* PTin added: IGMPv3 Query queue */
+#if 1
+  snoopPTinQueryData_t  snoopPTinQueryQueue[PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE]; //Query Buffer (behaves as a FIFO queue)
+  L7_uint32             snoopPTinQueryQueueFreeList[PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE]; //List of free positions in Query Buffer
+  L7_uint32             snoopPTinQueryQueueFreeListPopIdx; //Index of the first element in Query Queue to be removed
+  L7_uint32             snoopPTinQueryQueueFreeListPushIdx; //Index of the first free position in Query Queue
+  L7_BOOL               snoopPTinQueryQueueFreeListFull; //Index of the first free position in Query Queue
+  L7_BOOL               snoopPTinQueryQueueFreeListEmpty; //Index of the first free position in Query Queue
+#endif
 
   /* Internal Event Message Queue */
   void               *snoopQueue;

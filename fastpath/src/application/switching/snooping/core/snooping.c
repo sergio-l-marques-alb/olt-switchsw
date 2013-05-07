@@ -38,9 +38,21 @@
 
 /* PTin added: IGMP snooping */
 #if 1
+#include "snooping_ptin_db.h"
+#include "snooping_ptin_defs.h"
+#include "logger.h" // DFF
 #include "ptin_igmp.h"
 #include "ptin_debug.h"
 extern ptin_debug_pktTimer_t debug_pktTimer;
+#endif
+
+/* PTin added: IGMPv3 snooping */
+#if 0
+
+void timer_expired(L7_uint32 mine, L7_uint32 other)
+{
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Callback do timer foi chamado");
+}
 #endif
 
 /*****************************************************************************
@@ -208,7 +220,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_INTF_TYPES_t  sysIntfType;
   L7_RC_t          rc;
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
-  L7_uint          client_idx;              /* PTin added: IGMP snooping */
+  L7_uint32        client_idx;              /* PTin added: IGMP snooping */
 
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopPacketHandle");
 
@@ -303,8 +315,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u accepted",pduInfo->intIfNum,pduInfo->vlanId);
 
-  /* Client index is -1 at the beginning */
-  client_idx = (L7_uint) -1;
+  client_idx = (L7_uint32) -1;
 
   /* Validate client information */
   #if ( !PTIN_BOARD_IS_MATRIX )
@@ -959,7 +970,11 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
           break;
 
         case L7_IGMP_V3_MEMBERSHIP_REPORT:
-          rc = L7_SUCCESS; //snoopMgmdSrcSpecificMembershipReportProcess(&mcastPacket);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+                    mcastPacket.intIfNum,mcastPacket.vlanId,mcastPacket.innerVlanId,
+                    mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.payLoad[4],mcastPacket.payLoad[5],
+                    mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
+          rc = snoopMgmdSrcSpecificMembershipReportProcess(&mcastPacket);
           break;
 
         case L7_IGMP_V2_LEAVE_GROUP:
@@ -2361,9 +2376,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 {
   L7_uchar8               dmac[L7_MAC_ADDR_LEN], *dataPtr, recType, auxDataLen;
   L7_RC_t                 rc = L7_SUCCESS;
-  snoopInfoData_t        *snoopEntry;
-  L7_uint32               ipv4Addr, timerValue, intfFastLeaveMode;
-  L7_BOOL   fastLeaveMode;
+  snoopPTinL3InfoData_t  *snoopEntry;
+  L7_uint32               ipv4Addr;
   L7_ushort16             noOfGroups, noOfSources;
   L7_inet_addr_t          groupAddr;
   L7_BOOL                 fwdFlag = L7_FALSE, floodFlag = L7_TRUE;
@@ -2429,6 +2443,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     return L7_FAILURE;
   }
 
+  /* Validate client index */
+  if (mcastPacket->client_idx >= PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Client not provided");
+    return L7_FAILURE;
+  }
+
   while (noOfGroups > 0)
   {
     /* IGMP Membership records */
@@ -2466,7 +2487,67 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 
     if (fwdFlag == L7_FALSE)
     {
+      /* Create new entry in AVL tree for VLAN+IP if necessary */
+      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(groupAddr.addr.ipv4.s_addr, mcastPacket->vlanId, L7_MATCH_EXACT)))
+      {
+        if (L7_SUCCESS != snoopPTinL3EntryAdd(groupAddr.addr.ipv4.s_addr, mcastPacket->vlanId))
+        {
+          return L7_FAILURE;
+        }
+        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(groupAddr.addr.ipv4.s_addr, mcastPacket->vlanId, L7_MATCH_EXACT)))
+        {
+          return L7_FAILURE;
+        }
+      }
+
+      /* If interface is not used, initialize it */
+      if (snoopEntry->interfaces[mcastPacket->intIfNum].active == L7_FALSE)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Initializing interface idx: %u", mcastPacket->intIfNum);
+        snoopPTinInitializeInterface(&snoopEntry->interfaces[mcastPacket->intIfNum]);
+      }
+
       floodFlag = L7_FALSE;
+      switch(recType)
+      {
+        case L7_IGMP_MODE_IS_INCLUDE:
+        {
+          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        case L7_IGMP_MODE_IS_EXCLUDE:
+        {
+          snoopPTinMembershipReportIsExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        case L7_IGMP_CHANGE_TO_INCLUDE_MODE:
+        {
+          snoopPTinMembershipReportToIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        case L7_IGMP_CHANGE_TO_EXCLUDE_MODE:
+        {
+          snoopPTinMembershipReportToExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        case L7_IGMP_ALLOW_NEW_SOURCES:
+        {
+          snoopPTinMembershipReportAllowProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        case L7_IGMP_BLOCK_OLD_SOURCES:
+        {
+          snoopPTinMembershipReportBlockProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+          break;
+        }
+        default:
+        {
+          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unknown record type. Silently ignored");
+          return L7_SUCCESS;
+        }
+    }
+
+#if 0
       if ((noOfSources == 0) && (recType == L7_IGMP_CHANGE_TO_INCLUDE_MODE))
       {
         /* Treat TO_IN( {} ) like an IGMPv2 Leave / MLDv1 Done*/
@@ -2488,17 +2569,17 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
           /* check whether the interface or the VLAN has fast-leave admin mode enabled */
           if ((intfFastLeaveMode == L7_ENABLE) ||(fastLeaveMode == L7_ENABLE))
           {
-            if (L7_INTF_ISMASKBITSET(snoopEntry->snoopGrpMemberList,
-                                     mcastPacket->intIfNum))
-            {
-              if (snoopIntfRemove(dmac, mcastPacket->vlanId,
-                                  mcastPacket->intIfNum,SNOOP_GROUP_MEMBERSHIP,
-                                  mcastPacket->cbHandle) != L7_SUCCESS)
-              {
-                L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-                        "snoopMgmdV3MembershipReportProcess: Failed to remove group membership");
-              }
-            }
+//            if (L7_INTF_ISMASKBITSET(snoopEntry->snoopGrpMemberList,
+//                                     mcastPacket->intIfNum))
+//            {
+//              if (snoopIntfRemove(dmac, mcastPacket->vlanId,
+//                                  mcastPacket->intIfNum,SNOOP_GROUP_MEMBERSHIP,
+//                                  mcastPacket->cbHandle) != L7_SUCCESS)
+//              {
+//                L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
+//                        "snoopMgmdV3MembershipReportProcess: Failed to remove group membership");
+//              }
+//            }
           }
           else
           {
@@ -2514,17 +2595,17 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
               }
             }
 
-            timerValue = snoopCheckPrecedenceParamGet(mcastPacket->vlanId,mcastPacket->intIfNum,
-                                                      SNOOP_PARAM_MAX_RESPONSE_TIME,
-                                                      snoopEntry->snoopInfoDataKey.family);
-            if (L7_INTF_ISMASKBITSET(snoopEntry->snoopGrpMemberList,
-                                     mcastPacket->intIfNum))
-            {
-              snoopTimerUpdate(snoopEntry, mcastPacket->intIfNum,
-                               mcastPacket->vlanId,
-                               SNOOP_MAX_RESPONSE, timerValue,
-                               mcastPacket->cbHandle);
-            } /* End of group membership check */
+//            timerValue = snoopCheckPrecedenceParamGet(mcastPacket->vlanId,mcastPacket->intIfNum,
+//                                                      SNOOP_PARAM_MAX_RESPONSE_TIME,
+//                                                      snoopEntry->snoopInfoDataKey.family);
+//            if (L7_INTF_ISMASKBITSET(snoopEntry->snoopGrpMemberList,
+//                                     mcastPacket->intIfNum))
+//            {
+//              snoopTimerUpdate(snoopEntry, mcastPacket->intIfNum,
+//                               mcastPacket->vlanId,
+//                               SNOOP_MAX_RESPONSE, timerValue,
+//                               mcastPacket->cbHandle);
+//            } /* End of group membership check */
             /* Entry exists... give back semaphore, set timers and transmit query */
           }
         }
@@ -2558,17 +2639,18 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
                             SNOOP_GROUP_MEMBERSHIP, mcastPacket->cbHandle);
         }
       }/* End of record type check */
+#endif
     } /* end of if process packet */
 
     /* Point to the next record */
     /* RFC 3376 4.2.6, RFC 3810 5.2.6 */
     if (mcastPacket->cbHandle->family == L7_AF_INET)
     {
-      dataPtr += ((auxDataLen * 4) + (noOfSources * sizeof(L7_in_addr_t)));
+      dataPtr += (auxDataLen * 4);
     }
     else
     {
-      dataPtr += ((auxDataLen * 4) + (noOfSources * sizeof(L7_in6_addr_t)));
+      dataPtr += (auxDataLen * 4);
     }
 
     /* Check if it is a malformed packet */
