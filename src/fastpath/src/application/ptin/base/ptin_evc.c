@@ -984,7 +984,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     error = L7_FALSE;
 
     /* Add a broadcast rate limiter for unstacked services */
-    if (!stacked && cpu_trap)
+    if (/*!stacked &&*/ cpu_trap)
     {
       if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
       {
@@ -1052,7 +1052,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_evc_intf_remove_all(evc_idx);
 
       /* Remove the broadcast rate limiter for unstacked services */
-      if (!stacked && cpu_trap)
+      if (/*!stacked &&*/ cpu_trap)
       {
         ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
       }
@@ -1269,7 +1269,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (IS_EVC_UNSTACKED(evc_idx) && IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (/*IS_EVC_UNSTACKED(evc_idx) &&*/ IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
@@ -1413,7 +1413,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (IS_EVC_UNSTACKED(evc_idx) && IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (/*IS_EVC_UNSTACKED(evc_idx) &&*/ IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
