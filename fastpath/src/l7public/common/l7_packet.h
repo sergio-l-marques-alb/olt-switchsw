@@ -963,4 +963,15 @@ typedef struct L7_dhcp6_relay_agent_packet_s
   L7_uchar8      peer_address[16];  /* Peer address */
 }L7_dhcp6_relay_agent_packet_t;
 
+/******************************************************/
+/*                      PPPoE                         */
+/******************************************************/
+typedef struct L7_dhcp6_option_packet_s
+{
+   L7_uint8     verType;   /* PPPoE Version and Type */
+   L7_uint8     code;      /* Option length */
+   L7_uint16    sessionId; /* Option length */
+   L7_uint16    length;    /* Option length */
+}L7_pppoe_header_t;
+
 #endif

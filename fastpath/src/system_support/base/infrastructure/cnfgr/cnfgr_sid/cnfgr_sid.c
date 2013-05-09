@@ -262,6 +262,8 @@
 #define L7_TIMERANGES_COMPONENT_NAME                       "TIMERANGES" 
 #define L7_PTIN_COMPONENT_MNEMONIC                         "PTIN"         /* PTin added: ptin module */
 #define L7_PTIN_COMPONENT_NAME                             "PTIN MODULE"  /* PTin added: ptin module */
+#define L7_PTIN_PPPOE_COMPONENT_MNEMONIC                   "PPPOE"        /* PTin added: pppoe module */
+#define L7_PTIN_PPPOE_COMPONENT_NAME                       "PPPOE MODULE" /* PTin added: pppoe module */
 
 #define L7_COMPONENT_MNEMONIC_MAX_LEN   10      /* includes end-of-string char */
 #define L7_COMPONENT_NAME_MAX_LEN       40      /* includes end-of-string char */
@@ -413,6 +415,7 @@ static CNFGR_COMPONENT_NAME_LIST_ENTRY_t cnfgrComponentNameList[] =
 
   /* PTin added: ptin module */
   { L7_PTIN_COMPONENT_ID,                L7_PTIN_COMPONENT_MNEMONIC,                L7_PTIN_COMPONENT_NAME},
+  { PTIN_PPPOE_COMPONENT_ID,             L7_PTIN_PPPOE_COMPONENT_MNEMONIC,          L7_PTIN_PPPOE_COMPONENT_NAME},
 
 /*===============================================================*/
 /* This must be the last entry of the lists  ** Sentinel **      */
@@ -471,6 +474,10 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #ifdef L7_DHCP_SNOOPING_PACKAGE
   {L7_DHCP_SNOOPING_COMPONENT_ID,        L7_CNFGR_COMPONENT_ENABLE,  dsApiCnfgrCommand,             L7_CNFGR_HW_APPLY_CONFIG},
 #endif
+#ifdef PTIN_PPPOE_PACKAGE
+  {PTIN_PPPOE_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  pppoeApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
+#endif
+
 
 #ifdef L7_DOT3AH_PACKAGE
   {L7_DOT3AH_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dot3ahApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},

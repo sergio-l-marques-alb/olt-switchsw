@@ -19,6 +19,7 @@ MASTERSRC += \
         $(src_switching)/spanning_tree/dot1s/encryption \
         $(src_switching)/vlan/dot1q \
         $(src_switching)/voice_vlan/core \
+		$(src_switching)/pppoe \
         src/dtl/switching \
         $(src_usmdb_switching)/filtering_db/fdb \
         $(src_usmdb_switching)/filtering_db/mfdb \
@@ -53,6 +54,7 @@ MASTERINC += \
         $(src_switching)/spanning_tree/dot1s/include \
         $(src_switching)/vlan/dot1q/include \
         $(src_switching)/voice_vlan/core/include \
+		$(src_switching)/pppoe/include \
         $(src_ptin)/base/include
 
 
