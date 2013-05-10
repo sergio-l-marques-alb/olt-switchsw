@@ -542,6 +542,15 @@ static L7_RC_t pppoeThreadCreate(void)
 {
   L7_int32 pppoeTaskHandle;
 
+  /* Read/write lock to protect component data since processing occurs
+   * on multiple threads (DS thread, UI thread, dot1q, etc) */
+  if (osapiRWLockCreate(&pppoeCfgRWLock, OSAPI_RWLOCK_Q_PRIORITY) == L7_FAILURE)
+  {
+    L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_DHCP_SNOOPING_COMPONENT_ID,
+            "Unable to create read/write lock for PPPoE");
+    return L7_FAILURE;
+  }
+
   /* Counting semaphore. Given whenever a message is added to any message queue
    * for the DHCP snooping thread. Taken when a message is read. */
   pppoeMsgQSema = osapiSemaCCreate(OSAPI_SEM_Q_FIFO, 0);

@@ -966,7 +966,7 @@ typedef struct L7_dhcp6_relay_agent_packet_s
 /******************************************************/
 /*                      PPPoE                         */
 /******************************************************/
-typedef struct L7_dhcp6_option_packet_s
+typedef struct L7_pppoe_header_s
 {
    L7_uint8     verType;   /* PPPoE Version and Type */
    L7_uint8     code;      /* Option length */

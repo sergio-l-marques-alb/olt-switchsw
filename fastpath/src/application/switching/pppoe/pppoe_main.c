@@ -323,10 +323,10 @@ SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
 //      }
 //      #endif
 //
-        LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
-                  pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
-
-        rc = pppoePacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
+//      LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
+//                pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+//
+//      rc = pppoePacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
 //
 //      /* Packet intercepted */
 //      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_INTERCEPTED);
@@ -545,22 +545,23 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                           L7_ushort16 innerVlanId, L7_uint client_idx)
 {
 
-   L7_uchar8 *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
+// L7_uchar8 *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
 
    LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new message");
 
-   //Parse the received frame
-   eth_header_ptr       = frame;
-   mac_header           = (L7_enetHeader_t*) frame;
-   ethHdrLen            = sysNetDataOffsetGet(frame);
-   ipv6_header_ptr      = eth_header_ptr + ethHdrLen;
-   ipv6_header          = (L7_ip6Header_t*) ipv6_header_ptr;
-   udp_header_ptr       = ipv6_header_ptr + L7_IP6_HEADER_LEN;
-   udp_header           = (L7_udp_header_t *) udp_header_ptr;
-   dhcp_header_ptr      = udp_header_ptr + sizeof(L7_udp_header_t);
-   relay_agent_header   = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
-
-   return ret;
+// //Parse the received frame
+// eth_header_ptr       = frame;
+// mac_header           = (L7_enetHeader_t*) frame;
+// ethHdrLen            = sysNetDataOffsetGet(frame);
+// ipv6_header_ptr      = eth_header_ptr + ethHdrLen;
+// ipv6_header          = (L7_ip6Header_t*) ipv6_header_ptr;
+// udp_header_ptr       = ipv6_header_ptr + L7_IP6_HEADER_LEN;
+// udp_header           = (L7_udp_header_t *) udp_header_ptr;
+// dhcp_header_ptr      = udp_header_ptr + sizeof(L7_udp_header_t);
+// relay_agent_header   = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
+//
+//   return ret;
+  return 0;
 }
 
 /*********************************************************************
