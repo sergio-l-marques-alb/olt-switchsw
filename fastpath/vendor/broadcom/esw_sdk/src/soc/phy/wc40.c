@@ -65,6 +65,8 @@
 
 #include <stdio.h>        /* PTin added: WC40 */
 
+#define PTIN_PRBS_ALWAYS_CL49 1
+
 #if defined(INCLUDE_XGXS_WC40)
 #include "phyconfig.h"     /* Must include before other phy related includes */
 #include "phyreg.h"
@@ -5967,7 +5969,7 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
 {
     uint16      data16;
     uint16      mask16;
-    #if 0
+    #if (!PTIN_PRBS_ALWAYS_CL49)
     int an;
     int an_done;
     #endif
@@ -5983,7 +5985,7 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
      */
 
     /* PTin modified: PRBS */
-    #if 0
+    #if (!PTIN_PRBS_ALWAYS_CL49)
     if (DEV_CTRL_PTR(pc)->prbs.type != WC40_PRBS_TYPE_CL49) {
         SOC_IF_ERROR_RETURN
             (phy_wc40_an_get(unit,port,&an,&an_done));
@@ -6027,7 +6029,7 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
         printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
 
         /* PTin added: PRBS */
-        #if 1
+        #if (PTIN_PRBS_ALWAYS_CL49)
         if (intf==SOC_PORT_IF_KR4 || intf==SOC_PORT_IF_KR)
         {
         printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
@@ -6087,7 +6089,7 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
                                         &data16));
 
         /* PTin added: PRBS */
-        #if 1
+        #if (PTIN_PRBS_ALWAYS_CL49)
         }
         else if (enable)
         {
