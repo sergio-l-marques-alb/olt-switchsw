@@ -484,10 +484,12 @@ void pppoeTask(void);
 //void dsIntfCreate(L7_uint32 intIfNum);
 //void dsIntfAttach(L7_uint32 intIfNum);
 //L7_RC_t dsIntfChangeProcess(L7_uint32 intIfNum, L7_uint32 event, NIM_CORRELATOR_t correlator);
-SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
-                                     L7_netBufHandle bufHandle,
-                                     sysnet_pdu_info_t *pduInfo,
-                                     L7_FUNCPTR_t continueFunc);
+//SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
+//                                     L7_netBufHandle bufHandle,
+//                                     sysnet_pdu_info_t *pduInfo,
+//                                     L7_FUNCPTR_t continueFunc);
+L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+
 L7_RC_t pppoePacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
                          L7_ushort16 vlanId, L7_uint32 intIfNum,
                          L7_ushort16 innerVlanId, L7_uint *client_idx);           /* PTin modified: DHCP snooping */

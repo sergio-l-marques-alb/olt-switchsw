@@ -120,25 +120,188 @@ void pppoeTask(void)
 }
 
 /*********************************************************************
-* @purpose  Take a peek at incoming IP packets. If DHCP, snoop them.
+* @purpose This routine receives any PPPoE and sends it to the
+*          pppoe message queue and pppoeTask
 *
-* @param    hookId        The hook location
-* @param    bufHandle     Handle to the frame to be processed
-* @param    *pduInfo      Pointer to info about this frame
-* @param    continueFunc  Optional pointer to a continue function
+* @param   bufHandle    @b{(input)} handle to the network buffer the PAE PDU is stored in
+* @param   bpduInfo     @b{(input)} pointer to sysnet structure which contains the internal
+*                                     interface number that the PDU was received on
 *
-* @returns  SYSNET_PDU_RC_CONSUMED  if frame has been consumed; stop processing it
-* @returns  SYSNET_PDU_RC_IGNORED   if frame has been ignored; continue processing it
+* @returns L7_SUCCESS on a successful operation
+* @returns L7_FAILURE for any error
 *
-* @notes    don't barf on IP packets with options
+* @comments This routine is registered with sysnet ethernet type 0x8863 at
+*           pppoe init time.
 *
 * @end
 *********************************************************************/
-SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
-                                  L7_netBufHandle bufHandle,
-                                  sysnet_pdu_info_t *pduInfo,
-                                  L7_FUNCPTR_t continueFunc)
+L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 {
+  L7_uint32 rc;
+  L7_uint32 len, ethHeaderSize;
+  L7_uchar8 *data;
+  L7_uint32 vlanId, innerVlanId = 0;
+
+  L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
+
+  LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
+            pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+
+  /* Shouldn't get packets if PPPoE disabled, but if we do, ignore them. */
+//if (dsCfgData->dsGlobalAdminMode != L7_ENABLE )
+//{
+//  #ifdef L7_DHCP_L2_RELAY_PACKAGE
+//  if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
+//  {
+//    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+//    {
+//      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+//      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+//                  "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
+//                    __FUNCTION__);
+//      dsTraceWrite(traceMsg);
+//    }
+//    return SYSNET_PDU_RC_IGNORED;
+//  }
+//  #else
+//  return SYSNET_PDU_RC_IGNORED;
+//  #endif
+//}
+
+  /* If either DHCP snooping or the L2 Relay is not enabled on
+     rx interface, ignore packet. */
+//if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+//{
+//  #ifdef L7_DHCP_L2_RELAY_PACKAGE
+//  if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+//  {
+//    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+//    {
+//      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+//      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+//                  "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
+//                    __FUNCTION__);
+//      dsTraceWrite(traceMsg);
+//    }
+//    return SYSNET_PDU_RC_IGNORED;
+//  }
+//  #else
+//  return SYSNET_PDU_RC_IGNORED;
+//  #endif
+//}
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
+  ethHeaderSize = sysNetDataOffsetGet(data);
+
+  /* This is used only when the packet comes double tagged.*/
+  vlanId = pduInfo->vlanId;
+  innerVlanId = pduInfo->innerVlanId;
+
+  /* Only search and validate client for non Matrix (CXP360G, etc) and untrusted interfaces */
+#if ( ! PTIN_BOARD_IS_MATRIX )
+
+  ptin_client_id_t client;
+
+//  if (!_pppoeVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum))
+  {
+    #if 0
+    /* Validate inner vlan */
+    if (innerVlanId==0 || innerVlanId>=4095)
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+              pduInfo->intIfNum, innerVlanId, vlanId);
+      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
+      return SYSNET_PDU_RC_IGNORED;
+    }
+    #endif
+
+    /* Client information */
+    client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+    client.innerVlan = innerVlanId;
+    client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Only search for a client, if inner vlan is valid */
+    /* Otherwise, use dynamic DHCP */
+    if (innerVlanId>0 && innerVlanId<4096)
+    {
+      /* Find client index, and validate it */
+      if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
+          client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+      {
+        LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
+                   pduInfo->intIfNum, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
+//      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+//      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
+
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      client_idx = (L7_uint) -1;
+    }
+  }
+#endif
+
+  rc = pppoePacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
+  SYSAPI_NET_MBUF_FREE(bufHandle);
+
+  /* Packet intercepted */
+//  ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_INTERCEPTED);
+
+  if (rc == L7_REQUEST_DENIED) /* DHCP Message got filtered, So Ignore
+                                  For further processing */
+  {
+//  dsInfo->debugStats.msgsIntercepted++;
+//  dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
+//  if (ptin_debug_dhcp_snooping)
+//    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+//  ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
+//  SYSAPI_NET_MBUF_FREE(bufHandle);
+//  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+//  {
+//    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+//    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+//                  "(%s) Packet denied to be stored in packet queue",
+//                  __FUNCTION__);
+//    dsTraceWrite(traceMsg);
+//  }
+//  return SYSNET_PDU_RC_CONSUMED;
+  }
+  if (rc == L7_SUCCESS)
+  {
+//  dsInfo->debugStats.msgsIntercepted++;
+//  dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
+
+  }
+
+  return L7_SUCCESS;
+}
+
+///*********************************************************************
+//* @purpose  Take a peek at incoming IP packets. If DHCP, snoop them.
+//*
+//* @param    hookId        The hook location
+//* @param    bufHandle     Handle to the frame to be processed
+//* @param    *pduInfo      Pointer to info about this frame
+//* @param    continueFunc  Optional pointer to a continue function
+//*
+//* @returns  SYSNET_PDU_RC_CONSUMED  if frame has been consumed; stop processing it
+//* @returns  SYSNET_PDU_RC_IGNORED   if frame has been ignored; continue processing it
+//*
+//* @notes    don't barf on IP packets with options
+//*
+//* @end
+//*********************************************************************/
+//SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
+//                                  L7_netBufHandle bufHandle,
+//                                  sysnet_pdu_info_t *pduInfo,
+//                                  L7_FUNCPTR_t continueFunc)
+//{
 //  L7_ipHeader_t *ipHeader;
 //  L7_udp_header_t *udpHeader;
 //  L7_dhcp_packet_t *dhcpPacket;
@@ -409,12 +572,13 @@ SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
 //      dsTraceWrite(traceMsg);
 //    }
 //  }
+//
+//  return SYSNET_PDU_RC_IGNORED;
+//}
 
-  return SYSNET_PDU_RC_IGNORED;
-}
 
 /*********************************************************************
-* @purpose  Queue a DHCP packet for processing on our own thread
+* @purpose  Queue a PPPoE packet for processing on our own thread
 *
 *
 * @param    ethHeader    @b{(input)} ethernet frame
@@ -431,100 +595,71 @@ SYSNET_PDU_RC_t pppoePacketIntercept(L7_uint32 hookId,
 *
 * @end
 *********************************************************************/
-L7_RC_t pppoePacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
-                      L7_ushort16 vlanId, L7_uint32 intIfNum,
-                      L7_ushort16 innerVlanId, L7_uint *client_idx)    /* PTin modified: DHCP snooping && DHCPv6 */
+L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
+                         L7_ushort16 vlanId, L7_uint32 intIfNum,
+                         L7_ushort16 innerVlanId, L7_uint *client_idx)
 {
-//  dsFrameMsg_t dsFrameMsg;
+  pppoeFrameMsg_t pppoeFrameMsg;
+
+  L7_pppoe_header_t *pppoeHeader;
+  L7_ushort16 ethHdrLen;
+  L7_ethHeader_t *ethHeader;
+
+  ethHdrLen = sysNetDataOffsetGet(frame);
+  ethHeader = (L7_ethHeader_t *) frame;
+  pppoeHeader = (L7_pppoe_header_t *) (frame + ethHdrLen);
+
+  /* Validate PPPoE frame length:
+   * NOTE: the frame length includes padding for packets <64 bytes
+   * Moreover, when inner VLAN is removed automatically on lower level APIs, the
+   * frame size is reduced to 60 bytes only (including zero paddind) */ 
+  if ((dataLen > 64) && (dataLen != (ethHdrLen + sizeof(L7_pppoe_header_t) + pppoeHeader->length)))
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE malformed packet: invalid frame length (pktLen=%u ethHdrLen=%u pppoeHdrLen=%u pppoeDataLen=%u",
+               dataLen, ethHdrLen, sizeof(L7_pppoe_header_t), pppoeHeader->length);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Packet PPPoE received at intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+            intIfNum, vlanId, innerVlanId,
+            ethHeader->src.addr[0], ethHeader->src.addr[1], ethHeader->src.addr[2],
+            ethHeader->src.addr[3], ethHeader->src.addr[4], ethHeader->src.addr[5]);
+
+  /* Filter PPPoE packet based on security rules */
+//if (pppoeFrameFilter(intIfNum, vlanId, frame, innerVlanId, client_idx))
+//{
+//   dsInfo->debugStats.msgsFiltered++;
 //
-//  L7_udp_header_t *udp_header;
-//  L7_dhcp_packet_t *dhcpPacket;
-//  L7_ushort16 ipPktLen;
-//  L7_ushort16 dhcpPktLen;
-//  L7_ushort16 ethHdrLen;
-//  L7_ipHeader_t *ipHeader;
-//  L7_ushort16 ipHdrLen;
-//  L7_uchar8 ipVersion;
-//
-//  ethHdrLen = sysNetDataOffsetGet(ethHeader);
-//  ipVersion = (*(L7_uchar8*)(ethHeader + ethHdrLen) & 0xF0) >> 4;
-//
-// if (ipVersion != L7_IP6_VERSION)
-// {
-//    ipHeader = (L7_ipHeader_t*) (ethHeader + ethHdrLen);
-//    ipHdrLen = dsIpHdrLen(ipHeader);
-//
-//    /* Filter the DHCP messages based on rules */
-//
-//    udp_header = (L7_udp_header_t *) ((L7_char8 *) ipHeader + ipHdrLen);
-//    dhcpPacket = (L7_dhcp_packet_t*) ((L7_char8 *) udp_header + sizeof(L7_udp_header_t));
-//    ipPktLen = osapiNtohs(ipHeader->iph_len);
-//    dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
-//
-//    LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Packet %s received at intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
-//          dhcpMsgTypeNames[dsPacketType(dhcpPacket, dhcpPktLen)], intIfNum, vlanId, innerVlanId, dhcpPacket->chaddr[0], dhcpPacket->chaddr[1], dhcpPacket->chaddr[2], dhcpPacket->chaddr[3], dhcpPacket->chaddr[4], dhcpPacket->chaddr[5]);
-//
-//    if (pppoeCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
-//    {
-//       L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
-//       L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-//       L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
-//
-//       memset(ifName, 0, sizeof(ifName));
-//       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-//       osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, "(%s)DHCP snooping received %s on interface %s in VLAN %u.", __FUNCTION__, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
-//       dsTraceWrite(dsTrace);
-//    }
-//    if (pppoeCfgData->dsTraceFlags & DS_TRACE_FRAME_RX_DETAIL)
-//    {
-//       dsLogEthernetHeader((L7_enetHeader_t*) ethHeader, DS_TRACE_CONSOLE);
-//       dsLogIpHeader(ipHeader, DS_TRACE_CONSOLE);
-//       dsLogDhcpPacket(dhcpPacket, DS_TRACE_CONSOLE);
-//    }
-//
-//    /* Filter DHCP packet based on security rules */
-//    if (dsFrameFilter(intIfNum, vlanId, ethHeader, ipHeader, innerVlanId, client_idx)) /* PTin modified: DHCP snooping */
-//    {
-//       pppoeInfo->debugStats.msgsFiltered++;
-//
-//       if (ptin_debug_dhcp_snooping)
-//          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
-//       //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
-//       return L7_REQUEST_DENIED;
-//    }
-// }
-// pppoeInfo->debugStats.msgsReceived++;
-// ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
-//
-// if (pppoeCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
-// {
-//   L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-//   osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-//                 "(%s)Packet frameLen = %d ",__FUNCTION__, dataLen );
-//   dsTraceWrite(traceMsg);
-// }
-//
-// memcpy(&dsFrameMsg.frameBuf, ethHeader, dataLen);
-// dsFrameMsg.rxIntf = intIfNum;
-// dsFrameMsg.vlanId = vlanId;
-// dsFrameMsg.frameLen = dataLen;
-// /* Useful only when processing DHCP replies in Metro networks. */
-// dsFrameMsg.innerVlanId = innerVlanId;
-// /* PTin added: DHCP snooping */
-// dsFrameMsg.client_idx  = *client_idx;
-//
-// if (osapiMessageSend(pppoe_Packet_Queue, &dsFrameMsg, sizeof(dsFrameMsg_t), L7_NO_WAIT,
-//                       L7_MSG_PRIORITY_NORM) == L7_SUCCESS)
-// {
-//  osapiSemaGive(pppoeMsgQSema);
-// }
-// else
-// {
-//   /* This may be fairly normal, so don't log. DHCP should recover. */
-//   pppoeInfo->debugStats.frameMsgTxError++;
-// }
-   return L7_SUCCESS;
+//   if (ptin_debug_dhcp_snooping)
+//      LOG_TRACE(LOG_CTX_PTIN_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
+//   //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
+//   return L7_REQUEST_DENIED;
+//}
+
+//  dsInfo->debugStats.msgsReceived++;
+//  ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
+
+  memcpy(&pppoeFrameMsg.frameBuf, frame, dataLen);
+  pppoeFrameMsg.rxIntf = intIfNum;
+  pppoeFrameMsg.vlanId = vlanId;
+  pppoeFrameMsg.frameLen = dataLen;
+  pppoeFrameMsg.innerVlanId = innerVlanId;
+  pppoeFrameMsg.client_idx  = *client_idx;
+
+  if (osapiMessageSend(pppoe_Packet_Queue, &pppoeFrameMsg, sizeof(pppoeFrameMsg_t), L7_NO_WAIT,
+                       L7_MSG_PRIORITY_NORM) == L7_SUCCESS)
+  {
+    osapiSemaGive(pppoeMsgQSema);
+  }
+  else
+  {
+   /* This may be fairly normal, so don't log. DHCP should recover. */
+//     dsInfo->debugStats.frameMsgTxError++;
+  }
+
+  return L7_SUCCESS;
 }
+
 
 /*********************************************************************
 * @purpose  Process a DHCP packet on DHCP snooping thread

@@ -28,6 +28,7 @@
 #include "osapi.h"
 #include "log.h"
 #include "nimapi.h"
+#include "logger.h"
 
 #include "pppoe_cnfgr.h"
 #include "pppoe_util.h"
@@ -390,9 +391,27 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
                                  L7_CNFGR_ERR_RC_t *pReason)
 {
   L7_RC_t rc = L7_SUCCESS;
+  sysnetNotifyEntry_t snEntry;
 
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
+
+  memset(&snEntry, 0x00, sizeof(snEntry));
+
+  strcpy(snEntry.funcName, "pppoePduReceive");
+  snEntry.notify_pdu_receive = pppoePduReceive;
+  snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+  snEntry.u.protocol_type = L7_ETYPE_PPPOE;
+  if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "Failure registering sysNetRegisterPduReceive() for PPPoE packets");
+
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_FATAL;
+    rc         = L7_ERROR;
+
+    return rc;
+  }
 
   pppoeCnfgrStateSet(PPPOE_PHASE_INIT_2);
   return rc;
@@ -421,13 +440,19 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
 * @end
 *********************************************************************/
 L7_RC_t pppoeCnfgrInitPhase3Process(L7_CNFGR_RESPONSE_t *pResponse,
-                                 L7_CNFGR_ERR_RC_t *pReason)
+                                    L7_CNFGR_ERR_RC_t *pReason)
 {
   L7_RC_t rc;
 
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
   rc = L7_SUCCESS;
+
+  /* Activate PPPoE by default */
+  if (pppoeAdminModeEnable() != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
 
   pppoeCnfgrStateSet(PPPOE_PHASE_INIT_3);
 

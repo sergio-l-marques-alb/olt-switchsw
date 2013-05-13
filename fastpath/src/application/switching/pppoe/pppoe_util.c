@@ -40,6 +40,8 @@
 #include "nvstoreapi.h"
 #include "unitmgr_api.h"
 
+#include "logger.h"
+
 //extern dsCfgData_t *dsCfgData;
 //extern dsDbCfgData_t dsDbCfgData;
 
@@ -129,51 +131,32 @@ L7_RC_t pppoeAdminModeApply(L7_uint32 adminMode)
 L7_RC_t pppoeAdminModeEnable(void)
 {
 //  L7_uint32 i;
-//  sysnetPduIntercept_t sysnetPduIntercept, unicastdhcpv6SysnetPduIntercept, multicastdhcpv6SysnetPduIntercept;
-//#ifdef L7_DHCP_L2_RELAY_PACKAGE
-//  /* PTin modified - DHCPv6 */
+//  sysnetPduIntercept_t sysnetPduIntercept;
+
 //  if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
+//{
+//  /* Intercept IP packets at DTL layer */
+//  sysnetPduIntercept.addressFamily = L7_AF_INET; //L7_AF_INET;
+//  sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN; //SYSNET_INET_RECV_IN;
+//  sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_PPPOE_SNOOPING_PRECEDENCE;
+//  sysnetPduIntercept.interceptFunc = pppoePacketIntercept;
+//  strcpy(sysnetPduIntercept.interceptFuncName, "pppoePacketIntercept");
+//
+//  if (sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS )
+//    return L7_FAILURE;
+//
+//  LOG_TRACE(LOG_CTX_PTIN_PPPOE, "pppoePacketIntercept successfully registered");
+//}
+
+//for (i = 0; i < DS_MAX_INTF_COUNT; i++)
+//{
+//  if (dsIntfIsSnooping(i))
 //  {
-//#endif
-//    /* Intercept IP packets at DTL layer. This is before DHCP relay or
-//     * DHCP snooping get a crack at the packet in a routing build. */
-//
-//     /*IPv4*/
-//     sysnetPduIntercept.addressFamily = L7_AF_INET; //L7_AF_INET;
-//     sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN; //SYSNET_INET_RECV_IN;
-//     sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
-//     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
-//     strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
-//
-//     /*IPv6 unicast*/
-//     unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6; //L7_AF_INET;
-//     unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_RECV_IN; //SYSNET_INET6_MCAST_IN;
-//     unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
-//     unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
-//     strcpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
-//
-//     /*IPv6 multicast*/
-//     multicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6; //L7_AF_INET;
-//     multicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN; //SYSNET_INET6_MCAST_IN;
-//     multicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE; /*FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE*/;
-//     multicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
-//     strcpy(multicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
-//
-//     if (sysNetPduInterceptRegister(&sysnetPduIntercept) != L7_SUCCESS ||
-//           sysNetPduInterceptRegister(&unicastdhcpv6SysnetPduIntercept) != L7_SUCCESS ||
-//           sysNetPduInterceptRegister(&multicastdhcpv6SysnetPduIntercept) != L7_SUCCESS)
-//      return L7_FAILURE;
-//#ifdef L7_DHCP_L2_RELAY_PACKAGE
+//    dsIntfSnoopingApply(i, L7_ENABLE);
+//    dsIntfRateLimitApply(i);
 //  }
-//#endif
-//  for (i = 0; i < DS_MAX_INTF_COUNT; i++)
-//  {
-//    if (dsIntfIsSnooping(i))
-//    {
-//      dsIntfSnoopingApply(i, L7_ENABLE);
-//      dsIntfRateLimitApply(i);
-//    }
-//  }
+//}
+
   return L7_SUCCESS;
 }
 
@@ -192,42 +175,23 @@ L7_RC_t pppoeAdminModeEnable(void)
 L7_RC_t pppoeAdminModeDisable(L7_BOOL clearBindings)
 {
 //  L7_uint32 i;
-//  sysnetPduIntercept_t sysnetPduIntercept, unicastdhcpv6SysnetPduIntercept, multicastdhcpv6SysnetPduIntercept;
+//  sysnetPduIntercept_t sysnetPduIntercept;
+
+//  if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
+//{
+//  /* Intercept IP packets at DTL layer */
+//  sysnetPduIntercept.addressFamily = L7_AF_INET; //L7_AF_INET;
+//  sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN; //SYSNET_INET_RECV_IN;
+//  sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_PPPOE_SNOOPING_PRECEDENCE;
+//  sysnetPduIntercept.interceptFunc = pppoePacketIntercept;
+//  strcpy(sysnetPduIntercept.interceptFuncName, "pppoePacketIntercept");
 //
-//#ifdef L7_DHCP_L2_RELAY_PACKAGE
-//  /* PTin modified - DHCPv6 */
-//  if (dsCfgData->dsL2RelayAdminMode == L7_DISABLE)
-//  {
-//#endif
+//  if (sysNetPduInterceptDeregister(&sysnetPduIntercept) != L7_SUCCESS )
+//    return L7_FAILURE;
 //
-//     /*IPv4*/
-//     sysnetPduIntercept.addressFamily = L7_AF_INET;
-//     sysnetPduIntercept.hookId = SYSNET_INET_RECV_IN;
-//     sysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
-//     sysnetPduIntercept.interceptFunc = dsPacketIntercept;
-//     strcpy(sysnetPduIntercept.interceptFuncName, "dsPacketIntercept");
-//     (void)sysNetPduInterceptDeregister(&sysnetPduIntercept);
-//
-//     /*IPv6 unicast*/
-//     unicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
-//     unicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_RECV_IN;
-//     unicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
-//     unicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
-//     strcpy(unicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
-//     (void)sysNetPduInterceptDeregister(&unicastdhcpv6SysnetPduIntercept);
-//
-//     /*IPv6 multicast*/
-//     multicastdhcpv6SysnetPduIntercept.addressFamily = L7_AF_INET6;
-//     multicastdhcpv6SysnetPduIntercept.hookId = SYSNET_INET6_MCAST_IN;
-//     multicastdhcpv6SysnetPduIntercept.hookPrecedence = FD_SYSNET_HOOK_DHCP_SNOOPING_PRECEDENCE;
-//     multicastdhcpv6SysnetPduIntercept.interceptFunc = dsv6PacketIntercept;
-//     strcpy(multicastdhcpv6SysnetPduIntercept.interceptFuncName, "dsv6PacketIntercept");
-//     (void)sysNetPduInterceptDeregister(&multicastdhcpv6SysnetPduIntercept);
-//
-//#ifdef L7_DHCP_L2_RELAY_PACKAGE
-//  }
-//#endif
-//
+//  LOG_TRACE(LOG_CTX_PTIN_PPPOE, "pppoePacketIntercept successfully deregistered");
+//}
+
 //  if(clearBindings)
 //  {
 //  /* Clear the all dynamic bindings for all interfaces */
