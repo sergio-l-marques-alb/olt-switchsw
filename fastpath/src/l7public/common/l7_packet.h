@@ -329,6 +329,7 @@ static L7_enetMacAddr_t L7_ENET_ISDP_MULTICAST_MAC_ADDR =
 #define L7_ETYPE_EFMOAM   0x8809
 #define L7_ETYPE_EFMOAM_DATA 0x9000
 #define L7_ETYPE_CFM      0x8902
+#define L7_ETYPE_PPPOE    0x8863
 
 /* Start of IP Header   */
 /* Start of IP Header   */

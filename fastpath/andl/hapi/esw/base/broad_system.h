@@ -423,6 +423,27 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 #endif
 
+/* PTin added: PPPoE */
+#if 1
+/*********************************************************************
+*
+* @purpose Configure PPPoE
+*
+* @param   DAPI_USP_t *usp    - needs to be a valid usp
+* @param   DAPI_CMD_t  cmd    - DAPI_CMD_SYSTEM_PPPOE_CONFIG
+* @param   void       *data   - DAPI_SYSTEM_CMD_t.cmdData.pppoeConfig
+* @param   DAPI_t     *dapi_g - the driver object
+*
+* @returns L7_RC_t result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadSystemPPPoEConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+#endif
+
 /* PTin added: PRBS */
 #if 1
 /*********************************************************************

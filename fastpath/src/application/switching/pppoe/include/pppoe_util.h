@@ -534,9 +534,9 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //void dsConfigDataChange(void);
 //void dsCfgDataNotChanged(void);
 //L7_RC_t dsTraceWrite(L7_uchar8 *dsTrace);
-//L7_RC_t dsAdminModeApply(L7_uint32 adminMode);
-//L7_RC_t dsAdminModeEnable(void);
-//L7_RC_t dsAdminModeDisable(L7_BOOL clearBindings);
+L7_RC_t pppoeAdminModeApply(L7_uint32 adminMode);
+L7_RC_t pppoeAdminModeEnable(void);
+L7_RC_t pppoeAdminModeDisable(L7_BOOL clearBindings);
 //L7_RC_t _dsBindingClear(L7_uint32 intIfNum, L7_BOOL clrFlag);
 //L7_RC_t _dsIntfStatsClear(void);
 //L7_RC_t dsVlanEnableApply(L7_uint32 vlanId, L7_uint32 vlanCfg);
