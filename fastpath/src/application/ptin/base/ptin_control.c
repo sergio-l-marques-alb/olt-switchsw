@@ -20,6 +20,7 @@
 #include "ipc.h"
 #include "nimapi.h"
 #include "usmdb_dot3ad_api.h"
+#include "ptin_fieldproc.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE )
 #include "fw_shm.h"
@@ -94,6 +95,13 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   if (ptin_dhcp_enable(L7_ENABLE) != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error enabling DHCP global trapping! CRASH!");
+    PTIN_CRASH();
+  }
+
+  /* PPPoE Global enable */
+  if (ptin_pppoePkts_global_trap(L7_ENABLE) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error enabling PPPoE global trapping! CRASH!");
     PTIN_CRASH();
   }
 

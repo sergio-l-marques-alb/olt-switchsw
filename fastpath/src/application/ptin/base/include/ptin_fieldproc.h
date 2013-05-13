@@ -118,6 +118,25 @@ extern L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable);
 extern L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
+ * Set global enable for PPPoE packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable);
+
+/**
+ * Create/remove a rule, to allow PPPoE packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+
+/**
  * Apply Rate limit to broadcast traffic
  * 
  * @param enable : enable status

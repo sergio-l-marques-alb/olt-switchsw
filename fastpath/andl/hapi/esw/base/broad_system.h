@@ -420,7 +420,7 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 #endif
 
 /* PTin added: PPPoE */

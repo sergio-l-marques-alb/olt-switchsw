@@ -226,7 +226,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_BW_POLICER                   ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBwPolicer;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_FP_COUNTERS                  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinFpCounters;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKET_RATE_LIMIT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinPktRateLimit;
-  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU        ] = (HAPICTLFUNCPTR_t)hapiBroadSystemDhcpConfig;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU          ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPacketTrapConfig;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PCS_PRBS                     ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinPrbs;
   /* PTin end */
 
@@ -1898,26 +1898,53 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   DAPI_SYSTEM_CMD_t *dapiCmd   = (DAPI_SYSTEM_CMD_t*)data;
   L7_RC_t status=L7_SUCCESS;
 
-  switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
-    case DAPI_CMD_SET:
-      status = hapiBroadConfigDhcpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      /* ARS PTin temporary: to be removed */
-      status = hapiBroadConfigPPPoEFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      break;
+  switch (dapiCmd->cmdData.snoopConfig.packet_type)
+  {
+    /* DHCP packets */
+    case PTIN_PACKET_DHCP:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigDhcpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
 
-    case DAPI_CMD_CLEAR:
-      status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      /* ARS PTin temporary: to be removed */
-      status = hapiBroadConfigPPPoEFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      break;
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
 
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* PPPoE packets */
+    case PTIN_PACKET_PPPOE:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigPPPoEFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigPPPoEFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* Not handled */
     default:
+    {
       status = L7_FAILURE;
+    }
+    break;
   }
 
   return status;
