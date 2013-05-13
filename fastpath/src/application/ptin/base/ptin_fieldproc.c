@@ -331,7 +331,7 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
   dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
   dapiCmd.cmdData.snoopConfig.CoS         = 0;
-  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_PPPOE;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
