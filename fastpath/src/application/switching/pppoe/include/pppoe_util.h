@@ -4,17 +4,17 @@
 *
 **********************************************************************
 *
-* @filename ds_util.h
+* @filename pppoe_util.h
 *
-* @purpose  Working data structures etc.
+* @purpose  PPPoE Intermediate Agent
 *
-* @component  DHCP Snooping
+* @component  PPPoE Intermediate Agent
 *
 * @comments 
 *
-* @create 3/15/2007
+* @create 14/05/2013
 *
-* @author Rob Rice (rrice)
+* @author Daniel Figueira
 * @end
 *
 **********************************************************************/
@@ -59,8 +59,7 @@
 typedef struct
 {
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];  /*Client MAC Address*/
-  L7_uint16 oVlan;                     /*Outer Vlan*/
-  L7_uint16 iVlan;                     /*Inner Vlan*/
+  L7_uint16 rootVlan;                     /*Outer Vlan*/
 } ptinPppoeClientDataKey_t;
 
 typedef struct

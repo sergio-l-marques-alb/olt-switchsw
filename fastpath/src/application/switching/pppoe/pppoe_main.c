@@ -3,17 +3,17 @@
 * (C) Copyright Broadcom Corporation 2005-2007
 *
 **********************************************************************
-* @filename  ds_main.c
+* @filename  pppoe_main.c
 *
-* @purpose   DHCP snooping
+* @purpose   PPPoE Intermediate Agent
 *
-* @component DHCP snooping
+* @component PPPoE
 *
 * @comments none
 *
-* @create 3/26/2007
+* @create 14/05/2013
 *
-* @author Rob Rice (rrice)
+* @author Daniel Figueira
 *
 * @end
 *
@@ -30,8 +30,8 @@
 #include "comm_mask.h"
 #include "trapapi.h"
 
-#include "ptin_dhcp.h"
 #include "ptin_evc.h"
+#include "ptin_pppoe.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -156,7 +156,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uint32 rc;
   L7_uint32 len, ethHeaderSize;
   L7_uchar8 *data;
-  L7_uint32 vlanId, innerVlanId = 0;
+  L7_uint16 vlanId, innerVlanId = 0;
 
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
@@ -210,6 +210,18 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
   ethHeaderSize = sysNetDataOffsetGet(data);
 
+  /* Convert vlan to root vlan */
+  if ( ptin_pppoe_rootVlan_get( pduInfo->vlanId, &vlanId ) != L7_SUCCESS )
+  {
+     if (ptin_debug_pppoe_snooping)
+       LOG_ERR(LOG_CTX_PTIN_DHCP,"Root vlan not found! (intIfNum=%u, vlanId=%u)",
+               pduInfo->intIfNum, pduInfo->vlanId);
+  }
+  else
+  {
+     pduInfo->vlanId = vlanId;
+  }
+
   /* This is used only when the packet comes double tagged.*/
   vlanId = pduInfo->vlanId;
   innerVlanId = pduInfo->innerVlanId;
@@ -244,7 +256,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     if (innerVlanId>0 && innerVlanId<4096)
     {
       /* Find client index, and validate it */
-      if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
+      if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
           client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
       {
         LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
@@ -701,8 +713,14 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
    LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new message");
 
-   pppoeProcessServerFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
-   pppoeProcessClientFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+   if(ptin_pppoe_is_intfTrusted(intIfNum, vlanId) == L7_TRUE)
+   {
+      pppoeProcessServerFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+   }
+   else
+   {
+      pppoeProcessClientFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+   }
 
 // //Parse the received frame
 // eth_header_ptr       = frame;
@@ -786,7 +804,7 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    L7_uint32 vendor_id;
    L7_char8  circuit_id[FD_DS_MAX_REMOTE_ID_STRING], remote_id[FD_DS_MAX_REMOTE_ID_STRING];
 
-   if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
+   if (ptin_pppoe_stringIds_get(intIfNum, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
    {
       return L7_FAILURE;
    }
@@ -801,40 +819,40 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    tlv_length       = sizeof(L7_uint32) + 2*(sizeof(L7_uint8)+sizeof(L7_uint8)) + circuitid_length + remoteid_length;
 
    /* TLV Tag Type */
-   memcpy(framePtr, &tlv_tag_type, sizeof(L7_uint16));
+   *((L7_uint16 *)framePtr) = tlv_tag_type;
    framePtr += sizeof(L7_uint16);
 
    /* TLV Length */
-   memcpy(framePtr, &tlv_length, sizeof(L7_uint16));
+   *((L7_uint16 *)framePtr) = tlv_length;
    framePtr += sizeof(L7_uint16);
 
    /* Vendor ID */
-   memcpy(framePtr, &vendor_id, sizeof(L7_uint32));
+   *((L7_uint32 *)framePtr) = vendor_id;
    framePtr += sizeof(L7_uint32);
 
    /* Circuit ID Code */
-   memcpy(framePtr, &circuitid_code, sizeof(L7_uint8));
+   *((L7_uint8 *)framePtr) = circuitid_code;
    framePtr += sizeof(L7_uint8);
 
    /* Circuit ID Length */
-   memcpy(framePtr, &circuitid_length, sizeof(L7_uint8));
+   *((L7_uint8 *)framePtr) = circuitid_length;
    framePtr += sizeof(L7_uint8);
 
    /* Circuit ID Data */
-   memcpy(framePtr, &circuit_id, strlen(circuit_id)+1);
-   framePtr += strlen(circuit_id)+1;
+   strcpy(framePtr, circuit_id);
+   framePtr += circuitid_length;
 
    /* Remote ID Code */
-   memcpy(framePtr, &remoteid_code, sizeof(L7_uint8));
+   *((L7_uint8 *)framePtr) = remoteid_code;
    framePtr += sizeof(L7_uint8);
 
    /* Remote ID Length */
-   memcpy(framePtr, &remoteid_length, sizeof(L7_uint8));
+   *((L7_uint8 *)framePtr) = remoteid_length;
    framePtr += sizeof(L7_uint8);
 
    /* Remote ID Data */
-   memcpy(framePtr, &remote_id, strlen(remote_id)+1);
-   framePtr += strlen(remote_id)+1;
+   strcpy(framePtr, remote_id);
+   framePtr += remoteid_length;
 
    return L7_SUCCESS;
 }
@@ -857,7 +875,6 @@ L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr)
    L7_tlv_header_t *tlv_header;
 
    tlv_header = (L7_tlv_header_t*) originalFramePtr;
-
    memcpy(newFramePtr, originalFramePtr, sizeof(L7_tlv_header_t) + tlv_header->length);
 
    return L7_SUCCESS;
@@ -1232,13 +1249,12 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    /* This entry will exist in this table until the server responds. At that moment, this entry is removed */
    memset(&binding_table_key,           0x00,                 sizeof(ptinPppoeClientDataKey_t));
    memcpy(binding_table_key.macAddr,    eth_header->src.addr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-   binding_table_key.oVlan     = vlanId;
-   binding_table_key.iVlan     = innerVlanId;
+   binding_table_key.rootVlan  = vlanId;
    if (avlInsertEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key) != L7_NULL)
    {
-      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
                  binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
-                 binding_table_key.oVlan, binding_table_key.iVlan);
+                 binding_table_key.rootVlan);
    }
    else
    {
@@ -1250,9 +1266,9 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
       }
       else
       {
-         LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to find inserted client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+         LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to find inserted client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
                     binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
-                    binding_table_key.oVlan, binding_table_key.iVlan);
+                    binding_table_key.rootVlan);
          return;
       }
    }
@@ -1400,8 +1416,7 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    /* Search for this client in the PPPoE Binding Table */
    memset(&binding_table_key,           0x00,                  sizeof(ptinPppoeClientDataKey_t));
    memcpy(binding_table_key.macAddr,    eth_header->dest.addr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-   binding_table_key.oVlan     = vlanId;
-   binding_table_key.iVlan     = innerVlanId;
+   binding_table_key.rootVlan     = vlanId;
    if ((binding_table_data=avlSearchLVL7(&pppoeBindingTable.avlTree, (void *)&binding_table_key, AVL_EXACT)) != L7_NULL)
    {
       intIfNum = binding_table_data->interface;
@@ -1409,9 +1424,9 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    }
    else
    {
-      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Message received for an unknown client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Message received for an unknown client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
                  binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
-                 binding_table_key.oVlan, binding_table_key.iVlan);
+                 binding_table_key.rootVlan);
       return;
    }
 

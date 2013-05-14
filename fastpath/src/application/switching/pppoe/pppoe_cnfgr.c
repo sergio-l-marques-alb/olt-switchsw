@@ -5,15 +5,15 @@
 **********************************************************************
 * @filename  ds_cnfgr.c
 *
-* @purpose   PPPoE configurator file
+* @purpose   PPPoE Intermediate Agent
 *
 * @component PPPoE
 *
 * @comments none
 *
-* @create 3/15/2007
+* @create 14/05/2013
 *
-* @author Rob Rice (rrice)
+* @author Daniel Figueira
 *
 * @end
 *
