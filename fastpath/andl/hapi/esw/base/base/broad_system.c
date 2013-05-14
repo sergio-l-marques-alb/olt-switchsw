@@ -1911,12 +1911,10 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
         case DAPI_CMD_SET:
           status = hapiBroadConfigDhcpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-          status = hapiBroadConfigPPPoEFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
           break;
 
         case DAPI_CMD_CLEAR:
           status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-          status = hapiBroadConfigPPPoEFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
           break;
 
         default:

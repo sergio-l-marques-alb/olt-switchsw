@@ -462,11 +462,11 @@ L7_RC_t pppoeCnfgrInitPhase3Process(L7_CNFGR_RESPONSE_t *pResponse,
   *pReason    = 0;
   rc = L7_SUCCESS;
 
-  /* Activate PPPoE by default */
-  if (pppoeAdminModeEnable() != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
+///* Activate PPPoE by default */
+//if (pppoeAdminModeEnable() != L7_SUCCESS)
+//{
+//  return L7_FAILURE;
+//}
 
   pppoeCnfgrStateSet(PPPOE_PHASE_INIT_3);
 
