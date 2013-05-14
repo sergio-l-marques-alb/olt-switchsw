@@ -628,6 +628,36 @@ extern L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stat
 extern L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, uint16 n_clients);
 
 /**
+ * Get list of channels contained in the white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_uint16 *n_channels);
+
+/**
+ * Add channels to White list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
+
+/**
+ * Remove channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel

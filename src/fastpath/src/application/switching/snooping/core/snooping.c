@@ -281,6 +281,77 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint16 McastRootVlan;
 
   /* Internal vlan will be converted to MC root vlan */
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_inet_addr_t srcAddr, grpAddr;
+
+  memset(&srcAddr, 0x00, sizeof(srcAddr));
+  memset(&srcAddr, 0x00, sizeof(grpAddr));
+
+  /* Default is IPv4 */
+  srcAddr.family = L7_AF_INET;
+  grpAddr.family = L7_AF_INET;
+
+  /* IGMP */
+  if (pSnoopCB->family == L7_AF_INET)
+  {
+    L7_uchar8 *buffPtr;
+    L7_uint16 ipHdrLen;
+
+    /* Validate minimum size of packet */
+    if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
+    {
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "Received pkt is too small %d",dataLength);
+      return L7_FAILURE;
+    }
+
+    /* Extract source and group address from packet */
+
+    /* Point to the start of ethernet payload */
+    buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
+
+    ipHdrLen = (buffPtr[0] & 0x0f)*4;
+    if ( ipHdrLen < L7_IP_HDR_LEN )
+    {
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "IP Header Len is invalid %d",ipHdrLen);
+      return L7_FAILURE;
+    }
+
+    /* Source address */
+    srcAddr.family = L7_AF_INET;
+    srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
+
+    /* Group address */
+    grpAddr.family = L7_AF_INET;
+    grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &buffPtr[24] + (ipHdrLen - L7_IP_HDR_LEN));
+  }
+  else
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: IPv6 not supported yet!");
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return L7_FAILURE;
+  }
+
+  /* Get multicast root vlan */
+  if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family,
+                "snoopPacketHandle: Vlan=%u converted to %u (grpAddr=0x%08x srcAddr=0x%08x)",
+                pduInfo->vlanId, McastRootVlan, grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
+    pduInfo->vlanId = McastRootVlan;
+  }
+  else
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family,
+                "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=0x%08x srcAddr=0x%08x)",
+                pduInfo->vlanId, grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return L7_FAILURE;
+  }
+  #else
+  /* !IGMPASSOC_MULTI_MC_SUPPORTED */
   if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Vlan=%u converted to %u",pduInfo->vlanId,McastRootVlan);
@@ -293,6 +364,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
+  #endif
+
   /* Validate interface and vlan */
   if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum,pduInfo->vlanId)!=L7_SUCCESS)
   {

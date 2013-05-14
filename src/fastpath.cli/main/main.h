@@ -81,6 +81,10 @@ extern int canal_buga;
 #define CCMSG_ETH_IGMP_INTF_STATS_GET       0x9079  // struct msg_IgmpClientStatistics_t
 #define CCMSG_ETH_IGMP_INTF_STATS_CLEAR     0x907A  // struct msg_IgmpClientStatistics_t
 
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE 0x906C  // struct msg_MCAssocChannel_t
+
 #define CCMSG_ETH_IGMP_STATIC_GROUP_ADD     0x907B  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE  0x907C  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_GROUPS_GET           0x907D  // struct msg_MCActiveChannels_t
@@ -145,6 +149,8 @@ typedef struct L7_in_addr_s
     L7_uint32   s_addr;    /* 32 bit IPv4 address in network byte order */
 } __attribute__((packed)) msg_in_addr_t;
 
+#define PTIN_AF_INET    0
+#define PTIN_AF_INET6   1
 typedef struct chmessage_ip_addr_s {
    L7_uint8       family;     /* IP traffic type: 0=IPv4; 1:IPv6 */
    union
@@ -832,6 +838,19 @@ typedef struct _st_ClientIgmpStatistics
  * STATIC MULTICAST CHANNELS
  ****************************************************/
 
+/* To add or remove a channel associated to a MC service */
+// Messages CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET or CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD and CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE
+typedef struct _msg_MCAssocChannel_t
+{
+  L7_uint8  SlotId;                     // slot
+  L7_uint16 evcid_mc;                   // index: EVCid (MC)
+  L7_uint16 entry_idx;                  // Entry index: only for readings
+  chmessage_ip_addr_t channel_dstIp;    // IP do canal a adicionar/remover
+  L7_uint8            channel_dstmask;  // MAscara do canal em numero de bits (LSB)
+  chmessage_ip_addr_t channel_srcIp;    // IP source 
+  L7_uint8            channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
+} __attribute__((packed)) msg_MCAssocChannel_t;
+
 /* To add or remove a static channel */
 // Messages CCMSG_ETH_IGMP_STATIC_GROUP_ADD and CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 typedef struct _msg_MCStaticChannel_t
@@ -854,6 +873,7 @@ typedef struct _st_MCActiveChannels
   L7_uint16 n_channels_total;          // Numero total de canais
   L7_uint16 n_channels_msg;            // Numero de canais presentes na mensagem
   msg_in_addr_t channels_list[MSG_MCACTIVECHANNELS_CHANNELS_MAX];   // List da canais (apenas usados os primeiros n_channels_msg canais)
+  L7_uint8      is_static_bmp[MSG_MCACTIVECHANNELS_CHANNELS_MAX];
 } __attribute__((packed)) msg_MCActiveChannels_t;
 
 /* To list all clients of a channel */

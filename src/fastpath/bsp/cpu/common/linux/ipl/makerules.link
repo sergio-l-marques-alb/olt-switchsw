@@ -259,7 +259,7 @@ $(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
 			$$(cat $(pkgarc_file) | xargs) \
 			$(VENDOR_LIBS) \
 		-Wl,--end-group \
-		$(gc_option) \
+		$(gc_option) -lm \
 		-Wl,-Bstatic $(CPPLIBS) $(OSLIBS_STATIC) \
 		-Wl,-Bdynamic $(OSLIBS) \
 		$(GCOV_LINK)

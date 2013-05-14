@@ -4050,6 +4050,281 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 }
 
 /**
+ * Get list of channels contained in the white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMPASSOC_MAX_CHANNELS_IN_MESSAGE   100   /* Maximum number of channels in one message */
+static igmpAssoc_entry_t igmpAssoc_list[IGMPASSOC_CHANNELS_MAX];
+static L7_uint16 igmpAssoc_channels_max = 0;
+#endif
+
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_uint16 *n_channels)
+{
+  if (channel_list==L7_NULLPTR || n_channels==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Reading White list channel list:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list->evcid_mc);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list->entry_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_dstIp.addr.ipv4, channel_list->channel_dstIp.family, channel_list->channel_dstmask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint16 i, i_start;
+  L7_uint16 number_of_channels;
+  L7_uint8  slotId;
+
+  /* For null entry idex, read and store all channels */
+  if (channel_list->entry_idx==0)
+  {
+    /* Clear channel list */
+    memset(igmpAssoc_list, 0x00, sizeof(igmpAssoc_list));
+    igmpAssoc_channels_max = 0;
+
+    number_of_channels = IGMPASSOC_CHANNELS_MAX;
+    if (igmp_assoc_channelList_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading list of channels");
+      return L7_FAILURE;
+    }
+    /* Update number of channels */
+    igmpAssoc_channels_max = number_of_channels;
+  }
+
+  /* Save important data of input message */
+  slotId  = channel_list->SlotId;
+  i_start = channel_list->entry_idx;
+
+  /* Determine max number of messages */
+  /* First index is beyond max index: no channels to retrieve */
+  if (i_start >= igmpAssoc_channels_max)
+  {
+    number_of_channels = 0;
+  }
+  /* Remaining channels, is lower than maximum message capacity */
+  else if ( (igmpAssoc_channels_max - i_start) < IGMPASSOC_MAX_CHANNELS_IN_MESSAGE )
+  {
+    number_of_channels = igmpAssoc_channels_max - i_start;
+  }
+  /* Use maximum capacity */
+  else
+  {
+    number_of_channels = IGMPASSOC_MAX_CHANNELS_IN_MESSAGE;
+  }
+
+  for (i=0; i<=number_of_channels; i++)
+  {
+    /* Constant information to be replicated in all channels */
+    channel_list[i].SlotId    = slotId;
+    channel_list[i].entry_idx = i_start + i;
+
+    /* Group address (prepared for IPv6) */
+    if ( igmpAssoc_list[i_start+i].groupAddr.family == L7_AF_INET6 )
+    {
+      channel_list[i].channel_dstIp.family = PTIN_AF_INET6;
+      memcpy( channel_list[i].channel_dstIp.addr.ipv6, igmpAssoc_list[i_start+i].groupAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+      channel_list[i].channel_dstmask = 128;
+    }
+    else
+    {
+      channel_list[i].channel_dstIp.family = PTIN_AF_INET;
+      channel_list[i].channel_dstIp.addr.ipv4 = igmpAssoc_list[i_start+i].groupAddr.addr.ipv4.s_addr;
+      channel_list[i].channel_dstmask = 32;
+    }
+
+    /* Source address (prepared for IPv6) */
+    if ( igmpAssoc_list[i_start+i].sourceAddr.family == L7_AF_INET6 )
+    {
+      channel_list[i].channel_srcIp.family = PTIN_AF_INET6;
+      memcpy( channel_list[i].channel_srcIp.addr.ipv6, igmpAssoc_list[i_start+i].sourceAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+      channel_list[i].channel_srcmask = 128;
+    }
+    else
+    {
+      channel_list[i].channel_srcIp.family = PTIN_AF_INET;
+      channel_list[i].channel_srcIp.addr.ipv4 = igmpAssoc_list[i_start+i].sourceAddr.addr.ipv4.s_addr;
+      channel_list[i].channel_srcmask = 32;
+    }
+
+    //channel_list[i].???       = igmpAssoc_list[i_start+i].evc_uc;
+    channel_list[i].evcid_mc  = igmpAssoc_list[i_start+i].evc_mc;
+    //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
+  }
+
+  /* Return number of channels */
+  *n_channels = number_of_channels;
+
+  #else
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+  return L7_NOT_SUPPORTED;
+
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Add channels to White list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+{
+  L7_uint16 i;
+  L7_inet_addr_t groupAddr, sourceAddr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (channel_list==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Adding channel index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+
+    /* Prepare group address */
+    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    {
+      groupAddr.family = L7_AF_INET6;
+      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      groupAddr.family = L7_AF_INET;
+      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
+    }
+    /* Prepare source address */
+    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    {
+      sourceAddr.family = L7_AF_INET6;
+      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      sourceAddr.family = L7_AF_INET;
+      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+    }
+
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+    if (igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
+                                &groupAddr , channel_list[i].channel_dstmask,
+                                &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE ) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+              channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
+              channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
+              channel_list[i].evcid_mc);
+      return L7_FAILURE;
+    }
+    #else
+    rc = L7_NOT_SUPPORTED;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    #endif
+  }
+
+  return rc;
+}
+
+/**
+ * Remove channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+{
+  L7_uint16 i;
+  L7_inet_addr_t groupAddr, sourceAddr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (channel_list==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+
+    /* Prepare group address */
+    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    {
+      groupAddr.family = L7_AF_INET6;
+      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      groupAddr.family = L7_AF_INET;
+      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
+    }
+    /* Prepare source address */
+    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    {
+      sourceAddr.family = L7_AF_INET6;
+      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      sourceAddr.family = L7_AF_INET;
+      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+    }
+
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+    if (igmp_assoc_channel_remove( 0,
+                                   &groupAddr , channel_list[i].channel_dstmask,
+                                   &sourceAddr, channel_list[i].channel_srcmask ) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+              channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
+              channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
+              channel_list[i].evcid_mc);
+      return L7_FAILURE;
+    }
+
+    #else
+    rc = L7_NOT_SUPPORTED;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    #endif
+  }
+
+  return rc;
+}
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel
@@ -4067,12 +4342,34 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
             (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
 
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Add this channel to associations list */
+  L7_inet_addr_t groupAddr, sourceAddr;
+
+  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  groupAddr.family = L7_AF_INET;
+  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
+
+  /* Add channel */
+  rc=igmp_assoc_channel_add(0, channel->evc_id, &groupAddr, 32, &sourceAddr, 32, L7_TRUE);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding group 0x%08x to association list (MC EVC id %u)",groupAddr.addr.ipv4.s_addr,channel->evc_id);
+    return rc;
+  }
+  #endif
+
   in_addr.s_addr = channel->channelIp.s_addr;
 
   rc = ptin_igmp_static_channel_add(channel->evc_id,&in_addr);
 
   if (rc!=L7_SUCCESS)
   {
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);    /* Undo */
+    #endif
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
     return rc;
   }
@@ -4107,6 +4404,25 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
     return rc;
   }
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Remove this channel from association list */
+  L7_inet_addr_t groupAddr, sourceAddr;
+
+  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  groupAddr.family = L7_AF_INET;
+  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
+
+  /* Remove channel */
+  rc = igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);
+
+  if ( rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group 0x%08x from association list",groupAddr.addr.ipv4.s_addr);
+    return rc;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -4152,6 +4468,9 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannels_t *channel_list)
     client.outerVlan = channel_list->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
+
+  /* Clear is_static list */
+  memset(channel_list->is_static_bmp, 0xff, sizeof(channel_list->is_static_bmp));
 
   /* Get list of channels */
   number_of_channels = MSG_MCACTIVECHANNELS_CHANNELS_MAX;
