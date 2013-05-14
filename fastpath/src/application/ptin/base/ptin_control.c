@@ -15,6 +15,7 @@
 #include "ptin_xlate_api.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 #include "ptin_cfg.h"
 #include "dtl_ptin.h"
 #include "ipc.h"
@@ -99,7 +100,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 
   /* PPPoE Global enable */
-  if (ptin_pppoePkts_global_trap(L7_ENABLE) != L7_SUCCESS)
+  if (ptin_pppoe_enable(L7_ENABLE) != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error enabling PPPoE global trapping! CRASH!");
     PTIN_CRASH();
