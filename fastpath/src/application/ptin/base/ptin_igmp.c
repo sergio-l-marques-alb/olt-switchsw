@@ -114,6 +114,55 @@ typedef struct {
   void                     *appTimer_handleListMemHndl;
 } ptinIgmpClients_t;
 
+/** Service association AVL Tree */
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+/* Optional */
+#define IGMPASSOC_CHANNEL_UC_EVC_ISOLATION  0
+#define IGMPASSOC_CHANNEL_SOURCE_SUPPORTED  0
+
+typedef struct
+{
+  L7_inet_addr_t  channel_group;
+
+  #if (IGMPASSOC_CHANNEL_SOURCE_SUPPORTED)
+  L7_inet_addr_t  channel_source;
+  #endif
+
+  #if IGMPASSOC_CHANNEL_UC_EVC_ISOLATION
+  L7_uint16 evc_uc;
+  #endif
+} ptinIgmpPairDataKey_t;
+
+typedef struct
+{
+  ptinIgmpPairDataKey_t     igmpPairDataKey;
+  L7_uint16                 evc_mc;
+  L7_uint16                 evc_uc;
+  L7_uint16                 igmp_idx;
+  L7_BOOL                   is_static;
+  void *next;
+} ptinIgmpPairInfoData_t;
+
+typedef struct {
+    avlTree_t               igmpPairAvlTree;
+    avlTreeTables_t         *igmpPairTreeHeap;
+    ptinIgmpPairInfoData_t  *igmpPairDataHeap;
+} ptinIgmpPairAvlTree_t;
+
+/* List of all IGMP associations */
+ptinIgmpPairAvlTree_t igmpPairDB;
+
+static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
+                                    L7_inet_addr_t *channel_group, L7_inet_addr_t *channel_source,
+                                    L7_uint16 *evc_mc );
+static L7_RC_t igmp_assoc_channelIP_prepare( L7_inet_addr_t *channel_in, L7_uint16 channel_mask,
+                                             L7_inet_addr_t *channel_out, L7_uint32 *number_of_channels);
+static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node );
+static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key );
+static L7_RC_t igmp_assoc_avlTree_clear ( L7_uint16 evc_uc, L7_uint16 evc_mc );
+static L7_RC_t igmp_assoc_avlTree_purge ( void );
+#endif
 
 /* IGMP Instance config struct
  * IMPORTANT:
@@ -369,6 +418,34 @@ L7_RC_t ptin_igmp_proxy_init(void)
                      0x10,
                      sizeof(ptinIgmpClientDataKey_t));
   }
+
+  /* IGMP associaations */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+  igmpPairDB.igmpPairTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, IGMPASSOC_CHANNELS_MAX * sizeof(avlTreeTables_t)); 
+  igmpPairDB.igmpPairDataHeap = (ptinIgmpPairInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, IGMPASSOC_CHANNELS_MAX * sizeof(ptinIgmpPairInfoData_t)); 
+
+  if ((igmpPairDB.igmpPairTreeHeap == L7_NULLPTR) ||
+      (igmpPairDB.igmpPairDataHeap == L7_NULLPTR))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error allocating data for IGMP Pairing AVL Trees\n");
+    return L7_FAILURE;
+  }
+
+  /* Initialize the storage for all IGMP associations */
+  memset (&igmpPairDB.igmpPairAvlTree , 0x00, sizeof(avlTree_t));
+  memset ( igmpPairDB.igmpPairTreeHeap, 0x00, sizeof(avlTreeTables_t)*IGMPASSOC_CHANNELS_MAX);
+  memset ( igmpPairDB.igmpPairDataHeap, 0x00, sizeof(ptinIgmpPairInfoData_t)*IGMPASSOC_CHANNELS_MAX);
+
+  // AVL Tree creations - snoopIpAvlTree
+  avlCreateAvlTree(&(igmpPairDB.igmpPairAvlTree),
+                   igmpPairDB.igmpPairTreeHeap,
+                   igmpPairDB.igmpPairDataHeap,
+                   IGMPASSOC_CHANNELS_MAX, 
+                   sizeof(ptinIgmpPairInfoData_t),
+                   0x10,
+                   sizeof(ptinIgmpPairDataKey_t));
+  #endif
 
   ptin_igmp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_igmp_stats_sem == L7_NULLPTR)
@@ -819,14 +896,19 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
   L7_uint igmp_idx;
 
   /* Validate arguments */
-  if (McastEvcId>=PTIN_SYSTEM_N_EVCS || UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (McastEvcId>=PTIN_SYSTEM_N_EVCS ||
+      UcastEvcId>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
-  if (!ptin_evc_is_in_use(McastEvcId) || !ptin_evc_is_in_use(UcastEvcId))
+  if (!ptin_evc_is_in_use(McastEvcId)
+      #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+      || !ptin_evc_is_in_use(UcastEvcId)
+      #endif
+     )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC ids are not active: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
@@ -860,7 +942,9 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
 
   /* Save direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[McastEvcId] = igmp_idx;
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   igmpInst_fromEvcId[UcastEvcId] = igmp_idx;
+  #endif
 
   /* Configure querier for this instance */
   if (ptin_igmp_querier_configure(igmp_idx,L7_ENABLE)!=L7_SUCCESS)
@@ -868,7 +952,9 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting querier configuration for igmp_idx=%u",igmp_idx);
     memset(&igmpInstances[igmp_idx],0x00,sizeof(st_IgmpInstCfg_t));
     igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
+    #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
     igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
+    #endif
     return L7_FAILURE;
   }
 
@@ -879,7 +965,9 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
     ptin_igmp_querier_configure(igmp_idx,L7_DISABLE);
     memset(&igmpInstances[igmp_idx],0x00,sizeof(st_IgmpInstCfg_t));
     igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
+    #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
     igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
+    #endif
     return L7_FAILURE;
   }
 
@@ -900,7 +988,8 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
   L7_uint igmp_idx;
 
   /* Validate arguments */
-  if (McastEvcId>=PTIN_SYSTEM_N_EVCS || UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (McastEvcId>=PTIN_SYSTEM_N_EVCS ||
+      UcastEvcId>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
@@ -942,7 +1031,9 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
 
   /* Reset direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2428,7 +2519,10 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
   st_IgmpInstCfg_t *igmpInst;
   ptin_intf_t ptin_intf;
-  ptin_evc_intfCfg_t mc_intf_cfg, uc_intf_cfg;
+  ptin_evc_intfCfg_t mc_intf_cfg;
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  ptin_evc_intfCfg_t uc_intf_cfg;
+  #endif
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
@@ -2447,21 +2541,28 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(igmpInst->McastEvcId,&ptin_intf,&mc_intf_cfg)!=L7_SUCCESS ||
-      ptin_evc_intfCfg_get(igmpInst->UcastEvcId,&ptin_intf,&uc_intf_cfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(igmpInst->McastEvcId,&ptin_intf,&mc_intf_cfg)!=L7_SUCCESS
+      #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+      || ptin_evc_intfCfg_get(igmpInst->UcastEvcId,&ptin_intf,&uc_intf_cfg)!=L7_SUCCESS
+      #endif
+     )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), [mcEvcId,ucEvcId]=%u/%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,igmpInst->UcastEvcId,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), mcEvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
     return L7_FAILURE;
   }
 
   /* Interfaces must be in use in both evcs */
-  if (!mc_intf_cfg.in_use || !uc_intf_cfg.in_use)
+  if (!mc_intf_cfg.in_use
+      #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+      || !uc_intf_cfg.in_use
+      #endif
+     )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for [mcEvcId,ucEvcId]=%u/%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,igmpInst->UcastEvcId,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for mcEvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
     return L7_FAILURE;
   }
 
@@ -2503,6 +2604,8 @@ L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan)
  */
 L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 {
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+
   st_IgmpInstCfg_t *igmpInst;
   ptin_HwEthMef10Evc_t evcConf;
 
@@ -2529,6 +2632,37 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
   {
     *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
   }
+
+  #else
+
+  L7_uint16 evc_uc;
+  ptin_HwEthMef10Evc_t evcConf;
+
+  /* Get EVC id from this internal vlan */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_uc)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get EVC configuration for the UC EVC */
+  memset(&evcConf,0x00,sizeof(ptin_HwEthMef10Evc_t));
+  evcConf.index = evc_uc;
+  if (ptin_evc_get(&evcConf)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting EVC configuration for ucEvcId=%u (intVlan=%u)",
+              evc_uc, intVlan);
+    return L7_FAILURE;
+  }
+
+  if (is_unstacked!=L7_NULLPTR)
+  {
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
+  }
+
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2620,7 +2754,8 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
   st_IgmpInstCfg_t *igmpInst;
   ptin_intf_t ptin_intf;
-  ptin_evc_intfCfg_t uc_intf_cfg;
+  ptin_evc_intfCfg_t intf_cfg;
+  L7_uint16 evc_id;
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
@@ -2638,36 +2773,105 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
     return L7_FAILURE;
   }
 
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  evc_id = igmpInst->UcastEvcId;
+  #else
+  evc_id = igmpInst->McastEvcId;
+  #endif
+
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(igmpInst->UcastEvcId,&ptin_intf,&uc_intf_cfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(evc_id, &ptin_intf,&intf_cfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), ucEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->UcastEvcId,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), EvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,evc_id,intVlan);
     return L7_FAILURE;
   }
 
   /* Interfaces must be in use in both evcs */
-  if (!uc_intf_cfg.in_use)
+  if (!intf_cfg.in_use)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for ucEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->UcastEvcId,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for EvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,evc_id,intVlan);
     return L7_FAILURE;
   }
 
   /* Interface must be Root */
-  if (uc_intf_cfg.type!=PTIN_EVC_INTF_LEAF)
+  if (intf_cfg.type!=PTIN_EVC_INTF_LEAF)
   {
 //  if (ptin_debug_igmp_snooping)
-//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not client/leaf for ucEvcId=%u (intVlan=%u)",
-//            ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->UcastEvcId,intVlan);
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not client/leaf for EvcId=%u (intVlan=%u)",
+//            ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,evc_id,intVlan);
     return L7_FAILURE;
   }
 
   return L7_SUCCESS;
 }
 
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+/**
+ * Get the MC root vlan associated to the internal vlan
+ *  
+ * @param groupChannel  : Channel Group address 
+ * @param sourceChannel : Channel Source address 
+ * @param intVlan       : internal vlan
+ * @param McastRootVlan : multicast root vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t *sourceChannel,
+                                    L7_uint16 intVlan, L7_uint16 *McastRootVlan)
+{
+  st_IgmpInstCfg_t *igmpInst;
+  L7_uint16 intRootVlan;
+  L7_uint16 evcId_uc;
+  L7_uint16 evcId_mc;
+
+  /* IGMP instance, from internal vlan */
+  if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
+  {
+    /* This vlan is related to an EVC belonging to an IGMP instance: use its evc id */
+    evcId_mc = igmpInst->McastEvcId;
+  }
+  else
+  {
+    /* Which UC service to use as reference? */
+    evcId_uc = 0;
+
+    #if (IGMPASSOC_CHANNEL_UC_EVC_ISOLATION)
+    /* Find the EVC id related to this internal vlan */
+    if (ptin_evc_get_evcIdfromIntVlan(intVlan, &uc_evcId)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to internal vlan %u",intVlan);
+      return L7_FAILURE;
+    }
+    #endif
+
+    /* Find associated MC service */
+    if (igmp_assoc_pair_get( evcId_uc, groupChannel, sourceChannel, &evcId_mc )!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to internal vlan %u",intVlan);
+      return L7_FAILURE;
+    }
+  }
+
+  /* Get Multicast root vlan */
+  if (ptin_evc_get_intRootVlan(evcId_mc, &intRootVlan)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",igmpInst->McastEvcId,intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Return Multicast root vlan */
+  if (McastRootVlan!=L7_SUCCESS)  *McastRootVlan = intRootVlan;
+
+  return L7_SUCCESS;
+}
+#else
 /**
  * Get the MC root vlan associated to the internal vlan
  * 
@@ -2702,6 +2906,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Get the list of root interfaces associated to a internal vlan
@@ -2796,11 +3001,15 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
 
   /* Get MC EVC configuration */
   memset(&evcCfg,0x00,sizeof(ptin_HwEthMef10Evc_t));
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   evcCfg.index = igmpInst->UcastEvcId;
+  #else
+  evcCfg.index = igmpInst->McastEvcId;
+  #endif
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting evc %u configuration (intVlan=%u)",igmpInst->UcastEvcId,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting evc %u configuration (intVlan=%u)",evcCfg.index,intVlan);
     return L7_FAILURE;
   }
 
@@ -2874,6 +3083,7 @@ L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
   return L7_SUCCESS;
 }
 
+#if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
 /**
  * Get the external outer+inner vlan asociated to the UC EVC
  * 
@@ -2907,7 +3117,7 @@ L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
 
   return L7_SUCCESS;
 }
-
+#endif
 
 /****************************************************************************** 
  * INTERNAL FUNCTIONS
@@ -3760,6 +3970,953 @@ L7_int32 igmp_timer_dataCmp(void *p, void *q, L7_uint32 key)
   return 1;
 }
 #endif
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+/**
+ * Clear all IGMP associations
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_init( void )
+{
+  /* Purge all AVL tree, but the root node */
+  return igmp_assoc_avlTree_purge();
+}
+
+/**
+ * Get the association of a particular dst/src channel.
+ * 
+ * @param evc_uc : UC EVC index
+ * @param channel_group   : Group address
+ * @param channel_source  : Source address
+ * @param evc_mc : MC EVC pair (out)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
+                                    L7_inet_addr_t *channel_group,
+                                    L7_inet_addr_t *channel_source,
+                                    L7_uint16 *evc_mc )
+{
+  ptinIgmpPairDataKey_t  avl_key;
+  ptinIgmpPairInfoData_t *avl_infoData;
+  L7_inet_addr_t group_address;
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  L7_inet_addr_t source_address;
+  #endif
+
+  #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+  /* Validate unicast service */
+  if ( evc_uc >= PTIN_SYSTEM_N_EVCS )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid UC evc (%u)", evc_uc);
+    return L7_FAILURE;
+  }
+  /* Check if UC EVC is active */
+  if ( !ptin_evc_is_in_use(evc_uc) )
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"UC evc %u is not in use!", evc_uc);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Validate group address */
+  if (igmp_assoc_channelIP_prepare(channel_group, 32, &group_address, L7_NULLPTR)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid group address");
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel_group=0x%08x, group_address=0x%08x!",
+              channel_group->addr.ipv4.s_addr, group_address.addr.ipv4.s_addr);
+  
+
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  /* Validate source address */
+  if (igmp_assoc_channelIP_prepare(channel_source, 32, &source_address, L7_NULLPTR)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid source address");
+    return L7_FAILURE;
+  }
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel_source=0x%08x, source_address=0x%08x!",
+              channel_source->addr.ipv4.s_addr, source_address.addr.ipv4.s_addr);
+  #endif
+
+  /* Prepare key */
+  memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
+  #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+  avl_key.evc_uc = evc_uc;
+  #endif
+
+  memcpy(&avl_key.channel_group, &group_address, sizeof(L7_inet_addr_t));
+
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  memcpy(&avl_key.channel_source, &source_address, sizeof(L7_inet_addr_t));
+  #endif
+
+  /* Check if this key does not exist */
+  if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist!",group_address.addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  /* Return MC EVC */
+  if ( evc_mc != L7_NULLPTR )
+  {
+    *evc_mc = avl_infoData->evc_mc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the association of a particular dst/src channel using 
+ * vlans. 
+ * 
+ * @param vlan_uc : UC vlan
+ * @param channel_group   : Group address
+ * @param channel_source  : Source address
+ * @param vlan_mc : MC vlan pair (out)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
+                                 L7_inet_addr_t *channel_group,
+                                 L7_inet_addr_t *channel_source,
+                                 L7_uint16 *vlan_mc )
+{
+  L7_uint16 evc_uc=0;
+  L7_uint16 evc_mc=0;
+
+  #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+  if ( vlan_uc >= PTIN_VLAN_MIN && vlan_uc <= PTIN_VLAN_MAX )
+  {
+    /* Verify if this internal vlan is associated to an EVC */
+    if (ptin_evc_get_evcIdfromIntVlan(vlan_uc, &evc_uc)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to internal vlan %u",vlan_uc);
+      return L7_FAILURE;
+    }
+  }
+  #endif
+
+  /* Get MC evc id */
+  if (igmp_assoc_pair_get(evc_uc, channel_group, channel_source, &evc_mc) != L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No MC EVC associated to vlan_uc %u, group=0x%08x",vlan_uc, channel_group->addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  /* Return the root vlan associated to the MC service */
+  if ( ptin_evc_get_intRootVlan( evc_mc, vlan_mc ) != L7_SUCCESS )
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining MC vlan of MC evc %u (associated to evc_uc %u, group=0x%08x)",
+              evc_mc, evc_uc, channel_group->addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the the list of channels of a UC+MC association
+ * 
+ * @param evc_uc : UC EVC index (0 to list all)
+ * @param evc_mc : MC EVC pair  (0 to list all)
+ * @param channel_group   : Array of group channels - max of 
+ *                          *channels_number (output)
+ * @param channel_source  : Array of source channels - max of
+ *                          *channels_number (output)
+ * @param channels_number : In - Max #channels to get 
+ *                          Out - Effective #channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
+                                    igmpAssoc_entry_t *channel_list,
+                                    L7_uint16 *channels_number )
+{
+  ptinIgmpPairDataKey_t avl_key;
+  ptinIgmpPairInfoData_t *avl_info;
+  L7_uint16 channel_i, channels_max = IGMPASSOC_CHANNELS_MAX;
+
+  /* Validate arguments */
+  if ( channels_number == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Define maximum number of channels to be read */
+  if ( *channels_number > 0 && *channels_number < IGMPASSOC_CHANNELS_MAX )
+  {
+    channels_max = *channels_number;
+  }
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t));
+
+  channel_i = 0;
+  while ( channel_i < channels_max &&
+          (avl_info=(ptinIgmpPairInfoData_t *) avlSearchLVL7(&igmpPairDB.igmpPairAvlTree, (void *)&avl_key, AVL_NEXT)) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->igmpPairDataKey, sizeof(ptinIgmpPairDataKey_t));
+
+    /* Verify uc evc */
+    #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+    if ( evc_uc != 0 && evc_uc != (L7_uint16)-1 &&
+         evc_uc != avl_info->igmpPairDataKey.evc_uc )
+    {
+      continue;
+    }
+    #endif
+
+    /* Verify MC evc */
+    if ( evc_mc != 0 && evc_mc != (L7_uint16)-1 &&
+         avl_info->evc_mc != evc_mc )
+    {
+      continue;
+    }
+
+    /* Clear data */
+    memset(&channel_list[channel_i], 0x00, sizeof(igmpAssoc_entry_t));
+
+    /* UC evc */
+    #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+    channel_list[channel_i].evc_uc = avl_info->igmpPairDataKey.evc_uc;
+    #endif
+    /* Group address */
+    memcpy( &channel_list[channel_i].groupAddr, &avl_info->igmpPairDataKey.channel_group, sizeof(L7_inet_addr_t) );
+    /* Source address */
+    #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+    memcpy( &channel_list[channel_i].sourceAddr, &avl_info->igmpPairDataKey.channel_source, sizeof(L7_inet_addr_t) );
+    #endif
+    /* MC evc */
+    channel_list[channel_i].evc_mc = avl_info->evc_mc;
+    /* Is static? */
+    channel_list[channel_i].is_static = avl_info->is_static;
+
+    /* One more channel */
+    channel_i++;
+  }
+
+  /* Return number of read channels */
+  *channels_number = channel_i;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Add a new association to a MC service, applied only to a 
+ * specific dst/src channel.
+ * 
+ * @param evc_uc : UC EVC index
+ * @param evc_mc : MC EVC index
+ * @param channel_group   : Group channel
+ * @param channel_grpMask : Number of masked bits
+ * @param channel_source  : Source channel
+ * @param channel_srcMask : Number of masked bits
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
+                                L7_inet_addr_t *channel_group , L7_uint16 channel_grpMask,
+                                L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
+                                L7_BOOL is_static )
+{
+  L7_uint         igmpInst_idx;
+  L7_inet_addr_t  group, source;
+  L7_uint32       i, n_groups=1;
+  L7_uint32       j, n_sources=1;
+  ptinIgmpPairInfoData_t avl_node;
+  L7_RC_t rc;
+
+  /* Validate and prepare channel group Address*/
+  if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
+    //return L7_FAILURE;
+    return L7_SUCCESS;
+  }
+  /* Validate output ip address */
+  if ( n_groups == 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Group address is not valid!");
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add group 0x%08x (%u addresses)", group.addr.ipv4.s_addr, n_groups);
+
+  /* source ip */
+  memset(&source, 0x00, sizeof(L7_inet_addr_t));
+  n_sources = 1;
+
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  /* Prepare source channel */
+  igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  /* Validate output ip address */
+  if ( n_sources == 0 )
+  {
+    n_sources = 1;
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Source address is not valid!");
+  }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add source 0x%08x (%u addresses)", source.addr.ipv4.s_addr, n_sources);
+  #endif
+
+  /* Validate multicast service */
+  if ( evc_mc >= PTIN_SYSTEM_N_EVCS )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
+    return L7_FAILURE;
+  }
+  /* Check if MC EVC is active */
+  if ( !ptin_evc_is_in_use(evc_mc) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u is not in use!", evc_mc);
+    return L7_FAILURE;
+  }
+  /* MC EVC should be part of an IGMP instance */
+  if (ptin_igmp_instance_find_fromMcastEvcId( evc_mc, &igmpInst_idx ) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u does not belong to any IGMP instance!", evc_mc);
+    return L7_FAILURE;
+  }
+
+  /* Validate number of channels */
+  if ( n_groups > IGMPASSOC_CHANNELS_MAX ||
+       n_sources > IGMPASSOC_CHANNELS_MAX ||
+       n_groups*n_sources > IGMPASSOC_CHANNELS_MAX
+     )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels", IGMPASSOC_CHANNELS_MAX);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be added: %u", n_groups*n_sources);
+
+  rc = L7_SUCCESS;
+
+  memset( &avl_node, 0x00, sizeof(ptinIgmpPairInfoData_t));
+  avl_node.evc_uc     = evc_uc;
+  avl_node.evc_mc     = evc_mc;
+  avl_node.igmp_idx   = igmpInst_idx;
+  avl_node.is_static  = is_static & 1;
+
+  /* Add channels */
+  for (i=0; i<n_groups; i++)
+  {
+    for (j=0; j<n_sources; j++)
+    {
+      /* Prepare key */
+      #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+      avl_node.igmpPairDataKey.evc_uc = evc_uc;
+      #endif
+
+      memcpy(&avl_node.igmpPairDataKey.channel_group, &group, sizeof(L7_inet_addr_t));
+
+      #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+      memcpy(&avl_node.igmpPairDataKey.channel_source, &source, sizeof(L7_inet_addr_t));
+      #endif
+
+      /* Add node into avl tree */
+      if (igmp_assoc_avlTree_insert( &avl_node ) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting group channel 0x%08x, source=0x%08x for UC_EVC=%u",
+                group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
+        rc = L7_FAILURE;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Added group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, source.addr.ipv4.s_addr);
+
+      /* Next source ip address */
+      if (source.family != L7_AF_INET6)
+        source.addr.ipv4.s_addr++;
+      else
+        break;
+    }
+    /* Next group address */
+    if (group.family != L7_AF_INET6)
+      group.addr.ipv4.s_addr++; 
+    else
+      break;
+  }
+
+  return rc;
+}
+
+/**
+ * Remove an association to a MC service, applied only to a 
+ * specific dst/src channel. 
+ * 
+ * @param evc_uc : UC EVC index
+ * @param channel_group   : Group channel
+ * @param channel_grpMask : Number of masked bits
+ * @param channel_source  : Source channel
+ * @param channel_srcMask : Number of masked bits
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
+                                   L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
+                                   L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask)
+{
+  L7_inet_addr_t  group, source;
+  L7_uint32       i, n_groups=1;
+  L7_uint32       j, n_sources=1;
+  ptinIgmpPairDataKey_t avl_key;
+  L7_RC_t rc;
+
+  /* Validate and prepare channel group Address*/
+  if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
+    //return L7_FAILURE;
+    return L7_SUCCESS;
+  }
+  /* Validate output ip address */
+  if ( n_groups == 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Group address is not valid!");
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to remove group 0x%08x (%u addresses)", group.addr.ipv4.s_addr, n_groups);
+
+  /* source ip */
+  memset(&source, 0x00, sizeof(L7_inet_addr_t));
+  n_sources = 1;
+
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  /* Prepare source channel */
+  igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  /* Validate output ip address */
+  if ( n_sources == 0 )
+  {
+    n_sources = 1;
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Source address is not valid!");
+  }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to remove source 0x%08x (%u addresses)", source.addr.ipv4.s_addr, n_sources);
+  #endif
+
+  /* Validate number of channels */
+  if ( n_groups > IGMPASSOC_CHANNELS_MAX ||
+       n_sources > IGMPASSOC_CHANNELS_MAX ||
+       n_groups*n_sources > IGMPASSOC_CHANNELS_MAX
+     )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels", IGMPASSOC_CHANNELS_MAX);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be removed: %u", n_groups*n_sources);
+
+  rc = L7_SUCCESS;
+
+  memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t));
+
+  /* Add channels */
+  for (i=0; i<n_groups; i++)
+  {
+    for (j=0; j<n_sources; j++)
+    {
+      /* Prepare key */
+      #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+      avl_key.evc_uc = evc_uc;
+      #endif
+
+      memcpy(&avl_key.channel_group, &group, sizeof(L7_inet_addr_t));
+
+      #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+      memcpy(&avl_key.channel_source, &source, sizeof(L7_inet_addr_t));
+      #endif
+
+      /* Add node into avl tree */
+      if (igmp_assoc_avlTree_remove( &avl_key ) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
+                group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
+        rc = L7_FAILURE;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, source.addr.ipv4.s_addr);
+
+      /* Next source ip address */
+      if (source.family != L7_AF_INET6)
+        source.addr.ipv4.s_addr++;
+      else
+        break;
+    }
+    /* Next group address */
+    if (group.family != L7_AF_INET6)
+      group.addr.ipv4.s_addr++; 
+    else
+      break;
+  }
+
+  return rc;
+}
+
+/**
+ * Remove all associations of a MC instance
+ * 
+ * @param evc_uc : UC EVC index 
+ * @param evc_uc : MC EVC index 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
+{
+  /* Validate multicast service */
+  if ( evc_mc >= PTIN_SYSTEM_N_EVCS )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
+    return L7_FAILURE;
+  }
+  /* Check if MC EVC is active */
+  if ( !ptin_evc_is_in_use(evc_mc) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u is not in use!", evc_mc);
+    return L7_FAILURE;
+  }
+
+  /* Clear entries */
+  if (igmp_assoc_avlTree_clear(evc_uc, evc_mc)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all channels to MC evc %u, UC evc %u !", evc_mc, evc_uc);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed all channels to MC evc %u, UC evc %u !", evc_mc, evc_uc);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Prepare an ip address to be used for the AVL trees
+ * 
+ * @param channel_in  : ip address (in) 
+ * @param channel_mask : number of bits to be masked (in)
+ * @param channel_out : ip address to be returned (out)
+ * @param number_of_channels: number of used channels (out)
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t igmp_assoc_channelIP_prepare( L7_inet_addr_t *channel_in, L7_uint16 channel_mask,
+                                             L7_inet_addr_t *channel_out, L7_uint32 *number_of_channels)
+{
+  L7_uint16 mask_inv;
+
+  /* Initialize output variables */
+  if ( channel_out != L7_NULLPTR )
+    memset(channel_out, 0x00, sizeof(L7_inet_addr_t));
+  if ( number_of_channels != L7_NULLPTR )
+    *number_of_channels = 0;
+
+  /* Validate channel IP */
+  if ( channel_in == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Null pointer of provided address");
+    return L7_FAILURE;
+  }
+
+  /* Only IPv4 is supported */
+  if ( channel_in->family == L7_AF_INET6 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Not supported IPv6");
+    return L7_FAILURE;
+  }
+
+  /* Invalid IP value */
+  if ( channel_in->addr.ipv4.s_addr == 0 || channel_in->addr.ipv4.s_addr == 0xffffffff )
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Not valid address: 0x%08x",channel_in->addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  /* Limit number of bits to be used */
+  if ( channel_mask > sizeof(L7_uint32)*8 )  channel_mask = sizeof(L7_uint32)*8;
+
+  mask_inv = sizeof(L7_uint32)*8 - channel_mask;
+
+  /* Channel IP to be returned */
+  if ( channel_out != L7_NULLPTR )
+  {
+    /* IP Address */
+    channel_out->family = L7_AF_INET;
+    channel_out->addr.ipv4.s_addr = channel_in->addr.ipv4.s_addr;
+
+    /* Clear bits not covered by the mask */
+    channel_out->addr.ipv4.s_addr >>= mask_inv;
+    channel_out->addr.ipv4.s_addr <<= mask_inv;
+  }
+
+  /* Number of channels */
+  if ( number_of_channels != L7_NULLPTR )
+  {
+    L7_uint16 i, n;
+
+    n = 1;
+    for (i=0; i<mask_inv; i++)
+    {
+      n *= 2;
+      if (n > IGMPASSOC_CHANNELS_MAX)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Mask too small (%u bits)",channel_mask);
+        return L7_FAILURE;
+      }
+    }
+    *number_of_channels = n;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Bit mask = %u, number of = %u", channel_mask, n);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Insert a node to the IGMPpair tree
+ * 
+ * @param node : node information to be added
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE;
+ */
+static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
+{
+  ptinIgmpPairDataKey_t  avl_key;
+  ptinIgmpPairInfoData_t *avl_infoData;
+  L7_uint16 i;
+
+  /* Prepare key */
+  memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
+
+  #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+  avl_key.evc_uc = node->igmpPairDataKey.evc_uc;
+  #endif
+
+  memcpy(&avl_key.channel_group, &node->igmpPairDataKey.channel_group, sizeof(L7_inet_addr_t));
+
+  #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+  memcpy(&avl_key.channel_source, &node->igmpPairDataKey.channel_source, sizeof(L7_inet_addr_t));
+  #endif
+
+  /* Check if this key already exists */
+  if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *)&avl_key, AVL_EXACT)) != L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x already exists",
+                node->igmpPairDataKey.channel_group.addr.ipv4.s_addr);
+    return L7_SUCCESS;
+  }
+
+  /* Add key */
+  if (avlInsertEntry(&(igmpPairDB.igmpPairAvlTree), (void *)&avl_key) != L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting group channel 0x%08x",
+            node->igmpPairDataKey.channel_group.addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  /* Search for inserted key */
+  if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7(&(igmpPairDB.igmpPairAvlTree),(void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x was added, but does not exist",
+            node->igmpPairDataKey.channel_group.addr.ipv4.s_addr);
+
+    return L7_FAILURE;
+  }
+
+  /* Fill with remaining data */
+  avl_infoData->evc_mc    = node->evc_mc;
+  #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
+  avl_infoData->evc_uc    = node->evc_uc;
+  #else
+  avl_infoData->evc_uc    = 0;
+  #endif
+  avl_infoData->igmp_idx  = node->igmp_idx;
+  avl_infoData->is_static = node->is_static & 1;
+
+  printf("Printing key:");
+  for (i=0; i<sizeof(ptinIgmpPairDataKey_t); i++)
+  {
+    if (i%16==0)  printf("\r\n0x%04x:",i);
+    printf(" %02x",*(((L7_uchar8 *) &avl_infoData->igmpPairDataKey)+i) );
+  }
+  printf("\r\ndone!\r\n");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove a node to the IGMPpair tree
+ * 
+ * @param key : key information to be removed
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE;
+ */
+static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
+{
+  ptinIgmpPairInfoData_t *avl_infoData;
+  L7_uint16 i;
+
+  /* Check if this key does not exists */
+  if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *) avl_key, AVL_EXACT)) == L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist",
+                avl_key->channel_group.addr.ipv4.s_addr);
+    return L7_SUCCESS;
+  }
+
+  printf("Printing provided key:");
+  for (i=0; i<sizeof(ptinIgmpPairDataKey_t); i++)
+  {
+    if (i%16==0)  printf("\r\n0x%04x:",i);
+    printf(" %02x",*(((L7_uchar8 *) avl_key)+i) );
+  }
+  printf("\r\ndone!\r\n");
+
+  /* Remove key */
+  if (avlDeleteEntry(&(igmpPairDB.igmpPairAvlTree), (void *) avl_key) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x",
+            avl_key->channel_group.addr.ipv4.s_addr);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove all nodes from the IGMPpair tree related to a UC/MC 
+ * service. 
+ * 
+ * @param evc_uc : Unicast evc
+ * @param evc_mc : Multicast evc 
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE;
+ */
+static L7_RC_t igmp_assoc_avlTree_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
+{
+  ptinIgmpPairDataKey_t avl_key;
+  ptinIgmpPairInfoData_t *avl_info;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpPairDataKey_t));
+
+  while ( ( avl_info = (ptinIgmpPairInfoData_t *)
+                        avlSearchLVL7(&igmpPairDB.igmpPairAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->igmpPairDataKey, sizeof(ptinIgmpPairDataKey_t));
+
+    /* Check if this node will be removed */
+    if (avl_info->evc_mc == evc_mc
+      #if IGMPASSOC_CHANNEL_UC_EVC_ISOLATION
+        && avl_info->evc_uc == evc_uc
+      #endif
+       )
+    {
+      /* Remove key */
+      if ( avlDeleteEntry(&(igmpPairDB.igmpPairAvlTree), (void *)&avl_key) == L7_NULLPTR )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x to EVC_MC=%u, EVC=UC=%u",
+                avl_key.channel_group.addr.ipv4.s_addr, evc_mc, evc_uc);
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group channel 0x%08x to EVC_MC=%u, EVC=UC=%u",
+                  avl_key.channel_group.addr.ipv4.s_addr, evc_mc, evc_uc);
+      }
+    }
+  }
+
+  return rc;
+}
+
+/**
+ * Remove all nodes from the IGMPpair tree. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE;
+ */
+static L7_RC_t igmp_assoc_avlTree_purge( void )
+{
+  /* Purge all AVL tree, but the root node */
+  avlPurgeAvlTree( &igmpPairDB.igmpPairAvlTree, IGMPASSOC_CHANNELS_MAX );
+
+  return L7_SUCCESS;
+}
+
+#endif
+
+/**
+ * Configure an IGMP vlan trapping rule (most essentally for the
+ * UC services) 
+ * 
+ * @param evc_idx   : evc index
+ * @param enable    : enable flag 
+ * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
+ *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint16   idx, vlan;
+  L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
+#if (!PTIN_SYSTEM_GROUP_VLANS)
+  ptin_intf_t          ptin_intf;
+  L7_uint16            intf_idx;
+  ptin_evc_intfCfg_t   intfCfg;
+#endif
+  ptin_HwEthMef10Evc_t evcCfg;
+
+  /* IGMP instance management already deal with trp rules */
+  if (ptin_igmp_is_evc_used(evc_idx))
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Evc index %u is already being used in an IGMP instance",evc_idx);
+    return L7_SUCCESS;
+  }
+
+  enable &= 1;
+
+  /* Validate argument */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid evc index %u",evc_idx);
+    return L7_FAILURE;
+  }
+  /* Check if EVC is in use */
+  if ( !ptin_evc_is_in_use(evc_idx) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC  %u is not in use",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Initialize number of vlans to be configured */
+  vlans_number = 0;
+
+  /* Get EVC configuration */
+  evcCfg.index = evc_idx;
+  if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting EVC %u configuration",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Only for uplink ports, or both */
+  if ( direction == PTIN_DIR_UPLINK || direction == PTIN_DIR_BOTH )
+  {
+    /* Configure root vlan (stacked and unstacked services) */
+    if (ptin_evc_get_intRootVlan(evc_idx, &vlan)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get root vlan for evc id %u",evc_idx);
+      return L7_FAILURE;
+    }
+    if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+    {
+      /* Verify if this vlan is scheduled to be configured */
+      for (idx=0; idx<vlans_number; idx++)
+      {
+        if (vlan_list[idx]==vlan)  break;
+      }
+      /* If not found, add this vlan */
+      if (idx>=vlans_number)
+      {
+        vlan_list[vlans_number++] = vlan;
+      }
+    }
+  }
+
+#if (!PTIN_SYSTEM_GROUP_VLANS)
+  /* Only for downlink ports, or both */
+  if ( direction == PTIN_DIR_DOWNLINK || direction == PTIN_DIR_BOTH )
+  {
+    /* If unstacked, configure leaf vlans */
+    if ( !(evcCfg.flags & PTIN_EVC_MASK_STACKED) )
+    {
+      /* Run all interfaces, and get its configurations */
+      for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
+      {
+        /* Only leaf interfaces are considered */
+        if (evcCfg.intf[intf_idx].mef_type!=PTIN_EVC_INTF_LEAF)
+          continue;
+
+        /* Get interface configuarions */
+        ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
+        ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
+        if (ptin_evc_intfCfg_get(evc_idx, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface %u/%u configuration from EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx);
+          return L7_FAILURE;
+        }
+        /* Extract internal vlan */
+        vlan = intfCfg.int_vlan;
+        if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+        {
+          /* Verify if this vlan is scheduled to be configured */
+          for (idx=0; idx<vlans_number; idx++)
+          {
+            if (vlan_list[idx]==vlan)  break;
+          }
+          if (idx<vlans_number)  continue;
+
+          /* Can this vlan be configured? */
+          if (vlans_number>=PTIN_SYSTEM_MAX_N_PORTS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Excessive number of vlans to be configured (morte than %u)",PTIN_SYSTEM_MAX_N_PORTS);
+            return L7_FAILURE;
+          }
+
+          /* Schedule this vlan to be configured */
+          vlan_list[vlans_number++] = vlan;
+        }
+      }
+    }
+  }
+#endif
+
+  /* Configure vlans */
+  for (idx=0; idx<vlans_number; idx++)
+  {
+    if (usmDbSnoopVlanModeSet(1,vlan_list[idx],enable,L7_AF_INET)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping",vlan_list[idx]);
+      break;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping",vlan_list[idx]);
+  }
+  /* If something went wrong, undo configurations */
+  if (idx<vlans_number)
+  {
+    vlans_number = idx;
+    for (idx=0; idx<vlans_number; idx++)
+    {
+      usmDbSnoopVlanModeSet(1,vlan_list[idx],!enable,L7_AF_INET);
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unconfiguring vlan %u for packet trapping",vlan_list[idx]);
+    }
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "%s IGMP trap rules for evc %u", ((enable) ? "Added" : "Removed"), evc_idx);
+
+#endif
+
+  return L7_SUCCESS;
+}
 
 /****************************************************************************** 
  * STATIC FUNCTIONS
@@ -4844,11 +6001,14 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
   }
 
   /* Check if EVCs are in use */
-  if (!ptin_evc_is_in_use(igmpInstances[igmp_idx].McastEvcId) ||
-      !ptin_evc_is_in_use(igmpInstances[igmp_idx].UcastEvcId))
+  if (!ptin_evc_is_in_use(igmpInstances[igmp_idx].McastEvcId)
+      #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+      || !ptin_evc_is_in_use(igmpInstances[igmp_idx].UcastEvcId)
+      #endif
+     )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u (EVCid=%u, Vlan %u) has EVCs not in use (UC,MC=%u,%u)",igmp_idx,evc_idx,intVlan,igmpInstances[igmp_idx].McastEvcId,igmpInstances[igmp_idx].UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u (EVCid=%u, Vlan %u) has EVCs not in use (MC=%u)",igmp_idx,evc_idx,intVlan,igmpInstances[igmp_idx].McastEvcId);
     return L7_FAILURE;
   }
 
@@ -4926,8 +6086,7 @@ static L7_RC_t ptin_igmp_global_configuration(void)
 
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan, uc_evcId, mc_evcId;
-  ptin_HwEthMef10Evc_t evcCfg;
+  L7_uint16   idx, vlan, mc_evcId;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_intf_t          ptin_intf;
@@ -4954,7 +6113,6 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   vlans_number = 0;
 
   mc_evcId = igmpInstances[igmp_idx].McastEvcId;
-  uc_evcId = igmpInstances[igmp_idx].UcastEvcId;
 
   /* Get root vlan for MC evc, and add it for packet trapping */
   if (ptin_evc_get_intRootVlan(mc_evcId,&vlan)!=L7_SUCCESS)
@@ -4966,6 +6124,12 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   {
     vlan_list[vlans_number++] = vlan;
   }
+
+#if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  L7_uint16 uc_evcId;
+  ptin_HwEthMef10Evc_t evcCfg;
+
+  uc_evcId = igmpInstances[igmp_idx].UcastEvcId;
 
   /* Get Unicast EVC configuration */
   evcCfg.index = uc_evcId;
@@ -5040,6 +6204,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
       }
     }
   }
+#endif
 #endif
 
   /* Configure vlans */
@@ -5249,8 +6414,11 @@ static L7_RC_t ptin_igmp_instance_find(L7_uint16 McastEvcId, L7_uint16 UcastEvcI
   {
     if (!igmpInstances[idx].inUse)  continue;
 
-    if (igmpInstances[idx].McastEvcId==McastEvcId &&
-        igmpInstances[idx].UcastEvcId==UcastEvcId)
+    if (igmpInstances[idx].McastEvcId==McastEvcId
+        #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+        && igmpInstances[idx].UcastEvcId==UcastEvcId
+        #endif
+       )
       break;
   }
 
@@ -5281,8 +6449,11 @@ static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint16 evcId, L7_uint 
   {
     if (!igmpInstances[idx].inUse)  continue;
 
-    if (igmpInstances[idx].McastEvcId==evcId ||
-        igmpInstances[idx].UcastEvcId==evcId)
+    if (igmpInstances[idx].McastEvcId==evcId
+        #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+        || igmpInstances[idx].UcastEvcId==evcId
+        #endif
+       )
       break;
   }
 
@@ -5345,10 +6516,13 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint16 McastEvcId, L7_uint16 U
   {
     if (!igmpInstances[idx].inUse)  continue;
 
-    if (igmpInstances[idx].McastEvcId==McastEvcId ||
-        igmpInstances[idx].UcastEvcId==UcastEvcId ||
-        igmpInstances[idx].McastEvcId==UcastEvcId ||
-        igmpInstances[idx].UcastEvcId==McastEvcId)
+    if (igmpInstances[idx].McastEvcId==McastEvcId
+        #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+        || igmpInstances[idx].UcastEvcId==UcastEvcId
+        || igmpInstances[idx].McastEvcId==UcastEvcId
+        || igmpInstances[idx].UcastEvcId==McastEvcId
+        #endif
+       )
       break;
   }
 
@@ -5867,5 +7041,87 @@ void ptin_igmp_dump(void)
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
+}
+
+/**
+ * Dumps all IGMP associations 
+ */
+void ptin_igmpPair_dump(L7_int evc_mc, L7_int evc_uc)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  ptinIgmpPairDataKey_t avl_key;
+  ptinIgmpPairInfoData_t *avl_info;
+  L7_uint16 n_entries;
+
+  /* Hello */
+  if ( evc_mc <= 0 )
+  {
+    printf("Printing all IGMP association entries:\r\n");
+  }
+  else
+  {
+    printf("Printing only IGMP association entries related to EVC_MC %u:\r\n",evc_mc);
+  }
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpPairDataKey_t));
+
+  n_entries = 0;
+
+  while ( ( avl_info = (ptinIgmpPairInfoData_t *)
+                        avlSearchLVL7(&igmpPairDB.igmpPairAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->igmpPairDataKey, sizeof(ptinIgmpPairDataKey_t));
+
+    /* Skip entry, if MC evc is provided and does not match to this entry */
+    if ( evc_mc > 0 && avl_info->evc_mc != evc_mc )
+    {
+      continue;
+    }
+    #if (IGMPASSOC_CHANNEL_UC_EVC_ISOLATION)
+    if ( evc_uc > 0 && avl_info->igmpPairDataKey.evc_uc != evc_uc )
+    {
+      continue;
+    }
+    #endif
+
+    printf(
+           #if (IGMPASSOC_CHANNEL_UC_EVC_ISOLATION)
+           "EVC_UC=%-3u "
+           #endif
+           "EVC_MC=%-3u "
+           "groupAddr=%03u.%03u.%03u.%03u (%s) "
+           #if (IGMPASSOC_CHANNEL_SOURCE_SUPPORTED)
+           "srcIPAddr=%03u.%03u.%03u.%03u (%s) "
+           #endif
+           "(%s)\r\n"
+           #if (IGMPASSOC_CHANNEL_UC_EVC_ISOLATION)
+           , avl_info->igmpPairDataKey.evc_uc
+           #endif
+           , avl_info->evc_mc
+           , (avl_info->igmpPairDataKey.channel_group.addr.ipv4.s_addr>>24) & 0xff,
+              (avl_info->igmpPairDataKey.channel_group.addr.ipv4.s_addr>>16) & 0xff,
+               (avl_info->igmpPairDataKey.channel_group.addr.ipv4.s_addr>>8) & 0xff,
+                avl_info->igmpPairDataKey.channel_group.addr.ipv4.s_addr & 0xff,
+           ((avl_info->igmpPairDataKey.channel_group.family==L7_AF_INET6) ? "IPv6" : "IPv4")
+           #if (IGMPASSOC_CHANNEL_SOURCE_SUPPORTED)
+           , (avl_info->igmpPairDataKey.channel_source.addr.ipv4.s_addr>>24) & 0xff,
+              (avl_info->igmpPairDataKey.channel_source.addr.ipv4.s_addr>>16) & 0xff,
+               (avl_info->igmpPairDataKey.channel_source.addr.ipv4.s_addr>>8) & 0xff,
+                avl_info->igmpPairDataKey.channel_source.addr.ipv4.s_addr & 0xff,
+           ((avl_info->igmpPairDataKey.channel_source.family==L7_AF_INET6) ? "IPv6" : "IPv4")
+           #endif
+           , ((avl_info->is_static) ? "static " : "dynamic")
+           );
+    n_entries++;
+  }
+
+  printf("Done! %u entries displayed.\r\n",n_entries);
+
+#else
+  printf("IGMP Multi-MC not supported on this version\r\n");
+#endif
 }
 
