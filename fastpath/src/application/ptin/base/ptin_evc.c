@@ -842,7 +842,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
   L7_BOOL   stacked;
   L7_BOOL   maclearning;
-  L7_BOOL   dhcp_enabled;
+  L7_BOOL   dhcp_enabled, igmp_enabled;
   L7_BOOL   cpu_trap;
   L7_BOOL   error = L7_FALSE;
   L7_uint   n_roots;
@@ -873,6 +873,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   stacked      = (evcConf->flags & PTIN_EVC_MASK_STACKED)       == PTIN_EVC_MASK_STACKED;
   maclearning  = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)   == PTIN_EVC_MASK_MACLEARNING;
   dhcp_enabled = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) == PTIN_EVC_MASK_DHCP_PROTOCOL;
+  igmp_enabled = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL) == PTIN_EVC_MASK_IGMP_PROTOCOL;
   cpu_trap     = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)  == PTIN_EVC_MASK_CPU_TRAPPING;
 
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
@@ -1030,8 +1031,20 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (ptin_dhcp_instance_add(evc_idx)!=L7_SUCCESS)
       {
         error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
       }
     }
+    /* If IGMP is enabled, add trap rule for this service */
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    if (igmp_enabled)
+    {
+      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      {
+        error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
+      }
+    }
+    #endif
 
     /* Error occured ? */
     if (error)
@@ -1043,6 +1056,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       {
         ptin_dhcp_instance_remove(evc_idx);
       }
+      /* Remove IGMP trap rules */
+      #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+      if (igmp_enabled)
+      {
+        ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
+      }
+      #endif
 
       /* Remove bridges on unstacked EVCs */
       if (IS_EVC_UNSTACKED(evc_idx))
@@ -1154,8 +1174,21 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* If DHCP is enabled, add DHCP instance */
     if (dhcp_enabled)
     {
-      ptin_dhcp_instance_add(evc_idx);
+      if (ptin_dhcp_instance_add(evc_idx) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
+      }
     }
+    /* If IGMP is enabled, add trap rule for this service */
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    if (igmp_enabled)
+    {
+      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
+      }
+    }
+    #endif
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u successfully created", evc_idx);
@@ -1283,7 +1316,20 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
 
   /* For DHCP enabled EVCs */
   if (ptin_dhcp_is_evc_used(evc_idx))
+  {
     ptin_dhcp_instance_remove(evc_idx);
+  }
+
+  /* For IGMP enabled evcs, remove trap rules */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
+    }
+  }
+  #endif
 
   ptin_evc_entry_reset(evc_idx);
 
@@ -1320,6 +1366,17 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
     return L7_SUCCESS;
   }
+
+  /* For IGMP enabled evcs, remove trap rules */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
+    }
+  }
+  #endif
 
   /* IF this EVC belongs to an IGMP instance, destroy that instance */
   if (ptin_igmp_is_evc_used(evc_idx))
@@ -2806,7 +2863,11 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
   /* Update snooping configuration */
   if (ptin_intf_port2ptintf(ptin_intf,&intf)==L7_SUCCESS)
   {
-    if (ptin_igmp_is_evc_used(evc_idx))
+    if ( ptin_igmp_is_evc_used(evc_idx)
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+         || evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
+    #endif
+       )
     {
       ptin_igmp_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"IGMP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
@@ -2903,7 +2964,11 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
   /* Update snooping configuration */
   if (ptin_intf_port2ptintf(ptin_intf,&intf)==L7_SUCCESS)
   {
-    if (ptin_igmp_is_evc_used(evc_idx))
+    if ( ptin_igmp_is_evc_used(evc_idx)
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+         || evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
+    #endif
+       )
     {
       ptin_igmp_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"IGMP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
