@@ -21,8 +21,9 @@
 /*********************************************************************
 * Static Methods
 *********************************************************************/
-//static void     snoopPTinSourceTimerExpired   (L7_uint32 arg1, L7_uint32 arg2);
-//static void     snoopPTinGroupTimerExpired    (L7_uint32 arg1);
+static L7_RC_t  snoopPTinClientFind  (L7_uint32 *clientList, L7_uint32 clientIdx);
+static L7_RC_t  snoopPTinClientAdd   (snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourcePtr, L7_uint32 clientIdx);
+static L7_RC_t  snoopPTinClientRemove(snoopPTinL3Source_t *sourcePtr, L7_uint32 clientIdx);
 
 /*************************************************************************
  * @purpose Search a specific client in a given client list

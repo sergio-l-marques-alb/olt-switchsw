@@ -569,7 +569,7 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
+    return 0;
   }
 
   appTimerTimeLeftGet(cbTimer, &pTimer->timerHandle, &time_left);

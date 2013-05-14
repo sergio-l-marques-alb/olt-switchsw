@@ -346,7 +346,7 @@ typedef struct snoopPTinL3InfoDataKey_s
 typedef struct snoopPTinL3InfoData_s
 {
   snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
-  snoopPTinL3Interface_t   interfaces[L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF];
+  snoopPTinL3Interface_t   interfaces[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
 
   snoopInfoData_t          *L2MC;
 

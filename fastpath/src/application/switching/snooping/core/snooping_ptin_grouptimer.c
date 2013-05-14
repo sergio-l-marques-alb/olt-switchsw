@@ -545,3 +545,27 @@ L7_RC_t snoop_ptin_grouptimer_stop(snoopPTinL3Grouptimer_t *pTimer)
 
   return L7_SUCCESS;
 }
+
+/*************************************************************************
+ * @purpose Get the timeleft for a given sourcetimer
+ * 
+ * @param   pTimer  Pointer to timer
+ *
+ * @returns Timer's time left
+ *
+ *************************************************************************/
+L7_uint32 snoop_ptin_grouptimer_timeleft(snoopPTinL3Grouptimer_t *pTimer)
+{
+  L7_uint32 time_left = 0;
+
+  /* Argument validation */
+  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return 0;
+  }
+
+  appTimerTimeLeftGet(cbTimer, &pTimer->timerHandle, &time_left);
+
+  return time_left;
+}

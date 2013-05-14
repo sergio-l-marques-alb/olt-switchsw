@@ -9,6 +9,7 @@
 #include "snooping_util.h"
 #include "snooping_proto.h"
 #include "snooping_db.h"
+#include "snooping_ptin_grouptimer.h"
 
 #include "ptin_debug.h"
 #include "ptin_igmp.h"
@@ -643,4 +644,53 @@ char* snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer)
   sprintf(buffer, "%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
 
   return buffer;
+}
+
+/*************************************************************************
+ * @purpose Debug method that prints stored information for a specific
+ *          multicast group
+ *
+ * @param   groupAddr   Multicast group address
+ * @param   vlanId      Vlan Id
+ *
+ * @return  none
+ *
+ *************************************************************************/
+void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
+{
+  char                  debug_buf[46];
+  snoopPTinL3InfoData_t *snoopEntry;
+
+  /* Search for the requested multicast group */
+  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(groupAddr, vlanId, L7_MATCH_EXACT)))
+  {
+    L7_uint32 ifIdx;
+
+    printf("Group: %s       Vlan ID: %u\n", snoopPTinIPv4AddrPrint(snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), snoopEntry->snoopPTinL3InfoDataKey.vlanId);
+    printf("-----------------------------------------\n");
+
+    for (ifIdx=0; ifIdx<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; ++ifIdx)
+    {
+      if (snoopEntry->interfaces[ifIdx].active == L7_TRUE)
+      {
+        L7_uint32 sourceIdx; 
+
+        printf("Interface: %02u |\n", ifIdx);
+        printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
+        printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);
+//      printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));
+        for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
+        {
+          if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].active == L7_TRUE)
+          {
+             printf("              |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    printf("Unknown Group %s VlanId %u\n", snoopPTinIPv4AddrPrint(groupAddr, debug_buf), vlanId);
+  }
 }
