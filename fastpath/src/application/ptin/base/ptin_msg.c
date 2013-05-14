@@ -18,6 +18,7 @@
 #include "ptin_evc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 #include "ptin_l2.h"
 #include "ptin_fieldproc.h"
 #include "ptin_cfg.h"
@@ -2494,11 +2495,17 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
    /* Extract input data */
    evc_idx = dhcpEvcInfo->evc_id;
 
+   /* TODO: To be reworked */
    rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-
    if (rc!=L7_SUCCESS)
    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
+      return rc;
+   }
+   rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+   if (rc!=L7_SUCCESS)
+   {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
       return rc;
    }
 
@@ -2538,10 +2545,18 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   /* Extract input data */
   evc_idx = circuitid->evc_id;
 
+  /* TODO: To be reworked */
+
   /* Set circuit-id global data */
   rc = ptin_dhcp_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
       circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
-
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    return rc;
+  }
+  rc = ptin_pppoe_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
@@ -2740,13 +2755,22 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
+    /* TODO: To be reworked */
+
     /* Add circuit and remote ids */
     rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-        profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
-
+         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding circuitId+remoteId entry");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
+      return rc;
+    }
+
+    rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
+         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding PPPoE circuitId+remoteId entry");
       return rc;
     }
   }
@@ -2807,12 +2831,19 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
+    /* TODO: To be reworked */
+
     /* Remove circuitId+remoteId entry */
     rc = ptin_dhcp_client_delete(evc_idx,&client);
-
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing circuitId+remoteId entry");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing DHCP circuitId+remoteId entry");
+      return rc;
+    }
+    rc = ptin_pppoe_client_delete(evc_idx,&client);
+    if ( rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing PPPoE circuitId+remoteId entry");
       return rc;
     }
   }

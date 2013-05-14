@@ -142,7 +142,7 @@ extern L7_RC_t dtlPtinEvcStats( ptin_evcStats_t *evcStats );
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinDhcpPktsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
+extern L7_RC_t dtlPtinPacketsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
 
 /**
  * Enable/Disable a Rate Limiter

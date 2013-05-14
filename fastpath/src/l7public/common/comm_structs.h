@@ -65,6 +65,17 @@ L7_COMPONENT_IDS_t componentID;
 }
 L7_fileHdr_t;
 
+/* PTin added: packet type */
+#if 1
+typedef enum
+{
+  PTIN_PACKET_NONE=0,
+  PTIN_PACKET_DHCP,
+  PTIN_PACKET_PPPOE,
+  PTIN_PACKET_LAST
+} ptin_packet_type_t;
+#endif
+
 /****************************************
 *
 *  Common network information needed from bootp/DHCP

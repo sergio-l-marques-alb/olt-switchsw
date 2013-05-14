@@ -18,6 +18,7 @@
 #include "ptin_fieldproc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 
 #include "dot3ad_api.h"
 #include "usmdb_dot1q_api.h"
@@ -842,7 +843,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
   L7_BOOL   stacked;
   L7_BOOL   maclearning;
-  L7_BOOL   dhcp_enabled, igmp_enabled;
+  L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
   L7_BOOL   cpu_trap;
   L7_BOOL   error = L7_FALSE;
   L7_uint   n_roots;
@@ -870,11 +871,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  stacked      = (evcConf->flags & PTIN_EVC_MASK_STACKED)       == PTIN_EVC_MASK_STACKED;
-  maclearning  = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)   == PTIN_EVC_MASK_MACLEARNING;
-  dhcp_enabled = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) == PTIN_EVC_MASK_DHCP_PROTOCOL;
-  igmp_enabled = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL) == PTIN_EVC_MASK_IGMP_PROTOCOL;
-  cpu_trap     = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)  == PTIN_EVC_MASK_CPU_TRAPPING;
+  stacked       = (evcConf->flags & PTIN_EVC_MASK_STACKED)        == PTIN_EVC_MASK_STACKED;
+  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)    == PTIN_EVC_MASK_MACLEARNING;
+  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)  == PTIN_EVC_MASK_DHCP_PROTOCOL;
+  pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)  == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)   == PTIN_EVC_MASK_CPU_TRAPPING;
 
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
   n_roots = 0;
@@ -1033,12 +1035,29 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
       }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_idx);
+      }
+    }
+    /* If PPPoE is enabled, add PPPoE trap rule */
+    if (pppoe_enabled)
+    {
+      if (ptin_pppoe_instance_add(evc_idx)!=L7_SUCCESS)
+      {
+        error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_idx);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_idx);
+      }
     }
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
@@ -1056,11 +1075,16 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       {
         ptin_dhcp_instance_remove(evc_idx);
       }
+      /* remove PPPoE trap rule */
+      if (pppoe_enabled)
+      {
+        ptin_pppoe_instance_remove(evc_idx);
+      }
       /* Remove IGMP trap rules */
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
       if (igmp_enabled)
       {
-        ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
+        ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
       }
       #endif
 
@@ -1174,16 +1198,32 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* If DHCP is enabled, add DHCP instance */
     if (dhcp_enabled)
     {
-      if (ptin_dhcp_instance_add(evc_idx) != L7_SUCCESS)
+      if (ptin_dhcp_instance_add(evc_idx)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_idx);
+      }
+    }
+    /* If PPPoE is enabled, add PPPoE trap rule */
+    if (pppoe_enabled)
+    {
+      if (ptin_pppoe_instance_add(evc_idx)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_idx);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_idx);
       }
     }
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
       }
@@ -1316,15 +1356,16 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
 
   /* For DHCP enabled EVCs */
   if (ptin_dhcp_is_evc_used(evc_idx))
-  {
     ptin_dhcp_instance_remove(evc_idx);
-  }
+  /* For PPPoE enabled EVCs */
+  if (ptin_pppoe_is_evc_used(evc_idx))
+    ptin_pppoe_instance_remove(evc_idx);
 
   /* For IGMP enabled evcs, remove trap rules */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
     }
@@ -1367,23 +1408,26 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
     return L7_SUCCESS;
   }
 
-  /* For IGMP enabled evcs, remove trap rules */
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-  {
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
-    }
-  }
-  #endif
-
   /* IF this EVC belongs to an IGMP instance, destroy that instance */
   if (ptin_igmp_is_evc_used(evc_idx))
     ptin_igmp_instance_destroy(evc_idx);
   /* IF this EVC belongs to a DHCP instance, destroy that instance */
   if (ptin_dhcp_is_evc_used(evc_idx))
     ptin_dhcp_instance_destroy(evc_idx);
+  /* IF this EVC belongs to a PPPoE instance, destroy that instance */
+  if (ptin_pppoe_is_evc_used(evc_idx))
+    ptin_pppoe_instance_destroy(evc_idx);
+
+  /* For IGMP enabled evcs, remove trap rules */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
+    }
+  }
+  #endif
 
   /* IF this EVC belongs to an DHCP instance, destroy that instance */
   if (evcs[evc_idx].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
@@ -2877,6 +2921,11 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
       ptin_dhcp_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"DHCP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
+    if (ptin_pppoe_is_evc_used(evc_idx))
+    {
+      ptin_pppoe_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"PPPoE packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
+    }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %02u (MEF %s Out.VID=%04hu Int.VID=%04hu) successfully added",
@@ -2977,6 +3026,11 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
     {
       ptin_dhcp_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"DHCP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
+    }
+    if (ptin_pppoe_is_evc_used(evc_idx))
+    {
+      ptin_pppoe_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"PPPoE packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
   }
 
