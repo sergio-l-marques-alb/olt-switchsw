@@ -158,6 +158,9 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TOLT8G */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 
+/** Service association AVL Tree */
+#define IGMPASSOC_MULTI_MC_SUPPORTED
+
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
@@ -275,6 +278,9 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* TG16G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+
+/** Service association AVL Tree */
+#define IGMPASSOC_MULTI_MC_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
