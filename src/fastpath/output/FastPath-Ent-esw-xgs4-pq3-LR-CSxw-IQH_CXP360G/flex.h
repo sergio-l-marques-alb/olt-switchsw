@@ -48,6 +48,12 @@
 #define L7_DHCP_SNOOPING_PACKAGE 1
 #endif
 
+/* PPPoE definitions */
+#ifndef _INCLUDE_PPPOE_COMPONENT_API_
+#define _INCLUDE_PPPOE_COMPONENT_API_
+#define PTIN_PPPOE_PACKAGE 1
+#endif
+
 /* DVLAN definitions */
 #ifndef _INCLUDE_DVLAN_COMPONENT_API_
 #define _INCLUDE_DVLAN_COMPONENT_API_

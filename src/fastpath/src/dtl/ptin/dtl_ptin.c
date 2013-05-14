@@ -397,7 +397,7 @@ L7_RC_t dtlPtinEvcStats( ptin_evcStats_t *evcStats )
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinDhcpPktsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
+L7_RC_t dtlPtinPacketsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
 {
   DAPI_USP_t ddUsp;
   nimUSP_t usp;
@@ -419,7 +419,7 @@ L7_RC_t dtlPtinDhcpPktsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
     ddUsp.port = usp.port - 1;
   }
 
-  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU, (void *) dapiCmd);
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU, (void *) dapiCmd);
 }
 
 /**

@@ -519,7 +519,7 @@ typedef enum
   DAPI_CMD_PTIN_BW_POLICER,
   DAPI_CMD_PTIN_FP_COUNTERS,
   DAPI_CMD_PTIN_PACKET_RATE_LIMIT,
-  DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU,
+  DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU,
   DAPI_CMD_PTIN_PCS_PRBS,
   /* PTin end */
 
@@ -808,6 +808,7 @@ typedef struct
       #if 1
       L7_uchar8                   CoS;
       L7_uint16                   vlanId;
+      ptin_packet_type_t          packet_type;
       #endif
     } snoopConfig;
 

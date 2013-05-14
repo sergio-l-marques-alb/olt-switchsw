@@ -3283,6 +3283,10 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     {
       /* unknown board family drop frame */
       sysapiPrintf("Unkown Board Family 0x%x in Receive\n",board_family);
+
+      if (cpu_intercept_debug)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Unkown Board Family 0x%x in Receive",board_family);
+
       dropFrame = L7_TRUE;
     }
     else if (isValidUsp(&pktRxMsg.usp,dapi_g) == L7_FALSE)
@@ -3307,6 +3311,9 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     /* check for desired MAC DAs */
     else if (hapiBroadMacDaCheck(&pktRxMsg, board_family, dapi_g) == L7_FALSE) 
     {
+      if (cpu_intercept_debug)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI,"hapiBroadMacDaCheck failed! dropping packet");
+
       dropFrame = L7_TRUE;
     }
     else if ((board_family == BCM_FAMILY_DRACO)  || 
@@ -3327,11 +3334,18 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       hapiBroadRxXgs3(&pktRxMsg,&fwdFrame,dapi_g);
 
       dropFrame = (fwdFrame == L7_TRUE)?L7_FALSE:L7_TRUE;
+
+      if (cpu_intercept_debug && dropFrame)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI,"hapiBroadRxXgs3 failed! dropping packet");
     }
     else
     {
       /* unknown board family drop frame */
       sysapiPrintf("Unkown Board Family 0x%x in Receive. Dropping the frame!!!\n",board_family);
+
+      if (cpu_intercept_debug && dropFrame)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Unkown Board Family 0x%x in Receive. Dropping the frame!!!\n",board_family);
+
       dropFrame = L7_TRUE;
     }
    }while(0);
@@ -5388,6 +5402,12 @@ L7_BOOL hapiBroadMacDaCheck(BROAD_PKT_RX_MSG_t *pktRxMsg,
   {
     return L7_TRUE;
   }
+  /* PTin added: PPPoE */
+  if (etype == L7_ETYPE_PPPOE)
+  {
+    return L7_TRUE;
+  }
+
 #ifdef BCM_ROBO_SUPPORT
   if((etype==L7_ETYPE_IP))
 #else

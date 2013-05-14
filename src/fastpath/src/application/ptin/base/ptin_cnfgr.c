@@ -29,6 +29,7 @@
 #include "ptin_evc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 #include "ptin_ssm.h"
 
 #include "ipc.h"
@@ -328,6 +329,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize DHCP data structures */
   ptin_dhcp_init();
+
+  /* Initialize PPPoE data structures */
+  ptin_pppoe_init();
 
   #if ( PTIN_BOARD_IS_STANDALONE )
   /* Open shared memory to communicate with the GPON application */

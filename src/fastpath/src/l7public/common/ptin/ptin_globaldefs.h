@@ -77,6 +77,7 @@
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 /* FPGA AND CPLD BASE ADDRESS */
@@ -195,7 +196,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512 
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
@@ -313,7 +317,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
@@ -454,7 +461,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
@@ -660,7 +670,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
@@ -739,6 +752,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #define RATE_LIMIT_LACP     64
 #define RATE_LIMIT_IGMP     512
 #define RATE_LIMIT_DHCP     512
+#define RATE_LIMIT_PPPoE    512
 #define RATE_LIMIT_BCAST    512
 
 /* PTin module states */
