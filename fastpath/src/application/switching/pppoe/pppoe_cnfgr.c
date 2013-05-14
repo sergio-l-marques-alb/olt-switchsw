@@ -30,6 +30,9 @@
 #include "nimapi.h"
 #include "logger.h"
 
+#include "ptin_globaldefs.h"
+#include "ptin_include.h"
+
 #include "pppoe_cnfgr.h"
 #include "pppoe_util.h"
 
@@ -363,6 +366,17 @@ L7_RC_t pppoeCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
   *pResponse = L7_CNFGR_CMD_COMPLETE;
   *pReason = 0;
   pppoeRC = L7_SUCCESS;
+
+  /* Allocate memory for PPPoE Binding AvlTree*/
+  pppoeBindingTable.treeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(avlTreeTables_t)); 
+  pppoeBindingTable.dataHeap = (ptinPppoeBindingInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(ptinPppoeBindingInfoData_t)); 
+  if ((pppoeBindingTable.treeHeap == L7_NULLPTR) || (pppoeBindingTable.dataHeap == L7_NULLPTR))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error allocating data for PPPoE AVL Trees\n");
+    return L7_FAILURE;
+  }
+  avlCreateAvlTree(&pppoeBindingTable.avlTree, pppoeBindingTable.treeHeap, pppoeBindingTable.dataHeap,  
+                   PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE, sizeof(ptinPppoeBindingInfoData_t), 0x10, sizeof(ptinPppoeClientDataKey_t));
 
   pppoeCnfgrStateSet(PPPOE_PHASE_INIT_1);
   return pppoeRC;

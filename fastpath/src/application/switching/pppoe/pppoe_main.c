@@ -31,6 +31,7 @@
 #include "trapapi.h"
 
 #include "ptin_dhcp.h"
+#include "ptin_evc.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -44,6 +45,21 @@ extern osapiRWLock_t pppoeCfgRWLock;
 extern void *pppoeMsgQSema;
 extern void *pppoe_Event_Queue;
 extern void *pppoe_Packet_Queue;
+extern ptinPppoeBindingAvlTree_t pppoeBindingTable;
+
+
+/********************************************************************* 
+*  Static Methods 
+*********************************************************************/
+static void    pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static void    pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId);
+static L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr, L7_uint32 *newFrameLen);
+static L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr);
+static L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId);
+
 
 
 /*********************************************************************
@@ -236,8 +252,9 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 //      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
 //      ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
 
-        SYSAPI_NET_MBUF_FREE(bufHandle);
-        return L7_FAILURE;
+//      SYSAPI_NET_MBUF_FREE(bufHandle);
+//      return SYSNET_PDU_RC_IGNORED;
+        client_idx = 0;
       }
     }
     else
@@ -684,6 +701,9 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
    LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new message");
 
+   pppoeProcessServerFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+   pppoeProcessClientFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+
 // //Parse the received frame
 // eth_header_ptr       = frame;
 // mac_header           = (L7_enetHeader_t*) frame;
@@ -742,4 +762,708 @@ L7_BOOL pppoeFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //}
 
   return L7_FALSE;
+}
+
+/*********************************************************************
+* @purpose  Add a new VendorID TLV to an existing PPPoE frame
+* 
+* @param    framePtr       Pointer to the new PPPoE frame
+* @param    intIfNum       Interface in which the frame was received
+* @param    vlanId         Vlan ID
+* @param    innerVlanId    Inner Vlan ID
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    framePtr should point to the end of the previous TLV header.
+*
+* @end
+*********************************************************************/
+L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId)
+{
+   L7_uint8  circuitid_code, remoteid_code, circuitid_length, remoteid_length;
+   L7_uint16 tlv_tag_type, tlv_length;
+   L7_uint32 vendor_id;
+   L7_char8  circuit_id[FD_DS_MAX_REMOTE_ID_STRING], remote_id[FD_DS_MAX_REMOTE_ID_STRING];
+
+   if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , L7_NULLPTR, circuit_id, remote_id) != L7_SUCCESS)
+   {
+      return L7_FAILURE;
+   }
+
+   /* Variable initialization */
+   tlv_tag_type     = 0x0105;
+   vendor_id        = 0x00000DE9;
+   circuitid_code   = 0x01;
+   circuitid_length = strlen(circuit_id)+1;
+   remoteid_code    = 0x02;
+   remoteid_length  = strlen(remote_id)+1;
+   tlv_length       = sizeof(L7_uint32) + 2*(sizeof(L7_uint8)+sizeof(L7_uint8)) + circuitid_length + remoteid_length;
+
+   /* TLV Tag Type */
+   memcpy(framePtr, &tlv_tag_type, sizeof(L7_uint16));
+   framePtr += sizeof(L7_uint16);
+
+   /* TLV Length */
+   memcpy(framePtr, &tlv_length, sizeof(L7_uint16));
+   framePtr += sizeof(L7_uint16);
+
+   /* Vendor ID */
+   memcpy(framePtr, &vendor_id, sizeof(L7_uint32));
+   framePtr += sizeof(L7_uint32);
+
+   /* Circuit ID Code */
+   memcpy(framePtr, &circuitid_code, sizeof(L7_uint8));
+   framePtr += sizeof(L7_uint8);
+
+   /* Circuit ID Length */
+   memcpy(framePtr, &circuitid_length, sizeof(L7_uint8));
+   framePtr += sizeof(L7_uint8);
+
+   /* Circuit ID Data */
+   memcpy(framePtr, &circuit_id, strlen(circuit_id)+1);
+   framePtr += strlen(circuit_id)+1;
+
+   /* Remote ID Code */
+   memcpy(framePtr, &remoteid_code, sizeof(L7_uint8));
+   framePtr += sizeof(L7_uint8);
+
+   /* Remote ID Length */
+   memcpy(framePtr, &remoteid_length, sizeof(L7_uint8));
+   framePtr += sizeof(L7_uint8);
+
+   /* Remote ID Data */
+   memcpy(framePtr, &remote_id, strlen(remote_id)+1);
+   framePtr += strlen(remote_id)+1;
+
+   return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Copy an existing TLV header to a new PPPoE frame
+*
+* @param    originalFramePtr  Pointer to the original TLV header
+* @param    newFramePtr       Pointer to the new PPPoE frame
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr)
+{
+   L7_tlv_header_t *tlv_header;
+
+   tlv_header = (L7_tlv_header_t*) originalFramePtr;
+
+   memcpy(newFramePtr, originalFramePtr, sizeof(L7_tlv_header_t) + tlv_header->length);
+
+   return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Create a new CommonError PPPoE frame, based off on an
+*           existing PPPoE frame
+*
+* @param    originalFramePtr  Pointer to the original PPPoE frame
+* @param    newFramePtr       Pointer to the new PPPoE frame
+* @param    newFrameLen       Length of the new frame
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr, L7_uint32 *newFrameLen)
+{
+   L7_uchar8         *eth_header_new_ptr, *pppoe_header_new_ptr, *tlv_header_new_ptr;
+   L7_pppoe_header_t *pppoe_header_new;
+   L7_ethHeader_t    *eth_header_new;
+   L7_tlv_header_t   tlv_header;
+   L7_uchar8         system_mac_addr;
+
+   /* Copy the original frame up to the end of the PPPoE header */
+   memset(newFramePtr, 0x00, PPPOE_PACKET_SIZE_MAX);
+   memcpy(newFramePtr, originalFramePtr, sysNetDataOffsetGet(originalFramePtr) + sizeof(L7_pppoe_header_t));
+   eth_header_new_ptr   = newFramePtr;
+   eth_header_new       = (L7_ethHeader_t*) eth_header_new_ptr;
+   pppoe_header_new_ptr = eth_header_new_ptr + sysNetDataOffsetGet(eth_header_new_ptr);
+   pppoe_header_new     = (L7_pppoe_header_t*) pppoe_header_new_ptr;
+   tlv_header_new_ptr   = pppoe_header_new_ptr + sizeof(L7_pppoe_header_t);
+
+   /* Create a new TLV header and add it to the new PPPoE frame */
+   memset(&tlv_header, 0x00, sizeof(L7_tlv_header_t));
+   tlv_header.type   = L7_TLV_TAGTYPE_COMMON_ERR;
+   tlv_header.length = 0;
+   memcpy(tlv_header_new_ptr, &tlv_header, sizeof(L7_tlv_header_t));
+   *newFrameLen      = sysNetDataOffsetGet(originalFramePtr) + sizeof(L7_pppoe_header_t) + sizeof(L7_tlv_header_t);
+
+   /* If the PPPoE frame was PADI, then create a PADO. Otherwise, if it was a PADR, create a PADS */
+   if(pppoe_header_new->code == L7_PPPOE_PADI)
+   {
+      pppoe_header_new->code = L7_PPPOE_PADO;
+   }
+   else if(pppoe_header_new->code == L7_PPPOE_PADR)
+   {
+      pppoe_header_new->code = L7_PPPOE_PADS;
+   }
+
+   /* Set the new PPPoE header length */
+   pppoe_header_new->length = sizeof(L7_tlv_header_t);
+
+   /* Set Ethernet header DST as the previous SRC, and the new SRC as the system MAC address */
+   memcpy(&eth_header_new->dest.addr, &eth_header_new->src.addr, sizeof(L7_enetMacAddr_t));
+   if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
+   {
+    simGetSystemIPBurnedInMac(&system_mac_addr);
+   }
+   else
+   {
+    simGetSystemIPLocalAdminMac(&system_mac_addr);
+   }
+   memcpy(&eth_header_new->src.addr, &system_mac_addr, sizeof(L7_enetMacAddr_t));
+
+   return L7_SUCCESS;
+}
+
+/***********************************************************************
+* @purpose Get the uplink interface for this PPPoE service
+*
+* @param    intIfNum   @b{(input)} outgoing interface
+* @param    vlanId     @b{(input)} VLAN ID
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   Send on all trusted ports in VLAN
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId)
+{
+  NIM_INTF_MASK_t portMask;
+
+  if(intIfNum == L7_NULLPTR)
+  {
+     return L7_FAILURE;
+  }
+
+  if (ptin_evc_intfType_getList(vlanId,PTIN_EVC_INTF_ROOT,&portMask) == L7_SUCCESS)
+  {
+    for (*intIfNum = 1; *intIfNum < L7_MAX_INTERFACE_COUNT; ++(*intIfNum))
+    {
+      /* The API dot1qVlanEgressPortsGet returns both LAG interface as
+         well as its particpating interfaces. So exclude the participating
+         interfaces so that the underlying layer takes care of forwarding
+         to participating interfaces. */
+      if (dot3adIsLagActiveMember(*intIfNum) == L7_TRUE)
+      {
+        continue;
+      }
+
+      if (L7_INTF_ISMASKBITSET(portMask, *intIfNum))
+      {
+         return L7_SUCCESS;
+      }
+    }
+  }
+
+  return L7_FAILURE;
+}
+
+/***********************************************************************
+* @purpose Send a PPPoE frame on a given interface
+*
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    frame      @b{(input)} ethernet frame
+* @param    frameLen   @b{(input)} ethernet frame length, incl eth header (bytes)
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   Send on all trusted ports in VLAN
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+{
+  L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
+  L7_uchar8         *dataStart, *pppoe_header_ptr;
+  L7_netBufHandle   bufHandle;
+  L7_BOOL           is_vlan_stacked;
+  L7_pppoe_header_t *pppoe_header;
+  L7_INTF_TYPES_t   sysIntfType;
+
+  /* If outgoing interface is CPU interface, don't send it */
+  if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
+      (sysIntfType == L7_CPU_INTF))
+  {
+    return L7_SUCCESS;
+  }
+
+  SYSAPI_NET_MBUF_GET(bufHandle);
+  if (bufHandle == L7_NULL)
+  {
+    /* Don't bother logging this. mbuf alloc failures happen occasionally. DHCP
+     * should recover. */
+    return L7_FAILURE;
+  }
+
+  /* Determine frame length */
+  pppoe_header_ptr     = frame + sysNetDataOffsetGet(frame);
+  pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
+  frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + pppoe_header->length;
+
+  /* Extract external outer and inner vlan for this tx interface */
+  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  {
+    /* Check if vlan belongs to a stacked EVC */
+    if (ptin_evc_check_isStacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
+      is_vlan_stacked = L7_TRUE;
+    }
+
+    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
+    if (is_vlan_stacked && extIVlan!=0)
+    {
+      memmove(&frame[20],&frame[16],frame_len);
+      frame[16] = 0x81;
+      frame[17] = 0x00;
+      frame[18] = extIVlan>>8;
+      frame[19] = extIVlan & 0xff;
+      frame_len += 4;
+    }
+    /* Modify outer vlan */
+    if (vlanId!=extOVlan)
+    {
+      frame[14] &= 0xf0;
+      frame[14] |= ((extOVlan>>8) & 0x0f);
+      frame[15]  = extOVlan & 0xff;
+    }
+  }
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+  memcpy(dataStart, frame, frame_len);
+  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frame_len);
+
+  if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
+  {
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+
+    LOG_TRACE(LOG_CTX_PTIN_PPPOE, " Failed to send PPPoE pkt on intf (%s) and vlanID (%d)", ifName, vlanId);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u), iVlan=%u", intIfNum, extOVlan, vlanId, extIVlan);
+  return L7_SUCCESS;
+}
+
+/***********************************************************************
+* @purpose Send a PPPoE frame on a given interface
+*
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    frame      @b{(input)} ethernet frame
+* @param    frameLen   @b{(input)} ethernet frame length, incl eth header (bytes)
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   Send on all trusted ports in VLAN
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+{
+  L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
+  L7_uchar8         *dataStart, *pppoe_header_ptr;
+  L7_netBufHandle   bufHandle;
+  L7_BOOL           is_vlan_stacked;
+  L7_pppoe_header_t *pppoe_header;
+  L7_INTF_TYPES_t   sysIntfType;
+  L7_uint32         intIfNum;
+  
+  /* Get uplink interface */
+  if(L7_SUCCESS != pppoeServerInterfaceGet(&intIfNum, vlanId))
+  {
+     return L7_FAILURE;
+  }
+
+  /* If outgoing interface is CPU interface, don't send it */
+  if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
+      (sysIntfType == L7_CPU_INTF))
+  {
+    return L7_SUCCESS;
+  }
+
+  SYSAPI_NET_MBUF_GET(bufHandle);
+  if (bufHandle == L7_NULL)
+  {
+    /* Don't bother logging this. mbuf alloc failures happen occasionally. DHCP
+     * should recover. */
+    return L7_FAILURE;
+  }
+
+  /* Determine frame length */
+  pppoe_header_ptr     = frame + sysNetDataOffsetGet(frame);
+  pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
+  frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + pppoe_header->length;
+
+  /* Extract external outer and inner vlan for this tx interface */
+  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  {
+    /* Check if vlan belongs to a stacked EVC */
+    if (ptin_evc_check_isStacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
+      is_vlan_stacked = L7_TRUE;
+    }
+
+    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
+    if (is_vlan_stacked && extIVlan!=0)
+    {
+      memmove(&frame[20],&frame[16],frame_len);
+      frame[16] = 0x81;
+      frame[17] = 0x00;
+      frame[18] = extIVlan>>8;
+      frame[19] = extIVlan & 0xff;
+      frame_len += 4;
+    }
+    /* Modify outer vlan */
+    if (vlanId!=extOVlan)
+    {
+      frame[14] &= 0xf0;
+      frame[14] |= ((extOVlan>>8) & 0x0f);
+      frame[15]  = extOVlan & 0xff;
+    }
+  }
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+  memcpy(dataStart, frame, frame_len);
+  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frame_len);
+
+  if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
+  {
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+
+    LOG_TRACE(LOG_CTX_PTIN_PPPOE, " Failed to send PPPoE pkt on intf (%s) and vlanID (%d)", ifName, vlanId);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u), iVlan=%u", intIfNum, extOVlan, vlanId, extIVlan);
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Process a client PPPoE frame
+*
+* @param    intIfNum       receive interface
+* @param    vlanId         Vlan ID
+* @param    innerVlanId    Inner Vlan ID
+* @param    frame          ethernet frame
+* @param    client_idx     Client index
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+{
+   L7_uchar8                  *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
+   L7_uchar8                  *eth_header_copy_ptr, *pppoe_header_copy_ptr, *tlv_header_copy_ptr;
+   L7_ethHeader_t             *eth_header;
+   L7_pppoe_header_t          *pppoe_header, *pppoe_header_copy;
+   L7_int32                   frame_len;
+   L7_uchar8                  frame_copy[PPPOE_PACKET_SIZE_MAX];
+   L7_BOOL                    tlv_vendor_id_found = L7_FALSE;
+   ptinPppoeClientDataKey_t   binding_table_key;
+
+   LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new client message");
+
+   eth_header_ptr       = frame;
+   eth_header           = (L7_ethHeader_t*) eth_header_ptr;
+   pppoe_header_ptr     = eth_header_ptr + sysNetDataOffsetGet(eth_header_ptr);
+   pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
+
+   /* Copy received frame up to the end of the PPPoE header */
+   memset(frame_copy, 0x00, PPPOE_PACKET_SIZE_MAX);
+   memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + pppoe_header->length);
+   eth_header_copy_ptr   = frame_copy;
+   pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
+   pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
+
+   /* Debug */
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Ethernet:");
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSrc:  %02X:%02X:%02X:%02X:%02X:%02X", 
+             eth_header->src.addr[0],eth_header->src.addr[1],eth_header->src.addr[2],
+             eth_header->src.addr[3],eth_header->src.addr[4],eth_header->src.addr[5]);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tDst:  %02X:%02X:%02X:%02X:%02X:%02X", 
+             eth_header->dest.addr[0],eth_header->dest.addr[1],eth_header->dest.addr[2],
+             eth_header->dest.addr[3],eth_header->dest.addr[4],eth_header->dest.addr[5]);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "PPPoE:");
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tVersion: %u", (pppoe_header->verType&0xF0)>>4);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:    %u", pppoe_header->verType&0x0F);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tCode:    0x%02X", pppoe_header->code);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSession: 0x%04X", pppoe_header->sessionId);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength:  %u", pppoe_header->length);
+
+   /* If we received a PPPoE frame other than PADI/PADR/PADT on a client port, drop it */
+   if(pppoe_header->code!=L7_PPPOE_PADI && pppoe_header->code!=L7_PPPOE_PADR && pppoe_header->code!=L7_PPPOE_PADT)
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Received invalid message on an untrusted port. Dropped.");
+      return;
+   }
+
+   /* Add this client to the PPPoE Binding Table */
+   /* This entry will exist in this table until the server responds. At that moment, this entry is removed */
+   memset(&binding_table_key,           0x00,                 sizeof(ptinPppoeClientDataKey_t));
+   memcpy(binding_table_key.macAddr,    eth_header->src.addr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+   binding_table_key.oVlan     = vlanId;
+   binding_table_key.iVlan     = innerVlanId;
+   if (avlInsertEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key) != L7_NULL)
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+                 binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                 binding_table_key.oVlan, binding_table_key.iVlan);
+   }
+   else
+   {
+      ptinPppoeBindingInfoData_t *binding_table_data;
+
+      if ((binding_table_data=avlSearchLVL7(&pppoeBindingTable.avlTree, (void *)&binding_table_key, AVL_EXACT)) != L7_NULL)
+      {
+         binding_table_data->interface = intIfNum;
+      }
+      else
+      {
+         LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to find inserted client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+                    binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                    binding_table_key.oVlan, binding_table_key.iVlan);
+         return;
+      }
+   }
+
+   /* Get pointer to the TLV headers */
+   tlv_header_ptr      = pppoe_header_ptr + sizeof(L7_pppoe_header_t);
+   tlv_header_copy_ptr = pppoe_header_copy_ptr + sizeof(L7_pppoe_header_t);
+   frame_len           = pppoe_header->length;
+
+   /* If the received PPPoE frame is PADT, immediatly send it */
+   if(pppoe_header->code == L7_PPPOE_PADT)
+   {
+      pppoeServerFrameSend(frame, vlanId, innerVlanId, client_idx);
+      return;        
+   }  
+
+   /* Parse every TLV header */
+   while(frame_len > 0)
+   {
+      L7_tlv_header_t *tlv_header;
+
+      tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
+
+      /* Debug */
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "TLV:");
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:   0x%04X", tlv_header->type);
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength: %u", tlv_header->length);
+
+      switch(tlv_header->type)
+      {
+         case L7_TLV_TAGTYPE_VENDOR_ID:
+         {
+            L7_tlv_header_t *tlv_header_new;
+            L7_uint32       frame_copy_len;
+
+            LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Found a Vendor ID Tag Type. Replacing.");
+            pppoeAddVendorIdTlv(tlv_header_copy_ptr, intIfNum, vlanId, innerVlanId);
+            tlv_vendor_id_found       = L7_TRUE;
+            tlv_header_new            = (L7_tlv_header_t*) tlv_header_copy_ptr;
+            tlv_header_copy_ptr       += sizeof(L7_tlv_header_t) + tlv_header_new->length;
+            pppoe_header_copy->length += sizeof(L7_tlv_header_t) + tlv_header_new->length;
+
+            /* If the final frame len exceeds PPPOE_PACKET_SIZE_MAX, drop the packet and return a PADO/PADS with L7_TLV_TAGTYPE_COMMON_ERR */
+            if((sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + pppoe_header->length + sizeof(L7_tlv_header_t) + tlv_header_new->length) > PPPOE_PACKET_SIZE_MAX)
+            {
+               LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: New frame exceeds MTU. Dropping and returning a PADO/PADS with code 0x0203.");
+
+               pppoeCommonErrorFrameCreate(frame, frame_copy, &frame_copy_len);
+               pppoeClientFrameSend(intIfNum, frame_copy, vlanId, innerVlanId, client_idx);
+               return;
+            }
+            break;
+         }
+         default:
+         {
+            /* Copy existing TLV header to our new frame */
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
+            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_header->length;
+         }
+      }
+
+      /* We finished parsing this TLV. Advance to the next one */
+      tlv_header_ptr += sizeof(L7_tlv_header_t) + tlv_header->length;
+      frame_len      -= sizeof(L7_tlv_header_t) + tlv_header->length;
+   }
+
+   /* If the VENDOR ID TLV header is not present in the frame, add it */
+   if(L7_TRUE != tlv_vendor_id_found)
+   {
+      L7_tlv_header_t *tlv_header_new;
+
+      LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Adding vendor ID TLV.");
+      pppoeAddVendorIdTlv(tlv_header_copy_ptr, intIfNum, vlanId, innerVlanId);
+
+      tlv_header_new            = (L7_tlv_header_t*) tlv_header_copy_ptr;
+      pppoe_header_copy->length += sizeof(L7_tlv_header_t) + tlv_header_new->length;
+   }
+
+   pppoeServerFrameSend(frame_copy, vlanId, innerVlanId, client_idx);
+}
+
+/*********************************************************************
+* @purpose  Process a server PPPoE frame
+*
+* @param    intIfNum       receive interface
+* @param    vlanId         Vlan ID
+* @param    innerVlanId    Inner Vlan ID
+* @param    frame          ethernet frame
+* @param    client_idx     Client index
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+{
+   L7_uchar8                  *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
+   L7_uchar8                  *eth_header_copy_ptr, *pppoe_header_copy_ptr, *tlv_header_copy_ptr;
+   L7_ethHeader_t             *eth_header;
+   L7_pppoe_header_t          *pppoe_header, *pppoe_header_copy;
+   L7_uint32                  frame_len;
+   L7_uchar8                  frame_copy[PPPOE_PACKET_SIZE_MAX];
+   ptinPppoeClientDataKey_t   binding_table_key;
+   ptinPppoeBindingInfoData_t *binding_table_data;
+
+   LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new server message");
+
+   eth_header_ptr       = frame;
+   eth_header           = (L7_ethHeader_t*) eth_header_ptr;
+   pppoe_header_ptr     = eth_header_ptr + sysNetDataOffsetGet(eth_header_ptr);
+   pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
+
+   /* Copy received frame up to the end of the PPPoE header */
+   memset(frame_copy, 0x00, PPPOE_PACKET_SIZE_MAX);
+   memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + pppoe_header->length);
+   eth_header_copy_ptr   = frame_copy;
+   pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
+   pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
+
+   /* Debug */
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Ethernet:");
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSrc:  %02X:%02X:%02X:%02X:%02X:%02X", 
+             eth_header->src.addr[0],eth_header->src.addr[1],eth_header->src.addr[2],
+             eth_header->src.addr[3],eth_header->src.addr[4],eth_header->src.addr[5]);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tDst:  %02X:%02X:%02X:%02X:%02X:%02X", 
+             eth_header->dest.addr[0],eth_header->dest.addr[1],eth_header->dest.addr[2],
+             eth_header->dest.addr[3],eth_header->dest.addr[4],eth_header->dest.addr[5]);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "PPPoE:");
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tVersion: %u", (pppoe_header->verType&0xF0)>>4);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:    %u", pppoe_header->verType&0x0F);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tCode:    0x%02X", pppoe_header->code);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSession: 0x%04X", pppoe_header->sessionId);
+   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength:  %u", pppoe_header->length);
+
+   /* If we received a PPPoE frame other than PADO/PADS/PADT on a server port, drop it */
+   if(pppoe_header->code!=L7_PPPOE_PADO && pppoe_header->code!=L7_PPPOE_PADS && pppoe_header->code!=L7_PPPOE_PADT)
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Received invalid message on a trusted port. Dropped.");
+      return;
+   }
+
+   /* Search for this client in the PPPoE Binding Table */
+   memset(&binding_table_key,           0x00,                  sizeof(ptinPppoeClientDataKey_t));
+   memcpy(binding_table_key.macAddr,    eth_header->dest.addr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+   binding_table_key.oVlan     = vlanId;
+   binding_table_key.iVlan     = innerVlanId;
+   if ((binding_table_data=avlSearchLVL7(&pppoeBindingTable.avlTree, (void *)&binding_table_key, AVL_EXACT)) != L7_NULL)
+   {
+      intIfNum = binding_table_data->interface;
+      avlDeleteEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key);
+   }
+   else
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Message received for an unknown client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, oVlan:%u, iVlan:%u).",
+                 binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                 binding_table_key.oVlan, binding_table_key.iVlan);
+      return;
+   }
+
+   /* Get pointer to the TLV headers */
+   tlv_header_ptr      = pppoe_header_ptr + sizeof(L7_pppoe_header_t);
+   tlv_header_copy_ptr = pppoe_header_copy_ptr + sizeof(L7_pppoe_header_t);
+   frame_len           = pppoe_header->length;
+
+   /* If the received PPPoE frame is PADT, immediatly send it */
+   if(pppoe_header->code == L7_PPPOE_PADT)
+   {
+      pppoeClientFrameSend(intIfNum, frame, vlanId, innerVlanId, client_idx);
+      return;        
+   }  
+
+   /* Parse every TLV header */
+   while(frame_len > 0)
+   {
+      L7_tlv_header_t *tlv_header;
+
+      tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
+
+      /* Debug */
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "TLV:");
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:   0x%04X", tlv_header->type);
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength: %u", tlv_header->length);
+
+      switch(tlv_header->type)
+      {
+         case L7_TLV_TAGTYPE_VENDOR_ID:
+         {
+            L7_tlv_header_t *tlv_header_new;
+
+            LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Found a Vendor ID Tag Type. Removing it.");
+
+            tlv_header_new            = (L7_tlv_header_t*) tlv_header_copy_ptr;
+            pppoe_header_copy->length -= sizeof(L7_tlv_header_t) + tlv_header_new->length;
+
+            break;
+         }
+         default:
+         {
+            /* Copy existing TLV header to our new frame */
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
+            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_header->length;
+         }
+      }
+
+      /* We finished parsing this TLV. Advance to the next one */
+      tlv_header_ptr += sizeof(L7_tlv_header_t) + tlv_header->length;
+      frame_len      -= sizeof(L7_tlv_header_t) + tlv_header->length;
+   }
+
+   pppoeClientFrameSend(intIfNum, frame_copy, vlanId, innerVlanId, client_idx);
 }

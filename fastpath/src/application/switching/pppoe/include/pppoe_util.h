@@ -55,6 +55,30 @@
 //
 //#define DS_IFACE_INFO_STR_SIZE   L7_NIM_IFNAME_SIZE + 25
 #define PPPOE_PACKET_SIZE_MAX  1518
+
+typedef struct
+{
+  L7_uchar8 macAddr[L7_MAC_ADDR_LEN];  /*Client MAC Address*/
+  L7_uint16 oVlan;                     /*Outer Vlan*/
+  L7_uint16 iVlan;                     /*Inner Vlan*/
+} ptinPppoeClientDataKey_t;
+
+typedef struct
+{
+  ptinPppoeClientDataKey_t   dataKey;
+  L7_uint32                  interface; /*Interface throught which the client request arrived*/
+
+  void *next;
+} ptinPppoeBindingInfoData_t;
+
+typedef struct {
+    avlTree_t                  avlTree;
+    avlTreeTables_t            *treeHeap;
+    ptinPppoeBindingInfoData_t *dataHeap;
+} ptinPppoeBindingAvlTree_t;
+ptinPppoeBindingAvlTree_t pppoeBindingTable;
+
+#define PPPOE_PACKET_SIZE_MAX  1518
 typedef enum 
 {
     PPPOE_CNFGR_INIT = 0
