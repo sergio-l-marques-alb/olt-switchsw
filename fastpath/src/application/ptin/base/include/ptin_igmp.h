@@ -160,8 +160,7 @@ extern L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy);
 extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
 
 /**
- * Configure an IGMP vlan trapping rule (most essentally for the
- * UC services) 
+ * Configure an IGMP evc with the necessary procedures 
  * 
  * @param evc_idx   : evc index
  * @param enable    : enable flag 
@@ -170,7 +169,7 @@ extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+extern L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction);
 
 /**
  * Update snooping configuration, when interfaces are 
@@ -183,7 +182,7 @@ extern L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
  *  
  * @return L7_BOOL : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
+extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
  * Check if a EVC is being used in an IGMP instance
@@ -192,7 +191,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
+extern L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
 
 /**
  * Creates an IGMP instance

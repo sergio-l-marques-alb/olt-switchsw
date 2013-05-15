@@ -161,6 +161,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMP_QUERIER_IN_UC_EVC
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -285,6 +286,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMP_QUERIER_IN_UC_EVC
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19

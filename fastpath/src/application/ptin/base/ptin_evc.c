@@ -1057,7 +1057,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
@@ -1084,7 +1084,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
       if (igmp_enabled)
       {
-        ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
+        ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
       }
       #endif
 
@@ -1223,7 +1223,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_trap_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
       }
@@ -1365,7 +1365,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
     }
@@ -1422,7 +1422,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
     }
