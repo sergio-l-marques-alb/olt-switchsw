@@ -1,1 +1,0 @@
-#define CONFIG_GEN_RTC 1
