@@ -21,6 +21,7 @@
 #include "buff_api.h"
 #include "l7apptimer_api.h"
 #include "l7handle_api.h"
+#include "ptin_fieldproc.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -2584,6 +2585,8 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  */
 L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan)
 {
+  /* Querier will use this routine */
+  #if (!defined IGMP_QUERIER_IN_UC_EVC)
   st_IgmpInstCfg_t *igmpInst;
 
   /* IGMP instance, from internal vlan */
@@ -2593,6 +2596,24 @@ L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #else
+  L7_uint16 evc_idx;
+
+  /* Get EVC id */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+  /* Check if EVC is in use */
+  if (!ptin_evc_is_in_use(evc_idx))
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u (intVlan=%u) is not active!",evc_idx,intVlan);
+    return L7_FAILURE;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2988,12 +3009,15 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
  */
 L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
 {
-  st_IgmpInstCfg_t *igmpInst;
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint     intf_idx;
   L7_uint32   intIfNum;
   L7_uint     ptin_port;
   ptin_intf_t ptin_intf;
+  L7_uint16   evc_idx;
+
+  #if (!defined IGMP_QUERIER_IN_UC_EVC)
+  st_IgmpInstCfg_t *igmpInst;
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
@@ -3006,10 +3030,24 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   /* Get MC EVC configuration */
   memset(&evcCfg,0x00,sizeof(ptin_HwEthMef10Evc_t));
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  evcCfg.index = igmpInst->UcastEvcId;
+  evc_idx = igmpInst->UcastEvcId;
   #else
-  evcCfg.index = igmpInst->McastEvcId;
+  evc_idx = igmpInst->McastEvcId;
   #endif
+
+  #else
+
+  /* IGMP instance, from internal vlan */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+  #endif
+
+  evcCfg.index = evc_idx;
+
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
@@ -3043,7 +3081,11 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       }
 
       /* It must have at least one client on this interface */
+      #if (!defined IGMP_QUERIER_IN_UC_EVC)
       if (igmpInst->igmpClients.number_of_clients_per_intf[ptin_port] > 0)
+      #else
+      if (evcCfg.n_clients > 0)
+      #endif
       {
         L7_INTF_SETMASKBIT(*intfList,intIfNum);
       }
@@ -6251,7 +6293,8 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
   /* Configure vlans */
   for (idx=0; idx<vlans_number; idx++)
   {
-    if (usmDbSnoopVlanModeSet(1,vlan_list[idx],enable,L7_AF_INET)!=L7_SUCCESS)
+    if (usmDbSnoopVlanModeSet(1, vlan_list[idx], enable, L7_AF_INET) != L7_SUCCESS)
+    //if (ptin_igmpPkts_vlan_trap(vlan_list[idx], enable)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping",vlan_list[idx]);
       break;
@@ -6264,7 +6307,8 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
     vlans_number = idx;
     for (idx=0; idx<vlans_number; idx++)
     {
-      usmDbSnoopVlanModeSet(1,vlan_list[idx],!enable,L7_AF_INET);
+      usmDbSnoopVlanModeSet(1, vlan_list[idx], !enable, L7_AF_INET);
+      //ptin_igmpPkts_vlan_trap(vlan_list[idx],!enable);
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unconfiguring vlan %u for packet trapping",vlan_list[idx]);
     }
     return L7_FAILURE;
@@ -6592,6 +6636,132 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint16 McastEvcId, L7_uint16 U
 
   return L7_FALSE;
 }
+
+#if 0
+/**
+ * Get next client belonging to an IGMP instance
+ * 
+ * @param igmp_idx    : IGMP instance
+ * @param client_ref  : Client id used as reference to search
+ * @param client_next : Next client id after client_ref
+ * 
+ * @return L7_RC_t : L7_SUCCESS when a next client was found 
+ *                   L7_NOT_EXIST when there is no more clients
+ *                   L7_FAILURE in case of error
+ */
+static L7_RC_t ptin_igmp_client_getNext(L7_uint igmp_idx, ptin_client_id_t *client_ref, ptin_client_id_t *client_next)
+{
+  ptinIgmpClientDataKey_t avl_key;
+  ptinIgmpClientsAvlTree_t *avl_tree;
+  ptinIgmpClientInfoData_t *clientInfo;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+  L7_uint32 ptin_port;
+  #endif
+
+  /* Validate arguments */
+  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_ref==L7_NULLPTR)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate igmp instance */
+  if (!igmpInstances[igmp_idx].inUse)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not in use",igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port value */
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+  ptin_port = 0;
+  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  {
+    /* Convert to ptin_port format */
+    if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+  }
+  #endif
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
+  /* Key to search for */
+  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+  avl_key.ptin_port = ptin_port;
+  #endif
+  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+  avl_key.outerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client_ref->outerVlan : 0;
+  #endif
+  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+  avl_key.innerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client_ref->innerVlan : 0;
+  #endif
+  #if (MC_CLIENT_IPADDR_SUPPORTED)
+  avl_key.ipv4_addr = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client_ref->ipv4_addr : 0;
+  #endif
+  #if (MC_CLIENT_MACADDR_SUPPORTED)
+  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
+    memcpy(avl_key.macAddr,client_ref->macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+  else
+    memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+  #endif
+
+  /* Search for this client */
+  clientInfo = avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_NEXT);
+
+  /* Check if this key already exists */
+  if (clientInfo==L7_NULLPTR)
+  {
+    osapiSemaGive(ptin_igmp_clients_sem);
+    return L7_NOT_EXIST;
+  }
+
+  /* Return client information */
+  if ( client_next != L7_NULLPTR )
+  {
+    memset(client_next, 0x00, sizeof(ptin_client_id_t) );
+
+    #if (MC_CLIENT_INTERF_SUPPORTED)
+    /* Convert to ptin_port format */
+    if (ptin_intf_port2ptintf(clientInfo->igmpClientDataKey.ptin_port, &client_next->ptin_intf)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert ptin_port %u to client_next ptin_intf format", clientInfo->igmpClientDataKey.ptin_port);
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+    client_next->mask | PTIN_CLIENT_MASK_FIELD_INTF;
+    #endif
+    #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+    client_next->outerVlan = clientInfo->igmpClientDataKey.outerVlan;
+    client_next->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    #endif
+    #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+    client_next->innerVlan = clientInfo->igmpClientDataKey.innerVlan;
+    client_next->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    #endif
+    #if (MC_CLIENT_IPADDR_SUPPORTED)
+    client_next->ipv4_addr = clientInfo->igmpClientDataKey.ipv4_addr;
+    client_next->mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
+    #endif
+    #if (MC_CLIENT_MACADDR_SUPPORTED)
+    memcpy(client_next->macAddr, clientInfo->igmpClientDataKey.macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+    client_next->mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
+    #endif
+  }
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+
+  return L7_SUCCESS;
+}
+#endif
 
 /**
  * Find client information in a particulat IGMP instance

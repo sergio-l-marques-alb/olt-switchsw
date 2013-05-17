@@ -425,6 +425,9 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   evcConf->mc_flood       = evcs[evc_idx].mc_flood;
   memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
 
+  /* Return number of attached clients */
+  evcConf->n_clients = evcs[evc_idx].n_clients;
+
   evcConf->n_intf = 0;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
@@ -2704,6 +2707,165 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 int
   return L7_SUCCESS;
 }
 
+/**
+ * Get next client, belonging to an EVC
+ * 
+ * @param evc_idx     : evc index
+ * @param ptin_intf   : interface
+ * @param cvlan       : reference cvlan
+ * @param cvlan_next  : next cvlan
+ * @param ovlan_next  : outer vlan related to next cvlan
+ * 
+ * @return L7_RC_t : 
+ *  L7_SUCCESS tells a next client was returned
+ *  L7_NO_VALUE tells there is no more clients (cvlan_next==0)
+ *  L7_NOT_EXIST tells the reference vlan was not found
+ *  L7_NOT_SUPPORTED tells this evc does not support clients
+ *  L7_FAILURE in case of error
+ */
+L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next)
+{
+  L7_uint     intf_idx;
+  struct ptin_evc_client_s *client_next;
+  struct ptin_evc_client_s *pclient;
+
+  /* Validate arguments */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS || ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate evc_idx */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Get intf_idx, and validate it */
+  if (ptin_intf_ptintf2port(ptin_intf, &intf_idx)!=L7_SUCCESS || intf_idx>=PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u/%u not valid!",ptin_intf->intf_type,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Check if interface is in use by the evc */
+  if (!evcs[evc_idx].intf[intf_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u/%u is not in use by EVC %u!",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Only stacked services have clients */
+  if (!IS_EVC_STACKED(evc_idx))
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... clients are not supported!");
+    return L7_NOT_SUPPORTED;
+  }
+
+  /* Find provided client */
+  ptin_evc_find_client(cvlan, &(evcs[evc_idx].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
+
+  /* First client? */
+  if ( cvlan == 0)
+  {
+    /* Provided client does not exist */
+    if (pclient==L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: No clients attached to intf=%u/%u!",evc_idx, ptin_intf->intf_type,ptin_intf->intf_id);
+      return L7_NO_VALUE;
+    }
+    client_next = pclient;
+  }
+  else
+  {
+    /* Provided client does not exist */
+    if (pclient==L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan=%u attached to intf=%u/%u not found!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
+      return L7_NOT_EXIST;
+    }
+
+    if ( pclient->next == L7_NULLPTR )
+    {
+      if (cvlan_next!=L7_NULLPTR)  *cvlan_next = 0;
+      if (ovlan_next!=L7_NULLPTR)  *ovlan_next = 0;
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Last cvlan (%u) attached to intf=%u/%u reached!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
+      return L7_NO_VALUE;
+    }
+    client_next = pclient->next;
+  }
+
+  /* Next cvlan */
+  if (cvlan_next!=L7_NULLPTR)
+  {
+    *cvlan_next = client_next->inn_vlan;
+  }
+  /* Next outer vlan */
+  if (ovlan_next!=L7_NULLPTR)
+  {
+    *ovlan_next = client_next->out_vlan;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get next client, belonging to a vlan
+ * 
+ * @param intVlan    : internal vlan
+ * @param intIfNum   : intIfNum
+ * @param cvlan      : reference inner vlan 
+ * @param cvlan_next : next inner vlan
+ * @param ovlan_next : ovlan related to the next inner vlan
+ * 
+ * @return L7_RC_t : 
+ *  L7_SUCCESS tells a next client was returned
+ *  L7_NO_VALUE tells there is no more clients
+ *  L7_NOT_EXIST tells the reference vlan was not found
+ *  L7_NOT_SUPPORTED tells this evc does not support clients
+ *  L7_FAILURE in case of error
+ */
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next)
+{
+  L7_uint     evc_idx;
+  ptin_intf_t ptin_intf;
+
+  /* Validate arguments */
+  if (intVlan>=4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVlan=%u)",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get evc id */
+  evc_idx = evcId_from_internalVlan[intVlan];
+
+  /* Check if this internal vlan is in use by any evc */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Validate evc_idx */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Convert intIfNum to ptin_intf format */
+  if ( ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u: Error acquiring ptin_intf from intIfNum %u!",evc_idx, intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Get next client */
+  return ptin_evc_client_next(evc_idx, &ptin_intf, cvlan, cvlan_next, ovlan_next);
+}
+
 /****************************************************************************** 
  * STATIC FUNCTIONS
  ******************************************************************************/
@@ -3348,7 +3510,8 @@ static void ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue
 
   do
   {
-    if (pclient->inn_vlan == inn_vlan)
+    /* If inner vlan is null, the first cvlan is returned */
+    if (inn_vlan == 0 || pclient->inn_vlan == inn_vlan)
     {
       *pelem = (dl_queue_elem_t *) pclient;
       return;
