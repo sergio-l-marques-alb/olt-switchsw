@@ -574,7 +574,7 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return -1;
+    return 0;
   }
   else if(pTimer->isRunning == L7_FALSE)
   {

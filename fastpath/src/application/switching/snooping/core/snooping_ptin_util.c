@@ -684,15 +684,15 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
         {
           if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
           {
-            L7_uint32 clientIdx;
+            L7_int8 clientIdx;
 
             printf("                       |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
             printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
             printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
             printf("                                |Clients: ");
-            for (clientIdx=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE; clientIdx>0; --clientIdx)
+            for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
             {
-              printf("%02X", snoopEntry->interfaces[ifIdx].sources[sourceIdx].clients[clientIdx]);
+              printf("%08X", snoopEntry->interfaces[ifIdx].sources[sourceIdx].clients[clientIdx]);
             }
             printf("\n");
           }
@@ -705,3 +705,4 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
     printf("Unknown Group %s VlanId %u\n", snoopPTinIPv4AddrPrint(groupAddr, debug_buf), vlanId);
   }
 }
+

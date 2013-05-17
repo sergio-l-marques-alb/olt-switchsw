@@ -77,7 +77,7 @@
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
@@ -199,7 +199,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
@@ -321,7 +321,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
@@ -466,7 +466,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
@@ -676,7 +676,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      L7_MAX_PORT_COUNT + L7_MAX_NUM_LAG_INTF /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)     /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */

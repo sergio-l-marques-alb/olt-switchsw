@@ -171,7 +171,6 @@ L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uint32 sourc
 
   for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Source state: %u", interfacePtr->sources[idx].status);
     if (interfacePtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
     {
       memset(&interfacePtr->sources[idx], 0x00, sizeof(snoopPTinL3Source_t));
@@ -214,7 +213,7 @@ L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_uint32 sourceAdd
 
   for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
   {
-    if ((sourceList[idx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourceList[idx].sourceAddr == sourceAddr))
+    if ((sourceList[idx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE) && (sourceList[idx].sourceAddr == sourceAddr))
     {
       *foundIdx = idx;
       return L7_SUCCESS;
@@ -239,8 +238,6 @@ L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_uint32 sourceAdd
  *************************************************************************/
 L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourcePtr)
 {
-  L7_uint32 i;
-
   /* Argument validation */
   if (interfacePtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
   {
@@ -249,13 +246,7 @@ L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3S
   }
 
   /* Remove clients associated with this source */
-  for(i = 0; i < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE; ++i)
-  {
-    if (snoopPTinClientFind(sourcePtr->clients, i))
-    {
-      snoopPTinClientRemove(sourcePtr, i);
-    }
-  }
+  memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
 
   snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
   memset(sourcePtr, 0x00, sizeof(*sourcePtr));
@@ -749,7 +740,10 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTree
    */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    avlTreeEntry->interfaces[intIfNum].sources[i].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
+     if(avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
+     {
+       avlTreeEntry->interfaces[intIfNum].sources[i].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
+     }
   }
 
   /* Add new sources */
@@ -763,6 +757,8 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTree
     if (L7_SUCCESS == snoopPTinSourceFind(avlTreeEntry->interfaces[intIfNum].sources, ipv4Addr, &sourceIdx))
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", snoopPTinIPv4AddrPrint(ipv4Addr, debug_buf), sourceIdx);
+
+      avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status = PTIN_SNOOP_SOURCESTATE_ACTIVE;
 
       /* If filter-mode is (INCLUDE) or (EXCLUDE and source-timer is equal to 0), save this source. In the end of this method, all saved sources will be sent in a Q(G,S) */
       if(avlTreeEntry->interfaces[intIfNum].filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE || avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].sourceTimer.isRunning == L7_TRUE)
@@ -847,7 +843,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTree
   /* Remove every source still marked as inactive */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    if (avlTreeEntry->interfaces[intIfNum].sources[i].sourceAddr != 0 && (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_INACTIVE))
+    if (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_TOREMOVE)
     {
       snoopPTinSourceRemove(&avlTreeEntry->interfaces[intIfNum], &avlTreeEntry->interfaces[intIfNum].sources[i]);
     }

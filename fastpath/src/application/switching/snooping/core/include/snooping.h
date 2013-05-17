@@ -55,7 +55,6 @@ typedef enum
 typedef enum
 {
   PTIN_SNOOP_SOURCESTATE_INACTIVE = 0,
-  PTIN_SNOOP_SOURCESTATE_UNKNOWN,
   PTIN_SNOOP_SOURCESTATE_ACTIVE,
   PTIN_SNOOP_SOURCESTATE_TOREMOVE
 } snoop_ptin_sourcestate_t;
@@ -329,7 +328,7 @@ typedef struct
 
 typedef struct
 {
-  L7_uint32                clients[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE];
+  L7_uint32                clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
   L7_uint32                sourceAddr;
   snoopPTinL3Sourcetimer_t sourceTimer;
   L7_uint8                 status;
