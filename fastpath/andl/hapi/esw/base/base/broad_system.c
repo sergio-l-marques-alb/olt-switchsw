@@ -1905,6 +1905,40 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
 
   switch (dapiCmd->cmdData.snoopConfig.packet_type)
   {
+    /* IGMP packets */
+    case PTIN_PACKET_IGMP:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigIgmpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, L7_FALSE, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigIgmpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, L7_FALSE, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* MLD packets */
+    case PTIN_PACKET_MLD:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigMldFilter( L7_ENABLE, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigMldFilter( L7_DISABLE, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
     /* DHCP packets */
     case PTIN_PACKET_DHCP:
     {
