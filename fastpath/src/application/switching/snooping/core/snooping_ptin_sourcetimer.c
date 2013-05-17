@@ -381,6 +381,7 @@ void timerCallback(void *param)
   if (timerHandle != pTimerData->timerHandle)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
+    osapiSemaGive(timerSem);
     return;
   }
 
@@ -390,6 +391,8 @@ void timerCallback(void *param)
   sourceIdx    = pTimerData->sourceIdx;
   interfacePtr = &groupData->interfaces[interfaceIdx];
   sourcePtr    = &groupData->interfaces[interfaceIdx].sources[sourceIdx];
+  osapiSemaGive(timerSem);
+
   if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
   {
     /* Remove source */
@@ -403,8 +406,9 @@ void timerCallback(void *param)
       snoopPTinInterfaceRemove(interfacePtr);
     }
   }
-  pTimerData->isRunning = L7_FALSE;
 
+  osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+  pTimerData->isRunning = L7_FALSE;
   osapiSemaGive(timerSem);
 }
 
@@ -449,6 +453,7 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint16
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed restarting timer");
       return L7_FAILURE;
     }
+    pTimer->isRunning = L7_FALSE;
     pTimer->timer = L7_NULLPTR;
 
     /* Remove timer handle */
@@ -462,7 +467,7 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint16
     pTimer->sourceIdx    = sourceIdx;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (group:%s vlan:%u ifIdx:%u srcIdx:%u)",
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (group:%s vlan:%u ifIdx:%u srcIdx:%u)",
             snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, sourceIdx);
 
   /* If timeout was configured as 0, do not set up the timer */
@@ -569,10 +574,14 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return 0;
+    return -1;
+  }
+  else if(pTimer->isRunning == L7_FALSE)
+  {
+     return 0;
   }
 
-  appTimerTimeLeftGet(cbTimer, &pTimer->timerHandle, &time_left);
+  appTimerTimeLeftGet(cbTimer, pTimer->timer, &time_left);
 
   return time_left;
 }

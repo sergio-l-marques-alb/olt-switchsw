@@ -171,10 +171,11 @@ L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uint32 sourc
 
   for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
   {
-    if (!interfacePtr->sources[idx].active)
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Source state: %u", interfacePtr->sources[idx].status);
+    if (interfacePtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
     {
       memset(&interfacePtr->sources[idx], 0x00, sizeof(snoopPTinL3Source_t));
-      interfacePtr->sources[idx].active     = L7_TRUE;
+      interfacePtr->sources[idx].status     = PTIN_SNOOP_SOURCESTATE_ACTIVE;
       interfacePtr->sources[idx].sourceAddr = sourceAddr;
       *newSourceIdx                         = idx;
       ++interfacePtr->numberOfSources;
@@ -213,7 +214,7 @@ L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_uint32 sourceAdd
 
   for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
   {
-    if (sourceList[idx].active && (sourceList[idx].sourceAddr == sourceAddr))
+    if ((sourceList[idx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourceList[idx].sourceAddr == sourceAddr))
     {
       *foundIdx = idx;
       return L7_SUCCESS;
@@ -289,7 +290,7 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr)
   for (i = 0; i < sizeof(interfacePtr->sources); ++i)
   {
     sourcePtr = &interfacePtr->sources[i];
-    if (sourcePtr->active == L7_TRUE && sourcePtr->sourceTimer.isRunning == L7_FALSE)
+    if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE))
     {
       snoopPTinSourceRemove(interfacePtr, sourcePtr);
     }
@@ -462,7 +463,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTree
    */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    avlTreeEntry->interfaces[intIfNum].sources[i].active = L7_FALSE;
+    avlTreeEntry->interfaces[intIfNum].sources[i].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
   }
 
   /* Add new sources */
@@ -476,7 +477,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTree
     if (L7_SUCCESS == snoopPTinSourceFind(avlTreeEntry->interfaces[intIfNum].sources, ipv4Addr, &sourceIdx))
     {
       /* Mark source as active */
-      avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].active = L7_TRUE;
+      avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status = PTIN_SNOOP_SOURCESTATE_ACTIVE;
     }
     else
     {
@@ -544,7 +545,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTree
   /* Remove every source still marked as inactive */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    if (avlTreeEntry->interfaces[intIfNum].sources[i].sourceAddr != 0 && !avlTreeEntry->interfaces[intIfNum].sources[i].active)
+    if (avlTreeEntry->interfaces[intIfNum].sources[i].sourceAddr != 0 && (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_INACTIVE))
     {
       snoopPTinSourceRemove(&avlTreeEntry->interfaces[intIfNum], &avlTreeEntry->interfaces[intIfNum].sources[i]);
     }
@@ -598,7 +599,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t *avlTree
   /* Split current sources into two arrays, one for sources with timer > 0, another for sources with timer <= 0 */
   for (i = 0; i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++i)
   {
-    if (!avlTreeEntry->interfaces[intIfNum].sources[i].active)
+    if (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
     {
        continue;
     }
@@ -748,7 +749,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTree
    */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    avlTreeEntry->interfaces[intIfNum].sources[i].active = L7_FALSE;
+    avlTreeEntry->interfaces[intIfNum].sources[i].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
   }
 
   /* Add new sources */
@@ -846,7 +847,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTree
   /* Remove every source still marked as inactive */
   for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
   {
-    if (avlTreeEntry->interfaces[intIfNum].sources[i].sourceAddr != 0 && !avlTreeEntry->interfaces[intIfNum].sources[i].active)
+    if (avlTreeEntry->interfaces[intIfNum].sources[i].sourceAddr != 0 && (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_INACTIVE))
     {
       snoopPTinSourceRemove(&avlTreeEntry->interfaces[intIfNum], &avlTreeEntry->interfaces[intIfNum].sources[i]);
     }

@@ -10,6 +10,7 @@
 #include "snooping_proto.h"
 #include "snooping_db.h"
 #include "snooping_ptin_grouptimer.h"
+#include "snooping_ptin_sourcetimer.h"
 
 #include "ptin_debug.h"
 #include "ptin_igmp.h"
@@ -678,12 +679,22 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
         printf("Interface: %02u |\n", ifIdx);
         printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
         printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);
-//      printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));
+        printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));
         for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
         {
-          if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].active == L7_TRUE)
+          if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
           {
-             printf("              |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
+            L7_uint32 clientIdx;
+
+            printf("                       |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
+            printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
+            printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
+            printf("                                |Clients: ");
+            for (clientIdx=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE; clientIdx>0; --clientIdx)
+            {
+              printf("%02X", snoopEntry->interfaces[ifIdx].sources[sourceIdx].clients[clientIdx]);
+            }
+            printf("\n");
           }
         }
       }

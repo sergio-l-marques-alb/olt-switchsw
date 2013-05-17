@@ -51,6 +51,14 @@ typedef enum
   PTIN_SNOOP_FILTERMODE_INCLUDE,
   PTIN_SNOOP_FILTERMODE_EXCLUDE
 } snoop_ptin_filtermode_t;
+
+typedef enum
+{
+  PTIN_SNOOP_SOURCESTATE_INACTIVE = 0,
+  PTIN_SNOOP_SOURCESTATE_UNKNOWN,
+  PTIN_SNOOP_SOURCESTATE_ACTIVE,
+  PTIN_SNOOP_SOURCESTATE_TOREMOVE
+} snoop_ptin_sourcestate_t;
 #endif
 
 typedef enum
@@ -324,7 +332,7 @@ typedef struct
   L7_uint32                clients[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_SOURCE];
   L7_uint32                sourceAddr;
   snoopPTinL3Sourcetimer_t sourceTimer;
-  L7_uint8                 active;
+  L7_uint8                 status;
   L7_uint16                numberOfClients;
 } snoopPTinL3Source_t;
 

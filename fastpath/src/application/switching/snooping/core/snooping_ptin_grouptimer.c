@@ -393,7 +393,7 @@ void timerCallback(void *param)
     for (i = 0; i < sizeof(interfacePtr->sources); ++i)
     {
       sourcePtr = &interfacePtr->sources[i];
-      if (sourcePtr->active == L7_TRUE && sourcePtr->sourceTimer.isRunning == L7_FALSE)
+      if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE))
       {
         LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing sourceIdx %u", i);
         snoopPTinSourceRemove(interfacePtr, sourcePtr);
@@ -561,11 +561,10 @@ L7_uint32 snoop_ptin_grouptimer_timeleft(snoopPTinL3Grouptimer_t *pTimer)
   /* Argument validation */
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return 0;
   }
 
-  appTimerTimeLeftGet(cbTimer, &pTimer->timerHandle, &time_left);
+  appTimerTimeLeftGet(cbTimer, pTimer->timer, &time_left);
 
   return time_left;
 }
