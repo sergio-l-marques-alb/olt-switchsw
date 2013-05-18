@@ -54,13 +54,13 @@ struct ptin_evc_intf_s {
 
   L7_uint16  out_vlan;      /* Outer VLAN:
                              *  Root: S-VLAN
-                             *  Leaf: S' (ONLY applicable to unstacked services)
-                             *        (on unstacked services we allow a S->S'
+                             *  Leaf: S' (ONLY applicable to point-to-multipoint services)
+                             *        (on p2multipoint services we allow a S->S'
                              *         xlate per leaf port) */
 
   L7_uint16  int_vlan;      /* Internal VLAN:
-                             *  stacked   - NOT APPLICABLE
-                             *  unstacked - one internal VLAN per interface */
+                             *  point-to-point - NOT APPLICABLE
+                             *  point-to-multipoint - one internal VLAN per interface */
 
   /* Counters/Profiles per client on unstacked EVCs (counter per leaf port) */
   void      *counter;       /* Pointer to a counter struct entry */
@@ -80,7 +80,7 @@ struct ptin_evc_s {
   L7_uint32  flags;         /* PTIN_EVC_MASK_xxx:
                              *   0x0001 - Bundling      (not implemented)
                              *   0x0002 - All to One    (not implemented)
-                             *   0x0004 - Stacked       (PTin custom field)
+                             *   0x0004 - P2P           (PTin custom field)
                              *   0x0008 - Mac Learning  (PTin custom field)
                              *   0x0100 - DHCP protocol (PTin custom field) */
 
@@ -106,11 +106,11 @@ struct ptin_evc_s {
   L7_uint8   n_leafs;       /* Number of leafs */
 
   L7_uint16  rvlan;         /* Root VLAN (internal VLAN) 
-                             *   Unstacked: Internal VLAN shared among all interfaces
-                             *              to allow downstream flow (flood)
-                             *   Stacked:   Unique internal VLAN among all interfaces
-                             *              Cross-connects are used to forward P2P
-                             *              traffic on downstream and upstream
+                             *   p2multipoint : Internal VLAN shared among all interfaces
+                             *          to allow downstream flow (flood)
+                             *   p2p:   Unique internal VLAN among all interfaces
+                             *          Cross-connects are used to forward P2P
+                             *          traffic on downstream and upstream
                              */
   //struct ptin_evc_client_s *client_ref[4096];   /* Direct reference to clients information */
   dl_queue_t *queue_free_vlans;   /* Pointer to queue of free vlans */
@@ -152,7 +152,7 @@ static struct ptin_evc_s        evcs[PTIN_SYSTEM_N_EVCS];       // sizeof=65*118
 static struct ptin_evc_client_s clients[PTIN_SYSTEM_N_CLIENTS]; // sizeof=24*1024=24576
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 #if (PTIN_SYSTEM_GROUP_VLANS)
-static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS];
+static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS];
 #endif
 /* Allocated space for all probes */
 static struct ptin_probe_s      probes[PTIN_SYSTEM_MAX_COUNTERS];
@@ -164,9 +164,9 @@ static dl_queue_t queue_free_clients; /* Clients (busy) queues are mapped on eac
 static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-static dl_queue_t queue_unstacked_freeVlan_queues;
-static dl_queue_t queue_stacked_free_vlans; /* Pool of free internal VLANs */
-static dl_queue_t queue_unstacked_free_vlans[PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS]; /* Pool of free internal VLANs */
+static dl_queue_t queue_p2multipoint_freeVlan_queues;
+static dl_queue_t queue_p2p_free_vlans; /* Pool of free internal VLANs */
+static dl_queue_t queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS]; /* Pool of free internal VLANs */
 #else
 static dl_queue_t queue_free_vlans; /* Pool of free internal VLANs */
 #endif
@@ -178,8 +178,12 @@ static L7_uint8 evcs_intfs_in_use[PTIN_SYSTEM_N_INTERF];
 static L7_uint8 evcId_from_internalVlan[4096];
 
 /* Local Macros */
-#define IS_EVC_STACKED(evc_idx)         ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED     ) == PTIN_EVC_MASK_STACKED)
-#define IS_EVC_UNSTACKED(evc_idx)       ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED     ) == 0 )
+#define IS_EVC_P2P(evc_idx)             ((evcs[evc_idx].flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P)
+#define IS_EVC_P2MULTIPOINT(evc_idx)    ((evcs[evc_idx].flags & PTIN_EVC_MASK_P2P     ) == 0 )
+
+#define IS_EVC_STACKED(evc_idx)         ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
+#define IS_EVC_UNSTACKED(evc_idx)       ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED ) == 0 )
+
 #define IS_EVC_WITH_CPU_TRAP(evc_idx)   ((evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
 
 #define IS_EVC_INTF_USED(evc_idx,ptin_port) (evcs[evc_idx].intf[ptin_port].in_use)
@@ -210,7 +214,7 @@ static L7_RC_t ptin_evc_pclient_clean( L7_uint evc_idx, struct ptin_evc_client_s
 static void    ptin_evc_entry_reset(L7_uint evc_idx);
 static void    ptin_evc_vlan_pool_init(void);
 
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_stacked, dl_queue_t **freeVlan_queue);
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
 static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_idx);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
@@ -219,9 +223,9 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf);
 static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx);
 
-static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf);
-static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf);
-static L7_RC_t ptin_evc_unstacked_intf_remove_all(L7_uint evc_idx);
+static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf);
+static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_intf);
+static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx);
 
 static void    ptin_evc_intf_list_get(L7_uint evc_idx, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
 static void    ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue_elem_t **pelem);
@@ -231,16 +235,24 @@ static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_u
 static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 
-static L7_RC_t switching_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
-static L7_RC_t switching_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
+static L7_RC_t switching_p2p_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
+static L7_RC_t switching_p2p_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
 
-static L7_RC_t switching_unstacked_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan);
-static L7_RC_t switching_unstacked_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan);
-static L7_RC_t switching_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
-static L7_RC_t switching_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
+static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL is_stacked);
+static L7_RC_t switching_p2multipoint_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan);
 
-static L7_RC_t switching_stacked_bridge_add(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid);
-static L7_RC_t switching_stacked_bridge_remove(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid);
+static L7_RC_t switching_p2multipoint_leaf_add(L7_uint leaf_intf, L7_uint16 root_int_vlan);
+static L7_RC_t switching_p2multipoint_leaf_remove(L7_uint leaf_intf, L7_uint16 root_int_vlan);
+
+static L7_RC_t switching_p2multipoint_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inn_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
+static L7_RC_t switching_p2multipoint_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inn_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
+
+static L7_RC_t switching_p2multipoint_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
+static L7_RC_t switching_p2multipoint_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan);
+
+
+static L7_RC_t switching_p2p_bridge_add(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid);
+static L7_RC_t switching_p2p_bridge_remove(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid);
 
 static L7_RC_t switching_vlan_create(L7_uint16 vid);
 static L7_RC_t switching_vlan_delete(L7_uint16 vid);
@@ -630,7 +642,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 i
   ovid = 0;
   ivid = 0;
 
-  /* For stacked EVCs... */
+  /* For stacked Leafs... */
   if (IS_EVC_STACKED(evc_idx))
   {
     /* Interface is root? */
@@ -789,11 +801,11 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
  * Check if the EVC related to an internal vlan is stacked. 
  *  
  * @param intVlan    : Internal outer-vlan 
- * @param is_stacked : Is EVC stacked? (output)
+ * @param is_p2p     : Is EVC P2P? (output)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_isStacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked)
+L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
 {
   L7_uint evc_idx;
 
@@ -820,9 +832,9 @@ L7_RC_t ptin_evc_check_isStacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stac
   }
 
   /* Check if EVC is stacked, and return result */
-  if (is_stacked!=L7_NULLPTR)
+  if (is_p2p!=L7_NULLPTR)
   {
-    *is_stacked = IS_EVC_STACKED(evc_idx);
+    *is_p2p = IS_EVC_P2P(evc_idx);
   }
 
   return L7_SUCCESS;
@@ -841,7 +853,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint   i;
   L7_uint   evc_idx;
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
-  L7_BOOL   stacked;
+  L7_BOOL   is_p2p;
   L7_BOOL   maclearning;
   L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
   L7_BOOL   cpu_trap;
@@ -871,7 +883,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  stacked       = (evcConf->flags & PTIN_EVC_MASK_STACKED)        == PTIN_EVC_MASK_STACKED;
+  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P)            == PTIN_EVC_MASK_P2P;
   maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)    == PTIN_EVC_MASK_MACLEARNING;
   dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)  == PTIN_EVC_MASK_DHCP_PROTOCOL;
   igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)  == PTIN_EVC_MASK_IGMP_PROTOCOL;
@@ -903,16 +915,16 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   /* For EVC# PTIN_EVC_INBAND, it must be unstacked! */
-  if (evc_idx == PTIN_EVC_INBAND && stacked)
+  if (evc_idx == PTIN_EVC_INBAND && is_p2p)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: inBand EVC cannot be stacked!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: inBand EVC cannot be P2P!", evc_idx);
     return L7_FAILURE;
   }
 
   /* For Stacked EVCs, no more than one root is allowed */
-  if (stacked && (n_roots > 1))
+  if (is_p2p && (n_roots > 1))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: stacked EVCs cannot have more than one root port", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs cannot have more than one root port", evc_idx);
     return L7_FAILURE;
   }
 
@@ -938,7 +950,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: creating a new entry...", evc_idx);
 
     /* Allocate queue of free vlans */
-    if (ptin_evc_freeVlanQueue_allocate(evc_idx,stacked,&freeVlan_queue)!=L7_SUCCESS)
+    if (ptin_evc_freeVlanQueue_allocate(evc_idx, is_p2p, &freeVlan_queue)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_idx);
       return L7_FAILURE;
@@ -958,10 +970,10 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     else
     {
       /* Check if there are enough internal VLANs on the pool
-       *  stacked:   only one internal VLAN is needed (shared among all the ports)
-       *  unstacked: one VLAN is needed per leaf port plus one for all the root ports */
-      if ( ( stacked  && (freeVlan_queue->n_elems < 1) ) ||
-           ( !stacked && (freeVlan_queue->n_elems < (n_leafs + 1)) ) )
+       *  P2P:  only one internal VLAN is needed (shared among all the ports)
+       *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
+      if ( ( is_p2p  && (freeVlan_queue->n_elems < 1) ) ||
+           ( !is_p2p && (freeVlan_queue->n_elems < (n_leafs + 1)) ) )
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: not enough internal VLANs available", evc_idx);
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
@@ -973,8 +985,10 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID+IVID */
-    if (stacked)
+    if (is_p2p)
+    {
       ptin_crossconnect_enable(root_vlan, L7_TRUE);
+    }
 
     /* Update EVC entry (this info will be used on the configuration functions) */
     evcs[evc_idx].in_use           = L7_TRUE;
@@ -987,7 +1001,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     error = L7_FALSE;
 
     /* Add a broadcast rate limiter for unstacked services */
-    if (/*!stacked &&*/ cpu_trap)
+    if ( cpu_trap )
     {
       if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
       {
@@ -1017,9 +1031,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
-      if (IS_EVC_UNSTACKED(evc_idx))
+      if ( !is_p2p )
       {
-        if (ptin_evc_unstacked_intf_add(evc_idx, ptin_intf) != L7_SUCCESS)
+        if (ptin_evc_p2multipoint_intf_add(evc_idx, ptin_intf) != L7_SUCCESS)
         {
           error = L7_TRUE;
           break;
@@ -1089,14 +1103,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #endif
 
       /* Remove bridges on unstacked EVCs */
-      if (IS_EVC_UNSTACKED(evc_idx))
-        ptin_evc_unstacked_intf_remove_all(evc_idx);
+      if ( !is_p2p )
+        ptin_evc_p2multipoint_intf_remove_all(evc_idx);
       
       /* Remove all previously configured interfaces */
       ptin_evc_intf_remove_all(evc_idx);
 
       /* Remove the broadcast rate limiter for unstacked services */
-      if (/*!stacked &&*/ cpu_trap)
+      if ( cpu_trap)
       {
         ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
       }
@@ -1145,9 +1159,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
         /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
          * and all the root interfaces */
-        if (IS_EVC_UNSTACKED(evc_idx))
+        if ( !is_p2p )
         {
-          if (ptin_evc_unstacked_intf_add(evc_idx, i) != L7_SUCCESS)
+          if (ptin_evc_p2multipoint_intf_add(evc_idx, i) != L7_SUCCESS)
           {
             /* Signal error, but try to process the rest of the config */
             error = L7_TRUE;
@@ -1176,9 +1190,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
 
         /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-        if (IS_EVC_UNSTACKED(evc_idx))
+        if ( !is_p2p )
         {
-          if (ptin_evc_unstacked_intf_remove(evc_idx, i) != L7_SUCCESS)
+          if (ptin_evc_p2multipoint_intf_remove(evc_idx, i) != L7_SUCCESS)
           {
             /* Signal error, but try to process the rest of the config */
             error = L7_TRUE;
@@ -1325,9 +1339,9 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
   }
 
   /* Remove bridges on unstacked EVCs */
-  if (IS_EVC_UNSTACKED(evc_idx))
+  if (IS_EVC_P2MULTIPOINT(evc_idx))
   {
-    if (ptin_evc_unstacked_intf_remove_all(evc_idx) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove_all(evc_idx) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_idx);
       return L7_FAILURE;
@@ -1342,7 +1356,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (/*IS_EVC_UNSTACKED(evc_idx) &&*/ IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
@@ -1497,9 +1511,9 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   }
 
   /* Remove bridges on unstacked EVCs */
-  if (IS_EVC_UNSTACKED(evc_idx))
+  if (IS_EVC_P2MULTIPOINT(evc_idx))
   {
-    if (ptin_evc_unstacked_intf_remove_all(evc_idx) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove_all(evc_idx) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_idx);
       return L7_FAILURE;
@@ -1514,7 +1528,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (/*IS_EVC_UNSTACKED(evc_idx) &&*/ IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
@@ -1558,7 +1572,7 @@ L7_RC_t ptin_evc_destroy_all(void)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
+L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 {
   L7_uint evc_idx;
   L7_uint root_intf;
@@ -1586,7 +1600,7 @@ L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   }
 
   /* Check if the EVC is stacked */
-  if (IS_EVC_UNSTACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_idx))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
     return L7_FAILURE;
@@ -1632,13 +1646,36 @@ L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_idx,
            root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
 
-  /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-  rc = switching_stacked_bridge_add(root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
+  /* Add translation rules */
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  /* Also for P2MP this routine will be executed, as long as it is stacked */
+  /* For these ones the internal vlan will be the interface internal one */
+  if ( IS_EVC_P2P(evc_idx) )
+  {
+    rc = switching_p2p_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_idx].rvlan);
+  }
+  else
+  {
+    rc = switching_p2multipoint_stacked_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_idx].intf[leaf_intf].int_vlan, evcs[evc_idx].rvlan);
+  }
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge", evc_idx,
-            evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",leaf_intf, rc);
     return L7_FAILURE;
+  }
+  #endif
+
+  /* Only make cross-connections, if EVC is stacked (1:1) */
+  if (IS_EVC_P2P(evc_idx))
+  {
+    /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+    rc = switching_p2p_bridge_add(root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge", evc_idx,
+              evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
+      return L7_FAILURE;
+    }
   }
 
   /* Add client to the EVC struct */
@@ -1671,7 +1708,7 @@ L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
+L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 {
   L7_uint evc_idx;
   L7_uint root_intf;
@@ -1699,7 +1736,7 @@ L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   }
 
   /* Check if the EVC is stacked */
-  if (IS_EVC_UNSTACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_idx))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
     return L7_FAILURE;
@@ -1779,13 +1816,34 @@ L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
     return L7_FAILURE;
   }
 
-  /* Delete bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-  rc = switching_stacked_bridge_remove(root_intf, evcs[evc_idx].rvlan, leaf_intf, pclient->out_vlan, pclient->inn_vlan);
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  /* Remove translations */
+  if (IS_EVC_P2P(evc_idx))
+  {
+    rc = switching_p2p_leaf_remove(leaf_intf, pclient->out_vlan, pclient->inn_vlan, evcs[evc_idx].rvlan);
+  }
+  else
+  {
+    rc = switching_p2multipoint_stacked_leaf_remove(leaf_intf, pclient->out_vlan, pclient->inn_vlan, evcs[evc_idx].intf[leaf_intf].int_vlan, evcs[evc_idx].rvlan);
+  }
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error deleting bridge", evc_idx,
-            evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",leaf_intf, rc);
     return L7_FAILURE;
+  }
+  #endif
+
+  /* Only remove cross-connections, if EVC is stacked (1:1) */
+  if (IS_EVC_P2P(evc_idx))
+  {
+    /* Delete bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+    rc = switching_p2p_bridge_remove(root_intf, evcs[evc_idx].rvlan, leaf_intf, pclient->out_vlan, pclient->inn_vlan);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error deleting bridge", evc_idx,
+              evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
+      return L7_FAILURE;
+    }
   }
 
   /* Delete client from the EVC struct */
@@ -2263,7 +2321,7 @@ L7_RC_t ptin_evc_intfclients_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uin
     }
 
     /* Remove this bridge (client) */
-    if (ptin_evc_stacked_bridge_remove(&bridge)!=L7_SUCCESS)
+    if (ptin_evc_p2p_bridge_remove(&bridge)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing bridge for client of cvlan=%u attached to intf=%u/%u",
               evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
@@ -2337,7 +2395,7 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 in
   bridge.inn_vlan       = cvlan;
 
   /* Remove this bridge (client) */
-  if (ptin_evc_stacked_bridge_remove(&bridge)!=L7_SUCCESS)
+  if (ptin_evc_p2p_bridge_remove(&bridge)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing bridge for client of cvlan=%u attached to intf=%u/%u",
             evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
@@ -2800,6 +2858,7 @@ static void ptin_evc_entry_reset(L7_uint evc_idx)
  */
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthMef10Intf_t *intf_cfg)
 {
+  L7_BOOL is_p2p;
   L7_BOOL is_stacked;
   L7_BOOL is_root;
   L7_BOOL mac_learning;
@@ -2809,6 +2868,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
   ptin_intf_t intf;
   L7_RC_t rc = L7_SUCCESS;
 
+  is_p2p       = (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_stacked   = (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
   is_root      = intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
   mac_learning = (evcs[evc_idx].flags & PTIN_EVC_MASK_MACLEARNING) == PTIN_EVC_MASK_MACLEARNING;
@@ -2844,7 +2904,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
   }
   else
   {
-    if (is_stacked)
+    if (is_p2p)
       int_vlan = evcs[evc_idx].rvlan;     /* Internal VLAN is the same for all interfaces, including leafs */
     else
       ptin_evc_vlan_allocate(&int_vlan, evcs[evc_idx].queue_free_vlans, evc_idx); /* One VLAN for each unstacked leaf */
@@ -2867,11 +2927,11 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
       return L7_FAILURE;
     }
 
-    if (is_stacked)
+    if (is_p2p)
     {
       /* Add translations for leaf ports, only if we are in matrix board */
       #if ( PTIN_BOARD_IS_MATRIX )
-      rc = switching_stacked_leaf_add(ptin_intf, intf_cfg->vid, 0, int_vlan);
+      rc = switching_p2p_leaf_add(ptin_intf, intf_cfg->vid, 0, int_vlan);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",ptin_intf, rc);
@@ -2950,13 +3010,13 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
  */
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
 {
-  L7_BOOL is_stacked;
+  L7_BOOL is_p2p;
   L7_BOOL is_root;
   L7_uint16 out_vlan;
   L7_uint16 int_vlan;
   ptin_intf_t intf;
 
-  is_stacked = (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+  is_p2p     = (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P;
   is_root    = evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT;
   out_vlan   = evcs[evc_idx].intf[ptin_intf].out_vlan;
   int_vlan   = evcs[evc_idx].intf[ptin_intf].int_vlan;
@@ -2991,12 +3051,12 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
     }
     evcs[evc_idx].n_leafs--;
 
-    if (is_stacked)
+    if (is_p2p)
     {
       /* Add translations for leaf ports, only if we are in matrix board */
       #if ( PTIN_BOARD_IS_MATRIX )
       L7_RC_t rc;
-      rc = switching_stacked_leaf_remove(ptin_intf, out_vlan, 0, int_vlan);
+      rc = switching_p2p_leaf_remove(ptin_intf, out_vlan, 0, int_vlan);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",ptin_intf, rc);
@@ -3092,12 +3152,15 @@ static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
+static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
 {
   L7_uint   l, r;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf;
+  L7_BOOL   is_stacked;
   L7_RC_t   rc = L7_SUCCESS;
+
+  is_stacked = (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
 
   /* Root intf ? */
   if (evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT)
@@ -3114,9 +3177,10 @@ static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
     /* Add all leaf xlate entries on the root port */
     for (l=0; l<n_intf; l++)
     {
-      rc = switching_unstacked_root_add(ptin_intf,                                    /* Root intf */
+      rc = switching_p2multipoint_root_add(ptin_intf,                                    /* Root intf */
                                         evcs[evc_idx].intf[ptin_intf].out_vlan,       /* Vs */
-                                        evcs[evc_idx].intf[intf_list[l]].int_vlan);   /* Vl */
+                                        evcs[evc_idx].intf[intf_list[l]].int_vlan,    /* Vl */
+                                        is_stacked );
 
       if (rc != L7_SUCCESS)
       {
@@ -3141,9 +3205,10 @@ static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
     /* Add leaf xlate entry on all root ports */
     for (r=0; r<n_intf; r++)
     {
-      rc = switching_unstacked_root_add(intf_list[r],                                 /* Root intf */
+      rc = switching_p2multipoint_root_add(intf_list[r],                                 /* Root intf */
                                         evcs[evc_idx].intf[intf_list[r]].out_vlan,    /* Vs */
-                                        evcs[evc_idx].intf[ptin_intf].int_vlan);      /* Vl */
+                                        evcs[evc_idx].intf[ptin_intf].int_vlan,       /* Vl */
+                                        is_stacked );
 
       if (rc != L7_SUCCESS)
       {
@@ -3161,16 +3226,26 @@ static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
               evcs[evc_idx].rvlan);
 
     /* Finally add the bridge leaf entry */
-    rc = switching_unstacked_leaf_add(ptin_intf,                                      /* Leaf intf */
-                                      evcs[evc_idx].intf[ptin_intf].out_vlan,         /* Vs' */
-                                      evcs[evc_idx].intf[ptin_intf].int_vlan,         /* Vl */
-                                      evcs[evc_idx].rvlan);                           /* Vr */
-
+    rc = switching_p2multipoint_leaf_add(ptin_intf,                                      /* Leaf intf */
+                                         evcs[evc_idx].rvlan);                           /* Vr */
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
-              evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
-              evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding leaf entry [leaf_intf=%u Vr=%u]",
+              evc_idx, ptin_intf, evcs[evc_idx].rvlan);
+    }
+    /* Only for unstacked services */
+    if ( !(evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) )
+    {
+      rc = switching_p2multipoint_unstacked_leaf_add(ptin_intf,                                      /* Leaf intf */
+                                                     evcs[evc_idx].intf[ptin_intf].out_vlan,         /* Vs' */
+                                                     evcs[evc_idx].intf[ptin_intf].int_vlan,         /* Vl */
+                                                     evcs[evc_idx].rvlan);                           /* Vr */
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding unstacked leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
+                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
+                evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+      }
     }
   }
 
@@ -3190,7 +3265,7 @@ static L7_RC_t ptin_evc_unstacked_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
+static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
 {
   L7_uint   l, r;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -3212,7 +3287,7 @@ static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf
     /* Remove all leaf xlate entries on the root port */
     for (l=0; l<n_intf; l++)
     {
-      rc = switching_unstacked_root_remove(ptin_intf,                                   /* Root intf */
+      rc = switching_p2multipoint_root_remove(ptin_intf,                                   /* Root intf */
                                            evcs[evc_idx].intf[ptin_intf].out_vlan,      /* Vs */
                                            evcs[evc_idx].intf[intf_list[l]].int_vlan);  /* Vl */
 
@@ -3239,7 +3314,7 @@ static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf
     /* Remove leaf xlate entry on all root ports */
     for (r=0; r<n_intf; r++)
     {
-      rc = switching_unstacked_root_remove(intf_list[r],                                /* Root intf */
+      rc = switching_p2multipoint_root_remove(intf_list[r],                                /* Root intf */
                                            evcs[evc_idx].intf[intf_list[r]].out_vlan,   /* Vs */
                                            evcs[evc_idx].intf[ptin_intf].int_vlan);     /* Vl */
 
@@ -3259,16 +3334,27 @@ static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf
               evcs[evc_idx].rvlan);
 
     /* Finally remove the bridge leaf entry */
-    rc = switching_unstacked_leaf_remove(ptin_intf,                                     /* Leaf intf */
-                                         evcs[evc_idx].intf[ptin_intf].out_vlan,        /* Vs' */
-                                         evcs[evc_idx].intf[ptin_intf].int_vlan,        /* Vl */
-                                         evcs[evc_idx].rvlan);                          /* Vr */
+    if ( !(evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) )
+    {
+      rc = switching_p2multipoint_unstacked_leaf_remove( ptin_intf,                                     /* Leaf intf */
+                                                         evcs[evc_idx].intf[ptin_intf].out_vlan,        /* Vs' */
+                                                         evcs[evc_idx].intf[ptin_intf].int_vlan,        /* Vl */
+                                                         evcs[evc_idx].rvlan);                          /* Vr */
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing unstacked leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
+                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
+                evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+      }
+    }
+
+    rc = switching_p2multipoint_leaf_remove(ptin_intf,                                     /* Leaf intf */
+                                            evcs[evc_idx].rvlan);                          /* Vr */
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing bridge leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
-              evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
-              evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing leaf entry [leaf_intf=%u Vr=%u]",
+              evc_idx, ptin_intf, evcs[evc_idx].rvlan);
     }
   }
 
@@ -3281,7 +3367,7 @@ static L7_RC_t ptin_evc_unstacked_intf_remove(L7_uint evc_idx, L7_uint ptin_intf
  * 
  * @param evc_idx 
  */
-static L7_RC_t ptin_evc_unstacked_intf_remove_all(L7_uint evc_idx)
+static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx)
 {
   L7_uint i;
   L7_RC_t rc = L7_SUCCESS;
@@ -3292,7 +3378,7 @@ static L7_RC_t ptin_evc_unstacked_intf_remove_all(L7_uint evc_idx)
     if (!evcs[evc_idx].intf[i].in_use)
       continue;
 
-    if (ptin_evc_unstacked_intf_remove(evc_idx, i) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove(evc_idx, i) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to remove intf# %u bridge config", evc_idx, i);
       rc = L7_FAILURE;
@@ -3373,37 +3459,37 @@ static void ptin_evc_vlan_pool_init(void)
   L7_uint block;
 
   /* Stacked block */
-  dl_queue_init(&queue_stacked_free_vlans);
+  dl_queue_init(&queue_p2p_free_vlans);
 
-  for (i=PTIN_VLAN_MIN; i<PTIN_VLAN_MAX && i<PTIN_SYSTEM_EVC_STACKED_VLAN_MAX; i++)
+  for (i=PTIN_VLAN_MIN; i<PTIN_VLAN_MAX && i<PTIN_SYSTEM_EVC_P2P_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
-    dl_queue_add(&queue_stacked_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
+    dl_queue_add(&queue_p2p_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
   }
 
   /* Unstacked blocks */
-  for (block=0; block<PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS; block++)
+  for (block=0; block<PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS; block++)
   {
-    dl_queue_init(&queue_unstacked_free_vlans[block]);
+    dl_queue_init(&queue_p2multipoint_free_vlans[block]);
 
-    for (i = PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN + block*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
-         i < PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN + (block+1)*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
+    for (i = PTIN_SYSTEM_EVC_P2MP_VLAN_MIN + block*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
+         i < PTIN_SYSTEM_EVC_P2MP_VLAN_MIN + (block+1)*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
          i++)
     {
       if (i<PTIN_VLAN_MIN || i>PTIN_VLAN_MAX)  continue;
 
       vlans_pool[i].vid = i;
-      dl_queue_add(&queue_unstacked_free_vlans[block], (dl_queue_elem_t*)&vlans_pool[i]);
+      dl_queue_add(&queue_p2multipoint_free_vlans[block], (dl_queue_elem_t*)&vlans_pool[i]);
     }
   }
 
   /* Unstacked free vlan queues */
-  dl_queue_init(&queue_unstacked_freeVlan_queues);
+  dl_queue_init(&queue_p2multipoint_freeVlan_queues);
 
-  for (i=0; i<PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS; i++)
+  for (i=0; i<PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS; i++)
   {
-    queues_pool[i].queue = &queue_unstacked_free_vlans[i];
-    dl_queue_add(&queue_unstacked_freeVlan_queues, (dl_queue_elem_t*)&queues_pool[i]);
+    queues_pool[i].queue = &queue_p2multipoint_free_vlans[i];
+    dl_queue_add(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t*)&queues_pool[i]);
   }
 
 #else
@@ -3430,7 +3516,7 @@ static void ptin_evc_vlan_pool_init(void)
  * @return L7_RC_t L7_SUCCESS if success
  * @return L7_RC_t L7_FAILURE if there are no VLANs available
  */
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_stacked, dl_queue_t **freeVlan_queue)
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue)
 {
  #if (PTIN_SYSTEM_GROUP_VLANS)
   struct ptin_queue_s *fv_queue;
@@ -3441,26 +3527,26 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_sta
     return L7_FAILURE;
   }
 
-  /* evc is stacked, use apropriate free vlan queue */
-  if (is_stacked)
+  /* If evc is P2P, use apropriate free vlan queue */
+  if (is_p2p)
   {
-    *freeVlan_queue = &queue_stacked_free_vlans;
+    *freeVlan_queue = &queue_p2p_free_vlans;
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
     return L7_SUCCESS;
   }
 
-  if (queue_unstacked_freeVlan_queues.n_elems == 0)
+  if (queue_p2multipoint_freeVlan_queues.n_elems == 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "There is no free VLAN queues available");
     return L7_FAILURE;
   }
 
-  dl_queue_remove_head(&queue_unstacked_freeVlan_queues, (dl_queue_elem_t**)&fv_queue);
+  dl_queue_remove_head(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t**)&fv_queue);
 
   *freeVlan_queue = fv_queue->queue;
   LOG_TRACE(LOG_CTX_PTIN_EVC, "Allocated free vlan queue index=%u (%u available)",
-            ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_unstacked_free_vlans)/sizeof(dl_queue_t),
-            queue_unstacked_freeVlan_queues.n_elems);
+            ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_p2multipoint_free_vlans)/sizeof(dl_queue_t),
+            queue_p2multipoint_freeVlan_queues.n_elems);
  #else
   *freeVlan_queue = &queue_free_vlans;
  #endif
@@ -3489,26 +3575,26 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
   }
 
   /* If (free vlan) queue is the stacked one, do nothing */
-  if (freeVlan_queue == &queue_stacked_free_vlans)
+  if (freeVlan_queue == &queue_p2p_free_vlans)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue given... do nothing!");
     return L7_SUCCESS;
   }
 
-  pool_index = ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_unstacked_free_vlans[0])/sizeof(dl_queue_t);
+  pool_index = ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_p2multipoint_free_vlans[0])/sizeof(dl_queue_t);
 
-  if ((L7_uint32) freeVlan_queue < (L7_uint32) &queue_unstacked_free_vlans[0] ||
-      (L7_uint32) freeVlan_queue > (L7_uint32) &queue_unstacked_free_vlans[PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1] ||
-      ( ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_unstacked_free_vlans[0])%sizeof(dl_queue_t) ) != 0 )
+  if ((L7_uint32) freeVlan_queue < (L7_uint32) &queue_p2multipoint_free_vlans[0] ||
+      (L7_uint32) freeVlan_queue > (L7_uint32) &queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1] ||
+      ( ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_p2multipoint_free_vlans[0])%sizeof(dl_queue_t) ) != 0 )
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "freeVlan Queue pointer value is invalid (%u)!",pool_index);
     return L7_FAILURE;
   }
 
   /* Index directly to the pool array and add the element to the free queue */
-  dl_queue_add_head(&queue_unstacked_freeVlan_queues, (dl_queue_elem_t *) &queues_pool[pool_index]);
+  dl_queue_add_head(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t *) &queues_pool[pool_index]);
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)",pool_index,queue_unstacked_freeVlan_queues.n_elems);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)",pool_index,queue_p2multipoint_freeVlan_queues.n_elems);
  #endif
 
   return L7_SUCCESS;
@@ -3798,7 +3884,7 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
+static L7_RC_t switching_p2p_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3843,7 +3929,7 @@ static L7_RC_t switching_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
+static L7_RC_t switching_p2p_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3892,7 +3978,7 @@ static L7_RC_t switching_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_o
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_unstacked_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan)
+static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL is_stacked)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3908,8 +3994,11 @@ static L7_RC_t switching_unstacked_root_add(L7_uint root_intf, L7_uint16 root_ou
     return L7_FAILURE;
   }
 
-  /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan; innerVlan is to be removed */
-  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, (L7_uint16)-1);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (is_stacked=%u)",
+           intIfNum, leaf_int_vlan, root_out_vlan, is_stacked);
+
+  /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan; innerVlan is to be removed if EVC is unstacked */
+  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, ((is_stacked) ? 0 : (L7_uint16)-1) );
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (rc=%d)",
@@ -3937,7 +4026,7 @@ static L7_RC_t switching_unstacked_root_add(L7_uint root_intf, L7_uint16 root_ou
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_unstacked_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan)
+static L7_RC_t switching_p2multipoint_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3974,6 +4063,40 @@ static L7_RC_t switching_unstacked_root_remove(L7_uint root_intf, L7_uint16 root
 }
 
 /**
+ * Adds leaf configuration for EVCs 
+ * 
+ * @param leaf_intf     Leaf interface # (ptin_intf)
+ * @param root_int_vlan Root internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_p2multipoint_leaf_add(L7_uint leaf_intf, L7_uint16 root_int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring leaf intf# %u [Root Int.VLAN=%u]",leaf_intf, root_int_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  /* Associate root internal vlan to the leaf intf */
+  rc = usmDbVlanMemberSet(1, root_int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to leaf intIfNum# %u to (rc=%d)", root_int_vlan, intIfNum, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Adds leaf configuration for unstacked EVCs 
  *  1. configures ingress xlate (leaf outer vlan => leaf internal vlan)
  *  2. configures egress xlate (root internal vlan => leaf outer vlan)
@@ -3986,7 +4109,7 @@ static L7_RC_t switching_unstacked_root_remove(L7_uint root_intf, L7_uint16 root
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
+static L7_RC_t switching_p2multipoint_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -4020,11 +4143,88 @@ static L7_RC_t switching_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_ou
     return L7_FAILURE;
   }
 
-  /* Associate root internal vlan to the leaf intf */
-  rc = usmDbVlanMemberSet(1, root_int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
+  return L7_SUCCESS;
+}
+
+/**
+ * Adds leaf configuration for stacked EVCs 
+ *  1. configures ingress xlate (leaf outer vlan => leaf internal vlan)
+ *  2. configures egress xlate (root internal vlan => leaf outer vlan)
+ *  3. associates leaf_intf to root int.vlan (Vr)
+ * 
+ * @param leaf_intf     Leaf interface # (ptin_intf)
+ * @param leaf_out_vlan Leaf outer VLAN 
+ * @param leaf_inn_vlan Leaf inner VLAN 
+ * @param leaf_int_vlan Leaf internal VLAN
+ * @param root_int_vlan Root internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_p2multipoint_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inn_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
+           leaf_intf, leaf_out_vlan, leaf_int_vlan, leaf_inn_vlan, root_int_vlan, leaf_inn_vlan, leaf_out_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to leaf intIfNum# %u to (rc=%d)", root_int_vlan, intIfNum, rc);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  /* Add ingress xlate entry: (leaf_intf)  (leaf outer vlan => leaf internal vlan) */
+  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, leaf_int_vlan, leaf_inn_vlan);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u => Leaf Int.VLAN %u + Inn.VLAN %u] (rc=%d)",
+            intIfNum, leaf_out_vlan, leaf_int_vlan, leaf_inn_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  /* Add egress xlate entry: (leaf_intf) (root internal vlan+leaf_inn_vlan => leaf outer vlan / inner vlan is to be removed) */
+  rc = ptin_xlate_egress_add(intIfNum, root_int_vlan, leaf_inn_vlan, leaf_out_vlan, (L7_uint16)-1);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u => Leaf Out.VLAN %u] (rc=%d)",
+            intIfNum, root_int_vlan, leaf_inn_vlan, leaf_out_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes leaf configuration for EVCs 
+ * 
+ * @param leaf_intf     Leaf interface # (ptin_intf)
+ * @param root_int_vlan Root internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_p2multipoint_leaf_remove(L7_uint leaf_intf, L7_uint16 root_int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing leaf intf# %u [Root Int.VLAN=%u]", leaf_intf, root_int_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  /* Delete intIfNum from int_vlan */
+  rc = usmDbVlanMemberSet(1, root_int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, root_int_vlan, rc);
     return L7_FAILURE;
   }
 
@@ -4044,7 +4244,7 @@ static L7_RC_t switching_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_ou
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
+static L7_RC_t switching_p2multipoint_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -4057,14 +4257,6 @@ static L7_RC_t switching_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
-    return L7_FAILURE;
-  }
-
-  /* Delete intIfNum from int_vlan */
-  rc = usmDbVlanMemberSet(1, root_int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, root_int_vlan, rc);
     return L7_FAILURE;
   }
 
@@ -4089,6 +4281,56 @@ static L7_RC_t switching_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf
   return L7_SUCCESS;
 }
 
+/**
+ * Removes leaf configuration for stacked EVCs 
+ *  1. deletes ingress xlate (leaf outer vlan => leaf internal vlan)
+ *  2. deletes egress xlate (root internal vlan => leaf outer vlan)
+ *  3. deletes association of leaf_intf to root int.vlan (Vr)
+ * 
+ * @param leaf_intf     Leaf interface # (ptin_intf)
+ * @param leaf_out_vlan Leaf outer VLAN 
+ * @param leaf_inn_vlan Leaf inner VLAN 
+ * @param leaf_int_vlan Leaf internal VLAN
+ * @param root_int_vlan Root internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_p2multipoint_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inn_vlan, L7_uint16 leaf_int_vlan, L7_uint16 root_int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
+           leaf_intf, leaf_out_vlan, leaf_int_vlan, leaf_inn_vlan, root_int_vlan, leaf_inn_vlan, leaf_out_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  /* Deletes ingress xlate entry: (leaf_intf)  (leaf outer vlan => leaf internal vlan) */
+  rc = ptin_xlate_ingress_delete(intIfNum, leaf_out_vlan, 0);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u => Leaf Int.VLAN %u] (rc=%d)",
+            intIfNum, leaf_out_vlan, leaf_int_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  /* Deletes egress xlate entry: (leaf_intf) (root internal vlan => leaf outer vlan) */
+  rc = ptin_xlate_egress_delete(intIfNum, root_int_vlan, leaf_inn_vlan);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Egress entry [Root Int.VLAN %u => Leaf Out.VLAN %u] (rc=%d)",
+            intIfNum, root_int_vlan, leaf_out_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Adds a bridge between a root and leaf interface of a stacked EVC 
@@ -4103,7 +4345,7 @@ static L7_RC_t switching_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_stacked_bridge_add(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid)
+static L7_RC_t switching_p2p_bridge_add(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid)
 {
   L7_uint32 root_intIfNum;
   L7_uint32 leaf_intIfNum;
@@ -4127,35 +4369,6 @@ static L7_RC_t switching_stacked_bridge_add(L7_uint root_intf, L7_uint16 root_in
     LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
     return L7_FAILURE;
   }
-
-#if 1
-  #if ( !PTIN_BOARD_IS_MATRIX )
-  rc = switching_stacked_leaf_add(leaf_intf, leaf_out_vid, leaf_inn_vid, root_int_vid);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",leaf_intf, rc);
-    return L7_FAILURE;
-  }
-  #endif
-#else
-  /* Add ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr,Vc) */
-  rc = ptin_xlate_ingress_add(leaf_intIfNum, leaf_out_vid, 0, root_int_vid, leaf_inn_vid);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u => Root Int.VLAN %u] (rc=%d)",
-            leaf_intIfNum, leaf_out_vid, leaf_inn_vid, root_int_vid, rc);
-    return L7_FAILURE;
-  }
-
-  /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc) */
-  rc = ptin_xlate_egress_add(leaf_intIfNum, root_int_vid, leaf_inn_vid, leaf_out_vid, 0);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u => Leaf Out.VLAN %u] (rc=%d)",
-            leaf_intIfNum, root_int_vid, leaf_inn_vid, leaf_out_vid, rc);
-    return L7_FAILURE;
-  }
-#endif
 
   /* Add cross-connection between root and leaf interfaces */
   rc = ptin_crossconnect_add(root_int_vid, leaf_inn_vid, root_intIfNum, leaf_intIfNum);
@@ -4182,7 +4395,7 @@ static L7_RC_t switching_stacked_bridge_add(L7_uint root_intf, L7_uint16 root_in
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_stacked_bridge_remove(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid)
+static L7_RC_t switching_p2p_bridge_remove(L7_uint root_intf, L7_uint16 root_int_vid, L7_uint leaf_intf, L7_uint16 leaf_out_vid, L7_uint16 leaf_inn_vid)
 {
   L7_uint32 root_intIfNum;
   L7_uint32 leaf_intIfNum;
@@ -4206,35 +4419,6 @@ static L7_RC_t switching_stacked_bridge_remove(L7_uint root_intf, L7_uint16 root
     LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
     return L7_FAILURE;
   }
-
-#if 1
-  #if ( !PTIN_BOARD_IS_MATRIX )
-  rc = switching_stacked_leaf_remove(leaf_intf, leaf_out_vid, leaf_inn_vid, root_int_vid);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",leaf_intf, rc);
-    return L7_FAILURE;
-  }
-  #endif
-#else
-  /* Deletes ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr,Vc) */
-  rc = ptin_xlate_ingress_delete(leaf_intIfNum, leaf_out_vid, 0 /*leaf_inn_vid*/);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u => Root Int.VLAN %u] (rc=%d)",
-            leaf_intIfNum, leaf_out_vid, leaf_inn_vid, root_int_vid, rc);
-    return L7_FAILURE;
-  }
-
-  /* Deletes egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc) */
-  rc = ptin_xlate_egress_delete(leaf_intIfNum, root_int_vid, leaf_inn_vid);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u => Leaf Out.VLAN %u] (rc=%d)",
-            leaf_intIfNum, root_int_vid, leaf_inn_vid, leaf_out_vid, rc);
-    return L7_FAILURE;
-  }
-#endif
 
   /* Deletes cross-connection between root and leaf interfaces */
   rc = ptin_crossconnect_delete(root_int_vid, leaf_inn_vid);
@@ -4420,7 +4604,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If interface is root, or any of the unstacked EVCs,
        check if the vlan is not being used by other EVCs in the same interface */
-    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_STACKED))
+    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_P2P))
     {
       /* Vlan */
       if (evcConf->intf[i].vid==0 || evcConf->intf[i].vid>=4095)
@@ -4562,7 +4746,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_UNSTACKED(evc_idx))
+    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_P2MULTIPOINT(evc_idx))
     #endif
     {
       profile->outer_vlan_out = evcs[evc_idx].intf[ptin_port].out_vlan;
@@ -4785,7 +4969,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_UNSTACKED(evc_idx))
+    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_P2MULTIPOINT(evc_idx))
     #endif
     {
       profile->outer_vlan_out = evcs[evc_idx].intf[ptin_port].out_vlan;
@@ -5450,8 +5634,14 @@ void ptin_evc_dump(L7_uint evc_idx)
       printf("BUNDLING  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_ALL2ONE)
       printf("ALL2ONE  ");
+    if (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P)
+      printf("P2P   ");
+    else
+      printf("P2MP  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED)
-      printf("STACKED  ");
+      printf("STACKED    ");
+    else
+      printf("UNSTACKED  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_MACLEARNING)
       printf("MACLEARNING  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING)
@@ -5468,9 +5658,9 @@ void ptin_evc_dump(L7_uint evc_idx)
 
     printf("  Root VLAN = %u\n", evcs[evc_idx].rvlan);
 
+    /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_idx))
       printf("  Clients   = %u\n", evcs[evc_idx].n_clients);
-              
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
@@ -5486,7 +5676,9 @@ void ptin_evc_dump(L7_uint evc_idx)
       printf("    Outer VLAN    = %-5u      Counter  = %s\n", evcs[evc_idx].intf[i].out_vlan, evcs[evc_idx].intf[i].counter != NULL ? "Active":"Disabled");
       printf("    Internal VLAN = %-5u      BW Prof. = %s\n", evcs[evc_idx].intf[i].int_vlan, evcs[evc_idx].intf[i].bwprofile != NULL ? "Active":"Disabled");
 
-      if (IS_EVC_STACKED(evc_idx)) {
+      /* Only stacked services have clients */
+      if (IS_EVC_STACKED(evc_idx))
+      {
         printf("    Clients       = %u\n", evcs[evc_idx].intf[i].clients.n_elems);
 
         dl_queue_get_head(&evcs[evc_idx].intf[i].clients, (dl_queue_elem_t **) &pclient);

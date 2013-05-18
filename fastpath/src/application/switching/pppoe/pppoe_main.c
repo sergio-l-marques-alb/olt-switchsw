@@ -704,7 +704,7 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
   L7_netBufHandle   bufHandle;
-  L7_BOOL           is_vlan_stacked;
+  L7_BOOL           is_vlan_p2p;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
 
@@ -732,14 +732,14 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
   {
     /* Check if vlan belongs to a stacked EVC */
-    if (ptin_evc_check_isStacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
+    if (ptin_evc_check_is_p2p_fromIntVlan(vlanId,&is_vlan_p2p)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
-      is_vlan_stacked = L7_TRUE;
+      is_vlan_p2p = L7_TRUE;
     }
 
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
+    if (is_vlan_p2p && extIVlan!=0)
     {
       memmove(&frame[20],&frame[16],frame_len);
       frame[16] = 0x81;
@@ -795,7 +795,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
   L7_netBufHandle   bufHandle;
-  L7_BOOL           is_vlan_stacked;
+  L7_BOOL           is_vlan_p2p;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         intIfNum;
@@ -830,14 +830,14 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
   {
     /* Check if vlan belongs to a stacked EVC */
-    if (ptin_evc_check_isStacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
+    if (ptin_evc_check_is_p2p_fromIntVlan(vlanId,&is_vlan_p2p)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
-      is_vlan_stacked = L7_TRUE;
+      is_vlan_p2p = L7_TRUE;
     }
 
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
+    if (is_vlan_p2p && extIVlan!=0)
     {
       memmove(&frame[20],&frame[16],frame_len);
       frame[16] = 0x81;
