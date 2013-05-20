@@ -798,7 +798,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 }
 
 /**
- * Check if the EVC related to an internal vlan is stacked. 
+ * Check if the EVC related to an internal vlan is P2P. 
  *  
  * @param intVlan    : Internal outer-vlan 
  * @param is_p2p     : Is EVC P2P? (output)
@@ -835,6 +835,49 @@ L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
   if (is_p2p!=L7_NULLPTR)
   {
     *is_p2p = IS_EVC_P2P(evc_idx);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Check if the EVC related to an internal vlan is stacked. 
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * @param is_stacked : Is EVC stacked? (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked)
+{
+  L7_uint evc_idx;
+
+  /* Validate arguments */
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_idx = evcId_from_internalVlan[intVlan];
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* EVC should be active */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Check if EVC is stacked, and return result */
+  if (is_stacked!=L7_NULLPTR)
+  {
+    *is_stacked = IS_EVC_STACKED(evc_idx);
   }
 
   return L7_SUCCESS;
