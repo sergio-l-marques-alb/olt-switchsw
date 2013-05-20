@@ -896,7 +896,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint   i;
   L7_uint   evc_idx;
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
-  L7_BOOL   is_p2p;
+  L7_BOOL   is_p2p, is_stacked;
   L7_BOOL   maclearning;
   L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
   L7_BOOL   cpu_trap;
@@ -927,6 +927,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P)            == PTIN_EVC_MASK_P2P;
+  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED)        == PTIN_EVC_MASK_STACKED;
   maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)    == PTIN_EVC_MASK_MACLEARNING;
   dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)  == PTIN_EVC_MASK_DHCP_PROTOCOL;
   igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)  == PTIN_EVC_MASK_IGMP_PROTOCOL;
@@ -1027,11 +1028,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_idx);  /* cannot fail! */
     }
 
-    /* For stacked EVCs, we need to enable forwarding mode to OVID+IVID */
-    if (is_p2p)
-    {
-      ptin_crossconnect_enable(root_vlan, L7_TRUE);
-    }
+    /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
+    ptin_crossconnect_enable(root_vlan, is_p2p, is_stacked);
 
     /* Update EVC entry (this info will be used on the configuration functions) */
     evcs[evc_idx].in_use           = L7_TRUE;
@@ -1082,6 +1080,21 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
           break;
         }
       }
+    }
+
+    /* For EVCs point-to-point unstacked, create now the crossconnection */
+    if ( is_p2p && !is_stacked )
+    {
+      #if 0
+      /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+      rc = switching_p2p_bridge_add(root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge", evc_idx,
+                evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
+        return L7_FAILURE;
+      }
+      #endif
     }
 
     /* If DHCP is enabled, add DHCP instance */

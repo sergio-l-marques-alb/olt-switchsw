@@ -278,7 +278,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL mac_le
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cross_connects_apply)
+L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cross_connects_apply, L7_BOOL double_tag)
 {
   int error;
   bcm_vlan_control_vlan_t control;
@@ -295,7 +295,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cr
   if (cross_connects_apply)
   {
     control.flags |= BCM_VLAN_LEARN_DISABLE;
-    control.forwarding_mode = bcmVlanForwardDoubleCrossConnect;
+    control.forwarding_mode = (double_tag) ? bcmVlanForwardDoubleCrossConnect : bcmVlanForwardSingleCrossConnect;
   }
   else
   {

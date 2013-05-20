@@ -73,7 +73,7 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cross_connects_apply);
+extern L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cross_connects_apply, L7_BOOL double_tag);
 
 /**
  * Add a cross-connection between two ports

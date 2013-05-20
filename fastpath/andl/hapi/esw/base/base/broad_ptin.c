@@ -464,7 +464,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   /* Cross-connect enable */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN)
   {
-    if (ptin_hapi_bridge_vlan_mode_crossconnect_set(mode->vlanId, mode->cross_connects_enable)!=L7_SUCCESS)
+    if (ptin_hapi_bridge_vlan_mode_crossconnect_set(mode->vlanId, mode->cross_connects_enable, mode->double_tag)!=L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
