@@ -257,6 +257,9 @@ ifeq (,$(KFLAGS))
 KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
 endif
 
+# Use MSI interrupts if kernel is compiled with MSI support.
+#CFLAGS += -DBDE_LINUX_USE_MSI_INTERRUPT
+
 #Wind river Linux 3.0 needs addtional flags
 ifeq (3.0,$(WRS_LINUX_VERSION))
 KFLAGS += -I$(LINUX_INCLUDE_STD) -I$(KERNDIR_STD)/arch/powerpc -I$(KERNDIR_STD)/arch/powerpc/include -I$(KERNDIR_STD)/include.asm-generic -mno-spe
