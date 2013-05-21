@@ -104,7 +104,7 @@ void help_oltBuga(void)
         "m 2001 - Get MAC Learning aging time\r\n"
         "--- NEW COMMANDS FP6.3--------------------------------------------------------------------------\r\n"
         "m 1600 EVC#[0-64] - Read EVC config\r\n"
-        "m 1601 EVC#[0-64] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
+        "m 1601 EVC#[0-64] P2P[0/1] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
         "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN ... - Create EVC\r\n"
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
@@ -3061,7 +3061,7 @@ int main (int argc, char *argv[])
           int i;
 
           // Validate number of arguments
-          if (argc<3+7)  {
+          if (argc<3+8)  {
             help_oltBuga();
             exit(0);
           }
@@ -3083,46 +3083,53 @@ int main (int argc, char *argv[])
           }
           ptr->id = valued;
 
-          // Stacked
+          // P2P
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0004 : 0;
 
-          // MAC Learning
+          // Stacked
           if (StrToLongLong(argv[3+2], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->flags |= valued != 0 ? 0x10000 : 0;
+
+          // MAC Learning
+          if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0008 : 0;
 
           // Other masks
-          if (StrToLongLong(argv[3+3], &valued)<0)  {
+          if (StrToLongLong(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued;
 
           // MC Flood type
-          if (StrToLongLong(argv[3+4], &valued)<0)  {
+          if (StrToLongLong(argv[3+5], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->mc_flood = valued;
 
-          ptr->n_intf   = argc - (3+5);
+          ptr->n_intf   = argc - (3+6);
 
           // Interfaces...
           unsigned int intf, type, mef, vid;
-          for (i=3+5; i<argc; i++) {
+          for (i=3+6; i<argc; i++) {
             printf("argv[%u]=%s  **  ", i, argv[i]);
             sscanf(argv[i], "%d/%d/%d/%d", &type, &intf, &mef, &vid);
             printf("%d/%d/%d/%d\n", type, intf, mef, vid);
-            ptr->intf[i-(3+5)].intf_type = type;
-            ptr->intf[i-(3+5)].intf_id   = intf;
-            ptr->intf[i-(3+5)].mef_type  = mef;
-            ptr->intf[i-(3+5)].vid       = vid;
+            ptr->intf[i-(3+6)].intf_type = type;
+            ptr->intf[i-(3+6)].intf_id   = intf;
+            ptr->intf[i-(3+6)].mef_type  = mef;
+            ptr->intf[i-(3+6)].vid       = vid;
           }
         }
         break;

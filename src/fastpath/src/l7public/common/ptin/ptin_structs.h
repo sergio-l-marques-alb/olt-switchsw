@@ -266,16 +266,19 @@ typedef struct
 typedef struct
 {
   L7_uint16 vlanId;                 // Vlan which will be configured
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_NONE         0x00
+  L7_BOOL   double_tag;             // Use double tag
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_NONE           0x00
   L7_uint8  mask;                   // Mask of configurations (see below)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN      0x01
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN        0x01
   L7_uint16 fwdVlanId;              // Forwrd vlan used for MAC larning (only applicable to mask=0x01)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_OTPID        0x02
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_OTPID          0x02
   L7_uint16 outer_tpid;             // Outer TPID (only applicable to mask=0x02)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN     0x04
-  L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x04)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN 0x08
-  L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x08)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_ITPID          0x04
+  L7_uint16 inner_tpid;             // Inner TPID (only applicable to mask=0x04)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN       0x08
+  L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x08)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN   0x10
+  L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
 } ptin_bridge_vlan_mode_t;
 
 /* Struct used to manipulate cross connects via DTL */
@@ -311,6 +314,7 @@ typedef struct {
 #define PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
 #define PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
 #define PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400
+#define PTIN_EVC_MASK_P2P             0x00010000
 
 #define PTIN_EVC_MC_FLOOD_ALL       0
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1

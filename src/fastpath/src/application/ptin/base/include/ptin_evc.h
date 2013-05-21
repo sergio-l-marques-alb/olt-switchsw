@@ -66,7 +66,7 @@ extern L7_RC_t ptin_evc_destroy_all(void);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
+extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
 
 /**
  * Removes a bridge from a stacked EVC between the root and a particular interface
@@ -75,7 +75,7 @@ extern L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
+extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
 
 /**
  * Bandwidth Policers management functions
@@ -282,6 +282,16 @@ extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Check if the EVC related to an internal vlan is P2P. 
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * @param is_p2p     : Is EVC P2P? (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p);
+
+/**
  * Check if the EVC related to an internal vlan is stacked. 
  *  
  * @param intVlan    : Internal outer-vlan 
@@ -289,7 +299,7 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_isStacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked);
+extern L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked);
 
 /**
  * Get next client, belonging to a vlan

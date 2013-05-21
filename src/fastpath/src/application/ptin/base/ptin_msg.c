@@ -1950,7 +1950,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
-  if (ptin_evc_stacked_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+  if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
     return L7_FAILURE;
@@ -1985,7 +1985,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
-  rc = ptin_evc_stacked_bridge_remove(&ptinEvcBridge);
+  rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
 
   if ( rc != L7_SUCCESS)
   {

@@ -2655,7 +2655,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
   }
 
   #else
@@ -2684,7 +2684,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
   }
 
   #endif
@@ -6070,7 +6070,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   /* If UC EVC is stacked, use its root vlan */
-  if (evcCfg.flags & PTIN_EVC_MASK_STACKED)
+  if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
     if (ptin_evc_get_intRootVlan(uc_evcId,&vlan)!=L7_SUCCESS)

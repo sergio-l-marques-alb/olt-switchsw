@@ -84,7 +84,7 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_B
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply)
+L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L7_BOOL double_tag)
 {
   ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -99,6 +99,7 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply)
 
   /* Fill structure */
   mode.vlanId                 = vlanId;
+  mode.double_tag             = double_tag;
   mode.cross_connects_enable  = crossconnect_apply & 1;
   mode.mask                   = PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN;
 
