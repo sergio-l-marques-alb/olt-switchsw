@@ -60,6 +60,7 @@
 #ifdef BCM_SBX_SUPPORT
 #include <soc/sbx/sbx_drv.h>
 #endif
+#include <stdio.h>
 
 #include <soc/debug.h>
 
@@ -3798,6 +3799,7 @@ _soc_cm_find_device(uint16 dev_id, uint16 rev_id)
         for (i = 0; i < COUNTOF(soc_device_info); i++) {
             if (soc_device_info[i].dev_id == dev_id &&
                 soc_device_info[i].rev_id == rev_id) {
+printf("%s(%d)\n", __FUNCTION__, __LINE__);
                 return &soc_device_info[i];
             }
         }
@@ -3808,6 +3810,8 @@ _soc_cm_find_device(uint16 dev_id, uint16 rev_id)
             rev_id--;
         }
     }
+
+printf("%s(%d)\n", __FUNCTION__, __LINE__);
 
     return NULL;
 }
