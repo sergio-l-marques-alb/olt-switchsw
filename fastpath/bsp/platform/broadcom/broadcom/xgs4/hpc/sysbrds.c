@@ -450,10 +450,18 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_PORTMAP"_46", "58:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_47", "59:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_48", "60:10") != 0) return(L7_FAILURE);
+        /* Modified */
+        #if 1
+        if (sal_config_set(spn_PORTMAP"_49", "61:40") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_50", "61:40") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_51", "61:40") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_52", "61:40") != 0) return(L7_FAILURE);
+        #else
         if (sal_config_set(spn_PORTMAP"_49", "61:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_50", "62:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_51", "63:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_52", "64:10") != 0) return(L7_FAILURE);
+        #endif
 
         if (sal_config_set(spn_PORTMAP"_53", "67:10") != 0) return(L7_FAILURE); // slot 18 lane 2
         if (sal_config_set(spn_PORTMAP"_54", "68:10") != 0) return(L7_FAILURE); // slot 18 lane 3
