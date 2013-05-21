@@ -2655,7 +2655,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
   }
 
   #else
@@ -2684,7 +2684,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
   }
 
   #endif
