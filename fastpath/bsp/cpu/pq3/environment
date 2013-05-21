@@ -1,2 +1,2 @@
 # Directly set CROSS_COMPILE and KERNEL_SRC for Linux 2.6 views
-include bsp/cpu/pq2pro/environment_linux_2.6
+include bsp/cpu/pq3/environment_linux_2.6
