@@ -506,6 +506,7 @@ HPC_CARD_DESCRIPTOR_t *hpcCardDbLookup(L7_uint32 cardTypeId)
   if (item_found == L7_TRUE)
   {
     desc_ptr = &hpc_card_descriptor_db[found_index];
+    printf("%s(%d) Desciptor index=%d\r\n",__FUNCTION__,__LINE__,found_index);
   }
   else
   {
