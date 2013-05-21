@@ -78,11 +78,15 @@ struct ptin_evc_s {
   L7_BOOL    in_use;        /* When set, indicates that this entry is valid */
 
   L7_uint32  flags;         /* PTIN_EVC_MASK_xxx:
-                             *   0x0001 - Bundling      (not implemented)
-                             *   0x0002 - All to One    (not implemented)
-                             *   0x0004 - P2P           (PTin custom field)
-                             *   0x0008 - Mac Learning  (PTin custom field)
-                             *   0x0100 - DHCP protocol (PTin custom field) */
+                             *  PTIN_EVC_MASK_BUNDLING        0x00000001
+                             *  PTIN_EVC_MASK_ALL2ONE         0x00000002
+                             *  PTIN_EVC_MASK_STACKED         0x00000004
+                             *  PTIN_EVC_MASK_MACLEARNING     0x00000008
+                             *  PTIN_EVC_MASK_CPU_TRAPPING    0x00000010
+                             *  PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
+                             *  PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
+                             *  PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400
+                             *  PTIN_EVC_MASK_P2P             0x00010000 */
 
   L7_uint8   type;          /* (not used)
                              *   0 - p2p
