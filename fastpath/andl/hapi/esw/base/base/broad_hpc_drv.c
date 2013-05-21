@@ -1789,6 +1789,8 @@ void hpcHardwareDefaultConfigApply(void)
      
     if (soc_feature(i, soc_feature_dual_hash))
     {
+       /* PTin removed: BCM56643 */
+       #if 0
        int hashControl;
 
        /* The key is to select the a different hashing algorithm 
@@ -1835,7 +1837,8 @@ void hpcHardwareDefaultConfigApply(void)
        {
           LOG_ERROR (rv);
        }
-    }
+       }
+       #endif
     }
 
     if (SOC_IS_RAPTOR(i) || SOC_IS_HAWKEYE(i)) 
