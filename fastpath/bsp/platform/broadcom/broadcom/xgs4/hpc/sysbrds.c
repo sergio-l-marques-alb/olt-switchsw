@@ -165,8 +165,30 @@ L7_RC_t hpcConfigBoardSet()
         /* Configure to use LCPLL reference clock */
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
 
+        #if 1
+        if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        #endif
+
         /* Configure Portmaps: different mapping for CXP360G V2 and V3 */
-        if (cpld_map->reg.hw_ver <= 2)
+        #if 0 
+        //if (cpld_map->reg.hw_ver <= 2)
         {
           LOG_TRACE(LOG_CTX_MISC, "Using Port Expanders mapping for CXP360G V2 or below");
 
@@ -212,6 +234,7 @@ L7_RC_t hpcConfigBoardSet()
           if (sal_config_set(spn_PORT_PHY_ADDR"_40", "0x23") != 0) return(L7_FAILURE);
         }
         else
+#endif
         {
           LOG_TRACE(LOG_CTX_MISC, "Using Port Expanders mapping for CXP360G V3 or higher");
 
