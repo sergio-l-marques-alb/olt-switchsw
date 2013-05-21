@@ -1789,7 +1789,7 @@ void hpcHardwareDefaultConfigApply(void)
      
     if (soc_feature(i, soc_feature_dual_hash))
     {
-       /* PTin removed: BCM56643 */
+       /* PTin TODO: BCM56643 */
        #if 0
        int hashControl;
 
@@ -2289,7 +2289,7 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
   return rc;
 }
 
-/* PTin removed: SDK 6.3.0 */
+/* PTin TODO: SDK 6.3.0 */
 #if 0
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
