@@ -213,6 +213,138 @@ L7_RC_t ptin_evcStats_deleteAll(void)
 }
 
 /**
+ * Set global enable for IGMP packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmpPkts_global_trap(L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
+  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Create/remove a rule, to allow IGMP packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  /* Policer must be a valid pointer */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set global enable for MLD packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_mldPkts_global_trap(L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
+  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_MLD;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Create/remove a rule, to allow MLD packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  /* Policer must be a valid pointer */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_MLD;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+
+  return L7_SUCCESS;
+}
+
+/**
  * Set global enable for DHCP packets to go to the CPU
  * 
  * @param enable : L7_TRUE/L7_FALSE

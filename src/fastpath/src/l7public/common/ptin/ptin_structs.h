@@ -327,6 +327,8 @@ typedef struct {
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
+  L7_uint16 n_clients;    // Number of attached clients
+
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   ptin_HwEthMef10Intf_t intf[PTIN_SYSTEM_MAX_N_PORTS];
 
