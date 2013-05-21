@@ -4321,11 +4321,11 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   }
 #endif /* SCORPION */
 #ifdef BCM_TRIUMPH_SUPPORT
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit))  /* PTin modified */
+  else if (SOC_IS_TR_VL(unit) && !SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
   { 
     rc = hapiBroadTrVlMmuModify(unit);
   }
-  else if (SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit))  /* PTin modified */
+  else if (SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
   {
     rc = hapiBroadEnduroMmuModify(unit);
   }
@@ -4334,6 +4334,12 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   {
     // TODO
     LOG_WARNING(LOG_CTX_MISC, "hapiBroadTridentMmuModify() is NOT IMPLEMENTED!");
+    //rc = hapiBroadTridentMmuModify(unit);
+  }
+  else if (SOC_IS_TRIUMPH3(unit))
+  {
+    // TODO
+    LOG_WARNING(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
     //rc = hapiBroadTridentMmuModify(unit);
   }
   /* PTin end */
@@ -4410,7 +4416,7 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   {
     rc=  hapiBroadMmuEnduroPauseSet(unit, mode);
   }
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_TRIDENT(unit)) /* PTin modified: new switch BCM56843 */
+  else if (SOC_IS_TR_VL(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit)) /* PTin modified: new switch BCM56843 */
   {
     rc = hapiBroadMmuTriumphPauseSet(unit, mode);
   }
@@ -4418,6 +4424,10 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   else if (SOC_IS_TRIDENT(unit))
   {
     LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
+  }
+  else if (SOC_IS_TRIUMPH3(unit))
+  {
+    LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTriumph3PauseSet() is not implemented!");
   }
   /* PTin end */
 #endif
