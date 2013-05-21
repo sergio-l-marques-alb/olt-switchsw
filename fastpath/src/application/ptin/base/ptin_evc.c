@@ -2760,7 +2760,7 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
   /* Only stacked services have clients */
   if (!IS_EVC_STACKED(evc_idx))
   {
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... clients are not supported!");
+    //LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... clients are not supported!");
     return L7_NOT_SUPPORTED;
   }
 
@@ -2773,7 +2773,7 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
     /* Provided client does not exist */
     if (pclient==L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: No clients attached to intf=%u/%u!",evc_idx, ptin_intf->intf_type,ptin_intf->intf_id);
+      //LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: No clients attached to intf=%u/%u!",evc_idx, ptin_intf->intf_type,ptin_intf->intf_id);
       return L7_NO_VALUE;
     }
     client_next = pclient;
@@ -2791,7 +2791,7 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
     {
       if (cvlan_next!=L7_NULLPTR)  *cvlan_next = 0;
       if (ovlan_next!=L7_NULLPTR)  *ovlan_next = 0;
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Last cvlan (%u) attached to intf=%u/%u reached!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
+      //LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Last cvlan (%u) attached to intf=%u/%u reached!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
       return L7_NO_VALUE;
     }
     client_next = pclient->next;
