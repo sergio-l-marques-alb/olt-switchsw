@@ -3191,7 +3191,7 @@ static L7_RC_t ptin_pppoe_trap_configure(L7_uint pppoe_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If UC EVC is stacked, use its root vlan */
+  /* If UC EVC is point-to-point, use its root vlan */
   if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
@@ -3206,7 +3206,7 @@ static L7_RC_t ptin_pppoe_trap_configure(L7_uint pppoe_idx, L7_BOOL enable)
     }
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If unstacked... */
+  /* If point-to-multipoint... */
   else
   {
     /* Run all interfaces, and get its configurations */

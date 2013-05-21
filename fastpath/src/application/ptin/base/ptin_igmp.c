@@ -2630,7 +2630,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
   }
 
   #else
@@ -2659,7 +2659,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   if (is_unstacked!=L7_NULLPTR)
   {
-    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_P2P) == 0);
+    *is_unstacked = ((evcConf.flags & PTIN_EVC_MASK_STACKED) == 0);
   }
 
   #endif
@@ -4845,7 +4845,7 @@ L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir
   /* Only for downlink ports, or both */
   if ( direction == PTIN_DIR_DOWNLINK || direction == PTIN_DIR_BOTH )
   {
-    /* If unstacked, configure leaf vlans */
+    /* If point-to-multipoint, configure leaf vlans */
     if ( !(evcCfg.flags & PTIN_EVC_MASK_P2P) )
     {
       /* Run all interfaces, and get its configurations */
