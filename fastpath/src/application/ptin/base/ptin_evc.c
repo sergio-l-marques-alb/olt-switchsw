@@ -947,25 +947,31 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   root_port1 = root_port2 = leaf_port1 = -1;
   for (i=0; i<evcConf->n_intf; i++)
   {
+    /* Convert Phy/Lag# into PTin Intf index */
+    if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
+      ptin_intf = evcConf->intf[i].intf_id;
+    else
+      ptin_intf = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
+
     if (evcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT)
     {
       n_roots++;
-      if (root_port1 < 0)       root_port1 = i;   /* First root port */
-      else if (root_port2 < 0)  root_port2 = i;   /* Second root port */
+      if (root_port1 < 0)       root_port1 = ptin_intf;   /* First root port */
+      else if (root_port2 < 0)  root_port2 = ptin_intf;   /* Second root port */
     }
     else
     {
       n_leafs++;
-      if (leaf_port1 < 0)       leaf_port1 = i;   /* First leaf port */
+      if (leaf_port1 < 0)       leaf_port1 = ptin_intf;   /* First leaf port */
     }
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: First root ports = %u,%u   First leaf port = %u", evc_idx, root_port1, root_port2, leaf_port1);
+
   /* Do not accept:
    *   1. no roots
-   *   2. only one root without leafs (except for inBand EVC# PTIN_EVC_INBAND)
-   *   3. leafs in EVC# PTIN_EVC_INBAND */
+   *   2. leafs in EVC# PTIN_EVC_INBAND */
   if ((n_roots == 0) ||
-      /*(n_roots != 0 && n_leafs == 0 && evc_idx != PTIN_EVC_INBAND) ||*/
       (evc_idx == PTIN_EVC_INBAND && n_leafs != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: combination of roots/leafs is invalid! [roots=%u leafs=%u]",
@@ -990,18 +996,17 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* Determine pair of ports for 1:1 EVCs (needed for unstacked EVCs) */
   p2p_port1 = -1;
   p2p_port2 = -1;
-
   /* Unstacked 1:1 EVCs only accept one root and one leaf, or two root ports */
   if ( is_p2p && !is_stacked )
   {
     /* With no leafs, use the first two root ports */
-    if ( n_roots ==2 && n_leafs == 0 )
+    if ( n_roots >= 2 && n_leafs == 0 )
     {
       p2p_port1 = root_port1;
       p2p_port2 = root_port2;
     }
     /* Otherwise, use first root port and first leaf port */
-    else if ( n_roots == 1 && n_leafs == 1)
+    else if ( n_roots >= 1 && n_leafs >= 1)
     {
       p2p_port1 = root_port1;
       p2p_port2 = leaf_port1;
@@ -1012,6 +1017,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       return L7_FAILURE;
     }
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Port1 = %u   Port2 = %u", evc_idx, p2p_port1, p2p_port2 );
 
   /* Check if phy ports are already assigned to LAGs */
   for (i=0; i<evcConf->n_intf; i++)
@@ -1136,7 +1143,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_idx,
                 p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
                 p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan);
-        return L7_FAILURE;
+        error = L7_TRUE;
       }
     }
 
@@ -1210,14 +1217,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       else if ( !is_stacked )
       {
         /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-        if (switching_p2p_bridge_remove(p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
-                                        p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan,
-                                        0 /* No inner vlan */) != L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_idx,
-                  p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
-                  p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan);
-        }
+        switching_p2p_bridge_remove(p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
+                                    p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan,
+                                    0 /* No inner vlan */);
       }
       
       /* Remove all previously configured interfaces */
@@ -3333,9 +3335,9 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf
     for (l=0; l<n_intf; l++)
     {
       rc = switching_p2multipoint_root_add(ptin_intf,                                    /* Root intf */
-                                        evcs[evc_idx].intf[ptin_intf].out_vlan,       /* Vs */
-                                        evcs[evc_idx].intf[intf_list[l]].int_vlan,    /* Vl */
-                                        is_stacked );
+                                           evcs[evc_idx].intf[ptin_intf].out_vlan,       /* Vs */
+                                           evcs[evc_idx].intf[intf_list[l]].int_vlan,    /* Vl */
+                                           is_stacked );
 
       if (rc != L7_SUCCESS)
       {
@@ -4763,7 +4765,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If interface is root, or any of the unstacked EVCs,
        check if the vlan is not being used by other EVCs in the same interface */
-    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_P2P))
+    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_STACKED))
     {
       /* Vlan */
       if (evcConf->intf[i].vid==0 || evcConf->intf[i].vid>=4095)
