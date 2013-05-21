@@ -33,7 +33,7 @@ export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-2.6.35
 #export COMPILER		= /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
 #export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-2.6.38-rc5-denx
 
-CARD_FOLDER = FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_TA48GE
+CARD_FOLDER = FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU		= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
