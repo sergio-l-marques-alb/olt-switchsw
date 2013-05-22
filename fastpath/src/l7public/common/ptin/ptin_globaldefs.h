@@ -761,7 +761,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #define RATE_LIMIT_IGMP     512
 #define RATE_LIMIT_DHCP     512
 #define RATE_LIMIT_PPPoE    512
-#define RATE_LIMIT_BCAST    512
+#define RATE_LIMIT_BCAST    256
 
 /* PTin module states */
 typedef enum {

@@ -1996,6 +1996,104 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   return L7_SUCCESS;
 }
 
+/**
+ * Adds a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be added
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients)
+{
+  L7_uint     i;
+  ptin_intf_t ptin_intf;
+  L7_RC_t     rc = L7_SUCCESS;
+
+  if ( msgEvcFlood == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    return L7_FAILURE;
+  }
+
+  /* Run all clients */
+  for ( i=0; i<n_clients; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+    if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                 ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                 ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                 msgEvcFlood[i].oVlanId,
+                                 msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/**
+ * Removes a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be removed
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients)
+{
+  L7_uint     i;
+  ptin_intf_t ptin_intf;
+  L7_RC_t     rc = L7_SUCCESS;
+
+  if ( msgEvcFlood == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    return L7_FAILURE;
+  }
+
+  /* Run all clients */
+  for ( i=0; i<n_clients; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+    if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                    ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                    ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                    msgEvcFlood[i].oVlanId,
+                                    msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
 /* Bandwidth profiles *********************************************************/
 
 /**

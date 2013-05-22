@@ -347,6 +347,27 @@ extern L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge);
  */
 extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
 
+/**
+ * Adds a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be added
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients);
+
+/**
+ * Removes a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be removed
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients);
+
+
 /* Bandwidth profiles **************************************/
 
 /**

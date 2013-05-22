@@ -109,6 +109,8 @@ void help_oltBuga(void)
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
+        "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add a flooding vlan to an EVC\r\n"
+        "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Delete a flooding vlan from an EVC\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
         "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
         "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
@@ -3088,14 +3090,14 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->flags |= valued != 0 ? 0x0004 : 0;
+          ptr->flags |= valued != 0 ? 0x10000 : 0;
 
           // Stacked
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->flags |= valued != 0 ? 0x10000 : 0;
+          ptr->flags |= valued != 0 ? 0x0004 : 0;
 
           // MAC Learning
           if (StrToLongLong(argv[3+3], &valued)<0)  {

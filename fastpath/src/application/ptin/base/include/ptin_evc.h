@@ -78,6 +78,49 @@ extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
 extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
 
 /**
+ * Gets the flooding vlans list
+ * 
+ * @param evcId       : EVC index
+ * @param ptin_intf   : port of which client_vlan belongs
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : list of outer vlans
+ * @param inner_vlan  : list of inner vlans 
+ * @param number_of_vlans : Size of returned lists
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flood_vlan_get( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+                                        L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
+
+/**
+ * Adds a flooding vlan
+ * 
+ * @param evcId       : EVC index
+ * @param ptin_intf   : port of which client_vlan belongs
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : outer vlan of transmitted  packets
+ * @param inner_vlan  : inner vlan of transmitted  packets
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+                                        L7_uint16 outer_vlan, L7_uint16 inner_vlan );
+
+/**
+ * Removes a flooding vlan
+ * 
+ * @param evcId       : EVC index
+ * @param ptin_intf   : port of which client_vlan belongs
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : outer vlan of transmitted packets
+ * @param inner_vlan  : inner vlan of transmitted packets
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+                                           L7_uint16 outer_vlan, L7_uint16 inner_vlan );
+
+/**
  * Bandwidth Policers management functions
  */
 

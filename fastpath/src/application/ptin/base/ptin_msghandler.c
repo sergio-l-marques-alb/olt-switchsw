@@ -1285,6 +1285,65 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
     }
 
+    /* Add vlan to be flooded */
+    case CCMSG_ETH_EVC_FLOOD_VLAN_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_ADD (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
+
+      msg_HwEthEvcFloodVlan_t *evcFlood;
+      L7_uint32 n_clients;
+
+      evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
+      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EvcFloodVlan_add(evcFlood, n_clients))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", evcFlood->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
+    }
+
+    /* Remove vlan to be flooded */
+    case CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
+
+      msg_HwEthEvcFloodVlan_t *evcFlood;
+      L7_uint32 n_clients;
+
+      evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
+      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EvcFloodVlan_remove(evcFlood, n_clients))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", evcFlood->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
+    }
 
     /************************************************************************** 
      * EVCs Counters config

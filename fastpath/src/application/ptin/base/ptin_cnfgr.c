@@ -24,9 +24,12 @@
 #include "cli_txt_cfg_api.h"
 #include "ptin_cnfgr.h"
 
+#include "sysnet_api_ipv4.h"
+
 #include "ptin_msghandler.h"
 #include "ptin_control.h"
 #include "ptin_evc.h"
+#include "ptin_packet.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
@@ -392,6 +395,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
                                      L7_CNFGR_ERR_RC_t   *pReason )
 {
   L7_RC_t rc = L7_SUCCESS;
+  sysnetPduIntercept_t sysnetPduInterceptIn;
   
   /* Phase 2:
   *  - Register for callbacks with other components
@@ -417,6 +421,21 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   *pReason    = L7_CNFGR_ERR_RC_FATAL;
   return L7_FAILURE;
 #endif
+
+  /* Intercept incoming ARP packets */
+  sysnetPduInterceptIn.addressFamily = L7_AF_INET;
+  sysnetPduInterceptIn.hookId = SYSNET_INET_RECV_ARP_IN;
+  sysnetPduInterceptIn.hookPrecedence = FD_SYSNET_HOOK_PTIN_ARP_IN_PRECEDENCE;
+  sysnetPduInterceptIn.interceptFunc = ptinArpRecv;
+  strcpy(sysnetPduInterceptIn.interceptFuncName, "ptinArpRecv");
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptinArpRecv registered!");
+
+  if (sysNetPduInterceptRegister(&sysnetPduInterceptIn) != L7_SUCCESS)
+  {
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_FATAL;
+    return L7_ERROR;
+  }
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 
