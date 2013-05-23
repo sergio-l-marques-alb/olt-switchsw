@@ -424,7 +424,7 @@ void timerCallback(void *param)
  * @returns L7_FAILURE
  *
  *************************************************************************/
-L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint16 timeout, snoopPTinL3InfoData_t *groupData, L7_uint32 interfaceIdx, L7_uint32 sourceIdx)
+L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint32 timeout, snoopPTinL3InfoData_t *groupData, L7_uint32 interfaceIdx, L7_uint32 sourceIdx)
 {
   L7_BOOL                  restart_timer = L7_FALSE;
   snoopPTinL3Sourcetimer_t pTimerData;
@@ -447,18 +447,21 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint16
   if (SLLFind(&timerLinkedList, (void *)&pTimerData) != L7_NULL)
   {
     restart_timer = L7_TRUE;
-    if (appTimerDelete(cbTimer, (void *) pTimer->timer) != L7_SUCCESS)
+    if(pTimer->isRunning == L7_TRUE)
     {
-      osapiSemaGive(timerSem);
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed restarting timer");
-      return L7_FAILURE;
-    }
-    pTimer->isRunning = L7_FALSE;
-    pTimer->timer = L7_NULLPTR;
+      if (appTimerDelete(cbTimer, (void *) pTimer->timer) != L7_SUCCESS)
+      {
+        osapiSemaGive(timerSem);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed restarting timer");
+        return L7_FAILURE;
+      }
+      pTimer->isRunning = L7_FALSE;
+      pTimer->timer = L7_NULLPTR;
 
-    /* Remove timer handle */
-    handleListNodeDelete(handleList, &pTimer->timerHandle);
-    pTimer->timerHandle = 0;
+      /* Remove timer handle */
+      handleListNodeDelete(handleList, &pTimer->timerHandle);
+      pTimer->timerHandle = 0;
+    }
   }
   else 
   {
@@ -467,8 +470,9 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint16
     pTimer->sourceIdx    = sourceIdx;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (group:%s vlan:%u ifIdx:%u srcIdx:%u)",
-            snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, sourceIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (timeout:%u group:%s vlan:%u ifIdx:%u srcIdx:%u)",
+            timeout, snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), 
+            groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, sourceIdx);
 
   /* If timeout was configured as 0, do not set up the timer */
   if(timeout == 0)
@@ -573,14 +577,15 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   /* Argument validation */
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
   {
+    /*If timer is not running the pTimer==L7_NULLPTR*/
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+
     return 0;
   }
-  else if(pTimer->isRunning == L7_FALSE)
+  else if(pTimer->isRunning == L7_FALSE) /*Check if the Timer is Still Running*/
   {
-     return 0;
+     return 0;     
   }
-
   appTimerTimeLeftGet(cbTimer, pTimer->timer, &time_left);
 
   return time_left;

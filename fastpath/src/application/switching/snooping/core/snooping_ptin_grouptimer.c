@@ -425,7 +425,7 @@ void timerCallback(void *param)
  * @returns L7_FAILURE
  *
  *************************************************************************/
-L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t *pTimer, L7_uint16 timeout, snoopPTinL3InfoData_t* groupData, L7_uint32 interfaceIdx)
+L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t* pTimer, L7_uint32 timeout, snoopPTinL3InfoData_t* groupData, L7_uint32 interfaceIdx)
 {
   L7_BOOL                 restart_timer = L7_FALSE;
   snoopPTinL3Grouptimer_t pTimerData;
@@ -465,8 +465,9 @@ L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t *pTimer, L7_uint16 t
     pTimer->interfaceIdx = interfaceIdx;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting grouptimer (group:%s vlan:%u ifIdx:%u)",
-            snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting grouptimer (group:%s timeout:%u vlan:%u ifIdx:%u)",
+            snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf),timeout,
+            groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)
@@ -560,7 +561,7 @@ L7_uint32 snoop_ptin_grouptimer_timeleft(snoopPTinL3Grouptimer_t *pTimer)
 
   /* Argument validation */
   if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
-  {
+  { 
     return 0;
   }
 

@@ -337,7 +337,7 @@ typedef struct
 
 typedef struct
 {
-  snoop_ptin_filtermode_t filtermode;
+  L7_uint8                filtermode;
   snoopPTinL3Source_t     sources[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;

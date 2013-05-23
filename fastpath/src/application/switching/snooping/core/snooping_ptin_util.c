@@ -26,8 +26,6 @@
 static L7_RC_t  snoopPTinQueryFrameV3Build(L7_uint32 vlanId, L7_uint32 groupAddr, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_uint32 *sources, L7_uint8 sourcesCnt);
 static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_uint32 groupAddr, L7_uchar8 *buffer, L7_uint32 *length, L7_uchar8 *igmpFrameBuffer, L7_uint32 igmpFrameLength);
 static void     snoopPTinQuerySend        (L7_uint32 arg1);
-static L7_RC_t  snoopPTinQueryQueuePush   (snoopPTinQueryData_t *queryData);
-static L7_RC_t  snoopPTinQueryQueuePop    (L7_uint32 index);
 
 
 /*********************************************************************
@@ -76,138 +74,6 @@ L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr)
 }
 
 /*********************************************************************
- * @purpose Method to get the first free position in the Query buffer
- *
- * @param   queryData Pointer to the variable that will holds the
- *                    query data to save
- *
- * @note The queuePos in queryData is filled by this method
- *
- * @returns  L7_SUCCESS
- * @returns  L7_FAILURE
- *
- *********************************************************************/
-L7_RC_t snoopPTinQueryQueuePush(snoopPTinQueryData_t *queryData)
-{
-  snoop_eb_t *pSnoopEB;
-
-  /* Argument validation */
-  if (queryData == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  pSnoopEB = snoopEBGet();
-
-  osapiSemaTake(pSnoopEB->snoopPTinQueryQSema, -1);
-
-  /* Insert query data if the queue is not full */
-  if (!pSnoopEB->snoopPTinQueryQueueFreeListFull)
-  {
-    L7_uint32 freeIdx, i;
-
-    /* Get the first free index on Query Queue */
-    freeIdx = pSnoopEB->snoopPTinQueryQueueFreeList[pSnoopEB->snoopPTinQueryQueueFreeListPushIdx];
-
-    /* Save Query data */
-    queryData->queuePos = pSnoopEB->snoopPTinQueryQueueFreeListPushIdx;
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].queuePos = pSnoopEB->snoopPTinQueryQueueFreeListPushIdx;
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].vlanId = queryData->vlanId;
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].groupAddr = queryData->groupAddr;
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].sFlag = queryData->sFlag;
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].retransmissions = queryData->retransmissions;
-    for (i = 0; i < queryData->sourcesCnt; ++i)
-    {
-      pSnoopEB->snoopPTinQueryQueue[freeIdx].sourceList[i] = queryData->sourceList[i];
-    }
-    pSnoopEB->snoopPTinQueryQueue[freeIdx].sourcesCnt = queryData->sourcesCnt;
-
-    /* Increment push index */
-    ++pSnoopEB->snoopPTinQueryQueueFreeListPushIdx;
-    if(pSnoopEB->snoopPTinQueryQueueFreeListPushIdx == PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListPushIdx = 0;
-    }
-
-    /* If the buffer was empty, unset the empty flag */
-    if(pSnoopEB->snoopPTinQueryQueueFreeListEmpty)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListEmpty = L7_FALSE;
-    }
-
-    /* Check if the buffer is now full */
-    if(pSnoopEB->snoopPTinQueryQueueFreeListPushIdx == pSnoopEB->snoopPTinQueryQueueFreeListPopIdx)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListFull = L7_TRUE;
-    }
-
-    osapiSemaGive(pSnoopEB->snoopPTinQueryQSema);
-  }
-  else
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Query Buffer is full");
-    osapiSemaGive(pSnoopEB->snoopPTinQueryQSema);
-    return L7_FAILURE;
-  }
-
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
- * @purpose Method freeing a specific position in the Query buffer
- *
- * @param   index Index of the position to free
- *
- * @returns  L7_SUCCESS
- * @returns  L7_FAILURE
- *
- *********************************************************************/
-L7_RC_t snoopPTinQueryQueuePop(L7_uint32 index)
-{
-  snoop_eb_t  *pSnoopEB;
-
-  pSnoopEB = snoopEBGet();
-
-  osapiSemaTake(pSnoopEB->snoopPTinQueryQSema, -1);
-
-  /* Pop the first element in queue */
-  if (!pSnoopEB->snoopPTinQueryQueueFreeListEmpty)
-  {
-    pSnoopEB->snoopPTinQueryQueueFreeList[pSnoopEB->snoopPTinQueryQueueFreeListPopIdx] = index;
-
-    /* Increment pop index */
-    ++pSnoopEB->snoopPTinQueryQueueFreeListPopIdx;
-    if (pSnoopEB->snoopPTinQueryQueueFreeListPushIdx == PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListPopIdx = 0;
-    }
-
-    /* If the buffer was full, unset the full flag */
-    if (pSnoopEB->snoopPTinQueryQueueFreeListFull)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListFull = L7_FALSE;
-    }
-
-    /* Check if the buffer is now empty */
-    if (pSnoopEB->snoopPTinQueryQueueFreeListPushIdx == pSnoopEB->snoopPTinQueryQueueFreeListPopIdx)
-    {
-      pSnoopEB->snoopPTinQueryQueueFreeListEmpty = L7_TRUE;
-    }
-
-    osapiSemaGive(pSnoopEB->snoopPTinQueryQSema);
-  }
-  else
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Query Buffer is empty");
-    osapiSemaGive(pSnoopEB->snoopPTinQueryQSema);
-    return L7_FAILURE;
-  }
-
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
  * @purpose Method responsible for scheduling Group-Specific or
  *          Group/Source-Specific Queries
  *
@@ -225,48 +91,49 @@ L7_RC_t snoopPTinQueryQueuePop(L7_uint32 index)
  *********************************************************************/
 L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt)
 {
-  snoop_eb_t            *pSnoopEB;
-  snoopPTinQueryData_t  queryData;
-  ptin_IgmpProxyCfg_t   igmpCfg;
-  L7_uint32             i;
-
-  /* Argument validation */
-  if (sources == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  pSnoopEB = snoopEBGet();
-
-  /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
-  }
-
-  /* Set query data and push it to the Query Queue. QueuePos is determined by the push method */
-  queryData.queryTimer = L7_NULLPTR;
-  queryData.queuePos = 0;
-  queryData.vlanId = vlanId;
-  queryData.groupAddr = groupAddr;
-  queryData.sFlag = sFlag;
-  queryData.retransmissions = igmpCfg.querier.last_member_query_count;
-  for(i=0; i< sourcesCnt; ++i)
-  {
-    queryData.sourceList[i] = sources[i];
-  }
-  queryData.sourcesCnt = sourcesCnt;
-
-  if (snoopPTinQueryQueuePush(&queryData) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Query buffer is full");
-    return L7_FAILURE;
-  }
-
-  /* Schedule LMQC Group-Specific Query transmissions */
-//snoopPTinQuerySend((L7_uint32) &pSnoopEB->snoopPTinQueryQueue[queryData.queuePos]);
+//Commented by MMElo
+  //  snoop_eb_t            *pSnoopEB;
+//  snoopPTinQueryData_t  queryData;
+//  ptin_IgmpProxyCfg_t   igmpCfg;
+//  L7_uint32             i;
+//
+//  /* Argument validation */
+//  if (sources == L7_NULLPTR)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//    return L7_FAILURE;
+//  }
+//
+//  pSnoopEB = snoopEBGet();
+//
+//  /* Get proxy configurations */
+//  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+//    return L7_FAILURE;
+//  }
+//
+//  /* Set query data and push it to the Query Queue. QueuePos is determined by the push method */
+//  queryData.queryTimer = L7_NULLPTR;
+//  queryData.queuePos = 0;
+//  queryData.vlanId = vlanId;
+//  queryData.groupAddr = groupAddr;
+//  queryData.sFlag = sFlag;
+//  queryData.retransmissions = igmpCfg.querier.last_member_query_count;
+//  for(i=0; i< sourcesCnt; ++i)
+//  {
+//    queryData.sourceList[i] = sources[i];
+//  }
+//  queryData.sourcesCnt = sourcesCnt;
+//
+//  if (snoopPTinQueryQueuePush(&queryData) != L7_SUCCESS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Query buffer is full");
+//    return L7_FAILURE;
+//  }
+//
+//  /* Schedule LMQC Group-Specific Query transmissions */
+////snoopPTinQuerySend((L7_uint32) &pSnoopEB->snoopPTinQueryQueue[queryData.queuePos]);
 
   return L7_SUCCESS;
 }
@@ -682,12 +549,13 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
         printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));
         for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
         {
-          if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
+          if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
           {
             L7_int8 clientIdx;
 
             printf("                       |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
-            printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
+            printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");
+            printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer);
             printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
             printf("                                |Clients: ");
             for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
