@@ -57,6 +57,7 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "DHCP ",
     "PPPOE",
     "SSM  ",
+    "PKT  ",
     "CNFGR",
     "MISC ",
 };
@@ -137,6 +138,7 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_PTIN_DHCP,         LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_PPPOE,        LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_SSM,          LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_PACKET,       LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_CNFGR,        LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_MISC,              LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
 };

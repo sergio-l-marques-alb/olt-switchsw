@@ -46,6 +46,7 @@ typedef enum {
     LOG_CTX_PTIN_DHCP,
     LOG_CTX_PTIN_PPPOE,
     LOG_CTX_PTIN_SSM,
+    LOG_CTX_PTIN_PACKET,
     LOG_CTX_PTIN_CNFGR,
     LOG_CTX_MISC,             /* Used on exceptional situations */
     /* Last element */

@@ -78,21 +78,6 @@ extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
 extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
 
 /**
- * Gets the flooding vlans list
- * 
- * @param evcId       : EVC index
- * @param ptin_intf   : port of which client_vlan belongs
- * @param client_vlan : client vlan to apply this flooding vlan
- * @param outer_vlan  : list of outer vlans
- * @param inner_vlan  : list of inner vlans 
- * @param number_of_vlans : Size of returned lists
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_evc_flood_vlan_get( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
-                                        L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
-
-/**
  * Adds a flooding vlan
  * 
  * @param evcId       : EVC index
@@ -345,6 +330,18 @@ extern L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_
 extern L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked);
 
 /**
+ * Validate interface and vlan belonging to a valid interface 
+ * inside a valid EVC 
+ * 
+ * @param intIfNum : source interface number
+ * @param intVlan  : internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS: Parameters are valid
+ *                   L7_FAILURE: Not valid
+ */
+extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+
+/**
  * Get next client, belonging to a vlan
  * 
  * @param intVlan    : internal vlan
@@ -362,5 +359,21 @@ extern L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL 
  */
 extern
 L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+
+/**
+ * Gets the flooding vlans list
+ * 
+ * @param intIfNum    : leaf interface
+ * @param intVlan     : internal Vlan
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : list of outer vlans
+ * @param inner_vlan  : list of inner vlans 
+ * @param number_of_vlans : Size of returned lists
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
+                                 L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
 
 #endif /* _PTIN_EVC_H */

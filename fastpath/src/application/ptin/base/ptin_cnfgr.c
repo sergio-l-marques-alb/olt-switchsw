@@ -394,9 +394,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
                                      L7_CNFGR_ERR_RC_t   *pReason )
 {
-  L7_RC_t rc = L7_SUCCESS;
-  sysnetPduIntercept_t sysnetPduInterceptIn;
-  
   /* Phase 2:
   *  - Register for callbacks with other components
   */
@@ -422,26 +419,21 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return L7_FAILURE;
 #endif
 
-  /* Intercept incoming ARP packets */
-  sysnetPduInterceptIn.addressFamily = L7_AF_INET;
-  sysnetPduInterceptIn.hookId = SYSNET_INET_RECV_ARP_IN;
-  sysnetPduInterceptIn.hookPrecedence = FD_SYSNET_HOOK_PTIN_ARP_IN_PRECEDENCE;
-  sysnetPduInterceptIn.interceptFunc = ptinArpRecv;
-  strcpy(sysnetPduInterceptIn.interceptFuncName, "ptinArpRecv");
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptinArpRecv registered!");
-
-  if (sysNetPduInterceptRegister(&sysnetPduInterceptIn) != L7_SUCCESS)
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  if (ptin_packet_init() != L7_SUCCESS)
   {
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_FATAL;
     return L7_ERROR;
   }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
+  #endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTIN Phase 2 initialization OK");
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -535,6 +527,11 @@ void ptinCnfgrFiniPhase2Process(void)
    * function can execute its callback only if its corresponding
    * member in the cosDeregister_g struct is set to L7_FALSE;
    */
+
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    /* Deinit ptin packet module */
+    ptin_packet_deinit();
+    #endif
 
    ptinCnfgrState = PTIN_PHASE_INIT_1;
 }

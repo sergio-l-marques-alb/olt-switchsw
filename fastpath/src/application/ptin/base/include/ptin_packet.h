@@ -14,26 +14,33 @@
 #include "ptin_include.h"
 #include "sysnet_api.h"
 
-/*********************************************************************
-* @purpose  Intercept incoming ARP packets.
-*
-* @param    hookId        The hook location
-* @param    bufHandle     Handle to the frame to be processed
-* @param    *pduInfo      Pointer to info about this frame
-* @param    continueFunc  Optional pointer to a continue function
-*
-* @returns  SYSNET_PDU_RC_CONSUMED  if packet to be forwarded
-*           SYSNET_PDU_RC_IGNORED   if packet should continue normal processing
-*           SYSNET_PDU_RC_DISCARD   if packet falls through the cracks
-*           SYSNET_PDU_RC_COPIED    if broadcast destination MAC
-*
-* @notes    This function is executed on the DTL thread.
-*
-* @end
-*********************************************************************/
-extern SYSNET_PDU_RC_t ptinArpRecv(L7_uint32 hookId,
-                                   L7_netBufHandle bufHandle,
-                                   sysnet_pdu_info_t *pduInfo,
-                                   L7_FUNCPTR_t continueFunc);
+/**
+ * Initialize ptin_packet module
+ * 
+ * @author mruas (5/23/2013)
+ * 
+ * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_packet_init(void);
+
+/**
+ * DEInitialize ptin_packet module
+ * 
+ * @author mruas (5/23/2013)
+ * 
+ * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_packet_deinit(void);
+
+/**
+ * Callback to be called for bradcast packets. Packets will be 
+ * flood for a specific list of vlans.
+ * 
+ * @param bufHandle 
+ * @param pduInfo 
+ * 
+ * @return L7_RC_t : L7_FAILURE (always)
+ */
+extern L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
 #endif  /* _PTIN_PACKET_H */
