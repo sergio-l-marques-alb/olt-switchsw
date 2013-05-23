@@ -51,6 +51,9 @@
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_GET        0x9036  // struct msg_HwEthEvcFloodVlan_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_ADD        0x9037  // struct msg_HwEthEvcFloodVlan_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE     0x9038  // struct msg_HwEthEvcFloodVlan_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // Consultar contadores a pedido: struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // Activar contadores a pedido: struct msg_evcStats_t
@@ -511,6 +514,20 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
+
+/* EVC stacked bridge */
+// Messages CCMSG_ETH_EVC_FLOOD_VLAN_ADD and CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 evcId;                    // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint8              mask;         /* Mask of fields to be considered (use 0x03) */
+  msg_HwEthInterface_t  intf;         /* [mask=0x01] Interface */
+  L7_uint16             client_vlan;  /* [mask=0x02] Client inner vlan */
+
+  /* Vlans to be flooded (use 0 value, if not to be used) */
+  L7_uint16             oVlanId;       /* VID to flood to VLAN (Vs') */
+  L7_uint16             iVlanId;       /* VID to flood to VLAN (Vs') */
+} __attribute__((packed)) msg_HwEthEvcFloodVlan_t;
 
 /***************************************************** 
  * BW Profiles messages

@@ -34,6 +34,10 @@
 
 #include "ipc.h"
 
+#if ( !PTIN_BOARD_IS_MATRIX )
+#include "ptin_packet.h"
+#endif
+
 #if ( PTIN_BOARD_IS_STANDALONE )
 #include "fw_shm.h"
 #endif
@@ -391,8 +395,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
                                      L7_CNFGR_ERR_RC_t   *pReason )
 {
-  L7_RC_t rc = L7_SUCCESS;
-  
   /* Phase 2:
   *  - Register for callbacks with other components
   */
@@ -418,11 +420,21 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return L7_FAILURE;
 #endif
 
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  if (ptin_packet_init() != L7_SUCCESS)
+  {
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_FATAL;
+    return L7_ERROR;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
+  #endif
+
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTIN Phase 2 initialization OK");
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /*********************************************************************
@@ -516,6 +528,11 @@ void ptinCnfgrFiniPhase2Process(void)
    * function can execute its callback only if its corresponding
    * member in the cosDeregister_g struct is set to L7_FALSE;
    */
+
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    /* Deinit ptin packet module */
+    ptin_packet_deinit();
+    #endif
 
    ptinCnfgrState = PTIN_PHASE_INIT_1;
 }
