@@ -575,7 +575,7 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   L7_uint32 time_left = 0;
 
   /* Argument validation */
-  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  if (pTimer == L7_NULLPTR) 
   {
     /*If timer is not running the pTimer==L7_NULLPTR*/
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
@@ -585,6 +585,11 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
   else if(pTimer->isRunning == L7_FALSE) /*Check if the Timer is Still Running*/
   {
      return 0;     
+  }
+  else if(pTimer->timer == L7_NULLPTR)
+  {
+   LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+   return 0;
   }
   appTimerTimeLeftGet(cbTimer, pTimer->timer, &time_left);
 

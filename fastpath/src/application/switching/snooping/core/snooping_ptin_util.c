@@ -481,7 +481,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   }
   else
   {
-    snoopPTinQueryQueuePop(queryData->queuePos);
+   // snoopPTinQueryQueuePop(queryData->queuePos);
   }
 }
 
@@ -555,7 +555,7 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
 
             printf("                       |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
             printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");
-            printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer);
+            printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
             printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
             printf("                                |Clients: ");
             for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
