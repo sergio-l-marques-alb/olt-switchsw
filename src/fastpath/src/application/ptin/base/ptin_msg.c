@@ -2601,11 +2601,14 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
       return rc;
    }
    rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+   /* TODO */
+   #if 0
    if (rc!=L7_SUCCESS)
    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
       return rc;
    }
+   #endif
 
    return L7_SUCCESS;
 }
@@ -2654,12 +2657,15 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
     return rc;
   }
   rc = ptin_pppoe_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+                                circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+  /* TODO */
+  #if 0
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
     return rc;
   }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2865,12 +2871,15 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     }
 
     rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+                               profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    /* TODO */
+    #if 0
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding PPPoE circuitId+remoteId entry");
       return rc;
     }
+    #endif
   }
 
   return L7_SUCCESS;
@@ -2939,11 +2948,14 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       return rc;
     }
     rc = ptin_pppoe_client_delete(evc_idx,&client);
+    /* TODO */
+    #if 0
     if ( rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing PPPoE circuitId+remoteId entry");
       return rc;
     }
+    #endif
   }
 
   return L7_SUCCESS;
