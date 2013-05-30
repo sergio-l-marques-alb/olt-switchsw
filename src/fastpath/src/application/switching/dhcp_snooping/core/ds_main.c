@@ -1362,7 +1362,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dsRelayAgentInfo_t relayAgentInfo;
   L7_ushort16  vlanIdFwd = 0;
 #endif
-
+  dhcpSnoopBinding_t dhcp_binding;
+  L7_enetHeader_t *mac_header = 0;
   L7_uint32 relayOptIntIfNum = 0;
 
   udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
@@ -1388,6 +1389,20 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
           (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST && (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ != L7_TRUE)))   /* PTin modified: DHCP snooping */
       {
+
+        if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
+        {
+          /* Search for this client before the binding is extracted because the entry in this table will be removed if a NACK/DECLINE is received */
+          memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+          mac_header = (L7_enetHeader_t*) frame;
+          memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+          if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+          {
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+            return L7_SUCCESS;
+          }
+        }
+
         /* Update bindings database. If this is a client message, yiaddr will be 0.
          * But we want to enter a temporary binding so we can learn the port where
          * the client resides. Then when the server responds, we'll add yiaddr to
@@ -1416,9 +1431,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsCfgData->dsL2RelayAdminMode == L7_ENABLE &&
       _dsVlanIntfL2RelayGet(vlanId,intIfNum) /*_dsIntfL2RelayGet(intIfNum)*/ == L7_TRUE)    /* PTin modified: DHCP snooping */
   {
-    dhcpSnoopBinding_t dhcp_binding;
-    L7_enetHeader_t *mac_header = 0;
-
     /* all filterations for server replies are done even before the
        frame is posted to DHCP task. So the server frame here is
        expected to be valid. If the packet has come with Option-82
@@ -1450,13 +1462,18 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       "(%s) Packet frameLen = %d after Option-82 Removal from DHCP Reply",__FUNCTION__, frameLen );
         dsTraceWrite(traceMsg);
       }
-      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
-      mac_header = (L7_enetHeader_t*) frame;
-      memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
-      if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+
+      /* Get this client's information (if we don't already have it) */
+      if(dhcp_binding.ipFamily == 0)
       {
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
-        return L7_SUCCESS;
+         memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+         mac_header = (L7_enetHeader_t*) frame;
+         memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+         if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+         {
+           LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+           return L7_SUCCESS;
+         }
       }
 #if 1 /* PTin added: Flexible circuit-id */
       relayOptIntIfNum = dhcp_binding.intIfNum;
