@@ -504,9 +504,9 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    tlv_tag_type     = 0x0105;
    vendor_id        = 0x00000DE9;
    circuitid_code   = 0x01;
-   circuitid_length = strlen(circuit_id)+1;
+   circuitid_length = strlen(circuit_id);
    remoteid_code    = 0x02;
-   remoteid_length  = strlen(remote_id)+1;
+   remoteid_length  = strlen(remote_id);
    tlv_length       = sizeof(L7_uint32) + 2*(sizeof(L7_uint8)+sizeof(L7_uint8)) + circuitid_length + remoteid_length;
 
    /* TLV Tag Type */
@@ -530,7 +530,7 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    framePtr += sizeof(L7_uint8);
 
    /* Circuit ID Data */
-   strcpy(framePtr, circuit_id);
+   memcpy(framePtr, circuit_id, circuitid_length);
    framePtr += circuitid_length;
 
    /* Remote ID Code */
@@ -542,7 +542,7 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    framePtr += sizeof(L7_uint8);
 
    /* Remote ID Data */
-   strcpy(framePtr, remote_id);
+   memcpy(framePtr, remote_id, remoteid_length);
    framePtr += remoteid_length;
 
    return L7_SUCCESS;
@@ -914,21 +914,6 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
    pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
 
-   /* Debug */
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Ethernet:");
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSrc:  %02X:%02X:%02X:%02X:%02X:%02X", 
-             eth_header->src.addr[0],eth_header->src.addr[1],eth_header->src.addr[2],
-             eth_header->src.addr[3],eth_header->src.addr[4],eth_header->src.addr[5]);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tDst:  %02X:%02X:%02X:%02X:%02X:%02X", 
-             eth_header->dest.addr[0],eth_header->dest.addr[1],eth_header->dest.addr[2],
-             eth_header->dest.addr[3],eth_header->dest.addr[4],eth_header->dest.addr[5]);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "PPPoE:");
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tVersion: %u", (pppoe_header->verType&0xF0)>>4);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:    %u", pppoe_header->verType&0x0F);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tCode:    0x%02X", pppoe_header->code);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSession: 0x%04X", pppoe_header->sessionId);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength:  %u", pppoe_header->length);
-
    /* If we received a PPPoE frame other than PADI/PADR/PADT on a client port, drop it */
    if(pppoe_header->code!=L7_PPPOE_PADI && pppoe_header->code!=L7_PPPOE_PADR && pppoe_header->code!=L7_PPPOE_PADT)
    {
@@ -982,11 +967,6 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
       L7_tlv_header_t *tlv_header;
 
       tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
-
-      /* Debug */
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "TLV:");
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:   0x%04X", tlv_header->type);
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength: %u", tlv_header->length);
 
       switch(tlv_header->type)
       {
@@ -1082,21 +1062,6 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
    pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
 
-   /* Debug */
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Ethernet:");
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSrc:  %02X:%02X:%02X:%02X:%02X:%02X", 
-             eth_header->src.addr[0],eth_header->src.addr[1],eth_header->src.addr[2],
-             eth_header->src.addr[3],eth_header->src.addr[4],eth_header->src.addr[5]);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tDst:  %02X:%02X:%02X:%02X:%02X:%02X", 
-             eth_header->dest.addr[0],eth_header->dest.addr[1],eth_header->dest.addr[2],
-             eth_header->dest.addr[3],eth_header->dest.addr[4],eth_header->dest.addr[5]);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "PPPoE:");
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tVersion: %u", (pppoe_header->verType&0xF0)>>4);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:    %u", pppoe_header->verType&0x0F);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tCode:    0x%02X", pppoe_header->code);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tSession: 0x%04X", pppoe_header->sessionId);
-   LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength:  %u", pppoe_header->length);
-
    /* If we received a PPPoE frame other than PADO/PADS/PADT on a server port, drop it */
    if(pppoe_header->code!=L7_PPPOE_PADO && pppoe_header->code!=L7_PPPOE_PADS && pppoe_header->code!=L7_PPPOE_PADT)
    {
@@ -1139,11 +1104,6 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
       L7_tlv_header_t *tlv_header;
 
       tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
-
-      /* Debug */
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "TLV:");
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tType:   0x%04X", tlv_header->type);
-      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "\tLength: %u", tlv_header->length);
 
       switch(tlv_header->type)
       {

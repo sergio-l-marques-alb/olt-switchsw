@@ -2116,11 +2116,11 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
    dhcp_op_dhcp_relay.option_code = dhcpOp;
    if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = strlen(circuit_id) + 1;
+      dhcp_op_dhcp_relay.option_len = strlen(circuit_id);
    }
    else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = sizeof(L7_uint32) + strlen(remote_id) + 1;
+      dhcp_op_dhcp_relay.option_len = sizeof(L7_uint32) + strlen(remote_id); //VendorId + RemoteId
    }
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
@@ -2133,8 +2133,8 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding interface-id '%s'", circuit_id);
-      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
-      *frameLen += strlen(circuit_id) + 1;
+      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id)); //Copy circuit-id string
+      *frameLen += strlen(circuit_id);
    }
    else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
    {
@@ -2151,8 +2151,8 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding remote-id '%s'", remote_id);
-      memcpy(frame + *frameLen, remote_id, strlen(remote_id) + 1); //Copy remote-id string
-      *frameLen += strlen(remote_id) + 1;
+      memcpy(frame + *frameLen, remote_id, strlen(remote_id)); //Copy remote-id string
+      *frameLen += strlen(remote_id);
    }
 
    return L7_SUCCESS;
