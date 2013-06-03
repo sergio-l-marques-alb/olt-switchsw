@@ -125,6 +125,21 @@
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
 
+
+/* OAM MEPs Configuration */
+
+#define CCMSG_DUMP_MEPs               0x9140  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_DUMP_MEs                0x9141  /*Exception - 1 input struct; unknown nr of output structs; input and output structs are the same type*/
+#define CCMSG_DUMP_LUT_MEPs           0x9142  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_WR_MEP                  0x9143
+#define CCMSG_RM_MEP                  0x9144
+#define CCMSG_WR_RMEP                 0x9145
+#define CCMSG_RM_RMEP                 0x9146
+
+#define CCMSG_FLUSH_MEP               0x9147
+#define CCMSG_FLUSH_RMEP              0x9148
+
+
 /*****************************************************************************
  * Structures exchanged on the messages
  * NOTE: By default they are 'packed' to avoid empty gaps
@@ -1032,6 +1047,109 @@ typedef struct
   L7_uint8  SlotId;
   msg_ptin_hw_resources resources;
 } __attribute__((packed)) msg_hw_resources;
+
+
+
+/************************************************************************** 
+* OAM MEPs Configuration
+**************************************************************************/
+
+#define N_MAX_MEs_PER_MEP   16
+
+#define _MSG_GENERIC_PREFIX_STRUCT \
+ int        err_code;          /*unused in commands (only responses)*/\
+ L7_uint64  index              /*0..N-1*/
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;
+} __attribute__ ((packed)) msg_generic_prefix_t;
+
+
+typedef struct {
+  L7_uint8  byte[48];
+} __attribute__ ((packed)) msg_meg_id_t;
+
+
+#define _T_MSG_RMEP_HDR     \
+    msg_meg_id_t meg_id;    \
+    L7_uint64 vid;          \
+    L7_uint16 mep_id;     /*0..2^13-1*/                         \
+    L7_uint8  level;      /*0..N_OAM_LEVELS-1*/                 \
+    L7_uint8  tmout;      /*0..N_OAM_TMR_VALUES-1     (code)*/  \
+    L7_uint16 prt;        /*port to Tx/Rx OAM frames*/
+
+
+typedef struct {
+  _T_MSG_RMEP_HDR
+} __attribute__ ((packed)) msg_rmep_t;
+
+
+//MEP - Maintenance End Point [IEEE802.1ag adds the word "Association" - MA].
+//The following struct is the building block for MEPs belonging to this board, their relation to
+//higher layer MEPs that also belong to this board and client layer.
+//It also reflects links to remote MEPs on each ME (Management Entity) of the MEG (G=group) and
+//links to an auxiliary MEP lookup table
+#define _T_MSG_MEP_HDR  \
+    _T_MSG_RMEP_HDR     \
+    L7_uint8  prior;    \
+    L7_uint8  up1_down0;\
+    L7_uint32 c[2][2][2];     /*[t0 t][intrnal_counter packet_counter][Rx Tx]     [0 1]*/     \
+    L7_uint8  CoS, dummy_color;
+
+
+typedef struct {
+  _T_MSG_MEP_HDR
+} __attribute__ ((packed)) msg_mep_hdr_t;
+
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MEPs-1
+  msg_mep_hdr_t bd;
+} __attribute__ ((packed)) msg_bd_mep_t;
+
+
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 16 bit i_mep(0..N_MEPs-1)     16 bit i_rmep(0..N_MAX_MEs_PER_MEP-1)
+  msg_rmep_t bd;
+} __attribute__ ((packed)) msg_bd_rmep_t;
+
+
+
+typedef struct {
+  struct {
+    L7_uint16 mep_id;             //Monitored MEP. ">HIGHEST_MEP"   means empty entry
+    L7_uint32 LOC_timer;          //RO    (ms)        RX; used to decide that a timeout ocurred
+    L7_uint8  RDI;                //RO
+  } me;
+} __attribute__ ((packed)) msg_me_t;  //"Remote MEP"; MEP on the other side of a ME (relatively to our MEP)
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;//index: (only RD operations): [MEP index (0..N_MEPs-1)] x 0x10000L + [RMEP index (0..N_MAX_MEs_PER_MEP-1)]
+  msg_me_t bd;
+} __attribute__ ((packed)) msg_bd_me_t;
+
+
+typedef struct {
+  //T_ETH_OAM_MAC  SMAC;
+  //T_MEG_ID meg_id;
+  L7_uint32 mep_index;          //RO    auxiliary index to the "T_MEP" table
+#define iMEP_iRMEP_TO_MEP_INDEX(iMEP,iRMEP)     ((iMEP)<<16 |   (iRMEP))
+#define MEP_INDEX_TO_iMEP(mep_index)            ((mep_index)>>16)
+#define MEP_INDEX_TO_iRMEP(mep_index)           ((mep_index)    &   0xffff)
+  L7_uint16 mep_id;             //MEP or Monitored MEP. ">HIGHEST_MEP"   means empty entry
+  L7_uint16 prt;
+  L7_uint64 vid;
+  L7_uint8 level;
+  L7_uint8 mep0_rmep1;
+  //L7_uint8  CCM_tmout;
+} __attribute__ ((packed)) msg_lookup_mep_t;
+
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index (only RD operations): 0..N_MAX_LOOKUP_MEPs-1
+  msg_lookup_mep_t bd;
+} __attribute__ ((packed)) msg_bd_lut_mep_t;
 
 
 /***************************************************************************** 

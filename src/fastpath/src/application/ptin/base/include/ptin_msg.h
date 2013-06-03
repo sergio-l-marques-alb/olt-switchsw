@@ -732,4 +732,95 @@ extern L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg);
  */
 extern L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg);
 
+/**
+ * Used to create a new MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to remove a MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to create a new RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to remove a RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to dump MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Used to dump MPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Used to dump LUT MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
+
 #endif /* _PTIN_MSG_H */

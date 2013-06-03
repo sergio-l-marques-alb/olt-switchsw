@@ -2521,6 +2521,152 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+
+    /************************************************************************** 
+     * OAM MEPs Configuration
+     **************************************************************************/
+
+    case CCMSG_WR_MEP:
+    case CCMSG_FLUSH_MEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_WR_MEP (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
+
+      rc = ptin_msg_wr_MEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    
+      break;
+    case CCMSG_RM_MEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_RM_MEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
+
+      rc = ptin_msg_del_MEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_WR_RMEP:
+    case CCMSG_FLUSH_RMEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_WR_RMEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
+
+      rc = ptin_msg_wr_RMEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_RM_RMEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_WR_RMEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
+
+      rc = ptin_msg_del_RMEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_DUMP_MEPs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+             "Message received: MSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
+
+      rc = ptin_msg_dump_MEPs(inbuffer, outbuffer);
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+    case CCMSG_DUMP_MEs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_me_t);
+
+      rc = ptin_msg_dump_MEs(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_DUMP_LUT_MEPs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: MSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
+
+      rc = ptin_msg_dump_LUT_MEPs(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 //CCMSG_ETH_IGMP_GROUPS_GET

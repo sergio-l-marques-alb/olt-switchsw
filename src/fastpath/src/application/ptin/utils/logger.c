@@ -60,6 +60,7 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "PKT  ",
     "CNFGR",
     "MISC ",
+    "OAM  ",
 };
 
 /* Severity color */
@@ -141,6 +142,7 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_PTIN_PACKET,       LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_CNFGR,        LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
     {LOG_CTX_MISC,              LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_OAM,               LOG_SEV_INFO,       LOG_COLOR_DEFAULT},
 };
 
 typedef enum {
