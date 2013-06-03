@@ -7,7 +7,7 @@
 #                                              #
 ################################################
 
-.PHONY: help h all install image clean cleanall olt360 olt640 cli shell clean_olt360 clean_olt640 clean_cli clean_shell cleanall_olt360 cleanall_olt640 cleanall_cli cleanall_shell install_olt360 install_olt640 install_cli install_shell image_olt360 image_olt640
+.PHONY: help h all install clean cleanall kernel_cxo640g kernel_tg16g cxo640g tg16g cli shell clean_cxo640g clean_tg16g clean_cli clean_shell cleanall_cxo640g cleanall_tg16g cleanall_cli cleanall_shell install_cxo640g install_tg16g install_cli install_shell image
 
 SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
@@ -30,77 +30,49 @@ IMAGE_DIR       = ../../builds
 help h:
 	@echo ""
 	@echo "Makefile Help            "
+	@echo " make kernel_cxo640g     "
+	@echo " make kernel_tg16g       "
 	@echo ""
 	@echo " make all                "
-	@echo " make olt360             "
-	@echo " make olt640             "
+	@echo " make cxo640g            "
+	@echo " make tg16g              "
 	@echo " make cli                "
 	@echo " make shell              "
 	@echo ""
 	@echo " make clean              "
-	@echo " make clean_olt360       "
-	@echo " make clean_olt640       "
+	@echo " make clean_cxo640g      "
+	@echo " make clean_tg16g        "
 	@echo " make clean_cli          "
 	@echo " make clean_shell        "
 	@echo ""
 	@echo " make cleanall           "
-	@echo " make cleanall_olt360    "
-	@echo " make cleanall_olt640    "
+	@echo " make cleanall_cxo640g   "
+	@echo " make cleanall_tg16g     "
 	@echo " make cleanall_cli       "
 	@echo " make cleanall_shell     "
 	@echo ""
 	@echo " make install            "
-	@echo " make install_olt360     "
-	@echo " make install_olt640     "
+	@echo " make install_cxo640g    "
+	@echo " make install_tg16g      "
 	@echo " make install_cli        "
 	@echo " make install_shell      "
 	@echo ""
 	@echo " make image              "
-	@echo " make image_olt360       "
-	@echo " make image_olt640       "
 	@echo ""
 
-all:		olt360 olt640
+kernel_cxo640g:
+	@$(MAKE) -f cxo640g.make kernel
 
-install:	install_olt360 install_olt640
+kernel_tg16g:
+	@$(MAKE) -f tg16g.make kernel
 
-clean:		clean_olt360 clean_olt640
+all:	cxo640g tg16g cli shell
 
-cleanall:	cleanall_olt360 cleanall_olt640
+cxo640g:
+	@$(MAKE) -f cxo640g.make
 
-image:		install
-		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_final)
-
-olt360:
-	@$(MAKE) -f olt360.make
-
-olt640:
-	@$(MAKE) -f olt640.make
-
-clean_olt360:
-	@$(MAKE) -f olt360.make clean
-
-clean_olt640:
-	@$(MAKE) -f olt640.make clean
-
-cleanall_olt360:
-	@$(MAKE) -f olt360.make cleanall
-
-cleanall_olt640:
-	@$(MAKE) -f olt640.make cleanall
-
-install_olt360:
-	@$(MAKE) -f olt360.make install
-
-install_olt640:
-	@$(MAKE) -f olt640.make install
-
-image_olt360:
-	@$(MAKE) -f olt360.make image
-
-image_olt640:
-	@$(MAKE) -f olt640.make image
-
+tg16g:
+	@$(MAKE) -f tg16g.make
 
 cli:
 	@$(MAKE) -C $(FP_CLI_DIR)
@@ -108,6 +80,11 @@ cli:
 shell:
 	@$(MAKE) -C $(FP_SHELL_DIR)
 
+clean_cxo640g:
+	@$(MAKE) -f cxo640g.make clean
+
+clean_tg16g:
+	@$(MAKE) -f tg16g.make clean
 
 clean_cli:
 	@$(MAKE) clean -C $(FP_CLI_DIR)
@@ -115,15 +92,36 @@ clean_cli:
 clean_shell:
 	@$(MAKE) clean -C $(FP_SHELL_DIR)
 
+cleanall_cxo640g:
+	@$(MAKE) -f cxo640g.make cleanall
+
+cleanall_tg16g:
+	@$(MAKE) -f tg16g.make cleanall
+
 cleanall_cli:
 	@$(MAKE) cleanall -C $(FP_CLI_DIR)
 
 cleanall_shell:
 	@$(MAKE) cleanall -C $(FP_SHELL_DIR)
 
+install_cxo640g:
+	@$(MAKE) -f cxo640g.make install
+
+install_tg16g:
+	@$(MAKE) -f tg16g.make install
+
 install_cli:
 	@$(MAKE) install -C $(FP_CLI_DIR)
 
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
+
+install:	install_cxo640g install_tg16g install_cli install_shell
+
+clean:		clean_cxo640g clean_tg16g clean_cli clean_shell
+
+cleanall:	cleanall_cxo640g cleanall_tg16g cleanall_cli cleanall_shell
+
+image:		install
+		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_final)
 

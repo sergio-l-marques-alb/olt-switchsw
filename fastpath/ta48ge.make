@@ -1,6 +1,6 @@
 #############################################
 #                                           #
-# FastPath Makefile for the TG16G card      #
+# FastPath Makefile for the TA48GE card     #
 #                                           #
 #	Daniel Figueira, 2013               #
 #	daniel-f-figueira@ext.ptinovacao.pt #
@@ -64,10 +64,10 @@ all: welcome
 	@echo ""
 
 install:
-	sh tg16g.install
+	sh ta48ge.install
 
 kernel:
-	cd $(KERNEL_PATH) && ./build-tolt8g.sh
+	cd $(KERNEL_PATH) && ./build_ta48ge.sh
 
 help h:
 	@echo ""
@@ -82,7 +82,7 @@ welcome:
 	@echo ""
 	@echo "###########################################"
 	@echo "#                                         #"
-	@echo "#  FastPath Makefile for the TG16G card   #"
+	@echo "#  FastPath Makefile for the TA48GE card  #"
 	@echo "#                                         #"
 	@echo "###########################################"
 	@echo ""
