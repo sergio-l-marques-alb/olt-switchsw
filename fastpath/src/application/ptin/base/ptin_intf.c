@@ -1669,6 +1669,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   members_pbmp = lagInfo->members_pbmp64;
   rc = L7_SUCCESS;
 
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "members_pbmp = 0x%016x", members_pbmp);
+
   /* Loop through all the phy ports and check if any is being added or removed */
   for (port=0; port<PTIN_SYSTEM_N_PORTS; port++, members_pbmp>>=1)
   {

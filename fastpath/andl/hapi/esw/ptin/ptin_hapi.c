@@ -405,6 +405,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
   L7_BOOL   learn_class_move = L7_TRUE;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  bcm_error_t stat;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -541,10 +542,10 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     }
 
     /* Associate class to the specified interface */
-    if (bcmx_l2_learn_port_class_set(hapiPortPtr->bcmx_lport,lclass)!=BCM_E_NONE)
+    if ((stat=bcmx_l2_learn_port_class_set(hapiPortPtr->bcmx_lport,lclass))!=BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class %d to port {%d,%d,%d}",lclass,
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class %d to port {%d,%d,%d}/0x%08x (stat=%d)",lclass,
+              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcmx_lport, stat);
       return L7_FAILURE;
     }
   }

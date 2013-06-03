@@ -867,7 +867,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_R
 {       0,       9,          0,      16},
 {       0,      10,          0,      13},
 {       0,      11,          0,      15},
-{       0,      12,          0,      13},
+{       0,      12,          0,      18},
 {       0,      13,          0,      17},
 {       0,      14,          0,      20},
 {       0,      15,          0,      19},
