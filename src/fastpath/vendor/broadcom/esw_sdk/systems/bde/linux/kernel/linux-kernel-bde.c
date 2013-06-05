@@ -985,7 +985,9 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         }
 /* PTin end */
 
-        
+        gprintk("MRS: pci_resource_start=0x%08X\n", pci_resource_start(dev, baroff));
+        gprintk("MRS: pci_resource_end  =0x%08X\n", pci_resource_end(dev, baroff));
+
         /*
          * These are workarounds to get around some existing
          * kernel problems :(
