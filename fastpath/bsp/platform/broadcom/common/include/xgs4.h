@@ -50,7 +50,7 @@
 **********************************************************************/
 #define PLAT_MAX_NUM_LAG_INTF                     64
 #define PLAT_MAX_MEMBERS_PER_LAG                  8
-#define PLAT_MAX_FRAME_SIZE                       9216
+#define PLAT_MAX_FRAME_SIZE                       9608    /* PTin modified: MAx frame updated from 9216 bytes */
 #define PLAT_MAX_VLANS                            4093
 
 #define PLAT_DOT1S_ASYNC_STATE_SET                L7_FALSE 

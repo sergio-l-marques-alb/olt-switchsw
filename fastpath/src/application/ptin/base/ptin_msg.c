@@ -366,8 +366,8 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   msgPhyState->TxActivity         = portStats.Tx.Throughput > 0;
 
   msgPhyState->Media              = phyConf.Media;
-  msgPhyState->MTU_mismatch       = phyConf.MaxFrame > PHY_MAX_MAXFRAME;
-  msgPhyState->Supported_MaxFrame = PHY_MAX_MAXFRAME;
+  msgPhyState->MTU_mismatch       = phyConf.MaxFrame > PLAT_MAX_FRAME_SIZE;
+  msgPhyState->Supported_MaxFrame = PLAT_MAX_FRAME_SIZE;
 
 //msgPhyState->TxFault            = 0;    /* Always FALSE */
 //msgPhyState->RemoteFault        = 0;    /* Always FALSE */
