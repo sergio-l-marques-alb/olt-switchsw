@@ -197,6 +197,8 @@ MODULE_PARM_DESC(forceirqubm,
 #define BCM_IPROC_CMICD_BASE       0x48000000
 #endif
 
+#define KERNEL_DEBUG_LEVEL  0   /* Ptin added */
+
 /* Debug output */
 static int debug;
 LKM_MOD_PARAM(debug, "i", int, 0);
@@ -816,7 +818,7 @@ p2p_bridge(void)
         (dev = PCI_FIND_DEV(HINT_HB4_VENDOR_ID, HINT_HB4_DEVICE_ID, NULL)) != NULL ||
         (dev = PCI_FIND_DEV(PI7C8150_VENDOR_ID, PI7C8150_DEVICE_ID, NULL)) != NULL) {
 
-        if (debug >= 1) gprintk("fixing up PCI-to-PCI bridge\n");
+        if (debug >= KERNEL_DEBUG_LEVEL) gprintk("fixing up PCI-to-PCI bridge\n");
         /* Adjust command register */
         pci_read_config_word(dev, PCI_COMMAND, &cmd);
         cmd |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
@@ -841,7 +843,7 @@ p2p_bridge(void)
             if ((dev = PCI_FIND_DEV(BCM4704_VENDOR_ID, BCM4704_DEVICE_ID, NULL)) != NULL) {
                 /* Reset PrefetchEn (PE) */
                 pci_write_config_dword(dev, 0x8c, 1);
-                if (debug >= 1) {
+                if (debug >= KERNEL_DEBUG_LEVEL) {
                     gprintk("reset PrefetchEn on BCM4704 when HiNT bridge is present\n");
                 }
             }
@@ -933,7 +935,7 @@ p2p_bridge(void)
                 pci_read_config_dword(BCM53000PCIE_DEV(port), 
                                       BCM53000PCIE_DEV_CAP_REG, &tmp);
                 maxpayld = (tmp & BCM53000PCIE_MAX_PAYLOAD_MASK);
-                if (debug >= 1) {
+                if (debug >= KERNEL_DEBUG_LEVEL) {
                     gprintk("port %d\n",port);
                     gprintk("DevCap (@%x): 0x%x%c\n", BCM53000PCIE_DEV_CAP_REG, tmp,
                             (maxpayld != BCM53000PCIE_CAP_MAX_PAYLOAD_256B) ? ' ':'\n');
@@ -942,14 +944,14 @@ p2p_bridge(void)
                     addr = BCM53000PCIE_BASE(port);
                     addr |= (BCM53000PCIE_SROM_SPACE | BCM53000PCIE_SPROM_OFFSET);
                     tmp16 = *((uint16 *)addr);                                                       
-                    if (debug >= 1){
+                    if (debug >= KERNEL_DEBUG_LEVEL){
                         gprintk("addr %lx spromData.MaxPayloadSize: 0x%x\n", addr, tmp16);
                     }
                     mask = BCM53000PCIE_SPROM_MAX_PAYLOAD_MASK;
                     if ((tmp16 & mask) != BCM53000PCIE_SPROM_MAX_PAYLOAD_256B) {
                         tmp161 = (tmp16 & ~mask) | BCM53000PCIE_SPROM_MAX_PAYLOAD_256B;
                         *((uint16 *)addr) = tmp161;                                                  
-                        if (debug >= 1) {
+                        if (debug >= KERNEL_DEBUG_LEVEL) {
                             tmp16 = 0;                                                                         
                             tmp16 = *((uint16 *)addr);                                                   
                             gprintk("Enable spromData.MaxPayloadSize to 1 (256 bytes): "
@@ -961,7 +963,7 @@ p2p_bridge(void)
                     }                                                                                      
                     pci_read_config_dword(BCM53000PCIE_DEV(port), 
                                           BCM53000PCIE_DEV_CAP_REG, &tmp);                            
-                    if (debug >= 1){
+                    if (debug >= KERNEL_DEBUG_LEVEL){
                         gprintk("DevCap (@%x): now is 0x%x\n\n", 
                                 BCM53000PCIE_DEV_CAP_REG, tmp);        
                     }
@@ -970,13 +972,13 @@ p2p_bridge(void)
                 addr = BCM53000PCIE_BASE(port);
                 addr |= (BCM53000PCIE_FUNC0_COFIG_SPACE | BCM53000PCIE_DEV_CTRL_REG);
                 tmp16 = *((uint16 *)addr);                                                           
-                if (debug >= 1) {
+                if (debug >= KERNEL_DEBUG_LEVEL) {
                     gprintk("DevControl (@%x): 0x%x\n", BCM53000PCIE_DEV_CTRL_REG, tmp16);                      
                 }
                 if (!(tmp16 & MAX_PAYLOAD_256B) || !(tmp16 & MAX_READ_REQ_256B)) {                         
                     tmp161 = tmp16 | MAX_PAYLOAD_256B | MAX_READ_REQ_256B;                                 
                     *((uint16 *)addr) = tmp161;                                                                                                          
-                    if (debug >= 1) {
+                    if (debug >= KERNEL_DEBUG_LEVEL) {
                         tmp16 = 0;                                                                             
                         tmp16 = *((uint16 *)addr);   
                         gprintk("addr %lx Enable DevControl MaxPayloadSize to 1 (256 bytes): "
@@ -1146,7 +1148,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         _ether_ndevices++;
         ctrl->dev_type |= BDE_ETHER_DEV_TYPE;
         ctrl->iLine = dev->irq;
-        if (debug >= 1)
+        if (debug >= KERNEL_DEBUG_LEVEL)
             gprintk("Found PCI device %04x:%04x as Ethernet device\n",
                     dev->vendor, dev->device);
     } else if (cpu_dev) {
@@ -1156,7 +1158,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         ctrl = _devices + _ndevices++;
         _cpu_ndevices++;
         ctrl->dev_type |= BDE_CPU_DEV_TYPE;
-        if (debug >= 1)
+        if (debug >= KERNEL_DEBUG_LEVEL)
             gprintk("Found PCI device %04x:%04x as CPU device\n",
                     dev->vendor, dev->device);
     } else {
@@ -1263,7 +1265,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
             if (!done) {
                 done = 1;
                 writel(priorinv, _mc_vbase + BCM4704_MEMC_PRIORINV);
-                if (debug >= 1)
+                if (debug >= KERNEL_DEBUG_LEVEL)
                     gprintk("set BCM4704 PriorInvTim register to 0x%x\n", priorinv);
                 iounmap(_mc_vbase);
             }
@@ -1297,9 +1299,9 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         if (forceirq > 0 && dev->irq != (uint32) forceirq) {
             if (forceirqubm & (1U << (_ndevices - 1))) {
                 dev->irq = forceirq;
-                if (debug >= 1) gprintk("force irq to %d\n", forceirq);
+                if (debug >= KERNEL_DEBUG_LEVEL) gprintk("force irq to %d\n", forceirq);
             }
-        } else if (debug >= 1) gprintk("found irq %d\n", dev->irq);
+        } else if (debug >= KERNEL_DEBUG_LEVEL) gprintk("found irq %d\n", dev->irq);
 
         ctrl->iLine = dev->irq;
 
@@ -1331,7 +1333,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
                 while ((1 << (max_val + 7)) < maxpayload) {
                     max_val++;
                 }
-                if (debug >= 1) {
+                if (debug >= KERNEL_DEBUG_LEVEL) {
                     gprintk("Set max payload size = %d (%d)\n",
                             maxpayload, max_val);
                 }
@@ -1371,7 +1373,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         } else {
             /* Set PCI retry to infinite on non-PCIe switch device */
             pci_write_config_word(dev, 0x40, 0x0080);
-            if (debug >= 1) gprintk("set DMA retry to infinite on switch device\n");
+            if (debug >= KERNEL_DEBUG_LEVEL) gprintk("set DMA retry to infinite on switch device\n");
         }
     }
 
@@ -1392,7 +1394,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 #endif /* BCM_DFE_SUPPORT */
 
 
-    if (debug >= 1) {
+    if (debug >= KERNEL_DEBUG_LEVEL) {
         uint8 aux8;
         uint32 aux32;
 
@@ -1459,7 +1461,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
              * 0x24: Vendor-Specific Register 8
              */
             pci_read_config_dword(dev, cap_base + 8, &cap_val);
-            if (debug >= 1) gprintk("Found VSEC, reg1 = 0x%x\n", cap_val);
+            if (debug >= KERNEL_DEBUG_LEVEL) gprintk("Found VSEC, reg1 = 0x%x\n", cap_val);
             if (cap_val == 0x100) {
                 iproc = 1;
                 baroff = 2;
@@ -1540,14 +1542,14 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     if (!(cmd & PCI_COMMAND_MEMORY) || !(cmd & PCI_COMMAND_MASTER)) {
         cmd |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
         pci_write_config_word(dev, PCI_COMMAND, cmd);
-        if (debug >= 1) gprintk("enable PCI resources 0x%x (PCI_COMMAND)\n", cmd);
+        if (debug >= KERNEL_DEBUG_LEVEL) gprintk("enable PCI resources 0x%x (PCI_COMMAND)\n", cmd);
     }
 
     /* Check if we need 256 KB memory window (default is 64 KB) */
     bar_len = pci_resource_len(dev, baroff);
     if (bar_len == 0x40000) {
         ctrl->dev_type |= BDE_256K_REG_SPACE;
-        if (debug >= 1) gprintk("PCI resource len 256K\n");
+        if (debug >= KERNEL_DEBUG_LEVEL) gprintk("PCI resource len 256K\n");
     }
 
 #if defined (BCM_ROBO_SUPPORT) && !defined(ALTA_ROBO_SPI)
@@ -2285,7 +2287,7 @@ _pgcleanup(void)
 {
 #if _SIMPLE_MEMORY_ALLOCATION_
     if (_dma_vbase) {
-        if (debug >= 1) gprintk("freeing v=%p p=0x%lx size=0x%lx\n", _dma_vbase,(unsigned long) _dma_pbase, (unsigned long)_dma_mem_size);
+        if (debug >= KERNEL_DEBUG_LEVEL) gprintk("freeing v=%p p=0x%lx size=0x%lx\n", _dma_vbase,(unsigned long) _dma_pbase, (unsigned long)_dma_mem_size);
         dma_free_coherent(0, _dma_mem_size, _dma_vbase, _dma_pbase);
     }
 
@@ -2354,7 +2356,7 @@ _alloc_mpool(size_t size)
         _dma_vbase = _pgalloc(size);
         pbase = virt_to_bus(_dma_vbase);
 #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
-        if (debug >= 1) gprintk("_alloc_mpool: _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
+        if (debug >= KERNEL_DEBUG_LEVEL) gprintk("_alloc_mpool: _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
         if (((pbase + size) >> 16) > DMA_BIT_MASK(16)) {
             _dma_vbase = NULL;
             gprintk("DMA memory allocated at 0x%lx size 0x%lx is beyond the 4GB limit and not supported.\n", pbase, (unsigned long)size);
@@ -2512,7 +2514,7 @@ probe_robo_switch(void)
 
         match_idx = _spi_device_valid_check(phyidh, phyidl_nr, 1);
         if (match_idx == -1) {
-            if (debug >= 1) gprintk("found %d robo device(s).\n", robo_switch);
+            if (debug >= KERNEL_DEBUG_LEVEL) gprintk("found %d robo device(s).\n", robo_switch);
             break;
         }
 
@@ -3257,7 +3259,7 @@ _pprint(void)
                     ctrl->bde_dev.device,
                     ctrl->bde_dev.rev);
         }
-        if (debug >= 1) {
+        if (debug >= KERNEL_DEBUG_LEVEL) {
             pprintf("\t\timask:imask2:fmask 0x%x:0x%x:0x%x\n",
                     ctrl->imask,
                     ctrl->imask2,
@@ -3602,7 +3604,7 @@ _interrupt_connect(int d,
         gprintk("_interrupt_connect: Invalid device index %d\n", d);
         return -1;
     }
-    if (debug >= 1) {
+    if (debug >= KERNEL_DEBUG_LEVEL) {
         gprintk("_interrupt_connect d %d\n", d);
     }
     if (!(BDE_DEV_MEM_MAPPED(_devices[d].dev_type))) {
@@ -3616,7 +3618,7 @@ _interrupt_connect(int d,
     isr_active = (ctrl->isr || ctrl->isr2) ? 1 : 0;
 
     if (isr2_dev) {
-        if (debug >= 1) {
+        if (debug >= KERNEL_DEBUG_LEVEL) {
             gprintk("connect secondary isr\n");
         }
         ctrl->isr2_data = isr_data;
@@ -3626,7 +3628,7 @@ _interrupt_connect(int d,
             return 0;
         }
     } else {
-        if (debug >= 1) {
+        if (debug >= KERNEL_DEBUG_LEVEL) {
             gprintk("connect primary isr\n");
         }
         ctrl->isr = isr;
@@ -3705,7 +3707,7 @@ _interrupt_disconnect(int d)
         return -1;
     }
 
-    if (debug >= 1) {
+    if (debug >= KERNEL_DEBUG_LEVEL) {
         gprintk("_interrupt_disconnect d %d\n", d);
     }
     if (!(BDE_DEV_MEM_MAPPED(_devices[d].dev_type))) {
@@ -3719,7 +3721,7 @@ _interrupt_disconnect(int d)
     isr_active = (ctrl->isr || ctrl->isr2) ? 1 : 0;
 
     if (isr2_dev) {
-        if (debug >= 1) {
+        if (debug >= KERNEL_DEBUG_LEVEL) {
             gprintk("disconnect secondary isr\n");
         }
         ctrl->isr2 = NULL;
@@ -3730,7 +3732,7 @@ _interrupt_disconnect(int d)
             return 0;
         }
     } else {
-        if (debug >= 1) {
+        if (debug >= KERNEL_DEBUG_LEVEL) {
             gprintk("disconnect primary isr\n");
         }
         ctrl->isr = NULL;
@@ -4055,7 +4057,7 @@ lkbde_cpu_pci_register(int d)
     }
     ctrl->bde_dev.base_address = (sal_vaddr_t)IOREMAP(ctrl->phys_address, 0x1000000);
 
-    if (debug >= 1) {
+    if (debug >= KERNEL_DEBUG_LEVEL) {
         gprintk("%s, %s(): info:\n", __FILE__, __FUNCTION__);
         gprintk("_ndevices=%d, _switch_ndevices=%d\n",
                 _ndevices, _switch_ndevices);
