@@ -371,6 +371,10 @@ ifeq ($(L7_CPU),pq3)
 BCM_56840_A0 = 1
 BCM_56840_B0 = 1
 endif
+ifeq ($(L7_CPU),e500mc)
+BCM_56840_A0 = 1
+BCM_56840_B0 = 1
+endif
 #BCM_56142_A0 = 1
 #BCM_56836_A0 = 1
 
