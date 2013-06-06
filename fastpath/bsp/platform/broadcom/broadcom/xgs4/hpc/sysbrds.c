@@ -166,7 +166,11 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
 
         /* Configure Portmaps: different mapping for CXP360G V2 and V3 */
+        #ifdef MAP_CPLD
         if (cpld_map->reg.hw_ver <= 2)
+        #else
+        if (0)
+        #endif
         {
           LOG_TRACE(LOG_CTX_MISC, "Using Port Expanders mapping for CXP360G V2 or below");
 
