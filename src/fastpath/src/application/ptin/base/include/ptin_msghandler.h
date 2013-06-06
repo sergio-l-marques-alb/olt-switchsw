@@ -140,6 +140,13 @@
 #define CCMSG_FLUSH_RMEP              0x9148
 
 
+/* ERPS Configuration */
+
+#define CCMSG_ERPS_SET                0x9170
+#define CCMSG_ERPS_DEL                0x9171
+
+
+
 /*****************************************************************************
  * Structures exchanged on the messages
  * NOTE: By default they are 'packed' to avoid empty gaps
@@ -1150,6 +1157,41 @@ typedef struct {
   _MSG_GENERIC_PREFIX_STRUCT;    //index (only RD operations): 0..N_MAX_LOOKUP_MEPs-1
   msg_lookup_mep_t bd;
 } __attribute__ ((packed)) msg_bd_lut_mep_t;
+
+
+
+/***************************************************************************** 
+ * ERPS Configuration
+ *****************************************************************************/
+
+//typedef enum {
+//   ERPS_PORTROLE_NONRPL       = 0,
+//   ERPS_PORTROLE_RPL          = 1,
+//   ERPS_PORTROLE_RPLNEIGBHOR  = 2,
+//} ERPS_PORTROLE;
+
+typedef struct {
+   unsigned int     idx;
+   unsigned int     ringId;
+   unsigned char    isOpenRing;
+   unsigned short   controlVid;
+   unsigned char    megLevel;
+
+   ptin_erpsPort_t  port1;
+   ptin_erpsPort_t  port2;
+   unsigned char    port1Role;
+   unsigned char    port2Role;
+   unsigned char    port1CfmIdx;
+   unsigned char    port2CfmIdx;
+
+   unsigned char    revertive;
+   unsigned char    guardTimer;
+   unsigned char    holdoffTimer;
+   unsigned char    waitToRestore;
+
+   //service List
+   L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+} __attribute__ ((packed)) msg_erps_t;
 
 
 /***************************************************************************** 

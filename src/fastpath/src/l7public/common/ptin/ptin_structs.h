@@ -720,5 +720,47 @@ typedef struct
   L7_uint32   max_bandwidth;          // [mask=0x20] Maximum bandwidth (0-100): Default=0 (unlimited)
 } ptin_QoS_cos_t;
 
+
+
+/***************************************************************************** 
+ * ERPS Configuration
+ *****************************************************************************/
+
+typedef enum {
+   ERPS_PORTROLE_NONRPL       = 0,
+   ERPS_PORTROLE_RPL          = 1,
+   ERPS_PORTROLE_RPLNEIGHBOUR  = 2,
+} ERPS_PORTROLE;
+
+typedef struct {
+   unsigned char slot;
+   unsigned char type;
+   unsigned char idx;
+} ptin_erpsPort_t;
+
+typedef struct {
+   unsigned int   idx;
+   unsigned int   ringId;
+   unsigned char  isOpenRing;
+   unsigned short controlVid;
+   unsigned char  megLevel;
+
+   ptin_erpsPort_t     port1;
+   ptin_erpsPort_t     port2;
+   unsigned char  port1Role;
+   unsigned char  port2Role;
+   unsigned char  port1CfmIdx;
+   unsigned char  port2CfmIdx;
+
+   unsigned char  revertive;
+   unsigned char  guardTimer;
+   unsigned char  holdoffTimer;
+   unsigned char  waitToRestore;
+
+   //service List
+   L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+} ptin_erps_t;
+
+
 #endif /* _PTIN_STRUCTS_H */
 

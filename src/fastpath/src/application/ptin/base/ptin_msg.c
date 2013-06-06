@@ -28,6 +28,7 @@
 #include "ptin_msghandler.h"
 #include "nimapi.h"
 #include "ptin_oam.h"
+#include "ptin_prot_erps.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -5439,3 +5440,89 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
   return L7_SUCCESS;
 
 }//msg_dump_LUT_MEPs
+
+
+
+
+/****************************************************************************** 
+ * ERPS Configuration
+ ******************************************************************************/
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/4/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
+{
+  ptin_erps_t ptinErpsConf;
+
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS# %u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
+
+
+  /* Copy data to ptin struct */
+  ptinErpsConf.idx            = msgErpsConf->idx;
+  ptinErpsConf.ringId         = msgErpsConf->ringId;
+  ptinErpsConf.isOpenRing     = msgErpsConf->isOpenRing;
+
+  ptinErpsConf.controlVid     = msgErpsConf->controlVid;
+  ptinErpsConf.megLevel       = msgErpsConf->megLevel;
+
+  ptinErpsConf.port1.slot     = msgErpsConf->port1.slot;
+  ptinErpsConf.port1.type     = msgErpsConf->port1.type;
+  ptinErpsConf.port1.idx      = msgErpsConf->port1.idx;
+  ptinErpsConf.port2.slot     = msgErpsConf->port2.slot;
+  ptinErpsConf.port2.type     = msgErpsConf->port2.type;
+  ptinErpsConf.port2.idx      = msgErpsConf->port2.idx;
+  ptinErpsConf.port1Role      = msgErpsConf->port1Role;
+  ptinErpsConf.port2Role      = msgErpsConf->port2Role;
+  ptinErpsConf.port1CfmIdx    = msgErpsConf->port1CfmIdx;
+  ptinErpsConf.port2CfmIdx    = msgErpsConf->port2CfmIdx;
+
+  ptinErpsConf.revertive      = msgErpsConf->revertive;
+  ptinErpsConf.guardTimer     = msgErpsConf->guardTimer;
+  ptinErpsConf.holdoffTimer   = msgErpsConf->holdoffTimer;
+  ptinErpsConf.waitToRestore  = msgErpsConf->waitToRestore;
+
+  memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u",              ptinErpsConf.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .ringId        = %d",  ptinErpsConf.ringId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing    = %s",  ptinErpsConf.isOpenRing == 0? "False" : "True");
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .controlVid    = %d",  ptinErpsConf.controlVid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel      = %d",  ptinErpsConf.controlVid);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.slot    = %d",  ptinErpsConf.port1.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.type    = %d",  ptinErpsConf.port1.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.idx     = %d",  ptinErpsConf.port1.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2.slot    = %d",  ptinErpsConf.port2.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2.type    = %d",  ptinErpsConf.port2.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role     = %d",  ptinErpsConf.port1Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2Role     = %d",  ptinErpsConf.port2Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx   = %d",  ptinErpsConf.port1CfmIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2CfmIdx   = %d",  ptinErpsConf.port2CfmIdx);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive     = %s",  ptinErpsConf.revertive == 0? "False" : "True");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer    = %d",  ptinErpsConf.guardTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestore = %d",  ptinErpsConf.waitToRestore);
+
+//if (erps_add_entry(msgErpsConf->idx, &ptinErpsConf) != L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS# %u", ptinEvcConf.idx);
+//  return L7_FAILURE;
+//}
+
+  return L7_SUCCESS;
+
+}
+

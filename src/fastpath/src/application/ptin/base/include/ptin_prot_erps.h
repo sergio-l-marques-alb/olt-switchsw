@@ -1,0 +1,383 @@
+/**
+ * ptin_prot_erps.h
+ *  
+ * Implements ITU-T G.8032/Y.1344 Ethernet Ring Protection 
+ * Switching 
+ *
+ * @author joaom (6/3/2013)
+ * (joao-v-mateiro@ptinovacao.pt) 
+ *  
+ */
+
+
+#ifndef __PROT_ERPS_H__
+#define __PROT_ERPS_H__
+
+#include "datatypes.h"
+
+//-------------------------------------------------------------------------
+//  Constants Definitions
+//-------------------------------------------------------------------------
+#define PROT_ERPS_CALL_PROC_MS                10
+
+#define MAX_PROT_PROT_ERPS                    16
+
+#define PROT_ERPS_ENTRY_FREE                  0
+#define PROT_ERPS_ENTRY_BUSY                  1
+
+#define PROT_ERPS_NON_REVERTIVE_OPERATION     0
+#define PROT_ERPS_REVERTIVE_OPERATION         1
+
+#define PROT_ERPS_PORT0                       0
+#define PROT_ERPS_PORT1                       1
+
+#define PROT_ERPS_SF_CLEAR                    0
+
+#define PROT_ERPS_SWITCH_TO_PORT0             0
+#define PROT_ERPS_SWITCH_TO_PORT1             1
+#define PROT_ERPS_SWITCH_DISABLED             2
+
+
+//-------------------------------------------------------------------------
+//  Error Codes
+//-------------------------------------------------------------------------
+#define PROT_ERPS_EXIT_OK                     0
+#define PROT_ERPS_EXIT_NOK1                  -1
+#define PROT_ERPS_EXIT_NOK2                  -2
+#define PROT_ERPS_INDEX_VIOLATION            -3
+#define PROT_ERPS_UNAVAILABLE                -4
+#define PROT_ERPS_INDEX_IN_USE               -5
+
+
+//-------------------------------------------------------------------------
+//  Operator commands
+//-------------------------------------------------------------------------
+#define PROT_ERPS_OPCMD_NR                    0x00
+#define PROT_ERPS_OPCMD_OC                    0x01
+#define PROT_ERPS_OPCMD_FS                    0x02
+#define PROT_ERPS_OPCMD_MS                    0x04
+
+//// TO BE DONE ///
+#define PROT_ERPS_OPCMD_LO                    0x05
+#define PROT_ERPS_OPCMD_ReplaceRPL            0x06
+#define PROT_ERPS_OPCMD_ExeSignal             0x07
+
+
+//-------------------------------------------------------------------------
+//  Local Request
+//-------------------------------------------------------------------------
+#define LReq_NONE                             16
+#define LReq_CLEAR                            15
+#define LReq_FS                               12
+#define LReq_SF                               10
+#define LReq_SFc                              6
+#define LReq_MS                               5
+#define LReq_WTRExp                           4
+#define LReq_WTRRun                           3
+#define LReq_WTBExp                           4
+#define LReq_WTBRun                           3
+
+
+//-------------------------------------------------------------------------
+//  WTR/WTB/Guard Timers
+//-------------------------------------------------------------------------
+#define TIMER_CMD_STOP                        0x00
+#define TIMER_CMD_START                       0x01
+
+
+//------------------------------------------------------------------------
+//                                APS
+//+----------------+-----------------+-----------------+-----------------+
+//|       1                 2                 3                 4        |
+//+----------------+-----------------+-----------------+-----------------+
+//|8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 |
+//| Req/   | Sub-  |     Status      |        Node ID (6 octets)         |
+//| Stat   | code  | R|D|B| Stat     |                                   |
+//|        |       | B|N|P| Reservd  |                                   |
+//|        |       |  |F|R|          |                                   |
+//+----------------+-----------------+-----------------+-----------------+
+//|                               Node ID                                |
+//+----------------+-----------------+-----------------+-----------------+
+//|                         Reserved 2 (24 octets)                       |
+//+----------------+-----------------+-----------------+-----------------+
+
+
+//10.3.  R-APS format
+//   R-APS information is carried in an R-APS PDU, which is one of a suite of Ethernet OAM messages.
+
+//The fields of R-APS specific information:
+//  a)  Request/State (4 bits) - This field represents a request or state, and is encoded as described
+#define RReq_NONE                       15
+#define RReq_FS                         13    //1101 Forced Switch
+#define RReq_EVENT                      14    //1110 Event
+#define RReq_SF                         11    //1011 Signal Fail (SF)
+#define RReq_MS                         7     //0111 Manual Switch (MS)
+#define RReq_NR                         0     //0000 No Request (NR)
+
+
+//-------------------------------------------------------------------------
+//  Node state - The current state of the Ethernet Ring Node
+//-------------------------------------------------------------------------
+#define ERP_STATE_Freeze                0x0
+#define ERP_STATE_0_Init                0x1
+#define ERP_STATE_A_Idle                0x2
+#define ERP_STATE_B_Protection          0x3
+#define ERP_STATE_C_ManualSwitch        0x4
+#define ERP_STATE_D_ForcedSwitch        0x5
+#define ERP_STATE_E_Pending             0x6
+
+
+#define ERP_STATE_GetState(state)       ((state & 0x0F))
+#define ERP_STATE_SetLocal(state)       ((state & 0x0F))
+#define ERP_STATE_SetRemote(state)      ((state | 0x10))
+#define ERP_STATE_IsLocal(state)        ((state & 0x10)? 0:1)
+#define ERP_STATE_IsRemote(state)       ((state & 0x10)? 1:0)
+
+//-------------------------------------------------------------------------
+// ring port
+//-------------------------------------------------------------------------
+#define ERP_PORT_BLOCKING               0
+#define ERP_PORT_FLUSHING               1
+
+
+//-------------------------------------------------------------------------
+//  DB Structures
+//-------------------------------------------------------------------------
+
+typedef struct {
+   unsigned char slot;
+   unsigned char type;
+   unsigned char idx;
+} erpsPort_t;
+
+/// ERPS Parameters Configurations
+typedef struct _erpsProtParam_t {
+   L7_uint8   ringId;
+   L7_uint8   isOpenRing;
+   L7_uint16  controlVid;
+   L7_uint8   megLevel;
+
+   erpsPort_t port1;
+   erpsPort_t port2;
+   L7_uint8   port1Role;
+   L7_uint8   port2Role;
+   L7_uint8   port1CfmIdx;
+   L7_uint8   port2CfmIdx;
+
+   L7_uint8   revertive;            ///< 0-Non-Revertive, 1-Revertive -> associado a WaitToRestore Timer
+   L7_uint8   guardTimer;
+   L7_uint8   holdoffTimer;         ///< [0, 10] seconds in steps of 100 ms.
+   L7_uint8   waitToRestoreTimer;   ///< [5, 12] minutes in steps of 1 min, default: 5 min.
+
+   L7_uint32  continualTxInterval;  ///< APS
+   L7_uint32  rapidTxInterval;      ///< APS
+
+   ///service List
+   L7_uint8   vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+} erpsProtParam_t;
+
+/// Hardware Abstraction Layer
+typedef struct _erpsHAL_t {
+    int (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
+    int (*aps_rxfields)         (L7_uint8 slot, L7_uint32 index, L7_uint8* msgfields);
+    int (*aps_txfields)         (L7_uint8 slot, L7_uint32 index, L7_uint8 msgfields);
+    int (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
+    int (*prot_proc)            (L7_uint32 prot_id);
+} erpsHAL_t;
+
+/// State Machine Parameters Configurations and States
+typedef struct {
+    L7_uint8 admin;             ///< ENTRY_FREE/ENTRY_BUSY
+
+    erpsProtParam_t protParam;
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    // Internal variables
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+
+    L7_uint8 OAM_Alarms[2];           ///< CFM Alarms (LOC)
+    L7_uint8 status_SF[2];            ///< Ports SF (Physical or OAM)
+    
+    L7_uint32 wtr_timer;              ///< Timer
+    L7_uint8  wtr_CMD;                ///< Timer
+    L7_uint32 wtb_timer;              ///< Timer
+    L7_uint8  wtb_CMD;                ///< Timer
+    L7_uint32 guard_timer;            ///< Timer
+    L7_uint8  guard_CMD;              ///< Timer
+    L7_uint16 holdoff_timer;          ///< Timer
+    L7_uint16 holdoff_timer_previous; ///< Timer
+    
+    // Operator command
+    L7_uint8 operator_cmd;            ///< Operator Command
+    L7_uint8 operator_cmd_port;       ///< Operator Command Requested Port
+    
+    // Request    
+    L7_uint8 localRequest;
+    L7_uint8 remoteRequest;
+    
+    // APS
+    L7_uint16 apsRequestRx;
+    L7_uint16 apsRequestTx;
+
+    // Ports State
+    L7_uint8 port0State;              ///< blocking or flushing
+    L7_uint8 port1State;              ///< blocking or flushing
+
+    // FSM
+    L7_uint8 state_machine;
+    L7_uint8 state_machine_h;         ///< LSN: State
+                                      ///< MSN: isLocalOrRemoteState
+    L7_uint16 waitingstates;
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    // HAL
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+
+    erpsHAL_t hal;                    ///< Functions Abstraction
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+
+} tblErps_t;
+
+
+/// Estrutura usada para leitura de alarmistica
+typedef struct _erpsStatus_t {
+    L7_uint8   cx_active;
+    L7_uint8   status_SF_W;
+    L7_uint8   status_SF_P;
+    L7_uint16  wait2restoreTimer;       ///< elapsed time in seconds
+    L7_uint16  holdoff_timer;           ///< elapsed time in seconds
+
+    L7_uint8   apsRequestRx;
+    L7_uint8   apsRequestTx;
+} erpsStatus_t;
+
+//-------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------
+//  Variables
+//-------------------------------------------------------------------------
+
+/// Sw data base containing all the information needed
+extern tblErps_t tbl_erps[MAX_PROT_PROT_ERPS];
+//-------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------
+//  Functions to export
+//-------------------------------------------------------------------------
+
+
+/**
+ * @addtogroup functions ERPS (G.8032) Module functions
+ */
+/** @{ */
+
+
+/**
+ * Funcao para iniciar as tabelas de Software
+ * \note Esta funcao deve ser invocada aquando o arranque do FW.
+ */
+int ptin_erps_init(void);
+
+/**
+ * Funcao que permite adicionar uma instancia ERPS
+ * @param erps_idx          Indice a ocupar (-1: 1o livre)
+ * @param new_group         Estrutura de configuracao
+ * @return                  id ocupado; <0 Erro
+ */
+int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group);
+
+/**
+ * Funcao para configuracao de uma instancia
+ * @param erps_idx          Indice a configurar
+ * @param conf              Estrutura de configuracao
+ * @return                  id configurado; <0 Erro
+ */
+int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf);
+
+/**
+ * Funcao para remocao de uma instancia
+ * @param erps_idx          Indice a remover
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_remove_entry(L7_uint32 erps_idx);
+
+/**
+ * Comando
+ * @param erps_idx          Indice a aplicar o comando
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_cmd_clear(L7_uint32 erps_idx);
+
+/**
+ * Comando
+ * @param erps_idx          Indice a aplicar o comando
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_cmd_lockout(L7_uint32 erps_idx);
+
+/**
+ * Comando
+ * @param erps_idx          Indice a aplicar o comando
+ * @param switch_path       SWITCH_DISABLED/SWITCH_TO_W/SWITCH_TO_P
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path);
+
+/**
+ * Comando
+ * @param erps_idx          Indice a aplicar o comando
+ * @param switch_path       SWITCH_DISABLED/SWITCH_TO_W/SWITCH_TO_P
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_cmd_manual(L7_uint32 erps_idx, L7_uint8 switch_path);
+
+/**
+ * Funcao para limpar todas as entradas
+ * @return                  0 OK; <0 Erro
+ */
+int ptin_erps_clear(void);
+
+/**
+ * Funcao para leitura de uma entrada de proteccaoCC
+ * @param erps_idx          Indice a ler
+ * @param group             Estrutura contendo a configuracao
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group);
+
+/**
+ * Funcao para leitura de estado/alarmistica
+ * @param erps_idx          Indice a ler
+ * @param status            Estrutura de estado/alarmistica
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status);
+
+/**
+ * Funcao para imprimir uma entrada
+ * @param erps_idx          Indice a imprimir
+ * @return                  id; <0 Erro
+ */
+int ptin_erps_rd_entry(L7_uint32 erps_idx);
+
+
+
+/****************************************************************************** 
+ * ERPS Task Init
+ ******************************************************************************/
+
+/**
+ * Initializes ERPS module
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_prot_erps_init(void);
+
+/** @} */
+//-------------------------------------------------------------------------
+
+#endif //__erps_H__
+

@@ -823,4 +823,20 @@ extern L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff);
  */
 extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
 
+
+/****************************************************************************** 
+ * ERPS Configuration
+ ******************************************************************************/
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/4/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_erps_set(msg_erps_t *ptr);
+
 #endif /* _PTIN_MSG_H */

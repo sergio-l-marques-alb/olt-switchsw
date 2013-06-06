@@ -2529,7 +2529,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_WR_MEP:
     case CCMSG_FLUSH_MEP:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_WR_MEP (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_WR_MEP/CCMSG_FLUSH_MEP (0x%04X)", inbuffer->msgId);
     
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
 
@@ -2550,7 +2550,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     case CCMSG_RM_MEP:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_RM_MEP (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_RM_MEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
 
@@ -2571,7 +2571,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_WR_RMEP:
     case CCMSG_FLUSH_RMEP:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_WR_RMEP (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_WR_RMEP/CCMSG_FLUSH_RMEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
 
@@ -2591,7 +2591,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     case CCMSG_RM_RMEP:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_WR_RMEP (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_RM_RMEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
 
@@ -2611,7 +2611,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     case CCMSG_DUMP_MEPs:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-             "Message received: MSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
+             "Message received: CCMSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
 
@@ -2630,7 +2630,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_DUMP_MEs:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_me_t);
 
@@ -2649,7 +2649,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     case CCMSG_DUMP_LUT_MEPs:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: MSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
 
@@ -2666,6 +2666,40 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
+
+
+    /************************************************************************** 
+    * OAM MEPs Configuration
+    **************************************************************************/
+
+    case CCMSG_ERPS_SET:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ERPS_SET (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_erps_t);
+
+      msg_erps_t *ptr;
+      ptr = (msg_erps_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_t));
+
+      /* Execute command */
+      rc = ptin_msg_erps_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    
+      break;
+
 
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
