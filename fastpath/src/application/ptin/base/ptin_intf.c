@@ -1000,8 +1000,9 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
  */
 L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 {
-  L7_uint8 raw_slot;
+  L7_uint8 raw_slot = 0;
 
+  #ifdef MAP_CPLD
   /* Is CPLD mapped? */
   if (cpld_map==L7_NULLPTR || cpld_map==(void *)-1)
   {
@@ -1016,6 +1017,7 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
   }
   /* Get raw slot id */
   raw_slot = cpld_map->reg.slot_id;
+  #endif
 
   /* Validate range */
   if (raw_slot>=PTIN_SYSTEM_MAX_N_FULLSLOTS)

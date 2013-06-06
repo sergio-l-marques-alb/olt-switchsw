@@ -457,6 +457,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 /* FPGA AND CPLD BASE ADDRESS */
+//# define MAP_FPGA
 # define MAP_CPLD
 # define CPLD_BASE_ADDR                0xFF500000
 
@@ -663,7 +664,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_CPLD
+//# define MAP_FPGA
+//# define MAP_CPLD
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */

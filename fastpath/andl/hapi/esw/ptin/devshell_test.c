@@ -1482,7 +1482,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 int ber_init(void)
 {
   int ret;
-  int matrix;
+  int matrix = 0;
 
   if (ptin_ber_tx_sem != L7_NULLPTR) {
     printf("BER has already been initialized!\n");
@@ -1490,7 +1490,9 @@ int ber_init(void)
   }
 
   /* Read slot id: 0->Working; 1->Protection */
+  #ifdef MAP_CPLD
   matrix = cpld_map->reg.slot_id;
+  #endif
 
   if (matrix != 0 && matrix != 1) {
     printf("Unknown matrix: %u\n",matrix);
