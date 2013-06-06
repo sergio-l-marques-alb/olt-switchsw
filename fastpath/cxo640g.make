@@ -98,9 +98,3 @@ welcome:
 clean cleanall: welcome
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
-
-clean-platform:
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-base clean-plat_bsp clean-cpu_bsp
-	#$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-ptin clean-os clean-nls clean-cli clean-snmp
-	$(RM) -f $(TMP_FILE)
-
