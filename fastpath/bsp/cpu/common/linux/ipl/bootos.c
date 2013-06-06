@@ -250,7 +250,6 @@ volatile st_cpld_map_t *cpld_map = MAP_FAILED;
  */
 static L7_RC_t hapi_ptin_fpga_map(void)
 {
-
 #ifdef MAP_FPGA
   TAddrMap fpga_AddrMap;
 

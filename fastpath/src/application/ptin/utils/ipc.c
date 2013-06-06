@@ -922,10 +922,12 @@ static void ipc_server_ipaddr_init(void)
   server_ipaddr = IPC_SERVER_IPADDR;
 
   #if (PTIN_BOARD_IS_MATRIX)
+  #ifdef MAP_CPLD
   if (cpld_map->reg.slot_id==0)
     server_ipaddr = IPC_SERVER_IPADDR_WORKING;
   else
     server_ipaddr = IPC_SERVER_IPADDR_PROTECTION;
+  #endif
   #endif
 }
 
