@@ -31,7 +31,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.0.51-e500mc
+export KERNEL_PATH	= $(OLT_DIR)/../lib/tmp/cxo640/kernel_3_0_53
 
 #CC='${COMPILER}gcc'
 #AS='${COMPILER}as'  
