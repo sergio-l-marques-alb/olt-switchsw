@@ -255,7 +255,7 @@ KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INC
 endif
 
 # Use MSI interrupts if kernel is compiled with MSI support.
-#CFLAGS += -DBDE_LINUX_USE_MSI_INTERRUPT
+CFLAGS += -DBDE_LINUX_USE_MSI_INTERRUPT
 
 #Wind river Linux 3.0 needs addtional flags
 ifeq (3.0,$(WRS_LINUX_VERSION))
