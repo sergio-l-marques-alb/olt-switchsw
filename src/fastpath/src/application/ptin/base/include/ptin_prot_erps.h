@@ -114,6 +114,11 @@
 #define RReq_MS                         7     //0111 Manual Switch (MS)
 #define RReq_NR                         0     //0000 No Request (NR)
 
+#define RReq_STAT_RB                    0x80
+#define RReq_STAT_DNF                   0x40
+#define RReq_STAT_BPR                   0x20
+#define RReq_STAT_ZEROS                 0x00
+
 
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
@@ -157,12 +162,12 @@ typedef struct _erpsProtParam_t {
    L7_uint16  controlVid;
    L7_uint8   megLevel;
 
+   erpsPort_t port0;
    erpsPort_t port1;
-   erpsPort_t port2;
+   L7_uint8   port0Role;
    L7_uint8   port1Role;
-   L7_uint8   port2Role;
+   L7_uint8   port0CfmIdx;
    L7_uint8   port1CfmIdx;
-   L7_uint8   port2CfmIdx;
 
    L7_uint8   revertive;            ///< 0-Non-Revertive, 1-Revertive -> associado a WaitToRestore Timer
    L7_uint8   guardTimer;
@@ -220,8 +225,7 @@ typedef struct {
     L7_uint16 apsRequestTx;
 
     // Ports State
-    L7_uint8 port0State;              ///< blocking or flushing
-    L7_uint8 port1State;              ///< blocking or flushing
+    L7_uint8 portState[2];            ///< blocking or flushing
 
     // FSM
     L7_uint8 state_machine;

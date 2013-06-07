@@ -5476,16 +5476,16 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   ptinErpsConf.controlVid     = msgErpsConf->controlVid;
   ptinErpsConf.megLevel       = msgErpsConf->megLevel;
 
+  ptinErpsConf.port0.slot     = msgErpsConf->port0.slot;
+  ptinErpsConf.port0.type     = msgErpsConf->port0.type;
+  ptinErpsConf.port0.idx      = msgErpsConf->port0.idx;
   ptinErpsConf.port1.slot     = msgErpsConf->port1.slot;
   ptinErpsConf.port1.type     = msgErpsConf->port1.type;
   ptinErpsConf.port1.idx      = msgErpsConf->port1.idx;
-  ptinErpsConf.port2.slot     = msgErpsConf->port2.slot;
-  ptinErpsConf.port2.type     = msgErpsConf->port2.type;
-  ptinErpsConf.port2.idx      = msgErpsConf->port2.idx;
+  ptinErpsConf.port0Role      = msgErpsConf->port0Role;
   ptinErpsConf.port1Role      = msgErpsConf->port1Role;
-  ptinErpsConf.port2Role      = msgErpsConf->port2Role;
+  ptinErpsConf.port0CfmIdx    = msgErpsConf->port0CfmIdx;
   ptinErpsConf.port1CfmIdx    = msgErpsConf->port1CfmIdx;
-  ptinErpsConf.port2CfmIdx    = msgErpsConf->port2CfmIdx;
 
   ptinErpsConf.revertive      = msgErpsConf->revertive;
   ptinErpsConf.guardTimer     = msgErpsConf->guardTimer;
@@ -5501,15 +5501,16 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .controlVid    = %d",  ptinErpsConf.controlVid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel      = %d",  ptinErpsConf.controlVid);
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.slot    = %d",  ptinErpsConf.port0.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.type    = %d",  ptinErpsConf.port0.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.idx     = %d",  ptinErpsConf.port0.idx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.slot    = %d",  ptinErpsConf.port1.slot);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.type    = %d",  ptinErpsConf.port1.type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.idx     = %d",  ptinErpsConf.port1.idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2.slot    = %d",  ptinErpsConf.port2.slot);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2.type    = %d",  ptinErpsConf.port2.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0Role     = %d",  ptinErpsConf.port0Role);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role     = %d",  ptinErpsConf.port1Role);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2Role     = %d",  ptinErpsConf.port2Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx   = %d",  ptinErpsConf.port0CfmIdx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx   = %d",  ptinErpsConf.port1CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port2CfmIdx   = %d",  ptinErpsConf.port2CfmIdx);
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive     = %s",  ptinErpsConf.revertive == 0? "False" : "True");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer    = %d",  ptinErpsConf.guardTimer);

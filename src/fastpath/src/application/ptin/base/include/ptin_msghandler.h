@@ -1177,12 +1177,12 @@ typedef struct {
    unsigned short   controlVid;
    unsigned char    megLevel;
 
+   ptin_erpsPort_t  port0;
    ptin_erpsPort_t  port1;
-   ptin_erpsPort_t  port2;
+   unsigned char    port0Role;
    unsigned char    port1Role;
-   unsigned char    port2Role;
+   unsigned char    port0CfmIdx;
    unsigned char    port1CfmIdx;
-   unsigned char    port2CfmIdx;
 
    unsigned char    revertive;
    unsigned char    guardTimer;
