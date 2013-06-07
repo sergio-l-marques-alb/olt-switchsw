@@ -2023,9 +2023,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF);
    }
 
-   if(!op_relaymsg_ptr ||
-         (isActiveOp18 && !op_interfaceid_ptr) ||
-         (isActiveOp37 && !op_remoteid_ptr))
+   if(!op_relaymsg_ptr || (isActiveOp18 && !op_interfaceid_ptr))
    {
       LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received DHCPv6 message missing mandatory options");
       return L7_SUCCESS;
