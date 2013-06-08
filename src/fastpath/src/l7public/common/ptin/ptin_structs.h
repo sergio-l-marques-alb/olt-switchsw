@@ -739,23 +739,23 @@ typedef struct {
 } ptin_erpsPort_t;
 
 typedef struct {
-   unsigned int   idx;
-   unsigned int   ringId;
-   unsigned char  isOpenRing;
-   unsigned short controlVid;
-   unsigned char  megLevel;
+   unsigned int     idx;
+   unsigned int     ringId;
+   unsigned char    isOpenRing;
+   unsigned short   controlVid;
+   unsigned char    megLevel;
 
-   ptin_erpsPort_t     port0;
-   ptin_erpsPort_t     port1;
-   unsigned char  port0Role;
-   unsigned char  port1Role;
-   unsigned char  port0CfmIdx;
-   unsigned char  port1CfmIdx;
+   ptin_erpsPort_t  port0;
+   ptin_erpsPort_t  port1;
+   unsigned char    port0Role;
+   unsigned char    port1Role;
+   unsigned char    port0CfmIdx;
+   unsigned char    port1CfmIdx;
 
-   unsigned char  revertive;
-   unsigned char  guardTimer;
-   unsigned char  holdoffTimer;
-   unsigned char  waitToRestore;
+   unsigned char    revertive;
+   unsigned short   guardTimer;
+   unsigned char    holdoffTimer;
+   unsigned char    waitToRestore;
 
    //service List
    L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];

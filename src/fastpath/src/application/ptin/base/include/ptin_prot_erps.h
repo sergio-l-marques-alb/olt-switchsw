@@ -37,6 +37,7 @@
 #define PROT_ERPS_SWITCH_TO_PORT1             1
 #define PROT_ERPS_SWITCH_DISABLED             2
 
+#define PROT_ERPS_MAC_SIZE                    6
 
 //-------------------------------------------------------------------------
 //  Error Codes
@@ -52,15 +53,13 @@
 //-------------------------------------------------------------------------
 //  Operator commands
 //-------------------------------------------------------------------------
-#define PROT_ERPS_OPCMD_NR                    0x00
-#define PROT_ERPS_OPCMD_OC                    0x01
-#define PROT_ERPS_OPCMD_FS                    0x02
-#define PROT_ERPS_OPCMD_MS                    0x04
-
-//// TO BE DONE ///
-#define PROT_ERPS_OPCMD_LO                    0x05
-#define PROT_ERPS_OPCMD_ReplaceRPL            0x06
-#define PROT_ERPS_OPCMD_ExeSignal             0x07
+#define PROT_ERPS_OPCMD_NR                    0
+#define PROT_ERPS_OPCMD_OC                    1
+#define PROT_ERPS_OPCMD_LO                    2  //// TO BE DONE ///
+#define PROT_ERPS_OPCMD_FS                    3
+#define PROT_ERPS_OPCMD_MS                    4
+#define PROT_ERPS_OPCMD_ReplaceRPL            5  //// TO BE DONE ///
+#define PROT_ERPS_OPCMD_ExeSignal             6  //// TO BE DONE ///
 
 
 //-------------------------------------------------------------------------
@@ -81,8 +80,8 @@
 //-------------------------------------------------------------------------
 //  WTR/WTB/Guard Timers
 //-------------------------------------------------------------------------
-#define TIMER_CMD_STOP                        0x00
-#define TIMER_CMD_START                       0x01
+#define TIMER_CMD_STOP                        0
+#define TIMER_CMD_START                       1
 
 
 //------------------------------------------------------------------------
@@ -119,17 +118,19 @@
 #define RReq_STAT_BPR                   0x20
 #define RReq_STAT_ZEROS                 0x00
 
+#define APS_GET_REQ(aspReqStatusRx)     ( (aspReqStatusRx >> 12) & 0x000F )
+#define APS_GET_STATUS(aspReqStatusRx)  ( (aspReqStatusRx )      & 0x00E0 )
 
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
 //-------------------------------------------------------------------------
-#define ERP_STATE_Freeze                0x0
-#define ERP_STATE_0_Init                0x1
-#define ERP_STATE_A_Idle                0x2
-#define ERP_STATE_B_Protection          0x3
-#define ERP_STATE_C_ManualSwitch        0x4
-#define ERP_STATE_D_ForcedSwitch        0x5
-#define ERP_STATE_E_Pending             0x6
+#define ERPS_STATE_Freeze               0x0
+#define ERPS_STATE_Z_Init               0x1
+#define ERPS_STATE_A_Idle               0x2
+#define ERPS_STATE_B_Protection         0x3
+#define ERPS_STATE_C_ManualSwitch       0x4
+#define ERPS_STATE_D_ForcedSwitch       0x5
+#define ERPS_STATE_E_Pending            0x6
 
 
 #define ERP_STATE_GetState(state)       ((state & 0x0F))
@@ -157,7 +158,7 @@ typedef struct {
 
 /// ERPS Parameters Configurations
 typedef struct _erpsProtParam_t {
-   L7_uint8   ringId;
+   L7_uint8   ringId;               ///< in the range [1, .., 239]
    L7_uint8   isOpenRing;
    L7_uint16  controlVid;
    L7_uint8   megLevel;
@@ -169,10 +170,10 @@ typedef struct _erpsProtParam_t {
    L7_uint8   port0CfmIdx;
    L7_uint8   port1CfmIdx;
 
-   L7_uint8   revertive;            ///< 0-Non-Revertive, 1-Revertive -> associado a WaitToRestore Timer
-   L7_uint8   guardTimer;
+   L7_uint8   revertive;            ///< 0-Non-Revertive, 1-Revertive: Enables WaitToRestore Timer
+   L7_uint16  guardTimer;           ///< [10, 2000] ms 10 ms steps [10 ms, 2 seconds], with a default value of 500 ms.
    L7_uint8   holdoffTimer;         ///< [0, 10] seconds in steps of 100 ms.
-   L7_uint8   waitToRestoreTimer;   ///< [5, 12] minutes in steps of 1 min, default: 5 min.
+   L7_uint8   waitToRestoreTimer;   ///< [1, 12] minutes in steps of 1 min, default: 5 min.
 
    L7_uint32  continualTxInterval;  ///< APS
    L7_uint32  rapidTxInterval;      ///< APS
@@ -200,7 +201,6 @@ typedef struct {
     // Internal variables
     //++++++++++++++++++++++++++++++++++++++++++++++++
 
-    L7_uint8 OAM_Alarms[2];           ///< CFM Alarms (LOC)
     L7_uint8 status_SF[2];            ///< Ports SF (Physical or OAM)
     
     L7_uint32 wtr_timer;              ///< Timer
@@ -220,9 +220,10 @@ typedef struct {
     L7_uint8 localRequest;
     L7_uint8 remoteRequest;
     
-    // APS
-    L7_uint16 apsRequestRx;
-    L7_uint16 apsRequestTx;
+    // APS    
+    L7_uint16 apsReqStatusTx;
+    L7_uint16 apsReqStatusRx;
+    L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 
     // Ports State
     L7_uint8 portState[2];            ///< blocking or flushing
