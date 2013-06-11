@@ -65,16 +65,16 @@
 //-------------------------------------------------------------------------
 //  Local Request
 //-------------------------------------------------------------------------
-#define LReq_NONE                             16
-#define LReq_CLEAR                            15
-#define LReq_FS                               12
-#define LReq_SF                               10
+#define LReq_NONE                             10
+#define LReq_CLEAR                            9
+#define LReq_FS                               8
+#define LReq_SF                               7
 #define LReq_SFc                              6
 #define LReq_MS                               5
 #define LReq_WTRExp                           4
 #define LReq_WTRRun                           3
-#define LReq_WTBExp                           4
-#define LReq_WTBRun                           3
+#define LReq_WTBExp                           2
+#define LReq_WTBRun                           1
 
 
 //-------------------------------------------------------------------------
@@ -107,8 +107,8 @@
 //The fields of R-APS specific information:
 //  a)  Request/State (4 bits) - This field represents a request or state, and is encoded as described
 #define RReq_NONE                       15
-#define RReq_FS                         13    //1101 Forced Switch
 #define RReq_EVENT                      14    //1110 Event
+#define RReq_FS                         13    //1101 Forced Switch
 #define RReq_SF                         11    //1011 Signal Fail (SF)
 #define RReq_MS                         7     //0111 Manual Switch (MS)
 #define RReq_NR                         0     //0000 No Request (NR)
@@ -227,6 +227,7 @@ typedef struct {
 
     // Ports State
     L7_uint8 portState[2];            ///< blocking or flushing
+    L7_uint8 rplBlockedPortSide;      ///< current RPL side port
 
     // FSM
     L7_uint8 state_machine;
@@ -257,15 +258,28 @@ typedef struct _erpsStatus_t {
     L7_uint8   apsRequestTx;
 } erpsStatus_t;
 
+
 //-------------------------------------------------------------------------
+//  VLANs Inclusion List
+//-------------------------------------------------------------------------
+
+/// VLANs protected by this ERPS instance
+typedef struct {
+  L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];          ///< VLAN ID
+  L7_BOOL   isOwnerVid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   ///< True if this is a UNI VLAN
+} erpsVlanInclusionList_t;
 
 
 //-------------------------------------------------------------------------
 //  Variables
 //-------------------------------------------------------------------------
 
-/// Sw data base containing all the information needed
+/// SW Data Base containing ERPS instance information
 extern tblErps_t tbl_erps[MAX_PROT_PROT_ERPS];
+
+/// SW Data Base VLANs Inclusion List
+extern erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
+
 //-------------------------------------------------------------------------
 
 
@@ -281,94 +295,117 @@ extern tblErps_t tbl_erps[MAX_PROT_PROT_ERPS];
 
 
 /**
- * Funcao para iniciar as tabelas de Software
- * \note Esta funcao deve ser invocada aquando o arranque do FW.
+ * ERPS Instaces initialization
+ * @author joaom (6/5/2013)
+ * @return int
  */
 int ptin_erps_init(void);
 
 /**
- * Funcao que permite adicionar uma instancia ERPS
- * @param erps_idx          Indice a ocupar (-1: 1o livre)
- * @param new_group         Estrutura de configuracao
- * @return                  id ocupado; <0 Erro
+ * Allocate an ERPS instance
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @param new_group 
+ * @return int 
  */
 int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group);
 
 /**
- * Funcao para configuracao de uma instancia
- * @param erps_idx          Indice a configurar
- * @param conf              Estrutura de configuracao
- * @return                  id configurado; <0 Erro
+ * Used to reconfigure an existing entry
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @param conf 
+ * @return int 
  */
 int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf);
 
 /**
- * Funcao para remocao de uma instancia
- * @param erps_idx          Indice a remover
- * @return                  id; <0 Erro
+ * Delete ERPS# instance
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_remove_entry(L7_uint32 erps_idx);
 
 /**
- * Comando
- * @param erps_idx          Indice a aplicar o comando
- * @return                  id; <0 Erro
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_cmd_clear(L7_uint32 erps_idx);
 
 /**
- * Comando
- * @param erps_idx          Indice a aplicar o comando
- * @return                  id; <0 Erro
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_cmd_lockout(L7_uint32 erps_idx);
 
 /**
- * Comando
- * @param erps_idx          Indice a aplicar o comando
- * @param switch_path       SWITCH_DISABLED/SWITCH_TO_W/SWITCH_TO_P
- * @return                  id; <0 Erro
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path);
 
 /**
- * Comando
- * @param erps_idx          Indice a aplicar o comando
- * @param switch_path       SWITCH_DISABLED/SWITCH_TO_W/SWITCH_TO_P
- * @return                  id; <0 Erro
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_cmd_manual(L7_uint32 erps_idx, L7_uint8 switch_path);
 
 /**
- * Funcao para limpar todas as entradas
- * @return                  0 OK; <0 Erro
+ * Delete all ERPS
+ * @author joaom (6/5/2013)
+ * @return int 
  */
 int ptin_erps_clear(void);
 
 /**
- * Funcao para leitura de uma entrada de proteccaoCC
- * @param erps_idx          Indice a ler
- * @param group             Estrutura contendo a configuracao
- * @return                  id; <0 Erro
+ * Get ERPS# Protection Parameters configuration
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @param group 
+ * @return int 
  */
 int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group);
 
 /**
- * Funcao para leitura de estado/alarmistica
- * @param erps_idx          Indice a ler
- * @param status            Estrutura de estado/alarmistica
- * @return                  id; <0 Erro
+ * Get ERPS Status
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @param status 
+ * @return int 
  */
 int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status);
 
 /**
- * Funcao para imprimir uma entrada
- * @param erps_idx          Indice a imprimir
- * @return                  id; <0 Erro
+ * ERPS Debug: Print configurations and Status information
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
  */
 int ptin_erps_rd_entry(L7_uint32 erps_idx);
 
+/**
+ * ERPS Debug: Print configurations and Status information
+ * @author joaom (6/11/2013)
+ * @return int 
+ */
+int ptin_erps_rd_allentry(void);
 
+/**
+ * ERPS Debug: Print configurations and Status information
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @return int 
+ */
+int ptin_erps_dump(L7_uint32 erps_idx);
 
 /****************************************************************************** 
  * ERPS Task Init
@@ -376,7 +413,6 @@ int ptin_erps_rd_entry(L7_uint32 erps_idx);
 
 /**
  * Initializes ERPS module
- * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_prot_erps_init(void);
