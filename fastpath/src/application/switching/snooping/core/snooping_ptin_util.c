@@ -55,6 +55,32 @@ L7_RC_t snoopPTinL2ClientRemove()
 }
 
 /*********************************************************************
+ * @purpose Add a new client to the L2 tables
+ *
+ * @returns  L7_SUCCESS
+ * @returns  L7_FAILURE
+ *
+ *********************************************************************/
+L7_RC_t snoopPTinProxyL2ClientAdd()
+{
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Adding client to L2");
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+ * @purpose Remove a existing client from the L2 tables
+ *
+ * @returns  L7_SUCCESS
+ * @returns  L7_FAILURE
+ *
+ *********************************************************************/
+L7_RC_t snoopPTinProxyL2ClientRemove()
+{
+  LOG_WARNING(LOG_CTX_PTIN_IGMP, "Removing client from L2");
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
  * @purpose Check if a given timer is running
  *
  * @param   timerPtr  Pointer to timer
@@ -514,6 +540,48 @@ char* snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer)
   return buffer;
 }
 
+/*********************************************************************
+*
+* @purpose Given an address and a buffer, fill in the buffer with a
+*          displayable rendition of the address, appropriate to the
+*          address family.
+*
+* @param   L7_uchar8       *buf   (output buffer)
+* @param   L7_uint32        len   (length of buffer)
+* @param   L7_inet_addr_t  *addr  (address)
+*
+* @returns none
+*
+* @notes   Fills in address; returns '<INV_FAM_xx>' where xx is the
+*          hexadecimal value of the family if it's not IPv4 or IPv6.
+*          Assumes valid buf, len, addr are passed in.
+*
+* @end
+*
+*********************************************************************/
+char *snoopPTinIPAddrPrint(const L7_inet_addr_t addr, L7_uchar8 *buf)
+{
+const L7_uchar8 *rp=L7_NULLPTR;
+if (L7_AF_INET == addr.family)
+ {
+   /* It's IPv4; parse as IPv4 */
+   inet_ntop(L7_AF_INET, &addr.addr.ipv4, buf, sizeof(buf));
+   return (L7_uchar8 *)rp;
+ }
+ else if (L7_AF_INET6 == addr.family)
+ {
+   /* It's IPv6; parse as IPv6 */
+   inet_ntop(L7_AF_INET6, &addr.addr.ipv6, buf, sizeof(buf));
+   return (L7_uchar8 *)rp;
+ }
+ else
+ {
+   /* It's not covered already; indicate invalid */
+   LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IP Address Family :%d",addr.family);
+   return (L7_uchar8 *) L7_NULL;
+ }
+}
+
 /*************************************************************************
  * @purpose Debug method that prints stored information for a specific
  *          multicast group
@@ -573,4 +641,5 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
     printf("Unknown Group %s VlanId %u\n", snoopPTinIPv4AddrPrint(groupAddr, debug_buf), vlanId);
   }
 }
+
 
