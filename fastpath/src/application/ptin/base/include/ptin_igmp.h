@@ -25,7 +25,7 @@
 
 /* Default config values (PTin custom parameters) */
 #define PTIN_IGMP_DEFAULT_COS                           SNOOP_IGMP_DEFAULT_PRIO
-#define PTIN_IGMP_DEFAULT_VERSION                       2
+#define PTIN_IGMP_DEFAULT_VERSION                       3
 #define PTIN_IGMP_DEFAULT_IPV4                          0xA00000A /* 10.0.0.10 */
 #define PTIN_IGMP_DEFAULT_FASTLEAVEMODE                 1
 
@@ -83,6 +83,10 @@ typedef enum  {
   SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED,
   SNOOP_STAT_FIELD_SPECIFIC_QUERIES_SENT,
   SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED,
+  SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_SENT,
+  SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED,
+  SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_SENT,
+  SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED,
   SNOOP_STAT_FIELD_ALL                        // This must be the last element
 } ptin_snoop_stat_enum_t;
 
