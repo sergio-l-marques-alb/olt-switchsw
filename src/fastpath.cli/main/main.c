@@ -120,6 +120,8 @@ void help_oltBuga(void)
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
+
+        "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
         "\n\r"
         );
 }
@@ -5064,6 +5066,58 @@ int main (int argc, char *argv[])
     //printf("Fim do send BUGA to Controlo...\n\r");
     exit(0);
   }//if argc == m 
+  else if ( !strcmp(argv[1],"testit") && ( argc >= 3 ) )
+  {
+   unsigned int i;
+
+    if (StrToLongLong(argv[2],&valued)>=0)  msg = (unsigned int)valued;
+    else
+    {
+      help_oltBuga();
+      exit(0);
+    }
+
+    //printf("A mensagem a enviar e' a %d\n\r", msg);
+
+    // 1 - Preparar mensagem a enviar ao modulo de controlo
+    comando.protocolId   = 1;
+    comando.srcId        = PORTO_TX_MSG_BUGA;
+    comando.dstId        = PORTO_RX_MSG_BUGA;
+    comando.flags        = (FLAG_COMANDO); //(IPCLIB_FLAGS_CMD | (IPC_UID<<4));
+    comando.counter      = rand ();
+    comando.msgId        = msg;
+    comando.infoDim      = argc-3;
+    for(i=3; i<argc; i++) {
+        if (StrToLongLong(argv[i],&valued)<0) {
+            help_oltBuga();
+            exit(0);
+        }
+        comando.info[i-3]= valued;
+    }
+
+
+
+
+    canal_buga=open_ipc(PORTO_TX_MSG_BUGA,IP_LOCALHOST,NULL,20);
+    if ( canal_buga<0 )
+    {
+      printf("Erro no open IPC do BUGA...\n\r");
+      exit(0);
+    }
+    valued = send_data (canal_buga, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta);
+    close_ipc(canal_buga);
+    if ( valued )
+    {
+      printf("Erro %llu  no send_data IPC do BUGA...\n\r", valued);
+      exit(0);
+    }
+
+
+
+    printf("RESPOSTA: msg=%4.4x\tflags=%2.2u\tinfoDim=%u\n\r", resposta.msgId, resposta.flags, resposta.infoDim);
+    for (i=0; i<resposta.infoDim; i++) printf("\t%2.2x", resposta.info[i]);
+    if (resposta.infoDim) printf("\n\r"); 
+  }//else if ( !strcmp(argv[1],"testit") && ( argc >= 3 ) )
   else
   {
     help_oltBuga();
