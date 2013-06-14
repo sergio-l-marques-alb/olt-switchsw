@@ -147,6 +147,29 @@
 
 
 
+
+#define CCMSG_WR_802_1X_ADMINMODE     0x9180
+#define CCMSG_WR_802_1X_TRACE         0x9181
+#define CCMSG_WR_802_1X_VLANASSGNMODE 0x9182
+#define CCMSG_WR_802_1X_MONMODE       0x9183
+#define CCMSG_WR_802_1X_DYNVLANMODE   0x9184
+
+#define CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS   0x91A0
+#define CCMSG_WR_802_1X_PORTCONTROLMODE             0x91A1
+#define CCMSG_WR_802_1X_QUIETPERIOD                 0x91A2
+#define CCMSG_WR_802_1X_TXPERIOD                    0x91A3
+#define CCMSG_WR_802_1X_SUPPTIMEOUT                 0x91A4
+#define CCMSG_WR_802_1X_SERVERTIMEOUT               0x91A5
+#define CCMSG_WR_802_1X_MAXREQ                      0x91A6
+#define CCMSG_WR_802_1X_REAUTHPERIOD                0x91A7
+#define CCMSG_WR_802_1X_KEYTXENABLED                0x91A8
+#define CCMSG_WR_802_1X_GUESTVLANID                 0x91A9
+#define CCMSG_WR_802_1X_GUSTVLANPERIOD              0x91AA
+#define CCMSG_WR_802_1X_MAXUSERS                    0x91AB
+#define CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN         0x91AC
+
+#define CCMSG_WR_802_1X_AUTHSERV    0x91C0
+
 /*****************************************************************************
  * Structures exchanged on the messages
  * NOTE: By default they are 'packed' to avoid empty gaps
@@ -1192,6 +1215,60 @@ typedef struct {
    //service List
    L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
 } __attribute__ ((packed)) msg_erps_t;
+
+
+
+
+
+
+
+
+
+
+
+
+typedef struct {
+    L7_ulong32 v;
+} __attribute__ ((packed)) msg_802_1x_Genrc;
+
+typedef msg_802_1x_Genrc msg_802_1x_AdminMode;
+typedef msg_802_1x_Genrc msg_802_1x_TraceMode;
+typedef msg_802_1x_Genrc msg_802_1x_VlanAssgnMode;
+typedef msg_802_1x_Genrc msg_802_1x_MonMode;
+typedef msg_802_1x_Genrc msg_802_1x_DynVlanMode;
+
+
+typedef struct {
+    _MSG_GENERIC_PREFIX_STRUCT;
+    L7_ulong32 v;
+} __attribute__ ((packed)) msg_802_1x_Genrc2;
+
+typedef msg_802_1x_Genrc2 msg_802_1x_AdminControlledDirections;
+typedef msg_802_1x_Genrc2 msg_802_1x_PortControlMode;
+typedef msg_802_1x_Genrc2 msg_802_1x_QuietPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_TxPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_SuppTimeout;
+typedef msg_802_1x_Genrc2 msg_802_1x_ServerTimeout;
+typedef msg_802_1x_Genrc2 msg_802_1x_MaxReq;
+typedef msg_802_1x_Genrc2 msg_802_1x_ReAuthPeriod;  //forbidden values disables this
+//typedef msg_802_1x_Genrc2 msg_802_1x_ReAuthEnabled;
+typedef msg_802_1x_Genrc2 msg_802_1x_KeyTxEnabled;
+typedef msg_802_1x_Genrc2 msg_802_1x_GuestVlanId;
+typedef msg_802_1x_Genrc2 msg_802_1x_GuestVlanPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_MaxUsers;
+typedef msg_802_1x_Genrc2 msg_802_1x_UnauthenticatedVlan;
+
+
+typedef struct {
+    _MSG_GENERIC_PREFIX_STRUCT;     //wr: 0..L7_MAX_IAS_USERS-1; if greater, the board chooses
+                                    //    index MSBit: 0-unencrypted; 1-encrypted
+    L7_char8    name[L7_LOGIN_SIZE];
+    L7_char8    passwd[L7_ENCRYPTED_PASSWORD_SIZE]; //both include \0
+} __attribute__ ((packed)) msg_802_1x_AuthServ;
+
+
+
+
 
 
 /***************************************************************************** 

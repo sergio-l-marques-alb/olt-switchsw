@@ -839,4 +839,18 @@ extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
  */
 extern L7_RC_t ptin_msg_erps_set(msg_erps_t *ptr);
 
+
+
+
+extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
+//#define msg_wr_802_1x_AdminMode     msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_TraceMode     msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_VlanAssgnMode msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_MonMode       msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_DynVlanMode   msg_wr_802_1x_Genrc
+
+extern int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
+
+extern int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 #endif /* _PTIN_MSG_H */
+

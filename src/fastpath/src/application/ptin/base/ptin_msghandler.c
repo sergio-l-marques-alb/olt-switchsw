@@ -54,7 +54,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 
 /* Macro to check infoDim consistency (including modulo match) */
 #define CHECK_INFO_SIZE_MOD(msg_st) {             \
-  if ((inbuffer->infoDim % sizeof(msg_st)) != 0) {  \
+  if ((inbuffer->infoDim != sizeof(msg_st)) && ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
@@ -89,6 +89,85 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
   // Default error
   return ERROR_CODE_INVALIDPARAM;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong32 error) {
+    outbuff->flags   = (IPCLIB_FLAGS_NACK);
+    outbuff->infoDim = sizeof(int);
+    *(int *)outbuff->info = SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error);
+}
+
+
+
+
+
+
+
+
+
+//Function for generic message reading/writing n STRUCT_SIZE structs*************************************************
+//Uses the particular method for reading/writing each struct, "msg_generic_wrd_1struc"*******************************
+static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT) {
+L7_ushort16 i,n;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
+
+      //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
+ if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0) {     
+     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
+     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
+     return(0);
+ }
+
+ outbuff->flags   = (IPCLIB_FLAGS_ACK);
+
+ n=inbuff->infoDim/STRUCT_SIZE_IN;
+printf("msg_generic_wrd(1)");
+ if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT) {//0..n-1
+   for (i=0;    i<n;    i++)
+     if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
+         outbuff->flags = (IPCLIB_FLAGS_NACK);
+         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+     }
+ }
+ else {
+     if (n*STRUCT_SIZE_OUT>IPCLIB_MAX_MSGSIZE) {
+         seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
+         return(0);
+     }
+     for (i=n;  i;  i--) //i=n-1..0
+            if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
+                outbuff->flags = (IPCLIB_FLAGS_NACK);
+                LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+            }
+ }
+
+ outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
+ LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
+ return(0);
+}//msg_generic_wrd
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Message handler for the PTin Module.
@@ -2647,6 +2726,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
+
     case CCMSG_DUMP_LUT_MEPs:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
@@ -2700,6 +2780,36 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       break;
 
+
+
+
+    case CCMSG_WR_802_1X_ADMINMODE:
+    case CCMSG_WR_802_1X_TRACE:
+    case CCMSG_WR_802_1X_VLANASSGNMODE:
+    case CCMSG_WR_802_1X_MONMODE:
+    case CCMSG_WR_802_1X_DYNVLANMODE:
+      msg_generic_wrd(msg_wr_802_1x_Genrc, inbuffer, outbuffer, sizeof(msg_802_1x_Genrc), sizeof(msg_802_1x_Genrc));
+      break;
+
+    case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS:
+    case CCMSG_WR_802_1X_PORTCONTROLMODE:
+    case CCMSG_WR_802_1X_QUIETPERIOD:
+    case CCMSG_WR_802_1X_TXPERIOD:
+    case CCMSG_WR_802_1X_SUPPTIMEOUT:
+    case CCMSG_WR_802_1X_SERVERTIMEOUT:
+    case CCMSG_WR_802_1X_MAXREQ:
+    case CCMSG_WR_802_1X_REAUTHPERIOD:
+    case CCMSG_WR_802_1X_KEYTXENABLED:
+    case CCMSG_WR_802_1X_GUESTVLANID:
+    case CCMSG_WR_802_1X_GUSTVLANPERIOD:
+    case CCMSG_WR_802_1X_MAXUSERS:
+    case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:
+      msg_generic_wrd(msg_wr_802_1x_Genrc2, inbuffer, outbuffer, sizeof(msg_802_1x_Genrc2), sizeof(msg_generic_prefix_t));
+      break;
+
+    case CCMSG_WR_802_1X_AUTHSERV:
+      msg_generic_wrd(msg_wr_802_1x_AuthServ, inbuffer, outbuffer, sizeof(msg_802_1x_AuthServ), sizeof(msg_generic_prefix_t));
+      break;
 
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE

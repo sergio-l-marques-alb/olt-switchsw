@@ -27,7 +27,7 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 #include "nimapi.h"
-#include "ptin_oam.h"
+#include <ethsrv_oam.h>//"ptin_oam.h"
 #include "ptin_prot_erps.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
@@ -5526,4 +5526,198 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   return L7_SUCCESS;
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <sirerrors.h>
+#include <usmdb_dot1x_api.h>
+#include <usmdb_dot1x_auth_serv_api.h>
+#include <dot1x_auth_serv_exports.h>
+#include <dot1x_auth_serv_api.h>
+
+
+int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_Genrc *pi, *po;
+L7_RC_t r;
+
+ pi=(msg_802_1x_Genrc *)inbuff->info;   po=(msg_802_1x_Genrc *)outbuff->info;
+printf(" msg_wr_802_1x_Genrc(1)\n\r");
+
+ switch (inbuff->msgId) {
+ case CCMSG_WR_802_1X_ADMINMODE:        printf(" msg_wr_802_1x_Genrc(2)\n\r");
+r=usmDbDot1xAdminModeSet(1, pi[i].v); printf(" msg_wr_802_1x_Genrc(3)\n\r");
+break;
+ case CCMSG_WR_802_1X_TRACE:            r=usmDbDot1xPacketDebugTraceFlagSet(pi[i].v>>1, pi[i].v&1); break;
+ case CCMSG_WR_802_1X_VLANASSGNMODE:    r=usmDbDot1xVlanAssignmentModeSet(1, pi[i].v); break;
+ case CCMSG_WR_802_1X_MONMODE:          r=usmDbDot1xMonitorModeSet(1, pi[i].v); break;
+ case CCMSG_WR_802_1X_DYNVLANMODE:      r=usmDbDot1xDynamicVlanCreationModeSet(1, pi[i].v); break;
+ default:
+     po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+     return 1;
+ }
+
+ if (L7_SUCCESS!=r) {
+   po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].v = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_Genrc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_Genrc2 *pi;
+msg_generic_prefix_t *po;
+ptin_intf_t ptinp;
+L7_RC_t r;
+L7_uint32 intIfNum;
+
+ pi=(msg_802_1x_Genrc2 *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+
+ ptinp.intf_type=   pi[i].index>>8;
+ ptinp.intf_id=     pi[i].index;
+ if (L7_SUCCESS!=ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum)) {
+     po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+     return 1;
+ }
+
+ switch (inbuff->msgId) {
+    case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS: r=usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_PORTCONTROLMODE:           r=usmDbDot1xPortControlModeSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_QUIETPERIOD:               r=usmDbDot1xPortQuietPeriodSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_TXPERIOD:                  r=usmDbDot1xPortTxPeriodSet(1, intIfNum, pi[i].v);  break;
+    case CCMSG_WR_802_1X_SUPPTIMEOUT:               r=usmDbDot1xPortSuppTimeoutSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_SERVERTIMEOUT:             r=usmDbDot1xPortServerTimeoutSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_MAXREQ:                    r=usmDbDot1xPortMaxReqSet(1, intIfNum, pi[i].v);    break;
+    case CCMSG_WR_802_1X_REAUTHPERIOD:
+        if (1+pi[i].v==0) {r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 0);   break;}  //Forbidden period disables
+        r=usmDbDot1xPortReAuthPeriodSet(1, intIfNum, pi[i].v);
+        if (L7_SUCCESS!=r) break;
+        r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 1);
+        break;
+    case CCMSG_WR_802_1X_KEYTXENABLED:              r=usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_GUESTVLANID:               r=usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_GUSTVLANPERIOD:            r=usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_MAXUSERS:                  r=usmDbDot1xPortMaxUsersSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:       r=usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, pi[i].v); break;
+    default:
+        po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+        return 1;
+ }
+
+ if (L7_SUCCESS!=r) {
+   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].err_code = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_Genrc2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t usmDbDot1xAuthServUserDBUserIndexGet(L7_char8 *name, L7_uint32 *index) {
+    return dot1xAuthServUserDBUserIndexGet(name, index);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBUserNameSet(L7_uint32 index, L7_char8 *name) {
+    return dot1xAuthServUserDBUserNameSet(index, name);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBUserPasswordSet(L7_uint32 index, L7_char8 *password, L7_BOOL encrypted) {
+    return dot1xAuthServUserDBUserPasswordSet(index, password, encrypted);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBAvailableIndexGet(L7_uint32 *index) {
+    return dot1xAuthServUserDBAvailableIndexGet(index);
+}
+
+int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_AuthServ *pi;
+msg_generic_prefix_t *po;
+L7_RC_t r;
+L7_ulong32 k;           //MNGMT preferred index
+L7_uint32 index=-1;     //index to eventual already in table entry
+L7_uchar8 e;
+
+ pi=(msg_802_1x_AuthServ *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+
+ k=pi[i].index; //64th bit's lost
+ e=pi[i].index>>63;
+
+ if (L7_SUCCESS==usmDbDot1xAuthServUserDBUserIndexGet(pi[i].name, &index)) {
+     if (k<L7_MAX_IAS_USERS && k!=index) {  //Name already in table with different index
+         po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_DUPLICATENAME);
+         return 1;
+     }
+ }
+ else index=-1;
+
+ if (k<L7_MAX_IAS_USERS) {
+     if (k!=index && (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserNameSet(k, pi[i].name)))) {   //index already used (or table full)
+       po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_USED);
+       return 1;
+     }
+ }
+ else {
+     if (index>=L7_MAX_IAS_USERS) {
+         if (L7_SUCCESS!=usmDbDot1xAuthServUserDBAvailableIndexGet(&index)) {
+             po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_FULLTABLE);
+             return 1;
+         }
+     }
+     k=index;
+ }
+
+ if (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserPasswordSet(k, pi[i].passwd, e))) {
+   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].err_code = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_AuthServ
 
