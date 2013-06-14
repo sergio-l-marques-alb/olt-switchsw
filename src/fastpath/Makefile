@@ -7,7 +7,7 @@
 #                                              #
 ################################################
 
-.PHONY: help h all kernel_cxp360g kernel_cxo640g kernel_tolt8g kernel_tg16g kernel_olt7-8chb olt360 olt1t3 cxp360g cxo640g tolt8g tg16g olt7-8chb cli shell clean clean_olt360 clean_olt1t3 clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt1t3 cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt1t3 install_cxp360g install_cxo640g install_tolt8g install_tg16g install_olt7-8chb install_cli install_shell image image_olt360 image_olt1t3
+.PHONY: help h all kernel_cxp360g kernel_cxo640g kernel_cxo640g_v1 kernel_tolt8g kernel_tg16g kernel_olt7-8chb olt360 olt1t3 cxp360g cxo640g cxo640g_v1 tolt8g tg16g olt7-8chb cli shell clean clean_olt360 clean_olt1t3 clean_cxp360g clean_cxo640g clean_cxo640g_v1 clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell cleanall cleanall_olt360 cleanall_olt1t3 cleanall_cxp360g cleanall_cxo640g cleanall_cxo640g_v1 cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell install install_olt360 install_olt1t3 install_cxp360g install_cxo640g install_cxo640g_v1 install_tolt8g install_tg16g install_olt7-8chb install_cli install_shell image image_olt360 image_olt1t3
 
 SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
@@ -32,6 +32,7 @@ help h:
 	@echo "Makefile Help            "
 	@echo " make kernel_cxp360g     "
 	@echo " make kernel_cxo640g     "
+	@echo " make kernel_cxo640g_v1  "
 	@echo " make kernel_tolt8g      "
 	@echo " make kernel_tg16g       "
 	@echo " make kernel_olt7-8chb   "
@@ -41,6 +42,7 @@ help h:
 	@echo " make olt1t3             "
 	@echo " make cxp360g            "
 	@echo " make cxo640g            "
+	@echo " make cxo640g_v1         "
 	@echo " make tolt8g             "
 	@echo " make tg16g              "
 	@echo " make olt7-8chb          "
@@ -52,6 +54,7 @@ help h:
 	@echo " make clean_olt1t3       "
 	@echo " make clean_cxp360g      "
 	@echo " make clean_cxo640g      "
+	@echo " make clean_cxo640g_v1   "
 	@echo " make clean_tolt8g       "
 	@echo " make clean_tg16g        "
 	@echo " make clean_olt7-8chb    "
@@ -63,6 +66,7 @@ help h:
 	@echo " make cleanall_olt1t3    "
 	@echo " make cleanall_cxp360g   "
 	@echo " make cleanall_cxo640g   "
+	@echo " make cleanall_cxo640g_v1"
 	@echo " make cleanall_tolt8g    "
 	@echo " make cleanall_tg16g     "
 	@echo " make cleanall_olt7-8chb "
@@ -74,6 +78,7 @@ help h:
 	@echo " make install_olt1t3     "
 	@echo " make install_cxp360g    "
 	@echo " make install_cxo640g    "
+	@echo " make install_cxo640g_v1 "
 	@echo " make install_tolt8g     "
 	@echo " make install_tg16g      "
 	@echo " make install_olt7-8chb  "
@@ -88,6 +93,9 @@ help h:
 kernel_cxp360g:
 	@$(MAKE) -f cxp360g.make kernel
 
+kernel_cxo640g_v1:
+	@$(MAKE) -f cxo640g_v1.make kernel
+
 kernel_cxo640g:
 	@$(MAKE) -f cxo640g.make kernel
 
@@ -101,14 +109,17 @@ kernel_olt7-8chb:
 	@$(MAKE) -f olt7-8chb.make kernel
 
 
-all:	cxo640g cxp360g tg16g tolt8g cli shell
+all:	cxo640g cxo640g_v1 cxp360g tg16g tolt8g cli shell
 
 olt360:	cxp360g tolt8g cli shell
 
-olt1t3:	cxo640g tg16g cli shell
+olt1t3:	cxo640g cxo640g_v1 tg16g cli shell
 
 cxp360g:
 	@$(MAKE) -f cxp360g.make
+
+cxo640g_v1:
+	@$(MAKE) -f cxo640g_v1.make
 
 cxo640g:
 	@$(MAKE) -f cxo640g.make
@@ -130,10 +141,13 @@ shell:
 
 clean_olt360:		clean_cxp360g clean_tolt8g clean_cli clean_shell
 
-clean_olt1t3:		clean_cxo640g clean_tg16g clean_cli clean_shell
+clean_olt1t3:		clean_cxo640g clean_cxo640g_v1 clean_tg16g clean_cli clean_shell
 
 clean_cxp360g:
 	@$(MAKE) -f cxp360g.make clean
+
+clean_cxo640g_v1:
+	@$(MAKE) -f cxo640g_v1.make clean
 
 clean_cxo640g:
 	@$(MAKE) -f cxo640g.make clean
@@ -155,10 +169,13 @@ clean_shell:
 
 cleanall_olt360:	cleanall_cxp360g cleanall_tolt8g cleanall_cli cleanall_shell
 
-cleanall_olt1t3:	cleanall_cxo640g cleanall_tg16g cleanall_cli cleanall_shell
+cleanall_olt1t3:	cleanall_cxo640g cleanall_cxo640g_v1 cleanall_tg16g cleanall_cli cleanall_shell
 
 cleanall_cxp360g:
 	@$(MAKE) -f cxp360g.make cleanall
+
+cleanall_cxo640g_v1:
+	@$(MAKE) -f cxo640g_v1.make cleanall
 
 cleanall_cxo640g:
 	@$(MAKE) -f cxo640g.make cleanall
@@ -180,10 +197,13 @@ cleanall_shell:
 
 install_olt360:		install_cxp360g install_tolt8g install_cli install_shell
 
-install_olt1t3: 	install_cxo640g install_tg16g install_cli install_shell
+install_olt1t3: 	install_cxo640g install_cxo640g_v1 install_tg16g install_cli install_shell
 
 install_cxp360g:
 	@$(MAKE) -f cxp360g.make install
+
+install_cxo640g_v1:
+	@$(MAKE) -f cxo640g_v1.make install
 
 install_cxo640g:
 	@$(MAKE) -f cxo640g.make install
@@ -203,11 +223,11 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxo640g install_cxp360g install_tg16g install_tolt8g install_cli install_shell
+install:	install_cxo640g install_cxo640g_v1 install_cxp360g install_tg16g install_tolt8g install_cli install_shell
 
-clean:		clean_cxp360g clean_cxo640g clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell
+clean:		clean_cxp360g clean_cxo640g clean_cxo640g_v1 clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell
 
-cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell
+cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_cxo640g_v1 cleanall_tolt8g cleanall_tg16g cleanall_olt7-8chb cleanall_cli cleanall_shell
 
 
 image:		install

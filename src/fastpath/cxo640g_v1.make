@@ -79,11 +79,11 @@ help h:
 
 welcome: 
 	@echo ""
-	@echo "############################################"
-	@echo "#                                          #"
-	@echo "#  FastPath Makefile for the CXO640G card  #"
-	@echo "#                                          #"
-	@echo "############################################"
+	@echo "##############################################"
+	@echo "#                                            #"
+	@echo "#  FastPath Makefile for the CXO640G_V1 card #"
+	@echo "#                                            #"
+	@echo "##############################################"
 	@echo ""
 	@echo "FP_FOLDER = $(FP_FOLDER)"
 	@echo "OLT_DIR = $(OLT_DIR)"
