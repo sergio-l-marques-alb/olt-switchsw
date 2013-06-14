@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+    echo 'Usage: $0 <cxp ip (last octet)> <lc ip (last octet)>'
+    exit 1
+fi
+
+cd output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G/ipl/
+lc_put $1 $2 switchdrvr /usr/local/ptin/sbin
+lc_put $1 $2 devshell_symbols.gz /usr/local/ptin/sbin
+cd -
+
+#cd target
+#lc_put $1 $2 linux-kernel-bde.ko /usr/local/ptin/sbin
+#lc_put $1 $2 linux-user-bde.ko /usr/local/ptin/sbin
+
+#cp ../../../../../fastpath.shell/bin/fastpath.shell .
+#lc_put $1 $2 fastpath.shell /usr/local/ptin/sbin .
+
+#cp ../../../../../fastpath.cli/bin/fastpath.cli .
+#lc_put $1 $2 fastpath.cli /usr/local/ptin/sbin .
+
+#cd -
+ 

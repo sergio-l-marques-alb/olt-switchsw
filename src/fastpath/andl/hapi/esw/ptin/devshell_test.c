@@ -640,7 +640,7 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
 }
 
 /* BER tests only for the CXO640G */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 
 #include <bcm/port.h>
 #include <unistd.h>
@@ -2942,8 +2942,8 @@ int ptin_ber_help(void)
          " Read BER counter for a lists of ports\n"
          "   fastpath.cli m 1007 <port#1> <port#2>\n"
          "\n"
-         " Initialize BER meter functions\n"
-         "   fastpath.shell dev ber_init\n"
+         " Initialize BER meter functions (-1 to let fw to guess)\n"
+         "   fastpath.shell dev ber_init <mx_slot>\n"
          "\n"
          " Stop running BER threads\n"
          "   fastpath.shell dev ber_stop\n"

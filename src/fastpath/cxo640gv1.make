@@ -29,9 +29,9 @@ BIN_FILE	= switchdrvr
 DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER		= /opt/eldk/usr/bin/ppc_85xxDP-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/tmp/linux-2.6.27.56_1G
+export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-2.6.27.56
 
-CARD_FOLDER 	= FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
+CARD_FOLDER 	= FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G_V1
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU		= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
@@ -65,7 +65,7 @@ kernel:
 	cd $(KERNEL_PATH) && ./build_ppc_cxo360g.sh
 
 install:
-	sh cxo640g.install
+	sh cxo640gv1.install
 
 help h:
 	@echo ""

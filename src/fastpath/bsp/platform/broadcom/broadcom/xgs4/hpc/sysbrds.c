@@ -393,6 +393,8 @@ L7_RC_t hpcConfigBoardSet()
         /* Configure to use LCPLL reference clock */
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
 
+        /* For CXO640G-V1 */
+        #if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1)
         if (sal_config_set(spn_PORTMAP"_1",   "3:10") != 0) return(L7_FAILURE); // slot 2 lane 2
         if (sal_config_set(spn_PORTMAP"_2",   "4:10") != 0) return(L7_FAILURE); // slot 2 lane 3
                                                                                 // 
@@ -472,124 +474,377 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_PORTMAP"_63",  "69:1") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_64",  "70:1") != 0) return(L7_FAILURE);
 
-#if 0
-// slot 2 e 14 off
-        if (sal_config_set(spn_PORTMAP"_1",   "5:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_2",   "6:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_3",   "7:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_4",   "8:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_5",   "9:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_6",  "10:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_7",  "11:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_8",  "12:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_13", "17:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_14", "18:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_15", "19:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_16", "20:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_17", "21:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_18", "22:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_19", "23:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_20", "24:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_21", "25:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_22", "26:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_23", "27:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_24", "28:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_25", "29:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_26", "30:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_27", "31:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_28", "32:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_29", "33:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_30", "34:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_31", "35:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_32", "36:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_33", "37:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_34", "38:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_35", "39:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_36", "40:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_37", "41:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_38", "42:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_39", "43:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_40", "44:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_41", "45:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_42", "46:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_43", "47:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_44", "48:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_45", "53:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_46", "54:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_47", "55:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_48", "56:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_49", "57:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_50", "58:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_51", "59:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_52", "60:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_53", "61:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_54", "62:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_55", "63:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_56", "64:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_57", "65:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_58", "66:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_59", "67:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_60", "68:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_61", "69:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_62", "70:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_63", "71:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_64", "72:10") != 0) return(L7_FAILURE);
-#endif
+        #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+        /* For CXO640G-V2 */
 
-#if 0
-        if (sal_config_set(spn_PORTMAP"_1",   "1:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_2",   "2:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_3",   "3:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_4",   "4:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_5",   "5:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_6",   "6:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_7",   "7:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_8",   "8:10") != 0) return(L7_FAILURE);
+        /* Group Core 0 */
+        /* Slot 2: WC1: lanes 7-8 */
+        if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE); // slot 2 lane 2
+        if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE); // slot 2 lane 3
+
+        /* Slot 3: WC2: lanes 11-12 */
+        if (sal_config_set(spn_PORTMAP"_3",  "11:10") != 0) return(L7_FAILURE); // slot 3 lane 2
+        if (sal_config_set(spn_PORTMAP"_4",  "12:10") != 0) return(L7_FAILURE); // slot 3 lane 3
+
+        /* Slot 4: WC4: lanes 17-20 */
+        if (sal_config_set(spn_PORTMAP"_5",  "17:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_6",  "18:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_7",  "19:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_8",  "20:10") != 0) return(L7_FAILURE);
+
+        /* Slot 5: WC3: lanes 13-16 */
         if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_13", "21:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_14", "22:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_15", "23:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_16", "24:10") != 0) return(L7_FAILURE);
+
+        /* Slot 6: WC0: lanes 3-4 */
+        if (sal_config_set(spn_PORTMAP"_13",  "3:10") != 0) return(L7_FAILURE); // slot 6 lane 2
+        if (sal_config_set(spn_PORTMAP"_14",  "4:10") != 0) return(L7_FAILURE); // slot 6 lane 3
+
+        /* Group Core 1 */
+        /* Slot 7: WC5: lanes 23-24 */
+        if (sal_config_set(spn_PORTMAP"_15", "23:10") != 0) return(L7_FAILURE); // slot 7 lane 2
+        if (sal_config_set(spn_PORTMAP"_16", "24:10") != 0) return(L7_FAILURE); // slot 7 lane 3
+
+        /* Slot 8: WC6: lanes 25-28 */
         if (sal_config_set(spn_PORTMAP"_17", "25:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_18", "26:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_19", "27:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_20", "28:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_21", "33:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_22", "34:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_23", "35:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_24", "36:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_25", "37:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_26", "38:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_27", "39:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_28", "40:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_29", "45:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_30", "46:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_31", "47:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_32", "48:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_33", "49:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_34", "50:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_35", "51:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_36", "52:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_37", "57:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_38", "58:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_39", "59:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_40", "60:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_41", "65:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_42", "66:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_43", "67:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_44", "68:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_45", "69:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_46", "70:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_47", "71:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_48", "72:10") != 0) return(L7_FAILURE);
-#endif
+
+        /* Slot 9: WC7: lanes 29-32 */
+        if (sal_config_set(spn_PORTMAP"_21", "29:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_22", "30:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_23", "31:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_24", "32:10") != 0) return(L7_FAILURE);
+
+        /* Slot 10: WC8: lanes 33-36 */
+        if (sal_config_set(spn_PORTMAP"_25", "33:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_26", "34:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_27", "35:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_28", "36:10") != 0) return(L7_FAILURE);
+
+        /* Group Core 2 */
+        /* Slot 11: WC9: lanes 37-40 */
+        if (sal_config_set(spn_PORTMAP"_29", "37:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_30", "38:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_31", "39:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_32", "40:10") != 0) return(L7_FAILURE);
+
+        /* Slot 12: WC10: lanes 41-44 */
+        if (sal_config_set(spn_PORTMAP"_33", "41:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_34", "42:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_35", "43:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_36", "44:10") != 0) return(L7_FAILURE);
+
+        /* Slot 13: WC11: lanes 45-48 */
+        if (sal_config_set(spn_PORTMAP"_37", "45:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_38", "46:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_39", "47:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_40", "48:10") != 0) return(L7_FAILURE);
+
+        /* Group Core 3 */
+        /* Slot 14: WC16: lanes 67-68 */
+        if (sal_config_set(spn_PORTMAP"_41", "67:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_42", "68:10") != 0) return(L7_FAILURE);
+
+        /* Slot 15: WC17: lanes 71-72 */
+        if (sal_config_set(spn_PORTMAP"_43", "71:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_44", "72:10") != 0) return(L7_FAILURE);
+
+        /* Slot 16: WC14: lanes 57-60 */
+        if (sal_config_set(spn_PORTMAP"_45", "57:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_46", "58:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_47", "59:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_48", "60:10") != 0) return(L7_FAILURE);
+
+        /* Slot 17: WC15: lanes 61-64 */
+        if (sal_config_set(spn_PORTMAP"_49", "61:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_50", "62:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_51", "63:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_52", "64:10") != 0) return(L7_FAILURE);
+
+        /* Group Core 2 */
+        /* Slot 18: WC12: lanes 51-52 */
+        if (sal_config_set(spn_PORTMAP"_53", "51:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_54", "52:10") != 0) return(L7_FAILURE);
+
+        /* Slot 19: WC13: lanes 55-56 */
+        if (sal_config_set(spn_PORTMAP"_55", "55:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_56", "56:10") != 0) return(L7_FAILURE);
+        /* End of 10G ports */
+
+        /* PTP port: WC1: lane 5 */
+        if (sal_config_set(spn_PORTMAP"_57",   "5:1") != 0) return(L7_FAILURE); // GC0: WC1  lane 0
+
+        // extra mapping to fill 64 ports in total
+        if (sal_config_set(spn_PORTMAP"_58",   "6:1") != 0) return(L7_FAILURE); // GC0: WC1  lane 1
+        if (sal_config_set(spn_PORTMAP"_59",   "1:1") != 0) return(L7_FAILURE); // GC0: WC0  lane 0
+        if (sal_config_set(spn_PORTMAP"_60",   "2:1") != 0) return(L7_FAILURE); // GC0: WC0  lane 1
+        if (sal_config_set(spn_PORTMAP"_61",  "65:1") != 0) return(L7_FAILURE); // GC1: WC0  lane 0
+        if (sal_config_set(spn_PORTMAP"_62",  "66:1") != 0) return(L7_FAILURE); // GC3: WC16 lane 0
+        if (sal_config_set(spn_PORTMAP"_63",  "69:1") != 0) return(L7_FAILURE); // GC3: WC17 lane 0
+        if (sal_config_set(spn_PORTMAP"_64",  "70:1") != 0) return(L7_FAILURE); // GC3: WC17 lane 1
+
+        /* Swap RX and TX polarities of WC 12 (slot 18) */
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_53", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_53", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_54", "0xf000") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_54", "0xf000") != 0) return(L7_FAILURE);
+        LOG_INFO(LOG_CTX_MISC, "Polarities inverted!");
+
+        /* TX Map */
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_1",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_2",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_3",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_4",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_5",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_6",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_7",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_8",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_9",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_10", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_11", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_12", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_13", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_14", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_15", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_16", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_17", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_18", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_19", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_20", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_21", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_22", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_23", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_24", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_25", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_26", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_27", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_28", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_29", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_30", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_31", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_32", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_33", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_34", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_35", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_36", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_37", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_38", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_39", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_40", "0x0123") != 0) return(L7_FAILURE);
+
+        /* Slots 14 and 15 are not inverted */
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_41", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_42", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_43", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_44", "0x3210") != 0) return(L7_FAILURE);
+
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_45", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_46", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_47", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_48", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_49", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_50", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_51", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_52", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_53", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_54", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_55", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_56", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_57", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_58", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_59", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_60", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_61", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_62", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_63", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_64", "0x0123") != 0) return(L7_FAILURE);
+
+        #elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+        /* For the future: new slot mapping */
+        /* Slot 2, 3, 18, 19: 20G; e o resto a 40G */
+
+        /* Slot 2: WC1: 5-6 (20G) */
+        if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE);
+
+        /* Slot 3: WC2: 9-10 (20G) */
+        if (sal_config_set(spn_PORTMAP"_3",  "11:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_4",  "12:10") != 0) return(L7_FAILURE);
+
+        /* Slot 4: WC4: 17-20 */
+        if (sal_config_set(spn_PORTMAP"_5",  "17:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_6",  "18:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_7",  "19:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_8",  "20:10") != 0) return(L7_FAILURE);
+
+        /* Slot 5: WC3: 13-16 */
+        if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
+
+        /* Slot 6: WC0: 1-4 */
+        if (sal_config_set(spn_PORTMAP"_13",  "1:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_14",  "2:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_15",  "3:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_16",  "4:10") != 0) return(L7_FAILURE);
+
+        /* Slot 7: WC5: 21-24 */
+        if (sal_config_set(spn_PORTMAP"_17", "21:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_18", "22:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_19", "23:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_20", "24:10") != 0) return(L7_FAILURE);
+
+        /* Slot 8: WC6: 25-28 */
+        if (sal_config_set(spn_PORTMAP"_21", "25:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_22", "26:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_23", "27:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_24", "28:10") != 0) return(L7_FAILURE);
+
+        /* Slot 9: WC7: 29-32 */
+        if (sal_config_set(spn_PORTMAP"_25", "29:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_26", "30:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_27", "31:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_28", "32:10") != 0) return(L7_FAILURE);
+
+        /* Slot 10: WC8: 33-36 */
+        if (sal_config_set(spn_PORTMAP"_29", "33:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_30", "34:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_31", "35:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_32", "36:10") != 0) return(L7_FAILURE);
+
+        /* Slot 11: WC9: 37-40 */
+        if (sal_config_set(spn_PORTMAP"_33", "37:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_34", "38:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_35", "39:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_36", "40:10") != 0) return(L7_FAILURE);
+
+        /* Slot 12: WC10: 41-44 */
+        if (sal_config_set(spn_PORTMAP"_37", "41:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_38", "42:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_39", "43:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_40", "44:10") != 0) return(L7_FAILURE);
+
+        /* Slot 13: WC11: 45-48 */
+        if (sal_config_set(spn_PORTMAP"_41", "45:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_42", "46:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_43", "47:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_44", "48:10") != 0) return(L7_FAILURE);
+
+        /* Slot 14: WC16: 65-68 */
+        if (sal_config_set(spn_PORTMAP"_45", "65:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_46", "66:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_47", "67:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_48", "68:10") != 0) return(L7_FAILURE);
+
+        /* Slot 15: WC17: 69-72 */
+        if (sal_config_set(spn_PORTMAP"_49", "69:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_50", "70:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_51", "71:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_52", "72:10") != 0) return(L7_FAILURE);
+
+        /* Slot 16: WC14: 57-60 */
+        if (sal_config_set(spn_PORTMAP"_53", "57:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_54", "58:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_55", "59:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_56", "60:10") != 0) return(L7_FAILURE);
+
+        /* Slot 17: WC15: 61-64 */
+        if (sal_config_set(spn_PORTMAP"_57", "61:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_58", "62:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_59", "63:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_60", "64:10") != 0) return(L7_FAILURE);
+
+        /* Slot 18: WC12: 49-50 (20G) */
+        if (sal_config_set(spn_PORTMAP"_61", "51:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_62", "52:10") != 0) return(L7_FAILURE);
+
+        /* Slot 19: WC13: 53-54 (20G) */
+        if (sal_config_set(spn_PORTMAP"_63", "55:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_64", "56:10") != 0) return(L7_FAILURE);
+
+        LOG_INFO(LOG_CTX_MISC, "Portmap defined!");
+
+        /* Swap RX and TX polarities of WC 12 */
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_61", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_61", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_62", "0xf000") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_62", "0xf000") != 0) return(L7_FAILURE);
+        LOG_INFO(LOG_CTX_MISC, "Polarities inverted!");
+
+        /* TX Map */
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_1",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_2",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_3",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_4",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_5",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_6",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_7",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_8",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_9",  "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_10", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_11", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_12", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_13", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_14", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_15", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_16", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_17", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_18", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_19", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_20", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_21", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_22", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_23", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_24", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_25", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_26", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_27", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_28", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_29", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_30", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_31", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_32", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_33", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_34", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_35", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_36", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_37", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_38", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_39", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_40", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_41", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_42", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_43", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_44", "0x0123") != 0) return(L7_FAILURE);
+
+        /* Slots 14 and 15 are not inverted */
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_45", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_46", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_47", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_48", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_49", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_50", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_51", "0x3210") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_52", "0x3210") != 0) return(L7_FAILURE);
+
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_53", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_54", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_55", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_56", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_57", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_58", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_59", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_60", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_61", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_62", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_63", "0x0123") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_64", "0x0123") != 0) return(L7_FAILURE);
+        #endif
 
         /* Disable BAM */
         #if 1
@@ -658,79 +913,6 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_PHY_AN_C73"_xe62", "0x02") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PHY_AN_C73"_xe63", "0x02") != 0) return(L7_FAILURE);
         #endif
-
-//      if (sal_config_set(spn_PORTMAP"_1",   "1:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_2",   "2:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_3",   "3:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_4",   "4:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_5",   "5:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_6",   "6:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_7",   "7:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_8",   "8:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_9",   "9:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_10", "10:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_11", "11:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_12", "12:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_13", "13:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_14", "14:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_15", "15:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_16", "16:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_17", "17:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_18", "18:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_19", "19:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_20", "20:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_21", "21:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_22", "22:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_23", "23:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_24", "24:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_25", "25:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_26", "26:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_27", "27:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_28", "28:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_29", "29:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_30", "30:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_31", "31:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_32", "32:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_33", "33:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_34", "34:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_35", "35:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_36", "36:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_37", "37:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_38", "38:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_39", "39:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_40", "40:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_41", "41:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_42", "42:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_43", "43:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_44", "44:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_45", "45:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_46", "46:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_47", "47:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_48", "48:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_49", "49:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_50", "50:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_51", "51:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_52", "52:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_53", "53:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_54", "54:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_55", "55:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_56", "56:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_57", "57:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_58", "58:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_59", "59:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_60", "60:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_61", "61:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_62", "62:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_63", "63:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_64", "64:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_65", "65:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_66", "66:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_67", "67:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_68", "68:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_69", "69:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_70", "70:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_71", "71:10") != 0) return(L7_FAILURE);
-//      if (sal_config_set(spn_PORTMAP"_72", "72:10") != 0) return(L7_FAILURE);
 
         break;
       /* PTin end */
