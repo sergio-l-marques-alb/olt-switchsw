@@ -344,14 +344,15 @@ typedef enum
   L7_WIRELESS_CLIENTASSOCMSG_TASK_SYNC,
   L7_TIMERANGE_TASK_SYNC,
   L7_DHCP_CLIENT_TASK_SYNC,
-  L7_PTIN_TASK_SYNC,        /* PTin added: ptin task */
-  L7_PTIN_IGMP_TASK_SYNC,   /* PTin added: ptin task */
-  L7_PTIN_PACKET_TASK_SYNC, /* PTin added: ptin task */
-  L7_SSM_RX_TASK_SYNC,      /* PTin added: ssm task */
-  L7_SSM_TX_TASK_SYNC,      /* PTin added: ssm task */
-  L7_BER_TX_SYNC,           /* PTin added: BER task */
-  L7_BER_RX_SYNC,           /* PTin added: BER task */
-  L7_PTIN_ERPS_TASK_SYNC,   /* PTin added: ptin task */
+  L7_PTIN_TASK_SYNC,            /* PTin added: ptin task */
+  L7_PTIN_IGMP_TASK_SYNC,       /* PTin added: ptin task */
+  L7_PTIN_PACKET_TASK_SYNC,     /* PTin added: ptin task */
+  L7_SSM_RX_TASK_SYNC,          /* PTin added: ssm task  */
+  L7_SSM_TX_TASK_SYNC,          /* PTin added: ssm task  */
+  L7_BER_TX_SYNC,               /* PTin added: BER task  */
+  L7_BER_RX_SYNC,               /* PTin added: BER task  */
+  L7_PTIN_ERPS_TASK_SYNC,       /* PTin added: ptin task */
+  L7_PTIN_APS_PACKET_TASK_SYNC, /* PTin added: ptin task */
   L7_PTIN_OAM_ETH_TASK_SYNC,
   L7_TASK_SYNC_LAST
 } L7_TASK_SYNCS_t;
