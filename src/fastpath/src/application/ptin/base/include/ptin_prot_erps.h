@@ -9,7 +9,6 @@
  *  
  */
 
-
 #ifndef __PROT_ERPS_H__
 #define __PROT_ERPS_H__
 
@@ -184,11 +183,11 @@ typedef struct _erpsProtParam_t {
 
 /// Hardware Abstraction Layer
 typedef struct _erpsHAL_t {
-    int (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
-    int (*aps_rxfields)         (L7_uint8 slot, L7_uint32 index, L7_uint8* msgfields);
-    int (*aps_txfields)         (L7_uint8 slot, L7_uint32 index, L7_uint8 msgfields);
-    int (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
-    int (*prot_proc)            (L7_uint32 prot_id);
+    int  (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
+    void (*aps_rxfields)         (L7_uint32 erps_idx, L7_uint8 *req_status, L7_uint8 *nodeid, L7_uint32 *rxport);
+    int  (*aps_txfields)         (L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
+    int  (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
+    int  (*prot_proc)            (L7_uint32 prot_id);
 } erpsHAL_t;
 
 /// State Machine Parameters Configurations and States
@@ -248,14 +247,15 @@ typedef struct {
 
 /// Estrutura usada para leitura de alarmistica
 typedef struct _erpsStatus_t {
-    L7_uint8   cx_active;
-    L7_uint8   status_SF_W;
-    L7_uint8   status_SF_P;
-    L7_uint16  wait2restoreTimer;       ///< elapsed time in seconds
-    L7_uint16  holdoff_timer;           ///< elapsed time in seconds
-
-    L7_uint8   apsRequestRx;
-    L7_uint8   apsRequestTx;
+    L7_uint8   rplBlockedPortSide;      ///< PROT_ERPS_PORT0 or PROT_ERPS_PORT1
+    L7_uint8   port0_SF;                ///< SF or NO SF
+    L7_uint8   port1_SF;
+    L7_uint8   port0State;              ///< ERP_PORT_BLOCKING or ERP_PORT_FLUSHING
+    L7_uint8   port1State;
+    L7_uint16  guard_timer;             ///< elapsed time
+    L7_uint32  wtr_timer;
+    L7_uint32  wtb_timer;
+    L7_uint16  holdoff_timer;
 } erpsStatus_t;
 
 
@@ -266,7 +266,7 @@ typedef struct _erpsStatus_t {
 /// VLANs protected by this ERPS instance
 typedef struct {
   L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];          ///< VLAN ID
-  L7_BOOL   isOwnerVid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   ///< True if this is a UNI VLAN
+  L7_uint8  isOwnerVid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   ///< True if this is a UNI VLAN
 } erpsVlanInclusionList_t;
 
 
@@ -420,5 +420,5 @@ L7_RC_t ptin_prot_erps_init(void);
 /** @} */
 //-------------------------------------------------------------------------
 
-#endif //__erps_H__
+#endif //__ERPS_H__
 

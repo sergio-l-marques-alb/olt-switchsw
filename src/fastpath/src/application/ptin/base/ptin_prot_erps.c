@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "ptin_prot_erps.h"
+#include "ptin_hal_erps.h"
 #include "logger.h"
 #include "ptin_cnfgr.h"
 
@@ -40,12 +41,12 @@ int rd_alarms_dummy(L7_uint8 slot, L7_uint32 index)
   return(0);
 }
 
-int aps_rxdummy(L7_uint8 slot, L7_uint32 index, L7_uint8* msgfields)
+void aps_rxdummy(L7_uint32 erps_idx, L7_uint8 *req_status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
-  return(0);
+  return;
 }
 
-int aps_txdummy(L7_uint8 slot, L7_uint32 index, L7_uint8 msgfields)
+int aps_txdummy(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status)
 {
   return(0);
 }
@@ -309,6 +310,9 @@ int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group)
 
   /*** TO BE DONE ***/
 //tbl_erps[erps_idx].hal.rd_mep_alarms          = oam_get_alarms;
+//tbl_erps[erps_idx].hal.aps_txfields           = ;
+
+  tbl_erps[erps_idx].hal.aps_rxfields           = ptin_hal_erps_rcvaps;
 
   tbl_erps[erps_idx].hal.prot_proc              = ptin_prot_erps_instance_proc;
 
@@ -839,7 +843,7 @@ int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status, in
 
   LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: %d(%d) (line_callback %d)", erps_idx, req_state, status, line_callback);
 
-  tbl_erps[erps_idx].hal.aps_txfields(0, req_state, status);
+  tbl_erps[erps_idx].hal.aps_txfields(erps_idx, req_state, status);
 
   return(ret);
 }
@@ -864,7 +868,7 @@ int ptin_erps_aps_rx(L7_uint32 erps_idx, L7_uint8 *req_status, L7_uint8 *nodeid,
 
   LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d (line_callback %d)", erps_idx, line_callback);
 
-  tbl_erps[erps_idx].hal.aps_rxfields(0, 0, 0);
+  tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, req_status, nodeid, rxport);
 
   return(ret);
 }
@@ -2583,15 +2587,6 @@ void ptin_erps_task(void)
 
   ptin_erps_init();
 
-  /*
-   * TEST
-  */
-#if 0
-  erpsProtParam_t new_group;
-  memset(&new_group, 0, sizeof(erpsProtParam_t));
-  ptin_erps_add_entry( /*erps_idx*/ 1, &new_group);
-#endif
-
   /* Infinite Loop */
   while (1) {
     ptin_prot_erps_proc();
@@ -2630,5 +2625,31 @@ L7_RC_t ptin_prot_erps_init(void)
   LOG_INFO(LOG_CTX_PTIN_CNFGR,"Task ptin_prot_erps_task initialized");
 
   return L7_SUCCESS;
+}
+
+
+
+/****************************************************************************/
+/*
+ * TEST
+ */
+
+void ptin_prot_erps_test(int test)
+{
+  if (test == 0) {
+    LOG_INFO(LOG_CTX_ERPS,"Test 0: Add prot ERPS# 1");
+
+    erpsProtParam_t new_group;
+    memset(&new_group, 0, sizeof(erpsProtParam_t));
+    new_group.controlVid = 7;
+    new_group.port0.idx = 8;
+    new_group.port1.idx = 9;
+    ptin_erps_add_entry( /*erps_idx*/ 1, &new_group);
+
+    ptin_hal_erps_halinit(/*erps_idx*/ 1);
+
+  } else {
+    LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n  Test 0: Add prot ERPS# 1");
+  }
 }
 
