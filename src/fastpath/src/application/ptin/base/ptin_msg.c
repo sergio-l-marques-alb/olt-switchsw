@@ -5555,12 +5555,9 @@ msg_802_1x_Genrc *pi, *po;
 L7_RC_t r;
 
  pi=(msg_802_1x_Genrc *)inbuff->info;   po=(msg_802_1x_Genrc *)outbuff->info;
-printf(" msg_wr_802_1x_Genrc(1)\n\r");
 
  switch (inbuff->msgId) {
- case CCMSG_WR_802_1X_ADMINMODE:        printf(" msg_wr_802_1x_Genrc(2)\n\r");
-r=usmDbDot1xAdminModeSet(1, pi[i].v); printf(" msg_wr_802_1x_Genrc(3)\n\r");
-break;
+ case CCMSG_WR_802_1X_ADMINMODE:        r=usmDbDot1xAdminModeSet(1, pi[i].v); break;
  case CCMSG_WR_802_1X_TRACE:            r=usmDbDot1xPacketDebugTraceFlagSet(pi[i].v>>1, pi[i].v&1); break;
  case CCMSG_WR_802_1X_VLANASSGNMODE:    r=usmDbDot1xVlanAssignmentModeSet(1, pi[i].v); break;
  case CCMSG_WR_802_1X_MONMODE:          r=usmDbDot1xMonitorModeSet(1, pi[i].v); break;

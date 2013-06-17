@@ -134,7 +134,7 @@ L7_ushort16 i,n;
  outbuff->flags   = (IPCLIB_FLAGS_ACK);
 
  n=inbuff->infoDim/STRUCT_SIZE_IN;
-printf("msg_generic_wrd(1)");
+
  if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT) {//0..n-1
    for (i=0;    i<n;    i++)
      if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
