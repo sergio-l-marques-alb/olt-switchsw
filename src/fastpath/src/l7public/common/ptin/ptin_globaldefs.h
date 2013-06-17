@@ -692,7 +692,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */
-# define CPLD_ID                       0x1259
+# define CPLD_ID_CXO640G_V1            0x1259
+# define CPLD_ID                       0x1324
 # define CPLD_ID0_REG                  0x0000
 # define CPLD_ID1_REG                  0x0001
 # define CPLD_VER_REG                  0x0002
