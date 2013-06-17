@@ -20,7 +20,7 @@
 /*                                  GLOBAL VARS                                  */
 /* *******************************************************************************/
 
-static T_ETH_SRV_OAM oam;
+T_ETH_SRV_OAM oam;
 
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
@@ -103,7 +103,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
         dtlCmd.intfNum             = intIfNum;
         dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
     }
-    printf("send_eth_pckt() port=%u\n\r", port);
+    //printf("send_eth_pckt() port=%u\n\r", port);
     return 0;
 }//send_eth_pckt
 
@@ -119,7 +119,7 @@ void tst_send(void) {
         L7_uint8 buf[100]={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  
                            16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,};
         //length=70;
-        send_eth_pckt(8, 0, &buf[15], 70, 
+        send_eth_pckt(48, 0, &buf[15], 70, 
                       -1,
                       0,
                       0,
@@ -169,7 +169,7 @@ void ptin_oam_eth_task(void)
   while (1) {
       proc_ethsrv_oam(&oam, 10);
 
-      sleep(10000);
+      usleep(10000);
   }
 }
 

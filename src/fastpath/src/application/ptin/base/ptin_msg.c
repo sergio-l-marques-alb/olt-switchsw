@@ -5100,6 +5100,8 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 
 
 
+#include <sirerrors.h>
+#include <ptin_prot_oam_eth.h>
 /************************************************************************** 
 * OAM MEPs Configuration
 **************************************************************************/
@@ -5117,8 +5119,8 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
  */
 L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 {
-  msg_bd_mep_t                *pi;
-  msg_generic_prefix_t *po;
+  msg_bd_mep_t              *pi;
+  msg_generic_prefix_t      *po;
   L7_uint16                 r = S_OK;
   L7_uint32                 porta;
 
@@ -5128,15 +5130,15 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   porta = pi[i].bd.prt;
 
-  /*
-  switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, rd_eth_srv_oam())) {
+  
+  switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam)) {
   case 0:    r=S_OK;             break;
-  case 2:    r=HW_MEP_TABLE_FULL;    break;
-  case 3:    r=  MSG_FLUSH_MEP==inbuff->msgId?   S_OK:   HW_MEP_LU_TABLE_FULL; break;
-  case 4:    r=HW_RESOURCE_UNAVAILABLE;  break;
-  default:   r=HW_INVALID_PARAM; break;
+  case 2:    r=ERROR_CODE_FULLTABLE;    break;
+  case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
+  case 4:    r=ERROR_CODE_NOTPRESENT;  break;
+  default:   r=ERROR_CODE_INVALIDPARAM; break;
   }//switch
-  */
+  
 
   if (r==S_OK) {
     return L7_SUCCESS;
@@ -5168,13 +5170,13 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   i_mep=po[i].index=pi[i].index;
 
-  /*
-  switch (del_mep(i_mep, rd_eth_srv_oam())) {
+  
+  switch (del_mep(i_mep, &oam)) {
   case 0:    r=S_OK;             break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
-  default:   r=HW_INVALID_PARAM; break;
+  default:   r=ERROR_CODE_INVALIDPARAM; break;
   }//switch
-  */
+  
 
   if (r==S_OK) {
     return L7_SUCCESS;
@@ -5201,7 +5203,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 {
   msg_bd_rmep_t *pi;
   msg_generic_prefix_t *po;
-//T_ETH_SRV_OAM *p_oam;
+T_ETH_SRV_OAM *p_oam;
   L7_uint32 i_mep, i_rmep;
   L7_uint16 r=L7_HARDWARE_ERROR;
 
@@ -5216,30 +5218,30 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
 
-  /*
-  p_oam= rd_eth_srv_oam();
+  
+  p_oam= &oam;
   switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->mep_db[i_mep], p_oam)) {
   case 0:
     r=S_OK;
     break;
   case 4:
-    if (MSG_FLUSH_RMEP==inbuff->msgId) {
+    if (CCMSG_FLUSH_RMEP==inbuff->msgId) {
       r=S_OK;
       break;
     }
-    r=HW_MEP_LU_TABLE_FULL;
+    r=ERROR_CODE_FULLTABLE;
     break;
   case 5:
   case 6:
-    r=HW_RESOURCE_UNAVAILABLE;
+    r=ERROR_CODE_NOTPRESENT;
     break;
   case 7:
-    r=HW_MEP_TABLE_FULL;
+    r=ERROR_CODE_FULLTABLE;
     break;
   default:
-    r=HW_INVALID_PARAM;
+    r=ERROR_CODE_INVALIDPARAM;
   }
-  */
+  
 
   if (r==S_OK) {
     return L7_SUCCESS;
@@ -5265,25 +5267,25 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 {
   msg_bd_rmep_t *pi;
   msg_generic_prefix_t *po;
-//T_ETH_SRV_OAM *p_oam;
+  T_ETH_SRV_OAM *p_oam;
   L7_uint32 i_mep, i_rmep;
   L7_uint16 r=L7_HARDWARE_ERROR;
 
   pi=(msg_bd_rmep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   po[i].index=pi[i].index;
 
-  i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);     //if (!valid_mep_index(i_mep))    goto _msg_del_RMEP_error;
-  i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);    //if (!valid_rmep_index(i_rmep))  goto _msg_del_RMEP_error;
+  i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
+  i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
 
-  /*
-  p_oam= rd_eth_srv_oam();
+  
+  p_oam= &oam;
 
   switch (del_rmep(i_mep, i_rmep, p_oam)) {
   case 0:    r=S_OK;             break;
-    //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
-    default:   r=HW_INVALID_PARAM;
+  //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
+  default:   r=ERROR_CODE_INVALIDPARAM;
   }
-  */
+  
 
   if (r==S_OK) {
     return L7_SUCCESS;
@@ -5310,8 +5312,8 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
   msg_generic_prefix_t *pi;
   msg_bd_mep_t *po;
   L7_uint32 n=0;
-//L7_uint32 i;
-//T_ETH_SRV_OAM   *p_oam;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_mep_t *)outbuff->info;
 
@@ -5319,8 +5321,8 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
     return(L7_FAILURE);
   }
 
-  /*
-  p_oam= rd_eth_srv_oam();
+  
+  p_oam= &oam;
 
   for (i=pi->index, n=0; i<N_MEPs; i++) {
     po[n].index = i;
@@ -5333,9 +5335,9 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
     if (!EMPTY_T_MEP(p_oam->mep_db[i])  ||  N_MEPs-1==i)
       po[n++].bd=  *((T_MEP_HDR *) &p_oam->mep_db[i]);
 
-    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
+    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
   }//for
-  */
+  
 
   outbuff->infoDim = n*sizeof(msg_bd_mep_t);
   return L7_SUCCESS;
@@ -5358,8 +5360,8 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
   msg_bd_me_t *pi;//Exception: in and out are of the same type
   msg_bd_me_t *po;
   L7_uint32 n=0, i_mep, i_rmep;
-//L7_uint32 i;
-//T_ETH_SRV_OAM   *p_oam;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
 
   pi=(msg_bd_me_t *)inbuff->info;   po=(msg_bd_me_t *)outbuff->info;
 
@@ -5370,8 +5372,8 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
     return(L7_FAILURE);
   }
 
-  /*
-  p_oam= rd_eth_srv_oam();
+  
+  p_oam= &oam;
 
   if (EMPTY_T_MEP(p_oam->mep_db[i_mep])) {
     return(L7_FAILURE);
@@ -5385,9 +5387,9 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
            ||  N_MAX_MEs_PER_MEP-1==i)
       po[n++].bd.me=     p_oam->mep_db[i_mep].ME[i];
 
-    if (n+1 > 17   ||  (n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;
+    if (n+1 > 17   ||  (n+1)*sizeof(msg_bd_me_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;
   }//for
-  */
+  
 
   outbuff->infoDim = n*sizeof(msg_bd_me_t);
 
@@ -5411,8 +5413,8 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
   msg_generic_prefix_t *pi;
   msg_bd_lut_mep_t *po;
   L7_uint32 n=0;
-//L7_uint32 i;
-//T_ETH_SRV_OAM   *p_oam;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_lut_mep_t *)outbuff->info;
 
@@ -5420,8 +5422,8 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
     return(L7_FAILURE);
   }
 
-  /*
-  p_oam= rd_eth_srv_oam();
+  
+  p_oam= &oam;
 
   for (i=pi->index, n=0; i<N_MAX_LOOKUP_MEPs; i++) {
     po[n].index = i;
@@ -5431,9 +5433,9 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
       po[n++].bd= p_oam->mep_lut[i];
     }
 
-    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;
+    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_lut_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;
   }//for
-  */
+  
 
   outbuff->infoDim = n*sizeof(msg_bd_lut_mep_t);
 

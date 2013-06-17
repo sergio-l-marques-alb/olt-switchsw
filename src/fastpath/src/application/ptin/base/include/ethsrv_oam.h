@@ -11,8 +11,9 @@ typedef unsigned long long u64;
 
 
 #ifndef N_OAM_PRTS
+#include <ptin_globaldefs.h>
     //#warning You must define constant N_OAM_PRTS (number of OAM MAC ports)!
-    #define N_OAM_PRTS 16
+    #define N_OAM_PRTS PTIN_SYSTEM_MAX_N_PORTS
 #endif
 
 #ifndef N_MEPs
@@ -39,7 +40,7 @@ typedef unsigned long long u64;
 #endif
 
 #ifndef MEP_MIN_T_ms
-    #define MEP_MIN_T_ms    600
+    #define MEP_MIN_T_ms    10
     //#warning You must define constant MEP_MIN_T_ms!
     //#warning (Minimum period/max frequency at which each MEP is processed in function "proc_ethsrv_oam")
 #endif
