@@ -158,7 +158,7 @@ L7_RC_t ptin_hapi_phy_init(void)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
   int i, rv;
   L7_uint32 preemphasis;
 

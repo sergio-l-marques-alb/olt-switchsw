@@ -21,7 +21,7 @@
 
 #define MAP_EMTPY_ENTRY     0xFFFFFFFF  /* 32bits unsigned */
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 static const int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = PTIN_SLOTPORT_TO_INTF_MAP;
 
 static const int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_SLOT_MAP;
@@ -892,7 +892,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
   /* Determine ptin_intf */
 
   /* Calculate slot and port */
-  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 
   /* Check if interface is valid */
   if ( ptin_sys_slotport_to_intf_map[slot][port] < 0 )
@@ -955,7 +955,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   }
 
   /* Calculate slot and port */
-  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 
   /* Check if interface is used */
   if ( ptin_sys_intf_to_slot_map[ptin_intf->intf_id] < 0 ||
