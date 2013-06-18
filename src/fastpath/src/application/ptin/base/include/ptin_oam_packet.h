@@ -123,16 +123,15 @@ extern L7_RC_t ptin_aps_packet_deinit(void);
 extern L7_RC_t ptin_ccm_packet_deinit(void);
 
 /**
-* Send a APS packet on a specified interface and vlan
-*
-* @param    intIfNum   @b{(input)} Outgoing internal interface number
-* @param    vlanId     @b{(input)} VLAN ID
-* @param    payload    @b{(input)} Message to be forwarded
-* @param    payloadLen @b{(input)} Length of message
-*
-* @return  void
-*/
-extern void ptin_aps_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 *payload, L7_uint32 payloadLen);
+ * Send a APS packet on a specified interface and vlan
+ * 
+ * @author joaom (6/17/2013)
+ * 
+ * @param erps_idx 
+ * @param req_state 
+ * @param status 
+ */
+extern void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status);
 
 /**
  * Process received APS packet on specified interface and vlan
@@ -141,7 +140,7 @@ extern void ptin_aps_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_aps_packetRx_process( void /*ptin_APS_PDU_Msg_t *pktMsg*/ );
+extern L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport);
 
 
 #endif  /* _PTIN_OAM_PACKET_H */

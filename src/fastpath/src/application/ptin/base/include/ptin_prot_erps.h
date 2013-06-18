@@ -64,16 +64,16 @@
 //-------------------------------------------------------------------------
 //  Local Request
 //-------------------------------------------------------------------------
-#define LReq_NONE                             10
-#define LReq_CLEAR                            9
-#define LReq_FS                               8
-#define LReq_SF                               7
-#define LReq_SFc                              6
-#define LReq_MS                               5
-#define LReq_WTRExp                           4
-#define LReq_WTRRun                           3
-#define LReq_WTBExp                           2
-#define LReq_WTBRun                           1
+#define LReq_NONE                             100+10
+#define LReq_CLEAR                            100+9
+#define LReq_FS                               100+8
+#define LReq_SF                               100+7
+#define LReq_SFc                              100+6
+#define LReq_MS                               100+5
+#define LReq_WTRExp                           100+4
+#define LReq_WTRRun                           100+3
+#define LReq_WTBExp                           100+2
+#define LReq_WTBRun                           100+1
 
 
 //-------------------------------------------------------------------------
@@ -90,8 +90,8 @@
 //+----------------+-----------------+-----------------+-----------------+
 //|8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 |
 //| Req/   | Sub-  |     Status      |        Node ID (6 octets)         |
-//| Stat   | code  | R|D|B| Stat     |                                   |
-//|        |       | B|N|P| Reservd  |                                   |
+//| State  | code  | R|D|B| Status   |                                   |
+//|        |       | B|N|P| Reserved |                                   |
 //|        |       |  |F|R|          |                                   |
 //+----------------+-----------------+-----------------+-----------------+
 //|                               Node ID                                |
@@ -117,8 +117,8 @@
 #define RReq_STAT_BPR                   0x20
 #define RReq_STAT_ZEROS                 0x00
 
-#define APS_GET_REQ(aspReqStatusRx)     ( (aspReqStatusRx >> 12) & 0x000F )
-#define APS_GET_STATUS(aspReqStatusRx)  ( (aspReqStatusRx )      & 0x00E0 )
+#define APS_GET_REQ(aspReqStateRx)     ( (aspReqStateRx >> 4) & 0x0F )
+#define APS_GET_STATUS(aspReqStatusRx) ( (aspReqStatusRx    ) & 0xE0 )
 
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
@@ -183,11 +183,11 @@ typedef struct _erpsProtParam_t {
 
 /// Hardware Abstraction Layer
 typedef struct _erpsHAL_t {
-    int  (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
-    void (*aps_rxfields)         (L7_uint32 erps_idx, L7_uint8 *req_status, L7_uint8 *nodeid, L7_uint32 *rxport);
-    int  (*aps_txfields)         (L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
-    int  (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
-    int  (*prot_proc)            (L7_uint32 prot_id);
+    int     (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
+    L7_RC_t (*aps_rxfields)         (L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
+    L7_RC_t (*aps_txfields)         (L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
+    int     (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
+    int     (*prot_proc)            (L7_uint32 prot_id);
 } erpsHAL_t;
 
 /// State Machine Parameters Configurations and States
@@ -406,6 +406,19 @@ int ptin_erps_rd_allentry(void);
  * @return int 
  */
 int ptin_erps_dump(L7_uint32 erps_idx);
+
+/**
+ * Set condition of either failed (i.e., signal fail (SF)) or 
+ * non-failed (OK) 
+ * 
+ * @author joaom (6/5/2013)
+ * 
+ * @param erps_idx 
+ * @param path 
+ * 
+ * @return int 
+ */
+int ptin_erps_force_alarms(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 sf);
 
 /****************************************************************************** 
  * ERPS Task Init

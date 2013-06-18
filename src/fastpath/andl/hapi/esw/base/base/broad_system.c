@@ -3948,8 +3948,6 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, aps_index, aps_index_free;
 
-
-
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing");
 
   /* Initialization */
@@ -3962,6 +3960,11 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
     
     //aps_enable = L7_FALSE;
     first_time   = L7_FALSE;
+  }
+  else {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "APS trapping is already configured");
+    // Since vlanId is not used in HW rule only create rule once based on DMAC Addr
+    return L7_SUCCESS;
   }
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
@@ -4172,8 +4175,6 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, ccm_index, ccm_index_free;
 
-
-
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing");
 
   /* Initialization */
@@ -4186,6 +4187,10 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
     
     //ccm_enable = L7_FALSE;
     first_time   = L7_FALSE;
+  } else {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "CCM trapping is already configured");
+    // Since vlanId is not used in HW rule only create rule once based on DMAC Addr
+    return L7_SUCCESS;
   }
 
 #if (PTIN_SYSTEM_GROUP_VLANS)

@@ -68,17 +68,8 @@ typedef struct ptin_CCM_PDU_Msg_s {
  ***************/
 
 /* Queue id */
-void *ptin_aps_packetRx_queue  = L7_NULLPTR;
-void *ptin_ccm_packetRx_queue  = L7_NULLPTR;
-
-
-/* Task id */
-L7_uint32 ptin_aps_packetTx_TaskId = L7_ERROR;
-
-
-/* Task to process Tx messages */
-void ptin_aps_packetTx_task(void);
-
+void *ptin_aps_packetRx_queue[MAX_PROT_PROT_ERPS] = {L7_NULLPTR};
+void *ptin_ccm_packetRx_queue                     = L7_NULLPTR;
 
 /* Callback to be called for APS packets. */
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
@@ -195,33 +186,21 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 L7_RC_t ptin_aps_packet_init(void)
 {
   sysnetNotifyEntry_t snEntry;
+  L7_uint8            i, queue_str[24];
 
-  /* Queue that will process timer events */
-  ptin_aps_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_APS_PacketRx_Queue",
-                                                       PTIN_APS_PACKET_MAX_MESSAGES, PTIN_APS_PDU_MSG_SIZE);
-  if (ptin_aps_packetRx_queue == L7_NULLPTR) {
-    LOG_FATAL(LOG_CTX_ERPS,"APS packet queue creation error.");
-    return L7_FAILURE;
+  for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
+
+    sprintf(queue_str, "PTin_APS_PacketRx_Queue%d", i);
+
+    /* Queue that will process timer events */
+    ptin_aps_packetRx_queue[i] = (void *) osapiMsgQueueCreate(queue_str,
+                                                         PTIN_APS_PACKET_MAX_MESSAGES, PTIN_APS_PDU_MSG_SIZE);
+    if (ptin_aps_packetRx_queue[i] == L7_NULLPTR) {
+      LOG_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", i);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_ERPS,"APS packet queue %d created.", i);
   }
-  LOG_TRACE(LOG_CTX_ERPS,"APS packet queue created.");
-
-  /* Create task for packets management */
-  ptin_aps_packetTx_TaskId = osapiTaskCreate("ptin_aps_packetTx_task", ptin_aps_packetTx_task, 0, 0,
-                                           L7_DEFAULT_STACK_SIZE,
-                                           L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
-                                           L7_DEFAULT_TASK_SLICE);
-
-  if (ptin_aps_packetTx_TaskId == L7_ERROR) {
-    LOG_FATAL(LOG_CTX_ERPS, "Could not create task ptin_aps_packetTx_task");
-    return L7_FAILURE;
-  }
-  LOG_TRACE(LOG_CTX_ERPS,"Task ptin_aps_packetTx_task created");
-
-  if (osapiWaitForTaskInit (L7_PTIN_APS_PACKET_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_ERPS,"Unable to initialize ptin_aps_packetTx_task()\n");
-    return(L7_FAILURE);
-  }
-  LOG_TRACE(LOG_CTX_ERPS,"Task ptin_aps_packetTx_task initialized");
 
   /* Register APS packets */
   strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
@@ -247,7 +226,7 @@ L7_RC_t ptin_aps_packet_init(void)
  */
 L7_RC_t ptin_ccm_packet_init(void)
 {
-  sysnetNotifyEntry_t snEntry;
+  sysnetNotifyEntry_t snEntry;  
 
   /* Queue that will process timer events */
   ptin_ccm_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_CCM_PacketRx_Queue",
@@ -283,6 +262,7 @@ L7_RC_t ptin_ccm_packet_init(void)
 L7_RC_t ptin_aps_packet_deinit(void)
 {
   sysnetNotifyEntry_t snEntry;
+  L7_uint8            i;
 
   /* Deregister broadcast packets capture */
   strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
@@ -295,16 +275,12 @@ L7_RC_t ptin_aps_packet_deinit(void)
   }
   LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
 
-  /* Delete task */
-  if ( ptin_aps_packetTx_TaskId != L7_ERROR ) {
-    osapiTaskDelete(ptin_aps_packetTx_TaskId);
-    ptin_aps_packetTx_TaskId = L7_ERROR;
-  }
-
-  /* Queue that will process timer events */
-  if (ptin_aps_packetRx_queue != L7_NULLPTR) {
-    osapiMsgQueueDelete(ptin_aps_packetRx_queue);
-    ptin_aps_packetRx_queue = L7_NULLPTR;
+  for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
+    /* Queue that will process timer events */
+    if (ptin_aps_packetRx_queue[i] != L7_NULLPTR) {
+      osapiMsgQueueDelete(ptin_aps_packetRx_queue[i]);
+      ptin_aps_packetRx_queue[i] = L7_NULLPTR;
+    }
   }
 
   LOG_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
@@ -392,7 +368,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
   if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface", intIfNum, vlanId);
     return L7_FAILURE;
   }
 
@@ -404,9 +380,10 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   msg.innerVlanId = pduInfo->innerVlanId;
   msg.payload     = payload;
   msg.payloadLen  = payloadLen;
-  msg.bufHandle   = bufHandle;
+  msg.bufHandle   = bufHandle;  
 
-  rc = osapiMessageSend(ptin_aps_packetRx_queue, &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_internalVlan[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_internalVlan[vlanId]);
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
@@ -493,90 +470,57 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
 
 /**
- * Task that makes the timer processing for the clients manageme
- */
-void ptin_aps_packetTx_task(void)
-{
-//L7_uint32 status;
-//ptin_APS_PDU_Msg_t msg;
-
-  LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
-
-  if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
-    PTIN_CRASH();
-  }
-
-  LOG_INFO(LOG_CTX_ERPS,"PTin APS packet task ready to process events");
-
-  /* Loop */
-  while (1) {
-    sleep(10);
-    ptin_hal_erps_sendaps(1, 0, 0);
-
-#if 0
-    status = (L7_uint32) osapiMessageReceive(ptin_aps_packetRx_queue,
-                                             (void*) &msg,
-                                             PTIN_APS_PDU_MSG_SIZE,
-                                             L7_WAIT_FOREVER);
-
-    if (status == L7_SUCCESS) {
-      if ( msg.msgId == PTIN_APS_PACKET_MESSAGE_ID ) {
-        if (ptin_aps_packetRx_process(&msg)!=L7_SUCCESS) {
-          if (ptin_oam_packet_debug_enable)
-            LOG_ERR(LOG_CTX_ERPS,"Error processing message");
-        }
-      } else {
-        if (ptin_oam_packet_debug_enable)
-          LOG_ERR(LOG_CTX_ERPS,"Message id is unknown (%u)",msg.msgId);
-      }
-    } else {
-      if (ptin_oam_packet_debug_enable)
-        LOG_ERR(LOG_CTX_ERPS,"Failed packet reception from ptin_aps_packet queue (status = %d)",status);
-    }
-#endif
-  }
-}
-
-
-/**
- * Process broadcast packet
- * 
- * @param pktMsg : Packet information
+ * Process ASP packet
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_aps_packetRx_process( void /*ptin_APS_PDU_Msg_t *pktMsg*/ )
+L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport)
 {
-  L7_uint32 status;
-  ptin_APS_PDU_Msg_t msg;
+  L7_uint32           status;
+  ptin_APS_PDU_Msg_t  msg;
+  int i;
+  aps_frame_t         *aps_frame;
 
-  LOG_INFO(LOG_CTX_ERPS,"APS packet received");
+  //LOG_TRACE(LOG_CTX_ERPS,"Any APS packet received?");
 
-
-  status = (L7_uint32) osapiMessageReceive(ptin_aps_packetRx_queue,
+  status = (L7_uint32) osapiMessageReceive(ptin_aps_packetRx_queue[queueidx],
                                            (void*) &msg,
                                            PTIN_APS_PDU_MSG_SIZE,
                                            L7_NO_WAIT);
 
   if (status == L7_SUCCESS) {
     if ( msg.msgId == PTIN_APS_PACKET_MESSAGE_ID ) {
-      LOG_INFO(LOG_CTX_ERPS,"APS packet received OK");
-    } else {
-      LOG_INFO(LOG_CTX_ERPS,"APS packet received NOK");
-    }
-  } else {
-    if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"Failed packet reception from ptin_aps_packet queue (status = %d)",status);
-  }
+      if (ptin_oam_packet_debug_enable) {
+        LOG_TRACE(LOG_CTX_ERPS,"APS packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d", msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
+        for (i=0; i<msg.payloadLen; i++) {
+          printf("%.2x ", msg.payload[i]);
+        }
+        printf("\n\r");
+      }
 
-  return L7_SUCCESS;
+      aps_frame = (aps_frame_t*) msg.payload;
+
+      LOG_TRACE(LOG_CTX_ERPS,"etherType 0x%x", aps_frame->etherType);
+      LOG_TRACE(LOG_CTX_ERPS,"opCode %d", aps_frame->aspmsg.opCode);
+
+      return L7_SUCCESS;
+    } else {
+      if (ptin_oam_packet_debug_enable)
+        LOG_TRACE(LOG_CTX_ERPS,"APS packet received with Unknown ID");
+      return L7_FAILURE;
+    }
+  }
+  //else {
+  //  if (ptin_oam_packet_debug_enable)
+  //    LOG_TRACE(LOG_CTX_ERPS,"No packet from ptin_aps_packet queue#%d (status = %d)", queueidx, status);
+  //}
+
+  return L7_FAILURE;
 }
 
 
-
 /**
-* Send a APS packet on a specified interface and vlan
+* Send a packet on a specified interface and vlan
 *
 * @param    intIfNum   @b{(input)} Outgoing internal interface number
 * @param    vlanId     @b{(input)} VLAN ID
@@ -585,7 +529,7 @@ L7_RC_t ptin_aps_packetRx_process( void /*ptin_APS_PDU_Msg_t *pktMsg*/ )
 *
 * @return  void
 */
-void ptin_aps_packet_send(L7_uint32 intfNum,
+void ptin_oam_packet_send(L7_uint32 intfNum,
                           L7_uint32 vlanId,
                           L7_uchar8 *payload,
                           L7_uint32 payloadLen)
@@ -623,6 +567,50 @@ void ptin_aps_packet_send(L7_uint32 intfNum,
 
   if (ptin_oam_packet_debug_enable)
     LOG_TRACE(LOG_CTX_ERPS,"APS Packet transmited to intIfNum=%u", intfNum);
+
+  return;
+}
+
+
+/**
+ * Send a APS packet on a specified interface and vlan
+ * 
+ * @author joaom (6/17/2013)
+ * 
+ * @param erps_idx 
+ * @param reqstate_subcode 
+ * @param status 
+ */
+void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
+{
+  aps_frame_t aps_frame;
+
+  /*** TO BE DONE ***/
+  const L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0x00,0x06,0x91,0x06,0x7D,0xE0};
+
+  memcpy(aps_frame.dmac,              apsMacAddr, L7_ENET_MAC_ADDR_LEN);
+  memcpy(aps_frame.smac,              srcMacAddr, L7_ENET_MAC_ADDR_LEN);
+
+  aps_frame.vlan_tag[0]               = 0x81;
+  aps_frame.vlan_tag[1]               = 0x00;
+  aps_frame.vlan_tag[2]               = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
+  aps_frame.vlan_tag[3]               = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
+  aps_frame.etherType                 = L7_ETYPE_CFM;
+
+  aps_frame.aspmsg.mel_version        = 0x21;  // MEG Level 1; Version 1
+  aps_frame.aspmsg.opCode             = 40;
+  aps_frame.aspmsg.flags              = 0x00;
+  aps_frame.aspmsg.tlvOffset          = 0x20;
+  aps_frame.aspmsg.req_state_subcode  = reqstate_subcode;
+  aps_frame.aspmsg.status             = status;
+  memcpy(aps_frame.aspmsg.nodeid,     srcMacAddr, L7_ENET_MAC_ADDR_LEN);
+  memset(aps_frame.aspmsg.reseved2,   0, 24);
+  aps_frame.aspmsg.endTlv             = 0x00;
+
+  ptin_oam_packet_send(L7_ALL_INTERFACES,
+                       tbl_halErps[erps_idx].controlVidInternal,
+                       (L7_uchar8 *) &aps_frame,
+                       sizeof(aps_frame_t));
 
   return;
 }
