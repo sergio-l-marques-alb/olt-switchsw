@@ -29,40 +29,6 @@ const L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  
 /* Maximum number of messages APS in queue */
 #define PTIN_CCM_PACKET_MAX_MESSAGES  256
 
-/* Message id used in APS queue */
-#define PTIN_APS_PACKET_MESSAGE_ID  1
-
-/* Message id used in CCM queue */
-#define PTIN_CCM_PACKET_MESSAGE_ID  1
-
-
-/* APS PDU Message format */
-typedef struct ptin_APS_PDU_Msg_s {
-  L7_uint32        msgId;         /* Of type snoopMgmtMessages_t          */
-  L7_uint32        intIfNum;      /* Interface on which PDU was received  */
-  L7_uint32        vlanId;        /* VLAN on which PDU was received       */
-  L7_uint32        innerVlanId;   /* Inner VLAN if present                */
-  L7_uchar8        *payload;      /* Pointer to the received PDU          */
-  L7_uint32        payloadLen;    /* Length of received PDU               */
-  L7_netBufHandle  bufHandle;     /* Buffer handle                        */
-} ptin_APS_PDU_Msg_t;
-
-#define PTIN_APS_PDU_MSG_SIZE   sizeof(ptin_APS_PDU_Msg_t)
-
-
-/* CCM PDU Message format */
-typedef struct ptin_CCM_PDU_Msg_s {
-  L7_uint32        msgId;         /* Of type snoopMgmtMessages_t          */
-  L7_uint32        intIfNum;      /* Interface on which PDU was received  */
-  L7_uint32        vlanId;        /* VLAN on which PDU was received       */
-  L7_uint32        innerVlanId;   /* Inner VLAN if present                */
-  L7_uchar8        *payload;      /* Pointer to the received PDU          */
-  L7_uint32        payloadLen;    /* Length of received PDU               */
-  L7_netBufHandle  bufHandle;     /* Buffer handle                        */
-} ptin_CCM_PDU_Msg_t;
-
-#define PTIN_CCM_PDU_MSG_SIZE   sizeof(ptin_CCM_PDU_Msg_t)
-
 /*************** 
  * PROTOTYPES
  ***************/
@@ -232,10 +198,10 @@ L7_RC_t ptin_ccm_packet_init(void)
   ptin_ccm_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_CCM_PacketRx_Queue",
                                                        PTIN_CCM_PACKET_MAX_MESSAGES, PTIN_CCM_PDU_MSG_SIZE);
   if (ptin_ccm_packetRx_queue == L7_NULLPTR) {
-    LOG_FATAL(LOG_CTX_ERPS,"CCM packet queue creation error.");
+    LOG_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_ERPS,"CCM packet queue created.");
+  LOG_TRACE(LOG_CTX_OAM,"CCM packet queue created.");
 
   /* Register CCM packets */
   strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
@@ -243,10 +209,10 @@ L7_RC_t ptin_ccm_packet_init(void)
   snEntry.type = SYSNET_MAC_ENTRY;
   memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_ERPS, "Cannot register ptin_ccm_packetRx_callback callback!");
+    LOG_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback callback!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_ERPS, "ptin_ccm_packetRx_callback registered!");
+  LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
 
   return L7_SUCCESS;
 }
@@ -306,10 +272,10 @@ L7_RC_t ptin_ccm_packet_deinit(void)
   snEntry.type = SYSNET_MAC_ENTRY;
   memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
   if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_ccm_packetRx_callback callback!");
+    LOG_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback callback!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_ERPS, "ptin_ccm_packetRx_callback unregistered!");
+  LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
 
   /* Queue that will process timer events */
   if (ptin_ccm_packetRx_queue != L7_NULLPTR) {
@@ -317,7 +283,7 @@ L7_RC_t ptin_ccm_packet_deinit(void)
     ptin_ccm_packetRx_queue = L7_NULLPTR;
   }
 
-  LOG_INFO(LOG_CTX_ERPS, "PTin CCM packet deinit OK");
+  LOG_INFO(LOG_CTX_OAM, "PTin CCM packet deinit OK");
 
   return L7_SUCCESS;
 }
@@ -417,7 +383,7 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_oam_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_ERPS,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
+    LOG_TRACE(LOG_CTX_OAM,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
               intIfNum, vlanId, innerVlanId);
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
@@ -426,21 +392,21 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Validate vlan id */
   if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX ) {
     if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"Invalid vlanId %u",vlanId);
+      LOG_ERR(LOG_CTX_OAM,"Invalid vlanId %u",vlanId);
     return L7_FAILURE;
   }
 
   /* Packet should be CCM type */
   if ( memcmp(&payload[0], ccmMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
     if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"Not an APS Packet");
+      LOG_ERR(LOG_CTX_OAM,"Not a CCM Packet");
     return L7_FAILURE;
   }
 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
   if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      LOG_ERR(LOG_CTX_OAM,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
     return L7_FAILURE;
   }
 
@@ -458,11 +424,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_ERPS,"Failed message sending to ptin_ccm_packet queue");
+      LOG_ERR(LOG_CTX_OAM,"Failed message sending to ptin_ccm_packet queue");
     return L7_FAILURE;
   }
 
-  LOG_WARNING(LOG_CTX_ERPS,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
+  LOG_WARNING(LOG_CTX_OAM,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
 
   /* Return failure to guarantee these packets are consumed by other entities */
   return L7_FAILURE;

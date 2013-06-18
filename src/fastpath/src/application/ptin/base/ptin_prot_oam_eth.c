@@ -15,12 +15,15 @@
 #include <ptin_cnfgr.h>
 #include <ptin_intf.h>
 #include <ethsrv_oam.h>
+#include <ptin_oam_packet.h>
 
 /* *******************************************************************************/
 /*                                  GLOBAL VARS                                  */
 /* *******************************************************************************/
 
 T_ETH_SRV_OAM oam;
+
+#define PTIN_ETH_OAM_TIMER_EVENT    0
 
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
@@ -143,6 +146,49 @@ void tst_send(void) {
 
 L7_uint32 oam_eth_TaskId = L7_ERROR;
 
+static osapiTimerDescr_t   *ptin_eth_oamTimer             = L7_NULLPTR;
+
+
+
+
+
+
+
+
+
+
+
+
+
+void ptin_eth_oamTimerCallback(void)
+{
+  ptin_CCM_PDU_Msg_t msg;
+  L7_RC_t rc;
+
+  if (L7_NULLPTR==ptin_ccm_packetRx_queue) return;
+
+  /* process event on our thread */
+  memset((void *)&msg, 0, PTIN_CCM_PDU_MSG_SIZE);
+  msg.msgId = PTIN_ETH_OAM_TIMER_EVENT;
+
+  rc = osapiMessageSend(ptin_ccm_packetRx_queue, &msg, PTIN_CCM_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -152,26 +198,78 @@ void ptin_oam_eth_task(void)
 {
   LOG_TRACE(LOG_CTX_OAM,"OAM ETH Task started");
 
-  if (osapiTaskInitDone(L7_PTIN_OAM_ETH_TASK_SYNC)!=L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_OAM, "Error syncing task");
-    PTIN_CRASH();
-  }
-
-  LOG_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
-
-
   /*
    * TEST
   */
   init_eth_srv_oam(&oam);
 
+  ptin_ccm_packet_init();
+  ptin_ccm_packet_vlan_trap(13, 1);
+
+  osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
+
+  if (osapiTaskInitDone(L7_PTIN_OAM_ETH_TASK_SYNC)!=L7_SUCCESS) {
+    LOG_FATAL(LOG_CTX_OAM, "Error syncing task");
+    PTIN_CRASH();
+  }
+
+
+
+  LOG_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
+
+
   /* Infinite Loop */
   while (1) {
-      proc_ethsrv_oam(&oam, 10);
+  L7_uint32 status;
+  ptin_CCM_PDU_Msg_t msg;
 
-      usleep(10000);
-  }
-}
+      status = (L7_uint32) osapiMessageReceive(ptin_ccm_packetRx_queue,
+                                               (void*) &msg,
+                                               PTIN_CCM_PDU_MSG_SIZE,
+                                               L7_WAIT_FOREVER);
+
+      if (L7_SUCCESS!=status) LOG_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_aps_packet queue (status = %d)",status);
+
+      switch (msg.msgId) {
+      case PTIN_CCM_PACKET_MESSAGE_ID:  //CCM Rx
+          LOG_INFO(LOG_CTX_OAM,"APS packet received OK");
+          break;
+      case PTIN_ETH_OAM_TIMER_EVENT:    //Timer
+          proc_ethsrv_oam(&oam, 10);
+          osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
+          break;
+      default:
+          LOG_INFO(LOG_CTX_OAM,"APS packet received NOK");
+      }//switch
+
+      //usleep(10000);
+
+  }//while (1)
+
+
+
+  ptin_ccm_packet_vlan_trap(13, 0);
+  ptin_ccm_packet_deinit();
+}//ptin_oam_eth_task
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,5 +299,5 @@ L7_RC_t ptin_oam_eth_init(void)
   LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Task ptin_oam_eth_task initialized");
 
   return L7_SUCCESS;
-}
+}//ptin_oam_eth_init
 

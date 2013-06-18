@@ -55,6 +55,45 @@ typedef struct aps_frame_s {
 
 
 
+
+/* Message id used in APS queue */
+#define PTIN_APS_PACKET_MESSAGE_ID  1
+
+/* Message id used in CCM queue */
+#define PTIN_CCM_PACKET_MESSAGE_ID  1
+
+
+/* APS PDU Message format */
+typedef struct ptin_APS_PDU_Msg_s {
+  L7_uint32        msgId;         /* Of type snoopMgmtMessages_t          */
+  L7_uint32        intIfNum;      /* Interface on which PDU was received  */
+  L7_uint32        vlanId;        /* VLAN on which PDU was received       */
+  L7_uint32        innerVlanId;   /* Inner VLAN if present                */
+  L7_uchar8        *payload;      /* Pointer to the received PDU          */
+  L7_uint32        payloadLen;    /* Length of received PDU               */
+  L7_netBufHandle  bufHandle;     /* Buffer handle                        */
+} ptin_APS_PDU_Msg_t;
+
+#define PTIN_APS_PDU_MSG_SIZE   sizeof(ptin_APS_PDU_Msg_t)
+
+
+/* CCM PDU Message format */
+typedef struct ptin_CCM_PDU_Msg_s {
+  L7_uint32        msgId;         /* Of type snoopMgmtMessages_t          */
+  L7_uint32        intIfNum;      /* Interface on which PDU was received  */
+  L7_uint32        vlanId;        /* VLAN on which PDU was received       */
+  L7_uint32        innerVlanId;   /* Inner VLAN if present                */
+  L7_uchar8        *payload;      /* Pointer to the received PDU          */
+  L7_uint32        payloadLen;    /* Length of received PDU               */
+  L7_netBufHandle  bufHandle;     /* Buffer handle                        */
+} ptin_CCM_PDU_Msg_t;
+
+#define PTIN_CCM_PDU_MSG_SIZE   sizeof(ptin_CCM_PDU_Msg_t)
+
+
+
+
+extern void *ptin_ccm_packetRx_queue;
 /******************************************************************
  *                      EXTERNAL ROUTINES
  ******************************************************************/
