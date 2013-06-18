@@ -197,7 +197,7 @@ cleanall_shell:
 
 install_olt360:		install_cxp360g install_tolt8g install_cli install_shell
 
-install_olt1t3: 	install_cxo640g_v1 install_tg16g install_cli install_shell
+install_olt1t3: 	install_cxo640g install_tg16g install_cli install_shell
 
 install_cxp360g:
 	@$(MAKE) -f cxp360g.make install
@@ -223,7 +223,7 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxo640g_v1 install_cxp360g install_tg16g install_tolt8g install_cli install_shell
+install:	install_cxo640g install_cxp360g install_tg16g install_tolt8g install_cli install_shell
 
 clean:		clean_cxp360g clean_cxo640g clean_cxo640g_v1 clean_tolt8g clean_tg16g clean_olt7-8chb clean_cli clean_shell
 

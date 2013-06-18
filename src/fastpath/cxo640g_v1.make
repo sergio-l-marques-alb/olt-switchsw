@@ -65,7 +65,7 @@ kernel:
 	cd $(KERNEL_PATH) && ./build_ppc_cxo360g.sh
 
 install:
-	sh cxo640gv1.install
+	sh cxo640g_v1.install
 
 help h:
 	@echo ""
