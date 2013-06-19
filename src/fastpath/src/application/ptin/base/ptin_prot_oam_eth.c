@@ -76,20 +76,19 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
         buff[15]=vid;
         buff[16]=ETHtype>>8;
         buff[17]=ETHtype;
-        memcpy(&buff[18], buf, length);   
-        if (length<64-18) {
-              memset(&buff[length+18], 0, 64-18-length);
-              length=64;
-        }
+        memcpy(&buff[18], buf, length);
+        length+=18;   
     }
     else {
         buff[12]=ETHtype>>8;
         buff[13]=ETHtype;
         memcpy(&buff[14], buf, length);
-        if (length<64-14) {
-            memset(&buff[length+14], 0, 64-14-length);
-            length=64;            
-        }
+        length+=14;
+    }
+
+    if (length<64) {
+        memset(&buff[length], 0, 64-length);
+        length=64;            
     }
 
     SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
@@ -228,21 +227,45 @@ void ptin_oam_eth_task(void)
                                                PTIN_CCM_PDU_MSG_SIZE,
                                                L7_WAIT_FOREVER);
 
-      if (L7_SUCCESS!=status) LOG_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_aps_packet queue (status = %d)",status);
+      if (L7_SUCCESS!=status) LOG_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_ccm_packet queue (status = %d)",status);
 
       switch (msg.msgId) {
       case PTIN_CCM_PACKET_MESSAGE_ID:  //CCM Rx
-          LOG_INFO(LOG_CTX_OAM,"APS packet received OK");
+          //LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received OK");
+          {
+           L7_uint32 i, ptin_port;//, vid;
+
+           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
+           //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
+           for (i=2*L7_MAC_ADDR_LEN/*, vid=-1*/; i<msg.payloadLen; i+=4) {
+               switch (msg.payload[i]<<8 | msg.payload[i+1]) {//ETHtype
+               case 0x8100:
+               case 0x88a8:
+                   //if (vid>4095) vid=(msg.payload[i+2]<<8 | msg.payload[i+3])&0xfff;
+                   break;
+               case OAM_ETH_TYPE:
+                   {
+                    int r;
+
+                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, msg.vlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam)))
+                        LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
+                   }
+                   goto _ptin_oam_eth_task1;
+               default:
+                   LOG_INFO(LOG_CTX_OAM,"but unexpected ETH type");
+                   goto _ptin_oam_eth_task1;
+               }//switch
+           }//for
+_ptin_oam_eth_task1:;
+          }
           break;
       case PTIN_ETH_OAM_TIMER_EVENT:    //Timer
           proc_ethsrv_oam(&oam, 10);
           osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
           break;
       default:
-          LOG_INFO(LOG_CTX_OAM,"APS packet received NOK");
+          LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received NOK");
       }//switch
-
-      //usleep(10000);
 
   }//while (1)
 

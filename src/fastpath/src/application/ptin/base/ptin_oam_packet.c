@@ -390,11 +390,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, payloadLen);
 
   /* Validate vlan id */
-  if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX ) {
+  /*if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX ) {
     if (ptin_oam_packet_debug_enable)
       LOG_ERR(LOG_CTX_OAM,"Invalid vlanId %u",vlanId);
     return L7_FAILURE;
-  }
+  }*/
 
   /* Packet should be CCM type */
   if ( memcmp(&payload[0], ccmMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
@@ -404,11 +404,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   }
 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
-  if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
+  /*if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
       LOG_ERR(LOG_CTX_OAM,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
     return L7_FAILURE;
-  }
+  }*/
 
   /* Send packet to queue */
   memset(&msg, 0x00, sizeof(msg));
@@ -428,7 +428,7 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
     return L7_FAILURE;
   }
 
-  LOG_WARNING(LOG_CTX_OAM,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
+  //LOG_WARNING(LOG_CTX_OAM,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
 
   /* Return failure to guarantee these packets are consumed by other entities */
   return L7_FAILURE;
