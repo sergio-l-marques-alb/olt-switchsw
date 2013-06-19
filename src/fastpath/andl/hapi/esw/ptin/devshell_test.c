@@ -984,7 +984,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           fflush(fd);
 
           /* Maximum number of readings for one iteration */
-          max_count = (p_tx.mode & 0xf0) ? ((p_tx.mode>>8) & 0xff) : 1;
+          max_count = (p_tx.mode>>8) & 0xff;
+          if (max_count==0)  max_count=1;
 
           for (count=0; count<max_count; count++)
           {
@@ -2978,8 +2979,24 @@ int ptin_ber_help(void)
          "                   1 -> When <n_iters> is not null, apply start_delay for all iterations\n"
          "   mode[bit 3]   : 0 -> Update main and post cursors\n"
          "                   1 -> Do not touch in tap settings\n"
-         "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for > 0)\n"
-         "   mode[bit 8-15]: Maximum number of suplementary PRBS readings (only for mode[bit 4-7]>0)\n"
+         "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for mode[bit 8-15] > 0)\n"
+         "                   0x0: no limiar -> always repeat readings\n"
+         "                   0x1: 1 error\n"
+         "                   0x2: 3 errors\n"
+         "                   0x3: 5 errors\n"
+         "                   0x4: 10 errors\n"
+         "                   0x5: 20 errors\n"
+         "                   0x6: 50 errors\n"
+         "                   0x7: 100 errors\n"
+         "                   0x8: 200 errors\n"
+         "                   0x9: 500 errors\n"
+         "                   0xa: 1000 errors\n"
+         "                   0xb: 2000 errors\n"
+         "                   0xc: 10000 errors\n"
+         "                   0xd: 20000 errors\n"
+         "                   0xe: 50000 errors\n"
+         "                   0xf: 65535 errors\n"
+         "   mode[bit 8-15]: (Maximum) number of suplementary PRBS readings\n"
          "   main_start, main_end, main_step : Maximum and minimum main cusor (in this order), and step unit\n"
          "   post_start, post_end, post_step : Minimum and maximum post cusor (in this order), and step unit\n"
          "\n"
