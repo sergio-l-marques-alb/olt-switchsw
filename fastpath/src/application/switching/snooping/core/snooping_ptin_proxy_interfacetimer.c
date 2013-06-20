@@ -369,7 +369,9 @@ void timerCallback(void *param)
   }
 
 //TODO:MMELO
-//Send Report
+
+ 
+  snoopPTinReportSend((L7_uint32) pTimerData->groupData);
   pTimerData->mrmCounter++;//Increment MRM Counter
 
   if (pTimerData->mrmCounter<pTimerData->mgmdsQRV)
@@ -594,3 +596,27 @@ L7_uint32 snoop_ptin_proxy_Interfacetimer_timeleft(snoopPTinProxyInterfacetimer_
 
   return time_left;
 }
+
+
+/*************************************************************************
+ * @purpose Verify if the timer is running or not
+ * 
+ * @param   pTimer  Pointer to timer
+ *
+ * @returns Timer's time left
+ *
+ *************************************************************************/
+L7_BOOL snoop_ptin_proxy_Interfacetimer_isRunning(snoopPTinProxyInterfacetimer_t *pTimer)
+{
+  /* Argument validation */
+  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  { 
+    return L7_FALSE;
+  }
+  else
+  {
+    return L7_TRUE;
+  }
+}
+
+
