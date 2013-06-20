@@ -13,7 +13,7 @@ typedef unsigned long long u64;
 #ifndef N_OAM_PRTS
 #include <ptin_globaldefs.h>
     //#warning You must define constant N_OAM_PRTS (number of OAM MAC ports)!
-    #define N_OAM_PRTS PTIN_SYSTEM_MAX_N_PORTS
+    #define N_OAM_PRTS PTIN_SYSTEM_N_PORTS
 #endif
 
 #ifndef N_MEPs
