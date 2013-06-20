@@ -10,6 +10,8 @@
 #include "snooping_db.h"
 #include "snooping_ptin_db.h"
 
+#include "l7utils_inet_addr_api.h"//MMelo
+
 #include <unistd.h>
 
 #define TIMER_COUNT L7_MAX_GROUP_REGISTRATION_ENTRIES*(L7_MAX_PORT_COUNT+L7_MAX_NUM_LAG_INTF)
@@ -285,12 +287,11 @@ L7_uint16      pInterfaceIdx,qInterfaceIdx;
   qVlanId         = ((snoopPTinProxyGrouptimer_t *) q)->groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId;
   qInterfaceIdx   = ((snoopPTinProxyGrouptimer_t *) q)->groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx;
 
-  if ( pgroupAddr.family == qgroupAddr.family && 
+  if ( L7_INET_ADDR_COMPARE(&pgroupAddr,&qgroupAddr)==L7_TRUE && 
        pVlanId         == qVlanId         &&
        pInterfaceIdx   == qInterfaceIdx )
-  {
-    if ((pgroupAddr.family==L7_AF_INET && pgroupAddr.addr.ipv4.s_addr==qgroupAddr.addr.ipv4.s_addr) || (pgroupAddr.family==L7_AF_INET6 && pgroupAddr.addr.ipv6.in6.addr32==qgroupAddr.addr.ipv6.in6.addr32))
-      return 0;
+  {    
+    return 0;
   }
 
   return 1;
@@ -367,7 +368,7 @@ void timerCallback(void *param)
   }
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Triggering Group Specific Message Report Message (ifId:%u vlan:%u group:%s)",
             pTimerData->groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx, pTimerData->groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId, 
-            snoopPTinIPAddrPrint(pTimerData->groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr,address));
+            inetAddrPrint(&(pTimerData->groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr),address));
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
@@ -479,7 +480,7 @@ L7_RC_t snoop_ptin_proxy_Grouptimer_start(snoopPTinProxyGrouptimer_t* pTimer, L7
       osapiSemaGive(timerSem);
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to Reschedule Group Specific Membership Report Message(ifIdx:%u vlan:%u group:%s  responsetime:%u)",
             pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx, pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId, 
-            snoopPTinIPAddrPrint(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr, address),timeout);
+            inetAddrPrint(&(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr), address),timeout);
       return L7_FAILURE;
     }
     pTimer->timer = L7_NULLPTR;
@@ -497,7 +498,7 @@ L7_RC_t snoop_ptin_proxy_Grouptimer_start(snoopPTinProxyGrouptimer_t* pTimer, L7
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Scheduling Group Specific Membership Report Message(ifIdx:%u vlan:%u group:%s  responsetime:%u)",
             pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx, pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId, 
-            snoopPTinIPAddrPrint(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr, address),timeout);
+            inetAddrPrint(&(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr), address),timeout);
   
 
   /* New timer handle */
@@ -519,7 +520,7 @@ L7_RC_t snoop_ptin_proxy_Grouptimer_start(snoopPTinProxyGrouptimer_t* pTimer, L7
     osapiSemaGive(timerSem);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Could Not Schedule Group Specific Membership Report Message(ifIdx:%u vlan:%u group:%s  responsetime:%u)",
             pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx, pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId, 
-            snoopPTinIPAddrPrint(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr, address),timeout);
+            inetAddrPrint(&(pTimerData.groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr), address),timeout);
     return L7_FAILURE;
   }
 
@@ -565,7 +566,7 @@ L7_RC_t snoop_ptin_proxy_Grouptimer_stop(snoopPTinProxyGrouptimer_t *pTimer)
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Unscheduling Group Specific Membership Report Message (ifIdx=%u vlan=%u group:%s)",
             pTimer->groupData->snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx, pTimer->groupData->snoopPTinProxyGrouptimerInfoDataKey.vlanId, 
-            snoopPTinIPAddrPrint(pTimer->groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr, address));
+            inetAddrPrint(&(pTimer->groupData->snoopPTinProxyGrouptimerInfoDataKey.groupAddr), address));
 
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
@@ -604,3 +605,26 @@ L7_uint32 snoop_ptin_proxy_Grouptimer_timeleft(snoopPTinProxyGrouptimer_t *pTime
 
   return time_left;
 }
+
+
+/*************************************************************************
+ * @purpose Verify if the timer is running or not
+ * 
+ * @param   pTimer  Pointer to timer
+ *
+ * @returns Timer's time left
+ *
+ *************************************************************************/
+L7_BOOL snoop_ptin_proxy_Grouptimer_isRunning(snoopPTinProxyGrouptimer_t *pTimer)
+{
+  /* Argument validation */
+  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  { 
+    return L7_FALSE;
+  }
+  else
+  {
+    return L7_TRUE;
+  }
+}
+
