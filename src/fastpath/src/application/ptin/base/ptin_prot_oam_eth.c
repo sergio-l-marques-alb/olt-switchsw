@@ -68,7 +68,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     if (NULL==pDMAC || NULL==buf) return 3;
 
     memcpy(buff, pDMAC, 6);
-    //memcpy(buff, pSMAC, 6);
+    nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, &buff[6]);   //memcpy(buff, pSMAC, 6);
     if (vid<=4095) {
         buff[12]=0x81;
         buff[13]=0x00;
