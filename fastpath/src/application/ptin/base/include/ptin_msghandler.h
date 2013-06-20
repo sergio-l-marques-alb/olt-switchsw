@@ -51,6 +51,9 @@
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_GET        0x9036  // struct msg_HwEthEvcFloodVlan_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_ADD        0x9037  // struct msg_HwEthEvcFloodVlan_t
+#define CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE     0x9038  // struct msg_HwEthEvcFloodVlan_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // Consultar contadores a pedido: struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // Activar contadores a pedido: struct msg_evcStats_t
@@ -103,6 +106,10 @@
 #define CCMSG_ETH_IGMP_INTF_STATS_GET       0x9079  // struct msg_IgmpClientStatistics_t
 #define CCMSG_ETH_IGMP_INTF_STATS_CLEAR     0x907A  // struct msg_IgmpClientStatistics_t
 
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE 0x906C  // struct msg_MCAssocChannel_t
+
 #define CCMSG_ETH_IGMP_STATIC_GROUP_ADD     0x907B  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE  0x907C  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_GROUPS_GET           0x907D  // struct msg_MCActiveChannels_t
@@ -117,6 +124,51 @@
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
+
+
+/* OAM MEPs Configuration */
+
+#define CCMSG_DUMP_MEPs               0x9140  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_DUMP_MEs                0x9141  /*Exception - 1 input struct; unknown nr of output structs; input and output structs are the same type*/
+#define CCMSG_DUMP_LUT_MEPs           0x9142  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_WR_MEP                  0x9143
+#define CCMSG_RM_MEP                  0x9144
+#define CCMSG_WR_RMEP                 0x9145
+#define CCMSG_RM_RMEP                 0x9146
+
+#define CCMSG_FLUSH_MEP               0x9147
+#define CCMSG_FLUSH_RMEP              0x9148
+
+
+/* ERPS Configuration */
+
+#define CCMSG_ERPS_SET                0x9170
+#define CCMSG_ERPS_DEL                0x9171
+
+
+
+
+#define CCMSG_WR_802_1X_ADMINMODE     0x9180
+#define CCMSG_WR_802_1X_TRACE         0x9181
+#define CCMSG_WR_802_1X_VLANASSGNMODE 0x9182
+#define CCMSG_WR_802_1X_MONMODE       0x9183
+#define CCMSG_WR_802_1X_DYNVLANMODE   0x9184
+
+#define CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS   0x91A0
+#define CCMSG_WR_802_1X_PORTCONTROLMODE             0x91A1
+#define CCMSG_WR_802_1X_QUIETPERIOD                 0x91A2
+#define CCMSG_WR_802_1X_TXPERIOD                    0x91A3
+#define CCMSG_WR_802_1X_SUPPTIMEOUT                 0x91A4
+#define CCMSG_WR_802_1X_SERVERTIMEOUT               0x91A5
+#define CCMSG_WR_802_1X_MAXREQ                      0x91A6
+#define CCMSG_WR_802_1X_REAUTHPERIOD                0x91A7
+#define CCMSG_WR_802_1X_KEYTXENABLED                0x91A8
+#define CCMSG_WR_802_1X_GUESTVLANID                 0x91A9
+#define CCMSG_WR_802_1X_GUSTVLANPERIOD              0x91AA
+#define CCMSG_WR_802_1X_MAXUSERS                    0x91AB
+#define CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN         0x91AC
+
+#define CCMSG_WR_802_1X_AUTHSERV    0x91C0
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -139,6 +191,7 @@ typedef struct msg_in_addr_s
 {
   L7_uint32   s_addr;    /* 32 bit IPv4 address in network byte order */
 } __attribute__((packed)) msg_in_addr_t;
+
 
 /* Client identification */
 // Message CCMSG_ETH_IGMP_INTF_STATS_GET, CCMSG_ETH_IGMP_CLIENT_STATS_GET, CCMSG_ETH_IGMP_INTF_STATS_CLEAR, CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR
@@ -506,6 +559,20 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
+
+/* EVC stacked bridge */
+// Messages CCMSG_ETH_EVC_FLOOD_VLAN_ADD and CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 evcId;                    // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint8              mask;         /* Mask of fields to be considered (use 0x03) */
+  msg_HwEthInterface_t  intf;         /* [mask=0x01] Interface */
+  L7_uint16             client_vlan;  /* [mask=0x02] Client inner vlan */
+
+  /* Vlans to be flooded (use 0 value, if not to be used) */
+  L7_uint16             oVlanId;       /* VID to flood to VLAN (Vs') */
+  L7_uint16             iVlanId;       /* VID to flood to VLAN (Vs') */
+} __attribute__((packed)) msg_HwEthEvcFloodVlan_t;
 
 /***************************************************** 
  * BW Profiles messages
@@ -877,6 +944,19 @@ typedef struct _st_ClientIgmpStatistics
  * STATIC MULTICAST CHANNELS
  ****************************************************/
 
+/* To add or remove a channel associated to a MC service */
+// Messages CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET or CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD and CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE
+typedef struct _msg_MCAssocChannel_t
+{
+  L7_uint8  SlotId;                     // slot
+  L7_uint16 evcid_mc;                   // index: EVCid (MC)
+  L7_uint16 entry_idx;                  // Entry index: only for readings
+  chmessage_ip_addr_t channel_dstIp;    // IP do canal a adicionar/remover
+  L7_uint8            channel_dstmask;  // MAscara do canal em numero de bits (LSB)
+  chmessage_ip_addr_t channel_srcIp;    // IP source 
+  L7_uint8            channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
+} __attribute__((packed)) msg_MCAssocChannel_t;
+
 /* To add or remove a static channel */
 // Messages CCMSG_ETH_IGMP_STATIC_GROUP_ADD and CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 typedef struct _msg_MCStaticChannel_t
@@ -899,6 +979,7 @@ typedef struct _st_MCActiveChannels
   L7_uint16 n_channels_total;          // Numero total de canais
   L7_uint16 n_channels_msg;            // Numero de canais presentes na mensagem
   msg_in_addr_t channels_list[MSG_MCACTIVECHANNELS_CHANNELS_MAX];   // List da canais (apenas usados os primeiros n_channels_msg canais)
+  L7_uint8      is_static_bmp[MSG_MCACTIVECHANNELS_CHANNELS_MAX];
 } __attribute__((packed)) msg_MCActiveChannels_t;
 
 /* To list all clients of a channel */
@@ -996,6 +1077,150 @@ typedef struct
   L7_uint8  SlotId;
   msg_ptin_hw_resources resources;
 } __attribute__((packed)) msg_hw_resources;
+
+
+
+/************************************************************************** 
+* OAM MEPs Configuration
+**************************************************************************/
+
+#define _MSG_GENERIC_PREFIX_STRUCT \
+ int        err_code;          /*unused in commands (only responses)*/\
+ L7_uint64  index              /*0..N-1*/
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;
+} __attribute__ ((packed)) msg_generic_prefix_t;
+
+
+typedef struct {
+  L7_uint8  byte[48];
+} __attribute__ ((packed)) msg_meg_id_t;
+
+
+#include <ethsrv_oam.h>
+typedef T_MEP_HDR   msg_mep_hdr_t;
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MEPs-1
+  msg_mep_hdr_t bd;
+} __attribute__ ((packed)) msg_bd_mep_t;
+
+
+
+typedef T_RMEP  msg_rmep_t;
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 16 bit i_mep(0..N_MEPs-1)     16 bit i_rmep(0..N_MAX_MEs_PER_MEP-1)
+  msg_rmep_t bd;
+} __attribute__ ((packed)) msg_bd_rmep_t;
+
+
+
+typedef struct {
+  T_ME me;
+} __attribute__ ((packed)) msg_me_t;  //"Remote MEP"; MEP on the other side of a ME (relatively to our MEP)
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;//index: (only RD operations): [MEP index (0..N_MEPs-1)] x 0x10000L + [RMEP index (0..N_MAX_MEs_PER_MEP-1)]
+  msg_me_t bd;
+} __attribute__ ((packed)) msg_bd_me_t;
+
+
+typedef T_LOOKUP_MEP msg_lookup_mep_t;
+
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index (only RD operations): 0..N_MAX_LOOKUP_MEPs-1
+  msg_lookup_mep_t bd;
+} __attribute__ ((packed)) msg_bd_lut_mep_t;
+
+
+
+/***************************************************************************** 
+ * ERPS Configuration
+ *****************************************************************************/
+
+//typedef enum {
+//   ERPS_PORTROLE_NONRPL       = 0,
+//   ERPS_PORTROLE_RPL          = 1,
+//   ERPS_PORTROLE_RPLNEIGBHOR  = 2,
+//} ERPS_PORTROLE;
+
+typedef struct {
+   unsigned int     idx;
+   unsigned int     ringId;
+   unsigned char    isOpenRing;
+   unsigned short   controlVid;
+   unsigned char    megLevel;
+
+   ptin_erpsPort_t  port0;
+   ptin_erpsPort_t  port1;
+   unsigned char    port0Role;
+   unsigned char    port1Role;
+   unsigned char    port0CfmIdx;
+   unsigned char    port1CfmIdx;
+
+   unsigned char    revertive;
+   unsigned char    guardTimer;
+   unsigned char    holdoffTimer;
+   unsigned char    waitToRestore;
+
+   //service List
+   L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+} __attribute__ ((packed)) msg_erps_t;
+
+
+
+
+
+
+
+
+
+
+
+
+typedef struct {
+    L7_ulong32 v;
+} __attribute__ ((packed)) msg_802_1x_Genrc;
+
+typedef msg_802_1x_Genrc msg_802_1x_AdminMode;
+typedef msg_802_1x_Genrc msg_802_1x_TraceMode;
+typedef msg_802_1x_Genrc msg_802_1x_VlanAssgnMode;
+typedef msg_802_1x_Genrc msg_802_1x_MonMode;
+typedef msg_802_1x_Genrc msg_802_1x_DynVlanMode;
+
+
+typedef struct {
+    _MSG_GENERIC_PREFIX_STRUCT;
+    L7_ulong32 v;
+} __attribute__ ((packed)) msg_802_1x_Genrc2;
+
+typedef msg_802_1x_Genrc2 msg_802_1x_AdminControlledDirections;
+typedef msg_802_1x_Genrc2 msg_802_1x_PortControlMode;
+typedef msg_802_1x_Genrc2 msg_802_1x_QuietPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_TxPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_SuppTimeout;
+typedef msg_802_1x_Genrc2 msg_802_1x_ServerTimeout;
+typedef msg_802_1x_Genrc2 msg_802_1x_MaxReq;
+typedef msg_802_1x_Genrc2 msg_802_1x_ReAuthPeriod;  //forbidden values disables this
+//typedef msg_802_1x_Genrc2 msg_802_1x_ReAuthEnabled;
+typedef msg_802_1x_Genrc2 msg_802_1x_KeyTxEnabled;
+typedef msg_802_1x_Genrc2 msg_802_1x_GuestVlanId;
+typedef msg_802_1x_Genrc2 msg_802_1x_GuestVlanPeriod;
+typedef msg_802_1x_Genrc2 msg_802_1x_MaxUsers;
+typedef msg_802_1x_Genrc2 msg_802_1x_UnauthenticatedVlan;
+
+
+typedef struct {
+    _MSG_GENERIC_PREFIX_STRUCT;     //wr: 0..L7_MAX_IAS_USERS-1; if greater, the board chooses
+                                    //    index MSBit: 0-unencrypted; 1-encrypted
+    L7_char8    name[L7_LOGIN_SIZE];
+    L7_char8    passwd[L7_ENCRYPTED_PASSWORD_SIZE]; //both include \0
+} __attribute__ ((packed)) msg_802_1x_AuthServ;
+
+
+
+
 
 
 /***************************************************************************** 

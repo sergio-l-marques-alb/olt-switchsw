@@ -12,6 +12,7 @@
 #define _PTIN_IGMP_H
 
 #include "ptin_include.h"
+#include "l3_addrdefs.h"
 
 /* Macros to get RFC3376 timer values */
 #define PTIN_IGMP_AUTO_GMI(rv, qi, qri)                 (((rv) * (qi)) + ((qri)/10))
@@ -115,6 +116,14 @@ typedef struct
 /* More debug for IGMP */
 extern L7_BOOL ptin_debug_igmp_snooping;
 
+typedef enum
+{
+  PTIN_DIR_NONE=0,
+  PTIN_DIR_UPLINK,
+  PTIN_DIR_DOWNLINK,
+  PTIN_DIR_BOTH,
+} ptin_dir_t;
+
 /**
  * Initializes IGMP module
  * 
@@ -155,6 +164,18 @@ extern L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy);
 extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
 
 /**
+ * Configure an IGMP evc with the necessary procedures 
+ * 
+ * @param evc_idx   : evc index
+ * @param enable    : enable flag 
+ * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
+ *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+
+/**
  * Update snooping configuration, when interfaces are 
  * added/removed 
  * 
@@ -165,7 +186,7 @@ extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
  *  
  * @return L7_BOOL : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
+extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
  * Check if a EVC is being used in an IGMP instance
@@ -174,7 +195,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
+extern L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
 
 /**
  * Creates an IGMP instance
@@ -296,6 +317,105 @@ extern L7_RC_t ptin_igmp_static_channel_add(L7_uint16 McastEvcId, L7_in_addr_t *
  */
 extern L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channel);
 
+
+#define IGMPASSOC_CHANNELS_MAX  L7_MAX_GROUP_REGISTRATION_ENTRIES
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+typedef struct
+{
+  L7_uint16 evc_uc;
+  L7_uint16 evc_mc;
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+  L7_BOOL   is_static;
+} igmpAssoc_entry_t;
+
+/**
+ * Clear all IGMP associations
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_init( void );
+
+/**
+ * Get the association of a particular dst/src channel using 
+ * vlans. 
+ * 
+ * @param vlan_uc : UC vlan
+ * @param channel_group   : Group address
+ * @param channel_source  : Source address
+ * @param vlan_mc : MC vlan pair (out)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
+                                        L7_inet_addr_t *channel_group,
+                                        L7_inet_addr_t *channel_source,
+                                        L7_uint16 *vlan_mc );
+
+/**
+ * Get the the list of channels of a UC+MC association
+ * 
+ * @param evc_uc : UC EVC index (0 to list all)
+ * @param evc_mc : MC EVC pair  (0 to list all)
+ * @param channel_group   : Array of group channels - max of 
+ *                          *channels_number (output)
+ * @param channel_source  : Array of source channels - max of
+ *                          *channels_number (output)
+ * @param channels_number : In - Max #channels to get 
+ *                          Out - Effective #channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
+                                           igmpAssoc_entry_t *channel_list,
+                                           L7_uint16 *channels_number );
+
+/**
+ * Add a new association to a MC service, applied only to a 
+ * specific dst/src channel.
+ * 
+ * @param evc_uc : UC EVC index
+ * @param evc_mc : MC EVC index
+ * @param channel_group   : Group channel
+ * @param channel_grpMask : Number of masked bits
+ * @param channel_source  : Source channel
+ * @param channel_srcMask : Number of masked bits
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
+                                       L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
+                                       L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
+                                       L7_BOOL is_static );
+
+/**
+ * Remove an association to a MC service, applied only to a 
+ * specific dst/src channel. 
+ * 
+ * @param evc_uc : UC EVC index
+ * @param channel_group   : Group channel
+ * @param channel_grpMask : Number of masked bits
+ * @param channel_source  : Source channel
+ * @param channel_srcMask : Number of masked bits
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
+                                          L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
+                                          L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask);
+
+/**
+ * Remove all associations of a MC instance
+ * 
+ * @param evc_uc : UC EVC index 
+ * @param evc_uc : MC EVC index 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc );
+#endif
 
 /**
  * Get global IGMP statistics
@@ -525,6 +645,20 @@ extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 int
  */
 extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
 
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+/**
+ * Get the MC root vlan associated to the internal vlan
+ *  
+ * @param groupChannel  : Channel Group address 
+ * @param sourceChannel : Channel Source address 
+ * @param intVlan       : internal vlan
+ * @param McastRootVlan : multicast root vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t *sourceChannel,
+                                           L7_uint16 intVlan, L7_uint16 *McastRootVlan);
+#else
 /**
  * Get the MC root vlan associated to the internal vlan
  * 
@@ -534,6 +668,7 @@ extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 i
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan);
+#endif
 
 /**
  * Get the list of root interfaces associated to a internal vlan
@@ -569,6 +704,7 @@ extern L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *
  */
 extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extMcastVlan, L7_uint16 *extIVlan);
 
+#if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
 /**
  * Get the external outer+inner vlan asociated to the UC EVC
  * 
@@ -581,6 +717,7 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
+#endif
 
 /**
  * Increment IGMP statistics

@@ -266,16 +266,19 @@ typedef struct
 typedef struct
 {
   L7_uint16 vlanId;                 // Vlan which will be configured
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_NONE         0x00
+  L7_BOOL   double_tag;             // Use double tag
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_NONE           0x00
   L7_uint8  mask;                   // Mask of configurations (see below)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN      0x01
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN        0x01
   L7_uint16 fwdVlanId;              // Forwrd vlan used for MAC larning (only applicable to mask=0x01)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_OTPID        0x02
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_OTPID          0x02
   L7_uint16 outer_tpid;             // Outer TPID (only applicable to mask=0x02)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN     0x04
-  L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x04)
-    #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN 0x08
-  L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x08)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_ITPID          0x04
+  L7_uint16 inner_tpid;             // Inner TPID (only applicable to mask=0x04)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN       0x08
+  L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x08)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN   0x10
+  L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
 } ptin_bridge_vlan_mode_t;
 
 /* Struct used to manipulate cross connects via DTL */
@@ -303,12 +306,15 @@ typedef struct {
 } ptin_HwEthMef10Intf_t;
 
 /* EVC config */
-#define PTIN_EVC_MASK_BUNDLING      0x00000001
-#define PTIN_EVC_MASK_ALL2ONE       0x00000002
-#define PTIN_EVC_MASK_STACKED       0x00000004
-#define PTIN_EVC_MASK_MACLEARNING   0x00000008
-#define PTIN_EVC_MASK_CPU_TRAPPING  0x00000010
-#define PTIN_EVC_MASK_DHCP_PROTOCOL 0x00000100
+#define PTIN_EVC_MASK_BUNDLING        0x00000001
+#define PTIN_EVC_MASK_ALL2ONE         0x00000002
+#define PTIN_EVC_MASK_STACKED         0x00000004
+#define PTIN_EVC_MASK_MACLEARNING     0x00000008
+#define PTIN_EVC_MASK_CPU_TRAPPING    0x00000010
+#define PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
+#define PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
+#define PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400
+#define PTIN_EVC_MASK_P2P             0x00010000
 
 #define PTIN_EVC_MC_FLOOD_ALL       0
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1
@@ -325,6 +331,8 @@ typedef struct {
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
+  L7_uint16 n_clients;    // Number of attached clients
+
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   ptin_HwEthMef10Intf_t intf[PTIN_SYSTEM_MAX_N_PORTS];
 
@@ -711,6 +719,48 @@ typedef struct
   L7_uint32   min_bandwidth;          // [mask=0x10] Minimum bandwidth (0-100): Default=0 (no guarantee)
   L7_uint32   max_bandwidth;          // [mask=0x20] Maximum bandwidth (0-100): Default=0 (unlimited)
 } ptin_QoS_cos_t;
+
+
+
+/***************************************************************************** 
+ * ERPS Configuration
+ *****************************************************************************/
+
+typedef enum {
+   ERPS_PORTROLE_NONRPL       = 0,
+   ERPS_PORTROLE_RPL          = 1,
+   ERPS_PORTROLE_RPLNEIGHBOUR = 2,
+} ERPS_PORTROLE;
+
+typedef struct {
+   unsigned char slot;
+   unsigned char type;
+   unsigned char idx;
+} ptin_erpsPort_t;
+
+typedef struct {
+   unsigned int     idx;
+   unsigned int     ringId;
+   unsigned char    isOpenRing;
+   unsigned short   controlVid;
+   unsigned char    megLevel;
+
+   ptin_erpsPort_t  port0;
+   ptin_erpsPort_t  port1;
+   unsigned char    port0Role;
+   unsigned char    port1Role;
+   unsigned char    port0CfmIdx;
+   unsigned char    port1CfmIdx;
+
+   unsigned char    revertive;
+   unsigned short   guardTimer;
+   unsigned char    holdoffTimer;
+   unsigned char    waitToRestore;
+
+   //service List
+   L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+} ptin_erps_t;
+
 
 #endif /* _PTIN_STRUCTS_H */
 

@@ -72,6 +72,9 @@ void help_oltBuga(void)
         "m 1400 [admin=<0/1>] [ipaddr=x.x.x.x] [cos=0..7] [gmi=<group_membership_interval>] [qi=<querier_interval>] - Configure igmp snooping + querier\r\n"
         "m 1401 MC_flow_id[1-127] UC_flow_id[1-127]  - Add IGMP instance with the MC+UC evc's pair\r\n"
         "m 1402 MC_flow_id[1-127] UC_flow_id[1-127]  - Remove IGMP instance with the MC+UC evc's pair\r\n"
+        "m 1403 MC_evcId start_index[0-...] - Get list of IGMP channel-associations\r\n"
+        "m 1404 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Add IGMP channel-associations\r\n"
+        "m 1405 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Remove IGMP channel-associations\r\n"
         "m 1406 MC_flow_id[1-127] cvid[0-4095] [0-Phy,1-Lag]/[intf#] - Add MC client to IGMP instance\r\n"
         "m 1407 MC_flow_id[1-127] cvid[0-4095] [0-Phy,1-Lag]/[intf#] - Remove MC client to IGMP instance\r\n"
       /*"m 1400 snooping_admin[0/1] querier_admin[0/1] querier_ipaddr[ddd.ddd.ddd.ddd] querier_inerval[1-1800] cos[0-7] - IGMP snooping admin mode\r\n"
@@ -101,11 +104,13 @@ void help_oltBuga(void)
         "m 2001 - Get MAC Learning aging time\r\n"
         "--- NEW COMMANDS FP6.3--------------------------------------------------------------------------\r\n"
         "m 1600 EVC#[0-64] - Read EVC config\r\n"
-        "m 1601 EVC#[0-64] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
+        "m 1601 EVC#[0-64] P2P[0/1] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
         "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN ... - Create EVC\r\n"
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
+        "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add a flooding vlan to an EVC\r\n"
+        "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Delete a flooding vlan from an EVC\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
         "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
         "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
@@ -115,6 +120,8 @@ void help_oltBuga(void)
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
+
+        "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
         "\n\r"
         );
 }
@@ -1949,6 +1956,8 @@ int main (int argc, char *argv[])
           ptr = (msg_IgmpMultcastUnicastLink_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_IgmpMultcastUnicastLink_t));
 
+          ptr->SlotId = (uint8)-1;
+
           // Multicast EVC id
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
@@ -1974,6 +1983,123 @@ int main (int argc, char *argv[])
           comando.infoDim = sizeof(msg_IgmpMultcastUnicastLink_t);
         }
         break;
+
+    case 1403:
+      {
+        msg_MCAssocChannel_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_MCAssocChannel_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_MCAssocChannel_t));
+
+        ptr->SlotId = (uint8)-1;
+
+        // Multicast EVC id
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcid_mc = (uint16) valued;
+
+        /* Start index (default is zero) */
+        if (argc>=3+2)
+        {
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->entry_idx = (uint16) valued;
+        }
+
+        comando.msgId = CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET;
+        comando.infoDim = sizeof(msg_MCAssocChannel_t);
+      }
+      break;
+
+    case 1404:
+    case 1405:
+      {
+        msg_MCAssocChannel_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_MCAssocChannel_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_MCAssocChannel_t));
+        /* IPv4 */
+        ptr->channel_dstIp.family = PTIN_AF_INET;
+        ptr->channel_srcIp.family = PTIN_AF_INET;
+        /* Default Mask */
+        ptr->channel_dstmask = 32;
+        ptr->channel_srcmask = 32;
+
+        ptr->SlotId = (uint8)-1;
+
+        // Multicast EVC id
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcid_mc = (uint16) valued;
+
+        // Group Address
+        if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->channel_dstIp.addr.ipv4 = (uint32) valued;
+
+        /* Source address */
+        if (argc>=3+3)
+        {
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->channel_srcIp.addr.ipv4 = (uint32) valued;
+        }
+
+        /* Group address mask bits */
+        if (argc>=3+4)
+        {
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->channel_dstmask = (uint8) valued;
+        }
+
+        /* Source address mask bits */
+        if (argc>=3+5)
+        {
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->channel_srcmask = (uint8) valued;
+        }
+
+        if (msg==1404)
+        {
+          comando.msgId = CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD;
+        }
+        else
+        {
+          comando.msgId = CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE;
+        }
+        comando.infoDim = sizeof(msg_MCAssocChannel_t);
+      }
+      break;
 
     case 1406:
     case 1407:
@@ -2939,7 +3065,7 @@ int main (int argc, char *argv[])
           int i;
 
           // Validate number of arguments
-          if (argc<3+7)  {
+          if (argc<3+8)  {
             help_oltBuga();
             exit(0);
           }
@@ -2961,46 +3087,53 @@ int main (int argc, char *argv[])
           }
           ptr->id = valued;
 
-          // Stacked
+          // P2P
           if (StrToLongLong(argv[3+1], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->flags |= valued != 0 ? 0x10000 : 0;
+
+          // Stacked
+          if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0004 : 0;
 
           // MAC Learning
-          if (StrToLongLong(argv[3+2], &valued)<0)  {
+          if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0008 : 0;
 
           // Other masks
-          if (StrToLongLong(argv[3+3], &valued)<0)  {
+          if (StrToLongLong(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued;
 
           // MC Flood type
-          if (StrToLongLong(argv[3+4], &valued)<0)  {
+          if (StrToLongLong(argv[3+5], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->mc_flood = valued;
 
-          ptr->n_intf   = argc - (3+5);
+          ptr->n_intf   = argc - (3+6);
 
           // Interfaces...
           unsigned int intf, type, mef, vid;
-          for (i=3+5; i<argc; i++) {
+          for (i=3+6; i<argc; i++) {
             printf("argv[%u]=%s  **  ", i, argv[i]);
             sscanf(argv[i], "%d/%d/%d/%d", &type, &intf, &mef, &vid);
             printf("%d/%d/%d/%d\n", type, intf, mef, vid);
-            ptr->intf[i-(3+5)].intf_type = type;
-            ptr->intf[i-(3+5)].intf_id   = intf;
-            ptr->intf[i-(3+5)].mef_type  = mef;
-            ptr->intf[i-(3+5)].vid       = vid;
+            ptr->intf[i-(3+6)].intf_type = type;
+            ptr->intf[i-(3+6)].intf_id   = intf;
+            ptr->intf[i-(3+6)].mef_type  = mef;
+            ptr->intf[i-(3+6)].vid       = vid;
           }
         }
         break;
@@ -4380,6 +4513,57 @@ int main (int argc, char *argv[])
           printf(" Switch: Error removing IGMP instance - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
+      case 1403:
+        {
+          msg_MCAssocChannel_t *po=(msg_MCAssocChannel_t *) &resposta.info[0];
+          uint16 n, index;
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+            if (resposta.infoDim%sizeof(msg_MCAssocChannel_t) != 0) {
+              printf(" Switch: Invalid structure size\r\n");
+              break;
+            }
+            n = resposta.infoDim / sizeof(msg_MCAssocChannel_t);
+
+            printf("Printing list of IGMP associations for Slot=%u:\n\r",po->SlotId);
+            for (index=0; index<n; index++)
+            {
+              printf(" Idx %-4u: MC_evc=%-3u ->  Group:%03lu.%03lu.%03lu.%03lu/%-3u  Source:%03lu.%03lu.%03lu.%03lu/%-3u\r\n",
+                      po[index].entry_idx,
+                      po[index].evcid_mc,
+                     (po[index].channel_dstIp.addr.ipv4>>24) & 0xFF,
+                     (po[index].channel_dstIp.addr.ipv4>>16) & 0xFF,
+                     (po[index].channel_dstIp.addr.ipv4>> 8) & 0xFF,
+                      po[index].channel_dstIp.addr.ipv4 & 0xFF,
+                      po[index].channel_dstmask,
+                     (po[index].channel_srcIp.addr.ipv4>>24) & 0xFF,
+                     (po[index].channel_srcIp.addr.ipv4>>16) & 0xFF,
+                     (po[index].channel_srcIp.addr.ipv4>> 8) & 0xFF,
+                      po[index].channel_srcIp.addr.ipv4 & 0xFF,
+                      po[index].channel_srcmask);
+            }
+            printf( "Done!\r\n");
+          }
+          else  {
+            printf(" Switch: Error reading list of IGMP associations\n\r");
+          }
+        }
+        break;
+
+      case 1404:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: IGMP association added\n\r");
+        else
+          printf(" Switch: Error adding IGMP association - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1405:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: IGMP association removed\n\r");
+        else
+          printf(" Switch: Error removing IGMP association - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
       case 1406:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MC Client successfully added\n\r");
@@ -4882,6 +5066,58 @@ int main (int argc, char *argv[])
     //printf("Fim do send BUGA to Controlo...\n\r");
     exit(0);
   }//if argc == m 
+  else if ( !strcmp(argv[1],"testit") && ( argc >= 3 ) )
+  {
+   unsigned int i;
+
+    if (StrToLongLong(argv[2],&valued)>=0)  msg = (unsigned int)valued;
+    else
+    {
+      help_oltBuga();
+      exit(0);
+    }
+
+    //printf("A mensagem a enviar e' a %d\n\r", msg);
+
+    // 1 - Preparar mensagem a enviar ao modulo de controlo
+    comando.protocolId   = 1;
+    comando.srcId        = PORTO_TX_MSG_BUGA;
+    comando.dstId        = PORTO_RX_MSG_BUGA;
+    comando.flags        = (FLAG_COMANDO); //(IPCLIB_FLAGS_CMD | (IPC_UID<<4));
+    comando.counter      = rand ();
+    comando.msgId        = msg;
+    comando.infoDim      = argc-3;
+    for(i=3; i<argc; i++) {
+        if (StrToLongLong(argv[i],&valued)<0) {
+            help_oltBuga();
+            exit(0);
+        }
+        comando.info[i-3]= valued;
+    }
+
+
+
+
+    canal_buga=open_ipc(PORTO_TX_MSG_BUGA,IP_LOCALHOST,NULL,20);
+    if ( canal_buga<0 )
+    {
+      printf("Erro no open IPC do BUGA...\n\r");
+      exit(0);
+    }
+    valued = send_data (canal_buga, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta);
+    close_ipc(canal_buga);
+    if ( valued )
+    {
+      printf("Erro %llu  no send_data IPC do BUGA...\n\r", valued);
+      exit(0);
+    }
+
+
+
+    printf("RESPOSTA: msg=%4.4x\tflags=%2.2u\tinfoDim=%u\n\r", resposta.msgId, resposta.flags, resposta.infoDim);
+    for (i=0; i<resposta.infoDim; i++) printf("\t%2.2x", resposta.info[i]);
+    if (resposta.infoDim) printf("\n\r"); 
+  }//else if ( !strcmp(argv[1],"testit") && ( argc >= 3 ) )
   else
   {
     help_oltBuga();

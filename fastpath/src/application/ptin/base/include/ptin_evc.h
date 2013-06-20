@@ -66,7 +66,7 @@ extern L7_RC_t ptin_evc_destroy_all(void);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
+extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
 
 /**
  * Removes a bridge from a stacked EVC between the root and a particular interface
@@ -75,7 +75,35 @@ extern L7_RC_t ptin_evc_stacked_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_stacked_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
+extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
+
+/**
+ * Adds a flooding vlan
+ * 
+ * @param evcId       : EVC index
+ * @param ptin_intf   : port of which client_vlan belongs
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : outer vlan of transmitted  packets
+ * @param inner_vlan  : inner vlan of transmitted  packets
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+                                        L7_uint16 outer_vlan, L7_uint16 inner_vlan );
+
+/**
+ * Removes a flooding vlan
+ * 
+ * @param evcId       : EVC index
+ * @param ptin_intf   : port of which client_vlan belongs
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : outer vlan of transmitted packets
+ * @param inner_vlan  : inner vlan of transmitted packets
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+                                           L7_uint16 outer_vlan, L7_uint16 inner_vlan );
 
 /**
  * Bandwidth Policers management functions
@@ -230,6 +258,25 @@ extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_u
  */
 extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MASK_t *intfList);
 
+/**
+ * Get next client, belonging to an EVC
+ * 
+ * @param evc_idx     : evc index
+ * @param intf_type   : interface type
+ * @param intf_id     : interface index
+ * @param cvlan       : reference cvlan
+ * @param cvlan_next  : next cvlan
+ * @param ovlan_next  : outer vlan related to next cvlan
+ * 
+ * @return L7_RC_t : 
+ *  L7_SUCCESS tells a next client was returned
+ *  L7_NO_VALUE tells there is no more clients (cvlan_next==0)
+ *  L7_NOT_EXIST tells the reference vlan was not found
+ *  L7_NOT_SUPPORTED tells this evc does not support clients
+ *  L7_FAILURE in case of error
+ */
+extern
+L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
@@ -263,6 +310,16 @@ extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Check if the EVC related to an internal vlan is P2P. 
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * @param is_p2p     : Is EVC P2P? (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p);
+
+/**
  * Check if the EVC related to an internal vlan is stacked. 
  *  
  * @param intVlan    : Internal outer-vlan 
@@ -270,6 +327,53 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_isStacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked);
+extern L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked);
+
+/**
+ * Validate interface and vlan belonging to a valid interface 
+ * inside a valid EVC 
+ * 
+ * @param intIfNum : source interface number
+ * @param intVlan  : internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS: Parameters are valid
+ *                   L7_FAILURE: Not valid
+ */
+extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
+
+/**
+ * Get next client, belonging to a vlan
+ * 
+ * @param intVlan    : internal vlan
+ * @param intIfNum   : intIfNum
+ * @param cvlan      : reference inner vlan 
+ * @param cvlan_next : next inner vlan
+ * @param ovlan_next : ovlan related to the next inner vlan
+ * 
+ * @return L7_RC_t : 
+ *  L7_SUCCESS tells a next client was returned
+ *  L7_NO_VALUE tells there is no more clients
+ *  L7_NOT_EXIST tells the reference vlan was not found
+ *  L7_NOT_SUPPORTED tells this evc does not support clients
+ *  L7_FAILURE in case of error
+ */
+extern
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+
+/**
+ * Gets the flooding vlans list
+ * 
+ * @param intIfNum    : leaf interface
+ * @param intVlan     : internal Vlan
+ * @param client_vlan : client vlan to apply this flooding vlan
+ * @param outer_vlan  : list of outer vlans
+ * @param inner_vlan  : list of inner vlans 
+ * @param number_of_vlans : Size of returned lists
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
+                                 L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
 
 #endif /* _PTIN_EVC_H */

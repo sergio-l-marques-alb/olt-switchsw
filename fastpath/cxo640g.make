@@ -98,3 +98,8 @@ welcome:
 clean cleanall: welcome
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
+
+clean-snmp:
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
+	$(RM) -f $(TMP_FILE)
+

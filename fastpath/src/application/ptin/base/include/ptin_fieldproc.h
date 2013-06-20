@@ -99,6 +99,54 @@ extern L7_RC_t ptin_evcStats_delete(ptin_evcStats_policy_t *policy);
 extern L7_RC_t ptin_evcStats_deleteAll(void);
 
 /**
+ * Set global enable for IGMP packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmpPkts_global_trap(L7_BOOL enable);
+
+/**
+ * Create/remove a rule, to allow IGMP packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+
+/**
+ * Set global enable for MLD packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_mldPkts_global_trap(L7_BOOL enable);
+
+/**
+ * Create/remove a rule, to allow MLD packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+
+/**
+ * Create/remove a rule, to allow IGMP packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+
+/**
  * Set global enable for DHCP packets to go to the CPU
  * 
  * @param enable : L7_TRUE/L7_FALSE
@@ -116,6 +164,25 @@ extern L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
 extern L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+
+/**
+ * Set global enable for PPPoE packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable);
+
+/**
+ * Create/remove a rule, to allow PPPoE packets to go to the CPU
+ * 
+ * @param vlanId : vlanId to be (dis)allowed
+ * @param enable : L7_TRUE/L7_FALSE 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
  * Apply Rate limit to broadcast traffic

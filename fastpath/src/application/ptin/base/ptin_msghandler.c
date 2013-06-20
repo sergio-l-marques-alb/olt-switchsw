@@ -81,11 +81,93 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 
     case L7_TABLE_IS_FULL:
       return ERROR_CODE_FULLTABLE;
+
+    case L7_NOT_SUPPORTED:
+      return ERROR_CODE_NOTSUPPORTED;
   }
 
   // Default error
   return ERROR_CODE_INVALIDPARAM;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong32 error) {
+    outbuff->flags   = (IPCLIB_FLAGS_NACK);
+    outbuff->infoDim = sizeof(int);
+    *(int *)outbuff->info = SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error);
+}
+
+
+
+
+
+
+
+
+
+//Function for generic message reading/writing n STRUCT_SIZE structs*************************************************
+//Uses the particular method for reading/writing each struct, "msg_generic_wrd_1struc"*******************************
+static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT) {
+L7_ushort16 i,n;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
+
+      //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
+ if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0) {     
+     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
+     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
+     return(0);
+ }
+
+ outbuff->flags   = (IPCLIB_FLAGS_ACK);
+
+ n=inbuff->infoDim/STRUCT_SIZE_IN;
+
+ if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT) {//0..n-1
+   for (i=0;    i<n;    i++)
+     if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
+         outbuff->flags = (IPCLIB_FLAGS_NACK);
+         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+     }
+ }
+ else {
+     if (n*STRUCT_SIZE_OUT>IPCLIB_MAX_MSGSIZE) {
+         seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
+         return(0);
+     }
+     for (i=n;  i;  i--) //i=n-1..0
+            if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
+                outbuff->flags = (IPCLIB_FLAGS_NACK);
+                LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+            }
+ }
+
+ outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
+ LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
+ return(0);
+}//msg_generic_wrd
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Message handler for the PTin Module.
@@ -1282,6 +1364,65 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
     }
 
+    /* Add vlan to be flooded */
+    case CCMSG_ETH_EVC_FLOOD_VLAN_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_ADD (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
+
+      msg_HwEthEvcFloodVlan_t *evcFlood;
+      L7_uint32 n_clients;
+
+      evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
+      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EvcFloodVlan_add(evcFlood, n_clients))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", evcFlood->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
+    }
+
+    /* Remove vlan to be flooded */
+    case CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
+
+      msg_HwEthEvcFloodVlan_t *evcFlood;
+      L7_uint32 n_clients;
+
+      evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
+      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EvcFloodVlan_remove(evcFlood, n_clients))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", evcFlood->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
+    }
 
     /************************************************************************** 
      * EVCs Counters config
@@ -2192,6 +2333,96 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_IGMP_INTF_STATS_CLEAR */
     }
 
+    case CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_MCAssocChannel_t);
+
+      msg_MCAssocChannel_t *ptr;
+      L7_uint16             n=0;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_MCAssocChannel_t));
+      ptr = (msg_MCAssocChannel_t *) outbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_IGMP_ChannelAssoc_get(ptr, &n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting MC channels");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_MCAssocChannel_t)*n;
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
+
+      msg_MCAssocChannel_t *ptr;
+      L7_uint16             n;
+
+      ptr = (msg_MCAssocChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+
+      /* Execute command */
+      rc  = ptin_msg_IGMP_ChannelAssoc_add(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
+
+      msg_MCAssocChannel_t *ptr;
+      L7_uint16             n;
+
+      ptr = (msg_MCAssocChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+
+      /* Execute command */
+      rc  = ptin_msg_IGMP_ChannelAssoc_remove(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /* Add static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_ADD:
     {
@@ -2368,6 +2599,217 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
+
+
+    /************************************************************************** 
+     * OAM MEPs Configuration
+     **************************************************************************/
+
+    case CCMSG_WR_MEP:
+    case CCMSG_FLUSH_MEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_WR_MEP/CCMSG_FLUSH_MEP (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
+
+      rc = ptin_msg_wr_MEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    
+      break;
+    case CCMSG_RM_MEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_RM_MEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
+
+      rc = ptin_msg_del_MEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_WR_RMEP:
+    case CCMSG_FLUSH_RMEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_WR_RMEP/CCMSG_FLUSH_RMEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
+
+      rc = ptin_msg_wr_RMEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_RM_RMEP:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_RM_RMEP (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
+
+      rc = ptin_msg_del_RMEP(inbuffer, outbuffer, 0);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    case CCMSG_DUMP_MEPs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+             "Message received: CCMSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
+
+      rc = ptin_msg_dump_MEPs(inbuffer, outbuffer);
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+    case CCMSG_DUMP_MEs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_bd_me_t);
+
+      rc = ptin_msg_dump_MEs(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+    case CCMSG_DUMP_LUT_MEPs:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
+
+      rc = ptin_msg_dump_LUT_MEPs(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+
+    /************************************************************************** 
+    * OAM MEPs Configuration
+    **************************************************************************/
+
+    case CCMSG_ERPS_SET:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ERPS_SET (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_erps_t);
+
+      msg_erps_t *ptr;
+      ptr = (msg_erps_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_t));
+
+      /* Execute command */
+      rc = ptin_msg_erps_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    
+      break;
+
+
+
+
+    case CCMSG_WR_802_1X_ADMINMODE:
+    case CCMSG_WR_802_1X_TRACE:
+    case CCMSG_WR_802_1X_VLANASSGNMODE:
+    case CCMSG_WR_802_1X_MONMODE:
+    case CCMSG_WR_802_1X_DYNVLANMODE:
+      msg_generic_wrd(msg_wr_802_1x_Genrc, inbuffer, outbuffer, sizeof(msg_802_1x_Genrc), sizeof(msg_802_1x_Genrc));
+      break;
+
+    case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS:
+    case CCMSG_WR_802_1X_PORTCONTROLMODE:
+    case CCMSG_WR_802_1X_QUIETPERIOD:
+    case CCMSG_WR_802_1X_TXPERIOD:
+    case CCMSG_WR_802_1X_SUPPTIMEOUT:
+    case CCMSG_WR_802_1X_SERVERTIMEOUT:
+    case CCMSG_WR_802_1X_MAXREQ:
+    case CCMSG_WR_802_1X_REAUTHPERIOD:
+    case CCMSG_WR_802_1X_KEYTXENABLED:
+    case CCMSG_WR_802_1X_GUESTVLANID:
+    case CCMSG_WR_802_1X_GUSTVLANPERIOD:
+    case CCMSG_WR_802_1X_MAXUSERS:
+    case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:
+      msg_generic_wrd(msg_wr_802_1x_Genrc2, inbuffer, outbuffer, sizeof(msg_802_1x_Genrc2), sizeof(msg_generic_prefix_t));
+      break;
+
+    case CCMSG_WR_802_1X_AUTHSERV:
+      msg_generic_wrd(msg_wr_802_1x_AuthServ, inbuffer, outbuffer, sizeof(msg_802_1x_AuthServ), sizeof(msg_generic_prefix_t));
+      break;
 
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE

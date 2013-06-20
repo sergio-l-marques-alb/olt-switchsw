@@ -347,6 +347,27 @@ extern L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge);
  */
 extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
 
+/**
+ * Adds a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be added
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients);
+
+/**
+ * Removes a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be removed
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients);
+
+
 /* Bandwidth profiles **************************************/
 
 /**
@@ -628,6 +649,36 @@ extern L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stat
 extern L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, uint16 n_clients);
 
 /**
+ * Get list of channels contained in the white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_uint16 *n_channels);
+
+/**
+ * Add channels to White list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
+
+/**
+ * Remove channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel
@@ -681,4 +732,125 @@ extern L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg);
  */
 extern L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg);
 
+/**
+ * Used to create a new MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to remove a MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to create a new RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to remove a RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+
+/**
+ * Used to dump MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Used to dump MPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Used to dump LUT MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
+
+
+/****************************************************************************** 
+ * ERPS Configuration
+ ******************************************************************************/
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/4/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_erps_set(msg_erps_t *ptr);
+
+
+
+
+extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
+//#define msg_wr_802_1x_AdminMode     msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_TraceMode     msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_VlanAssgnMode msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_MonMode       msg_wr_802_1x_Genrc
+//#define msg_wr_802_1x_DynVlanMode   msg_wr_802_1x_Genrc
+
+extern int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
+
+extern int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 #endif /* _PTIN_MSG_H */
+

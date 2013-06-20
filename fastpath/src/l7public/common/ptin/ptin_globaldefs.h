@@ -64,13 +64,13 @@
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MIN        PTIN_VLAN_MIN
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MAX       (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN     (PTIN_SYSTEM_EVC_STACKED_VLAN_MAX+1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN     (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
@@ -81,6 +81,7 @@
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 /* FPGA AND CPLD BASE ADDRESS */
@@ -162,6 +163,10 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TOLT8G */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 
+/** Service association AVL Tree */
+//#define IGMPASSOC_MULTI_MC_SUPPORTED
+//#define IGMP_QUERIER_IN_UC_EVC
+
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
@@ -186,13 +191,13 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MIN        PTIN_VLAN_MIN
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MAX       (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN     (PTIN_SYSTEM_EVC_STACKED_VLAN_MAX+1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK         32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS         4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS       (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN            PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX           (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN          (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX          (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
@@ -203,7 +208,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512 
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
@@ -284,6 +292,10 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TG16G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 
+/** Service association AVL Tree */
+//#define IGMPASSOC_MULTI_MC_SUPPORTED
+//#define IGMP_QUERIER_IN_UC_EVC
+
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
@@ -308,13 +320,13 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MIN        PTIN_VLAN_MIN
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MAX       (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN     (PTIN_SYSTEM_EVC_STACKED_VLAN_MAX+1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN     (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
@@ -325,7 +337,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
@@ -453,13 +468,13 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MIN        PTIN_VLAN_MIN
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MAX       (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN     (PTIN_SYSTEM_EVC_STACKED_VLAN_MAX+1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN     (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
@@ -470,7 +485,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
@@ -523,7 +541,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 
 /* OLT1T3 Matrix card */
-#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G)
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
@@ -540,6 +558,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
 /* Slot/port TO to interface map */
+/* CXO640G v1 */
 # define PTIN_SLOTPORT_TO_INTF_MAP  \
           { { -1, -1, -1, -1 }, \
             { -1, -1, -1, -1 }, \
@@ -584,6 +603,7 @@ extern volatile st_fpga_map_t *fpga_map;
             { -1, -1,  0,  1 } }
 
 /* Interface to slot map */
+/* CXO640G v1 */
 # define PTIN_INTF_TO_SLOT_MAP  \
           {  2,  2,  3,  3, \
              4,  4,  4,  4, \
@@ -621,6 +641,7 @@ extern volatile st_fpga_map_t *fpga_map;
             -1, -1, -1, -1, \
             -1, -1, -1, -1  }
 
+/* CXO640G v1 */
 # define PTIN_PORTMAP_SLOT_WORK { \
    1,  2,  3,  4,  5,  6,  7,  8, \
    9, 10, 11, 12, 13, 14, 15, 16, \
@@ -641,6 +662,7 @@ extern volatile st_fpga_map_t *fpga_map;
    5,  6,  7,  8,  3,  4,  1,  2, \
   57, 58, 59, 60, 61, 62, 63, 64, \
 }
+
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
 
@@ -663,13 +685,13 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK        32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MIN        PTIN_VLAN_MIN
-# define PTIN_SYSTEM_EVC_STACKED_VLAN_MAX       (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_STACKED_VLAN_BLOCKS-1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN     (PTIN_SYSTEM_EVC_STACKED_VLAN_MAX+1)
-# define PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_UNSTACKED_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN     (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
@@ -680,7 +702,223 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
+
+/* FPGA AND CPLD BASE ADDRESS */
+# define MAP_CPLD
+# define CPLD_BASE_ADDR                0xFF500000
+
+/* PLD map registers */
+# define CPLD_ID_CXO640G_V1            0x1259
+# define CPLD_ID                       0x1324
+# define CPLD_ID0_REG                  0x0000
+# define CPLD_ID1_REG                  0x0001
+# define CPLD_VER_REG                  0x0002
+# define CPLD_HW_ID_REG                0x0008
+# define CPLD_CHASSIS_ID_REG           0x000C
+# define CPLD_SLOT_ID_REG              0x000F
+
+typedef union
+{
+  L7_uint8 map[PTIN_CPLD_MAP_SIZE];
+  struct
+  {
+    L7_uint16 id;               /* 0x00 (2 bytes) */
+    L7_uint8  ver;              /* 0x02 (1 byte)  */
+    L7_uint8  empty0[0x08 - 0x03];
+    L7_uint8  hw_id;            /* 0x08 (1 byte)  */
+    L7_uint8  hw_ver;           /* 0x09 (1 byte)  */
+    L7_uint8  empty1[0x0C - 0x0A];
+    L7_uint8  chassis_id;       /* 0x0C (1 byte)  */
+    L7_uint8  empty2[0x0F - 0x0D];
+    L7_uint8  slot_id;          /* 0x0F (1 byte)  */
+    L7_uint8  empty3[PTIN_CPLD_MAP_SIZE - 0x10];
+  } reg;
+} st_cpld_map_t;
+
+extern volatile st_cpld_map_t *cpld_map;
+
+typedef union
+{
+  L7_uint8 map[PTIN_FPGA_MAP_SIZE];
+  struct
+  {
+    L7_uint8  empty0[0xffff - 0x0000];
+  } reg;
+} st_fpga_map_t;
+
+extern volatile st_fpga_map_t *fpga_map;
+
+//# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
+# define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
+# define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
+# define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
+
+/* OLT1T3 Matrix card V2 */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+
+/* If SSM is not supported, comment this line */
+#define SYNC_SSM_IS_SUPPORTED
+#define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
+
+
+# define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
+# define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
+# define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
+
+#define PTIN_SYS_LC_SLOT_MIN        2
+#define PTIN_SYS_LC_SLOT_MAX        19
+#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 4
+
+/* Slot/port TO to interface map */
+/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
+# define PTIN_SLOTPORT_TO_INTF_MAP  \
+          { { -1, -1, -1, -1 }, \
+            { -1, -1, -1, -1 }, \
+            { -1, -1,  0,  1 }, \
+            { -1, -1,  2,  3 }, \
+            {  4,  5,  6,  7 }, \
+            {  8,  9, 10, 11 }, \
+            { 12, 13, 14, 15 }, \
+            { 16, 17, 18, 19 }, \
+            { 20, 21, 22, 23 }, \
+            { 24, 25, 26, 27 }, \
+            { 28, 29, 30, 31 }, \
+            { 32, 33, 34, 35 }, \
+            { 36, 37, 38, 39 }, \
+            { 40, 41, 42, 43 }, \
+            { 44, 45, 46, 47 }, \
+            { 48, 48, 50, 51 }, \
+            { 52, 53, 54, 55 }, \
+            { 56, 57, 58, 59 }, \
+            { -1, -1, 60, 61 }, \
+            { -1, -1, 62, 63 } }
+# define PTIN_SLOTPORT_TO_INTF_MAP_PROT  \
+          { { -1, -1, -1, -1 }, \
+            { -1, -1, -1, -1 }, \
+            { -1, -1, 62, 63 }, \
+            { -1, -1, 60, 61 }, \
+            { 56, 57, 58, 59 }, \
+            { 52, 53, 54, 55 }, \
+            { 48, 49, 50, 51 }, \
+            { 44, 45, 46, 47 }, \
+            { 40, 41, 42, 43 }, \
+            { 36, 37, 38, 39 }, \
+            { 32, 33, 34, 35 }, \
+            { 28, 29, 30, 31 }, \
+            { 24, 25, 26, 27 }, \
+            { 20, 21, 22, 23 }, \
+            { 16, 17, 18, 19 }, \
+            { 12, 13, 14, 15 }, \
+            {  8,  9, 10, 11 }, \
+            {  4,  5,  6,  7 }, \
+            { -1, -1,  2,  3 }, \
+            { -1, -1,  0,  1 } }
+
+/* Interface to slot map */
+/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
+# define PTIN_INTF_TO_SLOT_MAP  \
+          {  2,  2,  3,  3, \
+             4,  4,  4,  4, \
+             5,  5,  5,  5, \
+             6,  6,  6,  6, \
+             7,  7,  7,  7, \
+             8,  8,  8,  8, \
+             9,  9,  9,  9, \
+            10, 10, 10, 10, \
+            11, 11, 11, 11, \
+            12, 12, 12, 12, \
+            13, 13, 13, 13, \
+            14, 14, 14, 14, \
+            15, 15, 15, 15, \
+            16, 16, 16, 16, \
+            17, 17, 17, 17, \
+            18, 18, 19, 19  }
+
+/* Interface to port map */
+# define PTIN_INTF_TO_PORT_MAP  \
+          {  0,  1,  0,  1, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  2,  3, \
+             0,  1,  0,  1  }
+
+/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
+# define PTIN_PORTMAP_SLOT_WORK { \
+   1,  2,  3,  4,  5,  6,  7,  8, \
+   9, 10, 11, 12, 13, 14, 15, 16, \
+  17, 18, 19, 20, 21, 22, 23, 24, \
+  25, 26, 27, 28, 29, 30, 31, 32, \
+  33, 34, 35, 36, 37, 38, 39, 40, \
+  41, 42, 43, 44, 45, 46, 47, 48, \
+  49, 50, 51, 52, 53, 54, 55, 56, \
+  57, 58, 59, 60, 61, 62, 63, 64, \
+}
+# define PTIN_PORTMAP_SLOT_PROT { \
+  63, 64, 61, 62, 57, 58, 59, 60, \
+  53, 54, 55, 56, 49, 50, 51, 52, \
+  45, 46, 47, 48, 41, 42, 43, 44, \
+  37, 38, 39, 40, 33, 34, 35, 36, \
+  29, 30, 31, 32, 25, 26, 27, 28, \
+  21, 22, 23, 24, 17, 18, 19, 20, \
+  13, 14, 15, 16,  9, 10, 11, 12, \
+   5,  6,  7,  8,  3,  4,  1,  2, \
+}
+
+# define PTIN_SLOT_WORK                0
+# define PTIN_SLOT_PROT                1
+
+# define PTIN_SYSTEM_N_PORTS           64
+# define PTIN_SYSTEM_N_PONS            0 
+# define PTIN_SYSTEM_N_LAGS_EXTERNAL   (PTIN_SYSTEM_N_PORTS/2-1)
+# define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
+# define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
+# define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
+
+# define PTIN_SYSTEM_PON_PORTS_MASK    0x0000000000000000ULL
+# define PTIN_SYSTEM_ETH_PORTS_MASK    0x0000000000000000ULL
+# define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFFFFFFFFFFFFFFULL
+# define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
+
+# define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */
+# define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+
+# define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
+# define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
+
+#if (PTIN_SYSTEM_GROUP_VLANS)
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (4096/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
+# define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MIN     (PTIN_SYSTEM_EVC_P2P_VLAN_MAX+1)
+# define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
+#endif
+
+# define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
+
+# define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
@@ -734,6 +972,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 
+
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 (L7_DOT1Q_MAX_VLAN_ID - 1)
 #define PTIN_VLAN_INBAND              L7_DOT1Q_MAX_VLAN_ID  /* Reserved VLAN for inBand management */
@@ -747,8 +986,8 @@ extern volatile st_fpga_map_t *fpga_map;
 #define PTIN_PORT_IS_LAG(p)           (p >= PTIN_SYSTEM_N_PORTS && p < PTIN_SYSTEM_N_INTERF)
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_VLAN_IS_STACKED(vlanId)    ((vlanId)>=PTIN_SYSTEM_EVC_STACKED_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_STACKED_VLAN_MAX)
-# define PTIN_VLAN_IS_UNSTACKED(vlanId)  ((vlanId)>=PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_UNSTACKED_VLAN_MAX)
+# define PTIN_VLAN_IS_STACKED(vlanId)    ((vlanId)>=PTIN_SYSTEM_EVC_P2P_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_P2P_VLAN_MAX)
+# define PTIN_VLAN_IS_UNSTACKED(vlanId)  ((vlanId)>=PTIN_SYSTEM_EVC_P2MP_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_P2MP_VLAN_MAX)
 # define PTIN_VLAN_MASK(vlanId)           (PTIN_VLAN_IS_UNSTACKED(vlanId)) ? (~((L7_uint16) PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-1) & 0xfff) : 0xfff;
 #endif
 
@@ -759,7 +998,10 @@ extern volatile st_fpga_map_t *fpga_map;
 #define RATE_LIMIT_LACP     64
 #define RATE_LIMIT_IGMP     512
 #define RATE_LIMIT_DHCP     512
-#define RATE_LIMIT_BCAST    512
+#define RATE_LIMIT_PPPoE    512
+#define RATE_LIMIT_BCAST    256
+#define RATE_LIMIT_APS      512
+#define RATE_LIMIT_CCM      512
 
 /* PTin module states */
 typedef enum {

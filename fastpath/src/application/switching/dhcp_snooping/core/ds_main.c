@@ -1362,7 +1362,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dsRelayAgentInfo_t relayAgentInfo;
   L7_ushort16  vlanIdFwd = 0;
 #endif
-
+  dhcpSnoopBinding_t dhcp_binding;
+  L7_enetHeader_t *mac_header = 0;
   L7_uint32 relayOptIntIfNum = 0;
 
   udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
@@ -1388,6 +1389,20 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
           (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST && (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ != L7_TRUE)))   /* PTin modified: DHCP snooping */
       {
+
+        if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
+        {
+          /* Search for this client before the binding is extracted because the entry in this table will be removed if a NACK/DECLINE is received */
+          memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+          mac_header = (L7_enetHeader_t*) frame;
+          memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+          if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+          {
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+            return L7_SUCCESS;
+          }
+        }
+
         /* Update bindings database. If this is a client message, yiaddr will be 0.
          * But we want to enter a temporary binding so we can learn the port where
          * the client resides. Then when the server responds, we'll add yiaddr to
@@ -1416,9 +1431,6 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsCfgData->dsL2RelayAdminMode == L7_ENABLE &&
       _dsVlanIntfL2RelayGet(vlanId,intIfNum) /*_dsIntfL2RelayGet(intIfNum)*/ == L7_TRUE)    /* PTin modified: DHCP snooping */
   {
-    dhcpSnoopBinding_t dhcp_binding;
-    L7_enetHeader_t *mac_header = 0;
-
     /* all filterations for server replies are done even before the
        frame is posted to DHCP task. So the server frame here is
        expected to be valid. If the packet has come with Option-82
@@ -1450,13 +1462,18 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       "(%s) Packet frameLen = %d after Option-82 Removal from DHCP Reply",__FUNCTION__, frameLen );
         dsTraceWrite(traceMsg);
       }
-      memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
-      mac_header = (L7_enetHeader_t*) frame;
-      memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
-      if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+
+      /* Get this client's information (if we don't already have it) */
+      if(dhcp_binding.ipFamily == 0)
       {
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
-        return L7_SUCCESS;
+         memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
+         mac_header = (L7_enetHeader_t*) frame;
+         memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+         if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
+         {
+           LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+           return L7_SUCCESS;
+         }
       }
 #if 1 /* PTin added: Flexible circuit-id */
       relayOptIntIfNum = dhcp_binding.intIfNum;
@@ -2006,9 +2023,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF);
    }
 
-   if(!op_relaymsg_ptr ||
-         (isActiveOp18 && !op_interfaceid_ptr) ||
-         (isActiveOp37 && !op_remoteid_ptr))
+   if(!op_relaymsg_ptr || (isActiveOp18 && !op_interfaceid_ptr))
    {
       LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received DHCPv6 message missing mandatory options");
       return L7_SUCCESS;
@@ -2116,11 +2131,11 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
    dhcp_op_dhcp_relay.option_code = dhcpOp;
    if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = strlen(circuit_id) + 1;
+      dhcp_op_dhcp_relay.option_len = strlen(circuit_id);
    }
    else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = sizeof(L7_uint32) + strlen(remote_id) + 1;
+      dhcp_op_dhcp_relay.option_len = sizeof(L7_uint32) + strlen(remote_id); //VendorId + RemoteId
    }
    memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
@@ -2133,8 +2148,8 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding interface-id '%s'", circuit_id);
-      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id) + 1); //Copy circuit-id string
-      *frameLen += strlen(circuit_id) + 1;
+      memcpy(frame + *frameLen, circuit_id, strlen(circuit_id)); //Copy circuit-id string
+      *frameLen += strlen(circuit_id);
    }
    else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
    {
@@ -2151,8 +2166,8 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding remote-id '%s'", remote_id);
-      memcpy(frame + *frameLen, remote_id, strlen(remote_id) + 1); //Copy remote-id string
-      *frameLen += strlen(remote_id) + 1;
+      memcpy(frame + *frameLen, remote_id, strlen(remote_id)); //Copy remote-id string
+      *frameLen += strlen(remote_id);
    }
 
    return L7_SUCCESS;
@@ -4870,7 +4885,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
   {
     /* Check if vlan belongs to a stacked EVC */
-    if (ptin_evc_check_isStacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
+    if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;

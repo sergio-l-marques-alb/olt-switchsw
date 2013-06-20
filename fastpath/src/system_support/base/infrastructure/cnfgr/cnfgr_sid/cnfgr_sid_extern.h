@@ -186,5 +186,8 @@ extern void timeRangeApiCnfgrCommand();
 
 /* PTin added: ptin module */
 extern void ptinApiCnfgrCommand();
+#ifdef PTIN_PPPOE_PACKAGE
+extern void pppoeApiCnfgrCommand();
+#endif
 
 #endif /* INCLUDE_CNFGR_SID_EXTERN_H */

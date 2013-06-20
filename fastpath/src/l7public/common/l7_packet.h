@@ -329,6 +329,7 @@ static L7_enetMacAddr_t L7_ENET_ISDP_MULTICAST_MAC_ADDR =
 #define L7_ETYPE_EFMOAM   0x8809
 #define L7_ETYPE_EFMOAM_DATA 0x9000
 #define L7_ETYPE_CFM      0x8902
+#define L7_ETYPE_PPPOE    0x8863
 
 /* Start of IP Header   */
 /* Start of IP Header   */
@@ -962,5 +963,46 @@ typedef struct L7_dhcp6_relay_agent_packet_s
   L7_uchar8      link_address[16];  /* Link address */
   L7_uchar8      peer_address[16];  /* Peer address */
 }L7_dhcp6_relay_agent_packet_t;
+
+/******************************************************/
+/*                      PPPoE                         */
+/******************************************************/
+typedef struct L7_pppoe_header_s
+{
+   L7_uint8     verType;   /* PPPoE Version and Type */
+   L7_uint8     code;      /* PPPoE Code */
+   L7_uint16    sessionId; /* PPPoE Session ID */
+   L7_uint16    length;    /* PPPoE Length */
+}L7_pppoe_header_t;
+
+/* PPPoE Code Fields */
+typedef enum
+{
+  L7_PPPOE_PADI = 0x09,
+  L7_PPPOE_PADO = 0x07,
+  L7_PPPOE_PADR = 0x19,
+  L7_PPPOE_PADS = 0x65,
+  L7_PPPOE_PADT = 0xa7
+}L7_pppoe_code;
+
+typedef struct L7_tlv_header_s
+{
+   L7_uint16    type;   /* TLV Type */
+   L7_uint16    length; /* TLV Length */
+}L7_tlv_header_t;
+
+/* TLV Tag Types */
+typedef enum
+{
+  L7_TLV_TAGTYPE_SERVICE_NAME     = 0x0101,
+  L7_TLV_TAGTYPE_SERVER_NAME      = 0x0102,
+  L7_TLV_TAGTYPE_AC_COOKIES       = 0x0104,
+  L7_TLV_TAGTYPE_VENDOR_ID        = 0x0105,
+  L7_TLV_TAGTYPE_RELAY_SESS_ID    = 0x0110,
+  L7_TLV_TAGTYPE_SERVICE_NAME_ERR = 0x0201,
+  L7_TLV_TAGTYPE_SERVER_NAME_ERR  = 0x0202,
+  L7_TLV_TAGTYPE_COMMON_ERR       = 0x0203
+}L7_tlv_tagtype;
+
 
 #endif

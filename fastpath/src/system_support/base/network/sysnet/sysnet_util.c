@@ -596,7 +596,7 @@ L7_RC_t sysNetFindProtocolTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle 
   }
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Searching for protocol_type=%u",protocol_type);
+    LOG_TRACE(LOG_CTX_PTIN_DTL,"Searching for protocol_type=0x%04X",protocol_type);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -618,7 +618,7 @@ L7_RC_t sysNetFindProtocolTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle 
         }
 
         if (pdu_process_debug)
-          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for protocol_type=%u",protocol_type);
+          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for protocol_type=0x%04X",protocol_type);
 
         rc = (*(sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive))(bufHandle, pduInfo);
             break;

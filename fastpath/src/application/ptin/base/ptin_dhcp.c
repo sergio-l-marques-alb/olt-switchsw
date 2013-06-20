@@ -3150,8 +3150,8 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If UC EVC is stacked, use its root vlan */
-  if (evcCfg.flags & PTIN_EVC_MASK_STACKED)
+  /* If UC EVC is point-to-point, use its root vlan */
+  if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
     if (ptin_evc_get_intRootVlan(uc_evcId,&vlan)!=L7_SUCCESS)

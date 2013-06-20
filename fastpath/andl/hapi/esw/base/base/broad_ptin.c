@@ -10,6 +10,9 @@
 #include "ptin_globaldefs.h"
 #include "broad_common.h"
 
+#include <dapi_db.h>
+#include <hpc_db.h>
+
 /**
  * Initialize HAPI PTin data structures
  * 
@@ -461,7 +464,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   /* Cross-connect enable */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN)
   {
-    if (ptin_hapi_bridge_vlan_mode_crossconnect_set(mode->vlanId, mode->cross_connects_enable)!=L7_SUCCESS)
+    if (ptin_hapi_bridge_vlan_mode_crossconnect_set(mode->vlanId, mode->cross_connects_enable, mode->double_tag)!=L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
@@ -638,26 +641,36 @@ L7_RC_t hapiBroadPtinPktRateLimit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
  */
 L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
 {
-  #if 0
-  DAPI_PORT_t  *dapiPort;
-  BROAD_PORT_t *hapiPort;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  bcm_port_t  bcm_port;
 
-  dapiPort = DAPI_PORT_GET( usp, dapi_g );
-  hapiPort = HAPI_PORT_GET( usp, dapi_g );
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
 
-  /* Accept only physical interfaces */
-  if ( !IS_PORT_TYPE_PHYSICAL(dapiPort) )
+  /* Validate usp reference */
+  if ( usp->unit != 1 ||
+       usp->slot != 0 ||
+       usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port ({%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
-  #endif
 
-  if (bcm_port_control_set(0, usp->port+1, bcmPortControlPrbsTxEnable, enable & 1)!=L7_SUCCESS)
+  bcm_port = hapiSlotMapPtr[usp->port].bcm_port;
+
+  if (bcm_port_control_set(0, bcm_port, bcmPortControlPrbsTxEnable, enable & 1)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying enable state %u to port {%d,%d,%d}",enable,usp->unit,usp->slot,usp->port);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying enable state %u to port {%d,%d,%d}, bcm_port=%d",enable,usp->unit,usp->slot,usp->port,bcm_port);
     return L7_FAILURE;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PRBS TX/RX %s for port {%d,%d,%d}, bcm_port=%d",
+            ((enable) ? "enabled" : "disabled"),
+            usp->unit,usp->slot,usp->port,
+            bcm_port);
 
   return L7_SUCCESS;
 }
@@ -673,25 +686,30 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
  */
 L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *dapi_g)
 {
-  int          rxStatus;
-  #if 0
-  DAPI_PORT_t  *dapiPort;
-  BROAD_PORT_t *hapiPort;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  bcm_port_t  bcm_port;
+  int         rxStatus;
 
-  dapiPort = DAPI_PORT_GET( usp, dapi_g );
-  hapiPort = HAPI_PORT_GET( usp, dapi_g );
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
 
-  /* Accept only physical interfaces */
-  if ( !IS_PORT_TYPE_PHYSICAL(dapiPort) )
+  /* Validate usp reference */
+  if ( usp->unit != 1 ||
+       usp->slot != 0 ||
+       usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port ({%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
-  #endif
 
-  if (bcm_port_control_get(0, usp->port+1, bcmPortControlPrbsRxStatus, &rxStatus)!=L7_SUCCESS)
+  bcm_port = hapiSlotMapPtr[usp->port].bcm_port;
+
+  if (bcm_port_control_get(0, bcm_port, bcmPortControlPrbsRxStatus, &rxStatus)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR reading rx status from port {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR reading rx status from port {%d,%d,%d}, bcm_port=%d",usp->unit,usp->slot,usp->port,bcm_port);
     return L7_FAILURE;
   }
 

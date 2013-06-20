@@ -134,6 +134,8 @@ void ptin_debug(void)
   printf("  ptin_debug_igmp_enable <enable>     - Show more debugging logs for the IGMP module\r\n");
   printf("  ptin_debug_dhcp_enable <enable>     - Show more debugging logs for the DHCP module\r\n");
   printf("\r\n");
+  printf("  ptin_erps_dump <id>                 - prints info about ERPS (use -1 to display all)\r\n");
+  printf("\r\n");
   printf("  log_help                            - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity> - use log_help for more info\r\n");
   printf("  log_color_set <ctx_mask> <color>    - use log_help for more info\r\n");

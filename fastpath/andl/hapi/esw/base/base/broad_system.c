@@ -226,7 +226,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_BW_POLICER                   ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBwPolicer;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_FP_COUNTERS                  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinFpCounters;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKET_RATE_LIMIT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinPktRateLimit;
-  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_DHCP_PKTS_TRAP_TO_CPU        ] = (HAPICTLFUNCPTR_t)hapiBroadSystemDhcpConfig;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU          ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPacketTrapConfig;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PCS_PRBS                     ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinPrbs;
   /* PTin end */
 
@@ -1898,22 +1898,121 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadSystemDhcpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   DAPI_SYSTEM_CMD_t *dapiCmd   = (DAPI_SYSTEM_CMD_t*)data;
   L7_RC_t status=L7_SUCCESS;
 
-  switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
-    case DAPI_CMD_SET:
-      status = hapiBroadConfigDhcpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      break;
+  switch (dapiCmd->cmdData.snoopConfig.packet_type)
+  {
+    /* IGMP packets */
+    case PTIN_PACKET_IGMP:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigIgmpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, L7_FALSE, dapi_g );
+          break;
 
-    case DAPI_CMD_CLEAR:
-      status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
-      break;
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigIgmpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, L7_FALSE, dapi_g );
+          break;
 
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* MLD packets */
+    case PTIN_PACKET_MLD:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigMldFilter( L7_ENABLE, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigMldFilter( L7_DISABLE, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* DHCP packets */
+    case PTIN_PACKET_DHCP:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigDhcpFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigDhcpFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* PPPoE packets */
+    case PTIN_PACKET_PPPOE:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigPPPoEFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigPPPoEFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* APS packets */
+    case PTIN_PACKET_APS:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigApsFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigApsFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* CCM packets */
+    case PTIN_PACKET_CCM:
+    {
+      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+        case DAPI_CMD_SET:
+          status = hapiBroadConfigCcmFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        case DAPI_CMD_CLEAR:
+          status = hapiBroadConfigCcmFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          break;
+
+        default:
+          status = L7_FAILURE;
+      }
+    }
+    break;
+    /* Not handled */
     default:
+    {
       status = L7_FAILURE;
+    }
+    break;
   }
 
   return status;
@@ -3335,7 +3434,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   static BROAD_POLICY_t   policyId[DHCP_TRAP_MAX_VLANS];
   static L7_uint16        vlan_list[DHCP_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-  L7_ushort16             ip_ethtype  = L7_ETYPE_IP, ipv6_ethtype = 0x86DD;
+  L7_ushort16             ip_ethtype  = L7_ETYPE_IP, ipv6_ethtype = L7_ETYPE_IPV6;
   L7_uchar8               udp_proto[]   = {IP_PROT_UDP};
   L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
   L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
@@ -3371,7 +3470,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
  #endif
 
     /* There are 3 set of policies for DHCP packets. Here is why.
-   * When DHCP snooping is enabled, we will have a set of trusted and
+   * When DHCP snoopinvlan_listg is enabled, we will have a set of trusted and
    * untrusted ports. DHCP packets on trusted ports are copied to CPU
    * with elevated priorirty. DHCP packets on un-trusted ports are trapped
    * to CPU and are rate-limited (priority is not elevated).
@@ -3625,6 +3724,664 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   return result;
 }
 #endif
+
+/* PTin added: PPPoE */
+#if 1
+#define PPPOE_TRAP_MAX_VLANS 128
+L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  static L7_BOOL          first_time = L7_TRUE, pppoe_enable = L7_FALSE;
+  static BROAD_POLICY_t   policyId[PPPOE_TRAP_MAX_VLANS];
+  static L7_uint16        vlan_list[PPPOE_TRAP_MAX_VLANS][2];
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_ushort16             pppoe_ethtype  = L7_ETYPE_PPPOE;
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  L7_uint16               vlan_match = 0xfff;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_uint16 index, pppoe_index, pppoe_index_free;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting PPPoE trapping processing");
+
+  /* Initialization */
+  if (first_time)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
+    
+    memset(policyId, 0xff, sizeof(policyId));
+    memset(vlan_list, 0x00, sizeof(vlan_list));
+    
+    pppoe_enable = L7_FALSE;
+    first_time   = L7_FALSE;
+  }
+
+#if (PTIN_SYSTEM_GROUP_VLANS)
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
+  vlan_match = PTIN_VLAN_MASK(vlanId);
+  vlanId &= vlan_match;
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
+#endif
+
+  /* PPPoE packets on any port must go to the CPU and be rate limited to 64 kbps */
+  meterInfo.cir       = RATE_LIMIT_PPPoE;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_PPPoE;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+  /* If vlan value is valid, Find dhcp index */
+  if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan provided is valid (%u). Enable=%u", vlanId, enable);
+
+    pppoe_index_free = (L7_uint16)-1;
+    for (pppoe_index=0; pppoe_index<PPPOE_TRAP_MAX_VLANS; pppoe_index++)
+    {
+      if (pppoe_index_free >= DHCP_TRAP_MAX_VLANS &&
+         (vlan_list[pppoe_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[pppoe_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+      {
+        pppoe_index_free = pppoe_index;
+      }
+      if (vlanId == vlan_list[pppoe_index][POLICY_VLAN_ID])
+        break;
+    }
+    /* Not found... */
+    if (pppoe_index >= PPPOE_TRAP_MAX_VLANS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Not found vlan %u within the configured ones", vlanId);
+
+      /* If is going to add a new vlan, use first free index */
+      if (enable)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Going to add vlan %u to table", vlanId);
+
+        /* Check if a free index was found */
+        if (pppoe_index_free >= PPPOE_TRAP_MAX_VLANS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "There is no room to add vlan %u", vlanId);
+          return L7_TABLE_IS_FULL;
+        }
+        pppoe_index = pppoe_index_free;
+        vlan_list[pppoe_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        vlan_list[pppoe_index][POLICY_VLAN_MASK] = vlan_match;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, pppoe_index);
+      }
+      /* If it is to remove a vlan, and it was not found, return SUCCESS */
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Since it is to remove vlan %u, there is nothing to be done", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, pppoe_index);
+      if (!enable)
+      {
+        vlan_list[pppoe_index][POLICY_VLAN_ID] = vlan_list[pppoe_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, pppoe_index);
+      }
+      else
+      {
+        /* This Vlan already exists... nothing to be done */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u already exists... nothing to be done!", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+  }
+  /* Global (de)activation: only allow activation at this point */
+  else
+  {
+    pppoe_enable = enable;
+    vlanId = L7_NULL;
+    pppoe_index = L7_NULL;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", enable);
+  }
+
+  /* Run all pppoe indexes */
+  for (index=0; index<PPPOE_TRAP_MAX_VLANS; index++)
+  {
+    /* If vlan is null, run all pppoe indexes...
+       Otherwise (if valid value), only run its pppoe index */
+    if (vlanId != L7_NULL && index != pppoe_index)
+      continue;
+
+    /* If pppoe index is being used, at this point, delete it */
+    if (policyId[index] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId[index]);
+      policyId[index] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
+    }
+
+    /* If dhcp snooping is not globally activated, do no more */
+    if (!pppoe_enable)
+      continue;
+
+    /* We must have a valid vlan at this point */
+    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
+      continue;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
+
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS)
+        break;
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
+
+      /* give dhcp frames high priority and trap to the CPU. */
+
+      /* PPPoE packets from client */
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&pppoe_ethtype, exact_match);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+
+    } while ( 0 );
+
+    if (result == L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
+      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
+      }
+    }
+    else
+    {
+      hapiBroadPolicyCreateCancel();
+
+      policyId[index]  = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+    }
+
+    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    {
+      /* attempt to delete the policy in case it was created */
+      (void)hapiBroadPolicyDelete(policyId[index]);
+
+      policyId[index] = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished PPPoE trapping processing");
+
+  return result;
+}
+#endif
+
+/* PTin added: APS */
+#if 1
+#define APS_TRAP_MAX_VLANS 16
+L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  static L7_BOOL          first_time = L7_TRUE, aps_enable = L7_TRUE;
+  static BROAD_POLICY_t   policyId[APS_TRAP_MAX_VLANS];
+  static L7_uint16        vlan_list[APS_TRAP_MAX_VLANS][2];
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+//L7_ushort16             aps_ethtype  = L7_ETYPE_APS;
+  L7_uchar8 aps_MacAddr[] = {0x01,0x19,0xA7,0x00,0x00,0x01};
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                          FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  L7_uint16               vlan_match = 0xfff;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_uint16 index, aps_index, aps_index_free;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing");
+
+  /* Initialization */
+  if (first_time)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
+    
+    memset(policyId, 0xff, sizeof(policyId));
+    memset(vlan_list, 0x00, sizeof(vlan_list));
+    
+    //aps_enable = L7_FALSE;
+    first_time   = L7_FALSE;
+  }
+  else {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "APS trapping is already configured");
+    // Since vlanId is not used in HW rule only create rule once based on DMAC Addr
+    return L7_SUCCESS;
+  }
+
+#if (PTIN_SYSTEM_GROUP_VLANS)
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
+  vlan_match = PTIN_VLAN_MASK(vlanId);
+  vlanId &= vlan_match;
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
+#endif
+
+  /* APS packets on any port must go to the CPU and be rate limited to 64 kbps */
+  meterInfo.cir       = RATE_LIMIT_APS;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_APS;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+  /* If vlan value is valid, Find dhcp index */
+  if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan provided is valid (%u). Enable=%u", vlanId, enable);
+
+    aps_index_free = (L7_uint16)-1;
+    for (aps_index=0; aps_index<APS_TRAP_MAX_VLANS; aps_index++)
+    {
+      if (aps_index_free >= DHCP_TRAP_MAX_VLANS &&
+         (vlan_list[aps_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[aps_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+      {
+        aps_index_free = aps_index;
+      }
+      if (vlanId == vlan_list[aps_index][POLICY_VLAN_ID])
+        break;
+    }
+    /* Not found... */
+    if (aps_index >= APS_TRAP_MAX_VLANS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Not found vlan %u within the configured ones", vlanId);
+
+      /* If is going to add a new vlan, use first free index */
+      if (enable)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Going to add vlan %u to table", vlanId);
+
+        /* Check if a free index was found */
+        if (aps_index_free >= APS_TRAP_MAX_VLANS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "There is no room to add vlan %u", vlanId);
+          return L7_TABLE_IS_FULL;
+        }
+        aps_index = aps_index_free;
+        vlan_list[aps_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        vlan_list[aps_index][POLICY_VLAN_MASK] = vlan_match;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, aps_index);
+      }
+      /* If it is to remove a vlan, and it was not found, return SUCCESS */
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Since it is to remove vlan %u, there is nothing to be done", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, aps_index);
+      if (!enable)
+      {
+        vlan_list[aps_index][POLICY_VLAN_ID] = vlan_list[aps_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, aps_index);
+      }
+      else
+      {
+        /* This Vlan already exists... nothing to be done */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u already exists... nothing to be done!", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+  }
+  /* Global (de)activation: only allow activation at this point */
+  else
+  {
+    aps_enable = enable;
+    vlanId = L7_NULL;
+    aps_index = L7_NULL;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", enable);
+  }
+
+  /* Run all aps indexes */
+  for (index=0; index<APS_TRAP_MAX_VLANS; index++)
+  {
+
+    /* If vlan is null, run all aps indexes...
+       Otherwise (if valid value), only run its aps index */
+    if (vlanId != L7_NULL && index != aps_index) {
+      continue;
+    }
+
+    /* If aps index is being used, at this point, delete it */
+    if (policyId[index] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId[index]);
+      policyId[index] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
+    }
+
+    /* If APS snooping is not globally activated, do no more */
+    if (!aps_enable) {
+      continue;
+    }
+
+    /* We must have a valid vlan at this point */
+    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
+      continue;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
+
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS)
+        break;
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
+
+      /* give dhcp frames high priority and trap to the CPU. */
+
+      /* APS packets from client */
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, aps_MacAddr, exact_match);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+    } while ( 0 );
+
+    if (result == L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
+      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
+      }
+    }
+    else
+    {
+      hapiBroadPolicyCreateCancel();
+
+      policyId[index]  = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+    }
+
+    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    {
+      /* attempt to delete the policy in case it was created */
+      (void)hapiBroadPolicyDelete(policyId[index]);
+
+      policyId[index] = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished APS trapping processing");
+
+  return result;
+}
+#endif
+
+/* PTin added: CCM */
+#if 1
+#define CCM_TRAP_MAX_VLANS 16
+L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  static L7_BOOL          first_time = L7_TRUE, ccm_enable = L7_TRUE;
+  static BROAD_POLICY_t   policyId[CCM_TRAP_MAX_VLANS];
+  static L7_uint16        vlan_list[CCM_TRAP_MAX_VLANS][2];
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+//L7_ushort16             ccm_ethtype  = L7_ETYPE_CCM;
+  L7_uchar8 ccm_MacAddr[] = {0x01,0x80,0xC2,0x00,0x00,0x37};
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                          FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  L7_uint16               vlan_match = 0xfff;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_uint16 index, ccm_index, ccm_index_free;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing");
+
+  /* Initialization */
+  if (first_time)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
+    
+    memset(policyId, 0xff, sizeof(policyId));
+    memset(vlan_list, 0x00, sizeof(vlan_list));
+    
+    //ccm_enable = L7_FALSE;
+    first_time   = L7_FALSE;
+  } else {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "CCM trapping is already configured");
+    // Since vlanId is not used in HW rule only create rule once based on DMAC Addr
+    return L7_SUCCESS;
+  }
+
+#if (PTIN_SYSTEM_GROUP_VLANS)
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
+  vlan_match = PTIN_VLAN_MASK(vlanId);
+  vlanId &= vlan_match;
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
+#endif
+
+  /* CCM packets on any port must go to the CPU and be rate limited to 64 kbps */
+  meterInfo.cir       = RATE_LIMIT_CCM;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_CCM;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+  /* If vlan value is valid, Find dhcp index */
+  if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan provided is valid (%u). Enable=%u", vlanId, enable);
+
+    ccm_index_free = (L7_uint16)-1;
+    for (ccm_index=0; ccm_index<CCM_TRAP_MAX_VLANS; ccm_index++)
+    {
+      if (ccm_index_free >= DHCP_TRAP_MAX_VLANS &&
+         (vlan_list[ccm_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[ccm_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+      {
+        ccm_index_free = ccm_index;
+      }
+      if (vlanId == vlan_list[ccm_index][POLICY_VLAN_ID])
+        break;
+    }
+    /* Not found... */
+    if (ccm_index >= CCM_TRAP_MAX_VLANS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Not found vlan %u within the configured ones", vlanId);
+
+      /* If is going to add a new vlan, use first free index */
+      if (enable)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Going to add vlan %u to table", vlanId);
+
+        /* Check if a free index was found */
+        if (ccm_index_free >= CCM_TRAP_MAX_VLANS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "There is no room to add vlan %u", vlanId);
+          return L7_TABLE_IS_FULL;
+        }
+        ccm_index = ccm_index_free;
+        vlan_list[ccm_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        vlan_list[ccm_index][POLICY_VLAN_MASK] = vlan_match;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, ccm_index);
+      }
+      /* If it is to remove a vlan, and it was not found, return SUCCESS */
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Since it is to remove vlan %u, there is nothing to be done", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, ccm_index);
+      if (!enable)
+      {
+        vlan_list[ccm_index][POLICY_VLAN_ID] = vlan_list[ccm_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, ccm_index);
+      }
+      else
+      {
+        /* This Vlan already exists... nothing to be done */
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u already exists... nothing to be done!", vlanId);
+        return L7_SUCCESS;
+      }
+    }
+  }
+  /* Global (de)activation: only allow activation at this point */
+  else
+  {
+    ccm_enable = enable;
+    vlanId = L7_NULL;
+    ccm_index = L7_NULL;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", enable);
+  }
+
+  /* Run all ccm indexes */
+  for (index=0; index<CCM_TRAP_MAX_VLANS; index++)
+  {
+
+    /* If vlan is null, run all ccm indexes...
+       Otherwise (if valid value), only run its ccm index */
+    if (vlanId != L7_NULL && index != ccm_index) {
+      continue;
+    }
+
+    /* If ccm index is being used, at this point, delete it */
+    if (policyId[index] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId[index]);
+      policyId[index] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
+    }
+
+    /* If CCM snooping is not globally activated, do no more */
+    if (!ccm_enable) {
+      continue;
+    }
+
+    /* We must have a valid vlan at this point */
+    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
+      continue;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
+
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS)
+        break;
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
+
+      /* give dhcp frames high priority and trap to the CPU. */
+
+      /* CCM packets from client */
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, ccm_MacAddr, exact_match);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
+
+    } while ( 0 );
+
+    if (result == L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
+      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
+      }
+    }
+    else
+    {
+      hapiBroadPolicyCreateCancel();
+
+      policyId[index]  = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+    }
+
+    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    {
+      /* attempt to delete the policy in case it was created */
+      (void)hapiBroadPolicyDelete(policyId[index]);
+
+      policyId[index] = BROAD_POLICY_INVALID;
+      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished CCM trapping processing");
+
+  return result;
+}
+#endif
+
 
 /*********************************************************************
 *

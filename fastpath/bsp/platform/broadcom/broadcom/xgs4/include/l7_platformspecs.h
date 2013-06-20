@@ -40,14 +40,16 @@
 #define L7_BCM_TRIDENT                             7  /* PTin added: new switch */
 
 /* PTin added: boards definition */
-#define PTIN_BOARD_OLT7_8CH_B                      1
-#define PTIN_BOARD_TOLT8G                          2
-#define PTIN_BOARD_TG16G                           4
-#define PTIN_BOARD_CXP360G                         8
-#define PTIN_BOARD_CXO640G                         16
+#define PTIN_BOARD_OLT7_8CH_B                      0x01
+#define PTIN_BOARD_TOLT8G                          0x02
+#define PTIN_BOARD_TG16G                           0x04
+#define PTIN_BOARD_CXP360G                         0x08
+#define PTIN_BOARD_CXO640G_V1                      0x10
+#define PTIN_BOARD_CXO640G                         0x20
+#define PTIN_BOARD_CXO640G_V2                      0x40
 
 /* PTin added: board groups definition */
-#define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G)
+#define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G_V1 | PTIN_BOARD_CXO640G | PTIN_BOARD_CXO640G_V2)
 #define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G )
 #define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B )
 
@@ -99,7 +101,7 @@
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           (36+1)
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           (36+1)
 
-#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    64
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           64  

@@ -18,6 +18,7 @@
 #include "ptin_evc.h"
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 #include "ptin_l2.h"
 #include "ptin_fieldproc.h"
 #include "ptin_cfg.h"
@@ -26,6 +27,8 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 #include "nimapi.h"
+#include <ethsrv_oam.h>//"ptin_oam.h"
+#include "ptin_prot_erps.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -1949,7 +1952,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
-  if (ptin_evc_stacked_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+  if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
     return L7_FAILURE;
@@ -1984,7 +1987,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
-  rc = ptin_evc_stacked_bridge_remove(&ptinEvcBridge);
+  rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
 
   if ( rc != L7_SUCCESS)
   {
@@ -1993,6 +1996,104 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   }
 
   return L7_SUCCESS;
+}
+
+/**
+ * Adds a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be added
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients)
+{
+  L7_uint     i;
+  ptin_intf_t ptin_intf;
+  L7_RC_t     rc = L7_SUCCESS;
+
+  if ( msgEvcFlood == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    return L7_FAILURE;
+  }
+
+  /* Run all clients */
+  for ( i=0; i<n_clients; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+    if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                 ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                 ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                 msgEvcFlood[i].oVlanId,
+                                 msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/**
+ * Removes a flooding vlan applied to an EVC
+ * 
+ * @param msgEvcFlood : Flooding vlan info 
+ * @param n_clients   : Number of vlans to be removed
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint n_clients)
+{
+  L7_uint     i;
+  ptin_intf_t ptin_intf;
+  L7_RC_t     rc = L7_SUCCESS;
+
+  if ( msgEvcFlood == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    return L7_FAILURE;
+  }
+
+  /* Run all clients */
+  for ( i=0; i<n_clients; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+    if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                    ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                    ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                    msgEvcFlood[i].oVlanId,
+                                    msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
 }
 
 /* Bandwidth profiles *********************************************************/
@@ -2494,13 +2595,22 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
    /* Extract input data */
    evc_idx = dhcpEvcInfo->evc_id;
 
+   /* TODO: To be reworked */
    rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-
    if (rc!=L7_SUCCESS)
    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
       return rc;
    }
+   rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+   /* TODO */
+   #if 0
+   if (rc!=L7_SUCCESS)
+   {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
+      return rc;
+   }
+   #endif
 
    return L7_SUCCESS;
 }
@@ -2538,15 +2648,26 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   /* Extract input data */
   evc_idx = circuitid->evc_id;
 
+  /* TODO: To be reworked */
+
   /* Set circuit-id global data */
   rc = ptin_dhcp_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
       circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
-
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
     return rc;
   }
+  rc = ptin_pppoe_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+                                circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+  /* TODO */
+  #if 0
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    return rc;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2740,15 +2861,27 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
+    /* TODO: To be reworked */
+
     /* Add circuit and remote ids */
     rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-        profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
-
+         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding circuitId+remoteId entry");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
       return rc;
     }
+
+    rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
+                               profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    /* TODO */
+    #if 0
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding PPPoE circuitId+remoteId entry");
+      return rc;
+    }
+    #endif
   }
 
   return L7_SUCCESS;
@@ -2807,14 +2940,24 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
+    /* TODO: To be reworked */
+
     /* Remove circuitId+remoteId entry */
     rc = ptin_dhcp_client_delete(evc_idx,&client);
-
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing circuitId+remoteId entry");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing DHCP circuitId+remoteId entry");
       return rc;
     }
+    rc = ptin_pppoe_client_delete(evc_idx,&client);
+    /* TODO */
+    #if 0
+    if ( rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing PPPoE circuitId+remoteId entry");
+      return rc;
+    }
+    #endif
   }
 
   return L7_SUCCESS;
@@ -4019,6 +4162,281 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 }
 
 /**
+ * Get list of channels contained in the white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMPASSOC_MAX_CHANNELS_IN_MESSAGE   100   /* Maximum number of channels in one message */
+static igmpAssoc_entry_t igmpAssoc_list[IGMPASSOC_CHANNELS_MAX];
+static L7_uint16 igmpAssoc_channels_max = 0;
+#endif
+
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_uint16 *n_channels)
+{
+  if (channel_list==L7_NULLPTR || n_channels==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Reading White list channel list:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list->evcid_mc);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list->entry_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_dstIp.addr.ipv4, channel_list->channel_dstIp.family, channel_list->channel_dstmask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint16 i, i_start;
+  L7_uint16 number_of_channels;
+  L7_uint8  slotId;
+
+  /* For null entry idex, read and store all channels */
+  if (channel_list->entry_idx==0)
+  {
+    /* Clear channel list */
+    memset(igmpAssoc_list, 0x00, sizeof(igmpAssoc_list));
+    igmpAssoc_channels_max = 0;
+
+    number_of_channels = IGMPASSOC_CHANNELS_MAX;
+    if (igmp_assoc_channelList_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading list of channels");
+      return L7_FAILURE;
+    }
+    /* Update number of channels */
+    igmpAssoc_channels_max = number_of_channels;
+  }
+
+  /* Save important data of input message */
+  slotId  = channel_list->SlotId;
+  i_start = channel_list->entry_idx;
+
+  /* Determine max number of messages */
+  /* First index is beyond max index: no channels to retrieve */
+  if (i_start >= igmpAssoc_channels_max)
+  {
+    number_of_channels = 0;
+  }
+  /* Remaining channels, is lower than maximum message capacity */
+  else if ( (igmpAssoc_channels_max - i_start) < IGMPASSOC_MAX_CHANNELS_IN_MESSAGE )
+  {
+    number_of_channels = igmpAssoc_channels_max - i_start;
+  }
+  /* Use maximum capacity */
+  else
+  {
+    number_of_channels = IGMPASSOC_MAX_CHANNELS_IN_MESSAGE;
+  }
+
+  for (i=0; i<=number_of_channels; i++)
+  {
+    /* Constant information to be replicated in all channels */
+    channel_list[i].SlotId    = slotId;
+    channel_list[i].entry_idx = i_start + i;
+
+    /* Group address (prepared for IPv6) */
+    if ( igmpAssoc_list[i_start+i].groupAddr.family == L7_AF_INET6 )
+    {
+      channel_list[i].channel_dstIp.family = PTIN_AF_INET6;
+      memcpy( channel_list[i].channel_dstIp.addr.ipv6, igmpAssoc_list[i_start+i].groupAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+      channel_list[i].channel_dstmask = 128;
+    }
+    else
+    {
+      channel_list[i].channel_dstIp.family = PTIN_AF_INET;
+      channel_list[i].channel_dstIp.addr.ipv4 = igmpAssoc_list[i_start+i].groupAddr.addr.ipv4.s_addr;
+      channel_list[i].channel_dstmask = 32;
+    }
+
+    /* Source address (prepared for IPv6) */
+    if ( igmpAssoc_list[i_start+i].sourceAddr.family == L7_AF_INET6 )
+    {
+      channel_list[i].channel_srcIp.family = PTIN_AF_INET6;
+      memcpy( channel_list[i].channel_srcIp.addr.ipv6, igmpAssoc_list[i_start+i].sourceAddr.addr.ipv6.in6.addr8, sizeof(L7_uchar8)*16);
+      channel_list[i].channel_srcmask = 128;
+    }
+    else
+    {
+      channel_list[i].channel_srcIp.family = PTIN_AF_INET;
+      channel_list[i].channel_srcIp.addr.ipv4 = igmpAssoc_list[i_start+i].sourceAddr.addr.ipv4.s_addr;
+      channel_list[i].channel_srcmask = 32;
+    }
+
+    //channel_list[i].???       = igmpAssoc_list[i_start+i].evc_uc;
+    channel_list[i].evcid_mc  = igmpAssoc_list[i_start+i].evc_mc;
+    //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
+  }
+
+  /* Return number of channels */
+  *n_channels = number_of_channels;
+
+  #else
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+  return L7_NOT_SUPPORTED;
+
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Add channels to White list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+{
+  L7_uint16 i;
+  L7_inet_addr_t groupAddr, sourceAddr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (channel_list==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Adding channel index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+
+    /* Prepare group address */
+    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    {
+      groupAddr.family = L7_AF_INET6;
+      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      groupAddr.family = L7_AF_INET;
+      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
+    }
+    /* Prepare source address */
+    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    {
+      sourceAddr.family = L7_AF_INET6;
+      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      sourceAddr.family = L7_AF_INET;
+      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+    }
+
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+    if (igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
+                                &groupAddr , channel_list[i].channel_dstmask,
+                                &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE ) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+              channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
+              channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
+              channel_list[i].evcid_mc);
+      return L7_FAILURE;
+    }
+    #else
+    rc = L7_NOT_SUPPORTED;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    #endif
+  }
+
+  return rc;
+}
+
+/**
+ * Remove channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+{
+  L7_uint16 i;
+  L7_inet_addr_t groupAddr, sourceAddr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (channel_list==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+
+    /* Prepare group address */
+    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    {
+      groupAddr.family = L7_AF_INET6;
+      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      groupAddr.family = L7_AF_INET;
+      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
+    }
+    /* Prepare source address */
+    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
+    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    {
+      sourceAddr.family = L7_AF_INET6;
+      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
+    }
+    else
+    {
+      sourceAddr.family = L7_AF_INET;
+      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+    }
+
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+    if (igmp_assoc_channel_remove( 0,
+                                   &groupAddr , channel_list[i].channel_dstmask,
+                                   &sourceAddr, channel_list[i].channel_srcmask ) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+              channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
+              channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
+              channel_list[i].evcid_mc);
+      return L7_FAILURE;
+    }
+
+    #else
+    rc = L7_NOT_SUPPORTED;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    #endif
+  }
+
+  return rc;
+}
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel
@@ -4036,12 +4454,34 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
             (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
 
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Add this channel to associations list */
+  L7_inet_addr_t groupAddr, sourceAddr;
+
+  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  groupAddr.family = L7_AF_INET;
+  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
+
+  /* Add channel */
+  rc=igmp_assoc_channel_add(0, channel->evc_id, &groupAddr, 32, &sourceAddr, 32, L7_TRUE);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding group 0x%08x to association list (MC EVC id %u)",groupAddr.addr.ipv4.s_addr,channel->evc_id);
+    return rc;
+  }
+  #endif
+
   in_addr.s_addr = channel->channelIp.s_addr;
 
   rc = ptin_igmp_static_channel_add(channel->evc_id,&in_addr);
 
   if (rc!=L7_SUCCESS)
   {
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);    /* Undo */
+    #endif
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
     return rc;
   }
@@ -4076,6 +4516,25 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
     return rc;
   }
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Remove this channel from association list */
+  L7_inet_addr_t groupAddr, sourceAddr;
+
+  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
+  groupAddr.family = L7_AF_INET;
+  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
+
+  /* Remove channel */
+  rc = igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);
+
+  if ( rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group 0x%08x from association list",groupAddr.addr.ipv4.s_addr);
+    return rc;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -4121,6 +4580,9 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannels_t *channel_list)
     client.outerVlan = channel_list->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
+
+  /* Clear is_static list */
+  memset(channel_list->is_static_bmp, 0xff, sizeof(channel_list->is_static_bmp));
 
   /* Get list of channels */
   number_of_channels = MSG_MCACTIVECHANNELS_CHANNELS_MAX;
@@ -4634,4 +5096,627 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 
   return L7_SUCCESS;
 }
+
+
+
+
+#include <sirerrors.h>
+#include <ptin_prot_oam_eth.h>
+/************************************************************************** 
+* OAM MEPs Configuration
+**************************************************************************/
+
+/**
+ * Used to create a new MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
+{
+  msg_bd_mep_t              *pi;
+  msg_generic_prefix_t      *po;
+  L7_uint16                 r = S_OK;
+  L7_uint32                 porta;
+
+  pi=(msg_bd_mep_t *)inbuff->info;
+  po=(msg_generic_prefix_t *)outbuff->info;
+  po[i].index = pi[i].index;
+
+  porta = pi[i].bd.prt;
+
+  
+  switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam)) {
+  case 0:    r=S_OK;             break;
+  case 2:    r=ERROR_CODE_FULLTABLE;    break;
+  case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
+  case 4:    r=ERROR_CODE_NOTPRESENT;  break;
+  default:   r=ERROR_CODE_INVALIDPARAM; break;
+  }//switch
+  
+
+  if (r==S_OK) {
+    return L7_SUCCESS;
+  } else {
+    return L7_FAILURE;
+  }
+
+}//msg_wr_MEP
+
+
+/**
+ * Used to remove a MEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
+{
+  msg_bd_mep_t *pi;
+  msg_generic_prefix_t *po;
+  L7_uint32 i_mep;
+  L7_uint16 r=L7_HARDWARE_ERROR;
+
+  pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+  i_mep=po[i].index=pi[i].index;
+
+  
+  switch (del_mep(i_mep, &oam)) {
+  case 0:    r=S_OK;             break;
+    //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
+  default:   r=ERROR_CODE_INVALIDPARAM; break;
+  }//switch
+  
+
+  if (r==S_OK) {
+    return L7_SUCCESS;
+  } else {
+    return L7_FAILURE;
+  }
+
+}//msg_del_MEP
+
+
+
+/**
+ * Used to create a new RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
+{
+  msg_bd_rmep_t *pi;
+  msg_generic_prefix_t *po;
+T_ETH_SRV_OAM *p_oam;
+  L7_uint32 i_mep, i_rmep;
+  L7_uint16 r=L7_HARDWARE_ERROR;
+
+  pi=(msg_bd_rmep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+  po[i].index=pi[i].index;
+
+  i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
+
+  if (!valid_mep_index(i_mep)) {
+    return L7_FAILURE;
+  }
+
+  i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
+
+  
+  p_oam= &oam;
+  switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->mep_db[i_mep], p_oam)) {
+  case 0:
+    r=S_OK;
+    break;
+  case 4:
+    if (CCMSG_FLUSH_RMEP==inbuff->msgId) {
+      r=S_OK;
+      break;
+    }
+    r=ERROR_CODE_FULLTABLE;
+    break;
+  case 5:
+  case 6:
+    r=ERROR_CODE_NOTPRESENT;
+    break;
+  case 7:
+    r=ERROR_CODE_FULLTABLE;
+    break;
+  default:
+    r=ERROR_CODE_INVALIDPARAM;
+  }
+  
+
+  if (r==S_OK) {
+    return L7_SUCCESS;
+  } else {
+    return L7_FAILURE;
+  }
+
+}//msg_wr_RMEP
+
+
+/**
+ * Used to remove a RMEP
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
+{
+  msg_bd_rmep_t *pi;
+  msg_generic_prefix_t *po;
+  T_ETH_SRV_OAM *p_oam;
+  L7_uint32 i_mep, i_rmep;
+  L7_uint16 r=L7_HARDWARE_ERROR;
+
+  pi=(msg_bd_rmep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+  po[i].index=pi[i].index;
+
+  i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
+  i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
+
+  
+  p_oam= &oam;
+
+  switch (del_rmep(i_mep, i_rmep, p_oam)) {
+  case 0:    r=S_OK;             break;
+  //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
+  default:   r=ERROR_CODE_INVALIDPARAM;
+  }
+  
+
+  if (r==S_OK) {
+    return L7_SUCCESS;
+  } else {
+    return L7_FAILURE;
+  }
+
+}//msg_del_RMEP
+
+
+/**
+ * Used to dump MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_generic_prefix_t *pi;
+  msg_bd_mep_t *po;
+  L7_uint32 n=0;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
+
+  pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_mep_t *)outbuff->info;
+
+  if (pi->index>=N_MEPs) {
+    return(L7_FAILURE);
+  }
+
+  
+  p_oam= &oam;
+
+  for (i=pi->index, n=0; i<N_MEPs; i++) {
+    po[n].index = i;
+    po[n].err_code = S_OK;
+
+    //set_active_to_(p_oam->mep_db);
+    //if (!active_is_used(p_oam->mep_db))
+    //_p_mep= pointer2active_node_info(*p_mep_db);
+
+    if (!EMPTY_T_MEP(p_oam->mep_db[i])  ||  N_MEPs-1==i)
+      po[n++].bd=  *((T_MEP_HDR *) &p_oam->mep_db[i]);
+
+    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
+  }//for
+  
+
+  outbuff->infoDim = n*sizeof(msg_bd_mep_t);
+  return L7_SUCCESS;
+
+}//msg_dump_MEPs
+
+
+/**
+ * Used to dump MPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
+  msg_bd_me_t *pi;//Exception: in and out are of the same type
+  msg_bd_me_t *po;
+  L7_uint32 n=0, i_mep, i_rmep;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
+
+  pi=(msg_bd_me_t *)inbuff->info;   po=(msg_bd_me_t *)outbuff->info;
+
+  i_mep=     MEP_INDEX_TO_iMEP(pi->index);
+  i_rmep=    MEP_INDEX_TO_iRMEP(pi->index);
+
+  if (!valid_mep_index(i_mep) || !valid_rmep_index(i_rmep)) {
+    return(L7_FAILURE);
+  }
+
+  
+  p_oam= &oam;
+
+  if (EMPTY_T_MEP(p_oam->mep_db[i_mep])) {
+    return(L7_FAILURE);
+  }
+
+  for (i=i_rmep, n=0; i<N_MAX_MEs_PER_MEP; i++) {
+    po[n].index = iMEP_iRMEP_TO_MEP_INDEX(i_mep, i);//i_mep*0x10000L+i;
+    po[n].err_code = S_OK;
+
+    if (   !EMPTY_T_MEP(p_oam->mep_db[i_mep].ME[i])
+           ||  N_MAX_MEs_PER_MEP-1==i)
+      po[n++].bd.me=     p_oam->mep_db[i_mep].ME[i];
+
+    if (n+1 > 17   ||  (n+1)*sizeof(msg_bd_me_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;
+  }//for
+  
+
+  outbuff->infoDim = n*sizeof(msg_bd_me_t);
+
+  return L7_SUCCESS;
+
+}//msg_dump_MEs
+
+
+/**
+ * Used to dump LUT MEPs
+ * 
+ * @author joaom (5/31/2013)
+ * 
+ * @param inbuff 
+ * @param outbuff 
+ * @param i 
+ * 
+ * @return int 
+ */
+L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
+  msg_generic_prefix_t *pi;
+  msg_bd_lut_mep_t *po;
+  L7_uint32 n=0;
+  L7_uint32 i;
+  T_ETH_SRV_OAM   *p_oam;
+
+  pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_lut_mep_t *)outbuff->info;
+
+  if (pi->index>=N_MAX_LOOKUP_MEPs) {
+    return(L7_FAILURE);
+  }
+
+  
+  p_oam= &oam;
+
+  for (i=pi->index, n=0; i<N_MAX_LOOKUP_MEPs; i++) {
+    po[n].index = i;
+    po[n].err_code = S_OK;
+
+    if (!EMPTY_T_MEP(p_oam->mep_lut[i])) {
+      po[n++].bd= p_oam->mep_lut[i];
+    }
+
+    if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_lut_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;
+  }//for
+  
+
+  outbuff->infoDim = n*sizeof(msg_bd_lut_mep_t);
+
+  return L7_SUCCESS;
+
+}//msg_dump_LUT_MEPs
+
+
+
+
+/****************************************************************************** 
+ * ERPS Configuration
+ ******************************************************************************/
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/4/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
+{
+  ptin_erps_t ptinErpsConf;
+
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS# %u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
+
+
+  /* Copy data to ptin struct */
+  ptinErpsConf.idx            = msgErpsConf->idx;
+  ptinErpsConf.ringId         = msgErpsConf->ringId;
+  ptinErpsConf.isOpenRing     = msgErpsConf->isOpenRing;
+
+  ptinErpsConf.controlVid     = msgErpsConf->controlVid;
+  ptinErpsConf.megLevel       = msgErpsConf->megLevel;
+
+  ptinErpsConf.port0.slot     = msgErpsConf->port0.slot;
+  ptinErpsConf.port0.type     = msgErpsConf->port0.type;
+  ptinErpsConf.port0.idx      = msgErpsConf->port0.idx;
+  ptinErpsConf.port1.slot     = msgErpsConf->port1.slot;
+  ptinErpsConf.port1.type     = msgErpsConf->port1.type;
+  ptinErpsConf.port1.idx      = msgErpsConf->port1.idx;
+  ptinErpsConf.port0Role      = msgErpsConf->port0Role;
+  ptinErpsConf.port1Role      = msgErpsConf->port1Role;
+  ptinErpsConf.port0CfmIdx    = msgErpsConf->port0CfmIdx;
+  ptinErpsConf.port1CfmIdx    = msgErpsConf->port1CfmIdx;
+
+  ptinErpsConf.revertive      = msgErpsConf->revertive;
+  ptinErpsConf.guardTimer     = msgErpsConf->guardTimer;
+  ptinErpsConf.holdoffTimer   = msgErpsConf->holdoffTimer;
+  ptinErpsConf.waitToRestore  = msgErpsConf->waitToRestore;
+
+  memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u",              ptinErpsConf.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .ringId        = %d",  ptinErpsConf.ringId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing    = %s",  ptinErpsConf.isOpenRing == 0? "False" : "True");
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .controlVid    = %d",  ptinErpsConf.controlVid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel      = %d",  ptinErpsConf.controlVid);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.slot    = %d",  ptinErpsConf.port0.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.type    = %d",  ptinErpsConf.port0.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.idx     = %d",  ptinErpsConf.port0.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.slot    = %d",  ptinErpsConf.port1.slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.type    = %d",  ptinErpsConf.port1.type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.idx     = %d",  ptinErpsConf.port1.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0Role     = %d",  ptinErpsConf.port0Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role     = %d",  ptinErpsConf.port1Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx   = %d",  ptinErpsConf.port0CfmIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx   = %d",  ptinErpsConf.port1CfmIdx);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive     = %s",  ptinErpsConf.revertive == 0? "False" : "True");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer    = %d",  ptinErpsConf.guardTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestore = %d",  ptinErpsConf.waitToRestore);
+
+//if (erps_add_entry(msgErpsConf->idx, &ptinErpsConf) != L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS# %u", ptinEvcConf.idx);
+//  return L7_FAILURE;
+//}
+
+  return L7_SUCCESS;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <sirerrors.h>
+#include <usmdb_dot1x_api.h>
+#include <usmdb_dot1x_auth_serv_api.h>
+#include <dot1x_auth_serv_exports.h>
+#include <dot1x_auth_serv_api.h>
+
+
+int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_Genrc *pi, *po;
+L7_RC_t r;
+
+ pi=(msg_802_1x_Genrc *)inbuff->info;   po=(msg_802_1x_Genrc *)outbuff->info;
+
+ switch (inbuff->msgId) {
+ case CCMSG_WR_802_1X_ADMINMODE:        r=usmDbDot1xAdminModeSet(1, pi[i].v); break;
+ case CCMSG_WR_802_1X_TRACE:            r=usmDbDot1xPacketDebugTraceFlagSet(pi[i].v>>1, pi[i].v&1); break;
+ case CCMSG_WR_802_1X_VLANASSGNMODE:    r=usmDbDot1xVlanAssignmentModeSet(1, pi[i].v); break;
+ case CCMSG_WR_802_1X_MONMODE:          r=usmDbDot1xMonitorModeSet(1, pi[i].v); break;
+ case CCMSG_WR_802_1X_DYNVLANMODE:      r=usmDbDot1xDynamicVlanCreationModeSet(1, pi[i].v); break;
+ default:
+     po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+     return 1;
+ }
+
+ if (L7_SUCCESS!=r) {
+   po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].v = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_Genrc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_Genrc2 *pi;
+msg_generic_prefix_t *po;
+ptin_intf_t ptinp;
+L7_RC_t r;
+L7_uint32 intIfNum;
+
+ pi=(msg_802_1x_Genrc2 *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+
+ ptinp.intf_type=   pi[i].index>>8;
+ ptinp.intf_id=     pi[i].index;
+ if (L7_SUCCESS!=ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum)) {
+     po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+     return 1;
+ }
+
+ switch (inbuff->msgId) {
+    case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS: r=usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_PORTCONTROLMODE:           r=usmDbDot1xPortControlModeSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_QUIETPERIOD:               r=usmDbDot1xPortQuietPeriodSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_TXPERIOD:                  r=usmDbDot1xPortTxPeriodSet(1, intIfNum, pi[i].v);  break;
+    case CCMSG_WR_802_1X_SUPPTIMEOUT:               r=usmDbDot1xPortSuppTimeoutSet(1, intIfNum, pi[i].v);   break;
+    case CCMSG_WR_802_1X_SERVERTIMEOUT:             r=usmDbDot1xPortServerTimeoutSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_MAXREQ:                    r=usmDbDot1xPortMaxReqSet(1, intIfNum, pi[i].v);    break;
+    case CCMSG_WR_802_1X_REAUTHPERIOD:
+        if (1+pi[i].v==0) {r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 0);   break;}  //Forbidden period disables
+        r=usmDbDot1xPortReAuthPeriodSet(1, intIfNum, pi[i].v);
+        if (L7_SUCCESS!=r) break;
+        r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 1);
+        break;
+    case CCMSG_WR_802_1X_KEYTXENABLED:              r=usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_GUESTVLANID:               r=usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_GUSTVLANPERIOD:            r=usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_MAXUSERS:                  r=usmDbDot1xPortMaxUsersSet(1, intIfNum, pi[i].v); break;
+    case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:       r=usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, pi[i].v); break;
+    default:
+        po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+        return 1;
+ }
+
+ if (L7_SUCCESS!=r) {
+   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].err_code = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_Genrc2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t usmDbDot1xAuthServUserDBUserIndexGet(L7_char8 *name, L7_uint32 *index) {
+    return dot1xAuthServUserDBUserIndexGet(name, index);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBUserNameSet(L7_uint32 index, L7_char8 *name) {
+    return dot1xAuthServUserDBUserNameSet(index, name);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBUserPasswordSet(L7_uint32 index, L7_char8 *password, L7_BOOL encrypted) {
+    return dot1xAuthServUserDBUserPasswordSet(index, password, encrypted);
+}
+
+L7_RC_t usmDbDot1xAuthServUserDBAvailableIndexGet(L7_uint32 *index) {
+    return dot1xAuthServUserDBAvailableIndexGet(index);
+}
+
+int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
+msg_802_1x_AuthServ *pi;
+msg_generic_prefix_t *po;
+L7_RC_t r;
+L7_ulong32 k;           //MNGMT preferred index
+L7_uint32 index=-1;     //index to eventual already in table entry
+L7_uchar8 e;
+
+ pi=(msg_802_1x_AuthServ *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+
+ k=pi[i].index; //64th bit's lost
+ e=pi[i].index>>63;
+
+ if (L7_SUCCESS==usmDbDot1xAuthServUserDBUserIndexGet(pi[i].name, &index)) {
+     if (k<L7_MAX_IAS_USERS && k!=index) {  //Name already in table with different index
+         po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_DUPLICATENAME);
+         return 1;
+     }
+ }
+ else index=-1;
+
+ if (k<L7_MAX_IAS_USERS) {
+     if (k!=index && (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserNameSet(k, pi[i].name)))) {   //index already used (or table full)
+       po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_USED);
+       return 1;
+     }
+ }
+ else {
+     if (index>=L7_MAX_IAS_USERS) {
+         if (L7_SUCCESS!=usmDbDot1xAuthServUserDBAvailableIndexGet(&index)) {
+             po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_FULLTABLE);
+             return 1;
+         }
+     }
+     k=index;
+ }
+
+ if (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserPasswordSet(k, pi[i].passwd, e))) {
+   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+   return 1;
+ }
+ else po[i].err_code = ERROR_CODE_OK;
+
+ return 0;
+}//msg_wr_802_1x_AuthServ
 
