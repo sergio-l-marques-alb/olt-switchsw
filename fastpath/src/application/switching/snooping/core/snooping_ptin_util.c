@@ -19,11 +19,14 @@
 #include "l7_mgmd_api.h"
 #include "arpa/inet.h"
 
+#include "snooping.h"//MMELO
+#include "avl_api.h"//MMELO
 
 /*********************************************************************
 * Static Methods
 *********************************************************************/
 static L7_RC_t  snoopPTinQueryFrameV3Build(L7_uint32 vlanId, L7_uint32 groupAddr, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_uint32 *sources, L7_uint8 sourcesCnt);
+static L7_RC_t snoopPTinReportFrameV3Build(snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntry, L7_uchar8 *groupsCnt,L7_uchar8 *buffer, L7_uint32 *length);
 static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_uint32 groupAddr, L7_uchar8 *buffer, L7_uint32 *length, L7_uchar8 *igmpFrameBuffer, L7_uint32 igmpFrameLength);
 static void     snoopPTinQuerySend        (L7_uint32 arg1);
 
@@ -243,6 +246,164 @@ L7_RC_t snoopPTinQueryFrameV3Build(L7_uint32 groupAddr, L7_BOOL sFlag, L7_uchar8
 
   /* Update frame length */
   *length = SNOOP_IGMPV3_HEADER_MIN_LENGTH + (L7_IP_ADDR_LEN * sourcesCnt);
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+ * @purpose Method responsible for scheduling Group-Specific or
+ *          Group/Source-Specific Queries
+ *
+ * @param   vlanId      Vlan ID
+ * @param   groupAddr   IGMP Group address
+ * @param   sFlag       Suppress router-side processing flag
+ * @param   sources     Source list
+ * @param   sourcesCnt  Number of sources in source list
+ *
+ * @returns  L7_SUCCESS
+ * @returns  L7_FAILURE
+ *
+ * @see RFC 3376 6.6.3.1/6.6.3.2
+ *
+ *********************************************************************/
+L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt)
+{
+//Commented by MMElo
+  //  snoop_eb_t            *pSnoopEB;
+//  snoopPTinQueryData_t  queryData;
+//  ptin_IgmpProxyCfg_t   igmpCfg;
+//  L7_uint32             i;
+//
+//  /* Argument validation */
+//  if (sources == L7_NULLPTR)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//    return L7_FAILURE;
+//  }
+//
+//  pSnoopEB = snoopEBGet();
+//
+//  /* Get proxy configurations */
+//  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+//    return L7_FAILURE;
+//  }
+//
+//  /* Set query data and push it to the Query Queue. QueuePos is determined by the push method */
+//  queryData.queryTimer = L7_NULLPTR;
+//  queryData.queuePos = 0;
+//  queryData.vlanId = vlanId;
+//  queryData.groupAddr = groupAddr;
+//  queryData.sFlag = sFlag;
+//  queryData.retransmissions = igmpCfg.querier.last_member_query_count;
+//  for(i=0; i< sourcesCnt; ++i)
+//  {
+//    queryData.sourceList[i] = sources[i];
+//  }
+//  queryData.sourcesCnt = sourcesCnt;
+//
+//  if (snoopPTinQueryQueuePush(&queryData) != L7_SUCCESS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Query buffer is full");
+//    return L7_FAILURE;
+//  }
+//
+//  /* Schedule LMQC Group-Specific Query transmissions */
+////snoopPTinQuerySend((L7_uint32) &pSnoopEB->snoopPTinQueryQueue[queryData.queuePos]);
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Create an IGMPv3 Frame for Membership Report messages
+*
+* @param    groupAddr       IGMP Group address
+* @param    sFlag           Suppress router-side processing flag
+* @param    buffer          Buffer in which the IGMPv3 Frame will be
+*                           placed
+* @param    length          IGMPv3 Frame length
+* @param    pSnoopOperEntry Snoop Operational data
+* @param    sources         Source list
+* @param    sourcesCnt      Number of sources in the list
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @todo     Fix Max Resp Code
+*
+*********************************************************************/
+L7_RC_t snoopPTinReportFrameV3Build(snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntry,  L7_uchar8 *groupsCnt,L7_uchar8 *buffer, L7_uint32 *length)
+{
+  L7_uchar8         *dataPtr, *chksumPtr, byteVal;
+  L7_ushort16       shortVal;
+
+  L7_uint32 i,j,igmpFrameLength = SNOOP_IGMPv1v2_HEADER_LENGTH,ipv4Addr;
+  snoopPTinProxyGrouprecordInfoData_t *snoopEntry; //Save pointer
+
+  /* Argument validation */
+  if (snoopPTinProxyGrouprecordEntry ==L7_NULLPTR || buffer == L7_NULLPTR || length == L7_NULLPTR  )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  dataPtr = buffer;
+
+  /* Type = 0x22 */
+  byteVal = 0x22;
+  SNOOP_PUT_BYTE(byteVal, dataPtr);
+
+ /* Reserved = 0x00 */
+  byteVal = 0x00;
+  SNOOP_PUT_BYTE(byteVal, dataPtr);
+
+  /* Checksum = 0*/
+  chksumPtr = dataPtr;
+  shortVal = 0;
+  SNOOP_PUT_SHORT(shortVal, dataPtr);
+
+  /* Number of Records (M)*/
+  shortVal=(L7_ushort16 ) *groupsCnt;
+  SNOOP_PUT_SHORT(shortVal, dataPtr);
+
+  for(i=0; i<*groupsCnt; ++i) 
+ {
+   /*Record Type*/
+   byteVal = snoopEntry->recordType;
+   SNOOP_PUT_BYTE(byteVal, dataPtr);
+
+   /*Aux Data Len*/
+   byteVal = 0x00;
+   SNOOP_PUT_BYTE(byteVal, dataPtr);
+
+   /* Number of Sources */
+  shortVal = snoopEntry->numberOfSources;
+  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  
+  if (L7_AF_INET==snoopEntry->snoopPTinProxyGrouprecordInfoDataKey.groupAddr.family)
+  {   
+    inetAddressGet(L7_AF_INET, &(snoopEntry->snoopPTinProxyGrouprecordInfoDataKey.groupAddr),  &ipv4Addr );
+    /* Group Address */
+    SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
+    for(j=0; j<snoopEntry->numberOfSources; ++j)
+    {
+      inetAddressGet(L7_AF_INET, &(snoopEntry->sourceAddr[j]),  &ipv4Addr );
+      /* Source Address */
+      SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
+    }
+    /* Update frame length */
+    igmpFrameLength=igmpFrameLength+SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH+(L7_IP_ADDR_LEN*snoopEntry->numberOfSources);
+  }
+  snoopEntry=snoopEntry->next;
+ } 
+
+  /* Determine Checksum */
+  shortVal = snoopCheckSum((L7_ushort16 *) buffer, igmpFrameLength, 0);
+  SNOOP_PUT_SHORT(shortVal, chksumPtr);
+
+  /* Update frame length */
+  *length = igmpFrameLength;
 
   return L7_SUCCESS;
 }
@@ -509,6 +670,140 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   {
    // snoopPTinQueryQueuePop(queryData->queuePos);
   }
+}
+
+/*********************************************************************
+ * @purpose Send Membership Report Message
+ *
+ * @param   arg1  Pointer to a snoopPTinQueryData_t structure
+ *
+ *********************************************************************/
+void snoopPTinReportSend(L7_uint32 arg1)
+{
+  L7_uchar8             igmpFrame[L7_MAX_FRAME_SIZE]={0};
+  L7_uint32             igmpFrameLength=0;
+  //snoopOperData_t       *pSnoopOperEntry;
+  L7_RC_t               rc = L7_SUCCESS;
+  mgmdSnoopControlPkt_t mcastPacket;
+  snoopPTinQueryData_t  *queryData=L7_NULLPTR;
+  snoop_cb_t            *pSnoopCB;
+  ptin_IgmpProxyCfg_t   igmpCfg;
+
+  snoopPTinProxyGrouprecordInfoData_t* groupRecordData=L7_NULLPTR;
+  snoopPTinProxyInterfacetimerInfoData_t* reportData=L7_NULLPTR;
+
+  L7_uchar8 groupsCnt=0;
+  L7_uint32 groupsCntTmp=0;
+
+  reportData = (snoopPTinProxyInterfacetimerInfoData_t *) arg1;
+
+  groupRecordData=&(reportData->groupData);
+    
+  
+  groupsCntTmp= avlTreeCount(groupRecordData->avlTreePtr);
+//Todo: Verify if the existing groups are lower then IGMPv3_MAX_GROUP_RECORD_PER_PACKET
+//if (groupsCntTmp>255)
+//{
+//  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Currently we do not support more then 255 Group Records per IGMPv3 Membership Report Packet :%d",groupsCntTmp);
+//  return;
+//}
+//else
+//{
+    groupsCnt= (L7_uchar8)groupsCntTmp;
+//}
+
+  /* Validate arguments */
+  if (queryData->vlanId < PTIN_VLAN_MIN || queryData->vlanId > PTIN_VLAN_MAX)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return;
+  }
+
+  /* Get Snoop Control Block */
+  if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting pSnoopCB");
+    return;
+  }
+
+  /* Only allow IPv4 for now */
+  if (pSnoopCB->family != L7_AF_INET)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Not IPv4 packet");
+    return;
+  }
+
+//  pSnoopOperEntry = snoopOperEntryGet(queryData->vlanId, pSnoopCB, L7_MATCH_EXACT);
+
+  /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    return;
+  }
+
+  
+///* Free timer */
+//if(queryData->queryTimer != L7_NULLPTR)
+//{
+//  osapiTimerFree(queryData->queryTimer);
+//}
+//queryData->queryTimer = L7_NULLPTR;
+
+  /* Initialize mcastPacket structure */
+  memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
+  mcastPacket.cbHandle = snoopCBGet(L7_AF_INET);
+  mcastPacket.vlanId = queryData->vlanId;
+  mcastPacket.innerVlanId = 0;
+  mcastPacket.client_idx = (L7_uint32) -1;
+  mcastPacket.msgType = IP_PROT_IGMP;
+  mcastPacket.srcAddr.family = L7_AF_INET;
+  mcastPacket.srcAddr.addr.ipv4.s_addr = L7_NULL_IP_ADDR;/*Todo: igmpCfg.ipv4_addr.s_addr;*/
+  mcastPacket.destAddr.family = L7_AF_INET;
+  mcastPacket.destAddr.addr.ipv4.s_addr = L7_IP_ALL_HOSTS_ADDR;
+
+  /* Build header frame for IGMPv3 Report */  
+  rc = snoopPTinReportFrameV3Build(groupRecordData,  &groupsCnt, igmpFrame, (L7_uint32 *) igmpFrameLength);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Report frame");
+    return;
+  }
+
+  /* Build MAC+IP frames and add the IGMP frame to the same packet */
+  rc = snoopPTinPacketBuild(mcastPacket.vlanId, pSnoopCB, 0, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Report frame");
+    return;
+  }
+
+  /* Send Packet to client interfaces */
+#if 0
+  rc = snoopPacketClientIntfsForward(&mcastPacket, L7_IGMP_V3_MEMBERSHIP_REPORT);
+#else
+  rc = snoopPacketRtrIntfsForward(&mcastPacket, L7_IGMP_V3_MEMBERSHIP_REPORT);
+#endif
+  
+  if (rc == L7_SUCCESS)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Packet transmitted to client interfaces. (queue idx %d)", queryData->queuePos);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error transmitting to client interfaces");
+  }
+//--queryData->retransmissions;
+//
+///* If retransmissions > 0, schedule another Group-Specific Query message. Otherwise free the position in the query buffer */
+//if (queryData->retransmissions > 0)
+//{
+//  osapiTimerAdd((void *) snoopPTinQuerySend, (L7_uint32) queryData, 0, igmpCfg.querier.last_member_query_interval * 1000, &queryData->queryTimer);
+//}
+//else
+//{
+// // snoopPTinQueryQueuePop(queryData->queuePos);
+//}
 }
 
 /*************************************************************************
