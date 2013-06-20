@@ -41,10 +41,53 @@ L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uint32 sourc
 //Remove a source entry, reseting all its fields and stopping the associated timer
 L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourceList);
 
+
+//Search a specific source in a given source list
+L7_RC_t snoopPTinProxyDBSourceAdd(snoopPTinProxyDBInfoData_t *ProxyDBptr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
+
+//Adds a new source to the given source list in the first free index
+L7_RC_t snoopPTinProxyDBSourceFind(snoopPTinProxyDBSource_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);
+
+//Remove a source entry, reseting all its fields and stopping the associated timer
+L7_RC_t snoopPTinProxyDBSourceRemove(snoopPTinProxyDBInfoData_t *ProxyDBPtr, snoopPTinProxyDBSource_t *sourcePtr);
+
+//Adds a new source to the given source list in the first free index
+L7_RC_t snoopPTinProxyGRSourceFind(snoopPTinProxyGrouprecordInfoData_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);
+
+//Search a specific source in a given source list
+L7_RC_t snoopPTinProxyGRSourceAdd(snoopPTinProxyGrouprecordInfoData_t *ProxyGRptr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
+
+//Remove a source entry, reseting all its fields and stopping the associated timer
+L7_RC_t snoopPTinProxyGRSourceRemove(snoopPTinProxyGrouprecordInfoData_t *ProxyGRPtr);
+
 //Initializes an interface
 void snoopPTinInitializeInterface(snoopPTinL3Interface_t *snoopEntry);
 
 //Remove an interface entry, reseting all its fields and stopping the group and query timers
 L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr);
+
+
+/************************************************************************************************************/
+/*MGMD Proxy*/
+#if 0
+
+#if 0
+static L7_int32 snoopPTinProxy_selected_delay_calculate(L7_int32 max_resp_time);
+#else
+L7_int32 snoopPTinProxy_selected_delay_calculate(L7_int32 max_resp_time);
+#endif
+L7_int32 snoopPTinProxy_decode_max_resp_code(L7_uchar8 family, L7_int32 max_resp_code);
+
+//Search a specific source in a given source list
+L7_RC_t snoopPTinProxySourceFind(snoopPTinProxySource_t *sourceList, L7_uint32 sourceAddr, L7_uint8* foundIdx);
+
+//Adds a new source to the given source list in the first free index
+L7_RC_t snoopPTinProxySourceAdd(snoopPTinProxyInfoData_t *interfacePtr, L7_uint32 sourceAddr, L7_uint8* newSourceIdx);
+
+#endif
+/*End MGMD Proxy*/
+/************************************************************************************************************/
+
+
 
 #endif /* SNOOPING_PTIN_DB_H_ */

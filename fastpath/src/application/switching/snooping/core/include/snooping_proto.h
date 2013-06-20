@@ -29,6 +29,8 @@
 #define SNOOP_IGMPv1v2_HEADER_LENGTH    8
 #define SNOOP_IGMPV3_HEADER_MIN_LENGTH  12
 
+#define SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH 8
+
 #define SNOOP_MLDV1_HEADER_LENGTH      24
 #define SNOOP_MLDV2_HEADER_MIN_LENGTH  28
 
@@ -87,6 +89,7 @@
 
 #define SNOOP_IP6_ADDR_BUFF_SIZE 42
 #define SNOOP_MAC_ADDR_BUFF_SIZE 20
+ 
 
 /*****************************************************************************
  PDU Message Structures
@@ -184,6 +187,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 L7_RC_t snoopPimv1v2DvmrpProcess(mgmdSnoopControlPkt_t *mcastPacket,
                               L7_inet_addr_t *grpAddr, L7_uint32 ipProtoType);
 L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
+
+L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket);
 
 /* End of function prototypes */
 #endif /* SNOOPING_PROTO_H */

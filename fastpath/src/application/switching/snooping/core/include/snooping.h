@@ -35,6 +35,7 @@
 /* PTin added: IGMP Snooping */
 #if 1
 #include "ptin_globaldefs.h"
+
 #endif
 
 #define SNOOP_MAC_ADDR_PREFIX_LEN 2
@@ -45,6 +46,12 @@
 
 /* PTin added: IGMPv3 snooping */
 #if 1
+
+
+#define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
+
+#define SNOOP_IGMPv3_MAX_RECORD_GROUP_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+
 typedef enum
 {
   PTIN_SNOOP_FILTERMODE_INCLUDE=0,
@@ -286,6 +293,8 @@ typedef struct snoopInfoData_s
 #if 1
 typedef struct snoopPTinL3InfoData_s snoopPTinL3InfoData_t;
 
+typedef struct snoopPTinProxyDBInfoData_s snoopPTinProxyDBInfoData_t;
+
 typedef struct
 {
   L7_sll_member_t   *next;
@@ -353,6 +362,8 @@ typedef struct snoopPTinL3InfoData_s
 {
   snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
   snoopPTinL3Interface_t   interfaces[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
+
+  snoopPTinProxyDBInfoData_t *proxyDB;
 
   snoopInfoData_t          *L2MC;
 
@@ -424,12 +435,34 @@ typedef struct snoopPTinProxyGrouprecordInfoData_s
 {
   snoopPTinProxyGrouprecordInfoDataKey_t    snoopPTinProxyGrouprecordInfoDataKey;
   L7_uint16                                 numberOfSources;//Number of active Sources
+  L7_uint8                                  status; //snoop_ptin_sourcestate_t
   L7_inet_addr_t                            sourceAddr[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];//List Containing the Sources of this Group
   L7_uint8                                  recordType;//MGMD_GROUP_REPORT_TYPE_t  
   snoopInfoData_t                  *L2MC;
 
+  avlTree_t                       *avlTreePtr;
+
   void                             *next;
 }snoopPTinProxyGrouprecordInfoData_t;
+
+
+typedef struct snoopPTinProxyGrouprecord_s
+{
+  L7_inet_addr_t                   groupAddr;//IPv4(v6) Multicast Group Address
+  L7_uint16                        numberOfSources;//Number of active Sources
+  L7_inet_addr_t                   sourceAddr[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];//List Containing the Sources of this Group
+  L7_uint8                         recordType;//MGMD_GROUP_REPORT_TYPE_t    
+}snoopPTinProxyGrouprecord_t;
+
+typedef struct snoopPTinProxyReport_s
+{
+  L7_uint32                        Idx;
+  L7_uint16                        interfaceIdx;//Uplink Interface Idx
+  L7_uint32                        vlanId;
+  L7_uint16                        numberOfGroups;//Number of active Sources
+  snoopPTinProxyGrouprecord_t      groupRecord[SNOOP_IGMPv3_MAX_RECORD_GROUP_PER_REPORT];//List Containing the Sources of this Group
+  
+}snoopPTinProxyReport_t;
 
 typedef struct snoopPTinProxySourcetimerInfoDataKey_s
 {  
@@ -624,25 +657,27 @@ typedef struct snoop_eb_s
   snoopPTinL3InfoData_t  *snoopPTinL3DataHeap;
 
 
-  /* Proxy PTin AVL Tree data */
+  /* PTin Proxy  DB AVL Tree data */
   avlTree_t                 snoopPTinProxyDBAvlTree;
   avlTreeTables_t           *snoopPTinProxyDBTreeHeap;
   snoopPTinProxyDBInfoData_t  *snoopPTinProxyDBDataHeap;
 
-  /* Proxy PTin AVL Tree data */
+  /* PTin Proxy  Group Record AVL Tree data */
   avlTree_t                 snoopPTinProxyGrouprecordAvlTree;
   avlTreeTables_t           *snoopPTinProxyGrouprecordTreeHeap;
   snoopPTinProxyDBInfoData_t  *snoopPTinProxyGrouprecordDataHeap;
 
-//Timers
+/* PTin Proxy  Interface  Timer AVL Tree data */
   avlTree_t                                snoopPTinProxySourcetimerAvlTree;
   avlTreeTables_t                         *snoopPTinProxySourcetimerTreeHeap;
   snoopPTinProxySourcetimerInfoData_t     *snoopPTinProxySourcetimerDataHeap;
 
+ /* PTin Proxy  Group Timer  AVL Tree data */
   avlTree_t                                snoopPTinProxyGrouptimerAvlTree;
   avlTreeTables_t                         *snoopPTinProxyGrouptimerTreeHeap;
   snoopPTinProxyGrouptimerInfoData_t      *snoopPTinProxyGrouptimerDataHeap;
 
+  /* PTin Proxy  Group & Source Timer  AVL Tree data */
   avlTree_t                                snoopPTinProxyInterfacetimerAvlTree;
   avlTreeTables_t                         *snoopPTinProxyInterfacetimerTreeHeap;
   snoopPTinProxyInterfacetimerInfoData_t  *snoopPTinProxyInterfacetimerDataHeap;      
