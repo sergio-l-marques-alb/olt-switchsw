@@ -41,6 +41,8 @@
 #include "ptin_debug.h"
 #include "logger.h"
 #include "usmdb_mfdb_api.h"
+
+#include "l3_addrdefs.h"//MMelo
 #endif
 
 /*********************************************************************
@@ -766,6 +768,25 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
     L7_uint32 _i_;                                                   \
                                                                      \
     for(_i_ = 0; _i_ < sizeof(array)/sizeof(L7_uint32); _i_++)       \
+        if(array[_i_] != 0)                                          \
+        {                                                            \
+            result = 1;                                              \
+            break;                                                   \
+        }                                                            \
+        else                                                         \
+            result = 0;                                              \
+}
+
+
+#define PTIN_PROXY_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint8)*8)] >> ((idx)%(sizeof(L7_uint8)*8))) & 1)
+#define PTIN_PROXY_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
+#define PTIN_PROXY_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
+
+#define PTIN_PROXY_NONZEROMASK(array, result)                              \
+{                                                                    \
+    L7_uint8 _i_;                                                   \
+                                                                     \
+    for(_i_ = 0; _i_ < sizeof(array)/sizeof(L7_uint8); _i_++)       \
         if(array[_i_] != 0)                                          \
         {                                                            \
             result = 1;                                              \
@@ -3696,6 +3717,1031 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 mcastGroupAddr, L7_uint32 vlanId)
   }
   return L7_SUCCESS;
 }
+
+/**
+ * @purpose Finds an entry with the given mcastGroupAddr and vlanId
+ *
+ * @param mcastGroupAddr  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+{
+  snoopPTinProxyDBInfoData_t *snoopEntry;
+  snoopPTinProxyDBInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxyDBInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyDBAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxyDBInfoDataKey, sizeof(snoopPTinProxyDBInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    return snoopEntry;
+  }
+}
+
+/**
+ * @purpose Finds an entry with the given mcastGroupAddr and vlanId
+ *
+ * @param mcastGroupAddr  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t  sourceAddr, L7_uint32 flag)
+{
+  snoopPTinProxyDBInfoData_t *snoopEntry;
+  snoopPTinProxyDBInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxyDBInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyDBAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxyDBInfoDataKey, sizeof(snoopPTinProxyDBInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    if (snoopEntry->numberOfSources>0)
+    {
+      L7_uint32 i=0;
+      for (i= 0; i < sizeof(snoopEntry->sources); ++i)
+      {
+        if(snoopEntry->sources[i].status==PTIN_SNOOP_SOURCESTATE_ACTIVE && L7_INET_ADDR_COMPARE(&(snoopEntry->sources[i].sourceAddr),&sourceAddr))
+        {       
+          return snoopEntry;
+        }
+      }
+      return L7_NULLPTR;
+    }
+    else
+    {
+      return L7_NULLPTR;
+    }
+  }
+}
+
+///**
+// * @purpose Add a new entry to the PTin Proxy AVL Tree
+// *
+// * @param mcastGroupAddr
+// * @param vlanId
+// *
+// * @return  L7_SUCCESS or L7_FAILURE
+// */
+//L7_RC_t snoopPTinProxyDBSourceEntryAdd(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t  sourceAddr)
+//{
+//  snoopPTinProxyDBInfoData_t snoopEntry;
+//  snoopPTinProxyDBInfoData_t *pData;
+//#if 0
+//  L7_uint32 ivlLength = 0, freeIdx;
+//  L7_FDB_TYPE_t fdbType;
+//#endif
+//  snoop_eb_t *pSnoopEB;
+//
+//  pSnoopEB = snoopEBGet();
+//
+//#if 0
+//  fdbGetTypeOfVL(&fdbType);
+//
+//  if (fdbType == L7_IVL)
+//  {
+//    ivlLength = L7_FDB_IVL_ID_LEN;
+//    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+//  }
+//#endif
+//
+//  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyDBInfoData_t));
+//  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+//  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.interfaceIdx,         &interfaceIdx,         sizeof(L7_uint16));
+//  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+//  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyDBAvlTree, &snoopEntry);
+//
+//  if (pData == L7_NULL)
+//  {
+//    /*entry was added into the avl tree*/
+//    if ((pData = snoopPTinProxyDBEntryFind(groupAddr, interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+//    {
+//      return L7_FAILURE;
+//    }
+//
+//    return L7_SUCCESS;
+//  }
+//
+//  if (pData == &snoopEntry)
+//  {
+//    /*some error in avl tree addition*/
+//    return L7_FAILURE;
+//  }
+//
+//  /*entry already exists*/
+//  return L7_FAILURE;
+//}
+
+
+
+
+
+
+
+/**
+ * @purpose Add a new entry to the PTin Proxy AVL Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return  L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyDBEntryAdd(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyDBInfoData_t snoopEntry;
+  snoopPTinProxyDBInfoData_t *pData;
+#if 0
+  L7_uint32 ivlLength = 0, freeIdx;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+
+  if (fdbType == L7_IVL)
+  {
+    ivlLength = L7_FDB_IVL_ID_LEN;
+    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+  }
+#endif
+
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyDBInfoData_t));
+  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.interfaceIdx,         &interfaceIdx,         sizeof(L7_uint16));
+  memcpy(&snoopEntry.snoopPTinProxyDBInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyDBAvlTree, &snoopEntry);
+
+  if (pData == L7_NULL)
+  {
+    /*entry was added into the avl tree*/
+    if ((pData = snoopPTinProxyDBEntryFind(groupAddr, interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
+  if (pData == &snoopEntry)
+  {
+    /*some error in avl tree addition*/
+    return L7_FAILURE;
+  }
+
+  /*entry already exists*/
+  return L7_FAILURE;
+}
+
+/**
+ * @purpose Remove an existing entry to the PTin Proxy AVL Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyDBEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyDBInfoData_t *pData;
+  snoopPTinProxyDBInfoData_t *snoopEntry;
+  snoop_eb_t *pSnoopEB;
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  L7_INTF_MASK_t zeroMask;
+#endif /* L7_MCAST_PACKAGE */
+  L7_uint32 freeIdx;
+#endif
+
+  pSnoopEB = snoopEBGet();
+  pData = snoopPTinProxyDBEntryFind(groupAddr,interfaceIdx, vlanId, L7_MATCH_EXACT);
+  if (pData == L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
+    return L7_FAILURE;
+  }
+  snoopEntry = pData;
+
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  memset(&zeroMask, 0x00, sizeof(L7_INTF_MASK_t));
+  snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
+#endif /* L7_MCAST_PACKAGE */
+#endif
+
+  pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyDBAvlTree, pData);
+
+  if (pData == L7_NULL)
+  {
+    /* Entry does not exist */
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry does not exist");
+    return L7_FAILURE;
+  }
+  if (pData == snoopEntry)
+  {
+    /* Entry deleted */
+#if 0
+#ifdef L7_NSF_PACKAGE
+    if (pSnoopEB->snoopBackupElected == L7_TRUE)
+    {
+      snoopCheckpointCallback1(SNOOP_CKPT_MSG_GA_DEL_DATA, macAddr, vlanId, family, 0, L7_NULL, L7_NULL, L7_NULL);
+    }
+#endif /* L7_NSF_PACKAGE */
+#endif
+    return L7_SUCCESS;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * @purpose Finds an entry with the given mcastGroupAddr and vlanId
+ *
+ * @param mcastGroupAddr  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_addr_t groupAddr, L7_uint32 flag)
+{
+  snoopPTinProxyGrouprecordInfoData_t *snoopEntry;
+  snoopPTinProxyGrouprecordInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxyGrouprecordInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+//memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+//memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxyGrouprecordInfoDataKey, sizeof(snoopPTinProxyGrouprecordInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    return snoopEntry;
+  }
+}
+
+/**
+ * @purpose Add a new entry to the PTin Proxy CSR AVL Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return  L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr)
+{
+  snoopPTinProxyGrouprecordInfoData_t snoopEntry;
+  snoopPTinProxyGrouprecordInfoData_t *pData;
+#if 0
+  L7_uint32 ivlLength = 0, freeIdx;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+
+  if (fdbType == L7_IVL)
+  {
+    ivlLength = L7_FDB_IVL_ID_LEN;
+    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+  }
+#endif
+
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyGrouprecordInfoData_t));
+  memcpy(&snoopEntry.snoopPTinProxyGrouprecordInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+//memcpy(&snoopEntry.snoopPTinProxyCSRInfoDataKey.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+//memcpy(&snoopEntry.snoopPTinProxyCSRInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, &snoopEntry);
+
+  if (pData == L7_NULL)
+  {
+    /*entry was added into the avl tree*/
+    if ((pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, AVL_EXACT)) == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
+  if (pData == &snoopEntry)
+  {
+    /*some error in avl tree addition*/
+    return L7_FAILURE;
+  }
+
+  /*entry already exists*/
+  return L7_FAILURE;
+}
+
+/**
+ * @purpose Remove an existing entry to the PTin Proxy CSR AVL 
+ *          Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t  groupAddr)
+{
+  snoopPTinProxyGrouprecordInfoData_t *pData;
+  snoopPTinProxyGrouprecordInfoData_t *snoopEntry;
+  snoop_eb_t *pSnoopEB;
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  L7_INTF_MASK_t zeroMask;
+#endif /* L7_MCAST_PACKAGE */
+  L7_uint32 freeIdx;
+#endif
+
+  pSnoopEB = snoopEBGet();
+  pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, L7_MATCH_EXACT);
+  if (pData == L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
+    return L7_FAILURE;
+  }
+  snoopEntry = pData;
+
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  memset(&zeroMask, 0x00, sizeof(L7_INTF_MASK_t));
+  snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
+#endif /* L7_MCAST_PACKAGE */
+#endif
+
+  pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, pData);
+
+  if (pData == L7_NULL)
+  {
+    /* Entry does not exist */
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry does not exist");
+    return L7_FAILURE;
+  }
+  if (pData == snoopEntry)
+  {
+    /* Entry deleted */
+#if 0
+#ifdef L7_NSF_PACKAGE
+    if (pSnoopEB->snoopBackupElected == L7_TRUE)
+    {
+      snoopCheckpointCallback1(SNOOP_CKPT_MSG_GA_DEL_DATA, macAddr, vlanId, family, 0, L7_NULL, L7_NULL, L7_NULL);
+    }
+#endif /* L7_NSF_PACKAGE */
+#endif
+    return L7_SUCCESS;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * @purpose Finds an entry with the given mcastGroupAddr and vlanId
+ *
+ * @param mcastGroupAddr  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxyInterfacetimerInfoData_t *snoopPTinProxyInterfacetimerEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+{
+  snoopPTinProxyInterfacetimerInfoData_t *snoopEntry;
+  snoopPTinProxyInterfacetimerInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxyInterfacetimerInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_inet_addr_t));
+  memcpy(&key.vlanId, &vlanId, sizeof(L7_uint16));
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyInterfacetimerAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxyInterfacetimerInfoDataKey, sizeof(snoopPTinProxyInterfacetimerInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    return snoopEntry;
+  }
+}
+
+/**
+ * @purpose Add a new entry to the PTin Proxy CSR AVL Tree
+ *
+ * @param interfaceIdx
+ * @param vlanId
+ *
+ * @return  L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyInterfacetimerEntryAdd(L7_uint16  interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyInterfacetimerInfoData_t snoopEntry;
+  snoopPTinProxyInterfacetimerInfoData_t *pData;
+#if 0
+  L7_uint32 ivlLength = 0, freeIdx;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+
+  if (fdbType == L7_IVL)
+  {
+    ivlLength = L7_FDB_IVL_ID_LEN;
+    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+  }
+#endif
+
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyInterfacetimerInfoData_t));
+  memcpy(&snoopEntry.snoopPTinProxyInterfacetimerInfoDataKey.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  memcpy(&snoopEntry.snoopPTinProxyInterfacetimerInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint16));
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyInterfacetimerAvlTree, &snoopEntry);
+
+  if (pData == L7_NULL)
+  {
+    /*entry was added into the avl tree*/
+    if ((pData = snoopPTinProxyInterfacetimerEntryFind(interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
+  if (pData == &snoopEntry)
+  {
+    /*some error in avl tree addition*/
+    return L7_FAILURE;
+  }
+
+  /*entry already exists*/
+  return L7_FAILURE;
+}
+
+/**
+ * @purpose Remove an existing entry to the PTin Proxy CSR AVL 
+ *          Tree
+ *
+ * @param interfaceIdx
+ * @param vlanId
+ *
+ * @return L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyInterfacetimerEntryDelete(L7_uint16  interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyInterfacetimerInfoData_t *pData;
+  snoopPTinProxyInterfacetimerInfoData_t *snoopEntry;
+  snoop_eb_t *pSnoopEB;
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  L7_INTF_MASK_t zeroMask;
+#endif /* L7_MCAST_PACKAGE */
+  L7_uint32 freeIdx;
+#endif
+
+  pSnoopEB = snoopEBGet();
+  pData = snoopPTinProxyInterfacetimerEntryFind(interfaceIdx, vlanId, L7_MATCH_EXACT);
+  if (pData == L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
+    return L7_FAILURE;
+  }
+  snoopEntry = pData;
+
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  memset(&zeroMask, 0x00, sizeof(L7_INTF_MASK_t));
+  snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
+#endif /* L7_MCAST_PACKAGE */
+#endif
+
+  pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyInterfacetimerAvlTree, pData);
+
+  if (pData == L7_NULL)
+  {
+    /* Entry does not exist */
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry does not exist");
+    return L7_FAILURE;
+  }
+  if (pData == snoopEntry)
+  {
+    /* Entry deleted */
+#if 0
+#ifdef L7_NSF_PACKAGE
+    if (pSnoopEB->snoopBackupElected == L7_TRUE)
+    {
+      snoopCheckpointCallback1(SNOOP_CKPT_MSG_GA_DEL_DATA, macAddr, vlanId, family, 0, L7_NULL, L7_NULL, L7_NULL);
+    }
+#endif /* L7_NSF_PACKAGE */
+#endif
+    return L7_SUCCESS;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * @purpose Finds an entry with the given interfaceIdx and vlanId
+ *
+ * @param interfaceIdx  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+{
+  snoopPTinProxyGrouptimerInfoData_t *snoopEntry;
+  snoopPTinProxyGrouptimerInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxyGrouptimerInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGrouptimerAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxyGrouptimerInfoDataKey, sizeof(snoopPTinProxyGrouptimerInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    return snoopEntry;
+  }
+}
+
+/**
+ * @purpose Add a new entry to the PTin Proxy CSR AVL Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return  L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_inet_addr_t   groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyGrouptimerInfoData_t snoopEntry;
+  snoopPTinProxyGrouptimerInfoData_t *pData;
+#if 0
+  L7_uint32 ivlLength = 0, freeIdx;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+
+  if (fdbType == L7_IVL)
+  {
+    ivlLength = L7_FDB_IVL_ID_LEN;
+    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+  }
+#endif
+
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyGrouptimerInfoData_t));  
+  memcpy(&snoopEntry.snoopPTinProxyGrouptimerInfoDataKey.interfaceIdx,         &interfaceIdx,         sizeof(L7_uint16));
+  memcpy(&snoopEntry.snoopPTinProxyGrouptimerInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+  memcpy(&snoopEntry.snoopPTinProxyGrouptimerInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGrouptimerAvlTree, &snoopEntry);
+
+  if (pData == L7_NULL)
+  {
+    /*entry was added into the avl tree*/
+    if ((pData = snoopPTinProxyGrouptimerEntryFind(groupAddr,interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
+  if (pData == &snoopEntry)
+  {
+    /*some error in avl tree addition*/
+    return L7_FAILURE;
+  }
+
+  /*entry already exists*/
+  return L7_FAILURE;
+}
+
+/**
+ * @purpose Remove an existing entry to the PTin Proxy CSR AVL 
+ *          Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxyGrouptimerEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxyGrouptimerInfoData_t *pData;
+  snoopPTinProxyGrouptimerInfoData_t *snoopEntry;
+  snoop_eb_t *pSnoopEB;
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  L7_INTF_MASK_t zeroMask;
+#endif /* L7_MCAST_PACKAGE */
+  L7_uint32 freeIdx;
+#endif
+
+  pSnoopEB = snoopEBGet();
+  pData = snoopPTinProxyGrouptimerEntryFind(groupAddr, vlanId,interfaceIdx, L7_MATCH_EXACT);
+  if (pData == L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
+    return L7_FAILURE;
+  }
+  snoopEntry = pData;
+
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  memset(&zeroMask, 0x00, sizeof(L7_INTF_MASK_t));
+  snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
+#endif /* L7_MCAST_PACKAGE */
+#endif
+
+  pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyGrouptimerAvlTree, pData);
+
+  if (pData == L7_NULL)
+  {
+    /* Entry does not exist */
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry does not exist");
+    return L7_FAILURE;
+  }
+  if (pData == snoopEntry)
+  {
+    /* Entry deleted */
+#if 0
+#ifdef L7_NSF_PACKAGE
+    if (pSnoopEB->snoopBackupElected == L7_TRUE)
+    {
+      snoopCheckpointCallback1(SNOOP_CKPT_MSG_GA_DEL_DATA, macAddr, vlanId, family, 0, L7_NULL, L7_NULL, L7_NULL);
+    }
+#endif /* L7_NSF_PACKAGE */
+#endif
+    return L7_SUCCESS;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * @purpose Finds an entry with the given mcastGroupAddr and vlanId
+ *
+ * @param mcastGroupAddr  Multicast IP Address
+ * @param vlanId          VLAN ID
+ * @param flag            Flag type for search
+*                                L7_MATCH_EXACT   - Exact match
+*                                L7_MATCH_GETNEXT - Next entry greater
+*                                                   than this one
+*
+ * @return  Matching entry or NULL on failure
+ */
+snoopPTinProxySourcetimerInfoData_t *snoopPTinProxySourcetimerEntryFind(L7_inet_addr_t  groupAddr, L7_inet_addr_t sourceAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+{
+  snoopPTinProxySourcetimerInfoData_t *snoopEntry;
+  snoopPTinProxySourcetimerInfoDataKey_t key;
+#if 0
+  L7_uint32 ivlLength = 0;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  memset((void *) &key, 0x00, sizeof(snoopPTinProxySourcetimerInfoDataKey_t));
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+#endif
+
+  memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.sourceAddr, &sourceAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  
+  snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxySourcetimerAvlTree, &key, flag);
+  if (flag == L7_MATCH_GETNEXT)
+  {
+    while (snoopEntry)
+    {
+#if 0
+      if (snoopEntry->snoopInfoDataKey.family == family)
+      {
+        break;
+      }
+#endif
+      memcpy(&key, &snoopEntry->snoopPTinProxySourcetimerInfoDataKey, sizeof(snoopPTinProxySourcetimerInfoDataKey_t));
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+    }
+  }
+
+  if (snoopEntry == L7_NULL)
+  {
+    return L7_NULLPTR;
+  }
+  else
+  {
+    return snoopEntry;
+  }
+}
+
+/**
+ * @purpose Add a new entry to the PTin Proxy CSR AVL Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return  L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxySourcetimerEntryAdd(L7_inet_addr_t  groupAddr, L7_inet_addr_t sourceAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxySourcetimerInfoData_t snoopEntry;
+  snoopPTinProxySourcetimerInfoData_t *pData;
+#if 0
+  L7_uint32 ivlLength = 0, freeIdx;
+  L7_FDB_TYPE_t fdbType;
+#endif
+  snoop_eb_t *pSnoopEB;
+
+  pSnoopEB = snoopEBGet();
+
+#if 0
+  fdbGetTypeOfVL(&fdbType);
+
+  if (fdbType == L7_IVL)
+  {
+    ivlLength = L7_FDB_IVL_ID_LEN;
+    memcpy(snoopEntry.snoopInfoDataKey.vlanIdMacAddr, &vid, ivlLength);
+  }
+#endif
+
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinProxySourcetimerInfoData_t));
+  memcpy(&snoopEntry.snoopPTinProxySourcetimerInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&snoopEntry.snoopPTinProxySourcetimerInfoDataKey.sourceAddr, &sourceAddr, sizeof(L7_inet_addr_t));
+  memcpy(&snoopEntry.snoopPTinProxySourcetimerInfoDataKey.interfaceIdx,         &interfaceIdx,         sizeof(L7_uint16 ));
+  memcpy(&snoopEntry.snoopPTinProxySourcetimerInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32 ));
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinProxySourcetimerAvlTree, &snoopEntry);
+
+  if (pData == L7_NULL)
+  {
+    /*entry was added into the avl tree*/
+    if ((pData = snoopPTinProxySourcetimerEntryFind(groupAddr,sourceAddr,interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
+  if (pData == &snoopEntry)
+  {
+    /*some error in avl tree addition*/
+    return L7_FAILURE;
+  }
+
+  /*entry already exists*/
+  return L7_FAILURE;
+}
+
+/**
+ * @purpose Remove an existing entry to the PTin Proxy CSR AVL 
+ *          Tree
+ *
+ * @param mcastGroupAddr
+ * @param vlanId
+ *
+ * @return L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t snoopPTinProxySourcetimerEntryDelete(L7_inet_addr_t  groupAddr, L7_inet_addr_t sourceAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+{
+  snoopPTinProxySourcetimerInfoData_t *pData;
+  snoopPTinProxySourcetimerInfoData_t *snoopEntry;
+  snoop_eb_t *pSnoopEB;
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  L7_INTF_MASK_t zeroMask;
+#endif /* L7_MCAST_PACKAGE */
+  L7_uint32 freeIdx;
+#endif
+
+  pSnoopEB = snoopEBGet();
+  pData = snoopPTinProxySourcetimerEntryFind(groupAddr,sourceAddr,interfaceIdx, vlanId, L7_MATCH_EXACT);
+  if (pData == L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
+    return L7_FAILURE;
+  }
+  snoopEntry = pData;
+
+#if 0
+#ifdef L7_MCAST_PACKAGE
+  memset(&zeroMask, 0x00, sizeof(L7_INTF_MASK_t));
+  snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
+#endif /* L7_MCAST_PACKAGE */
+#endif
+
+  pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxySourcetimerAvlTree, pData);
+
+  if (pData == L7_NULL)
+  {
+    /* Entry does not exist */
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry does not exist");
+    return L7_FAILURE;
+  }
+  if (pData == snoopEntry)
+  {
+    /* Entry deleted */
+#if 0
+#ifdef L7_NSF_PACKAGE
+    if (pSnoopEB->snoopBackupElected == L7_TRUE)
+    {
+      snoopCheckpointCallback1(SNOOP_CKPT_MSG_GA_DEL_DATA, macAddr, vlanId, family, 0, L7_NULL, L7_NULL, L7_NULL);
+    }
+#endif /* L7_NSF_PACKAGE */
+#endif
+    return L7_SUCCESS;
+  }
+  return L7_SUCCESS;
+}
+
+
 #endif
 
 #endif /* L7_MCAST_PACKAGE */
