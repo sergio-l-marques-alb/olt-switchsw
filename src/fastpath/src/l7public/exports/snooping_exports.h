@@ -64,7 +64,7 @@ typedef enum
 #define L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME              3600
 
 #define L7_IGMP_SNOOPING_QUERIER_MIN_VERSION                    1
-#define L7_IGMP_SNOOPING_QUERIER_MAX_VERSION                    2
+#define L7_IGMP_SNOOPING_QUERIER_MAX_VERSION                    3   /* PTin Modified: IGMPv3 snooping */
 #define L7_IGMP_SNOOPING_QUERIER_MIN_QUERY_INTERVAL             1
 #define L7_IGMP_SNOOPING_QUERIER_MAX_QUERY_INTERVAL             1800
 #define L7_IGMP_SNOOPING_QUERIER_MIN_EXPIRY_INTERVAL            60

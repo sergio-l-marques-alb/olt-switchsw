@@ -23,10 +23,13 @@
 
 #include "snooping.h"
 
+
 #define MGMD_REPORT_NUM_SOURCES_OFFSET 6
 
 #define SNOOP_IGMPv1v2_HEADER_LENGTH    8
 #define SNOOP_IGMPV3_HEADER_MIN_LENGTH  12
+
+#define SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH 8
 
 #define SNOOP_MLDV1_HEADER_LENGTH      24
 #define SNOOP_MLDV2_HEADER_MIN_LENGTH  28
@@ -60,6 +63,13 @@
 #define SNOOP_IP6_TOS       0xC000
 #define SNOOP_IP6_TOS       0xC000
 
+#define IGMP_PKT_MIN_LENGTH       8
+#define IGMP_V3_PKT_MIN_LENGTH    12
+#define MLD_PKT_MIN_LENGTH        24
+#define MLD_V2_PKT_MIN_LENGTH     28
+#define IGMPV3_MAX_QUERY_DATA_LEN ((MGMD_MAX_QUERY_SOURCES * sizeof(L7_IP_ADDR_t)) + \
+                                    sizeof(L7_mgmdv3Query_t) - \
+                                    sizeof(L7_mgmdMsg_t) - sizeof(L7_uint32))
 #define SNOOP_MGMD_RBST_VAR_GET(x) ((x) & 0x07)
 #define SNOOP_MGMD_OTHER_QRYR_INTRVL_GET(x,y,z) (((x)*(y))+((z)/2))
 #define SNOOP_IP6_HOPBHOP_LEN_GET(x) (((x) * 8) + 8)
@@ -79,6 +89,7 @@
 
 #define SNOOP_IP6_ADDR_BUFF_SIZE 42
 #define SNOOP_MAC_ADDR_BUFF_SIZE 20
+ 
 
 /*****************************************************************************
  PDU Message Structures
@@ -93,6 +104,7 @@ typedef struct L7_mgmdMsg_s
   L7_ushort16       mgmdReserved;     /* Reserved */
   L7_inet_addr_t    mgmdGroupAddr;    /* group address */
 } L7_mgmdMsg_t;
+
 
 /* MGMD message */
 typedef struct L7_mgmdQueryMsg_s
@@ -168,6 +180,7 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
                                       sysnet_pdu_info_t *pduInfo,
                                       L7_FUNCPTR_t continueFunc);
 L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket);
+L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket); //PTIN: IGMPv3&MLDv2 Support
 L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket);
 L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t 
                                                     *mcastPacket);
@@ -175,7 +188,7 @@ L7_RC_t snoopPimv1v2DvmrpProcess(mgmdSnoopControlPkt_t *mcastPacket,
                               L7_inet_addr_t *grpAddr, L7_uint32 ipProtoType);
 L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
 
-
+L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket);
 
 /* End of function prototypes */
 #endif /* SNOOPING_PROTO_H */

@@ -67,5 +67,16 @@ L7_RC_t     snoopCnfgrConfigFileReadApply(struct snoop_cb_s *pSnoopCB,
                                           L7_BOOL warmRestart,
                                           L7_CNFGR_RESPONSE_t *pResponse,
                                           L7_CNFGR_ERR_RC_t   *pReason);
+#if 1
+/*PTIN Added 
+  MGDM Memory Initialization*/
+L7_RC_t     snoopRouterInit(void);
+L7_RC_t     snoopProxyDBInit(void);
+L7_RC_t     snoopProxyGrouprecordInit(void);
+
+L7_RC_t     snoopProxyInterfacetimerInit(void);
+L7_RC_t     snoopProxyGrouptimerInit(void);
+L7_RC_t     snoopProxySourcetimerInit(void);
+#endif
 
 #endif /* INCLUDE_SNOOPING_CNFGR_H */
