@@ -22,3 +22,4 @@ L7_RC_t   snoop_ptin_proxy_Grouptimer_deinit(void);
 L7_RC_t   snoop_ptin_proxy_Grouptimer_start(snoopPTinProxyGrouptimer_t *pTimer, L7_uint32 timeout, L7_uchar8 mgmdsQRV,snoopPTinProxyGrouptimerInfoData_t* groupData);
 L7_RC_t   snoop_ptin_proxy_Grouptimer_stop(snoopPTinProxyGrouptimer_t *pTimer);
 L7_uint32 snoop_ptin_proxy_Grouptimer_timeleft(snoopPTinProxyGrouptimer_t *pTimer);
+L7_BOOL snoop_ptin_proxy_Grouptimer_isRunning(snoopPTinProxyGrouptimer_t *pTimer);

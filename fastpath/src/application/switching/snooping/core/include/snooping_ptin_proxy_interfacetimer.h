@@ -22,3 +22,4 @@ L7_RC_t   snoop_ptin_proxy_Interfacetimer_deinit(void);
 L7_RC_t snoop_ptin_proxy_Interfacetimer_start(snoopPTinProxyInterfacetimer_t* pTimer, L7_uint32 timeout, L7_uchar8 mgmdsQRV, snoopPTinProxyInterfacetimerInfoData_t* groupData);
 L7_RC_t   snoop_ptin_proxy_Interfacetimer_stop(snoopPTinProxyInterfacetimer_t *pTimer);
 L7_uint32 snoop_ptin_proxy_Interfacetimer_timeleft(snoopPTinProxyInterfacetimer_t *pTimer);
+L7_BOOL snoop_ptin_proxy_Interfacetimer_isRunning(snoopPTinProxyInterfacetimer_t *pTimer);
