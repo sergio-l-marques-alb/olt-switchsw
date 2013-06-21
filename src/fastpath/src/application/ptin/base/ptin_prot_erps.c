@@ -90,43 +90,48 @@ int ptin_erps_init_entry(L7_uint32 erps_idx)
     return(ret);
   }
 
-  tbl_erps[erps_idx].admin                        = PROT_ERPS_ENTRY_FREE;
+  tbl_erps[erps_idx].admin                            = PROT_ERPS_ENTRY_FREE;
 
-  tbl_erps[erps_idx].protParam.ringId             = 0;
+  tbl_erps[erps_idx].protParam.ringId                 = 0;
 
-  tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]   = PROT_ERPS_SF_CLEAR;
-  tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]   = PROT_ERPS_SF_CLEAR;
+  tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]       = PROT_ERPS_SF_CLEAR;
+  tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]       = PROT_ERPS_SF_CLEAR;
 
-  tbl_erps[erps_idx].wtr_timer                    = 0;
-  tbl_erps[erps_idx].wtr_CMD                      = TIMER_CMD_STOP;
-  tbl_erps[erps_idx].wtb_timer                    = 0;
-  tbl_erps[erps_idx].wtb_CMD                      = TIMER_CMD_STOP;
-  tbl_erps[erps_idx].holdoff_timer                = 0;
-  tbl_erps[erps_idx].holdoff_timer_previous       = 0;
+  tbl_erps[erps_idx].wtr_timer                        = 0;
+  tbl_erps[erps_idx].wtr_CMD                          = TIMER_CMD_STOP;
+  tbl_erps[erps_idx].wtb_timer                        = 0;
+  tbl_erps[erps_idx].wtb_CMD                          = TIMER_CMD_STOP;
+  tbl_erps[erps_idx].holdoff_timer                    = 0;
+  tbl_erps[erps_idx].holdoff_timer_previous           = 0;
 
-  tbl_erps[erps_idx].operator_cmd                 = PROT_ERPS_OPCMD_NR;
-  tbl_erps[erps_idx].operator_cmd_port            = 0;
+  tbl_erps[erps_idx].operator_cmd                     = PROT_ERPS_OPCMD_NR;
+  tbl_erps[erps_idx].operator_cmd_port                = 0;
 
-  tbl_erps[erps_idx].localRequest                 = LReq_NONE;
-  tbl_erps[erps_idx].remoteRequest                = RReq_NONE;
+  tbl_erps[erps_idx].localRequest                     = LReq_NONE;
+  tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
 
-  tbl_erps[erps_idx].apsReqStatusTx               = 0;
-  tbl_erps[erps_idx].apsReqStatusRx               = 0;
-  memset(tbl_erps[erps_idx].apsNodeIdRx,            0, PROT_ERPS_MAC_SIZE);
+  tbl_erps[erps_idx].apsReqStatusTx                   = 0;
+  tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = 0;
+  tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = 0;  
 
-  tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]   = ERP_PORT_FLUSHING;
-  tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]   = ERP_PORT_FLUSHING;
-  tbl_erps[erps_idx].rplBlockedPortSide           = PROT_ERPS_PORT0;
+  memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], 0, PROT_ERPS_MAC_SIZE);
+  memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], 0, PROT_ERPS_MAC_SIZE);
 
-  tbl_erps[erps_idx].state_machine                = ERP_STATE_SetLocal(ERPS_STATE_Z_Init);
+  tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0]        = 0;
+  tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]        = 0;
 
+  tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]       = ERP_PORT_FLUSHING;
+  tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]       = ERP_PORT_FLUSHING;
+  tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;
 
-  tbl_erps[erps_idx].hal.rd_alarms                = rd_alarms_dummy;
-  tbl_erps[erps_idx].hal.aps_rxfields             = aps_rxdummy;
-  tbl_erps[erps_idx].hal.aps_txfields             = aps_txdummy;
+  tbl_erps[erps_idx].state_machine                    = ERP_STATE_SetLocal(ERPS_STATE_Z_Init);
 
-  tbl_erps[erps_idx].hal.switch_path              = switch_path_dummy;
-  tbl_erps[erps_idx].hal.prot_proc                = prot_proc_dummy;
+  tbl_erps[erps_idx].hal.rd_alarms                    = rd_alarms_dummy;
+  tbl_erps[erps_idx].hal.aps_rxfields                 = aps_rxdummy;
+  tbl_erps[erps_idx].hal.aps_txfields                 = aps_txdummy;
+
+  tbl_erps[erps_idx].hal.switch_path                  = switch_path_dummy;
+  tbl_erps[erps_idx].hal.prot_proc                    = prot_proc_dummy;
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -298,8 +303,16 @@ int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].remoteRequest              = RReq_NONE;
 
   tbl_erps[erps_idx].apsReqStatusTx             = 0;
-  tbl_erps[erps_idx].apsReqStatusRx             = 0;
-  memset(tbl_erps[erps_idx].apsNodeIdRx,          0, PROT_ERPS_MAC_SIZE);
+
+  tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = 0;
+  tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = 0;  
+
+  memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], 0, PROT_ERPS_MAC_SIZE);
+  memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], 0, PROT_ERPS_MAC_SIZE);
+
+  tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0]  = 0;
+  tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]  = 0;
+
 
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] = ERP_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] = ERP_PORT_FLUSHING;
@@ -684,8 +697,8 @@ int ptin_erps_rd_entry(L7_uint32 erps_idx)
   printf("\n  rapidTxInterval     %d",                      tbl_erps[erps_idx].protParam.rapidTxInterval);
   printf("\n-----------------------------------------");
   printf("\n\nERPS States:\n");
-  printf("\n  status_SF[PORT0]    %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]);
-  printf("\n  status_SF[PORT1]    %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]);
+  printf("\n  status_SF[P0]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]);
+  printf("\n  status_SF[P1]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]);
   printf("\n");
   printf("\n  wtr_CMD             %s",                      strTimerCmd[tbl_erps[erps_idx].wtr_CMD]);
   printf("\n  wtb_CMD             %s",                      strTimerCmd[tbl_erps[erps_idx].wtb_CMD]);
@@ -703,10 +716,15 @@ int ptin_erps_rd_entry(L7_uint32 erps_idx)
   printf("\nAPS State Machine:\n");
   printf("\n  localRequest        %s",                      locReqToString[tbl_erps[erps_idx].localRequest - 100]);
   printf("\n  remoteRequest       %s",                      remReqToString[tbl_erps[erps_idx].remoteRequest]);
-  printf("\n  apsReqStatusTx      (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusTx, remReqToString[APS_GET_REQ(tbl_erps[erps_idx].apsReqStatusTx)]);
-  printf("\n  apsReqStatusRx      (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusRx, remReqToString[APS_GET_REQ(tbl_erps[erps_idx].apsReqStatusRx)]);
-  printf("\n  portState[PORT0]    (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
-  printf("\n  portState[PORT1]    (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
+  printf("\n  apsReqStatusTx      (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusTx, remReqToString[((tbl_erps[erps_idx].apsReqStatusTx >> 12) & 0xF)]);
+  printf("\n  apsReqStatusRx[P0]  (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0], remReqToString[((tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0] >> 12) & 0xF)]);
+  printf("\n  apsReqStatusRx[P1]  (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1], remReqToString[((tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1] >> 12) & 0xF)]);
+  printf("\n  apsNodeIdRx[P0]     %.2x:%.2x:%.2x:%.2x:%.2x:%.2x", tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][1], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][2], 
+                                                                  tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][5]);
+  printf("\n  apsNodeIdRx[P1]     %.2x:%.2x:%.2x:%.2x:%.2x:%.2x", tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][1], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][2], 
+                                                                  tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][5]);
+  printf("\n  portState[P0]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
+  printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
   printf("\n  rplBlockedPortSide  %d",                      tbl_erps[erps_idx].rplBlockedPortSide);
   printf("\n  state_machine       (0x%x) %s:%s",            tbl_erps[erps_idx].state_machine,
                                                             stateToString[ERP_STATE_GetState(tbl_erps[erps_idx].state_machine)],
@@ -875,8 +893,7 @@ int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int
   apsTx = ((reqstate << 12) & 0xF000) | (status & 0x00FF);
 
   if (tbl_erps[erps_idx].apsReqStatusTx != apsTx) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: %s(%d) (line_callback %d)", erps_idx, remReqToString[reqstate], status, line_callback);
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Tx R-APS Request(0x%x) = %s(0x%x)",  erps_idx, reqstate, remReqToString[reqstate], status);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Tx R-APS Request(0x%x) = %s(0x%x) (line_callback %d)",  erps_idx, reqstate, remReqToString[reqstate], status, line_callback);
   }
 
   tbl_erps[erps_idx].hal.aps_txfields(erps_idx, reqstate, status);
@@ -902,11 +919,11 @@ int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int
  */
 int ptin_erps_aps_rx(L7_uint32 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport, int line_callback)
 {
-  int ret = PROT_ERPS_EXIT_OK;
+  int ret;
 
   //LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d (line_callback %d)", erps_idx, line_callback);
 
-  tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, reqstate, status, nodeid, rxport);
+  ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, reqstate, status, nodeid, rxport);
 
   return(ret);
 }
@@ -971,14 +988,15 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
 
   L7_uint8  SF[2];
 
-  L7_uint8  localRequest        = LReq_NONE;
-  L7_uint8  remoteRequest       = LReq_NONE;
-  L7_uint8  apsReqStateRx       = 0;
-  L7_uint8  apsStatusRx         = 0;
-  L7_uint32 apsRxPort           = 0;
-  L7_uint8  topPriorityRequest  = LReq_NONE;  //The current top priority request as defined in sub-clause 10.1.1.
-  L7_BOOL   haveChanges         = L7_FALSE;
-  L7_uint8  req_port            = 0;          // Request or Failed Port
+  L7_uint8  localRequest                      = LReq_NONE;
+  L7_uint8  remoteRequest                     = RReq_NONE;
+  L7_uint8  apsReqStateRx                     = 0;
+  L7_uint8  apsStatusRx                       = 0;
+  L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE]   = {0};
+  L7_uint32 apsRxPort                         = 0;
+  L7_uint8  topPriorityRequest                = LReq_NONE;  //The current top priority request as defined in sub-clause 10.1.1.
+  L7_BOOL   haveChanges                       = L7_FALSE;
+  L7_uint8  req_port                          = 0;          // Request or Failed Port
 
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS# %d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
@@ -996,14 +1014,20 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
 
 
   //--------------------------------------------------------------------------------------------
-  // R-APS request
-  ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, tbl_erps[erps_idx].apsNodeIdRx, &apsRxPort, __LINE__);
+  // R-APS request (Rx check)
+  if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
+    remoteRequest = APS_GET_REQ(apsReqStateRx);
 
-  remoteRequest = APS_GET_REQ(apsReqStateRx);
-  
-  //LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Received R-APS Request(0x%x) = %s(0x%x)", erps_idx, remoteRequest,
-  //          remReqToString[remoteRequest], APS_GET_STATUS(apsReqStatusRx));
-
+    //LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
+    //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
+    //        apsNodeIdRx[0],
+    //        apsNodeIdRx[1],
+    //        apsNodeIdRx[2],
+    //        apsNodeIdRx[3],
+    //        apsNodeIdRx[4],
+    //        apsNodeIdRx[5]);
+  }
+    
 
   //--------------------------------------------------------------------------------------------
   // 10.1.9.  Local Priority Logic
@@ -1531,7 +1555,7 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
       //If neither RPL Owner Node nor RPL Neighbour Node, and remote Node ID is higher than own Node ID:
       if ( ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPL))                   &&
            ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPLNEIGHBOUR) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPLNEIGHBOUR)) && 
-           (0 /* remote Node ID is higher than own Node ID */)                                                                                      ) {
+           (memcmp(apsNodeIdRx, ERP_NODE_ID, PROT_ERPS_MAC_SIZE) > 0) ) {
 
         //Unblock non-failed ring port
         ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERP_PORT_FLUSHING, __LINE__);
@@ -2489,7 +2513,7 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
     //R-APS (NR)  71
     if ( topPriorityRequest == RReq_NR ) {
       //If remote Node ID is higher than own Node ID:
-      if (0 /*** TO BE DONE ***/) {
+      if (memcmp(apsNodeIdRx, ERP_NODE_ID, PROT_ERPS_MAC_SIZE) > 0) {
         //Unblock non-failed ring port
         ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERP_PORT_FLUSHING, __LINE__);
 
@@ -2537,9 +2561,10 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
   }
   if (remoteRequest != RReq_NONE) {
     tbl_erps[erps_idx].remoteRequest = remoteRequest;
-  }
 
-  tbl_erps[erps_idx].apsReqStatusRx = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
+    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
+    memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+  }  
 
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = SF[PROT_ERPS_PORT0];
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = SF[PROT_ERPS_PORT1];
@@ -2614,7 +2639,7 @@ void ptin_erps_task(void)
   while (1) {
     ptin_prot_erps_proc();
 
-    sleep(10);
+    sleep(1);
     //sleep(PROT_ERPS_CALL_PROC_MS);
   }
 }
@@ -2653,25 +2678,24 @@ L7_RC_t ptin_prot_erps_init(void)
 
 
 /****************************************************************************/
+
 /*
  * TEST
  */
-
-void ptin_prot_erps_test(int test, int param1)
+void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param4)
 {
   if (test == 0) {
     LOG_INFO(LOG_CTX_ERPS,"Test 0: Add prot ERPS# %d", param1);
 
     erpsProtParam_t new_group;
     memset(&new_group, 0, sizeof(erpsProtParam_t));
-    new_group.controlVid = 7+param1;
-    new_group.port0.idx = 8;
-    new_group.port1.idx = 9;
+    new_group.controlVid = param2;
+    new_group.port0.idx =  param3;
+    new_group.port1.idx =  param4;
+    new_group.ringId =     3;
     ptin_erps_add_entry( /*erps_idx*/ param1, &new_group);
 
     ptin_hal_erps_entry_init(/*erps_idx*/ param1);
-
-    sleep(3);
 
   } else {
     LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n  Test 0: Add prot ERPS#");
