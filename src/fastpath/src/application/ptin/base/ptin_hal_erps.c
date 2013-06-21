@@ -18,6 +18,8 @@
 
 #include <unistd.h>
 
+/// Mac Addr used as APS Src Mac and as ERP Node ID
+L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0};
 
 /// SW Data Base containing ERPS HAL information
 ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
@@ -41,11 +43,11 @@ void ptin_hal_apsPacketTx_task(void);
  */
 L7_RC_t ptin_hal_erps_init(void)
 {
-  // 1) struct init
+  // struct init
   memset(tbl_halErps, 0, MAX_PROT_PROT_ERPS*sizeof(ptinHalErps_t));
 
 
-  // 2) Create task for Tx packets
+  // Create task for Tx packets
   ptin_hal_apsPacketTx_TaskId = osapiTaskCreate("ptin_hal_apsPacketTx_task", ptin_hal_apsPacketTx_task, 0, 0,
                                            L7_DEFAULT_STACK_SIZE,
                                            L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
@@ -63,9 +65,10 @@ L7_RC_t ptin_hal_erps_init(void)
   }
   LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
 
-
-  // 3) Init APS packets trap and queues
-  ptin_aps_packet_init();
+  // Get base MAC address and use it as src MAC and Node Id
+  if (bspapiMacAddrGet(srcMacAddr) != L7_SUCCESS) {
+    PTIN_CRASH();
+  }
 
   return L7_SUCCESS;
 }
@@ -92,7 +95,10 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint32 erps_idx)
   erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
 
   // Create HW Rule
-  ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, 1);
+  ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 1);
+
+  // Init APS packets trap and queues
+  ptin_aps_packet_init();
 
   // Print some Debug
   LOG_TRACE(LOG_CTX_ERPS,"port0.idx %d --> %d", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
@@ -172,7 +178,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 s
 
   apsTx = ((req_state << 12) & 0xF000) | (status & 0x00FF);
 
-  if (tbl_halErps[erps_idx].apsReqStatusTx != apsTx) {
+  if ((tbl_halErps[erps_idx].apsReqStatusTx != apsTx) && (req_state != RReq_NONE)) {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req_state, status);
     ptin_hal_erps_sendapsX3(erps_idx, req_state, status);
   }
@@ -206,7 +212,7 @@ void ptin_hal_apsPacketTx_task(void)
     sleep(5);
 
     for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
-      if (tbl_halErps[erps_idx].used) {
+      if ( (tbl_halErps[erps_idx].used) && (((tbl_halErps[erps_idx].apsReqStatusTx >> 12) & 0xF) != RReq_NONE) ) {
         ptin_aps_packet_send(erps_idx, ((tbl_halErps[erps_idx].apsReqStatusTx >> 8) & 0xFF), (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF) );
       }
     }
@@ -227,11 +233,19 @@ void ptin_hal_apsPacketTx_task(void)
 L7_RC_t ptin_hal_erps_rcvaps(L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  L7_uint32 rxintport;
 
-  if (ptin_aps_packetRx_process(erps_idx, req_state, status, nodeid, rxport)==L7_SUCCESS) {
-      LOG_ERR(LOG_CTX_ERPS,"Processing APS message...");
+  if (ptin_aps_packetRx_process(erps_idx, req_state, status, nodeid, &rxintport)==L7_SUCCESS) {
+
+    if ( rxintport == tbl_halErps[erps_idx].port0intfNum ) {
+      *rxport = 0;
+    } else {
+      *rxport = 1;
+    }
+
+    return L7_SUCCESS;
   }
 
-  return L7_SUCCESS;
+  return L7_FAILURE;
 }
 
