@@ -340,7 +340,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_pppoe_init();
 
   /* Initialize ERPS data structures (includes semaphores and timer) */
+  #ifdef PTIN_ENABLE_ERPS
   ptin_prot_erps_init();
+  #endif
 
   ptin_oam_eth_init();
 

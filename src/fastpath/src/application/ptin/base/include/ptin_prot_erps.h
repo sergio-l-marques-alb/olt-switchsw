@@ -9,6 +9,10 @@
  *  
  */
 
+
+#include "ptin_globaldefs.h"
+#ifdef PTIN_ENABLE_ERPS
+
 #ifndef __PROT_ERPS_H__
 #define __PROT_ERPS_H__
 
@@ -38,6 +42,7 @@
 #define PROT_ERPS_SWITCH_DISABLED             2
 
 #define PROT_ERPS_MAC_SIZE                    L7_ENET_MAC_ADDR_LEN
+
 
 //-------------------------------------------------------------------------
 //  Error Codes
@@ -438,4 +443,6 @@ L7_RC_t ptin_prot_erps_init(void);
 //-------------------------------------------------------------------------
 
 #endif //__ERPS_H__
+
+#endif  // PTIN_ENABLE_ERPS
 

@@ -9,6 +9,10 @@
  *  
  */
 
+
+#include "ptin_globaldefs.h"
+#ifdef PTIN_ENABLE_ERPS
+
 #include "ptin_hal_erps.h"
 #include "ptin_prot_erps.h"
 #include "ptin_oam_packet.h"
@@ -17,6 +21,7 @@
 #include "ptin_intf.h"
 
 #include <unistd.h>
+
 
 /// Mac Addr used as APS Src Mac and as ERP Node ID
 L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0};
@@ -248,4 +253,6 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *
 
   return L7_FAILURE;
 }
+
+#endif  // PTIN_ENABLE_ERPS
 

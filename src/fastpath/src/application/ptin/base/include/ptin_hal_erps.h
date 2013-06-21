@@ -9,6 +9,10 @@
  *  
  */
 
+
+#include "ptin_globaldefs.h"
+#ifdef PTIN_ENABLE_ERPS
+
 #ifndef __HAL_ERPS_H__
 #define __HAL_ERPS_H__
 
@@ -105,4 +109,6 @@ extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint32 erps_idx, L7_uint8 *req_state, L7_
 
 
 #endif //__HAL_ERPS_H__
+
+#endif  // PTIN_ENABLE_ERPS
 

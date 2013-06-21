@@ -9,6 +9,10 @@
  *  
  */
 
+
+#include "ptin_globaldefs.h"
+#ifdef PTIN_ENABLE_ERPS
+
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -2701,4 +2705,6 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
     LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n  Test 0: Add prot ERPS#");
   }
 }
+
+#endif  // PTIN_ENABLE_ERPS
 

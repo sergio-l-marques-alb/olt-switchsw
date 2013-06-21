@@ -3,6 +3,16 @@
 
 #include "l7_platformspecs.h"
 
+/* ************************** */
+/* Global Features Activation */
+
+#if PTIN_BOARD_IS_MATRIX
+  #define PTIN_ENABLE_ERPS
+#endif  // PTIN_BOARD_IS_MATRIX
+
+/* ************************** */
+
+
 #if L7_FEAT_LAG_PRECREATE != 0
 #error L7_FEAT_LAG_PRECREATE must be set to 0! (feature.h)
 #endif
