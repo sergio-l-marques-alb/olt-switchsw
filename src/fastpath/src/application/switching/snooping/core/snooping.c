@@ -359,6 +359,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
   }
 
+  /* Validate intIfNum */
+  if (pduInfo->intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
+    return L7_FAILURE;
+  }
+
+  /* Get interface type */
   if (nimGetIntfType(pduInfo->intIfNum, &sysIntfType) != L7_SUCCESS)
   {
     return L7_FAILURE;

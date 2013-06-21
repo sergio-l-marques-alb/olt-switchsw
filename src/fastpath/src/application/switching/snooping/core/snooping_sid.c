@@ -36,7 +36,7 @@
 *********************************************************************/
 L7_int32 snoopSidDefaultStackSize()
 {
-  return ( FD_CNFGR_SNOOPING_DEFAULT_STACK_SIZE * 100 * 20 );//Modified by PTin *100*3
+  return ( FD_CNFGR_SNOOPING_DEFAULT_STACK_SIZE);
 }
 
 /*********************************************************************
