@@ -102,7 +102,7 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 
 
 
-
+#ifdef __802_1x__
 static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong32 error) {
     outbuff->flags   = (IPCLIB_FLAGS_NACK);
     outbuff->infoDim = sizeof(int);
@@ -158,7 +158,7 @@ L7_ushort16 i,n;
  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
  return(0);
 }//msg_generic_wrd
-
+#endif //__802_1x__
 
 
 
@@ -2604,7 +2604,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /************************************************************************** 
      * OAM MEPs Configuration
      **************************************************************************/
-
+#ifdef __Y1731_802_1ag_OAM_ETH__
     case CCMSG_WR_MEP:
     case CCMSG_FLUSH_MEP:
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
@@ -2746,7 +2746,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
-
+#endif //__Y1731_802_1ag_OAM_ETH__
 
     /************************************************************************** 
     * OAM MEPs Configuration
@@ -2782,7 +2782,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
 
 
-
+#ifdef __802_1x__
     case CCMSG_WR_802_1X_ADMINMODE:
     case CCMSG_WR_802_1X_TRACE:
     case CCMSG_WR_802_1X_VLANASSGNMODE:
@@ -2810,6 +2810,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_WR_802_1X_AUTHSERV:
       msg_generic_wrd(msg_wr_802_1x_AuthServ, inbuffer, outbuffer, sizeof(msg_802_1x_AuthServ), sizeof(msg_generic_prefix_t));
       break;
+#endif //__802_1x__
 
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE

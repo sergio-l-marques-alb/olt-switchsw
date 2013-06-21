@@ -5099,7 +5099,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 
 
 
-
+#ifdef __Y1731_802_1ag_OAM_ETH__
 #include <sirerrors.h>
 #include <ptin_prot_oam_eth.h>
 /************************************************************************** 
@@ -5442,7 +5442,7 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
   return L7_SUCCESS;
 
 }//msg_dump_LUT_MEPs
-
+#endif //__Y1731_802_1ag_OAM_ETH__
 
 
 
@@ -5549,7 +5549,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
 
 
-
+#ifdef __802_1x__
 #include <sirerrors.h>
 #include <usmdb_dot1x_api.h>
 #include <usmdb_dot1x_auth_serv_api.h>
@@ -5724,4 +5724,5 @@ L7_uchar8 e;
 
  return 0;
 }//msg_wr_802_1x_AuthServ
+#endif //__802_1x__
 

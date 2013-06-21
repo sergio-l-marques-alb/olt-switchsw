@@ -430,6 +430,8 @@ extern volatile st_fpga_map_t *fpga_map;
 /* OLT360 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
 
+#define __Y1731_802_1ag_OAM_ETH__
+
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
@@ -552,6 +554,8 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G)
+
+#define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
@@ -769,6 +773,8 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* OLT1T3 Matrix card V2 */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+
+#define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED

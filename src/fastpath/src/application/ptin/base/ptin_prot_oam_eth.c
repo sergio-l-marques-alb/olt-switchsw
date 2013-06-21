@@ -6,7 +6,6 @@
  * @author
  *  
  */
-
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -16,6 +15,10 @@
 #include <ptin_intf.h>
 #include <ethsrv_oam.h>
 #include <ptin_oam_packet.h>
+
+
+
+#ifdef __Y1731_802_1ag_OAM_ETH__
 
 /* *******************************************************************************/
 /*                                  GLOBAL VARS                                  */
@@ -389,4 +392,20 @@ L7_RC_t ptin_oam_eth_init(void)
 
   return L7_SUCCESS;
 }//ptin_oam_eth_init
+#else
+void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
+void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {}
+void ethsrv_oam_register_T(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 period) {}
+void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
+void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
+void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+
+int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
+                  L7_uint8 *buf, L7_ulong32 length, //ETH client buffer and length
+                  L7_uint64 vid, L7_uint8 prior, L7_uint8 CoS, L7_uint8 color, L7_uint16 ETHtype, L7_uint8 *pDMAC) {return 0;}
+
+L7_RC_t ptin_oam_eth_init(void) {return L7_SUCCESS;}
+#endif //__Y1731_802_1ag_OAM_ETH__
 
