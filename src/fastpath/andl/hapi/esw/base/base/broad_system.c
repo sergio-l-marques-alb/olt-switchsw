@@ -1976,13 +1976,13 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     /* APS packets */
     case PTIN_PACKET_APS:
     {
-      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+      switch (dapiCmd->cmdData.oamConfig.getOrSet)  {
         case DAPI_CMD_SET:
-          status = hapiBroadConfigApsFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          status = hapiBroadConfigApsFilter( L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         case DAPI_CMD_CLEAR:
-          status = hapiBroadConfigApsFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          status = hapiBroadConfigApsFilter( L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         default:
@@ -1993,13 +1993,13 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     /* CCM packets */
     case PTIN_PACKET_CCM:
     {
-      switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
+      switch (dapiCmd->cmdData.oamConfig.getOrSet)  {
         case DAPI_CMD_SET:
-          status = hapiBroadConfigCcmFilter( L7_ENABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          status = hapiBroadConfigCcmFilter( L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapi_g );
           break;
 
         case DAPI_CMD_CLEAR:
-          status = hapiBroadConfigCcmFilter( L7_DISABLE, dapiCmd->cmdData.snoopConfig.vlanId, dapi_g );
+          status = hapiBroadConfigCcmFilter( L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapi_g );
           break;
 
         default:
@@ -3932,7 +3932,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 /* PTin added: APS */
 #if 1
 #define APS_TRAP_MAX_VLANS 16
-L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
+L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, aps_enable = L7_TRUE;
@@ -3940,7 +3940,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
   static L7_uint16        vlan_list[APS_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
 //L7_ushort16             aps_ethtype  = L7_ETYPE_APS;
-  L7_uchar8 aps_MacAddr[] = {0x01,0x19,0xA7,0x00,0x00,0x01};
+  L7_uchar8 aps_MacAddr[] = {0x01,0x19,0xA7,0x00,0x00,0x00};
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   L7_uint16               vlan_match = 0xfff;
@@ -3948,7 +3948,9 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, aps_index, aps_index_free;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing");
+  aps_MacAddr[5] = ringId;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing (vlanId %d, ringId %d)", vlanId, ringId);
 
   /* Initialization */
   if (first_time)
