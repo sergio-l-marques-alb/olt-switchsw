@@ -775,7 +775,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
 
     for (iter=1; iter<=p_tx.n_iter; iter++)
     {
-      memset(results_tx, 0xff, sizeof(results_tx));
+      memset(results_tx, 0x00, sizeof(results_tx));
 
       strcpy(file, p_tx.file);
       /* Only apply multiple iteration mode if n_iter!=0 */
@@ -984,7 +984,8 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           fflush(fd);
 
           /* Maximum number of readings for one iteration */
-          max_count = (p_tx.mode & 0xf0) ? ((p_tx.mode>>8) & 0xff) : 1;
+          max_count = (p_tx.mode>>8) & 0xff;
+          if (max_count==0)  max_count=1;
 
           for (count=0; count<max_count; count++)
           {
@@ -1023,9 +1024,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                   results_tx[slot][port_idx][idx].main = tap_main;
                   results_tx[slot][port_idx][idx].post = tap_post;
                   results_tx[slot][port_idx][idx].reg  = reg;
-                  results_tx[slot][port_idx][idx].ber  = tx_ber;
+                  results_tx[slot][port_idx][idx].ber += tx_ber;
                   if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
-                    results_tx[slot][port_idx][idx].ber = 99999;
+                    results_tx[slot][port_idx][idx].ber = 0xFFFF;
                 }
 
                 results_iter[slot][port_idx] = tx_ber;
@@ -1198,7 +1199,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 
     for (iter=1; iter<=p_rx.n_iter; iter++)
     {
-      memset(results_rx, 0xff, sizeof(results_rx));
+      memset(results_rx, 0x00, sizeof(results_rx));
 
       strcpy(file, p_rx.file);
       /* Only apply multiple iteration mode if n_iter!=0 */
@@ -1302,7 +1303,8 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           }
 
           /* Maximum number of readings for one iteration */
-          max_count = (p_rx.mode & 0xf0) ? ((p_rx.mode>>8) & 0xff) : 1;
+          max_count = (p_rx.mode>>8) & 0xff;
+          if (max_count==0)  max_count=1;
 
           for (count=0; count<max_count; count++)
           {
@@ -1343,9 +1345,9 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 /* Save results */
                 if (count==0)
                 {
-                  results_rx[slot][port_idx][idx].ber  = rx_ber;
+                  results_rx[slot][port_idx][idx].ber += rx_ber;
                   if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
-                    results_rx[slot][port_idx][idx].ber = 99999;
+                    results_rx[slot][port_idx][idx].ber = 0xFFFF;
                 }
 
                 results_iter[slot][port_idx] = rx_ber;
@@ -2978,8 +2980,24 @@ int ptin_ber_help(void)
          "                   1 -> When <n_iters> is not null, apply start_delay for all iterations\n"
          "   mode[bit 3]   : 0 -> Update main and post cursors\n"
          "                   1 -> Do not touch in tap settings\n"
-         "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for > 0)\n"
-         "   mode[bit 8-15]: Maximum number of suplementary PRBS readings (only for mode[bit 4-7]>0)\n"
+         "   mode[bit 4-7] : Minimum number of errors, to initiatiate suplementary PRBS readings (only for mode[bit 8-15] > 0)\n"
+         "                   0x0: no limiar -> always repeat readings\n"
+         "                   0x1: 1 error\n"
+         "                   0x2: 3 errors\n"
+         "                   0x3: 5 errors\n"
+         "                   0x4: 10 errors\n"
+         "                   0x5: 20 errors\n"
+         "                   0x6: 50 errors\n"
+         "                   0x7: 100 errors\n"
+         "                   0x8: 200 errors\n"
+         "                   0x9: 500 errors\n"
+         "                   0xa: 1000 errors\n"
+         "                   0xb: 2000 errors\n"
+         "                   0xc: 10000 errors\n"
+         "                   0xd: 20000 errors\n"
+         "                   0xe: 50000 errors\n"
+         "                   0xf: 65535 errors\n"
+         "   mode[bit 8-15]: (Maximum) number of suplementary PRBS readings\n"
          "   main_start, main_end, main_step : Maximum and minimum main cusor (in this order), and step unit\n"
          "   post_start, post_end, post_step : Minimum and maximum post cusor (in this order), and step unit\n"
          "\n"
