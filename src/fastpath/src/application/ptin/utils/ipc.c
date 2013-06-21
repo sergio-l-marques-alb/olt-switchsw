@@ -300,6 +300,51 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int send_trap_ETH_OAM(void *param, int param_size)
+{
+  ipc_msg	comando;
+  int ret;
+
+//if (!global_var_system_ready)  return S_OK;
+
+  if(g_iInterfaceSW==-1) 
+      return(-1);
+
+  comando.protocolId= SIR_IPCPROTOCOL_ID;
+  comando.flags		= IPCLIB_FLAGS_CMD;
+  comando.counter   = GetMsgCounter ();
+  comando.msgId		= TRAP_ALARME_ETH_OAM;
+  comando.infoDim   = param_size;
+  memcpy(comando.info, param, param_size);
+
+  {
+   st_alarmGeral *p;
+   p=           (st_alarmGeral*)comando.info;
+   p->SlotId=   ptin_board_slotId;  //this field's structure agnostic
+  }
+
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  if(ret<0)
+      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, ret);
+  return(ret);
+}
+
+
+
 //// --------------------------------------------------------------
 //// Função:		int SendSetMessage ([in]int msg,
 ////				[in]void *data, [in/out]int* num)

@@ -28,14 +28,80 @@ T_ETH_SRV_OAM oam;
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
 /* *******************************************************************************/
-void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
-void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {}
-void ethsrv_oam_register_T(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 period) {}
+
+
+
+
+
+
+
+
+
+//ETHERNET SERVICE OAM   ALIASES**********************************************************************
+#define ME_CONNECTION_LOSS  0
+#define ME_RDI              1
+#define ME_CONNECTION_UP    2
+//#define UNEXP_MEG_OR_MEP    4
+#define UNEXP_MEP           5
+#define UNEXP_MEG           6
+#define UNEXP_LVL           7
+#define UNEXP_T             8
+
+#define POTENTIAL_ETH_LOOP  0xff
+
+typedef struct {
+         //unsigned int      reserved;
+         unsigned char     slot;
+         unsigned char     integration;   // do not use
+         short             indice;        // do not use
+         int               timestamp;
+         unsigned short    alrm_code;
+         unsigned short    port;
+         unsigned short    vid;
+         unsigned short    mep_id;
+         unsigned short    rmep_id;
+         unsigned char     meg_id_prefix[16];
+} __attribute__ ((packed)) st_RegEthOAMTrap;
+
+#include <ipc.h>
+
+static inline void ethsrv_oam_register(unsigned short alarm, unsigned short rmep_id, T_MEG_ID *meg_id, L7_uint16 mep_id, /*L7_uint16 mep_indx,*/ L7_uint16 porta, L7_uint64 vid) {
+st_RegEthOAMTrap v;
+
+    //v.slot=         
+    v.timestamp=    time(NULL);
+    v.alrm_code=    alarm;    
+    v.port=         porta;
+    v.vid=          vid;
+    v.mep_id=       mep_id;
+    v.rmep_id=      rmep_id;
+    if (NULL!=meg_id) memcpy(v.meg_id_prefix, meg_id, sizeof(v.meg_id_prefix));
+    else            v.meg_id_prefix[0]=0;
+    send_trap_ETH_OAM(&v, sizeof(v));
+    printf("TRAP %u"NLS, alarm);
+}
+void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
+    ethsrv_oam_register(UNEXP_MEG, 0xffff, meg_id, mep_id, porta, vid);
+}
+void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {
+    ethsrv_oam_register(UNEXP_LVL, 0xffff, meg_id, mep_id, porta, vid);
+}
+void ethsrv_oam_register_T(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 period) {
+    ethsrv_oam_register(UNEXP_T, 0xffff, meg_id, mep_id, porta, vid);
+}
 void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
-void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
-void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
-void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
-void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
+    ethsrv_oam_register(UNEXP_MEP, 0xffff, meg_id, mep_id, porta, vid);
+}
+void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    ethsrv_oam_register(ME_CONNECTION_UP, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+}
+void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    ethsrv_oam_register(ME_RDI, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+}
+void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+}
 
 
 
