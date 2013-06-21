@@ -1024,10 +1024,11 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                   results_tx[slot][port_idx][idx].main = tap_main;
                   results_tx[slot][port_idx][idx].post = tap_post;
                   results_tx[slot][port_idx][idx].reg  = reg;
-                  results_tx[slot][port_idx][idx].ber += tx_ber;
-                  if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
-                    results_tx[slot][port_idx][idx].ber = 0xFFFF;
                 }
+
+                results_tx[slot][port_idx][idx].ber += tx_ber;
+                if (results_tx[slot][port_idx][idx].ber > 0xFFFF)
+                  results_tx[slot][port_idx][idx].ber = 0xFFFF;
 
                 results_iter[slot][port_idx] = tx_ber;
               }
@@ -1343,12 +1344,9 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 rx_ber_sum += rx_ber;
 
                 /* Save results */
-                if (count==0)
-                {
-                  results_rx[slot][port_idx][idx].ber += rx_ber;
-                  if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
-                    results_rx[slot][port_idx][idx].ber = 0xFFFF;
-                }
+                results_rx[slot][port_idx][idx].ber += rx_ber;
+                if (results_rx[slot][port_idx][idx].ber > 0xFFFF)
+                  results_rx[slot][port_idx][idx].ber = 0xFFFF;
 
                 results_iter[slot][port_idx] = rx_ber;
               }
