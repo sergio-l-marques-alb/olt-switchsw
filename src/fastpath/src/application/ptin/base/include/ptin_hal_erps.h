@@ -16,6 +16,9 @@
 #include "ptin_include.h"
 #include "ptin_prot_erps.h"
 
+/// Mac Addr used as APS Src Mac and as ERP Node ID
+extern L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN];
+
 
 /// Hardware Abstraction Layer
 typedef struct _ptinHalErps_t {
