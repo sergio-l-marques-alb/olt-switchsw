@@ -26,7 +26,7 @@
 
 /* Default config values (PTin custom parameters) */
 #define PTIN_IGMP_DEFAULT_COS                           SNOOP_IGMP_DEFAULT_PRIO
-#define PTIN_IGMP_DEFAULT_VERSION                       3
+#define PTIN_IGMP_DEFAULT_VERSION                       2
 #define PTIN_IGMP_DEFAULT_IPV4                          0xA00000A /* 10.0.0.10 */
 #define PTIN_IGMP_DEFAULT_FASTLEAVEMODE                 1
 

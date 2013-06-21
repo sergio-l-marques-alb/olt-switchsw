@@ -1313,7 +1313,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
         /* Snooping switch MUST forward all unrecognized
           messages... so, flood on all ports in the VLAN except
           the incoming intf */
-SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "Flooding packet...");
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "Flooding packet...");
         rc = snoopPacketFlood(&mcastPacket);
         break;
     } /* end of switch case */
