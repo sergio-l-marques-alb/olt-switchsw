@@ -16,8 +16,6 @@
 #include "ptin_include.h"
 #include "sysnet_api.h"
 
-/* R-APS MAC address */
-extern const L7_uchar8 apsMacAddr[L7_MAC_ADDR_LEN];  // Last Byte is the Node ID
 
 typedef struct aps_pdu_s {
 
@@ -110,7 +108,7 @@ extern void *ptin_ccm_packetRx_queue;
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+extern L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable);
 
 /**
  * Configure CCM packet trapping in HW

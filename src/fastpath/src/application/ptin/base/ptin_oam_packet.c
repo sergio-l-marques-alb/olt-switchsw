@@ -16,10 +16,11 @@
 #include "dtl_ptin.h"
 
 /* R-APS MAC address */
-const L7_uchar8 apsMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x19,0xA7,0x00,0x00,0x01};  // Last Byte is the Ring ID
+#define PTIN_APS_MACADDR  {0x01,0x19,0xA7,0x00,0x00,0x00}   /*** TO BE DONE *** Ring ID will be set on first rule/trap creation. Only one Ring ID is supported for now!!! ***/
+L7_uchar8 apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
 
 /* CCM MAC address */
-const L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Last Nibble is the MEG Level -> Fixed = 7
+L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Last Nibble is the MEG Level -> Fixed = 7
 
 #include <unistd.h>
 
@@ -43,12 +44,15 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 /* Callback to be called for CCM packets. */
 L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
+/* Forward an APS packet on a specified interface and vlan */
+L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
+
 
 /*****************
  * DEBUG ROUTINES
  *****************/
 
-L7_BOOL ptin_oam_packet_debug_enable = L7_TRUE; //L7_FALSE;
+L7_BOOL ptin_oam_packet_debug_enable = L7_FALSE;
 
 void ptin_oam_packet_debug( L7_BOOL enable)
 {
@@ -67,11 +71,12 @@ void ptin_oam_packet_debug( L7_BOOL enable)
  * 
  * @param vlanId HW rule will not use this, only MAC is used to 
  *               create the rule
+ * @param ringId 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
+L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
@@ -83,11 +88,11 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
-  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
-  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_APS;
+  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.oamConfig.level       = ringId;
+  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_APS;  
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
@@ -96,6 +101,9 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   }
 
   LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+
+  /*** TO BE DONE *** Ring ID seted on rule/trap creation. Only one Ring ID is supported for now!!! ***/
+  apsMacAddr[5] = ringId;
 
   return L7_SUCCESS;
 }
@@ -124,11 +132,11 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
-  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
-  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_CCM;
+  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.oamConfig.level       = 0;
+  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_CCM;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
@@ -153,6 +161,12 @@ L7_RC_t ptin_aps_packet_init(void)
 {
   sysnetNotifyEntry_t snEntry;
   L7_uint8            i, queue_str[24];
+  static L7_BOOL      init_done = L7_FALSE;
+
+  if (init_done) {
+    return L7_SUCCESS;
+  }
+  init_done = L7_TRUE;
 
   for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
 
@@ -325,7 +339,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   }
 
   /* Packet should be APS type */
-  if ( memcmp(&payload[0], apsMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
+  if ( memcmp(&payload[0], apsMacAddr, (L7_MAC_ADDR_LEN-1))!=0 ) {
     if (ptin_oam_packet_debug_enable)
       LOG_ERR(LOG_CTX_ERPS,"Not an APS Packet");
     return L7_FAILURE;
@@ -348,8 +362,12 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   msg.payloadLen  = payloadLen;
   msg.bufHandle   = bufHandle;  
 
+  ptin_aps_packet_forward(erpsIdx_from_internalVlan[vlanId], &msg);
+
   rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_internalVlan[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
-  LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_internalVlan[vlanId]);
+
+  if (ptin_oam_packet_debug_enable)
+    LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_internalVlan[vlanId]);
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
@@ -466,8 +484,13 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
 
       aps_frame = (aps_frame_t*) msg.payload;
 
-      LOG_TRACE(LOG_CTX_ERPS,"etherType 0x%x", aps_frame->etherType);
-      LOG_TRACE(LOG_CTX_ERPS,"opCode %d", aps_frame->aspmsg.opCode);
+      *aps_reqstate       = aps_frame->aspmsg.req_state_subcode;
+      *aps_status         = aps_frame->aspmsg.status;
+      memcpy(aps_nodeid,  aps_frame->aspmsg.nodeid, L7_ENET_MAC_ADDR_LEN);
+      *aps_rxport         = msg.intIfNum;
+
+      if (ptin_oam_packet_debug_enable)
+        LOG_TRACE(LOG_CTX_ERPS,"aps_rxport %d", *aps_rxport);
 
       return L7_SUCCESS;
     } else {
@@ -539,7 +562,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
 
 
 /**
- * Send a APS packet on a specified interface and vlan
+ * Send an APS packet on a specified interface and vlan
  * 
  * @author joaom (6/17/2013)
  * 
@@ -550,9 +573,6 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
 void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
 {
   aps_frame_t aps_frame;
-
-  /*** TO BE DONE ***/
-  const L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0x00,0x06,0x91,0x06,0x7D,0xE0};
 
   memcpy(aps_frame.dmac,              apsMacAddr, L7_ENET_MAC_ADDR_LEN);
   memcpy(aps_frame.smac,              srcMacAddr, L7_ENET_MAC_ADDR_LEN);
@@ -580,4 +600,48 @@ void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint
 
   return;
 }
+
+
+/**
+ * Forward an APS packet on a specified interface and vlan
+ * 
+ * @author joaom (6/20/2013)
+ * 
+ * @param pktMsg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
+{
+  L7_uint32   txintport;
+  aps_frame_t *aps_frame;
+
+  aps_frame = (aps_frame_t*) pktMsg->payload;
+
+  if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
+    // Own packet! Do not forward it.
+
+    if (ptin_oam_packet_debug_enable)
+      LOG_TRACE(LOG_CTX_ERPS,"Own APS Packet! Do not forward it.");
+
+    return L7_SUCCESS;
+  }
+
+  if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
+    txintport = tbl_halErps[erps_idx].port1intfNum;
+  } else {
+    txintport = tbl_halErps[erps_idx].port0intfNum;
+  }
+
+  if (ptin_oam_packet_debug_enable)
+    LOG_TRACE(LOG_CTX_ERPS,"Forwarding APS Packet transmited to intIfNum=%u", txintport);
+
+  ptin_oam_packet_send(txintport,
+                       tbl_halErps[erps_idx].controlVidInternal,
+                       (L7_uchar8 *) aps_frame,
+                       sizeof(aps_frame_t));
+
+  return L7_SUCCESS;
+}
+
 
