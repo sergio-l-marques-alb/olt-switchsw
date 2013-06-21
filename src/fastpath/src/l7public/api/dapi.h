@@ -815,6 +815,19 @@ typedef struct
     struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
+      L7_BOOL                     enable;
+      L7_uchar8                   family;
+      /* PTin added: OAM (APS, CCM, ...) */
+      #if 1
+      L7_uchar8                   level;
+      L7_uint16                   vlanId;
+      ptin_packet_type_t          packet_type;
+      #endif
+    } oamConfig;
+
+    struct
+    {
+      DAPI_CMD_GET_SET_t          getOrSet;
       L7_uint32                   instNumber;
     } dot1sInstanceCreate;
 
