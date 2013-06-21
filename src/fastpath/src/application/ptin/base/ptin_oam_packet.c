@@ -34,18 +34,26 @@ L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Las
  * PROTOTYPES
  ***************/
 
+#ifdef PTIN_ENABLE_ERPS
+
 /* Queue id */
 void *ptin_aps_packetRx_queue[MAX_PROT_PROT_ERPS] = {L7_NULLPTR};
-void *ptin_ccm_packetRx_queue                     = L7_NULLPTR;
 
 /* Callback to be called for APS packets. */
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
+/* Forward an APS packet on a specified interface and vlan */
+L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
+
+#endif  // PTIN_ENABLE_ERPS
+
+
+/* Queue id */
+void *ptin_ccm_packetRx_queue                     = L7_NULLPTR;
+
 /* Callback to be called for CCM packets. */
 L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
-/* Forward an APS packet on a specified interface and vlan */
-L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
 
 
 /*****************
@@ -76,6 +84,7 @@ void ptin_oam_packet_debug( L7_BOOL enable)
  * 
  * @return L7_RC_t 
  */
+#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
@@ -107,6 +116,7 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL ena
 
   return L7_SUCCESS;
 }
+#endif  // PTIN_ENABLE_ERPS
 
 
 /**
@@ -157,6 +167,7 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
+#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_init(void)
 {
   sysnetNotifyEntry_t snEntry;
@@ -195,6 +206,7 @@ L7_RC_t ptin_aps_packet_init(void)
 
   return L7_SUCCESS;
 }
+#endif  // PTIN_ENABLE_ERPS
 
 
 /**
@@ -239,6 +251,7 @@ L7_RC_t ptin_ccm_packet_init(void)
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
+#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_deinit(void)
 {
   sysnetNotifyEntry_t snEntry;
@@ -267,6 +280,7 @@ L7_RC_t ptin_aps_packet_deinit(void)
 
   return L7_SUCCESS;
 }
+#endif  // PTIN_ENABLE_ERPS
 
 
 /**
@@ -311,6 +325,7 @@ L7_RC_t ptin_ccm_packet_deinit(void)
  * 
  * @return L7_RC_t : L7_FAILURE (always)
  */
+#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 {
   L7_uchar8 *payload;
@@ -378,6 +393,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Return failure to guarantee these packets are consumed by other entities */
   return L7_FAILURE;
 }
+#endif  // PTIN_ENABLE_ERPS
 
 
 /**
@@ -458,6 +474,7 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
+#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport)
 {
   L7_uint32           status;
@@ -506,6 +523,7 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
 
   return L7_FAILURE;
 }
+#endif  // PTIN_ENABLE_ERPS
 
 
 /**
@@ -570,6 +588,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
  * @param reqstate_subcode 
  * @param status 
  */
+#ifdef PTIN_ENABLE_ERPS
 void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
 {
   aps_frame_t aps_frame;
@@ -643,5 +662,5 @@ L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 
   return L7_SUCCESS;
 }
-
+#endif  // PTIN_ENABLE_ERPS
 
