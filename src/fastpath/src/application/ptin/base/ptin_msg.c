@@ -5461,6 +5461,9 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
  */
 L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 {
+
+#ifdef PTIN_ENABLE_ERPS
+
   ptin_erps_t ptinErpsConf;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
@@ -5524,6 +5527,8 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 //  LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS# %u", ptinEvcConf.idx);
 //  return L7_FAILURE;
 //}
+
+#endif  // PTIN_ENABLE_ERPS
 
   return L7_SUCCESS;
 
