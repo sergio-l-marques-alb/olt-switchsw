@@ -13,6 +13,7 @@
 #define __PROT_ERPS_H__
 
 #include "datatypes.h"
+#include "l7_packet.h"
 
 //-------------------------------------------------------------------------
 //  Constants Definitions
@@ -36,7 +37,7 @@
 #define PROT_ERPS_SWITCH_TO_PORT1             1
 #define PROT_ERPS_SWITCH_DISABLED             2
 
-#define PROT_ERPS_MAC_SIZE                    6
+#define PROT_ERPS_MAC_SIZE                    L7_ENET_MAC_ADDR_LEN
 
 //-------------------------------------------------------------------------
 //  Error Codes
@@ -145,6 +146,8 @@
 #define ERP_PORT_FLUSHING               1
 
 
+#define ERP_NODE_ID                    srcMacAddr
+
 //-------------------------------------------------------------------------
 //  DB Structures
 //-------------------------------------------------------------------------
@@ -221,8 +224,9 @@ typedef struct {
     
     // APS    
     L7_uint16 apsReqStatusTx;
-    L7_uint16 apsReqStatusRx;
-    L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
+    L7_uint16 apsReqStatusRx[2];
+    L7_uint8  apsNodeIdRx[2][PROT_ERPS_MAC_SIZE];
+    L7_uint8  apsBprRx[2];
 
     // Ports State
     L7_uint8 portState[2];            ///< blocking or flushing
