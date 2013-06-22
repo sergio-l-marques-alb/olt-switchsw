@@ -383,7 +383,7 @@ L7_RC_t snoopCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Instantiate CBs */
   snoopCB = L7_NULLPTR;
 
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopEB.maxSnoopInstances: Allocating %u",sizeof(snoop_cb_t) *snoopEB.maxSnoopInstances);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopEB.maxSnoopInstances: Allocating %u",sizeof(snoop_cb_t) *snoopEB.maxSnoopInstances);
   snoopCB = (snoop_cb_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                           sizeof(snoop_cb_t) * snoopEB.maxSnoopInstances);
   if (snoopCB == L7_NULLPTR)
@@ -1337,12 +1337,12 @@ L7_RC_t snoopEBInit(void)
 
   /* Create Heap for AVL tree */
   pSnoopEB = &snoopEB;
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   pSnoopEB->snoopTreeHeap =
                           (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                           L7_MAX_GROUP_REGISTRATION_ENTRIES *
                           sizeof(avlTreeTables_t));
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopInfoData_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopInfoData_t));
   pSnoopEB->snoopDataHeap  = (snoopInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                               L7_MAX_GROUP_REGISTRATION_ENTRIES *
                               sizeof(snoopInfoData_t));
@@ -1519,7 +1519,7 @@ L7_RC_t snoopEBInit(void)
   }
 
   /* Component Interface Acquired list */
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopIntfInfo: Allocating %u",sizeof(snoopIntfAcqInfo_t)*platIntfMaxCountGet());
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopIntfInfo: Allocating %u",sizeof(snoopIntfAcqInfo_t)*platIntfMaxCountGet());
   pSnoopEB->snoopIntfInfo   = osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                              sizeof(snoopIntfAcqInfo_t) *
                              platIntfMaxCountGet());
@@ -1532,7 +1532,7 @@ L7_RC_t snoopEBInit(void)
   }
 
   /* Interface Map table */
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopIntfMapTbl: Allocating %u",sizeof(L7_uint32)*platIntfMaxCountGet());
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopIntfMapTbl: Allocating %u",sizeof(L7_uint32)*platIntfMaxCountGet());
   pSnoopEB->snoopIntfMapTbl = osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                              sizeof(L7_uint32) *
                              platIntfMaxCountGet());
@@ -1563,7 +1563,7 @@ L7_RC_t snoopEBInit(void)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopEntryTimerFreeList: Allocating %u",sizeof(L7_int32)*SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopEntryTimerFreeList: Allocating %u",sizeof(L7_int32)*SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
   pSnoopEB->snoopEntryTimerFreeList =  osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                                  sizeof(L7_int32) *
                                                  SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
@@ -1574,7 +1574,7 @@ L7_RC_t snoopEBInit(void)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopEntryTimerCBList: Allocating %u",sizeof(snoopAppTimer_t)*SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopEntryTimerCBList: Allocating %u",sizeof(snoopAppTimer_t)*SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
   pSnoopEB->snoopEntryTimerCBList =  osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                                  sizeof(snoopAppTimer_t) *
                                                  SNOOP_ENTRY_TIMER_BLOCKS_COUNT);
@@ -1606,7 +1606,7 @@ L7_RC_t snoopEBInit(void)
   /* Allocate memory for the Handle List */
   maxTimers = SNOOP_NUM_GRP_TIMERS +
               (maxSnoopInstancesGet() * SNOOP_NUM_TIMERS_PER_INSTANCE);
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"handleListMemHndl: Allocating %u",(maxTimers * sizeof (handle_member_t)));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"handleListMemHndl: Allocating %u",(maxTimers * sizeof (handle_member_t)));
   if ((pSnoopEB->handleListMemHndl =
         (handle_member_t*) osapiMalloc (L7_SNOOPING_COMPONENT_ID,
                                         (maxTimers * sizeof (handle_member_t))))
@@ -1785,12 +1785,12 @@ L7_RC_t snoopCBInit(L7_uint32 cbIndex, L7_uchar8 family)
    pSnoopCB->cbIndex = cbIndex;
 
    /* Create Heap for Timer AVL tree */
-   LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopMrtrTimerTreeHeap: Allocating %u",SNOOP_NUM_MRTR_TIMERS*sizeof(avlTreeTables_t));
+   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopMrtrTimerTreeHeap: Allocating %u",SNOOP_NUM_MRTR_TIMERS*sizeof(avlTreeTables_t));
    pSnoopCB->snoopMrtrTimerTreeHeap =
                            (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                            SNOOP_NUM_MRTR_TIMERS *
                            sizeof(avlTreeTables_t));
-   LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopMrtrTimerDataHeap: Allocating %u",SNOOP_NUM_MRTR_TIMERS*sizeof(snoopMrtrTimerData_t));
+   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopMrtrTimerDataHeap: Allocating %u",SNOOP_NUM_MRTR_TIMERS*sizeof(snoopMrtrTimerData_t));
    pSnoopCB->snoopMrtrTimerDataHeap =
              (snoopMrtrTimerData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                     SNOOP_NUM_MRTR_TIMERS *
@@ -1813,12 +1813,12 @@ L7_RC_t snoopCBInit(L7_uint32 cbIndex, L7_uchar8 family)
                     sizeof(snoopMrtrTimerDataKey_t));
 
    /* Create Heap for VlanInfo AVL tree */
-   LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopOperDataTreeHeap: Allocating %u",platVlanTotalMaxEntriesGet()*sizeof(avlTreeTables_t));
+   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopOperDataTreeHeap: Allocating %u",platVlanTotalMaxEntriesGet()*sizeof(avlTreeTables_t));
    pSnoopCB->snoopOperDataTreeHeap =
                            (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                            platVlanTotalMaxEntriesGet() *
                            sizeof(avlTreeTables_t));
-   LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopOperDataDataHeap: Allocating %u",platVlanTotalMaxEntriesGet()*sizeof(snoopOperData_t));
+   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopOperDataDataHeap: Allocating %u",platVlanTotalMaxEntriesGet()*sizeof(snoopOperData_t));
    pSnoopCB->snoopOperDataDataHeap =
              (snoopOperData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                     platVlanTotalMaxEntriesGet() *
@@ -1855,7 +1855,7 @@ L7_RC_t snoopCBInit(L7_uint32 cbIndex, L7_uchar8 family)
 #endif /* L7_NSF_PACKAGE */
 
   /* Config structures */
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopCfgData: Allocating %u",sizeof(snoopCfgData_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopCfgData: Allocating %u",sizeof(snoopCfgData_t));
   pSnoopCB->snoopCfgData = osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                        sizeof(snoopCfgData_t));
 
@@ -1867,7 +1867,7 @@ L7_RC_t snoopCBInit(L7_uint32 cbIndex, L7_uchar8 family)
   }
 
    /* Debug config structure */
-  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopDebugCfg: Allocating %u",sizeof(snoopDebugCfg_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopDebugCfg: Allocating %u",sizeof(snoopDebugCfg_t));
   pSnoopCB->snoopDebugCfg = osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                               sizeof(snoopDebugCfg_t));
   if (pSnoopCB->snoopDebugCfg == L7_NULLPTR)

@@ -3700,7 +3700,8 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
   if (SLLDelete(&igmpClients->ll_timerList, (L7_sll_member_t *)&timerData) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed to delete timer node");
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to delete timer node");
     return L7_FAILURE;
   }
 
@@ -5786,7 +5787,8 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
     /* Stop timers related to this client */
     if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
       //return L7_FAILURE;
     }
   #endif
