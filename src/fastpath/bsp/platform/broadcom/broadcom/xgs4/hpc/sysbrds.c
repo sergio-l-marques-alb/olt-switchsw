@@ -668,11 +668,13 @@ L7_RC_t hpcConfigBoardSet()
         /* For the future: new slot mapping */
         /* Slot 2, 3, 18, 19: 20G; e o resto a 40G */
 
-        /* Slot 2: WC1: 5-6 (20G) */
-        if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE);
+        /* Slot 2: WC1: 7-8 (20G) */
+        //if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE);
+        //if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE);
 
-        /* Slot 3: WC2: 9-10 (20G) */
+        /* Slot 3: WC2: 11-12 (20G) */
+        if (sal_config_set(spn_PORTMAP"_1",   "9:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_2",  "10:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_3",  "11:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_4",  "12:10") != 0) return(L7_FAILURE);
 
@@ -760,21 +762,27 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_PORTMAP"_59", "63:10") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORTMAP"_60", "64:10") != 0) return(L7_FAILURE);
 
-        /* Slot 18: WC12: 49-50 (20G) */
-        if (sal_config_set(spn_PORTMAP"_61", "51:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_62", "52:10") != 0) return(L7_FAILURE);
+        /* Slot 18: WC12: 51-52 (20G) */
+        if (sal_config_set(spn_PORTMAP"_61", "49:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_62", "50:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_63", "51:10") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PORTMAP"_64", "52:10") != 0) return(L7_FAILURE);
 
-        /* Slot 19: WC13: 53-54 (20G) */
-        if (sal_config_set(spn_PORTMAP"_63", "55:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_64", "56:10") != 0) return(L7_FAILURE);
+        /* Slot 19: WC13: 55-56 (20G) */
+        //if (sal_config_set(spn_PORTMAP"_63", "55:10") != 0) return(L7_FAILURE);
+        //if (sal_config_set(spn_PORTMAP"_64", "56:10") != 0) return(L7_FAILURE);
 
         LOG_INFO(LOG_CTX_MISC, "Portmap defined!");
 
         /* Swap RX and TX polarities of WC 12 */
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_61", "0x0f00") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_61", "0x0f00") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_62", "0xf000") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_62", "0xf000") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_61", "0x000f") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_61", "0x000f") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_62", "0x00f0") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_62", "0x00f0") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_63", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_63", "0x0f00") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_64", "0xf000") != 0) return(L7_FAILURE);
+        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_64", "0xf000") != 0) return(L7_FAILURE);
         LOG_INFO(LOG_CTX_MISC, "Polarities inverted!");
 
         /* TX Map */
