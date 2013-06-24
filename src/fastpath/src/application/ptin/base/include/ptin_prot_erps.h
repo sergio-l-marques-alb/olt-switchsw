@@ -192,10 +192,10 @@ typedef struct _erpsProtParam_t {
 /// Hardware Abstraction Layer
 typedef struct _erpsHAL_t {
     int     (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
-    L7_RC_t (*aps_rxfields)         (L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
-    L7_RC_t (*aps_txfields)         (L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
-    int     (*switch_path)          (L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
-    int     (*prot_proc)            (L7_uint32 prot_id);
+    L7_RC_t (*aps_rxfields)         (L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
+    L7_RC_t (*aps_txfields)         (L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
+    int     (*switch_path)          (L7_uint8 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
+    int     (*prot_proc)            (L7_uint8 prot_id);
 } erpsHAL_t;
 
 /// State Machine Parameters Configurations and States
@@ -317,7 +317,7 @@ int ptin_erps_init(void);
  * @param new_group 
  * @return int 
  */
-int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group);
+int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group);
 
 /**
  * Used to reconfigure an existing entry
@@ -326,7 +326,7 @@ int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group);
  * @param conf 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf);
+int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf);
 
 /**
  * Delete ERPS# instance
@@ -334,7 +334,7 @@ int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_remove_entry(L7_uint32 erps_idx);
+int ptin_erps_remove_entry(L7_uint8 erps_idx);
 
 /**
  * Operator Command
@@ -342,7 +342,7 @@ int ptin_erps_remove_entry(L7_uint32 erps_idx);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_cmd_clear(L7_uint32 erps_idx);
+int ptin_erps_cmd_clear(L7_uint8 erps_idx);
 
 /**
  * Operator Command
@@ -350,7 +350,7 @@ int ptin_erps_cmd_clear(L7_uint32 erps_idx);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_cmd_lockout(L7_uint32 erps_idx);
+int ptin_erps_cmd_lockout(L7_uint8 erps_idx);
 
 /**
  * Operator Command
@@ -358,7 +358,7 @@ int ptin_erps_cmd_lockout(L7_uint32 erps_idx);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path);
+int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 switch_path);
 
 /**
  * Operator Command
@@ -366,7 +366,7 @@ int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_cmd_manual(L7_uint32 erps_idx, L7_uint8 switch_path);
+int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 switch_path);
 
 /**
  * Delete all ERPS
@@ -382,7 +382,7 @@ int ptin_erps_clear(void);
  * @param group 
  * @return int 
  */
-int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group);
+int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group);
 
 /**
  * Get ERPS Status
@@ -391,7 +391,7 @@ int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group);
  * @param status 
  * @return int 
  */
-int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status);
+int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status);
 
 /**
  * ERPS Debug: Print configurations and Status information
@@ -399,7 +399,7 @@ int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_rd_entry(L7_uint32 erps_idx);
+int ptin_erps_rd_entry(L7_uint8 erps_idx);
 
 /**
  * ERPS Debug: Print configurations and Status information
@@ -414,7 +414,7 @@ int ptin_erps_rd_allentry(void);
  * @param erps_idx 
  * @return int 
  */
-int ptin_erps_dump(L7_uint32 erps_idx);
+int ptin_erps_dump(L7_uint8 erps_idx);
 
 /**
  * Set condition of either failed (i.e., signal fail (SF)) or 
@@ -427,7 +427,7 @@ int ptin_erps_dump(L7_uint32 erps_idx);
  * 
  * @return int 
  */
-int ptin_erps_force_alarms(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 sf);
+int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf);
 
 /****************************************************************************** 
  * ERPS Task Init
