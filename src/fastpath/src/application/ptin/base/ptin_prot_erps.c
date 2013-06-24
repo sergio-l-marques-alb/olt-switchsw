@@ -47,30 +47,30 @@ int rd_alarms_dummy(L7_uint8 slot, L7_uint32 index)
   return(0);
 }
 
-L7_RC_t aps_rxdummy(L7_uint32 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
+L7_RC_t aps_rxdummy(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
   return(0);
 }
 
-L7_RC_t aps_txdummy(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status)
+L7_RC_t aps_txdummy(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status)
 {
   return(0);
 }
 
-int switch_path_dummy(L7_uint32 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1)
+int switch_path_dummy(L7_uint8 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1)
 {
   return(0);
 }
 
-int prot_proc_dummy(L7_uint32 prot_id)
+int prot_proc_dummy(L7_uint8 prot_id)
 {
   return(0);
 }
 
 
-int ptin_prot_erps_instance_proc(L7_uint32 erps_idx);
+int ptin_prot_erps_instance_proc(L7_uint8 erps_idx);
 
-int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback);
+int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback);
 
 
 /**
@@ -82,7 +82,7 @@ int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int
  * 
  * @return int
  */
-int ptin_erps_init_entry(L7_uint32 erps_idx)
+int ptin_erps_init_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
@@ -95,8 +95,6 @@ int ptin_erps_init_entry(L7_uint32 erps_idx)
   }
 
   tbl_erps[erps_idx].admin                            = PROT_ERPS_ENTRY_FREE;
-
-  tbl_erps[erps_idx].protParam.ringId                 = 0;
 
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]       = PROT_ERPS_SF_CLEAR;
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]       = PROT_ERPS_SF_CLEAR;
@@ -151,7 +149,7 @@ int ptin_erps_init_entry(L7_uint32 erps_idx)
  * 
  * @return int 
  */
-int ptin_erps_vlanList_init_entry(L7_uint32 erps_idx)
+int ptin_erps_vlanList_init_entry(L7_uint8 erps_idx)
 {
   int       ret = PROT_ERPS_EXIT_OK;
 
@@ -181,7 +179,7 @@ int ptin_erps_vlanList_init_entry(L7_uint32 erps_idx)
 int ptin_erps_init(void)
 {
   int       ret = PROT_ERPS_EXIT_OK;
-  L7_uint32 erps_idx;
+  L7_uint8  erps_idx;
 
   LOG_INFO(LOG_CTX_ERPS, "Initializing ERPS Module");
 
@@ -205,7 +203,7 @@ int ptin_erps_init(void)
 int ptin_erps_get_free_entry(void)
 {
   int       ret = PROT_ERPS_UNAVAILABLE;
-  L7_uint32 erps_idx;
+  L7_uint8  erps_idx;
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
@@ -230,7 +228,7 @@ int ptin_erps_get_free_entry(void)
  * 
  * @return int 
  */
-int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group)
+int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 {
   int ret = erps_idx;
 
@@ -354,7 +352,7 @@ int ptin_erps_add_entry( L7_uint32 erps_idx, erpsProtParam_t *new_group)
  * 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf)
+int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf)
 {
   int ret = erps_idx;
 
@@ -421,7 +419,7 @@ int ptin_erps_conf_entry(L7_uint32 erps_idx, erpsProtParam_t *conf)
  * 
  * @return int 
  */
-int ptin_erps_remove_entry(L7_uint32 erps_idx)
+int ptin_erps_remove_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
@@ -480,7 +478,7 @@ int ptin_erps_clear(void)
  * 
  * @return int 
  */
-int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group)
+int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
 {
   int ret = erps_idx;
 
@@ -514,7 +512,7 @@ int ptin_erps_get_entry(L7_uint32 erps_idx, erpsProtParam_t *group)
  * 
  * @return int 
  */
-int ptin_erps_cmd_clear(L7_uint32 erps_idx)
+int ptin_erps_cmd_clear(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
@@ -550,7 +548,7 @@ int ptin_erps_cmd_clear(L7_uint32 erps_idx)
  * 
  * @return int 
  */
-int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path)
+int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 switch_path)
 {
   int ret = erps_idx;
 
@@ -585,7 +583,7 @@ int ptin_erps_cmd_force(L7_uint32 erps_idx, L7_uint8 switch_path)
  * 
  * @return int 
  */
-int ptin_erps_cmd_manual(L7_uint32 erps_idx, L7_uint8 switch_path)
+int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 switch_path)
 {
   int ret = erps_idx;
 
@@ -621,7 +619,7 @@ int ptin_erps_cmd_manual(L7_uint32 erps_idx, L7_uint8 switch_path)
  * 
  * @return int 
  */
-int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status)
+int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
 {
   int ret = erps_idx;
 
@@ -635,7 +633,15 @@ int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status)
     return(ret);
   }
 
-  /*** TO BE DONE ***/
+  status->rplBlockedPortSide = tbl_erps[erps_idx].rplBlockedPortSide;
+  status->port0_SF           = tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0];
+  status->port1_SF           = tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1];
+  status->port0State         = tbl_erps[erps_idx].portState[PROT_ERPS_PORT0];
+  status->port1State         = tbl_erps[erps_idx].portState[PROT_ERPS_PORT1];
+  status->guard_timer        = tbl_erps[erps_idx].guard_timer;
+  status->wtr_timer          = tbl_erps[erps_idx].wtr_timer;
+  status->wtb_timer          = tbl_erps[erps_idx].wtb_timer;
+  status->holdoff_timer      = tbl_erps[erps_idx].holdoff_timer;
 
   return(ret);
 }
@@ -650,7 +656,7 @@ int ptin_erps_get_status(L7_uint32 erps_idx, erpsStatus_t *status)
  * 
  * @return int 
  */
-int ptin_erps_rd_entry(L7_uint32 erps_idx)
+int ptin_erps_rd_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
@@ -674,7 +680,7 @@ int ptin_erps_rd_entry(L7_uint32 erps_idx)
   printf("\n-----------------------------------------");
   printf("\n  admin               %d",                      tbl_erps[erps_idx].admin);
   printf("\n-----------------------------------------");
-  printf("\n\nERPS Protection Parameters:\n");
+  printf("\n\nERPS#%d Protection Parameters:\n",            erps_idx);
   printf("\n  ringId              %d",                      tbl_erps[erps_idx].protParam.ringId);
   printf("\n  isOpenRing          %s",                      strBool[tbl_erps[erps_idx].protParam.isOpenRing]);
   printf("\n  controlVid          %d",                      tbl_erps[erps_idx].protParam.controlVid);
@@ -700,7 +706,7 @@ int ptin_erps_rd_entry(L7_uint32 erps_idx)
   printf("\n  continualTxInterval %d",                      tbl_erps[erps_idx].protParam.continualTxInterval);
   printf("\n  rapidTxInterval     %d",                      tbl_erps[erps_idx].protParam.rapidTxInterval);
   printf("\n-----------------------------------------");
-  printf("\n\nERPS States:\n");
+  printf("\n\nERPS#%d States:\n",                           erps_idx);
   printf("\n  status_SF[P0]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]);
   printf("\n  status_SF[P1]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]);
   printf("\n");
@@ -751,7 +757,7 @@ int ptin_erps_rd_allentry(void)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  L7_uint32 erps_idx;
+  L7_uint8 erps_idx;
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     printf("\n-----------------------------------------");
@@ -774,7 +780,7 @@ int ptin_erps_rd_allentry(void)
  * 
  * @return int 
  */
-int ptin_erps_dump(L7_uint32 erps_idx)
+int ptin_erps_dump(L7_uint8 erps_idx)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
@@ -810,7 +816,7 @@ int ptin_erps_dump(L7_uint32 erps_idx)
  * 
  * @return int 
  */
-int ptin_erps_blockOrUnblockPort(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 portState, int line_callback)
+int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 portState, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
@@ -838,7 +844,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 por
  * 
  * @return int 
  */
-int ptin_erps_force_alarms(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 sf)
+int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
 {
   int ret = PROT_ERPS_EXIT_OK;  
 
@@ -861,7 +867,7 @@ int ptin_erps_force_alarms(L7_uint32 erps_idx, L7_uint8 port, L7_uint8 sf)
  * 
  * @return int 
  */
-int ptin_erps_rd_alarms(L7_uint32 erps_idx, L7_uint8 port)
+int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
@@ -889,7 +895,7 @@ int ptin_erps_rd_alarms(L7_uint32 erps_idx, L7_uint8 port)
  * 
  * @return int 
  */
-int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback)
+int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
   L7_uint16 apsTx;
@@ -921,7 +927,7 @@ int ptin_erps_aps_tx(L7_uint32 erps_idx, L7_uint8 reqstate, L7_uint8 status, int
  * 
  * @return int 
  */
-int ptin_erps_aps_rx(L7_uint32 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport, int line_callback)
+int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport, int line_callback)
 {
   int ret;
 
@@ -943,7 +949,7 @@ int ptin_erps_aps_rx(L7_uint32 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L
  * 
  * @return int 
  */
-int ptin_erps_FSM_transition(L7_uint32 erps_idx, L7_uint8 state_machine, int line_callback)
+int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
@@ -970,7 +976,7 @@ int ptin_erps_FSM_transition(L7_uint32 erps_idx, L7_uint8 state_machine, int lin
  * 
  * @return int 
  */
-int ptin_erps_FlushFDB(L7_uint32 erps_idx, int line_callback)
+int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
   LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
 
@@ -987,7 +993,7 @@ int ptin_erps_FlushFDB(L7_uint32 erps_idx, int line_callback)
  * 
  * @return int 
  */
-int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
+int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 {
 
   L7_uint8  SF[2];
@@ -2593,7 +2599,7 @@ int ptin_prot_erps_instance_proc(L7_uint32 erps_idx)
  */
 int ptin_prot_erps_proc(void)
 {
-  L7_uint32 erps_idx;
+  L7_uint8 erps_idx;
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
@@ -2686,7 +2692,7 @@ L7_RC_t ptin_prot_erps_init(void)
 /*
  * TEST
  */
-void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param4)
+void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param4, int param5)
 {
   if (test == 0) {
     LOG_INFO(LOG_CTX_ERPS,"Test 0: Add prot ERPS# %d", param1);
@@ -2696,10 +2702,17 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
     new_group.controlVid = param2;
     new_group.port0.idx =  param3;
     new_group.port1.idx =  param4;
-    new_group.ringId =     3;
+    new_group.ringId =     param5;
     ptin_erps_add_entry( /*erps_idx*/ param1, &new_group);
 
     ptin_hal_erps_entry_init(/*erps_idx*/ param1);
+
+  } else if (test == 1) {
+    LOG_INFO(LOG_CTX_ERPS,"Test 1: Rem prot ERPS# %d", param1);
+
+    ptin_erps_remove_entry( /*erps_idx*/ param1);
+
+    ptin_hal_erps_entry_deinit(/*erps_idx*/ param1);
 
   } else {
     LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n  Test 0: Add prot ERPS#");
