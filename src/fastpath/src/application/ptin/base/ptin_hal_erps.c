@@ -35,6 +35,8 @@ L7_uint8 erpsIdx_from_internalVlan[4096];
 // Task id
 L7_uint32 ptin_hal_apsPacketTx_TaskId = L7_ERROR;
 
+/// Global inits
+L7_uint8 ptin_hal_initdone = 0x00;
 
 // Task to process Tx messages
 void ptin_hal_apsPacketTx_task(void);
@@ -80,13 +82,37 @@ L7_RC_t ptin_hal_erps_init(void)
 
 
 /**
+ * Print ERPS# entry
+ * 
+ * @author joaom (6/12/2013)
+ * 
+ * @param erps_idx 
+ */
+L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
+{
+
+  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  
+  // Print some Debug
+  LOG_TRACE(LOG_CTX_ERPS,"used             %d", tbl_halErps[erps_idx].used);
+  LOG_TRACE(LOG_CTX_ERPS,"port0.idx %d --> %d", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
+  LOG_TRACE(LOG_CTX_ERPS,"port1.idx %d --> %d", tbl_erps[erps_idx].protParam.port1.idx,   tbl_halErps[erps_idx].port1intfNum);
+  LOG_TRACE(LOG_CTX_ERPS,"vid       %d --> %d", tbl_erps[erps_idx].protParam.controlVid,  tbl_halErps[erps_idx].controlVidInternal);
+  LOG_TRACE(LOG_CTX_ERPS,"apsReqStatusRx   0x%x", tbl_halErps[erps_idx].apsReqStatusRx);
+  LOG_TRACE(LOG_CTX_ERPS,"apsReqStatusTx   0x%x", tbl_halErps[erps_idx].apsReqStatusTx);
+  
+  return L7_SUCCESS;
+}
+
+
+/**
  * Initialize ERPS# hw abstraction layer
  * 
  * @author joaom (6/12/2013)
  * 
  * @param erps_idx 
  */
-L7_RC_t ptin_hal_erps_entry_init(L7_uint32 erps_idx)
+L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 {
 
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
@@ -100,34 +126,59 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint32 erps_idx)
   erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
 
   // Create HW Rule
-  ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 1);
+  ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 1 /* enable */);
+
+  if (!(ptin_hal_initdone & 0x01)) {
+    ptin_aps_packet_global_trap(1 /* enable */);
+    ptin_hal_initdone |= 0x01;
+  }
 
   // Init APS packets trap and queues
-  ptin_aps_packet_init();
-
-  // Print some Debug
-  LOG_TRACE(LOG_CTX_ERPS,"port0.idx %d --> %d", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
-  LOG_TRACE(LOG_CTX_ERPS,"port1.idx %d --> %d", tbl_erps[erps_idx].protParam.port1.idx,   tbl_halErps[erps_idx].port1intfNum);
-  LOG_TRACE(LOG_CTX_ERPS,"vid       %d --> %d", tbl_erps[erps_idx].protParam.controlVid,  tbl_halErps[erps_idx].controlVidInternal);
+  ptin_aps_packet_init(erps_idx);
 
   tbl_halErps[erps_idx].used = L7_TRUE;
+
+  // Print some Debug
+  ptin_hal_erps_entry_print(erps_idx);
 
   return L7_SUCCESS;
 }
 
 
 /**
- * Initialize ERPS hw abstraction layer
+ * DEInitialize ERPS# hw abstraction layer
+ * 
+ * @author joaom (6/12/2013)
+ * 
+ * @param erps_idx 
+ */
+L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
+{
+  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+
+  // Delete HW Rule
+  ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 0 /* disable */);
+
+  // Delete APS packets trap and queues
+  ptin_aps_packet_deinit(erps_idx);
+
+  // struct init
+  memset(&tbl_halErps[erps_idx], 0, sizeof(ptinHalErps_t));
+
+  tbl_halErps[erps_idx].used = L7_FALSE;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * DEInitialize ERPS hw abstraction layer
  * 
  * @author joaom (6/17/2013)
  * 
  */
 L7_RC_t ptin_hal_erps_deinit(void)
 {
-  L7_uint32 erps_idx;
-
-  // Delete APS packets trap and queues
-  ptin_aps_packet_deinit();
 
   // Delete task
   if ( ptin_hal_apsPacketTx_TaskId != L7_ERROR ) {
@@ -135,12 +186,16 @@ L7_RC_t ptin_hal_erps_deinit(void)
     ptin_hal_apsPacketTx_TaskId = L7_ERROR;
   }
 
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
-    tbl_halErps[erps_idx].used = L7_FALSE;
-  }
+  // struct init
+  memset(tbl_halErps, 0, MAX_PROT_PROT_ERPS*sizeof(ptinHalErps_t));
 
   return L7_SUCCESS;
 }
+
+
+/********************************************************************************** 
+ *                                Packet Processing
+ */
 
 
 /**
@@ -154,7 +209,7 @@ L7_RC_t ptin_hal_erps_deinit(void)
  * @param req_state 
  * @param status 
  */
-L7_RC_t ptin_hal_erps_sendapsX3(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status)
+L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status)
 {
   ptin_aps_packet_send(erps_idx, ((req_state<<4) & 0xF0), status);
   usleep(3000);
@@ -175,7 +230,7 @@ L7_RC_t ptin_hal_erps_sendapsX3(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8
  * @param req_state 
  * @param status 
  */
-L7_RC_t ptin_hal_erps_sendaps(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status)
+L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status)
 {
   L7_uint16 apsTx;
 
@@ -201,7 +256,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 s
  */
 void ptin_hal_apsPacketTx_task(void)
 {
-  L7_uint32 erps_idx;
+  L7_uint8 erps_idx;
   
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
@@ -235,7 +290,7 @@ void ptin_hal_apsPacketTx_task(void)
  * @param nodeid 
  * @param rxport 
  */
-L7_RC_t ptin_hal_erps_rcvaps(L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
+L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
   L7_uint32 rxintport;
