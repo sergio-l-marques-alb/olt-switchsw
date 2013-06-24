@@ -16,8 +16,7 @@
 #include "dtl_ptin.h"
 
 /* R-APS MAC address */
-#define PTIN_APS_MACADDR  {0x01,0x19,0xA7,0x00,0x00,0x00}   /*** TO BE DONE *** Ring ID will be set on first rule/trap creation. Only one Ring ID is supported for now!!! ***/
-L7_uchar8 apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
+#define PTIN_APS_MACADDR  {0x01,0x19,0xA7,0x00,0x00,0x00}   // Correct Ring ID (last Byte) will be seted on each rule/trap creation.
 
 /* CCM MAC address */
 L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Last Nibble is the MEG Level -> Fixed = 7
@@ -43,7 +42,7 @@ void *ptin_aps_packetRx_queue[MAX_PROT_PROT_ERPS] = {L7_NULLPTR};
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
 /* Forward an APS packet on a specified interface and vlan */
-L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
+L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
 
 #endif  // PTIN_ENABLE_ERPS
 
@@ -111,11 +110,38 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL ena
 
   LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
 
-  /*** TO BE DONE *** Ring ID seted on rule/trap creation. Only one Ring ID is supported for now!!! ***/
-  apsMacAddr[5] = ringId;
+  return L7_SUCCESS;
+}
+
+/**
+ * Set global enable for APS packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.oamConfig.vlanId      = L7_NULL;
+  dapiCmd.cmdData.oamConfig.level       = 0;
+  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_APS;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
+
 #endif  // PTIN_ENABLE_ERPS
 
 
@@ -168,29 +194,32 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
 #ifdef PTIN_ENABLE_ERPS
-L7_RC_t ptin_aps_packet_init(void)
+L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
 {
   sysnetNotifyEntry_t snEntry;
-  L7_uint8            i, queue_str[24];
-  static L7_BOOL      init_done = L7_FALSE;
+  L7_uint8            queue_str[24];
+  L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
+  L7_uint8            i;
 
-  if (init_done) {
-    return L7_SUCCESS;
+  sprintf(queue_str, "PTin_APS_PacketRx_Queue%d", erps_idx);
+
+  /* Queue that will process timer events */
+  ptin_aps_packetRx_queue[erps_idx] = (void *) osapiMsgQueueCreate(queue_str,
+                                                       PTIN_APS_PACKET_MAX_MESSAGES, PTIN_APS_PDU_MSG_SIZE);
+  if (ptin_aps_packetRx_queue[erps_idx] == L7_NULLPTR) {
+    LOG_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", erps_idx);
+    return L7_FAILURE;
   }
-  init_done = L7_TRUE;
+  LOG_TRACE(LOG_CTX_ERPS,"APS packet queue %d created.", erps_idx);
 
+
+  /* Ring ID needs to be seted on rule/trap creation. */
+  apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
+
+  /* Rx_callback is always the same; Do not try to register a snEntry if the MAC is already registered (same Ring Id) */
   for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
-
-    sprintf(queue_str, "PTin_APS_PacketRx_Queue%d", i);
-
-    /* Queue that will process timer events */
-    ptin_aps_packetRx_queue[i] = (void *) osapiMsgQueueCreate(queue_str,
-                                                         PTIN_APS_PACKET_MAX_MESSAGES, PTIN_APS_PDU_MSG_SIZE);
-    if (ptin_aps_packetRx_queue[i] == L7_NULLPTR) {
-      LOG_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", i);
-      return L7_FAILURE;
-    }
-    LOG_TRACE(LOG_CTX_ERPS,"APS packet queue %d created.", i);
+    if (i == erps_idx) continue;
+    if ( (tbl_erps[i].admin == PROT_ERPS_ENTRY_BUSY) && (tbl_erps[i].protParam.ringId == tbl_erps[erps_idx].protParam.ringId) ) return L7_SUCCESS;
   }
 
   /* Register APS packets */
@@ -252,28 +281,39 @@ L7_RC_t ptin_ccm_packet_init(void)
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
 #ifdef PTIN_ENABLE_ERPS
-L7_RC_t ptin_aps_packet_deinit(void)
+L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
 {
   sysnetNotifyEntry_t snEntry;
-  L7_uint8            i;
+  L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
+  L7_uchar8           i;
+  L7_BOOL             inused = L7_FALSE;
 
-  /* Deregister broadcast packets capture */
-  strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
-  snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
-  snEntry.type = SYSNET_MAC_ENTRY;
-  memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
-  if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_aps_packetRx_callback callback!");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
+  /* Ring ID needs to be seted on rule/trap removal. */
+  apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
 
+  /* Rx_callback is always the same; Do not unregister a snEntry if the MAC is in used by others (same Ring Id) */
   for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
-    /* Queue that will process timer events */
-    if (ptin_aps_packetRx_queue[i] != L7_NULLPTR) {
-      osapiMsgQueueDelete(ptin_aps_packetRx_queue[i]);
-      ptin_aps_packetRx_queue[i] = L7_NULLPTR;
+    if (i == erps_idx) continue;
+    if ( (tbl_erps[i].admin == PROT_ERPS_ENTRY_BUSY) && (tbl_erps[i].protParam.ringId == tbl_erps[erps_idx].protParam.ringId) ) inused = L7_TRUE;
+  }
+
+  if (!inused) {
+    /* Deregister broadcast packets capture */
+    strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
+    snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
+    snEntry.type = SYSNET_MAC_ENTRY;
+    memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
+    if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
+      LOG_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_aps_packetRx_callback callback!");
+      return L7_FAILURE;
     }
+    LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
+  }
+
+  /* Queue that will process timer events */
+  if (ptin_aps_packetRx_queue[erps_idx] != L7_NULLPTR) {
+    osapiMsgQueueDelete(ptin_aps_packetRx_queue[erps_idx]);
+    ptin_aps_packetRx_queue[erps_idx] = L7_NULLPTR;
   }
 
   LOG_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
@@ -328,9 +368,10 @@ L7_RC_t ptin_ccm_packet_deinit(void)
 #ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 {
-  L7_uchar8 *payload;
-  L7_uint32 payloadLen;
-  ptin_APS_PDU_Msg_t msg;
+  L7_uchar8           *payload;
+  L7_uint32           payloadLen;
+  ptin_APS_PDU_Msg_t  msg;
+  L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
 
   L7_uint32 intIfNum    = pduInfo->intIfNum;     /* Source port */
   L7_uint16 vlanId      = pduInfo->vlanId;       /* Vlan */
@@ -353,7 +394,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
     return L7_FAILURE;
   }
 
-  /* Packet should be APS type */
+  /* Packet should be APS Mac Addr (last bytes is ignored) */
   if ( memcmp(&payload[0], apsMacAddr, (L7_MAC_ADDR_LEN-1))!=0 ) {
     if (ptin_oam_packet_debug_enable)
       LOG_ERR(LOG_CTX_ERPS,"Not an APS Packet");
@@ -589,9 +630,13 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
  * @param status 
  */
 #ifdef PTIN_ENABLE_ERPS
-void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
+void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
 {
   aps_frame_t aps_frame;
+  L7_uchar8   apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
+
+  // Last Byte is the Ring ID
+  apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
 
   memcpy(aps_frame.dmac,              apsMacAddr, L7_ENET_MAC_ADDR_LEN);
   memcpy(aps_frame.smac,              srcMacAddr, L7_ENET_MAC_ADDR_LEN);
@@ -630,12 +675,16 @@ void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aps_packet_forward(L7_uint32 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
+L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 {
   L7_uint32   txintport;
   aps_frame_t *aps_frame;
 
   aps_frame = (aps_frame_t*) pktMsg->payload;
+
+  // packet arrives with internal VLAN ID. write back the control VID
+  aps_frame->vlan_tag[2] = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
+  aps_frame->vlan_tag[3] = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
 
   if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
     // Own packet! Do not forward it.
