@@ -3938,8 +3938,9 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
   static L7_BOOL          first_time = L7_TRUE, aps_enable = L7_TRUE;
   static BROAD_POLICY_t   policyId[APS_TRAP_MAX_VLANS];
   static L7_uint16        vlan_list[APS_TRAP_MAX_VLANS][2];
+  static L7_uint8         ringId_list[APS_TRAP_MAX_VLANS];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-//L7_ushort16             aps_ethtype  = L7_ETYPE_APS;
+  L7_ushort16             aps_ethtype  = L7_ETYPE_CFM;
   L7_uchar8 aps_MacAddr[] = {0x01,0x19,0xA7,0x00,0x00,0x00};
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
@@ -3948,9 +3949,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, aps_index, aps_index_free;
 
-  aps_MacAddr[5] = ringId;
-
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing (vlanId %d, ringId %d)", vlanId, ringId);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing (enable %d, vlanId %d, ringId %d)", enable, vlanId, ringId);
 
   /* Initialization */
   if (first_time)
@@ -3959,14 +3958,10 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
     
     memset(policyId, 0xff, sizeof(policyId));
     memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(ringId_list, 0x00, sizeof(ringId_list));
     
-    //aps_enable = L7_FALSE;
+    aps_enable = L7_FALSE;
     first_time   = L7_FALSE;
-  }
-  else {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "APS trapping is already configured");
-    // Since vlanId is not used in HW rule only create rule once based on DMAC Addr
-    return L7_SUCCESS;
   }
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
@@ -3983,7 +3978,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
   meterInfo.pbs       = 128;
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
-  /* If vlan value is valid, Find dhcp index */
+  /* If vlan value is valid, Find aps index */
   if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan provided is valid (%u). Enable=%u", vlanId, enable);
@@ -4018,6 +4013,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
         aps_index = aps_index_free;
         vlan_list[aps_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
         vlan_list[aps_index][POLICY_VLAN_MASK] = vlan_match;
+        ringId_list[aps_index] = ringId;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, aps_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -4090,23 +4086,24 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
-      /* give dhcp frames high priority and trap to the CPU. */
-
       /* APS packets from client */
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
       if (result != L7_SUCCESS)  {
         break;
       }
 
+      aps_MacAddr[5] = ringId_list[index];
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, aps_MacAddr, exact_match);
-      if (result != L7_SUCCESS)  {
-        break;
-      }
+      if (result != L7_SUCCESS)  break;
+
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      if (result != L7_SUCCESS)  break;
+
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&aps_ethtype, exact_match);
+      if (result != L7_SUCCESS)  break;
 
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
-      if (result != L7_SUCCESS)  {
-        break;
-      }
+      if (result != L7_SUCCESS)  break;
 
       /* Trap the frames to CPU, so that they are not switched */
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
