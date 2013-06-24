@@ -2749,10 +2749,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 #endif //__Y1731_802_1ag_OAM_ETH__
 
     /************************************************************************** 
-    * OAM MEPs Configuration
+    * ERPS Configuration
     **************************************************************************/
 
     case CCMSG_ERPS_SET:
+      {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ERPS_SET (0x%04X)", inbuffer->msgId);
     
@@ -2777,8 +2778,98 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
-    
+      }
       break;
+
+    case CCMSG_ERPS_DEL:
+      {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE_MOD(msg_erps_t);
+
+      msg_erps_t *ptr;
+      ptr = (msg_erps_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_t));
+
+      /* Execute command */
+      rc = ptin_msg_erps_del(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
+    case CCMSG_ERPS_CONF:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+      
+        CHECK_INFO_SIZE_MOD(msg_erps_t);
+
+        msg_erps_t *ptr;
+        ptr = (msg_erps_t *) outbuffer->info;
+
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_t));
+
+        /* Execute command */
+        rc = ptin_msg_erps_config(ptr);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      
+      }
+      break;
+
+    case CCMSG_ERPS_STATUS:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+      
+        CHECK_INFO_SIZE_MOD(msg_erps_status_t);
+
+        msg_erps_status_t *ptr;
+        ptr = (msg_erps_status_t *) outbuffer->info;
+
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_status_t));
+
+        /* Execute command */
+        rc = ptin_msg_erps_status(ptr);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      
+      }
+      break;
+
 
 
 

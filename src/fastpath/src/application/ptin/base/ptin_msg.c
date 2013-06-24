@@ -5451,7 +5451,7 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
  ******************************************************************************/
 
 /**
- * ERPS Configuration
+ * ERPS Creation
  * 
  * @author joaom (6/4/2013)
  * 
@@ -5464,7 +5464,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
 #ifdef PTIN_ENABLE_ERPS
 
-  ptin_erps_t ptinErpsConf;
+  ptin_erps_t       ptinErpsConf;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
@@ -5497,6 +5497,9 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   ptinErpsConf.holdoffTimer   = msgErpsConf->holdoffTimer;
   ptinErpsConf.waitToRestore  = msgErpsConf->waitToRestore;
 
+  //ptinErpsConf.continualTxInterval;
+  //ptinErpsConf.rapidTxInterval;
+
   memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u",              ptinErpsConf.idx);
@@ -5522,11 +5525,159 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestore = %d",  ptinErpsConf.waitToRestore);
 
-//if (erps_add_entry(msgErpsConf->idx, &ptinErpsConf) != L7_SUCCESS)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS# %u", ptinEvcConf.idx);
-//  return L7_FAILURE;
-//}
+  if (ptin_erps_add_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != ptinErpsConf.idx) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Creating ERPS# %u", ptinErpsConf.idx);
+    return L7_FAILURE;
+  }
+
+#endif  // PTIN_ENABLE_ERPS
+
+  return L7_SUCCESS;
+
+}
+
+
+/**
+ * ERPS removal
+ * 
+ * @author joaom (6/22/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf)
+{
+
+#ifdef PTIN_ENABLE_ERPS
+
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS# %u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u", msgErpsConf->idx);
+
+  if (ptin_erps_remove_entry(msgErpsConf->idx) != msgErpsConf->idx) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Removing ERPS# %u", msgErpsConf->idx);
+    return L7_FAILURE;
+  }
+
+#endif  // PTIN_ENABLE_ERPS
+
+  return L7_SUCCESS;
+
+}
+
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/22/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
+{
+
+#ifdef PTIN_ENABLE_ERPS
+
+  ptin_erps_t       ptinErpsConf;
+
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS# %u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
+
+
+  /* Copy data to ptin struct */
+  ptinErpsConf.idx            = msgErpsConf->idx;
+
+  ptinErpsConf.megLevel       = msgErpsConf->megLevel;
+
+  ptinErpsConf.port0Role      = msgErpsConf->port0Role;
+  ptinErpsConf.port1Role      = msgErpsConf->port1Role;
+  ptinErpsConf.port0CfmIdx    = msgErpsConf->port0CfmIdx;
+  ptinErpsConf.port1CfmIdx    = msgErpsConf->port1CfmIdx;
+
+  ptinErpsConf.revertive      = msgErpsConf->revertive;
+  ptinErpsConf.guardTimer     = msgErpsConf->guardTimer;
+  ptinErpsConf.holdoffTimer   = msgErpsConf->holdoffTimer;
+  ptinErpsConf.waitToRestore  = msgErpsConf->waitToRestore;
+
+  //ptinErpsConf.continualTxInterval;
+  //ptinErpsConf.rapidTxInterval;
+
+  memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u",              ptinErpsConf.idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel      = %d",  ptinErpsConf.controlVid);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0Role     = %d",  ptinErpsConf.port0Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role     = %d",  ptinErpsConf.port1Role);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx   = %d",  ptinErpsConf.port0CfmIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx   = %d",  ptinErpsConf.port1CfmIdx);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive     = %s",  ptinErpsConf.revertive == 0? "False" : "True");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer    = %d",  ptinErpsConf.guardTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestore = %d",  ptinErpsConf.waitToRestore);
+
+  if (ptin_erps_conf_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != ptinErpsConf.idx) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS# %u", ptinErpsConf.idx);
+    return L7_FAILURE;
+  }
+
+#endif  // PTIN_ENABLE_ERPS
+
+  return L7_SUCCESS;
+
+}
+
+
+/**
+ * ERPS status
+ * 
+ * @author joaom (6/24/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
+{
+
+#ifdef PTIN_ENABLE_ERPS
+
+  erpsStatus_t status;
+
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsStatus->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS# %u is out of range [0..%u]", msgErpsStatus->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS# %u", msgErpsStatus->idx);
+
+  if (ptin_erps_get_status(msgErpsStatus->idx, &status) != msgErpsStatus->idx) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Retrieving Status ERPS# %u", msgErpsStatus->idx);
+    return L7_FAILURE;
+  }
+
+  msgErpsStatus->rplBlockedPortSide = status.rplBlockedPortSide;
+  msgErpsStatus->port0_SF           = status.port0_SF;
+  msgErpsStatus->port1_SF           = status.port1_SF;
+  msgErpsStatus->port0State         = status.port0State;
+  msgErpsStatus->port1State         = status.port1State;
+  msgErpsStatus->guard_timer        = status.guard_timer;
+  msgErpsStatus->wtr_timer          = status.wtr_timer;
+  msgErpsStatus->wtb_timer          = status.wtb_timer;
+  msgErpsStatus->holdoff_timer      = status.holdoff_timer;
+
 
 #endif  // PTIN_ENABLE_ERPS
 
@@ -5547,9 +5698,8 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
 
 
-
-
 #ifdef __802_1x__
+
 #include <sirerrors.h>
 #include <usmdb_dot1x_api.h>
 #include <usmdb_dot1x_auth_serv_api.h>

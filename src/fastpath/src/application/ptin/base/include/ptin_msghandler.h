@@ -144,6 +144,8 @@
 
 #define CCMSG_ERPS_SET                0x9170
 #define CCMSG_ERPS_DEL                0x9171
+#define CCMSG_ERPS_CONF               0x9172
+#define CCMSG_ERPS_STATUS             0x9173
 
 
 
@@ -1139,35 +1141,43 @@ typedef struct {
  * ERPS Configuration
  *****************************************************************************/
 
-//typedef enum {
-//   ERPS_PORTROLE_NONRPL       = 0,
-//   ERPS_PORTROLE_RPL          = 1,
-//   ERPS_PORTROLE_RPLNEIGBHOR  = 2,
-//} ERPS_PORTROLE;
-
+// Create/Reconfig/Remove
 typedef struct {
-   unsigned int     idx;
-   unsigned int     ringId;
-   unsigned char    isOpenRing;
-   unsigned short   controlVid;
-   unsigned char    megLevel;
+  unsigned int     idx;
+  unsigned int     ringId;
+  unsigned char    isOpenRing;
+  unsigned short   controlVid;
+  unsigned char    megLevel;
 
-   ptin_erpsPort_t  port0;
-   ptin_erpsPort_t  port1;
-   unsigned char    port0Role;
-   unsigned char    port1Role;
-   unsigned char    port0CfmIdx;
-   unsigned char    port1CfmIdx;
+  ptin_erpsPort_t  port0;
+  ptin_erpsPort_t  port1;
+  unsigned char    port0Role;
+  unsigned char    port1Role;
+  unsigned char    port0CfmIdx;
+  unsigned char    port1CfmIdx;
 
-   unsigned char    revertive;
-   unsigned char    guardTimer;
-   unsigned char    holdoffTimer;
-   unsigned char    waitToRestore;
+  unsigned char    revertive;
+  unsigned char    guardTimer;
+  unsigned char    holdoffTimer;
+  unsigned char    waitToRestore;
 
-   //service List
-   L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
+  //service List
+  L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
 } __attribute__ ((packed)) msg_erps_t;
 
+// Status
+typedef struct {
+  L7_uint32  idx;
+  L7_uint8   rplBlockedPortSide;
+  L7_uint8   port0_SF;
+  L7_uint8   port1_SF;
+  L7_uint8   port0State;
+  L7_uint8   port1State;
+  L7_uint16  guard_timer;
+  L7_uint32  wtr_timer;
+  L7_uint32  wtb_timer;
+  L7_uint16  holdoff_timer;
+} __attribute__ ((packed)) msg_erps_status_t;
 
 
 
