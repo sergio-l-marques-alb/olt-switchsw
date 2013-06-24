@@ -65,7 +65,26 @@ extern L7_RC_t ptin_hal_erps_init(void);
  * 
  * @param erps_idx 
  */
-extern L7_RC_t ptin_hal_erps_entry_init(L7_uint32 erps_idx);
+extern L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx);
+
+
+/**
+ * DEInitialize ERPS# hw abstraction layer
+ * 
+ * @author joaom (6/12/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx);
+
+
+/**
+ * DEInitialize ERPS hw abstraction layer
+ * 
+ * @author joaom (6/17/2013)
+ * 
+ */
+extern L7_RC_t ptin_hal_erps_deinit(void);
 
 
 /**
@@ -79,7 +98,7 @@ extern L7_RC_t ptin_hal_erps_entry_init(L7_uint32 erps_idx);
  * @param req_state 
  * @param status 
  */
-extern L7_RC_t ptin_hal_erps_sendaps(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
+extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
 
 
 /**
@@ -93,7 +112,7 @@ extern L7_RC_t ptin_hal_erps_sendaps(L7_uint32 erps_idx, L7_uint8 req_state, L7_
  * @param req_state 
  * @param status 
  */
-extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint32 erps_idx, L7_uint8 req_state, L7_uint8 status);
+extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
 
 /**
  * Receives an APS packet on a specified interface and vlan 
@@ -105,7 +124,7 @@ extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint32 erps_idx, L7_uint8 req_state, L
  * @param nodeid 
  * @param rxport 
  */
-extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint32 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
+extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
 
 
 #endif //__HAL_ERPS_H__

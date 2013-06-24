@@ -111,6 +111,15 @@ extern void *ptin_ccm_packetRx_queue;
 extern L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable);
 
 /**
+ * Set global enable for APS packets to go to the CPU
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable);
+
+/**
  * Configure CCM packet trapping in HW
  * 
  * @author joaom (6/13/2013)
@@ -130,7 +139,7 @@ extern L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_aps_packet_init(void);
+extern L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx);
 
 /**
  * Initialize CCM module
@@ -148,7 +157,7 @@ extern L7_RC_t ptin_ccm_packet_init(void);
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_aps_packet_deinit(void);
+extern L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx);
 
 /**
  * DEInitialize ptin_ccm_packet module
@@ -168,7 +177,7 @@ extern L7_RC_t ptin_ccm_packet_deinit(void);
  * @param req_state 
  * @param status 
  */
-extern void ptin_aps_packet_send(L7_uint32 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status);
+extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status);
 
 /**
  * Process received APS packet on specified interface and vlan
