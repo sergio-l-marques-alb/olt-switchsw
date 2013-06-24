@@ -839,6 +839,39 @@ extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
  */
 extern L7_RC_t ptin_msg_erps_set(msg_erps_t *ptr);
 
+/**
+ * ERPS removal
+ * 
+ * @author joaom (6/22/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf);
+
+/**
+ * ERPS Configuration
+ * 
+ * @author joaom (6/22/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf);
+
+/**
+ * ERPS status
+ * 
+ * @author joaom (6/24/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus);
+
 
 
 

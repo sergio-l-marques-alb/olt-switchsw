@@ -757,6 +757,9 @@ typedef struct {
    unsigned char    holdoffTimer;
    unsigned char    waitToRestore;
 
+   unsigned int     continualTxInterval;
+   unsigned int     rapidTxInterval;
+
    //service List
    L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
 } ptin_erps_t;
