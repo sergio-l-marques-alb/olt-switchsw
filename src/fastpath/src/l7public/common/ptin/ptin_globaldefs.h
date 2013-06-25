@@ -223,6 +223,11 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512 
 
+#define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
+
+
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
 # define MAP_CPLD
@@ -351,6 +356,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
+
+#define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
@@ -501,6 +510,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
+
+#define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
@@ -721,6 +734,10 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
+#define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
+
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
 # define CPLD_BASE_ADDR                0xFF500000
@@ -940,6 +957,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
+
+#define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_CPLD
