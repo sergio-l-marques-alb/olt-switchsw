@@ -37,10 +37,22 @@
 #include "snooping_ctrl.h"
 #include "snooping_proto.h"
 
-#if 1 /* PTin Add: IGMPv3 */
+/* PTin Add: IGMPv3 */
+#if SNOOP_PTIN_IGMPv3_GLOBAL
+
+#include "ptin_globaldefs.h"
+
+#if SNOOP_PTIN_IGMPv3_ROUTER
 #include "snooping_ptin_grouptimer.h"
 #include "snooping_ptin_sourcetimer.h"
 #include "snooping_ptin_querytimer.h"
+#endif
+
+#if SNOOP_PTIN_IGMPv3_PROXY
+#include "snooping_ptin_proxy_grouptimer.h"
+#include "snooping_ptin_proxy_sourcetimer.h"
+#include "snooping_ptin_proxy_interfacetimer.h"
+#endif
 #endif
 
 #ifdef L7_NSF_PACKAGE
@@ -1060,10 +1072,9 @@ void snoopCnfgrParse(L7_CNFGR_CMD_DATA_t *pCmdData)
   return;
 }
 
-#if 1
+#if SNOOP_PTIN_IGMPv3_GLOBAL
 /*PTIN Added MGDM Initializations*/
-
-
+#if SNOOP_PTIN_IGMPv3_ROUTER
 /*********************************************************************
 * @purpose  MGMD Router Execution block initializations
 *
@@ -1077,7 +1088,7 @@ void snoopCnfgrParse(L7_CNFGR_CMD_DATA_t *pCmdData)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopRouterInit(void)
+L7_RC_t snoopPtinRouterAVLTreeInit(void)
 {
   snoop_eb_t *pSnoopEB;
   pSnoopEB = &snoopEB;
@@ -1105,7 +1116,8 @@ L7_RC_t snoopRouterInit(void)
                    L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
   return L7_SUCCESS;
 }
-
+#endif
+#if SNOOP_PTIN_IGMPv3_PROXY
 /*********************************************************************
 * @purpose  MGMD Proxy Execution block initializations
 *
@@ -1119,7 +1131,7 @@ L7_RC_t snoopRouterInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopProxyDBInit(void)
+L7_RC_t snoopPtinProxyAVLTreeDBInit(void)
 {
   snoop_eb_t *pSnoopEB;
 
@@ -1162,7 +1174,7 @@ L7_RC_t snoopProxyDBInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopProxyGrouprecordInit(void)
+L7_RC_t snoopPtinProxyAVLTreeGroupRecordInit(void)
 {
 //snoop_eb_t *pSnoopEB;
 //
@@ -1203,7 +1215,7 @@ L7_RC_t snoopProxyGrouprecordInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopProxyInterfacetimerInit(void)
+L7_RC_t snoopPtinProxyAVLTreeInterfacetimerInit(void)
 {
   snoop_eb_t *pSnoopEB;
 
@@ -1245,7 +1257,7 @@ L7_RC_t snoopProxyInterfacetimerInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopProxyGrouptimerInit(void)
+L7_RC_t snoopPtinProxyAVLTreeGrouptimerInit(void)
 {
   snoop_eb_t *pSnoopEB;
 
@@ -1286,7 +1298,7 @@ L7_RC_t snoopProxyGrouptimerInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopProxySourcetimerInit(void)
+L7_RC_t snoopPtinProxyAVLTreeSourcetimerInit(void)
 {
   snoop_eb_t *pSnoopEB;
 
@@ -1313,6 +1325,7 @@ L7_RC_t snoopProxySourcetimerInit(void)
                    L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP, sizeof(snoopPTinProxySourcetimerInfoData_t), 0x10, sizeof(snoopPTinProxySourcetimerInfoDataKey_t));
   return L7_SUCCESS;
 }
+#endif
 
 #endif
 
@@ -1375,8 +1388,9 @@ L7_RC_t snoopEBInit(void)
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourcetimerDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(snoopPTinProxySourcetimerInfoData_t));
 
 /* DFF - PTin added: IGMPv3 snooping */
-#if 1
+#if SNOOP_PTIN_IGMPv3_GLOBAL
 
+#if SNOOP_PTIN_IGMPv3_ROUTER
   if ( snoop_ptin_grouptimer_init()!=L7_SUCCESS) // IGMPv3 grouptimer
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoop_ptin_grouptimer_init() failed");
@@ -1393,39 +1407,58 @@ L7_RC_t snoopEBInit(void)
     return L7_FAILURE;
   }
 
-  if ( snoopRouterInit()!=L7_SUCCESS)//Initialization of Memory for the Component of Router (Downstream Interfaces)
+  if ( snoopPtinRouterAVLTreeInit()!=L7_SUCCESS)//Initialization of Memory for the Component of Router (Downstream Interfaces)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoopRouterInit() failed");
     return L7_FAILURE;
   }
+#endif
   
-  if ( snoopProxyDBInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+#if SNOOP_PTIN_IGMPv3_PROXY
+   if ( snoop_ptin_proxy_Sourcetimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoopProxyInit() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Sourcetimer_init() failed ");
     return L7_FAILURE;
   } 
 
-  if ( snoopProxyGrouprecordInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  if ( snoop_ptin_proxy_Grouptimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoopProxyCSRInit() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Grouptimer_init() failed ");
     return L7_FAILURE;
   } 
 
-  if ( snoopProxyInterfacetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+    if ( snoop_ptin_proxy_Interfacetimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopProxyInterfacetimerInit() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Interfacetimer_init failed ");
     return L7_FAILURE;
   } 
-  if ( snoopProxyGrouptimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  if ( snoopPtinProxyAVLTreeDBInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopProxyGrouptimerInit() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeDBInit failed ");
     return L7_FAILURE;
   } 
-  if ( snoopProxySourcetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  if ( snoopPtinProxyAVLTreeGroupRecordInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopProxySourcetimerInit() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeGroupRecordInit failed ");
     return L7_FAILURE;
   } 
+  if ( snoopPtinProxyAVLTreeInterfacetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeInterfacetimerInit() failed ");
+    return L7_FAILURE;
+  } 
+  if ( snoopPtinProxyAVLTreeGrouptimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeGrouptimerInit() failed ");
+    return L7_FAILURE;
+  } 
+  if ( snoopPtinProxyAVLTreeSourcetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeSourcetimerInit() failed ");
+    return L7_FAILURE;
+  } 
+
+#endif
     
 #endif
 
