@@ -23,16 +23,16 @@ char *snoopPTinIPAddrPrint(const L7_inet_addr_t addr, L7_uchar8* buf);
 L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr);
 
 //Schedule LMQC Group or Group/Source Specific Query transmissions
-L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt);
+L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 
 //Schedule LMQC Group or Group/Source Specific Query transmissions
-L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt);
+L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 
 //Send Membership Repor Message
 void     snoopPTinReportSend        (L7_uint32 arg1);
 
 //Debug method that prints stored information for a specific multicast group
-void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId);
+void snoopPTinMcastgroupPrint(L7_uint32 groupAddrStr, L7_uint32 vlanId);
 
 L7_RC_t snoopPTinL2ClientAdd      ();  //PLACEHOLDER
 L7_RC_t snoopPTinL2ClientRemove   ();  //PLACEHOLDER
