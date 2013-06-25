@@ -3556,7 +3556,7 @@ L7_RC_t snoopL3EntryDelete(L7_inet_addr_t *mcastGroupAddr,
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 mcastGroupAddr, L7_uint32 vlanId, L7_uint32 flag)
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId, L7_uint32 flag)
 {
   snoopPTinL3InfoData_t *snoopEntry;
   snoopPTinL3InfoDataKey_t key;
@@ -3574,7 +3574,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 mcastGroupAddr, L7_uint32 
   fdbGetTypeOfVL(&fdbType);
 #endif
 
-  memcpy(&key.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_uint32));
+  memcpy(&key.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_inet_addr_t));
   memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &key, flag);
   if (flag == L7_MATCH_GETNEXT)
@@ -3610,7 +3610,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 mcastGroupAddr, L7_uint32 
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryAdd(L7_uint32 mcastGroupAddr, L7_uint32 vlanId)
+L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
 {
   snoopPTinL3InfoData_t snoopEntry;
   snoopPTinL3InfoData_t *pData;
@@ -3633,7 +3633,7 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 mcastGroupAddr, L7_uint32 vlanId)
 #endif
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinL3InfoData_t));
-  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_uint32));
+  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_inet_addr_t));
   memcpy(&snoopEntry.snoopPTinL3InfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
   pData = avlInsertEntry(&pSnoopEB->snoopPTinL3AvlTree, &snoopEntry);
 
@@ -3666,7 +3666,7 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 mcastGroupAddr, L7_uint32 vlanId)
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryDelete(L7_uint32 mcastGroupAddr, L7_uint32 vlanId)
+L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
 {
   snoopPTinL3InfoData_t *pData;
   snoopPTinL3InfoData_t *snoopEntry;
