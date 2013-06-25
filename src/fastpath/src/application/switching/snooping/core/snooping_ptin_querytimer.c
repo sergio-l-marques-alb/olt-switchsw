@@ -271,8 +271,8 @@ void cbEventqueueTask(void)
 *************************************************************************/
 L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
 {
-  L7_uint32 pMcastGroupAddr, pVlanId, pInterfaceIdx;
-  L7_uint32 qMcastGroupAddr, qVlanId, qInterfaceIdx;
+  L7_inet_addr_t pMcastGroupAddr, qMcastGroupAddr;
+  L7_uint32 pVlanId, pInterfaceIdx, qVlanId, qInterfaceIdx;
 
   pMcastGroupAddr = ((snoopPTinL3Sourcetimer_t *) p)->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr;
   pVlanId         = ((snoopPTinL3Sourcetimer_t *) p)->groupData->snoopPTinL3InfoDataKey.vlanId;
@@ -282,7 +282,7 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
   qVlanId         = ((snoopPTinL3Sourcetimer_t *) q)->groupData->snoopPTinL3InfoDataKey.vlanId;
   qInterfaceIdx   = ((snoopPTinL3Sourcetimer_t *) q)->interfaceIdx;
 
-  if ( pMcastGroupAddr == qMcastGroupAddr && 
+  if ( L7_INET_ADDR_COMPARE(&pMcastGroupAddr,&qMcastGroupAddr)==L7_TRUE && 
        pVlanId         == qVlanId         &&
        pInterfaceIdx   == qInterfaceIdx )
     return 0;
@@ -361,7 +361,7 @@ void timerCallback(void *param)
     return;
   }
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Querytimer expired (group:%s vlan:%u ifId:%u)", 
-            snoopPTinIPv4AddrPrint(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
+            inetAddrPrint(&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
@@ -467,7 +467,7 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting querytimer (group:%s vlan:%u ifIdx:%u)",
-            snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
+            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)
@@ -530,7 +530,7 @@ L7_RC_t snoop_ptin_querytimer_stop(snoopPTinL3Querytimer_t *pTimer)
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stopping querytimer (group:%s vlan:%u ifIdx:%u)",
-            snoopPTinIPv4AddrPrint(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, pTimer->interfaceIdx);
+            inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, pTimer->interfaceIdx);
 
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 

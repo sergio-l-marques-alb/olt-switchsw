@@ -271,8 +271,8 @@ void cbEventqueueTask(void)
 *************************************************************************/
 L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
 {
-  L7_uint32 pMcastGroupAddr, pVlanId, pInterfaceIdx, pSourceIdx;
-  L7_uint32 qMcastGroupAddr, qVlanId, qInterfaceIdx, qSourceIdx;
+  L7_inet_addr_t pMcastGroupAddr, qMcastGroupAddr;
+  L7_uint32 pVlanId, pInterfaceIdx, pSourceIdx, qVlanId, qInterfaceIdx, qSourceIdx;
 
   /* Validate argument */
   if (p == L7_NULLPTR || ((snoopPTinL3Sourcetimer_t *) p)->groupData == L7_NULLPTR || 
@@ -292,7 +292,7 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
   qInterfaceIdx   = ((snoopPTinL3Sourcetimer_t *) q)->interfaceIdx;
   qSourceIdx      = ((snoopPTinL3Sourcetimer_t *) q)->sourceIdx;
 
-  if ( pMcastGroupAddr == qMcastGroupAddr && 
+  if ( L7_INET_ADDR_COMPARE(&pMcastGroupAddr,&qMcastGroupAddr)==L7_TRUE && 
        pVlanId         == qVlanId         &&
        pInterfaceIdx   == qInterfaceIdx   &&
        pSourceIdx      == qSourceIdx      )
@@ -375,7 +375,7 @@ void timerCallback(void *param)
     return;
   }
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u)", 
-            snoopPTinIPv4AddrPrint(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
+            inetAddrPrint(&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
@@ -396,7 +396,7 @@ void timerCallback(void *param)
   if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
   {
     /* Remove source */
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing source %s", snoopPTinIPv4AddrPrint(sourcePtr->sourceAddr, debug_buf));
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));
     snoopPTinSourceRemove(interfacePtr, sourcePtr);
 
     /* If no more sources remain, remove group */
@@ -471,7 +471,7 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint32
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (timeout:%u group:%s vlan:%u ifIdx:%u srcIdx:%u)",
-            timeout, snoopPTinIPv4AddrPrint(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), 
+            timeout, inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), 
             groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, sourceIdx);
 
   /* If timeout was configured as 0, do not set up the timer */
@@ -545,7 +545,7 @@ L7_RC_t snoop_ptin_sourcetimer_stop(snoopPTinL3Sourcetimer_t *pTimer)
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removing sourcetimer (group:%s vlan:%u ifIdx:%u srcIdx:%u)",
-            snoopPTinIPv4AddrPrint(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, pTimer->interfaceIdx, pTimer->sourceIdx);
+            inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, pTimer->interfaceIdx, pTimer->sourceIdx);
 
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 

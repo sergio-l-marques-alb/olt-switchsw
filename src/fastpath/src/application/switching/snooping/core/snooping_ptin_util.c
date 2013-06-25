@@ -118,7 +118,7 @@ L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr)
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt)
+L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
 {
 //Commented by MMElo
   //  snoop_eb_t            *pSnoopEB;
@@ -212,6 +212,7 @@ L7_RC_t snoopPTinQueryFrameV3Build(L7_uint32 groupAddr, L7_BOOL sFlag, L7_uchar8
   shortVal = 0;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
+  
   /* Group Address */
   SNOOP_PUT_DATA(&groupAddr, L7_IP_ADDR_LEN, dataPtr);
 
@@ -266,7 +267,7 @@ L7_RC_t snoopPTinQueryFrameV3Build(L7_uint32 groupAddr, L7_BOOL sFlag, L7_uchar8
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_uint32 groupAddr, L7_BOOL sFlag, L7_uint32 *sources, L7_uint8 sourcesCnt)
+L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
 {
 //Commented by MMElo
   //  snoop_eb_t            *pSnoopEB;
@@ -431,7 +432,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_uint32 g
   L7_inet_addr_t      querierAddr, destIp;
   static L7_ushort16  iph_ident = 1;
   L7_ushort16         shortVal;
-  L7_uint32           ipv4Addr;
+  L7_uint32      ipv4Addr;
   L7_uchar8           byteVal;
 
   /* Argument validation */
@@ -887,17 +888,39 @@ if (L7_AF_INET == addr.family)
  * @return  none
  *
  *************************************************************************/
-void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
+void snoopPTinMcastgroupPrint(L7_uint32 groupAddrStr, L7_uint32 vlanId)
 {
-  char                  debug_buf[46];
+  char                  debug_buf[IPV6_DISP_ADDR_LEN];
   snoopPTinL3InfoData_t *snoopEntry;
+  L7_inet_addr_t        groupAddr;    
+  
+
+
+  if ( vlanId<0 || vlanId>4095)
+  {
+    printf("Invalid Arguments: %d", vlanId);  
+    return;
+  }  
+
+//char  *ptr=groupAddrStr;
+//ptr=ptr+IPV6_DISP_ADDR_LEN+1;
+//*ptr='\0';
+//groupAddr.addr.ipv4.s_addr= (L7_uint32) inet_addr(groupAddrStr);
+
+  groupAddr.addr.ipv4.s_addr=groupAddrStr;
+  groupAddr.family=L7_AF_INET;
+  if (inetIsInMulticast(&groupAddr)!=L7_TRUE)        
+  {
+    printf("Invalid Multicast IP Address : %s", inetAddrPrint(&groupAddr,debug_buf));  
+    return;
+  }
 
   /* Search for the requested multicast group */
   if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(groupAddr, vlanId, L7_MATCH_EXACT)))
   {
     L7_uint32 ifIdx;
 
-    printf("Group: %s       Vlan ID: %u\n", snoopPTinIPv4AddrPrint(snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf), snoopEntry->snoopPTinL3InfoDataKey.vlanId);
+    printf("Group: %s       Vlan ID: %u\n", inetAddrPrint(&(snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), snoopEntry->snoopPTinL3InfoDataKey.vlanId);
     printf("-----------------------------------------\n");
 
     for (ifIdx=0; ifIdx<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; ++ifIdx)
@@ -916,7 +939,7 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
           {
             L7_int8 clientIdx;
 
-            printf("                       |Source: %s\n", snoopPTinIPv4AddrPrint(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr, debug_buf));
+            printf("                       |Source: %s\n", inetAddrPrint(&(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr), debug_buf));
             printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");
             printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
             printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
@@ -933,7 +956,7 @@ void snoopPTinMcastgroupPrint(L7_uint32 groupAddr, L7_uint32 vlanId)
   }
   else
   {
-    printf("Unknown Group %s VlanId %u\n", snoopPTinIPv4AddrPrint(groupAddr, debug_buf), vlanId);
+    printf("Unknown Group %s VlanId %u\n", inetAddrPrint(&groupAddr, debug_buf), vlanId);
   }
 }
 
