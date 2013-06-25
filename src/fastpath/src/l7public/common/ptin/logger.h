@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 
-#define LOG_OUTPUT_FILE_DEFAULT "/usr/local/ptin/log/fastpath/fastpath.log"
+#define LOG_OUTPUT_FILE_DEFAULT "/var/log/switchdrvr.log"
 
 #define LOG_OUTPUT_DEFAULT  LOG_OUTOUT_STDOUT
 

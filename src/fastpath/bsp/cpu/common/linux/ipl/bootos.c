@@ -338,6 +338,9 @@ int fp_main(int argc, char *argv[])
   L7_int32 startupStatusTaskID;
   L7_RC_t rc;
 
+  /* Initialize logger */
+  log_init(LOG_OUTPUT_FILE);
+
   /* PTin added: Clock */
   #if 1
   extern pthread_cond_t osapiTimerCond;

@@ -27,7 +27,7 @@ L7_RC_t hapiBroadPtinDataInit(void)
 {
   L7_RC_t rc;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PTin HAPI Applying configs...");
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Applying configs...");
 
   /* Initialize PTIN HAPI files */
   rc = hapi_ptin_data_init();
