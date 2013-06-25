@@ -197,7 +197,7 @@ L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
   LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u", intIfNum);
 
   /* Validate arguments */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS )
+  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_PORTS)
   {
     LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -235,7 +235,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u portgroup=%u", intIfNum, portgroup);
 
   /* Validate interface */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS )
+  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_PORTS )
   {
     LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -304,7 +304,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
     if (dtlPtinVlanTranslateEgressPortsGroup(intf_members[i], &group)==L7_SUCCESS)
     {
       /* If successfull, set the portgroup to each physical port */
-      if ( ptin_intf_intIfNum2port(intf_members[i], &ptin_port_i)==L7_SUCCESS )
+      if ( ptin_intf_intIfNum2port(intf_members[i], &ptin_port_i)==L7_SUCCESS && ptin_port_i<PTIN_SYSTEM_N_PORTS )
       {
         xlate_table_portgroup[ptin_port_i] = class_id;
       }
@@ -340,13 +340,13 @@ L7_RC_t ptin_xlate_portgroup_reset_all(void)
   LOG_TRACE(LOG_CTX_PTIN_API, "Resetting class ids...");
 
   /* Run all interfaces */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_INTERF; ptin_port++ )
+  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++ )
   {
     /* Default class id */
     xlate_table_portgroup[ptin_port] = 0;
 
     /* Extract and validate intIfNum */
-    if ( ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS )
+    if ( ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
       continue;
     }

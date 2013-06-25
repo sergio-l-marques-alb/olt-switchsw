@@ -116,7 +116,6 @@ void ptinApiCnfgrCommand(L7_CNFGR_CMD_DATA_t *pCmdData)
   L7_RC_t             ptinRC = L7_ERROR;
   L7_CNFGR_ERR_RC_t   reason   = L7_CNFGR_ERR_RC_INVALID_PAIR;
 
-
   /* validate command type */
   if ( pCmdData != L7_NULL )
   {
