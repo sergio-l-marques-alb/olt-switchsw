@@ -33,10 +33,10 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t *avlTreeEntr
 L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
 
 //Search a specific source in a given source list
-L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_uint32 sourceAddr, L7_uint8* foundIdx);
+L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);
 
 //Adds a new source to the given source list in the first free index
-L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uint32 sourceAddr, L7_uint8* newSourceIdx);
+L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
 
 //Remove a source entry, reseting all its fields and stopping the associated timer
 L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourceList);
