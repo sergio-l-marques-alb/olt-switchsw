@@ -115,6 +115,29 @@ void snoopChannelsListGet(L7_uint16 vlanId,
                           L7_uint16 client_index,
                           L7_inet_addr_t *channel_list,
                           L7_uint16 *num_channels);
+
+/**
+ * Add IPv4 channel and update Snoop Entry database.
+ * 
+ * @param vlanId                : Vlan id
+ * @param mgmdGroupAddr         : channel IP
+ * @param intIfNum              : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum);
+
+/**
+ * Remove IPv4 channel, and update Snoop Entry database. 
+ * 
+ * @param vlanId                : Vlan id
+ * @param mgmdGroupAddr         : channel IP
+ * @param intIfNum              : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum);
+
 #endif
 
 /* Snoop Entry interraction with MFDB */

@@ -2224,6 +2224,170 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   return L7_SUCCESS;
 }
 
+
+/**
+ * Add IPv4 channel and update Snoop Entry database.
+ * 
+ * @param vlanId                : Vlan id
+ * @param mgmdGroupAddr         : channel IP
+ * @param intIfNum              : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum)
+{
+  snoopInfoData_t *snoopEntry;
+  char dmac[L7_ENET_MAC_ADDR_LEN];
+
+  /* Validate arguments */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
+      mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
+      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Determine DMAC */
+  dmac[0] = 0x01;
+  dmac[1] = 0x00;
+  dmac[2] = 0x5E;
+  dmac[3] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr>>16) & 0x7f);
+  dmac[4] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr>> 8) & 0xff);
+  dmac[5] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr    ) & 0xff);
+
+  /* Does an entry with the same MAC addr and VLAN ID already exist? */
+  if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "snoop entry does not exist");
+    /* Entry does not exist... give back the semaphore and create new entry */
+    if (snoopEntryCreate(dmac, vlanId, L7_AF_INET, L7_FALSE)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "snoopEntryCreate failed. Table full");
+      return L7_FAILURE;
+    }
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoop entry successfully created!");
+    /* Check if snooping entry exists */
+    if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "snoopEntryFind failed.");
+      return L7_FAILURE;
+    }
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoop entry exists now");
+  }
+
+  /* If the entry already existed or it was just successfully created, add the interface */
+  if (snoopIntfAdd(dmac, vlanId, intIfNum, SNOOP_GROUP_MEMBERSHIP, snoopCBGet(L7_AF_INET))!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopIntfAdd failed");
+    return L7_FAILURE;
+  }
+
+  /* Add interface for this channel */
+  if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfAdd failed");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove IPv4 channel, and update Snoop Entry database. 
+ * 
+ * @param vlanId                : Vlan id
+ * @param mgmdGroupAddr         : channel IP
+ * @param intIfNum              : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum)
+{
+  snoopInfoData_t *snoopEntry;
+  char dmac[L7_ENET_MAC_ADDR_LEN];
+
+  /* Validate arguments */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
+      mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
+      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Determine DMAC */
+  dmac[0] = 0x01;
+  dmac[1] = 0x00;
+  dmac[2] = 0x5E;
+  dmac[3] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr>>16) & 0x7f);
+  dmac[4] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr>> 8) & 0xff);
+  dmac[5] = (L7_uchar8) ((mgmdGroupAddr->addr.ipv4.s_addr    ) & 0xff);
+
+  /* Does an entry with the same MAC addr and VLAN ID already exist? */
+  snoopEntry = snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT);
+  if ( snoopEntry == L7_NULLPTR )
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopEntryFind failed!");
+    return L7_SUCCESS;
+  }
+
+  /* If interface is not active for this group, do nothing */
+  if (!snoopEntry->port_list[intIfNum].active)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Interface %u is not active.",intIfNum);
+    return L7_SUCCESS;
+  }
+
+  /* Verify if this channel exists */
+  if (!snoopChannelExist(snoopEntry,mgmdGroupAddr))
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"This channel does not exist");
+    return L7_SUCCESS;
+  }
+
+  /* Procedures when no one is watching a channel in a particular interface... */
+  /* Remove interface from this channel */
+  if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfRemove failed");
+    return L7_FAILURE;
+  }
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Interface removed for this interface");
+
+  /* If there is no channels for this interface, remove interface from group */
+  if (snoopChannelsIntfNone(snoopEntry,intIfNum))
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"No channels for this interface");
+    if (snoopIntfRemove(dmac,vlanId,intIfNum,SNOOP_GROUP_MEMBERSHIP,snoopCBGet(L7_AF_INET))!= L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to remove group membership");
+      return L7_FAILURE;
+    }
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
+  }
+
+  return L7_SUCCESS;
+}
+
+
 /***************************************************************************
 * @purpose  Remove all clients from an IP channel of a Vlan+MAC group
 *
