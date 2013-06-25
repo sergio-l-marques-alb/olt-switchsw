@@ -67,16 +67,23 @@ L7_RC_t     snoopCnfgrConfigFileReadApply(struct snoop_cb_s *pSnoopCB,
                                           L7_BOOL warmRestart,
                                           L7_CNFGR_RESPONSE_t *pResponse,
                                           L7_CNFGR_ERR_RC_t   *pReason);
-#if 1
+#include "ptin_globaldefs.h"
+
 /*PTIN Added 
   MGDM Memory Initialization*/
-L7_RC_t     snoopRouterInit(void);
-L7_RC_t     snoopProxyDBInit(void);
-L7_RC_t     snoopProxyGrouprecordInit(void);
+#if SNOOP_PTIN_IGMPv3_ROUTER
+L7_RC_t     snoopPtinRouterAVLTreeInit(void);
+#endif
 
-L7_RC_t     snoopProxyInterfacetimerInit(void);
-L7_RC_t     snoopProxyGrouptimerInit(void);
-L7_RC_t     snoopProxySourcetimerInit(void);
+#if SNOOP_PTIN_IGMPv3_PROXY
+L7_RC_t     snoopPtinProxyAVLTreeDBInit(void);
+L7_RC_t     snoopPtinProxyAVLTreeGroupRecordInit(void);
+
+L7_RC_t     snoopPtinProxyAVLTreeInterfacetimerInit(void);
+L7_RC_t     snoopPtinProxyAVLTreeGrouptimerInit(void);
+L7_RC_t     snoopPtinProxyAVLTreeSourcetimerInit(void);
+#endif
+
 #endif
 
 #endif /* INCLUDE_SNOOPING_CNFGR_H */
