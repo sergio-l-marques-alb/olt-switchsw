@@ -67,6 +67,8 @@ L7_RC_t     snoopCnfgrConfigFileReadApply(struct snoop_cb_s *pSnoopCB,
                                           L7_BOOL warmRestart,
                                           L7_CNFGR_RESPONSE_t *pResponse,
                                           L7_CNFGR_ERR_RC_t   *pReason);
+
+#if SNOOP_PTIN_IGMPv3_GLOBAL
 #include "ptin_globaldefs.h"
 
 /*PTIN Added 
