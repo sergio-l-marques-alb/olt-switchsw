@@ -45,12 +45,13 @@
 #define SNOOP_BIG_ENDIAN 1
 
 /* PTin added: IGMPv3 snooping */
-#if 1
+#if SNOOP_PTIN_IGMPv3_GLOBAL
 
-
+#if SNOOP_PTIN_IGMPv3_PROXY
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
 #define SNOOP_IGMPv3_MAX_RECORD_GROUP_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+#endif
 
 typedef enum
 {
@@ -337,7 +338,7 @@ typedef struct
 typedef struct
 {
   L7_uint32                clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
-  L7_uint32                sourceAddr;
+  L7_inet_addr_t           sourceAddr;
   snoopPTinL3Sourcetimer_t sourceTimer;
   L7_uint8                 status;
   L7_uint16                numberOfClients;
@@ -354,7 +355,7 @@ typedef struct
 
 typedef struct snoopPTinL3InfoDataKey_s
 {
-  L7_uint32 mcastGroupAddr;
+  L7_inet_addr_t mcastGroupAddr;
   L7_uint32 vlanId;
 } snoopPTinL3InfoDataKey_t;
 
