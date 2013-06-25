@@ -116,6 +116,34 @@ extern L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRF
  */
 extern L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats);
 
+/* Slot mode configuration ****************************************************/
+
+/**
+ * Get slot mode configuration
+ * 
+ * @param slotMode 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode);
+
+/**
+ * Validate slot mode configuration
+ * 
+ * @param slotMode 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode);
+
+/**
+ * Apply new slot mode configuration by rebboting application
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_slotMode_apply(msg_slotModeCfg_t *slotMode);
+
+
 /* Port Type Functions ********************************************************/ 
 
 /**

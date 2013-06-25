@@ -499,6 +499,50 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
   return L7_SUCCESS;
 }
 
+/* Slot mode configuration ****************************************************/
+
+/**
+ * Get slot mode configuration
+ * 
+ * @param slotMode 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
+{
+  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Validate slot mode configuration
+ * 
+ * @param slotMode 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
+{
+  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Apply new slot mode configuration by rebboting application
+ *  
+ * @param slotMode
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_slotMode_apply(msg_slotModeCfg_t *slotMode)
+{
+  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+
+  return L7_SUCCESS;
+}
+
 /* Port Type Functions ********************************************************/ 
 
 /**

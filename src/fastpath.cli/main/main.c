@@ -41,8 +41,11 @@ void help_oltBuga(void)
         "m 1000 console[/dev/...]\n\r"
         "m 1001 console[/dev/...] - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
+        "m 1005 - Get currect slot map configuration\r\n"
         "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
         "m 1007 <port1> <port2> ... - Read number of PRBS errors\r\n"
+        "m 1008 - Validate provided slot map configuration\r\n"
+        "m 1009 - Apply new slot map configuration\r\n"
         "m 1010 port[0-17] enable[0,1] speed[1G=3,2.5G=4] fullduplex[0,1] framemax(bytes) lb[0,1] macLearn[0,1] - switch port configuration\n\r"
         "m 1011 port[0-17] - get switch port configuration\n\r"
         "m 1012 port[0-17] - Get Phy states\n\r"
@@ -512,6 +515,62 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_PCS_PRBS_STATUS;
           comando.infoDim = sizeof(msg_ptin_pcs_prbs)*(argc-3);
+        }
+        break;
+
+      // Slot mode configuration
+      case 1005:
+        {
+          /* Get slot configuration */
+          *((uint32 *) &comando.info[0]) = 0;
+
+          comando.msgId = CCMSG_SLOT_MAP_MODE_GET;
+          comando.infoDim = sizeof(uint32);
+        }
+        break;
+
+      case 1008:
+      case 1009:
+        {
+          uint8 i, index, mode;
+          msg_slotModeCfg_t *ptr;
+
+          // Validate number of arguments
+          if (argc<3+0)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_slotModeCfg_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_slotModeCfg_t));
+
+          ptr->SlotId = (uint8)-1;
+
+          /* Run all provided slots */
+          for (i=0; i<(argc-3)/2 && i<MSG_SLOTMODECFG_NSLOTS; i++)
+          {
+            /* Slot index */
+            if (StrToLongLong(argv[3+(i*2)],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            index = (uint8) valued;
+            /* Slot mode */
+            if (StrToLongLong(argv[3+(i*2)+1],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            mode = (uint8) valued;
+
+            /* Fill array cell */
+            ptr->slot_list[i].slot_index  = index;
+            ptr->slot_list[i].slot_mode   = mode;
+            ptr->slot_list[i].slot_config = 1;
+          }
+
+          comando.msgId = (msg==1009) ? CCMSG_SLOT_MAP_MODE_APPLY : CCMSG_SLOT_MAP_MODE_VALIDATE;
+          comando.infoDim = sizeof(msg_slotModeCfg_t);
         }
         break;
 
@@ -3767,6 +3826,41 @@ int main (int argc, char *argv[])
         }
         break;
 
+      case 1005:
+        {
+          int i;
+          msg_slotModeCfg_t *po=(msg_slotModeCfg_t *) &resposta.info[0];
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          {
+            // Validate size
+            if (resposta.infoDim!=sizeof(msg_slotModeCfg_t))
+            {
+              printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_slotModeCfg_t),resposta.infoDim);
+              break;
+            }
+
+            printf(" Slot map configuration (Slot=%u):\r\n",po->SlotId);
+            for (i=0; i<MSG_SLOTMODECFG_NSLOTS; i++)
+            {
+              if (po->slot_list[i].slot_config)
+              {
+                printf(" Index=%u:   Slot=%2u - Mode=%u\r\n", i, po->slot_list[i].slot_index, po->slot_list[i].slot_mode);
+              }
+              else
+              {
+                printf(" Index=%u:   Not defined\r\n", i);
+              }
+            }
+            printf("Switch: Slot map configuration read successfully\n\r");
+          }
+          else
+          {
+            printf(" Switch: Error reading slot map configuration\n\r");
+          }
+        }
+        break;
+
     case 1006:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" PRBS enable executed successfully\n\r");
@@ -3800,6 +3894,20 @@ int main (int argc, char *argv[])
           printf(" Switch: Error reading resources list\n\r");
       }
       break;
+
+      case 1008:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Slot map validated successfully\n\r");
+        else
+          printf(" Slot map not valid - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1009:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Slot map configuration applied successfully\n\r");
+        else
+          printf(" Slot map configuration not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
 
       case 1010:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))

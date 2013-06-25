@@ -215,7 +215,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* PTin module is still loading or crashed ? */
   if (ptin_state != PTIN_LOADED)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d", ptin_state);
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
     res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
     SetIPCNACK(outbuffer, res);
     return S_OK;
@@ -414,6 +414,90 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
+    /************************************************************************** 
+     * SLOT MODE CONFIGURATION
+     **************************************************************************/
+
+    case CCMSG_SLOT_MAP_MODE_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_SLOT_MAP_MODE_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_slotModeCfg_t);
+
+      msg_slotModeCfg_t *ptr;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_slotModeCfg_t));
+      ptr = (msg_slotModeCfg_t *) outbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_slotMode_get(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error reading slot map");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_slotModeCfg_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_SLOT_MAP_MODE_VALIDATE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_SLOT_MAP_MODE_VALIDATE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
+
+      msg_slotModeCfg_t *ptr = (msg_slotModeCfg_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_slotMode_validate(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_SLOT_MAP_MODE_APPLY:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_SLOT_MAP_MODE_APPLY (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
+
+      msg_slotModeCfg_t *ptr = (msg_slotModeCfg_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_slotMode_apply(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
 
     /************************************************************************** 
      * PHY CONFIG Processing

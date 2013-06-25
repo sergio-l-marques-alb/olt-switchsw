@@ -119,6 +119,10 @@ extern int canal_buga;
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
 
+#define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
+#define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
+#define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
+
 
 /* Fastpath typedefs */
 typedef uint8    L7_uint8;
@@ -904,6 +908,24 @@ typedef struct
   L7_uint8             enable;
   msg_rxStatus_t       rxStatus;
 } __attribute__((packed)) msg_ptin_pcs_prbs;
+
+
+/***************************************************** 
+ * SLOT MODE CONFIGURATION
+ ****************************************************/
+
+/* Slot mode configuration */
+// Message CCMSG_SLOT_MAP_MODE_GET, CCMSG_SLOT_MAP_MODE_VALIDATE
+#define MSG_SLOTMODECFG_NSLOTS  20
+typedef struct
+{
+  L7_uint8 SlotId;           // Slot id: Slot de destino para a mensagem
+  struct {                   // List de port modes para o backplane:
+    L7_uint8 slot_config;        // 1 para configurar a respectiva slot; 0, para ignorar este elemento
+    L7_uint8 slot_index;         // Índice da slot a configurar
+    L7_uint8 slot_mode;          // Modo da slot
+  } slot_list[MSG_SLOTMODECFG_NSLOTS];
+} __attribute__((packed)) msg_slotModeCfg_t;
 
 /***************************************************** 
  * INTERNAL MESSAGES
