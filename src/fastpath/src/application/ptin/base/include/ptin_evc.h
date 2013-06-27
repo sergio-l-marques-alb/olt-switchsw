@@ -278,6 +278,27 @@ extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_I
 extern
 L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
 
+/**
+ * Configures a root port (unstacked EVCs) 
+ *  1. Associates the internal VLAN to the root intf
+ * 
+ * @param root_intf     Root interface (ptin_intf)
+ * @param int_vlan      Inner VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan);
+
+/**
+ * Removes a root port (unstacked EVCs) 
+ * 
+ * @param root_intf Root interface (ptin_intf)
+ * @param int_vlan  Inner VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
+
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
  ********************************************************/
