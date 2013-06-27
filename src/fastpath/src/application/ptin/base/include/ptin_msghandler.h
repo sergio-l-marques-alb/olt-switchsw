@@ -1179,9 +1179,9 @@ typedef struct {
   unsigned char    port1CfmIdx;
 
   unsigned char    revertive;
-  unsigned char    guardTimer;
+  unsigned short   guardTimer;
   unsigned char    holdoffTimer;
-  unsigned char    waitToRestore;
+  unsigned char    waitToRestoreTimer;
 
   //service List
   L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
