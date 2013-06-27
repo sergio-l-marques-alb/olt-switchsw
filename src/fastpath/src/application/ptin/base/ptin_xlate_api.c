@@ -235,7 +235,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u portgroup=%u", intIfNum, portgroup);
 
   /* Validate interface */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_PORTS )
+  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS )
   {
     LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -319,7 +319,10 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   if (rc==L7_SUCCESS)
   {
     /* If successfull, set the portgroup to the "global" port */
-    xlate_table_portgroup[ptin_port] = class_id;
+    if (ptin_port < PTIN_SYSTEM_N_PORTS)
+    {
+      xlate_table_portgroup[ptin_port] = class_id;
+    }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
