@@ -320,6 +320,10 @@ typedef struct {
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1
 #define PTIN_EVC_MC_FLOOD_NONE      2
 
+#define PTIN_EVC_PORT_FLUSHING      0
+#define PTIN_EVC_PORT_BLOCKING      1
+
+
 typedef struct {
   L7_uint32 index;        // EVC Id [1..PTIN_SYSTEM_N_EVCS]
   L7_uint32 flags;        // 0x0001 - Bundling      (not implemented)
@@ -737,32 +741,6 @@ typedef struct {
    unsigned char type;
    unsigned char idx;
 } ptin_erpsPort_t;
-
-typedef struct {
-   unsigned int     idx;
-   unsigned int     ringId;
-   unsigned char    isOpenRing;
-   unsigned short   controlVid;
-   unsigned char    megLevel;
-
-   ptin_erpsPort_t  port0;
-   ptin_erpsPort_t  port1;
-   unsigned char    port0Role;
-   unsigned char    port1Role;
-   unsigned char    port0CfmIdx;
-   unsigned char    port1CfmIdx;
-
-   unsigned char    revertive;
-   unsigned short   guardTimer;
-   unsigned char    holdoffTimer;
-   unsigned char    waitToRestore;
-
-   unsigned int     continualTxInterval;
-   unsigned int     rapidTxInterval;
-
-   //service List
-   L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
-} ptin_erps_t;
 
 
 #endif /* _PTIN_STRUCTS_H */
