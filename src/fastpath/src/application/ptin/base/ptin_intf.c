@@ -21,12 +21,14 @@
 
 #define MAP_EMTPY_ENTRY     0xFFFFFFFF  /* 32bits unsigned */
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G)
 static const int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = PTIN_SLOTPORT_TO_INTF_MAP;
-
 static const int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_SLOT_MAP;
-
 static const int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_PORT_MAP;
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+static const int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+static const int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
+static const int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #endif
 
 /**
@@ -1844,8 +1846,6 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
       rc = L7_FAILURE;
     }
-    else
-      rc = L7_SUCCESS;
   }
 
   #if 0
