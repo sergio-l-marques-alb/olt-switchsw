@@ -29,6 +29,8 @@
 #include "dapi.h"
 #include "sysapi_hpc.h"
 
+#include "ptin_globaldefs.h"  /* PTin added */
+
 /*******************************************************************************
 *
 * @structures HAPI_CARD_SLOT_MAP_t
@@ -46,6 +48,64 @@ typedef struct
   L7_int32   bcm_port;
 
 } HAPI_CARD_SLOT_MAP_t ;
+
+
+#ifdef PTIN_WC_SLOT_MAP
+
+#define WC_MAX_NUMBER          18
+#define WC_MAX_LANES            4
+#define WC_MAX_GROUPS           4
+
+#define WC_GROUP0_MAX_BW      164
+#define WC_GROUP_MAX_BW       160
+
+#define WC_SEGMENT_N_GROUPS     2
+#define WC_SEGMENT_MAX_PORTS   32
+
+
+#define WC_SLOT_MODE_NONE   0
+#define WC_SLOT_MODE_2x10G  1
+#define WC_SLOT_MODE_4x10G  2
+#define WC_SLOT_MODE_1x40G  3
+#define WC_SLOT_MODE_2x40G  4
+#define WC_SLOT_MODE_3x40G  5
+#define WC_SLOT_MODE_1x10G  6
+#define WC_SLOT_MODE_3x10G  7
+#define WC_SLOT_MODE_1x1G   8
+#define WC_SLOT_MODE_2x1G   9
+#define WC_SLOT_MODE_3x1G   10
+#define WC_SLOT_MODE_4x1G   11
+#define WC_SLOT_MODE_MAX    12
+
+/*******************************************************************************
+*
+* @structures HAPI_WC_SLOT_MAP_t / HAPI_WC_PORT_MAP_t
+*
+* @purpose    The warpcores slot map information
+*
+* @end
+*
+*******************************************************************************/
+typedef struct
+{
+  L7_ulong32 wcIndex;
+  L7_ulong32 wcGroup;
+  L7_uint8   invert_lanes;
+  L7_uint8   invert_polarities;
+  L7_long32  slotIdx;
+
+} HAPI_WC_SLOT_MAP_t;
+
+typedef struct
+{
+  L7_ulong32 portNum;
+  L7_long32  slotNum;
+  L7_ulong32 wcIdx;
+  L7_ulong32 wcLane;
+  L7_ulong32 wcSpeedG;
+
+} HAPI_WC_PORT_MAP_t;
+#endif
 
 /*******************************************************************************
 *
@@ -103,6 +163,14 @@ typedef struct
   L7_ushort16             numOfNps;
   void                   *npInfo;
   L7_ushort16             npInfoSlot;
+
+  #ifdef PTIN_WC_SLOT_MAP
+  HAPI_WC_SLOT_MAP_t     *wcSlotMap;
+  L7_ushort16             numOfWCSlotMapEntries;
+
+  HAPI_WC_PORT_MAP_t     *wcPortMap;
+  L7_ushort16             numOfWCPortMapEntries;
+  #endif
 
 } DAPI_CARD_ENTRY_t;
 

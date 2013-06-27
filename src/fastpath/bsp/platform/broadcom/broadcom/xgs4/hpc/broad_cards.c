@@ -933,6 +933,100 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[]
 #endif
 };
 
+#ifdef PTIN_WC_SLOT_MAP
+/* 56846 in CXO640G (OLT1T3) */
+HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
+/*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
+ * --------- --------- ---------  -------  -------*/
+{{        0,        0,        0,       0,       6 },
+{         1,        0,        0,       0,       2 },
+{         2,        0,        0,       0,       3 },
+{         3,        0,        0,       0,       5 },
+{         4,        0,        0,       0,       4 },
+{         5,        1,        0,       0,       7 },
+{         6,        1,        0,       0,       8 },
+{         7,        1,        0,       0,       9 },
+{         8,        1,        0,       0,      10 },
+{         9,        2,        0,       0,      11 },
+{        10,        2,        0,       0,      12 },
+{        11,        2,        0,       0,      13 },
+{        12,        2,        0,       3,      18 },  /* RX and TX polarities inverted for WC 12: slot 18 */
+{        13,        2,        0,       0,      19 },  
+{        14,        3,        0,       0,      16 },
+{        15,        3,        0,       0,      17 },
+{        16,        3,        1,       0,      14 },  /* Lanes inverted for WC 16: slot 14 */ 
+{        17,        3,        1,       0,      15 }}; /* Lanes inverted for WC 17: slot 15 */
+
+/* 56846 in CXO640G (OLT1T3) */
+HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
+/* portNum slotIdx  WC idx  WCLane Speed *
+ * ------- ------- ------- ------- ----- */
+{{      0,      2,      1,      3,    10 },
+{       1,      2,      1,      4,    10 },
+{       2,      3,      2,      3,    10 },
+{       3,      3,      2,      4,    10 },
+{       4,      4,      4,      1,    10 },
+{       5,      4,      4,      2,    10 },
+{       6,      4,      4,      3,    10 },
+{       7,      4,      4,      4,    10 },
+{       8,      5,      3,      1,    10 },
+{       9,      5,      3,      2,    10 },
+{      10,      5,      3,      3,    10 },
+{      11,      5,      3,      4,    10 },
+{      12,      6,      0,      3,    10 },
+{      13,      6,      0,      4,    10 },
+{      14,      7,      5,      3,    10 },
+{      15,      7,      5,      4,    10 },
+{      16,      8,      6,      1,    10 },
+{      17,      8,      6,      2,    10 },
+{      18,      8,      6,      3,    10 },
+{      19,      8,      6,      4,    10 },
+{      20,      9,      7,      1,    10 },
+{      21,      9,      7,      2,    10 },
+{      22,      9,      7,      3,    10 },
+{      23,      9,      7,      4,    10 },
+{      24,     10,      8,      1,    10 },
+{      25,     10,      8,      2,    10 },
+{      26,     10,      8,      3,    10 },
+{      27,     10,      8,      4,    10 },
+{      28,     11,      9,      1,    10 },
+{      29,     11,      9,      2,    10 },
+{      30,     11,      9,      3,    10 },
+{      31,     11,      9,      4,    10 },
+{      32,     12,     10,      1,    10 },
+{      33,     12,     10,      2,    10 },
+{      34,     12,     10,      3,    10 },
+{      35,     12,     10,      4,    10 },
+{      36,     13,     11,      1,    10 },
+{      37,     13,     11,      2,    10 },
+{      38,     13,     11,      3,    10 },
+{      39,     13,     11,      4,    10 },
+{      40,     14,     16,      3,    10 },
+{      41,     14,     16,      4,    10 },
+{      42,     15,     17,      3,    10 },
+{      43,     15,     17,      4,    10 },
+{      44,     16,     14,      1,    10 },
+{      45,     16,     14,      2,    10 },
+{      46,     16,     14,      3,    10 },
+{      47,     16,     14,      4,    10 },
+{      48,     17,     15,      1,    10 },
+{      49,     17,     15,      2,    10 },
+{      50,     17,     15,      3,    10 },
+{      51,     17,     15,      4,    10 },
+{      52,     18,     12,      3,    10 },
+{      53,     18,     12,      4,    10 },
+{      54,     19,     13,      3,    10 },
+{      55,     19,     13,      4,    10 },
+{      56,      2,      1,      1,     1 },
+{      57,      2,      1,      2,     1 },
+{      58,      6,      0,      1,     1 },
+{      59,      6,      0,      2,     1 },
+{      60,     14,     16,      1,     1 },
+{      61,     14,     16,      2,     1 },
+{      62,     15,     17,      1,     1 },
+{      63,     15,     17,      2,     1 }};
+#endif
+
 HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1[] =
 /* slotNum  portNum  bcm_cpuunit bcm_port *
  * -------  -------  ----------- -------- */
@@ -1531,6 +1625,10 @@ hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
+#ifdef PTIN_WC_SLOT_MAP
+dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_WC_SLOT_MAP_t),
+dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
+#endif
 };
 // PTin end
 
@@ -1635,7 +1733,11 @@ hapiBroadCpuCardInsert,hapiBroadCardRemove,
 dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1,
   sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 NULL, 0,
-0, NULL, 0
+0, NULL, 0,
+#ifdef PTIN_WC_SLOT_MAP
+NULL, 0,
+NULL, 0
+#endif
 };
 /* PTin end */
 
