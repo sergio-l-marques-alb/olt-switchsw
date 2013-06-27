@@ -418,9 +418,10 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   msg.payloadLen  = payloadLen;
   msg.bufHandle   = bufHandle;  
 
-  ptin_aps_packet_forward(erpsIdx_from_internalVlan[vlanId], &msg);
-
-  rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_internalVlan[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  if (erpsIdx_from_internalVlan[vlanId] != PROT_ERPS_UNUSEDIDX) {
+    ptin_aps_packet_forward(erpsIdx_from_internalVlan[vlanId], &msg);
+    rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_internalVlan[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  }
 
   if (ptin_oam_packet_debug_enable)
     LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_internalVlan[vlanId]);
@@ -524,6 +525,10 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
   aps_frame_t         *aps_frame;
 
   //LOG_TRACE(LOG_CTX_ERPS,"Any APS packet received?");
+  if (queueidx > MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_OAM, "queueidx (%d) out of range", queueidx);
+    return L7_FAILURE;
+  }
 
   status = (L7_uint32) osapiMessageReceive(ptin_aps_packetRx_queue[queueidx],
                                            (void*) &msg,
