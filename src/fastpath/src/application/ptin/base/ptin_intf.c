@@ -1807,6 +1807,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     }
   }
 
+  #if 0
   /* Update PortGroups (used on egress translations) */
   if (ptin_xlate_portgroup_set(lag_intf, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
   {
@@ -1817,6 +1818,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for this LAG", lag_idx);
     rc = L7_FAILURE;
   }
+  #endif
 
   /* Remove this interface from VLAN 1 (only if a new LAG was created)
    * The idea is to avoid accepting traffic comming on VLAN1 that is not LACP */
