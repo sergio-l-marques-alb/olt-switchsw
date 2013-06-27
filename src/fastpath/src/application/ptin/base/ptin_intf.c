@@ -1380,7 +1380,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   L7_uint32 maxFrame;
   L7_uint32 value;
   L7_char8  lag_name[DOT3AD_MAX_NAME];
-  L7_RC_t   rc;
+  L7_RC_t   rc=L7_SUCCESS, res;
   L7_BOOL   newLag;
   L7_uint32 ifSpeed;
   L7_uint16 lagEtherType;
@@ -1492,10 +1492,10 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     osapiSnprintf(lag_name, DOT3AD_MAX_NAME, "lag%02u", lag_idx);
 
     /* Try to create an empty LAG */
-    rc = usmDbDot3adCreateSet(1, lag_name, FD_DOT3AD_ADMIN_MODE, 
+    res = usmDbDot3adCreateSet(1, lag_name, FD_DOT3AD_ADMIN_MODE, 
                               FD_DOT3AD_LINK_TRAP_MODE, 0,
                               FD_DOT3AD_HASH_MODE, NULL, &lag_intf);
-    if (rc != L7_SUCCESS)
+    if (res != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error on usmDbDot3adCreateSet()", lag_idx);
       return L7_FAILURE;
@@ -1669,6 +1669,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   if (newLag)
     lagConf_data[lag_idx].members_pbmp64 = 0; /* Previously set to FFs */
   members_pbmp = lagInfo->members_pbmp64;
+
   rc = L7_SUCCESS;
 
   /* Loop through all the phy ports and check if any is being added or removed */
@@ -1822,7 +1823,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
   /* Remove this interface from VLAN 1 (only if a new LAG was created)
    * The idea is to avoid accepting traffic comming on VLAN1 that is not LACP */
-  if (newLag)
+  if (rc == L7_SUCCESS && newLag)
   {
     if (usmDbVlanMemberSet(1, 1, lag_intf, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
@@ -1835,15 +1836,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     }
 
     /* Enable DVLAN mode */
-    rc = usmDbDvlantagIntfModeSet(0, lag_intf, L7_ENABLE);
-    if (rc != L7_SUCCESS)
+    if (usmDbDvlantagIntfModeSet(0, lag_intf, L7_ENABLE) != L7_SUCCESS)
     {
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to enable DVLAN mode on LAG# %u", lag_idx);
       rc = L7_FAILURE;
     }
 
-    rc = usmDbDvlantagIntfEthertypeSet(0, lag_intf, lagEtherType, L7_TRUE);
-    if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
+    res = usmDbDvlantagIntfEthertypeSet(0, lag_intf, lagEtherType, L7_TRUE);
+    if ((res != L7_SUCCESS) && (res != L7_ALREADY_CONFIGURED))
     {
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
       rc = L7_FAILURE;
