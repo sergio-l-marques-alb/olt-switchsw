@@ -23,8 +23,11 @@
 //  Constants Definitions
 //-------------------------------------------------------------------------
 #define PROT_ERPS_CALL_PROC_MS                10
+#define PROT_ERPS_CALL_PROC_US                1000*PROT_ERPS_CALL_PROC_MS
+#define PROT_ERPS_WAITING_STATES              3000
 
 #define MAX_PROT_PROT_ERPS                    16
+#define PROT_ERPS_UNUSEDIDX                   0
 
 #define PROT_ERPS_ENTRY_FREE                  0
 #define PROT_ERPS_ENTRY_BUSY                  1
@@ -88,6 +91,9 @@
 #define TIMER_CMD_STOP                        0
 #define TIMER_CMD_START                       1
 
+#define WTR_TIMER_CMD                         0
+#define WTB_TIMER_CMD                         1
+#define GUARD_TIMER_CMD                       2
 
 //------------------------------------------------------------------------
 //                                APS
@@ -147,8 +153,8 @@
 //-------------------------------------------------------------------------
 // ring port
 //-------------------------------------------------------------------------
-#define ERP_PORT_BLOCKING               0
-#define ERP_PORT_FLUSHING               1
+#define ERP_PORT_FLUSHING               0
+#define ERP_PORT_BLOCKING               1
 
 
 #define ERP_NODE_ID                    srcMacAddr
@@ -194,7 +200,6 @@ typedef struct _erpsHAL_t {
     int     (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
     L7_RC_t (*aps_rxfields)         (L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
     L7_RC_t (*aps_txfields)         (L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
-    int     (*switch_path)          (L7_uint8 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1);
     int     (*prot_proc)            (L7_uint8 prot_id);
 } erpsHAL_t;
 
@@ -236,6 +241,7 @@ typedef struct {
     // Ports State
     L7_uint8 portState[2];            ///< blocking or flushing
     L7_uint8 rplBlockedPortSide;      ///< current RPL side port
+    L7_uint8 hwSync;                  ///< configures VLAN on switch
 
     // FSM
     L7_uint8 state_machine;
