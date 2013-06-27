@@ -30,7 +30,7 @@ L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0};
 ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
 
 /// Reference of erps_idx using internal vlan as reference
-L7_uint8 erpsIdx_from_internalVlan[4096];
+L7_uint8 erpsIdx_from_internalVlan[4096] = {PROT_ERPS_UNUSEDIDX};
 
 // Task id
 L7_uint32 ptin_hal_apsPacketTx_TaskId = L7_ERROR;
@@ -41,6 +41,10 @@ L7_uint8 ptin_hal_initdone = 0x00;
 // Task to process Tx messages
 void ptin_hal_apsPacketTx_task(void);
 
+
+/********************************************************************************** 
+ *                                Initialize
+ **********************************************************************************/
 
 /**
  * Initialize ERPS hw abstraction layer
@@ -114,8 +118,13 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 {
-
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+
+  if (tbl_halErps[erps_idx].used == L7_TRUE) {
+    // Print some Debug
+    ptin_hal_erps_entry_print(erps_idx);
+    return L7_SUCCESS;
+  }
   
   // Convert to internal port
   ptin_intf_port2intIfNum(tbl_erps[erps_idx].protParam.port0.idx, &tbl_halErps[erps_idx].port0intfNum);
@@ -123,6 +132,8 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 
   // Convert to internal VLAN ID
   ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED, &tbl_halErps[erps_idx].controlVidInternal );
+  erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
+  ptin_xlate_ingress_get( tbl_halErps[erps_idx].port1intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED, &tbl_halErps[erps_idx].controlVidInternal );
   erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
 
   // Create HW Rule
@@ -155,6 +166,10 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
 {
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+
+  if (tbl_halErps[erps_idx].used == L7_FALSE) {
+    return L7_SUCCESS;
+  }
 
   // Delete HW Rule
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 0 /* disable */);
@@ -195,8 +210,7 @@ L7_RC_t ptin_hal_erps_deinit(void)
 
 /********************************************************************************** 
  *                                Packet Processing
- */
-
+ **********************************************************************************/
 
 /**
  * Send 3 consecutives APS packets on ring interfaces
@@ -239,7 +253,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 st
   apsTx = ((req_state << 12) & 0xF000) | (status & 0x00FF);
 
   if ((tbl_halErps[erps_idx].apsReqStatusTx != apsTx) && (req_state != RReq_NONE)) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req_state, status);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req_state, status);
     ptin_hal_erps_sendapsX3(erps_idx, req_state, status);
   }
 
@@ -307,6 +321,48 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *s
   }
 
   return L7_FAILURE;
+}
+
+
+
+/********************************************************************************** 
+ *                               EVC Reconfiguration
+ **********************************************************************************/
+
+/**
+ * Block or unblock ERP Port
+ * 
+ * @author joaom (6/25/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return int 
+ */
+int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx)
+{
+  L7_uint16 byte, bit;
+  L7_uint16 vid, internalVlan;
+  L7_uint16 evc_id;
+
+  return L7_SUCCESS;
+
+  for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+    for (bit=0; bit<8; bit++) {
+      if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+        vid = (byte*8)+bit;
+
+        // Convert to internal VLAN ID
+        if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan) ) {
+          if (L7_SUCCESS == ptin_evc_get_evcIdfromIntVlan(internalVlan, &evc_id)) {
+            LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d, EVC %d", erps_idx, vid, evc_id);
+          }
+        }
+
+      } //if(vid_bmp...)
+    } // for(bit...)
+  } // for(byte...)
+
+  return L7_SUCCESS;
 }
 
 #endif  // PTIN_ENABLE_ERPS
