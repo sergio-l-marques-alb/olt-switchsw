@@ -174,8 +174,8 @@ extern volatile st_fpga_map_t *fpga_map;
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 
 /** Service association AVL Tree */
-//#define IGMPASSOC_MULTI_MC_SUPPORTED
-//#define IGMP_QUERIER_IN_UC_EVC
+#define IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMP_QUERIER_IN_UC_EVC
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -308,8 +308,8 @@ extern volatile st_fpga_map_t *fpga_map;
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 
 /** Service association AVL Tree */
-//#define IGMPASSOC_MULTI_MC_SUPPORTED
-//#define IGMP_QUERIER_IN_UC_EVC
+#define IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMP_QUERIER_IN_UC_EVC
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -791,6 +791,7 @@ extern volatile st_fpga_map_t *fpga_map;
 /* OLT1T3 Matrix card V2 */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
 
+#define PTIN_WC_SLOT_MAP
 #define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
