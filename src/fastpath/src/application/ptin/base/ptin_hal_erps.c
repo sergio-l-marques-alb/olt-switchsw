@@ -342,7 +342,6 @@ int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx)
 {
   L7_uint16 byte, bit;
   L7_uint16 vid, internalVlan;
-  L7_uint16 evc_id;
 
   return L7_SUCCESS;
 
@@ -353,9 +352,21 @@ int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx)
 
         // Convert to internal VLAN ID
         if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan) ) {
-          if (L7_SUCCESS == ptin_evc_get_evcIdfromIntVlan(internalVlan, &evc_id)) {
-            LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d, EVC %d", erps_idx, vid, evc_id);
+
+          LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
+
+          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
+            switching_root_unblock(tbl_halErps[erps_idx].port0intfNum, internalVlan);
+          } else {            
+            switching_root_block(tbl_halErps[erps_idx].port0intfNum, internalVlan);
           }
+
+          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
+            switching_root_unblock(tbl_halErps[erps_idx].port1intfNum, internalVlan);
+          } else {            
+            switching_root_block(tbl_halErps[erps_idx].port1intfNum, internalVlan);
+          }
+          
         }
 
       } //if(vid_bmp...)

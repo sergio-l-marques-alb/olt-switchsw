@@ -144,17 +144,17 @@
 #define ERPS_STATE_E_Pending            0x6
 
 
-#define ERP_STATE_GetState(state)       ((state & 0x0F))
-#define ERP_STATE_SetLocal(state)       ((state & 0x0F))
-#define ERP_STATE_SetRemote(state)      ((state | 0x10))
-#define ERP_STATE_IsLocal(state)        ((state & 0x10)? 0:1)
-#define ERP_STATE_IsRemote(state)       ((state & 0x10)? 1:0)
+#define ERPS_STATE_GetState(state)      ((state & 0x0F))
+#define ERPS_STATE_SetLocal(state)      ((state & 0x0F))
+#define ERPS_STATE_SetRemote(state)     ((state | 0x10))
+#define ERPS_STATE_IsLocal(state)       ((state & 0x10)? 0:1)
+#define ERPS_STATE_IsRemote(state)      ((state & 0x10)? 1:0)
 
 //-------------------------------------------------------------------------
 // ring port
 //-------------------------------------------------------------------------
-#define ERP_PORT_FLUSHING               0
-#define ERP_PORT_BLOCKING               1
+#define ERPS_PORT_FLUSHING              0
+#define ERPS_PORT_BLOCKING              1
 
 
 #define ERP_NODE_ID                    srcMacAddr
@@ -265,7 +265,7 @@ typedef struct _erpsStatus_t {
     L7_uint8   rplBlockedPortSide;      ///< PROT_ERPS_PORT0 or PROT_ERPS_PORT1
     L7_uint8   port0_SF;                ///< SF or NO SF
     L7_uint8   port1_SF;
-    L7_uint8   port0State;              ///< ERP_PORT_BLOCKING or ERP_PORT_FLUSHING
+    L7_uint8   port0State;              ///< ERPS_PORT_BLOCKING or ERPS_PORT_FLUSHING
     L7_uint8   port1State;
     L7_uint16  guard_timer;             ///< elapsed time
     L7_uint32  wtr_timer;
