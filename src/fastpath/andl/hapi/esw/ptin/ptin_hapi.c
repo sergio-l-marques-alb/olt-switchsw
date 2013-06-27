@@ -153,7 +153,7 @@ L7_RC_t ptin_hapi_switch_init(void)
     rc = L7_FAILURE;
   }
 
-  for (port=0; port<=PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
     {
