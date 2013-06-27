@@ -136,13 +136,41 @@ L7_RC_t hapi_ptin_config_init(void)
  */
 L7_RC_t ptin_hapi_switch_init(void)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  L7_int     port;
+  bcm_port_t bcm_unit, bcm_port;
+  L7_RC_t    rc = L7_SUCCESS;
+
+  /* Get bcm unit */
+  if (hapi_ptin_bcmUnit_get(&bcm_unit)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Can't obtain bcm_unit");
+    return L7_FAILURE;
+  }
 
   if (bcmx_switch_control_set(bcmSwitchClassBasedMoveFailPktDrop,0x01)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
     rc = L7_FAILURE;
   }
+
+  for (port=0; port<=PTIN_SYSTEM_N_PORTS; port++)
+  {
+    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",port);
+      rc = L7_FAILURE;
+      continue;
+    }
+
+    /* Set ifilter for all physical ports */
+    if (bcm_port_ifilter_set(bcm_unit, bcm_port, 1)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error activating ifilter for port %u (bcm_port=%u)",port,bcm_port);
+      rc = L7_FAILURE;
+    }
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI,"Switch %u initialized!", bcm_unit);
 
   return rc;
 }
