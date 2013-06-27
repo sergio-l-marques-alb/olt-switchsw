@@ -29,11 +29,14 @@
 
 tblErps_t               tbl_erps[MAX_PROT_PROT_ERPS];
 erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
+L7_uint8                globalhwSync = 0;
 
 static const char *stateToString[]  = {"FRZ", "Z_Init", "A_Idle", "B_Protection", "C_ManualSwitch", "D_ForceSwitch", "E_Pending"};
 static const char *locReqToString[] = {"0", "WTBRun", "WTBExp", "WTRRun", "WTRExp", "MS", "SFc", "SF", "FS", "CLEAR", "NONE", "11", "12"};
 static const char *remReqToString[] = {"NR", "1", "2", "3", "4", "5", "6", "MS", "8", "9", "10", "SF", "12", "FS", "EVENT", "NONE"};
 static const char *strPortState[]   = {"BLOCKING", "FLUSHING"};
+static const char *strTimerCmd[]    = { "STOP", "START" };
+static const char *strTimer[]       = { "WTR Timer", "WTB Timer", "GUARD Timer" };
 
 static L7_uint8 force_erps_SF[MAX_PROT_PROT_ERPS][2];
 
@@ -53,11 +56,6 @@ L7_RC_t aps_rxdummy(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_
 }
 
 L7_RC_t aps_txdummy(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status)
-{
-  return(0);
-}
-
-int switch_path_dummy(L7_uint8 erps_idx, L7_uint8 path, L7_uint8 difunde0_naodifunde1)
 {
   return(0);
 }
@@ -86,7 +84,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
-  LOG_DEBUG(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if ((erps_idx>=MAX_PROT_PROT_ERPS)) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -125,6 +123,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]       = ERP_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]       = ERP_PORT_FLUSHING;
   tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;
+  tbl_erps[erps_idx].hwSync                           = 0;  
 
   tbl_erps[erps_idx].state_machine                    = ERP_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -132,8 +131,9 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
   tbl_erps[erps_idx].hal.aps_rxfields                 = aps_rxdummy;
   tbl_erps[erps_idx].hal.aps_txfields                 = aps_txdummy;
 
-  tbl_erps[erps_idx].hal.switch_path                  = switch_path_dummy;
   tbl_erps[erps_idx].hal.prot_proc                    = prot_proc_dummy;
+
+  tbl_erps[erps_idx].waitingstates                    = 0;
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -153,7 +153,7 @@ int ptin_erps_vlanList_init_entry(L7_uint8 erps_idx)
 {
   int       ret = PROT_ERPS_EXIT_OK;
 
-  LOG_DEBUG(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if ((erps_idx>=MAX_PROT_PROT_ERPS)) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -231,24 +231,34 @@ int ptin_erps_get_free_entry(void)
 int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 {
   int ret = erps_idx;
+  int byte, bit, vid;
 
-  LOG_DEBUG(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
-  if (erps_idx >= MAX_PROT_PROT_ERPS) {
+  if ( (erps_idx == PROT_ERPS_UNUSEDIDX) || (erps_idx >= MAX_PROT_PROT_ERPS) ) {
     ret = PROT_ERPS_INDEX_VIOLATION;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_BUSY) {
-    ret = PROT_ERPS_INDEX_IN_USE;
-    LOG_WARNING(LOG_CTX_ERPS, "ret:%d, done.", ret);
+    //ret = PROT_ERPS_INDEX_IN_USE;
+    LOG_WARNING(LOG_CTX_ERPS, "ret:%d, ENTRY_BUSY done.", ret);
     return(ret);
   }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   memcpy( &tbl_erps[erps_idx].protParam, new_group, sizeof(erpsProtParam_t) );
+  
+  for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+    for (bit=0; bit<8; bit++) {
+      if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+        vid = (byte*8)+bit;
+        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d", erps_idx, vid);
+      }
+    }
+  }
 
   /*** TO BE DONE *** Maybe more validation are needed ***/
 
@@ -319,10 +329,11 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] = ERP_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] = ERP_PORT_FLUSHING;
   tbl_erps[erps_idx].rplBlockedPortSide         = PROT_ERPS_PORT0;
+  tbl_erps[erps_idx].hwSync                     = 0;
 
   tbl_erps[erps_idx].state_machine              = ERP_STATE_SetLocal(ERPS_STATE_Z_Init);
 
-  tbl_erps[erps_idx].waitingstates              = 0;
+  tbl_erps[erps_idx].waitingstates              = PROT_ERPS_WAITING_STATES;
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -356,7 +367,7 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf)
 {
   int ret = erps_idx;
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -423,7 +434,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -458,7 +469,7 @@ int ptin_erps_clear(void)
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if ((ret=ptin_erps_remove_entry(erps_idx))!=erps_idx) {
-      LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS# %d\n\r", ret, erps_idx);
+      LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);
       ret = PROT_ERPS_EXIT_NOK1;
     }
   }
@@ -482,7 +493,7 @@ int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
 {
   int ret = erps_idx;
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -516,7 +527,7 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -552,7 +563,7 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 switch_path)
 {
   int ret = erps_idx;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS# %d: %d", erps_idx, switch_path);
+  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, switch_path);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -587,7 +598,7 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 switch_path)
 {
   int ret = erps_idx;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS# %d: %d", erps_idx, switch_path);
+  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, switch_path);
 
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
@@ -662,12 +673,11 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
 
   char *strBool[]       = { "FALSE", "TRUE", "FUZZY :) " };
   char *strPortRole[]   = { "NON RPL", "RPL Owner", "RPL Neighbour" };
-  char *strRevertive[]  = { "Non-Revertive", "Revertive" };
-  char *strTimerCmd[]   = { "STOP", "START" };
+  char *strRevertive[]  = { "Non-Revertive", "Revertive" };  
   char *strCmd[]        = { "NR", "OC", "LO", "FS", "MS", "ReplaceRPL", "ExeSignal" };
   char *strCmdPath[]    = { "Switch to PORT0", "Switch to PORT1", "NONE" };  
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS# %d", erps_idx);
+  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
   /*** TO BE DONE ***/
 
@@ -736,6 +746,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  portState[P0]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
   printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
   printf("\n  rplBlockedPortSide  %d",                      tbl_erps[erps_idx].rplBlockedPortSide);
+  printf("\n  hwSync              %d",                      tbl_erps[erps_idx].hwSync);
   printf("\n  state_machine       (0x%x) %s:%s",            tbl_erps[erps_idx].state_machine,
                                                             stateToString[ERP_STATE_GetState(tbl_erps[erps_idx].state_machine)],
                                                             ERP_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
@@ -761,7 +772,7 @@ int ptin_erps_rd_allentry(void)
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     printf("\n-----------------------------------------");
-    printf("\n ERPS# %d: admin     %d",                      erps_idx, tbl_erps[erps_idx].admin);
+    printf("\n ERPS#%d: admin     %d",                      erps_idx, tbl_erps[erps_idx].admin);
     printf("\n-----------------------------------------");
     printf("\n ERPS Protection Parameters:");
     printf("\n ringId              %d",                      tbl_erps[erps_idx].protParam.ringId);
@@ -820,13 +831,12 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS# %d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
+  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
 
   tbl_erps[erps_idx].portState[port] = portState;
 
-  tbl_erps[erps_idx].hal.switch_path(erps_idx, port, 0);
-
-  //reg_alarm(0, erps_idx, path);  -> Must be done inside hal.switch_path() function
+  tbl_erps[erps_idx].hwSync = 1;
+  globalhwSync = 1;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -848,7 +858,7 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
 {
   int ret = PROT_ERPS_EXIT_OK;  
 
-  LOG_TRACE(LOG_CTX_ERPS,"ERPS# %d, port %d, SF", erps_idx, port, sf&1);
+  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d, SF", erps_idx, port, sf&1);
 
   force_erps_SF[erps_idx][port] = sf;
 
@@ -871,7 +881,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  //LOG_TRACE(LOG_CTX_ERPS,"ERPS# %d, port %d", erps_idx, port);
+  //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d", erps_idx, port);
 
   if (force_erps_SF[erps_idx][port]) {
     return(force_erps_SF[erps_idx][port] & 1);
@@ -903,7 +913,7 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int 
   apsTx = ((reqstate << 12) & 0xF000) | (status & 0x00FF);
 
   if (tbl_erps[erps_idx].apsReqStatusTx != apsTx) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Tx R-APS Request(0x%x) = %s(0x%x) (line_callback %d)",  erps_idx, reqstate, remReqToString[reqstate], status, line_callback);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x = %s(0x%x) (line_callback %d)",  erps_idx, reqstate, remReqToString[reqstate], status, line_callback);
   }
 
   tbl_erps[erps_idx].hal.aps_txfields(erps_idx, reqstate, status);
@@ -931,7 +941,7 @@ int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7
 {
   int ret;
 
-  //LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d (line_callback %d)", erps_idx, line_callback);
+  //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d (line_callback %d)", erps_idx, line_callback);
 
   ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, reqstate, status, nodeid, rxport);
 
@@ -953,7 +963,7 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
             erps_idx, 
             tbl_erps[erps_idx].state_machine, stateToString[ERP_STATE_GetState(tbl_erps[erps_idx].state_machine)], ERP_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R", 
             state_machine, stateToString[ERP_STATE_GetState(state_machine)], ERP_STATE_IsLocal(state_machine)? "L":"R", 
@@ -978,7 +988,37 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
  */
 int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
+
+  return(PROT_ERPS_EXIT_OK);
+}
+
+
+/**
+ * Start Timer
+ * 
+ * @author joaom (6/26/2013)
+ * 
+ * @param erps_idx 
+ * @param line_callback 
+ * 
+ * @return int 
+ */
+int ptin_erps_startTimer(L7_uint8 erps_idx, L7_uint8 timer, L7_uint8 timerCmd, int line_callback)
+{
+  switch (timer) {
+  case WTR_TIMER_CMD:
+    tbl_erps[erps_idx].wtr_CMD = timerCmd;
+    break;
+  case WTB_TIMER_CMD:
+    tbl_erps[erps_idx].wtb_CMD = timerCmd;
+    break;
+  case GUARD_TIMER_CMD:
+    tbl_erps[erps_idx].guard_CMD = timerCmd;
+    break;
+  }
+
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: %s %s (line_callback %d)", erps_idx, strTimer[timer], strTimerCmd[timerCmd], line_callback);
 
   return(PROT_ERPS_EXIT_OK);
 }
@@ -1009,7 +1049,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint8  req_port                          = 0;          // Request or Failed Port
 
 
-  //LOG_TRACE(LOG_CTX_ERPS,"ERPS# %d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
+  //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
 
   if (tbl_erps[erps_idx].waitingstates) {
     tbl_erps[erps_idx].waitingstates--;
@@ -1028,7 +1068,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
     remoteRequest = APS_GET_REQ(apsReqStateRx);
 
-    //LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
+    //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
     //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
     //        apsNodeIdRx[0],
     //        apsNodeIdRx[1],
@@ -1125,11 +1165,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( SF[PROT_ERPS_PORT0] ) {
         localRequest = LReq_SF;
         req_port = PROT_ERPS_PORT0;
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, SF[PROT_ERPS_PORT0]", erps_idx);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0]", erps_idx);
       } else {
         localRequest = LReq_SFc;
         req_port = PROT_ERPS_PORT0;
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, SF[PROT_ERPS_PORT0] Clear", erps_idx);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0] Clear", erps_idx);
       }
     }
 
@@ -1137,11 +1177,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( SF[PROT_ERPS_PORT1] ) {
         localRequest = LReq_SF;
         req_port = PROT_ERPS_PORT1;
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, SF[PROT_ERPS_PORT1]", erps_idx);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1]", erps_idx);
       } else {
         localRequest = LReq_SFc;
         req_port = PROT_ERPS_PORT1;
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, SF[PROT_ERPS_PORT1] Clear", erps_idx);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1] Clear", erps_idx);
       }
     }
 
@@ -1185,7 +1225,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( (tbl_erps[erps_idx].wtr_timer/60000) >= tbl_erps[erps_idx].protParam.waitToRestoreTimer ) {
 
         localRequest = LReq_WTRExp;
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, WTRExp", erps_idx);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: WTRExp", erps_idx);
 
         tbl_erps[erps_idx].wtr_timer = 0;          // Reset timer value
         tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP; // Stop timer
@@ -1211,9 +1251,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
 
     // 12.  WTB Running (WTB timer)
-    else if (localRequest == LReq_WTRRun) {
+    else if (localRequest == LReq_WTBRun) {
       /// TO BE DONE
-      topPriorityRequest = LReq_WTRRun;
+      topPriorityRequest = LReq_WTBRun;
     }
 
     // 13.  R-APS (NR,RB)
@@ -1273,21 +1313,21 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   if ( (localRequest != LReq_NONE) && (tbl_erps[erps_idx].localRequest != localRequest) ) {
     haveChanges = L7_TRUE;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, localRequest: change from %s to %s", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100]);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: localRequest: change from %s to %s", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100]);
   }
   if ( (remoteRequest != RReq_NONE) && (tbl_erps[erps_idx].remoteRequest != remoteRequest) ) {
     haveChanges = L7_TRUE;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, remoteRequest: change from %s to %s", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], remReqToString[remoteRequest]);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: change from %s to %s", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], remReqToString[remoteRequest]);
   }
-  if (!haveChanges) {    
+  if (!(haveChanges) && !(ERP_STATE_GetState(tbl_erps[erps_idx].state_machine) == ERPS_STATE_Z_Init)) {    
     return(PROT_ERPS_EXIT_OK);
   }
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, Processing Changes...", erps_idx);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Processing Changes...", erps_idx);
   if (topPriorityRequest>100) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], req_port);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], req_port);
   } else {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS# %d, topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], req_port);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], req_port);
   }
 
 
@@ -1333,7 +1373,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If revertive:
       if ( (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION) ) {
         // Start WTR timer
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
     }
     // Else if RPL Neighbour Node:
@@ -1668,7 +1708,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //local clear SF  20
     if ( topPriorityRequest == LReq_SFc ) {
       //Start guard timer
-      tbl_erps[erps_idx].guard_CMD = TIMER_CMD_START;
+      ptin_erps_startTimer(erps_idx, GUARD_TIMER_CMD, TIMER_CMD_START, __LINE__);
 
       //Tx R-APS (NR)
       ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_ZEROS, __LINE__);
@@ -1677,7 +1717,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                                ) {
         //Start WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
       
       // Next node state: E
@@ -1755,7 +1795,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                    ) {
 
         //Start WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
       
       // Next node state: E
@@ -1774,7 +1814,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERP_PORT_BLOCKING) || (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERP_PORT_BLOCKING) ) {
 
         // Start guard timer  
-        tbl_erps[erps_idx].guard_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, GUARD_TIMER_CMD, TIMER_CMD_START, __LINE__);
 
         // Tx R-APS (NR)
         ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_ZEROS, __LINE__);
@@ -1784,7 +1824,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                    ) {
         // Start WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
 
       ptin_erps_FSM_transition(erps_idx,ERP_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
@@ -1891,7 +1931,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERP_PORT_BLOCKING) || (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERP_PORT_BLOCKING) ) {
 
         // Start guard timer  
-        tbl_erps[erps_idx].guard_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, GUARD_TIMER_CMD, TIMER_CMD_START, __LINE__);
 
         // Tx R-APS (NR)
         ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_ZEROS, __LINE__);
@@ -1900,7 +1940,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
               (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                                ) {
           // Start WTB
-          tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_START;
+          ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
         }
       }
 
@@ -1959,7 +1999,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                    ) {
         //Start WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
 
       // Next node state: E
@@ -1977,7 +2017,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If any ring port blocked:
       if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERP_PORT_BLOCKING) || (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERP_PORT_BLOCKING) ) {
         // Start guard timer  
-        tbl_erps[erps_idx].guard_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, GUARD_TIMER_CMD, TIMER_CMD_START, __LINE__);
 
         // Tx R-APS (NR)
         ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_ZEROS, __LINE__);
@@ -1986,7 +2026,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                                ) {
           // Start WTB
-          tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_START;
+          ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
         }
       }
 
@@ -2102,7 +2142,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                  ) {
         //Start WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_START;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
       
       // Next node state: E
@@ -2119,9 +2159,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
       //If RPL port is blocked:
       //-->RPL Port is port0 or port1?
@@ -2198,9 +2238,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       // Next node state: D
@@ -2220,9 +2260,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
            
       // Next node state: D
@@ -2259,9 +2299,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       // Next node state: B
@@ -2288,9 +2328,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       // Next node state: B
@@ -2309,9 +2349,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       // Next node state: C
@@ -2324,9 +2364,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       //If requested ring port is already blocked:
@@ -2363,7 +2403,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         
         //If RPL port is blocked:
         if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERP_PORT_BLOCKING) ) {
@@ -2420,8 +2460,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == LReq_WTBExp ) {
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
+
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
 
         // If RPL port is blocked:   
         if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERP_PORT_BLOCKING) ) {
@@ -2482,9 +2523,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         //Stop WTR
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
-        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
 
       //If neither RPL Owner Node nor RPL Neighbour Node:
@@ -2611,6 +2652,13 @@ int ptin_prot_erps_proc(void)
 
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
 
+    if (tbl_erps[erps_idx].hwSync == 1) {
+      LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
+      tbl_erps[erps_idx].hwSync = 0;
+
+      ptin_hal_erps_reconfigEvc(erps_idx);
+
+    }
   }
 
   return(PROT_ERPS_EXIT_OK);
@@ -2649,8 +2697,7 @@ void ptin_erps_task(void)
   while (1) {
     ptin_prot_erps_proc();
 
-    sleep(1);
-    //sleep(PROT_ERPS_CALL_PROC_MS);
+    usleep(PROT_ERPS_CALL_PROC_US);
   }
 }
 
@@ -2695,7 +2742,7 @@ L7_RC_t ptin_prot_erps_init(void)
 void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param4, int param5)
 {
   if (test == 0) {
-    LOG_INFO(LOG_CTX_ERPS,"Test 0: Add prot ERPS# %d", param1);
+    LOG_INFO(LOG_CTX_ERPS,"Test 0: Add prot ERPS#%d", param1);
 
     erpsProtParam_t new_group;
     memset(&new_group, 0, sizeof(erpsProtParam_t));
@@ -2708,7 +2755,7 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
     ptin_hal_erps_entry_init(/*erps_idx*/ param1);
 
   } else if (test == 1) {
-    LOG_INFO(LOG_CTX_ERPS,"Test 1: Rem prot ERPS# %d", param1);
+    LOG_INFO(LOG_CTX_ERPS,"Test 1: Rem prot ERPS#%d", param1);
 
     ptin_erps_remove_entry( /*erps_idx*/ param1);
 
