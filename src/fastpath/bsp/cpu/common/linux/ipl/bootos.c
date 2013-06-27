@@ -254,7 +254,7 @@ static L7_RC_t hapi_ptin_fpga_map(void)
 #ifdef MAP_FPGA
   TAddrMap fpga_AddrMap;
 
-  LOG_TRACE(LOG_CTX_MISC, "Going to map FPGA...");
+  LOG_TRACE(LOG_CTX_STARTUP, "Going to map FPGA...");
 
   // Load FPGA
   if ((fpga_map = (volatile st_fpga_map_t *) AddrAlloc((void *) &fpga_AddrMap, (int) FPGA_BASE_ADDR, sizeof(st_fpga_map_t))) != MAP_FAILED)
@@ -263,7 +263,7 @@ static L7_RC_t hapi_ptin_fpga_map(void)
     if ((fpga_map->map[FPGA_ID1_REG] != FPGA_ID1_VAL) ||
         (fpga_map->map[FPGA_ID0_REG] != FPGA_ID0_VAL)) {
 
-      LOG_ERR(LOG_CTX_MISC, "Invalid FPGA ID: 0x%02X%02X (expecting 0x%02X%02X)",
+      LOG_ERR(LOG_CTX_STARTUP, "Invalid FPGA ID: 0x%02X%02X (expecting 0x%02X%02X)",
               fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG],
               FPGA_ID0_VAL, FPGA_ID1_VAL);
 
@@ -280,9 +280,9 @@ static L7_RC_t hapi_ptin_fpga_map(void)
       fpga_map->map[FPGA_TXDISABLE_REG] = 0x00;
 #endif
 
-      LOG_TRACE(LOG_CTX_MISC, "FPGA mapping ok");
-      LOG_TRACE(LOG_CTX_MISC, "  FPGA Id:      0x%02X%02X", fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG]);
-      LOG_TRACE(LOG_CTX_MISC, "  FPGA Version: %d", fpga_map->map[FPGA_VER_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "FPGA mapping ok");
+      LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Id:      0x%02X%02X", fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Version: %d", fpga_map->map[FPGA_VER_REG]);
     }
   }
 
@@ -293,31 +293,31 @@ static L7_RC_t hapi_ptin_fpga_map(void)
 #ifdef MAP_CPLD
   TAddrMap cpld_AddrMap;
 
-  LOG_TRACE(LOG_CTX_MISC, "Going to map PLD...");
+  LOG_TRACE(LOG_CTX_STARTUP, "Going to map PLD...");
 
   // Load CPLD
   if ((cpld_map = (volatile st_cpld_map_t *) AddrAlloc((void *) &cpld_AddrMap, (int) CPLD_BASE_ADDR, sizeof(st_cpld_map_t))) != MAP_FAILED)
   {
     /* If CPLD id is not valid, free CPLD map */
-    LOG_WARNING(LOG_CTX_MISC, "CPLD ID is not being validated");
+    LOG_WARNING(LOG_CTX_STARTUP, "CPLD ID is not being validated");
 //  if ((cpld_map->map[CPLD_ID1_REG] != CPLD_ID1_VAL) ||
 //      (cpld_map->map[CPLD_ID0_REG] != CPLD_ID0_VAL)) {
 //    AddrFree(&cpld_AddrMap);
 //    cpld_map = MAP_FAILED;
 //
-//    LOG_ERR(LOG_CTX_MISC, "Invalid CPLD ID: 0x%02X%02X (expecting 0x%02X%02X)",
+//    LOG_ERR(LOG_CTX_STARTUP, "Invalid CPLD ID: 0x%02X%02X (expecting 0x%02X%02X)",
 //            cpld_map->map[FPGA_ID0_REG], cpld_map->map[FPGA_ID1_REG],
 //            CPLD_ID0_VAL, CPLD_ID1_VAL);
 //  }
 //  /* Otherwise, make some initializations */
 //  else
     {
-      LOG_TRACE(LOG_CTX_MISC, "CPLD mapping ok");
-      LOG_TRACE(LOG_CTX_MISC, "  CPLD Id:      0x%02X%02X", cpld_map->map[CPLD_ID0_REG], cpld_map->map[CPLD_ID1_REG]);
-      LOG_TRACE(LOG_CTX_MISC, "  CPLD Version: %d", cpld_map->map[CPLD_VER_REG]);
-      LOG_TRACE(LOG_CTX_MISC, "  Hw Id:        %d", cpld_map->map[CPLD_HW_ID_REG]);
-      LOG_TRACE(LOG_CTX_MISC, "  Chassis Id:   %d", cpld_map->map[CPLD_CHASSIS_ID_REG]);
-      LOG_TRACE(LOG_CTX_MISC, "  Slot Id:      %d", cpld_map->map[CPLD_SLOT_ID_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "CPLD mapping ok");
+      LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Id:      0x%02X%02X", cpld_map->map[CPLD_ID0_REG], cpld_map->map[CPLD_ID1_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Version: %d", cpld_map->map[CPLD_VER_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "  Hw Id:        %d", cpld_map->map[CPLD_HW_ID_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "  Chassis Id:   %d", cpld_map->map[CPLD_CHASSIS_ID_REG]);
+      LOG_TRACE(LOG_CTX_STARTUP, "  Slot Id:      %d", cpld_map->map[CPLD_SLOT_ID_REG]);
       /* No initializations to be done */
     }
   }

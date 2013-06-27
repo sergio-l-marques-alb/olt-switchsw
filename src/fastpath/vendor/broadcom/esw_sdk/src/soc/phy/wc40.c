@@ -64,6 +64,7 @@
 #include "phydefs.h"      /* Must include before other phy related includes */
 
 #include <stdio.h>        /* PTin added: WC40 */
+#include "logger.h"       /* PTin added: WC40 */
 
 #define PTIN_PRBS_ALWAYS_CL49 1
 
@@ -8229,7 +8230,7 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
     SOC_DEBUG_PRINT((DK_VERBOSE,
                "WC40 : uC RAM download success: u=%d p=%d ver=%x", unit, port,ver));
 
-    printf("WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
+    LOG_DEBUG(LOG_CTX_STARTUP,"WC40 : uC RAM download success: u=%d p=%d ver=%x", unit, port,ver);   /* PTin added: WC40 */
 
     if (!no_cksum) {
         SOC_DEBUG_PRINT((DK_VERBOSE,

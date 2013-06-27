@@ -3655,24 +3655,24 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
         }
         /* PTin end */
 
-        printf("ALLOC_BLOCK_LOW   : Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
-        printf("ALLOC_BLOCK_MEDIUM: Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
-        printf("ALLOC_BLOCK_HIGH  : Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
-        printf("ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
-        printf("ALLOC_BLOCK_STATS_EVC   : Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
-        printf("ALLOC_BLOCK_PTIN  : Groups %u - %u\r\n",
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
-               group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_LOW   : Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_MEDIUM: Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_HIGH  : Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_STATS_EVC   : Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
+        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_PTIN  : Groups %u - %u",
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
+                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
       }
       break;
     default:

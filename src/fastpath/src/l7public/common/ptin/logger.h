@@ -51,6 +51,7 @@ typedef enum {
     LOG_CTX_MISC,             /* Used on exceptional situations */
     LOG_CTX_OAM,
     LOG_CTX_ERPS,
+    LOG_CTX_STARTUP,
     /* Last element */
     LOG_CONTEXT_LAST,
 } log_context_t;
