@@ -10,6 +10,8 @@
   #define PTIN_ENABLE_ERPS
 #endif  // PTIN_BOARD_IS_MATRIX
 
+#define PTIN_ERPS_EVC
+
 /* ************************** */
 
 
