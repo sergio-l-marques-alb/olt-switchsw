@@ -127,7 +127,7 @@ extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7
 extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
 
 /**
- * Block or unblock ERP Port
+ * Block or unblock ERP Port and/or Flush FDB
  * 
  * @author joaom (6/25/2013)
  * 
@@ -135,7 +135,7 @@ extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_u
  * 
  * @return int 
  */
-extern int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx);
+extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
 
 
 #endif //__HAL_ERPS_H__

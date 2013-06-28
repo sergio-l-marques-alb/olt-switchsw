@@ -330,7 +330,7 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *s
  **********************************************************************************/
 
 /**
- * Block or unblock ERP Port
+ * Block or unblock ERP Port and/or Flush FDB
  * 
  * @author joaom (6/25/2013)
  * 
@@ -338,12 +338,10 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *s
  * 
  * @return int 
  */
-int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx)
+int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
 {
   L7_uint16 byte, bit;
   L7_uint16 vid, internalVlan;
-
-  return L7_SUCCESS;
 
   for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
     for (bit=0; bit<8; bit++) {
@@ -355,16 +353,22 @@ int ptin_hal_erps_reconfigEvc(L7_uint8 erps_idx)
 
           LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
 
-          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
-            switching_root_unblock(tbl_halErps[erps_idx].port0intfNum, internalVlan);
-          } else {            
-            switching_root_block(tbl_halErps[erps_idx].port0intfNum, internalVlan);
+          if (tbl_erps[erps_idx].hwSync) {
+            if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
+              switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+            } else {            
+              switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+            }
+
+            if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
+              switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+            } else {            
+              switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+            }
           }
 
-          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
-            switching_root_unblock(tbl_halErps[erps_idx].port1intfNum, internalVlan);
-          } else {            
-            switching_root_block(tbl_halErps[erps_idx].port1intfNum, internalVlan);
+          if (tbl_erps[erps_idx].hwFdbFlush) {
+            switching_fdbFlushByVlan(internalVlan);
           }
           
         }
