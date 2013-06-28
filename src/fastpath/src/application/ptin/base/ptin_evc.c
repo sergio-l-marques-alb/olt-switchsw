@@ -1075,12 +1075,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
+  #if 0
   /* EVCs with no leafs, and only one root port are not valid */
   if (n_roots == 1 && n_leafs == 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs cannot have only root port and no leaf ports for 1:1 EVCs", evc_idx);
     return L7_FAILURE;
   }
+  #endif
 
   /* Determine pair of ports for 1:1 EVCs (needed for unstacked EVCs) */
   p2p_port1 = -1;
