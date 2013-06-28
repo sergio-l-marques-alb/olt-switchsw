@@ -345,11 +345,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
   L7_uint32        client_idx;              /* PTin added: IGMP snooping */
 
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 #if SNOOP_PTIN_IGMPv3_PROXY
-  char             debug_buf[IPV6_DISP_ADDR_LEN];
-  debug_buf[0]=0;
+  char             debug_buf[IPV6_DISP_ADDR_LEN];  
 #endif
-  
+#endif  
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopPacketHandle");
 
   /* Get Snoop Control Block */
