@@ -1698,10 +1698,16 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
       inner_vlan = 0;   /* To get first client */
       do
       {
+        if (ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u", intf);
+
         #if (defined IGMP_QUERIER_IN_UC_EVC)
         L7_uint inner_vlan_next;
 
         rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, inner_vlan, &inner_vlan_next, L7_NULLPTR);
+
+        if (ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d inner_vlan_next=%u", rc, inner_vlan_next);
 
         /* if success, use next cvlan */
         if ( rc == L7_SUCCESS && inner_vlan_next != 0)

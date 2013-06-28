@@ -3081,7 +3081,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       #if (!defined IGMP_QUERIER_IN_UC_EVC)
       if (igmpInst->igmpClients.number_of_clients_per_intf[ptin_port] > 0)
       #else
-      if (evcCfg.n_clients > 0)
+      if (!(evcCfg.flags & PTIN_EVC_MASK_STACKED) || evcCfg.n_clients > 0)
       #endif
       {
         L7_INTF_SETMASKBIT(*intfList,intIfNum);
@@ -5948,6 +5948,12 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
   return L7_SUCCESS;
 }
 
+/** 
+ * 
+ * 
+ * 
+ * @return L7_RC_t
+ */
 static L7_RC_t ptin_igmp_global_configuration(void)
 {
   L7_uint igmp_idx;
