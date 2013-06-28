@@ -208,6 +208,36 @@ void tst_send(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+int MEP_is_in_LOC(L7_ulong32 i_mep, L7_ulong32 i_rmep, T_ETH_SRV_OAM *p) {
+    if (i_mep>=N_MEPs) return 0;
+
+    if (i_rmep<N_MAX_MEs_PER_MEP) return 0L-1==p->mep_db[i_mep].ME[i_rmep].LOC_timer;
+
+    for (i_rmep=0; i_rmep<N_MAX_MEs_PER_MEP; i_rmep++) {
+        if (p->mep_db[i_mep].ME[i_rmep].mep_id > HIGHEST_MEP) continue;
+        if (0L-1==p->mep_db[i_mep].ME[i_rmep].LOC_timer) return 1;
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
 /****************************************************************************** 
  * Task Init
  ******************************************************************************/
