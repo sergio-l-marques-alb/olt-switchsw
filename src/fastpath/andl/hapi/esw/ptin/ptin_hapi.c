@@ -51,6 +51,18 @@ static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
 
 BROAD_POLICY_t inband_policyId = 0;
 
+#if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+#ifdef PTIN_WC_SLOT_MAP
+ int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+ int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
+ int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
+#else
+ int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = PTIN_SLOTPORT_TO_INTF_MAP;
+ int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_SLOT_MAP;
+ int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_PORT_MAP;
+#endif
+#endif
+
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
  ********************************************************************/
@@ -137,37 +149,12 @@ L7_RC_t hapi_ptin_config_init(void)
 L7_RC_t ptin_hapi_switch_init(void)
 {
   L7_int     port;
-  bcm_port_t bcm_unit, bcm_port;
   L7_RC_t    rc = L7_SUCCESS;
-
-  /* Get bcm unit */
-  if (hapi_ptin_bcmUnit_get(&bcm_unit)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Can't obtain bcm_unit");
-    return L7_FAILURE;
-  }
 
   if (bcmx_switch_control_set(bcmSwitchClassBasedMoveFailPktDrop,0x01)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
     rc = L7_FAILURE;
-  }
-
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
-  {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    /* Set ifilter for all physical ports */
-    if (bcm_port_ifilter_set(bcm_unit, bcm_port, 1)!=BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error activating ifilter for port %u (bcm_port=%u)",port,bcm_port);
-      rc = L7_FAILURE;
-    }
   }
 
   LOG_INFO(LOG_CTX_PTIN_HAPI,"Switch %u initialized!", bcm_unit);
@@ -1557,13 +1544,23 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  #ifdef PTIN_WC_SLOT_MAP
+   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+   #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+    L7_uint32                     slot, lane;
+   #endif
+  #endif
   L7_uint i;
   
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
+  #ifdef PTIN_WC_SLOT_MAP
+  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
+  #endif
 
-#if (PTIN_BOARD_IS_MATRIX)
+/* Not necessary for V2: sysbrds.c is already inverting slots for the protection matrix */
+#if (PTIN_BOARD==PTIN_BOARD_CXP360G || PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G)
   const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
 
@@ -1580,6 +1577,18 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   }
 #endif
 
+  /* Initialize USP map */
+  memset(usp_map, 0xff, sizeof(usp_map));   /* -1 for all values */
+
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+  #ifdef PTIN_WC_SLOT_MAP
+  /* Initialize slot/lane map */
+  memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
+  memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
+  memset(ptin_sys_intf_to_port_map, 0xff, sizeof(ptin_sys_intf_to_port_map));
+  #endif
+  #endif
+
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port remapping:");
   for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
   {
@@ -1590,7 +1599,22 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# %2u", i, usp_map[i].port);
+    #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+    #ifdef PTIN_WC_SLOT_MAP
+    slot = hapiWCMapPtr[i].slotNum - 1;
+    lane = hapiWCMapPtr[i].wcLane - 1;
+
+    /* Update slot/lane to port map */
+    if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+    {
+      ptin_sys_slotport_to_intf_map[slot][lane] = i;
+    }
+    ptin_sys_intf_to_slot_map[i] = slot;
+    ptin_sys_intf_to_port_map[i] = lane;
+    #endif
+    #endif
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# bcm_port=%2u", i, usp_map[i].port);
   }
 
   /* BCM unit is globally accessible */

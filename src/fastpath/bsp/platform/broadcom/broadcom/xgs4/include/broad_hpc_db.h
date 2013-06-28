@@ -33,6 +33,7 @@ extern int bcm_sys_sa_init_56680(const bcm_sys_board_t *brd, int base);
 extern int bcm_sys_sa_init_56820(const bcm_sys_board_t *brd, int base);
 
 #ifdef PTIN_WC_SLOT_MAP
+extern L7_uint32  dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[];
 extern HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[];
 extern HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[];
 extern HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[];

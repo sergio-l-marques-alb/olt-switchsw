@@ -957,6 +957,30 @@ HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 {        16,        3,        1,       0,      14 },  /* Lanes inverted for WC 16: slot 14 */ 
 {        17,        3,        1,       0,      15 }}; /* Lanes inverted for WC 17: slot 15 */
 
+L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[]=
+/*  Port mode / slot  *
+ * ------------------ */
+{ WC_SLOT_MODE_NONE,    /* Slot 1  */
+  WC_SLOT_MODE_2x10G,   /* Slot 2  */
+  WC_SLOT_MODE_2x10G,   /* Slot 3  */
+  WC_SLOT_MODE_4x10G,   /* Slot 4  */
+  WC_SLOT_MODE_4x10G,   /* Slot 5  */
+  WC_SLOT_MODE_2x10G,   /* Slot 6  */
+  WC_SLOT_MODE_2x10G,   /* Slot 7  */
+  WC_SLOT_MODE_4x10G,   /* Slot 8  */
+  WC_SLOT_MODE_4x10G,   /* Slot 9  */
+  WC_SLOT_MODE_4x10G,   /* Slot 10 */
+  WC_SLOT_MODE_4x10G,   /* Slot 11 */
+  WC_SLOT_MODE_4x10G,   /* Slot 12 */
+  WC_SLOT_MODE_4x10G,   /* Slot 13 */
+  WC_SLOT_MODE_2x10G,   /* Slot 14 */
+  WC_SLOT_MODE_2x10G,   /* Slot 15 */
+  WC_SLOT_MODE_4x10G,   /* Slot 16 */
+  WC_SLOT_MODE_4x10G,   /* Slot 17 */
+  WC_SLOT_MODE_2x10G,   /* Slot 18 */
+  WC_SLOT_MODE_2x10G,   /* Slot 19 */
+  WC_SLOT_MODE_NONE  }; /* Slot 20 */
+
 /* 56846 in CXO640G (OLT1T3) */
 HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 /* portNum slotIdx  WC idx  WCLane Speed *

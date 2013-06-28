@@ -12,6 +12,8 @@
 #include "broad_policy.h"
 #include <bcm_int/esw_dispatch.h>
 
+#include "hpc_db.h"
+#include "dapi_db.h"
 
 // Ingress Translations (single tagged packets)
 
@@ -680,8 +682,11 @@ extern int  send_data       (int canal_id,
 #define N_GROUPS_MAX  7
 #define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-const int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
-
+#ifdef PTIN_WC_SLOT_MAP
+ int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+#else
+ int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
+#endif
 
 /* To save BER results */
 struct ber_t {
@@ -1502,6 +1507,36 @@ int ber_init(void)
   printf("We are in matrix: %s\n",((matrix) ? "Protection" : "Working"));
 
   mx = matrix & 1;
+
+  #ifdef PTIN_WC_SLOT_MAP
+  int port, slot, lane, xe_port;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+
+  /* Ports information about the system */
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
+  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
+
+  /* Fill xe_slot_map */
+  memset(xe_slot_map, 0xff, sizeof(xe_slot_map));   /* -1 for all values */
+
+  for (port=0; port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
+  {
+    slot = hapiWCMapPtr[port].slotNum - 1;
+    lane = hapiWCMapPtr[port].wcLane  - 1;
+    xe_port = hapiSlotMapPtr[port].bcm_port;
+
+    /* Update xe port map */
+    if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+    {
+      xe_slot_map[mx][slot][lane] = xe_port;
+    }
+  }
+  #endif
 
   ptin_ber_tx_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_ber_tx_sem == L7_NULLPTR) {

@@ -1381,6 +1381,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   L7_uint16  speedG;
   L7_uint8   invLanes, invPol;
   bcm_port_t bcm_port;
+  HAPI_WC_SLOT_MAP_t *ptr;
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G   = {L7_PORT_DESC_BCOM_1G_NO_AN};
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
@@ -1393,27 +1394,56 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   memset(slot_mode, 0x00, sizeof(slot_mode));
   memset(wcMap, 0x00, sizeof(wcMap));
 
+  LOG_INFO(LOG_CTX_STARTUP,"Board is %u matrix.", (cpld_map->reg.slot_id==0) ? "Working" : "Protection");
+
+  /* If we are in protection side, we have to invert WCs */
+  for (wc_idx=0; wc_idx<WC_MAX_NUMBER; wc_idx++)
+  {
+    ptr = &dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx];
+
+    /* Skip not used WCs */
+    if (ptr->slotIdx < 0)
+      continue;
+
+    /* Validate slot index */
+    if (ptr->slotIdx == 0 || ptr->slotIdx > PTIN_SYS_SLOTS_MAX)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Invalid slot index (%u) for WC %u!",ptr->slotIdx, wc_idx);
+      return L7_FAILURE;
+    }
+
+    /* If we are in protection side, we have to invert WCs */
+    if (cpld_map->reg.slot_id!=0)
+    {
+      ptr->slotIdx = PTIN_SYS_SLOTS_MAX - ptr->slotIdx + 1;
+    }
+
+    LOG_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
+              ptr->wcIndex, ptr->wcGroup, ptr->slotIdx, ptr->invert_lanes, ptr->invert_polarities);
+  }
+
   LOG_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
 
   /* Get slot modes from file */
   if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_STARTUP,"File \"%s\" read successfully",WC_MAP_FILE);
-
-    /* Create map */
-    if (hpcConfigWCmap_build(slot_mode, wcMap)==L7_SUCCESS)
-    {
-      memcpy(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap, sizeof(wcMap));
-      LOG_INFO(LOG_CTX_STARTUP,"WC map created successfully");
-    }
-    else
-    {
-      LOG_ERR(LOG_CTX_STARTUP,"WC map not created!");
-    }
+    memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
+    LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
   }
   else
   {
-    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default map.",WC_MAP_FILE);
+    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
+  }
+
+  /* Create map */
+  if (hpcConfigWCmap_build(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap)==L7_SUCCESS)
+  {
+    memcpy(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap, sizeof(wcMap));
+    LOG_INFO(LOG_CTX_STARTUP,"WC map updated successfully");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
   }
 
   /* Validate map */

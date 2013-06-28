@@ -46,6 +46,7 @@
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
 
+
 /* OLT7-8CH */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
 
@@ -810,111 +811,6 @@ extern volatile st_fpga_map_t *fpga_map;
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
-/* Slot/port TO to interface map */
-/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
-# define PTIN_SLOTPORT_TO_INTF_MAP  \
-          { { -1, -1, -1, -1 }, \
-            { -1, -1, -1, -1 }, \
-            { -1, -1, -1, -1 }, \
-            {  0,  1,  2,  3 }, \
-            {  4,  5,  6,  7 }, \
-            {  8,  9, 10, 11 }, \
-            { 12, 13, 14, 15 }, \
-            { 16, 17, 18, 19 }, \
-            { 20, 21, 22, 23 }, \
-            { 24, 25, 26, 27 }, \
-            { 28, 29, 30, 31 }, \
-            { 32, 33, 34, 35 }, \
-            { 36, 37, 38, 39 }, \
-            { 40, 41, 42, 43 }, \
-            { 44, 45, 46, 47 }, \
-            { 48, 48, 50, 51 }, \
-            { 52, 53, 54, 55 }, \
-            { 56, 57, 58, 59 }, \
-            { 60, 61, 62, 63 }, \
-            { -1, -1, -1, -1 } }
-# define PTIN_SLOTPORT_TO_INTF_MAP_PROT  \
-          { { -1, -1, -1, -1 }, \
-            { -1, -1, -1, -1 }, \
-            { -1, -1, -1, -1 }, \
-            { 60, 61, 60, 61 }, \
-            { 56, 57, 58, 59 }, \
-            { 52, 53, 54, 55 }, \
-            { 48, 49, 50, 51 }, \
-            { 44, 45, 46, 47 }, \
-            { 40, 41, 42, 43 }, \
-            { 36, 37, 38, 39 }, \
-            { 32, 33, 34, 35 }, \
-            { 28, 29, 30, 31 }, \
-            { 24, 25, 26, 27 }, \
-            { 20, 21, 22, 23 }, \
-            { 16, 17, 18, 19 }, \
-            { 12, 13, 14, 15 }, \
-            {  8,  9, 10, 11 }, \
-            {  4,  5,  6,  7 }, \
-            {  0,  1,  2,  3 }, \
-            { -1, -1, -1, -1 } }
-
-/* Interface to slot map */
-/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
-# define PTIN_INTF_TO_SLOT_MAP  \
-          {  3,  3,  3,  3, \
-             4,  4,  4,  4, \
-             5,  5,  5,  5, \
-             6,  6,  6,  6, \
-             7,  7,  7,  7, \
-             8,  8,  8,  8, \
-             9,  9,  9,  9, \
-            10, 10, 10, 10, \
-            11, 11, 11, 11, \
-            12, 12, 12, 12, \
-            13, 13, 13, 13, \
-            14, 14, 14, 14, \
-            15, 15, 15, 15, \
-            16, 16, 16, 16, \
-            17, 17, 17, 17, \
-            18, 18, 18, 18  }
-
-/* Interface to port map */
-# define PTIN_INTF_TO_PORT_MAP  \
-          {  0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3, \
-             0,  1,  2,  3  }
-
-/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
-# define PTIN_PORTMAP_SLOT_WORK { \
-   1,  2,  3,  4,  5,  6,  7,  8, \
-   9, 10, 11, 12, 13, 14, 15, 16, \
-  17, 18, 19, 20, 21, 22, 23, 24, \
-  25, 26, 27, 28, 29, 30, 31, 32, \
-  33, 34, 35, 36, 37, 38, 39, 40, \
-  41, 42, 43, 44, 45, 46, 47, 48, \
-  49, 50, 51, 52, 53, 54, 55, 56, \
-  57, 58, 59, 60, 61, 62, 63, 64, \
-}
-# define PTIN_PORTMAP_SLOT_PROT { \
-  61, 62, 63, 64, 57, 58, 59, 60, \
-  53, 54, 55, 56, 49, 50, 51, 52, \
-  45, 46, 47, 48, 41, 42, 43, 44, \
-  37, 38, 39, 40, 33, 34, 35, 36, \
-  29, 30, 31, 32, 25, 26, 27, 28, \
-  21, 22, 23, 24, 17, 18, 19, 20, \
-  13, 14, 15, 16,  9, 10, 11, 12, \
-   5,  6,  7,  8,  1,  2,  3,  4, \
-}
 
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
@@ -1016,7 +912,12 @@ extern volatile st_fpga_map_t *fpga_map;
 
 #endif
 
-
+/* Slot/port map: only for matrix board */
+#if (PTIN_BOARD_IS_MATRIX)
+extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+extern int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
+extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
+#endif
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 (L7_DOT1Q_MAX_VLAN_ID - 1)
