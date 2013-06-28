@@ -148,7 +148,6 @@ L7_RC_t hapi_ptin_config_init(void)
  */
 L7_RC_t ptin_hapi_switch_init(void)
 {
-  L7_int     port;
   L7_RC_t    rc = L7_SUCCESS;
 
   if (bcmx_switch_control_set(bcmSwitchClassBasedMoveFailPktDrop,0x01)!=L7_SUCCESS)
