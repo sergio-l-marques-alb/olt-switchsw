@@ -54,6 +54,7 @@
 #include "snooping_ptin_proxy_grouptimer.h"//MMELO
 #include "snooping_ptin_proxy_sourcetimer.h"//MMELO
 #include "snooping_ptin_proxy_interfacetimer.h"//MMELO
+//#include "snooping_ptin_util.h"//MMELO
 #endif 
 
 
@@ -67,7 +68,7 @@ extern ptin_debug_pktTimer_t debug_pktTimer;
 
 
 /* PTin added: IGMPv3 snooping */
-#if SNOOP_PTIN_IGMPv3_PROXY 
+#if 0/*SNOOP_PTIN_IGMPv3_PROXY*/
 
 #if 0
 
@@ -344,6 +345,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
   L7_uint32        client_idx;              /* PTin added: IGMP snooping */
 
+#if SNOOP_PTIN_IGMPv3_PROXY
+  char             debug_buf[IPV6_DISP_ADDR_LEN];
+#endif
+  
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopPacketHandle");
 
   /* Get Snoop Control Block */
@@ -367,8 +372,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
     }
   }
+
+#if SNOOP_PTIN_IGMPv3_PROXY 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,
+                "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d",
+              pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum);
+#else
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Packet intercepted vlan %d, innerVlan=%u, intIfNum %d",
               pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum);
+#endif
 
   /* Ensure snooping is enabled on the switch */
   if (pSnoopCB->snoopCfgData->snoopAdminMode != L7_ENABLE)
@@ -466,7 +478,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /* Group address */
     grpAddr.family = L7_AF_INET;
     grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &buffPtr[24] + (ipHdrLen - L7_IP_HDR_LEN));
-  }
+       }
   else
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: IPv6 not supported yet!");
@@ -478,16 +490,29 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Get multicast root vlan */
   if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
   {
+#if SNOOP_PTIN_IGMPv3_PROXY 
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,
+                "snoopPacketHandle: Vlan=%u converted to %u (grpAddr=%s srcAddr=%s)",
+                pduInfo->vlanId, McastRootVlan, inetAddrPrint(&grpAddr,debug_buf),inetAddrPrint(&srcAddr,debug_buf));
+#else
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family,
                 "snoopPacketHandle: Vlan=%u converted to %u (grpAddr=0x%08x srcAddr=0x%08x)",
-                pduInfo->vlanId, McastRootVlan, grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
+                pduInfo->vlanId, McastRootVlan,grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
+#endif
+    
     pduInfo->vlanId = McastRootVlan;
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family,
+#if SNOOP_PTIN_IGMPv3_PROXY 
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,
+                "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
+                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf) , inetAddrPrint(&srcAddr,debug_buf));
+#else
+    SNOOP_DEBUG(SNOOP_DEBUG_PROTO, pSnoopCB->family,
                 "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=0x%08x srcAddr=0x%08x)",
                 pduInfo->vlanId, grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
+#endif
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, (L7_uint16)-1, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
@@ -672,6 +697,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* If any error, packet will be dropped */
   if (rc!=L7_SUCCESS)
   {
+#if SNOOP_PTIN_IGMPv3_PROXY
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,
+                "If any error, packet will be dropped");
+#endif
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
   }
@@ -1210,7 +1239,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
       {
       case L7_IGMP_MEMBERSHIP_QUERY:
 #if SNOOP_PTIN_IGMPv3_PROXY 
-        if (igmpCfg.version!=3)
+        if (igmpCfg.networkVersion!=3)
         {
 #endif
           LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERY: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
@@ -1220,7 +1249,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
           rc = snoopMgmdMembershipQueryProcess(&mcastPacket);
 #if SNOOP_PTIN_IGMPv3_PROXY 
           }
-        else if (igmpCfg.version==3)
+        else if (igmpCfg.networkVersion==3)
         {
           LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
                   mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
@@ -2184,7 +2213,7 @@ static L7_RC_t igmp_generate_packet_and_send(L7_uint32 vlan, L7_uint8 type, L7_u
 L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 {
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
-  //L7_RC_t         rc = L7_SUCCESS;
+//L7_RC_t         rc = L7_SUCCESS;
   L7_uchar8      *dataPtr = L7_NULL;
   L7_uint32       ipv4Addr;
   L7_in6_addr_t   ipv6Addr;
@@ -2192,6 +2221,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
   L7_uchar8       byteVal;
   L7_uchar8       dmac[L7_MAC_ADDR_LEN];
   L7_BOOL         generalQry = L7_FALSE;
+
 
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess");
 
@@ -2402,22 +2432,24 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 *********************************************************************/
 L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 {
+  #if 0
+
   snoop_cb_t                  *pSnoopCB = L7_NULLPTR;
 
   snoopPTinProxyDBInfoData_t    *snoopEntryProxyDB= L7_NULLPTR;
-
+  snoopPTinProxyGrouprecord_t snoopPTinProxyGrouprecord;
 //  snoopPTinProxyGrouprecordInfoData_t *snoopEntryProxyGrouprecord= L7_NULLPTR;
 
     snoopPTinProxyInterfacetimerInfoData_t *snoopEntryProxyInterfacetimer= L7_NULLPTR;
     snoopPTinProxyGrouptimerInfoData_t *snoopEntryProxyGrouptimer= L7_NULLPTR;
     //snoopPTinProxySourcetimerInfoData_t *snoopEntryProxySourcetimer= L7_NULLPTR;
 
-
+  
       //L7_RC_t                      rc = L7_SUCCESS;
     L7_uchar8                   *dataPtr = L7_NULL;
     L7_uint32                    ipv4Addr, incomingVersion = 0;
     L7_in6_addr_t                ipv6Addr;
-    L7_inet_addr_t               sourceAddr;//IGMPv3/MLDv2
+    L7_inet_addr_t               sourceAddr[64];//IGMPv3/MLDv2
     L7_mgmdQueryMsg_t            mgmdMsg;
     L7_uchar8                    byteVal;
     L7_ushort16                  maxRespCode=0,noOfSources=0;
@@ -2759,7 +2791,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             }
 
             /*Let us verify if this group is registered by any IGMPv3 Host*/            
-            if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(mgmdMsg.mgmdGroupAddr,mcastPacket->intIfNum, mcastPacket->vlanId, L7_MATCH_EXACT)))
+            if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(mcastPacket->intIfNum, mcastPacket->vlanId,mgmdMsg.mgmdGroupAddr, L7_MATCH_EXACT)))
             {
               LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",snoopPTinIPv4AddrPrint(mgmdMsg.mgmdGroupAddr.addr.ipv4.s_addr,debug_buf));
               return L7_SUCCESS;
@@ -2874,13 +2906,13 @@ pending report and the selected delay.*/
    case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
    {
      /* Find entry in AVL tree for VLAN+IP if necessary */
-     if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(mgmdMsg.mgmdGroupAddr,mcastPacket->intIfNum, mcastPacket->vlanId, L7_MATCH_EXACT)))
+     if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(rootInterface, mcastPacket->vlanId,mgmdMsg.mgmdGroupAddr, L7_MATCH_EXACT)))
      {
        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",snoopPTinIPv4AddrPrint(mgmdMsg.mgmdGroupAddr.addr.ipv4.s_addr,debug_buf));
        return L7_SUCCESS;
      }
 
-     if ((snoopEntryProxyGrouptimer=snoopPTinProxyGrouptimerEntryFind(mgmdMsg.mgmdGroupAddr,mcastPacket->intIfNum, mcastPacket->vlanId, L7_MATCH_EXACT))!=L7_NULLPTR)
+     if ((snoopEntryProxyGrouptimer=snoopPTinProxyGrouptimerEntryFind(rootInterface,mcastPacket->vlanId, mgmdMsg.mgmdGroupAddr, L7_MATCH_EXACT))!=L7_NULLPTR)
      {
        isRunning=snoop_ptin_proxy_Grouptimer_isRunning(snoopEntryProxyGrouptimer->grouptimer);
        if (isRunning==L7_TRUE && snoopEntryProxyGrouptimer->grouptimer->isRunning==L7_TRUE)
@@ -2894,21 +2926,32 @@ pending report and the selected delay.*/
        return L7_SUCCESS;
      }     
 
-
      else
      {
        noOfSources=mgmdMsg.numSources;
-       while (noOfSources > 0)
+//     L7_uchar8 activeSources=0x00;
+       L7_uint8  numOfActiveSources=0,i;
+       
+       for (i=0;i<noOfSources;i++)
        {
          /* IGMP Source Address*/
          if (mcastPacket->cbHandle->family == L7_AF_INET)
          {
            SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
-           inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr);
+           inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr[i]);
 
-//         L7_uint8  sourceIdx = 0;
-//         if (snoopPTinProxyDBSourceFind(snoopEntryProxyDB->clients,sourceAddr,sourceIdx)==L7_SUCCESS)
+           L7_uint8  sourceIdx = 0;           
+           if (snoopPTinProxyDBSourceFind(snoopEntryProxyDB->clients,sourceAddr[i],sourceIdx)==L7_SUCCESS)
+           {
 //           //Add this source to membership reponse
+             numOfActiveSources++;
+//           activeSources[i]=1;
+           }
+             else
+           {
+             continue;
+           }
+          
 
          }
          else
@@ -2916,8 +2959,41 @@ pending report and the selected delay.*/
          /* MLD Source Address */
            SNOOP_GET_ADDR6(&ipv6Addr, dataPtr);
            inetAddressSet(L7_AF_INET6, &ipv6Addr,&sourceAddr);
+         }       
+       }
+       if (numOfActiveSources>0)
+       {
+              
+        
+              
+         snoopPTinProxyGrouprecord.recordType=
+//       L7_RC_t snoop_ptin_proxy_Sourcetimer_start(snoopPTinProxySourcetimer_t* pTimer, L7_uint32 timeout, L7_uchar8 mgmdsQRV, snoopPTinProxySourcetimerInfoData_t* groupData)
+//       L7_RC_t snoop_ptin_proxy_Grouptimer_start(snoopPTinProxyGrouptimer_t* pTimer, L7_uint32 timeout, L7_uchar8 mgmdsQRV, snoopPTinProxyGrouptimerInfoData_t* groupData)
+         snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerInfoData;
+         
+         if(snoopPTinProxyGrouptimerEntryAdd(rootInterface,mcastPacket->vlanId, mgmdMsg.mgmdGroupAddr)!=L7_SUCCESS)
+         {
+             //erro
          }
-       --noOfSources;
+         else
+         {
+           if((snoopPTinProxyGrouptimerInfoData=snoopPTinProxyGrouptimerEntryFind(rootInterface,mcastPacket->vlanId, mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))==L7_NULLPTR)
+           {
+             //erro
+           }
+           else
+           {
+             
+             snoopPTinProxyGrouptimerInfoData.numberOfSources=
+             for (i=0;i<numOfActiveSources;i++)
+             {
+               snoopPTinProxyGrouptimerInfoData.sourceAddr[i]=sourceAddr[i];
+             }
+            snoopPTinProxyGrouptimerInfoData.numberOfSources=numOfActiveSources;             
+            snoopPTinProxyGrouptimerInfoData.recordType=snoopEntryProxyDB->filtermode;/*PTIN_SNOOP_FILTERMODE_INCLUDE=L7_IGMP_MODE_IS_INCLUDE & PTIN_SNOOP_FILTERMODE_EXCLUDE=L7_IGMP_MODE_IS_EXCLUDE*/   
+         }
+
+               
        }
      }
      break;
@@ -2932,6 +3008,7 @@ report and the selected delay.*/
   case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
   {
       //StartSourceTimer
+    //           snoopPTinProxyDBSourceEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_inet_addr_t sourceAddr,  L7_uint32 flag);
     break;
   }
  }
@@ -3030,6 +3107,7 @@ report and the selected delay.*/
     snoopPacketFlood(mcastPacket);
   }
   #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -3309,8 +3387,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 {
   L7_uchar8               dmac[L7_MAC_ADDR_LEN], *dataPtr, recType, auxDataLen;
   L7_RC_t                 rc = L7_SUCCESS;
-  snoopPTinL3InfoData_t  *snoopEntry;
-  snoopPTinProxyDBInfoData_t *snoopEntryProxyDB;//PROXY SUPPORTED
+  snoopPTinL3InfoData_t  *snoopEntry;  
   L7_uint32               ipv4Addr;
   L7_ushort16             noOfGroups, noOfSources;
   L7_inet_addr_t          groupAddr;
@@ -3318,6 +3395,11 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   snoop_cb_t             *pSnoopCB = L7_NULLPTR;
   L7_uchar8               ipBuf[16];
 
+#if 0
+  snoopPTinProxyDBInfoData_t          *snoopEntryProxyDB;//PROXY SUPPORTED
+  snoopPTinProxyGrouprecordInfoData_t *snoopEntryProxygroupRecord;//PROXY SUPPORTED
+  L7_BOOL                              reportFlag=L7_FALSE;//PROXY SUPPORTED
+#endif
   /* Set pointer to IGMPv3 Membership Report */
   dataPtr = mcastPacket->ip_payload + MGMD_REPORT_NUM_SOURCES_OFFSET;
   SNOOP_GET_SHORT(noOfGroups, dataPtr);
@@ -3325,6 +3407,38 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 
   /* Get Snoop Control Block */
   pSnoopCB = mcastPacket->cbHandle;
+
+#if SNOOP_PTIN_IGMPv3_PROXY
+  L7_INTF_MASK_t rootIntfList;
+  L7_uint32      rootIntIfNum;
+  L7_uchar8     *dataPtrTmp;
+    /* Get Multicast Root Interface */
+  if (ptin_igmp_rootIntfs_getList(mcastPacket->vlanId, &rootIntfList) !=L7_SUCCESS)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_rootIntfs_getList() :%d",mcastPacket->vlanId);
+    return L7_FAILURE;
+  }
+  else
+  {
+    L7_BOOL result;
+    L7_INTF_NONZEROMASK(rootIntfList, result);
+    if (result==L7_FALSE)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Empty root interface list :ptin_igmp_rootIntfs_getList()");
+      return L7_FAILURE;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",rootIntfList.value);
+      L7_INTF_FHMASKBIT(rootIntfList, rootIntIfNum);
+      if (rootIntIfNum==0)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Unable to get root interface Idx: L7_INTF_FHMASKBIT");
+        return L7_FAILURE;
+      }      
+    }
+  }
+#endif
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)
   {
@@ -3383,6 +3497,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     return L7_FAILURE;
   }
 
+  /* Check if it is a malformed packet */
+  if ((dataPtr - mcastPacket->ip_payload) > mcastPacket->ip_payload_length)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Dropped malformed packet :%d",mcastPacket->cbHandle->family);
+    return L7_FAILURE;
+  }
+  
   while (noOfGroups > 0)
   {
     /* IGMP Membership records */
@@ -3421,34 +3542,88 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     if (fwdFlag == L7_FALSE)
     {
       /* Create new entry in AVL tree for VLAN+IP if necessary */
-      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(groupAddr, mcastPacket->vlanId, L7_MATCH_EXACT)))
+      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(rootIntfList, mcastPacket->vlanId, groupAddr,L7_MATCH_EXACT)))
       {
-        if (L7_SUCCESS != snoopPTinL3EntryAdd(groupAddr, mcastPacket->vlanId))
+        if (L7_SUCCESS != snoopPTinL3EntryAdd(rootIntfList, mcastPacket->vlanId,groupAddr))
         {
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
           return L7_FAILURE;
         }
-        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(groupAddr, mcastPacket->vlanId, L7_MATCH_EXACT)))
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%d,%d,%d)",rootIntfList,groupAddr,mcastPacket->vlanId);
+        }
+        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(rootIntfList, mcastPacket->vlanId, groupAddr,L7_MATCH_EXACT)))
         {
           return L7_FAILURE;
         }
       }
-      //      /*Create new entry in AVL tree for INT+VLAN+IP if necessary */
-      L7_uint16 intIdxUpstream=0;//Todo: For the moment we do not consider it.
-      if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(groupAddr,intIdxUpstream,  mcastPacket->vlanId, L7_MATCH_EXACT)))
+#if 0
+      /*Create new entry in ProxyDB for INT+VLAN+GroupAddr if necessary */      
+      if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(intIdxUpstream,  mcastPacket->vlanId,groupAddr, L7_MATCH_EXACT)))
       {
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Triggering Send of Membership Report Packet");
-        if (igmp_reuse_packet_and_send(mcastPacket)!=L7_SUCCESS)
+        if (L7_SUCCESS != snoopPTinProxyDBEntryAdd(intIdxUpstream,mcastPacket->vlanId, groupAddr))
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Failed to send Membership Report Packet");
-          return L7_FAILURE;
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Entry to Proxy DB");
+          rc = L7_FAILURE;
         }
-        else if (L7_SUCCESS != snoopPTinProxyDBEntryAdd(groupAddr,intIdxUpstream, mcastPacket->vlanId))
+        if (L7_NULLPTR == (snoopEntryProxyDB = snoopPTinProxyDBEntryFind(intIdxUpstream,mcastPacket->vlanId,  groupAddr, L7_MATCH_EXACT)))
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Failed to Add Entry to Proxy DB");
-          return L7_FAILURE;
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Find Entry to Proxy DB");
+          rc = L7_FAILURE;
+        }
+        snoopEntry->proxyDB=snoopEntryProxyDB;                  
+        if (recType==L7_IGMP_MODE_IS_INCLUDE ||  recType==L7_IGMP_CHANGE_TO_INCLUDE_MODE  || recType==L7_IGMP_ALLOW_NEW_SOURCES)
+        {
+            snoopEntryProxyDB->filtermode=PTIN_SNOOP_FILTERMODE_INCLUDE;
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopEntryProxyDB->filtermode=PTIN_SNOOP_FILTERMODE_INCLUDE");
+        }
+        else if (recType==L7_IGMP_MODE_IS_EXCLUDE ||  recType==L7_IGMP_CHANGE_TO_EXCLUDE_MODE  || recType==L7_IGMP_BLOCK_OLD_SOURCES)
+        {
+          snoopEntryProxyDB->filtermode=PTIN_SNOOP_FILTERMODE_EXCLUDE;
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopEntryProxyDB->filtermode=PTIN_SNOOP_FILTERMODE_EXCLUDE");
+        }
+        else
+        {
+          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unknown record type. Silently ignored");
+          return L7_SUCCESS;
+        }
+
+        PTIN_PROXY_SET_MASKBIT(snoopEntryProxyDB->clients,mcastPacket->intIfNum);
+//Todo        
+        //Open Switch port for this interface                     
+
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinProxyDBEntryFind(%d,%d)",groupAddr,mcastPacket->vlanId);
+        
+        
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinProxyGrouprecordEntryFind(%d)",snoopEntryProxygroupRecord->snoopPTinProxyGrouprecordInfoDataKey.groupAddr);
+        }
+        /*Forward a Membership Report Message*/
+        if (reportFlag==L7_FALSE)
+          reportFlag=L7_TRUE;
+      }
+      else//This Group Address Already exists in the Proxy DB
+      {    
+        if ((snoopEntryProxyDB->filtermode==PTIN_SNOOP_FILTERMODE_EXCLUDE) &&(recType==L7_IGMP_MODE_IS_INCLUDE ||  recType==L7_IGMP_CHANGE_TO_INCLUDE_MODE  || recType==L7_IGMP_ALLOW_NEW_SOURCES))
+        {
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Changing Filter Mode :PTIN_SNOOP_FILTERMODE_INCLUDE");
+          snoopEntryProxyDB->filtermode=PTIN_SNOOP_FILTERMODE_INCLUDE;
+        }
+                                
+        /*We need to check if the client is active for this interface or not*/ 
+        if (PTIN_PROXY_IS_MASKBITSET(snoopEntryProxyDB->clients,mcastPacket->intIfNum)==L7_TRUE)
+        {
+          continue;/*Don't do anything*/
+        }
+        else
+        {
+          PTIN_PROXY_SET_MASKBIT(snoopEntryProxyDB->clients,mcastPacket->intIfNum);
+          //Open Switch port for this interface
         }
       }
-//      snoopEntry->proxyDB=snoopEntryProxyDB;      
+#endif
 
       /* If interface is not used, initialize it */
       if (snoopEntry->interfaces[mcastPacket->intIfNum].active == L7_FALSE)
@@ -3458,37 +3633,71 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
       }
 
       floodFlag = L7_FALSE;        
+
+#if SNOOP_PTIN_IGMPv3_PROXY
+          dataPtrTmp=dataPtr; 
+#endif
   
       switch(recType)
       {
         case L7_IGMP_MODE_IS_INCLUDE:
-        {
-          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+        { 
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else
+          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources,dataPtr);
+#endif
           break;
         }
         case L7_IGMP_MODE_IS_EXCLUDE:
         {
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportIsExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportIsExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else
           snoopPTinMembershipReportIsExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+#endif
           break;
         }
         case L7_IGMP_CHANGE_TO_INCLUDE_MODE:
         {
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportToIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportToIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else          
           snoopPTinMembershipReportToIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+#endif
           break;
         }
         case L7_IGMP_CHANGE_TO_EXCLUDE_MODE:
         {
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportToExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportToExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else
           snoopPTinMembershipReportToExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+#endif
           break;
         }
         case L7_IGMP_ALLOW_NEW_SOURCES:
         {
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportAllowProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportAllowProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else
           snoopPTinMembershipReportAllowProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+#endif
           break;
         }
         case L7_IGMP_BLOCK_OLD_SOURCES:
         {
+#if SNOOP_PTIN_IGMPv3_PROXY              
+          snoopPTinMembershipReportBlockProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportBlockProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
+#else
           snoopPTinMembershipReportBlockProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
+#endif
           break;
         }
         default:
@@ -3496,8 +3705,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
           LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unknown record type. Silently ignored");
           return L7_SUCCESS;
         }
-      }
-      
+      }       
 
 #if 0
       if ((noOfSources == 0) && (recType == L7_IGMP_CHANGE_TO_INCLUDE_MODE))
@@ -3605,13 +3813,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
       dataPtr += (auxDataLen * 4);
     }
 
-    /* Check if it is a malformed packet */
-    if ((dataPtr - mcastPacket->ip_payload) > mcastPacket->ip_payload_length)
-    {
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family,"Dropped malformed packet");
-      return L7_FAILURE;
-    }
-
+    
     noOfGroups -= 1;
   } /* end of while loop */
 
@@ -3648,12 +3850,21 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
  */
 L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket)
 {
-  L7_RC_t                rc = L7_SUCCESS;
-  mgmdSnoopControlPkt_t  mcastPacketReport;
 
-  //L7_INTF_MASK_t intfList;
-//  L7_uint16 McastRootVlan;
+  L7_RC_t                rc = L7_SUCCESS;
+#if 0
+  mgmdSnoopControlPkt_t  mcastPacketReport;
+  char                         debug_buf[IPV6_DISP_ADDR_LEN];
+
+//L7_INTF_MASK_t intfList;
+//L7_uint16 McastRootVlan, intIfNum=0;
   ptin_IgmpProxyCfg_t igmpCfg;
+
+  L7_uchar8 groupsCnt=1;//We are forwarding the first report to this group 
+  L7_uchar8            igmpFrame[L7_MAX_FRAME_SIZE]={0};
+  L7_uint32             igmpFrameLength=0;
+
+  snoopPTinProxyGrouprecordInfoData_t* groupRecordData=L7_NULLPTR;
 
 
   /* Validate arguments */
@@ -3663,24 +3874,125 @@ L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket)
     return L7_FAILURE;
   }
 
+  /* Get Proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    return L7_FAILURE;
+  }
+
+  // Initialize mcastPacket structure
+#if 0
+  memset(&mcastPacketReport,0x00,sizeof(mgmdSnoopControlPkt_t));
+#else
+  memcpy(&mcastPacketReport,mcastPacket,sizeof(mgmdSnoopControlPkt_t));
+#endif
   
-///* Get Multicast Root VLAN */
-//if (ptin_igmp_McastRootVlan_get(mcastPacket->innerVlanId, &McastRootVlan)!=L7_SUCCESS)
+#if 0
+  snoopPTinProxyGrouprecordInfoData_t* groupRecordData=L7_NULLPTR;
+
+  if ((groupRecordData=snoopPTinProxyGrouprecordEntryFind(mcastPacket->destAddr,recType,L7_MATCH_EXACT)==L7_NULLPTR)
+  {
+    snoopPTinProxyGrouprecordEntryAdd(mcastPacket->destAddr,recordType)==L7_NULLPTR)
+
+
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "groupRecordData=NULLPTR :%s",inetAddrPrint(&groupAddr,debug_buf));
+    return L7_FAILURE;
+  }
+  else
+  {
+    continue;
+
+  }
+#endif   
+
+///* Get Snoop Control Block */
+//if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
 //{
-//  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_McastRootVlan_get() :%d",mcastPacket->innerVlanId);
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting pSnoopCB");
+//  return;
+//}
+//  /* Only allow IPv4 for now */
+//if (pSnoopCB->family != L7_AF_INET)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Not IPv4 packet");
+//  return;
+//}
+
+ 
+
+if (mcastPacket->srcAddr.family==L7_AF_INET)
+{
+#if 0
+ mcastPacket->srcAddr.addr.ipv4=igmpCfg.ipv4_addr.s_addr;
+#else
+  inetAddressSet(L7_AF_INET, L7_NULL_IP_ADDR, &(mcastPacketReport.srcAddr));
+#endif
+}
+else if (mcastPacket->srcAddr.family==L7_AF_INET6)
+{
+  inetAddressSet(L7_AF_INET6, L7_NULL_IP_ADDR, &(mcastPacketReport.srcAddr));
+}
+else
+{
+  LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unknown IP Address family :%x. Silently ignored",mcastPacket->srcAddr.family);
+  return L7_SUCCESS;
+}
+
+
+   /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    return L7_FAILURE;
+  }
+
+//
+///* Build header frame for IGMPv3 Report */
+//rc = snoopPTinReportFrameV3Build(groupRecordData,  &groupsCnt, igmpFrame, (L7_uint32 *) igmpFrameLength);
+//if (rc != L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Report frame");
+//  return L7_FAILURE;
+//}
+//
+///* Build MAC+IP frames and add the IGMP frame to the same packet */
+//rc = snoopPTinPacketBuild(mcastPacketReport.vlanId,mcastPacketReport.cbHandle , 0, mcastPacketReport.payLoad, &mcastPacketReport.length, igmpFrame, igmpFrameLength);
+//if (rc != L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Report frame");
+//  return L7_FAILURE;
+//}
+
+  
+#if 0
+    L7_uint32 i;
+  printf("PayloadLength:%d\n",mcastPacket->ip_payload_length);
+  for (i=0;i<payloadLen;i++)
+    printf("0x%x",mcastPacket->ip_payload[i]);
+  printf("\n");
+#endif
+
+
+
+
+/////* Get Multicast Root VLAN */
+//if (ptin_igmp_McastRootVlan_get(mcastPacket->vlanId, &McastRootVlan)!=L7_SUCCESS)
+//{
+//  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_McastRootVlan_get() :%d",mcastPacket->vlanId);
 //   return L7_FAILURE;
 //}
 //else
 //{
 //  LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_McastRootVlan_get() :%d",McastRootVlan);
-//  mcastPacket->vlanId=(L7_uint32) McastRootVlan;
+//  mcastPacketReport.vlanId=(L7_uint32) McastRootVlan;
 //}
-//
-//LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",mcastPacket->innerVlanId);
-///* Get Multicast Root Interface */
-//if (ptin_igmp_rootIntfs_getList(mcastPacket->innerVlanId, &intfList) !=L7_SUCCESS)
+//  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Inner vlanID :%d",mcastPacketReport.innerVlanId);
+
+  /* Get Multicast Root Interface */
+//if (ptin_igmp_rootIntfs_getList(mcastPacket->vlanId, &intfList) !=L7_SUCCESS)
 //{
-//  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_rootIntfs_getList() :%d",mcastPacket->innerVlanId);
+//  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_rootIntfs_getList() :%d",mcastPacket->vlanId);
 //  return L7_FAILURE;
 //}
 //else
@@ -3692,67 +4004,27 @@ L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket)
 //    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Empty root interface list :ptin_igmp_rootIntfs_getList()");
 //    return L7_FAILURE;
 //  }
-//  LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",intfList.value);
+//  else
+//  {
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",intfList.value);
+//    L7_INTF_FHMASKBIT(intfList, intIfNum);
+//    if (intIfNum==0)
+//    {
+//      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Unable to get root interface Idx: L7_INTF_FHMASKBIT");
+//      return L7_FAILURE;
+//    }
+//    else
+//    {
+//      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Root Interface Idx:%d",intIfNum);
+//      mcastPacketReport.intIfNum=(L7_uint32) intIfNum;
+//
+//    }
+//  }
 //}
-//mcastPacket->intIfNum
-//
-//
-//L7_INTF_FHMASKBIT(j, k)
-//
-//
-//L7_INTF_MASK_UNIT
-//
-//  L7_INTF_INDICES
-
-  /* Get Proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
-  {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
-  }
-
-  // Initialize mcastPacket structure
-//  memset(&mcastPacketReport,0x00,sizeof(mgmdSnoopControlPkt_t));
-
-  memcpy(&mcastPacketReport,mcastPacket,sizeof(mgmdSnoopControlPkt_t));
- 
-//mcastPacketReport.cbHandle    = snoopCBGet(L7_AF_INET);
-
-//  mcastPacketReport.vlanId      = mcastPacket->vlanId;
-//  mcastPacketReport.vlanId      = 352;
-////
-//  mcastPacketReport.intIfNum      = 14;
-////
-////
-////
-//mcastPacketReport.innerVlanId = 0;
-
-
-//  mcastPacketReport.client_idx  = (L7_uint32)-1;
-//mcastPacketReport.msgType     = IP_PROT_IGMP;
-//mcastPacketReport.srcAddr.family            = mcastPacket->srcAddr.family;
-//mcastPacketReport.srcAddr.addr.ipv4.s_addr  = L7_NULL_IP_ADDR;
-//mcastPacketReport.destAddr.family           = L7_AF_INET;
-//mcastPacketReport.destAddr.addr.ipv4.s_addr = L7_NULL_IP_ADDR;
-
-   if (mcastPacket->srcAddr.family==L7_AF_INET)
-  {
-#if 0
-   mcastPacket->srcAddr.addr.ipv4=igmpCfg.ipv4_addr.s_addr;
-#else
-   inetAddressSet(L7_AF_INET, L7_NULL_IP_ADDR, &(mcastPacketReport.srcAddr));
-#endif
-  }
-  else if (mcastPacket->srcAddr.family==L7_AF_INET6)
-  {
-    inetAddressSet(L7_AF_INET6, L7_NULL_IP_ADDR, &(mcastPacketReport.srcAddr));
-  }
-  else
-  {
-     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unknown IP Address family :%x. Silently ignored",mcastPacket->srcAddr.family);
-     return L7_SUCCESS;
-  }
-
+  
+    
+    
+    
 
 //// Build answer packet
 //ptin_timer_start(27,"igmp_generate_packet_and_send-igmp_rebuild_packet");
@@ -3761,23 +4033,24 @@ L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket)
 //if (rc==L7_SUCCESS)
 //{
     // Send Packet to mrouter ports
-    ptin_timer_start(28,"igmp_generate_packet_and_send-snoopPacketRtrIntfsForward");
-    rc=snoopPacketRtrIntfsForward(&mcastPacketReport, mcastPacketReport.msgType);
-    ptin_timer_stop(28);
-    if (rc==L7_SUCCESS)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,  "snoopPacketRtrIntfsForward Packet transmitted to router interfaces");
-    }
-    else
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "snoopPacketRtrIntfsForward: Error transmitting to router interfaces");
-      return L7_FAILURE;
-    }
+  ptin_timer_start(28,"igmp_generate_packet_and_send-snoopPacketRtrIntfsForward");
+  rc=snoopPacketRtrIntfsForward(&mcastPacketReport, mcastPacketReport.msgType);
+  ptin_timer_stop(28);
+  if (rc==L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,  "snoopPacketRtrIntfsForward Packet transmitted to router interfaces");
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "snoopPacketRtrIntfsForward: Error transmitting to router interfaces");
+    return L7_FAILURE;
+  }
 //}
 //else
 //{
 //  SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "igmp_generate_packet_and_send: Error rebuilding packet");
 //}
+#endif
 
   return rc;
 }

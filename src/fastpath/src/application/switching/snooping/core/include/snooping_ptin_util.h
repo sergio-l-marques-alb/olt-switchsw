@@ -12,6 +12,7 @@
 #include "l3_addrdefs.h"
 #include "snooping_ptin_defs.h"
 #include "osapi.h"
+#include "comm_mask.h"
 
 //Convert an IPv4 address in integer format to string
 char *snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer);
@@ -32,8 +33,7 @@ L7_RC_t snoopPTinReportSchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_B
 void     snoopPTinReportSend        (L7_uint32 arg1);
 
 //Debug method that prints stored information for a specific multicast group
-void snoopPTinMcastgroupPrint(L7_uint32 groupAddrStr, L7_uint32 vlanId);
-
+void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList,L7_uint32 vlanId,L7_inet_addr_t  groupAddrStr);
 L7_RC_t snoopPTinL2ClientAdd      ();  //PLACEHOLDER
 L7_RC_t snoopPTinL2ClientRemove   ();  //PLACEHOLDER
 

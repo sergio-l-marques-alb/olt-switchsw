@@ -147,29 +147,29 @@ L7_RC_t snoopEntryCreate(L7_uchar8* macAddr, L7_uint32 vlanId, L7_uchar8 family,
 /******************************************************************************
   PTin - SNOOP L3 Mcast DB Entry Processing Routines
 *******************************************************************************/
-#if 1
-snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId, L7_uint32 flag);
-L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId);
-L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId);
+#if SNOOP_PTIN_IGMPv3_PROXY
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr,L7_uint32 flag);
+L7_RC_t snoopPTinL3EntryAdd(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr);
+L7_RC_t snoopPTinL3EntryDelete(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr);
 
 
 /******************************************************************************
   PTin - SNOOP Proxy Mcast DB Entry Processing Routines
 *******************************************************************************/
-snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_inet_addr_t groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag);
-L7_RC_t snoopPTinProxyDBEntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId);
-L7_RC_t snoopPTinProxyDBEntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId);
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_uint32 flag);
+L7_RC_t snoopPTinProxyDBEntryAdd(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr);
+L7_RC_t snoopPTinProxyDBEntryDelete(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr);
 
-snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_inet_addr_t groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t sourceAddr,  L7_uint32 flag);
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_inet_addr_t sourceAddr,  L7_uint32 flag);
 //L7_RC_t snoopPTinProxyDBSourceEntryAdd(L7_inet_addr_t groupAddr, L7_uint16 interfaceIdx, L7_inet_addr_t sourceAddr, L7_uint32 vlanId);
 //L7_RC_t snoopPTinProxyDBSourceEntryDelete(L7_inet_addr_t groupAddr, L7_uint16 interfaceIdx, L7_inet_addr_t sourceAddr, L7_uint32 vlanId);
 
 /******************************************************************************
   PTin - SNOOP Proxy CSR Mcast DB Entry Processing Routines
 *******************************************************************************/ 
-snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_addr_t groupAddr,L7_uint32 flag);
-L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr);
-L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t  groupAddr); 
+snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_addr_t groupAddr,MGMD_GROUP_REPORT_TYPE_t   recordType,L7_uint32 flag);
+L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr,MGMD_GROUP_REPORT_TYPE_t   recordType);
+L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t groupAddr,MGMD_GROUP_REPORT_TYPE_t  recordType); 
 
 //snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecorSourcedEntryFind(L7_inet_addr_t groupAddr,L7_inet_addr_t sourceAddr,L7_uint32 flag);
 //L7_RC_t snoopPTinProxyGrouprecordSourceEntryAdd(L7_inet_addr_t groupAddr,L7_inet_addr_t sourceAddr);
@@ -184,16 +184,16 @@ snoopPTinProxyInterfacetimerInfoData_t *snoopPTinProxyInterfacetimerEntryFind(L7
 L7_RC_t snoopPTinProxyInterfacetimerEntryAdd(L7_uint16 interfaceIdx, L7_uint32 vlanId);
 L7_RC_t snoopPTinProxyInterfacetimerEntryDelete(L7_uint16 interfaceIdx, L7_uint32 vlanId); 
 
-snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_inet_addr_t mcastGroupAddr, L7_uint16 interfaceIdx,L7_uint32 vlanId, L7_uint32 flag);
-L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_inet_addr_t   groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId);
+snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr, L7_uint32 flag);
+L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr);
 L7_RC_t snoopPTinProxyGrouptimerEntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId); 
 
 snoopPTinProxySourcetimerInfoData_t *snoopPTinProxySourcetimerEntryFind(L7_inet_addr_t mcastGroupAddr, L7_inet_addr_t sourceAddr,L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag);
 L7_RC_t snoopPTinProxySourcetimerEntryAdd(L7_inet_addr_t mcastGroupAddr,L7_inet_addr_t sourceAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId); 
 L7_RC_t snoopPTinProxySourcetimerEntryDelete(L7_inet_addr_t mcastGroupAddr,L7_inet_addr_t sourceAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId); 
 
-#endif
 
+#endif
 /******************************************************************************
   SNOOP L3 Mcast DB Entry Processing Routines
 *******************************************************************************/

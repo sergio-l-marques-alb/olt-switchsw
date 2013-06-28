@@ -605,17 +605,16 @@ typedef struct {
 
 /* IGMP proxy structs *********************************************************/
 /* Querier's config structure */
-#define PTIN_IGMP_QUERIER_MASK_VER        0x0001
-#define PTIN_IGMP_QUERIER_MASK_RV         0x0002
-#define PTIN_IGMP_QUERIER_MASK_QI         0x0004
-#define PTIN_IGMP_QUERIER_MASK_QRI        0x0008
-#define PTIN_IGMP_QUERIER_MASK_GMI        0x0010
-#define PTIN_IGMP_QUERIER_MASK_OQPI       0x0020
-#define PTIN_IGMP_QUERIER_MASK_SQI        0x0040
-#define PTIN_IGMP_QUERIER_MASK_SQC        0x0080
-#define PTIN_IGMP_QUERIER_MASK_LMQI       0x0100
-#define PTIN_IGMP_QUERIER_MASK_LMQC       0x0200
-#define PTIN_IGMP_QUERIER_MASK_OHPT       0x0400
+#define PTIN_IGMP_QUERIER_MASK_RV         0x0001
+#define PTIN_IGMP_QUERIER_MASK_QI         0x0002
+#define PTIN_IGMP_QUERIER_MASK_QRI        0x0004
+#define PTIN_IGMP_QUERIER_MASK_GMI        0x0008
+#define PTIN_IGMP_QUERIER_MASK_OQPI       0x0010
+#define PTIN_IGMP_QUERIER_MASK_SQI        0x0020
+#define PTIN_IGMP_QUERIER_MASK_SQC        0x0040
+#define PTIN_IGMP_QUERIER_MASK_LMQI       0x0080
+#define PTIN_IGMP_QUERIER_MASK_LMQC       0x0100
+#define PTIN_IGMP_QUERIER_MASK_OHPT       0x0200
 
 #define PTIN_IGMP_QUERIER_MASK_AUTO_GMI   0x0001
 #define PTIN_IGMP_QUERIER_MASK_AUTO_OQPI  0x0002
@@ -632,57 +631,57 @@ typedef struct {
                                                  * [0x0008] - AUTO_SQC
                                                  * [0x0010] - AUTO_LMQC
                                                  * [0x0020] - AUTO_OHPT */
-  L7_uint8  version;                            /* [Mask: 0x0001] Defines maximum working version */
-  L7_uint8  robustness;                         /* [Mask: 0x0002] */
-  L7_uint16 query_interval;                     /* [Mask: 0x0004] */
-  L7_uint16 query_response_interval;            /* [Mask: 0x0008] */
-  L7_uint16 group_membership_interval;          /* [Mask: 0x0010] */
-  L7_uint16 other_querier_present_interval;     /* [Mask: 0x0020] */
-  L7_uint16 startup_query_interval;             /* [Mask: 0x0040] */
-  L7_uint16 startup_query_count;                /* [Mask: 0x0080] */
-  L7_uint16 last_member_query_interval;         /* [Mask: 0x0100] */
-  L7_uint16 last_member_query_count;            /* [Mask: 0x0200] */
-  L7_uint16 older_host_present_timeout;         /* [Mask: 0x0400] */
+  L7_uint8  robustness;                         /* [Mask: 0x0001] */
+  L7_uint16 query_interval;                     /* [Mask: 0x0002] */
+  L7_uint16 query_response_interval;            /* [Mask: 0x0004] */
+  L7_uint16 group_membership_interval;          /* [Mask: 0x0008] */
+  L7_uint16 other_querier_present_interval;     /* [Mask: 0x0010] */
+  L7_uint16 startup_query_interval;             /* [Mask: 0x0020] */
+  L7_uint16 startup_query_count;                /* [Mask: 0x0040] */
+  L7_uint16 last_member_query_interval;         /* [Mask: 0x0080] */
+  L7_uint16 last_member_query_count;            /* [Mask: 0x0100] */
+  L7_uint16 older_host_present_timeout;         /* [Mask: 0x0200] */
 } ptin_IgmpV3QuerierCfg_t;
 
 /* Host's config structure */
-#define PTIN_IGMP_HOST_MASK_VER           0x0001
-#define PTIN_IGMP_HOST_MASK_RV            0x0002
-#define PTIN_IGMP_HOST_MASK_URI           0x0004
-#define PTIN_IGMP_HOST_MASK_OQPT          0x0008
+#define PTIN_IGMP_HOST_MASK_RV            0x0001
+#define PTIN_IGMP_HOST_MASK_URI           0x0002
+#define PTIN_IGMP_HOST_MASK_OQPT          0x0004
+#define PTIN_IGMP_HOST_MASK_MRPR          0x0008
 
 #define PTIN_IGMP_HOST_MASK_AUTO_OQPT     0x0001
 
 typedef struct {
   L7_uint8  mask;                               /* PTIN_IGMP_HOST_MASK_xxxx */
   L7_uint8  flags;                              /* [0x01] - AUTO_OQPT */
-  L7_uint8  version;                            /* [Mask: 0x01] Defines maximum working version */
-  L7_uint8  robustness;                         /* [Mask: 0x02] */
-  L7_uint16 unsolicited_report_interval;        /* [Mask: 0x04] */
-  L7_uint16 older_querier_present_timeout;      /* [Mask: 0x08] */
-
+  L7_uint8  robustness;                         /* [Mask: 0x01] */
+  L7_uint16 unsolicited_report_interval;        /* [Mask: 0x02] */
+  L7_uint16 older_querier_present_timeout;      /* [Mask: 0x04] */
+  L7_uint8  max_records_per_report;             /* [Mask: 0x08] */
 } ptin_IgmpV3HostCfg_t;
 
 /* Proxy's config structure */
-#define PTIN_IGMP_PROXY_MASK_ADMIN        0x0001
-#define PTIN_IGMP_PROXY_MASK_VERSION      0x0002
-#define PTIN_IGMP_PROXY_MASK_IPV4         0x0004
-#define PTIN_IGMP_PROXY_MASK_COS          0x0008
-#define PTIN_IGMP_PROXY_MASK_FASTLEAVE    0x0010
-#define PTIN_IGMP_PROXY_MASK_QUERIER      0x0020
-#define PTIN_IGMP_PROXY_MASK_HOST         0x0040
+#define PTIN_IGMP_PROXY_MASK_ADMIN           0x0001
+#define PTIN_IGMP_PROXY_MASK_NETWORKVERSION  0x0002
+#define PTIN_IGMP_PROXY_MASK_CLIENTVERSION   0x0004
+#define PTIN_IGMP_PROXY_MASK_IPV4            0x0008
+#define PTIN_IGMP_PROXY_MASK_COS             0x0010
+#define PTIN_IGMP_PROXY_MASK_FASTLEAVE       0x0020
+#define PTIN_IGMP_PROXY_MASK_QUERIER         0x0040
+#define PTIN_IGMP_PROXY_MASK_HOST            0x0080
 
 typedef struct {
   L7_uint8      mask;                           /* PTIN_IGMP_PROXY_MASK_xxxx */
 
   L7_uint8      admin;                          /* Mask: 0x01 (Global admin for both host and querier) */
-  L7_uint8      version;                        /* Mask: 0x02 (defines maximum working version - overrides query/host version) */
-  L7_in_addr_t  ipv4_addr;                      /* Mask: 0x04 (Proxy IP (for both host and querier)) */
-  L7_uint8      igmp_cos;                       /* Mask: 0x08 [1..7] */
-  L7_uint8      fast_leave;                     /* Mask: 0x10 TRUE/FALSE */
+  L7_uint8      networkVersion;                 /* Mask: 0x02 (defines maximum working version - overrides query/host version) */
+  L7_uint8      clientVersion;                  /* Mask: 0x04 (defines maximum working version - overrides query/host version) */
+  L7_in_addr_t  ipv4_addr;                      /* Mask: 0x08 (Proxy IP (for both host and querier)) */
+  L7_uint8      igmp_cos;                       /* Mask: 0x10 [1..7] */
+  L7_uint8      fast_leave;                     /* Mask: 0x20 TRUE/FALSE */
 
-  ptin_IgmpV3QuerierCfg_t querier;              /* Mask: 0x20 */
-  ptin_IgmpV3HostCfg_t    host;                 /* Mask: 0x40 */
+  ptin_IgmpV3QuerierCfg_t querier;              /* Mask: 0x40 */
+  ptin_IgmpV3HostCfg_t    host;                 /* Mask: 0x80 */
 
 } ptin_IgmpProxyCfg_t;
 

@@ -534,14 +534,14 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
 
   igmpProxy.mask                                   = 0xFF;
   igmpProxy.admin                                  = 0;
-  igmpProxy.version                                = PTIN_IGMP_DEFAULT_VERSION;
+  igmpProxy.networkVersion                         = PTIN_IGMP_DEFAULT_VERSION;
+  igmpProxy.clientVersion                          = PTIN_IGMP_DEFAULT_VERSION;
   igmpProxy.ipv4_addr.s_addr                       = PTIN_IGMP_DEFAULT_IPV4;
   igmpProxy.igmp_cos                               = PTIN_IGMP_DEFAULT_COS;
   igmpProxy.fast_leave                             = PTIN_IGMP_DEFAULT_FASTLEAVEMODE;
 
   igmpProxy.querier.mask                           = 0xFFFF;
   igmpProxy.querier.flags                          = 0;
-  igmpProxy.querier.version                        = PTIN_IGMP_DEFAULT_VERSION;
   igmpProxy.querier.robustness                     = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.querier.query_interval                 = PTIN_IGMP_DEFAULT_QUERYINTERVAL;
   igmpProxy.querier.query_response_interval        = PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
@@ -555,10 +555,10 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
 
   igmpProxy.host.mask                              = 0xFF;
   igmpProxy.host.flags                             = 0;
-  igmpProxy.host.version                           = PTIN_IGMP_DEFAULT_VERSION;
   igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
+  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
 
   /* Apply default config */
   rc = ptin_igmp_proxy_config_set(&igmpProxy);
@@ -604,12 +604,20 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Admin:                                   %s", igmpProxyCfg.admin != 0 ? "ON":"OFF");
   }
 
-  /* Version */
-  if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_VERSION
-      && igmpProxyCfg.version != igmpProxy->version)
+  /* Network Version */
+  if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_NETWORKVERSION
+      && igmpProxyCfg.networkVersion != igmpProxy->networkVersion)
   {
-    igmpProxyCfg.version = igmpProxy->version;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "  IGMP Version:                            %u", igmpProxyCfg.version);
+    igmpProxyCfg.networkVersion = igmpProxy->networkVersion;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "  IGMP Network Version:                     %u", igmpProxyCfg.networkVersion);
+  }
+
+  /* Client Version */
+  if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_CLIENTVERSION
+      && igmpProxyCfg.clientVersion != igmpProxy->clientVersion)
+  {
+    igmpProxyCfg.clientVersion = igmpProxy->clientVersion;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "  IGMP Client Version:                      %u", igmpProxyCfg.clientVersion);
   }
 
   /* Proxy IP */
@@ -642,15 +650,6 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
    * IGMP Querier config
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Querier config:");
-
-  /* Querier Version */
-  if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_VER
-      && igmpProxyCfg.querier.version != igmpProxy->querier.version
-      && !(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_VERSION))
-  {
-    igmpProxyCfg.querier.version = igmpProxy->querier.version;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Version:                               %u", igmpProxyCfg.querier.version);
-  }
 
   /* Querier Robustness */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV
@@ -773,15 +772,6 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Host config:");
 
-  /* Host Version */
-  if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_VER
-      && igmpProxyCfg.host.version != igmpProxy->host.version
-      && !(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_VERSION))
-  {
-    igmpProxyCfg.host.version = igmpProxy->host.version;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Version:                               %u", igmpProxyCfg.host.version);
-  }
-
   /* Host Robustness */
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
       && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
@@ -811,6 +801,13 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   {
     igmpProxyCfg.host.older_querier_present_timeout = igmpProxy->host.older_querier_present_timeout;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Querier Present Timeout:         %u (s)", igmpProxyCfg.host.older_querier_present_timeout);
+  }
+
+  /* Max Records per Report */
+  if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_MRPR)
+  {
+    igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
   }
 
   /* Update AUTO flags */
@@ -5963,7 +5960,7 @@ static L7_RC_t ptin_igmp_global_configuration(void)
       return L7_FAILURE;
     }
     // IGMP version
-    if (usmDbSnoopQuerierVersionSet( igmpProxyCfg.version, L7_AF_INET)!=L7_SUCCESS)  {
+    if (usmDbSnoopQuerierVersionSet( igmpProxyCfg.clientVersion, L7_AF_INET)!=L7_SUCCESS)  {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierVersionSet");
       return L7_FAILURE;
     }
@@ -5978,7 +5975,7 @@ static L7_RC_t ptin_igmp_global_configuration(void)
               (igmpProxyCfg.ipv4_addr.s_addr>>16) & 0xff,
               (igmpProxyCfg.ipv4_addr.s_addr>> 8) & 0xff,
                igmpProxyCfg.ipv4_addr.s_addr & 0xff);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP version set to %u",igmpProxyCfg.version);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP version set to %u",igmpProxyCfg.clientVersion);
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Querier interval set to %u",igmpProxyCfg.querier.query_interval);
   }
 

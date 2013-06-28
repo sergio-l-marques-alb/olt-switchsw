@@ -351,20 +351,24 @@ typedef struct
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;
   L7_uint8                active;
+#if SNOOP_PTIN_IGMPv3_PROXY
+  L7_BOOL                 isRoot;//
+#endif
 } snoopPTinL3Interface_t;
 
 typedef struct snoopPTinL3InfoDataKey_s
 {
   L7_inet_addr_t mcastGroupAddr;
-  L7_uint32 vlanId;
+  L7_uint32      vlanId;
+#if SNOOP_PTIN_IGMPv3_PROXY
+  L7_INTF_MASK_t rootIntfList;
+#endif
 } snoopPTinL3InfoDataKey_t;
 
 typedef struct snoopPTinL3InfoData_s
 {
   snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
   snoopPTinL3Interface_t   interfaces[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
-
-  snoopPTinProxyDBInfoData_t *proxyDB;
 
   snoopInfoData_t          *L2MC;
 
@@ -430,6 +434,7 @@ typedef struct snoopPTinProxyGrouprecordInfoDataKey_s
 //L7_uint16                        interfaceIdx;//Uplink Interface Idx
 //L7_uint32                        vlanId;
   L7_inet_addr_t                   groupAddr;//IPv4(v6) Multicast Group Address
+  L7_uint8                         recordType;//MGMD_GROUP_REPORT_TYPE_t  
 } snoopPTinProxyGrouprecordInfoDataKey_t;
 
 typedef struct snoopPTinProxyGrouprecordInfoData_s
@@ -438,7 +443,7 @@ typedef struct snoopPTinProxyGrouprecordInfoData_s
   L7_uint16                                 numberOfSources;//Number of active Sources
   L7_uint8                                  status; //snoop_ptin_sourcestate_t
   L7_inet_addr_t                            sourceAddr[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];//List Containing the Sources of this Group
-  L7_uint8                                  recordType;//MGMD_GROUP_REPORT_TYPE_t  
+ 
   snoopInfoData_t                  *L2MC;
 
   avlTree_t                       *avlTreePtr;

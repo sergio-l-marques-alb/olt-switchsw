@@ -15,41 +15,40 @@
 #include "datatypes.h"
 
 //Processes a Source Specific Membership Report with record type MODE_IS_INCLUDE
-L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Processes a Source Specific Membership Report with record type MODE_IS_EXCLUDE
-L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Processes a Source Specific Membership Report with record type MODE_TO_INCLUDE
-L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Processes a Source Specific Membership Report with record type MODE_TO_EXCLUDE
-L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Processes a Source Specific Membership Report with record type ALLOW_NEW_SOURCES
-L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Processes a Source Specific Membership Report with record type BLOCK_OLD_SOURCES
-L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t *avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8 **sourceList);
+L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList,L7_BOOL isRoot);
 
 //Search a specific source in a given source list
 L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);
 
 //Adds a new source to the given source list in the first free index
-L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t *interfacePtr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
+L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t* interfacePtr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
 
 //Remove a source entry, reseting all its fields and stopping the associated timer
 L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourceList);
 
+//Adds a new source to the given source list in the first free index
+L7_RC_t snoopPTinProxyDBSourceAdd(snoopPTinL3InfoData_t* ProxyDBPtr,L7_inet_addr_t sourceAddr,L7_uint8* newSourceIdx,L7_uint32 interfaceIdx);
 
 //Search a specific source in a given source list
-L7_RC_t snoopPTinProxyDBSourceAdd(snoopPTinProxyDBInfoData_t *ProxyDBptr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx);
-
-//Adds a new source to the given source list in the first free index
 L7_RC_t snoopPTinProxyDBSourceFind(snoopPTinProxyDBSource_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);
 
 //Remove a source entry, reseting all its fields and stopping the associated timer
-L7_RC_t snoopPTinProxyDBSourceRemove(snoopPTinProxyDBInfoData_t *ProxyDBPtr, snoopPTinProxyDBSource_t *sourcePtr);
+L7_RC_t snoopPTinProxyDBSourceRemove(snoopPTinL3InfoData_t *ProxyDBPtr, snoopPTinL3Source_t *sourcePtr);
 
 //Adds a new source to the given source list in the first free index
 L7_RC_t snoopPTinProxyGRSourceFind(snoopPTinProxyGrouprecordInfoData_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx);

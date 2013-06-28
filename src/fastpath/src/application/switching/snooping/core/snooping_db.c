@@ -779,8 +779,8 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
 
 
 #define PTIN_PROXY_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint8)*8)] >> ((idx)%(sizeof(L7_uint8)*8))) & 1)
-#define PTIN_PROXY_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
-#define PTIN_PROXY_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
+#define PTIN_PROXY_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint8) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
+#define PTIN_PROXY_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint8) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
 
 #define PTIN_PROXY_NONZEROMASK(array, result)                              \
 {                                                                    \
@@ -3720,7 +3720,7 @@ L7_RC_t snoopL3EntryDelete(L7_inet_addr_t *mcastGroupAddr,
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId, L7_uint32 flag)
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr,L7_uint32 flag)
 {
   snoopPTinL3InfoData_t *snoopEntry;
   snoopPTinL3InfoDataKey_t key;
@@ -3740,6 +3740,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t mcastGroupAddr, L7_ui
 
   memcpy(&key.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_inet_addr_t));
   memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
+  memcpy(&key.rootIntfList,&rootIntfList,sizeof(L7_INTF_MASK_t));
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &key, flag);
   if (flag == L7_MATCH_GETNEXT)
   {
@@ -3774,7 +3775,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_inet_addr_t mcastGroupAddr, L7_ui
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
+L7_RC_t snoopPTinL3EntryAdd(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr)
 {
   snoopPTinL3InfoData_t snoopEntry;
   snoopPTinL3InfoData_t *pData;
@@ -3799,16 +3800,16 @@ L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
   memset(&snoopEntry, 0x00, sizeof(snoopPTinL3InfoData_t));
   memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, &mcastGroupAddr, sizeof(L7_inet_addr_t));
   memcpy(&snoopEntry.snoopPTinL3InfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.rootIntfList,         &rootIntfList, sizeof(L7_INTF_MASK_t));
   pData = avlInsertEntry(&pSnoopEB->snoopPTinL3AvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinL3EntryFind(mcastGroupAddr, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinL3EntryFind(rootIntfList, vlanId, mcastGroupAddr,AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     }
-
     return L7_SUCCESS;
   }
 
@@ -3830,7 +3831,7 @@ L7_RC_t snoopPTinL3EntryAdd(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
+L7_RC_t snoopPTinL3EntryDelete(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr)
 {
   snoopPTinL3InfoData_t *pData;
   snoopPTinL3InfoData_t *snoopEntry;
@@ -3843,7 +3844,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinL3EntryFind(mcastGroupAddr, vlanId, L7_MATCH_EXACT);
+  pData = snoopPTinL3EntryFind(rootIntfList, vlanId, mcastGroupAddr,L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -3894,7 +3895,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_inet_addr_t mcastGroupAddr, L7_uint32 vlanId)
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_uint16 interfaceIdx,L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_uint32 flag)
 {
   snoopPTinProxyDBInfoData_t *snoopEntry;
   snoopPTinProxyDBInfoDataKey_t key;
@@ -3953,7 +3954,7 @@ snoopPTinProxyDBInfoData_t *snoopPTinProxyDBEntryFind(L7_inet_addr_t  groupAddr,
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t  sourceAddr, L7_uint32 flag)
+snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t  groupAddr, L7_inet_addr_t  sourceAddr, L7_uint32 flag)
 {
   snoopPTinProxyDBInfoData_t *snoopEntry;
   snoopPTinProxyDBInfoDataKey_t key;
@@ -4072,12 +4073,6 @@ snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_inet_addr_t  grou
 //  return L7_FAILURE;
 //}
 
-
-
-
-
-
-
 /**
  * @purpose Add a new entry to the PTin Proxy AVL Tree
  *
@@ -4086,7 +4081,7 @@ snoopPTinProxyDBInfoData_t *snoopPTinProxyDBSourceEntryFind(L7_inet_addr_t  grou
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyDBEntryAdd(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+L7_RC_t snoopPTinProxyDBEntryAdd(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t  groupAddr)
 {
   snoopPTinProxyDBInfoData_t snoopEntry;
   snoopPTinProxyDBInfoData_t *pData;
@@ -4117,7 +4112,7 @@ L7_RC_t snoopPTinProxyDBEntryAdd(L7_inet_addr_t  groupAddr, L7_uint16 interfaceI
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinProxyDBEntryFind(groupAddr, interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinProxyDBEntryFind(interfaceIdx, vlanId, groupAddr, AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     }
@@ -4143,7 +4138,7 @@ L7_RC_t snoopPTinProxyDBEntryAdd(L7_inet_addr_t  groupAddr, L7_uint16 interfaceI
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyDBEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+L7_RC_t snoopPTinProxyDBEntryDelete(L7_uint16 interfaceIdx, L7_uint32 vlanId,L7_inet_addr_t  groupAddr)
 {
   snoopPTinProxyDBInfoData_t *pData;
   snoopPTinProxyDBInfoData_t *snoopEntry;
@@ -4156,7 +4151,7 @@ L7_RC_t snoopPTinProxyDBEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16 interfa
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxyDBEntryFind(groupAddr,interfaceIdx, vlanId, L7_MATCH_EXACT);
+  pData = snoopPTinProxyDBEntryFind(interfaceIdx,vlanId, groupAddr, L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -4207,7 +4202,7 @@ L7_RC_t snoopPTinProxyDBEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16 interfa
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_addr_t groupAddr, L7_uint32 flag)
+snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_addr_t groupAddr, MGMD_GROUP_REPORT_TYPE_t   recordType,L7_uint32 flag)
 {
   snoopPTinProxyGrouprecordInfoData_t *snoopEntry;
   snoopPTinProxyGrouprecordInfoDataKey_t key;
@@ -4226,7 +4221,7 @@ snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_
 #endif
 
   memcpy(&key.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
-//memcpy(&key.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
+  memcpy(&key.recordType, &recordType, sizeof(L7_uint8));
 //memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, &key, flag);
   if (flag == L7_MATCH_GETNEXT)
@@ -4262,7 +4257,7 @@ snoopPTinProxyGrouprecordInfoData_t *snoopPTinProxyGrouprecordEntryFind(L7_inet_
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr)
+L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr,MGMD_GROUP_REPORT_TYPE_t   recordType)
 {
   snoopPTinProxyGrouprecordInfoData_t snoopEntry;
   snoopPTinProxyGrouprecordInfoData_t *pData;
@@ -4286,14 +4281,14 @@ L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr)
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyGrouprecordInfoData_t));
   memcpy(&snoopEntry.snoopPTinProxyGrouprecordInfoDataKey.groupAddr, &groupAddr, sizeof(L7_inet_addr_t));
-//memcpy(&snoopEntry.snoopPTinProxyCSRInfoDataKey.interfaceIdx, &interfaceIdx, sizeof(L7_uint16));
-//memcpy(&snoopEntry.snoopPTinProxyCSRInfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));
+    memcpy(&snoopEntry.snoopPTinProxyGrouprecordInfoDataKey.recordType, &recordType, sizeof(L7_uint8));
+
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, recordType,AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     }
@@ -4320,7 +4315,7 @@ L7_RC_t snoopPTinProxyGrouprecordEntryAdd(L7_inet_addr_t groupAddr)
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t  groupAddr)
+L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t groupAddr,MGMD_GROUP_REPORT_TYPE_t  recordType)
 {
   snoopPTinProxyGrouprecordInfoData_t *pData;
   snoopPTinProxyGrouprecordInfoData_t *snoopEntry;
@@ -4333,7 +4328,7 @@ L7_RC_t snoopPTinProxyGrouprecordEntryDelete(L7_inet_addr_t  groupAddr)
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, L7_MATCH_EXACT);
+  pData = snoopPTinProxyGrouprecordEntryFind(groupAddr, recordType,L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -4559,7 +4554,7 @@ L7_RC_t snoopPTinProxyInterfacetimerEntryDelete(L7_uint16  interfaceIdx, L7_uint
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_inet_addr_t  groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_uint32 flag)
+snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_uint32 flag)
 {
   snoopPTinProxyGrouptimerInfoData_t *snoopEntry;
   snoopPTinProxyGrouptimerInfoDataKey_t key;
@@ -4614,7 +4609,7 @@ snoopPTinProxyGrouptimerInfoData_t *snoopPTinProxyGrouptimerEntryFind(L7_inet_ad
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_inet_addr_t   groupAddr, L7_uint16 interfaceIdx, L7_uint32 vlanId)
+L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_uint16 interfaceIdx, L7_uint32 vlanId, L7_inet_addr_t groupAddr)
 {
   snoopPTinProxyGrouptimerInfoData_t snoopEntry;
   snoopPTinProxyGrouptimerInfoData_t *pData;
@@ -4646,7 +4641,7 @@ L7_RC_t snoopPTinProxyGrouptimerEntryAdd(L7_inet_addr_t   groupAddr, L7_uint16 i
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinProxyGrouptimerEntryFind(groupAddr,interfaceIdx, vlanId, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinProxyGrouptimerEntryFind(interfaceIdx,vlanId, groupAddr, AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     }
@@ -4686,7 +4681,7 @@ L7_RC_t snoopPTinProxyGrouptimerEntryDelete(L7_inet_addr_t  groupAddr, L7_uint16
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxyGrouptimerEntryFind(groupAddr, vlanId,interfaceIdx, L7_MATCH_EXACT);
+  pData = snoopPTinProxyGrouptimerEntryFind(interfaceIdx,vlanId,groupAddr,  L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -4904,6 +4899,247 @@ L7_RC_t snoopPTinProxySourcetimerEntryDelete(L7_inet_addr_t  groupAddr, L7_inet_
   }
   return L7_SUCCESS;
 }
+
+
+/************************************************************************************************************/
+/*MGMD Proxy*/
+
+#if 0
+
+/*************************************************************************
+ * @purpose Search a specific client in a given client list
+ *
+ * @param clientList    List of clients on which to search for the given
+ *                      client
+ * @param clientIdx     Index of the requested client
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxyClientFind(L7_uint8 *clientList, L7_uint8 clientIdx)
+{
+  if (PTIN_PROXY_IS_MASKBITSET(clientList, clientIdx))
+  {
+    return L7_SUCCESS;
+  }
+  return L7_FAILURE;
+}
+
+/*************************************************************************
+ * @purpose Adds a new client to the given source in the first free index
+ *
+ * @param interfacePtr  Interface in which the source is
+ * @param sourcePtr     Source in which the client should be added
+ * @param clientIdx     Index of the requested client
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE
+ *
+ * @todo Add client to L2
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxyClientAdd(snoopPTinProxyInfoData_t *interfacePtr, snoopPTinProxySource_t *sourcePtr, L7_uint8 clientIdx)
+{
+//L7_uint8 i, clientSourceCnt;
+//
+///* Argument validation */
+//if (interfacePtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//  return L7_FAILURE;
+//}
+//
+///* Count the number of sources this client has */
+//for (i = 0, clientSourceCnt = 0; i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++i)
+//{
+//  if (snoopPTinProxyClientFind(interfacePtr->sources[i].clients, clientIdx))
+//  {
+//    ++clientSourceCnt;
+//    break;
+//  }
+//}
+//
+///* If does not exist in any source, add it to the L2 table */
+//if (clientSourceCnt == 0)
+//{
+//  snoopPTinProxyL2ClientAdd(); // PLACEHOLDER
+//}
+//
+///* Add the client to this source*/
+//if (L7_SUCCESS != snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
+//{
+//   PTIN_PROXY_SET_MASKBIT(sourcePtr->clients, clientIdx);
+//   ++sourcePtr->numberOfClients;
+//}
+
+  return L7_SUCCESS;
+}
+
+/*************************************************************************
+ * @purpose Removes a client from the given source
+ *
+ * @param interfacePtr  Interface in which the source is
+ * @param sourcePtr     Source from which the client should be removed
+ * @param clientIdx     Index of the requested client
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE
+ *
+ * @todo Remove client from L2
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxyClientRemove(snoopPTinProxySource_t *sourcePtr, L7_uint8 clientIdx)
+{
+//L7_uint8 i, clientSourceCnt;
+//
+///* Argument validation */
+//if (sourcePtr == L7_NULLPTR)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//  return L7_FAILURE;
+//}
+//
+///* Count the number of sources this client has */
+//for (i = 0, clientSourceCnt = 0; i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++i)
+//{
+//  if (snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
+//  {
+//    ++clientSourceCnt;
+//  }
+//}
+//
+///* If this client is only on one source, remove it from the L2 table */
+//if (clientSourceCnt == 1)
+//{
+//  snoopPTinProxyL2ClientRemove(); // PLACEHOLDER
+//}
+//
+///* Remove the client from this source */
+//if (L7_SUCCESS != snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
+//{
+//   PTIN_PROXY_UNSET_MASKBIT(sourcePtr->clients, clientIdx);
+//   --sourcePtr->numberOfClients;
+//}
+
+  return L7_SUCCESS;
+}
+
+/*************************************************************************
+ * @purpose Adds a new source to the given source list in the first free
+ *          index
+ *
+ * @param   interfacePtr  Interface to which the source list belongs
+ * @param   sourceAddr    Address of the new source
+ * @param   newSourceIdx  If source is successfully added, this will hold
+ *                        the new source index in the source list. If
+ *                        passed as L7_NULLPTR, it is not used
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE    Source list is full
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxySourceAdd(snoopPTinProxyInfoData_t *interfacePtr, L7_uint32 sourceAddr, L7_uint8* newSourceIdx)
+{
+//L7_uint16 idx;
+//
+///* Argument validation */
+//if (interfacePtr == L7_NULLPTR || newSourceIdx == L7_NULLPTR)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//  return L7_FAILURE;
+//}
+//
+//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
+//{
+//  if (interfacePtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
+//  {
+//    memset(&interfacePtr->sources[idx], 0x00, sizeof(snoopPTinProxySource_t));
+//    interfacePtr->sources[idx].status     = PTIN_SNOOP_SOURCESTATE_ACTIVE;
+//    interfacePtr->sources[idx].sourceAddr = sourceAddr;
+//    *newSourceIdx                         = idx;
+//    ++interfacePtr->numberOfSources;
+//
+//    return L7_SUCCESS;
+//  }
+//}
+
+  return L7_FAILURE;
+}
+
+/*************************************************************************
+ * @purpose Search a specific source in a given source list
+ *
+ * @param   sourceList  List of sources on which to search for the given
+ *                      source
+ * @param   sourceAddr  Address of the requested source
+ * @param   foundIdx    If source is found, this will hold the source
+ *                      index in the source list. If passed as L7_NULLPTR
+ *                      it is not used
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxySourceFind(snoopPTinProxySource_t *sourceList, L7_uint32 sourceAddr, L7_uint8* foundIdx)
+{
+//L7_uint16 idx;
+//
+///* Argument validation */
+//if (sourceList == L7_NULLPTR || foundIdx == L7_NULLPTR)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//  return L7_FAILURE;
+//}
+//
+//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
+//{
+//  if ((sourceList[idx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE) && (sourceList[idx].sourceAddr == sourceAddr))
+//  {
+//    *foundIdx = idx;
+//    return L7_SUCCESS;
+//  }
+//}
+
+  return L7_FAILURE;
+}
+
+/*************************************************************************
+ * @purpose Remove a source entry, reseting all its fields and stopping
+ *          the associated timer
+ *
+ * @param   interfacePtr        Interface in which the source is
+ * @param   sourcePtr           Source to remove
+ *
+ * @returns L7_SUCCESS
+ * @returns L7_FAILURE
+ *
+ * @note This method also removes every client associated with this source
+ *
+ *************************************************************************/
+L7_RC_t snoopPTinProxySourceRemove(snoopPTinProxyInfoData_t *interfacePtr, snoopPTinProxySource_t *sourcePtr)
+{
+///* Argument validation */
+//if (interfacePtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+//  return L7_FAILURE;
+//}
+//
+///* Remove clients associated with this source */
+//memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
+//
+//snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
+//memset(sourcePtr, 0x00, sizeof(*sourcePtr));
+//--interfacePtr->numberOfSources;
+
+  return L7_SUCCESS;
+}
+
+#endif
+
+/*End MGMD Proxy*/
+/************************************************************************************************************/
 
 
 #endif

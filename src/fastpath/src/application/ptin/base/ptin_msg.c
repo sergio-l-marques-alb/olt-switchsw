@@ -3501,14 +3501,14 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   /* Copy data */
   ptinIgmpProxy.mask                                   = msgIgmpProxy->mask;
   ptinIgmpProxy.admin                                  = msgIgmpProxy->admin;
-  ptinIgmpProxy.version                                = msgIgmpProxy->version;
+  ptinIgmpProxy.networkVersion                         = msgIgmpProxy->networkVersion;
+  ptinIgmpProxy.clientVersion                          = msgIgmpProxy->clientVersion;
   ptinIgmpProxy.ipv4_addr.s_addr                       = msgIgmpProxy->ipv4_addr.s_addr;
   ptinIgmpProxy.igmp_cos                               = msgIgmpProxy->igmp_cos;
   ptinIgmpProxy.fast_leave                             = msgIgmpProxy->fast_leave;
 
   ptinIgmpProxy.querier.mask                           = msgIgmpProxy->querier.mask;
   ptinIgmpProxy.querier.flags                          = msgIgmpProxy->querier.flags;
-  ptinIgmpProxy.querier.version                        = msgIgmpProxy->querier.version;
   ptinIgmpProxy.querier.robustness                     = msgIgmpProxy->querier.robustness;
   ptinIgmpProxy.querier.query_interval                 = msgIgmpProxy->querier.query_interval;
   ptinIgmpProxy.querier.query_response_interval        = msgIgmpProxy->querier.query_response_interval;
@@ -3522,22 +3522,22 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
 
   ptinIgmpProxy.host.mask                              = msgIgmpProxy->host.mask;
   ptinIgmpProxy.host.flags                             = msgIgmpProxy->host.flags;
-  ptinIgmpProxy.host.version                           = msgIgmpProxy->host.version;
   ptinIgmpProxy.host.robustness                        = msgIgmpProxy->host.robustness;
   ptinIgmpProxy.host.unsolicited_report_interval       = msgIgmpProxy->host.unsolicited_report_interval;
   ptinIgmpProxy.host.older_querier_present_timeout     = msgIgmpProxy->host.older_querier_present_timeout;
+  ptinIgmpProxy.host.max_records_per_report            = msgIgmpProxy->host.max_records_per_report;
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Version                          = %u", ptinIgmpProxy.version);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
-                                                                                 (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
+                                                          (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%04X", ptinIgmpProxy.querier.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Version                        = %u", ptinIgmpProxy.querier.version);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.query_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.query_response_interval);
@@ -3550,10 +3550,10 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.older_host_present_timeout);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Version                        = %u", ptinIgmpProxy.host.version);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.older_querier_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinIgmpProxy.host.older_querier_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Records per Report         = %u", ptinIgmpProxy.host.max_records_per_report);
 
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);
@@ -3597,14 +3597,14 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Version                          = %u", ptinIgmpProxy.version);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
                                                                                  (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Version                        = %u", ptinIgmpProxy.querier.version);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.query_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.query_response_interval);
@@ -3616,8 +3616,7 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.last_member_query_count);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.older_host_present_timeout);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Version                        = %u", ptinIgmpProxy.host.version);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.older_querier_present_timeout);
@@ -3625,14 +3624,14 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   /* Copy data */
   msgIgmpProxy->mask                                   = ptinIgmpProxy.mask;
   msgIgmpProxy->admin                                  = ptinIgmpProxy.admin;
-  msgIgmpProxy->version                                = ptinIgmpProxy.version;
+  msgIgmpProxy->networkVersion                         = ptinIgmpProxy.networkVersion;
+  msgIgmpProxy->clientVersion                          = ptinIgmpProxy.clientVersion;
   msgIgmpProxy->ipv4_addr.s_addr                       = ptinIgmpProxy.ipv4_addr.s_addr;
   msgIgmpProxy->igmp_cos                               = ptinIgmpProxy.igmp_cos;
   msgIgmpProxy->fast_leave                             = ptinIgmpProxy.fast_leave;
 
   msgIgmpProxy->querier.mask                           = ptinIgmpProxy.querier.mask;
-  msgIgmpProxy->querier.flags                          = ptinIgmpProxy.querier.flags;
-  msgIgmpProxy->querier.version                        = ptinIgmpProxy.querier.version;
+  msgIgmpProxy->querier.flags                          = ptinIgmpProxy.querier.flags;  
   msgIgmpProxy->querier.robustness                     = ptinIgmpProxy.querier.robustness;
   msgIgmpProxy->querier.query_interval                 = ptinIgmpProxy.querier.query_interval;
   msgIgmpProxy->querier.query_response_interval        = ptinIgmpProxy.querier.query_response_interval;
@@ -3645,8 +3644,7 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   msgIgmpProxy->querier.older_host_present_timeout     = ptinIgmpProxy.querier.older_host_present_timeout;
 
   msgIgmpProxy->host.mask                              = ptinIgmpProxy.host.mask;
-  msgIgmpProxy->host.flags                             = ptinIgmpProxy.host.flags;
-  msgIgmpProxy->host.version                           = ptinIgmpProxy.host.version;
+  msgIgmpProxy->host.flags                             = ptinIgmpProxy.host.flags;  
   msgIgmpProxy->host.robustness                        = ptinIgmpProxy.host.robustness;
   msgIgmpProxy->host.unsolicited_report_interval       = ptinIgmpProxy.host.unsolicited_report_interval;
   msgIgmpProxy->host.older_querier_present_timeout     = ptinIgmpProxy.host.older_querier_present_timeout;

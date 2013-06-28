@@ -1275,7 +1275,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
       payload[14] |= ((extOVlan>>8) & 0x0f);
       payload[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
-      //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmitted in intIfNum=%u, with vlan=%u (original=%u)",intIfNum,extOVlan,vlanId);
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmitted in intIfNum=%u, with vlan=%u (original=%u)",intIfNum,extOVlan,vlanId);
     }
   }
   ptin_timer_stop(31);
@@ -1303,7 +1303,14 @@ void snoopPacketSend(L7_uint32 intIfNum,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u)",
             intIfNum, extOVlan, vlanId);
 
-  return;
+#if 0 //MMelo
+  L7_uint32 i;
+  printf("PayloadLength:%d\n",payloadLen);
+  for (i=0;i<payloadLen;i++)
+    printf("0x%x",payload[i]);
+  printf("\n");
+   return;
+#endif
 }
 
 /*********************************************************************

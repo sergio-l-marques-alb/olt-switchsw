@@ -842,7 +842,6 @@ typedef struct {
                                                  * [0x08] - AUTO_SQC
                                                  * [0x10] - AUTO_LMQC
                                                  * [0x20] - AUTO_OHPT */
-  L7_uint8  version;                            /* [Mask: 0x0001] Defines maximum working version */
   L7_uint8  robustness;                         /* [Mask: 0x0002] */
   L7_uint16 query_interval;                     /* [Mask: 0x0004] */
   L7_uint16 query_response_interval;            /* [Mask: 0x0008] */
@@ -859,10 +858,10 @@ typedef struct {
 typedef struct {
   L7_uint8  mask;                               /* PTIN_IGMP_HOST_MASK_xxxx */
   L7_uint8  flags;                              /* [0x01] - AUTO_OQPT */
-  L7_uint8  version;                            /* [Mask: 0x01] Defines maximum working version */
   L7_uint8  robustness;                         /* [Mask: 0x02] */
   L7_uint16 unsolicited_report_interval;        /* [Mask: 0x04] */
   L7_uint16 older_querier_present_timeout;      /* [Mask: 0x08] */
+  L7_uint16 max_records_per_report;             /* [Mask: 0x10] */
 
 } __attribute__((packed)) msg_IgmpV3HostCfg_t;
 
@@ -873,13 +872,14 @@ typedef struct {
   L7_uint8      mask;                           /* PTIN_IGMP_PROXY_MASK_xxxx */
 
   L7_uint8      admin;                          /* [Mask: 0x01] (Global admin for both host and querier) */
-  L7_uint8      version;                        /* [Mask: 0x02] (defines maximum working version - overrides query/host version) */
-  msg_in_addr_t ipv4_addr;                      /* [Mask: 0x04] (Proxy IP (for both host and querier)) */
-  L7_uint8      igmp_cos;                       /* [Mask: 0x08] [1..7] */
-  L7_uint8      fast_leave;                     /* [Mask: 0x10] TRUE/FALSE */
+  L7_uint8      networkVersion;                 /* [Mask: 0x02] (defines maximum working version - overrides query/host version) */
+  L7_uint8      clientVersion;                  /* [Mask: 0x04] (defines maximum working version - overrides query/host version) */
+  msg_in_addr_t ipv4_addr;                      /* [Mask: 0x08] (Proxy IP (for both host and querier)) */
+  L7_uint8      igmp_cos;                       /* [Mask: 0x10] [1..7] */
+  L7_uint8      fast_leave;                     /* [Mask: 0x20] TRUE/FALSE */
 
-  msg_IgmpV3QuerierCfg_t querier;               /* [Mask: 0x20] */
-  msg_IgmpV3HostCfg_t    host;                  /* [Mask: 0x40] */
+  msg_IgmpV3QuerierCfg_t querier;               /* [Mask: 0x40] */
+  msg_IgmpV3HostCfg_t    host;                  /* [Mask: 0x80] */
 
 } __attribute__((packed)) msg_IgmpProxyCfg_t;
 

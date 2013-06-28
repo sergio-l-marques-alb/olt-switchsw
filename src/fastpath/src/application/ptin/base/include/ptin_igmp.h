@@ -62,6 +62,8 @@
                                                                             PTIN_IGMP_DEFAULT_QUERYINTERVAL,\
                                                                             PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL) /* (260 s) */
 
+#define PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT        64
+
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
