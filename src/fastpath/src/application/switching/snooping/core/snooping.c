@@ -346,7 +346,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint32        client_idx;              /* PTin added: IGMP snooping */
 
 #if SNOOP_PTIN_IGMPv3_PROXY
-//  char             debug_buf[IPV6_DISP_ADDR_LEN];
+  char             debug_buf[IPV6_DISP_ADDR_LEN];
+  debug_buf[0]=0;
 #endif
   
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopPacketHandle");
