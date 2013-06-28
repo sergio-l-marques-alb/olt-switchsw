@@ -1489,6 +1489,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
 
 int ber_init(void)
 {
+  int slot, lane;
   int ret;
   int matrix;
 
@@ -1509,7 +1510,7 @@ int ber_init(void)
   mx = matrix & 1;
 
   #ifdef PTIN_WC_SLOT_MAP
-  int port, slot, lane, xe_port;
+  int port, xe_port;
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
@@ -1527,16 +1528,31 @@ int ber_init(void)
   for (port=0; port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
   {
     slot = hapiWCMapPtr[port].slotNum - 1;
-    lane = hapiWCMapPtr[port].wcLane  - 1;
-    xe_port = hapiSlotMapPtr[port].bcm_port;
+    lane = hapiWCMapPtr[port].wcLane;
+    xe_port = hapiSlotMapPtr[port].bcm_port-1;
 
-    /* Update xe port map */
-    if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+    /* Update xe port map (only 10/40/100Gbps) */
+    if ( hapiWCMapPtr[port].wcSpeedG > 1 )
     {
-      xe_slot_map[mx][slot][lane] = xe_port;
+      if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+        xe_slot_map[mx][slot][lane] = xe_port;
     }
   }
   #endif
+
+  printf("xe_slot_map:");
+  for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)
+  {
+    printf("\n Slot %02u: ",slot+1);
+    for (lane=0; lane<PTIN_SYS_INTFS_PER_SLOT_MAX; lane++)
+    {
+      if (xe_slot_map[mx][slot][lane] >= 0)
+        printf(" xe%-2d", xe_slot_map[mx][slot][lane]);
+      else
+        printf("  -- ");
+    }
+  }
+  printf("\n");
 
   ptin_ber_tx_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_ber_tx_sem == L7_NULLPTR) {
