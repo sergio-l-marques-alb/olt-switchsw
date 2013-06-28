@@ -29,7 +29,6 @@
 
 tblErps_t               tbl_erps[MAX_PROT_PROT_ERPS];
 erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
-L7_uint8                globalhwSync = 0;
 
 static const char *stateToString[]  = {"FRZ", "Z_Init", "A_Idle", "B_Protection", "C_ManualSwitch", "D_ForceSwitch", "E_Pending"};
 static const char *locReqToString[] = {"0", "WTBRun", "WTBExp", "WTRRun", "WTRExp", "MS", "SFc", "SF", "FS", "CLEAR", "NONE", "11", "12"};
@@ -72,6 +71,7 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int 
 
 int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 portState, int line_callback);
 
+int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback);
 
 /**
  * ERPS Instace# initialization
@@ -126,6 +126,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]       = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;
   tbl_erps[erps_idx].hwSync                           = 0;
+  tbl_erps[erps_idx].hwFdbFlush                       = 0;  
 
   tbl_erps[erps_idx].state_machine                    = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -305,6 +306,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].wtb_CMD                    = TIMER_CMD_STOP;
 
   tbl_erps[erps_idx].guard_timer                = 0;
+  tbl_erps[erps_idx].guard_timer_previous       = 0;  
   tbl_erps[erps_idx].guard_CMD                  = TIMER_CMD_STOP;
 
   tbl_erps[erps_idx].holdoff_timer              = 0;
@@ -332,6 +334,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].rplBlockedPortSide         = PROT_ERPS_PORT0;
   tbl_erps[erps_idx].hwSync                     = 0;
+  tbl_erps[erps_idx].hwFdbFlush                 = 0;  
 
   tbl_erps[erps_idx].state_machine              = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -450,6 +453,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
   ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
+  ptin_erps_FlushFDB(erps_idx, __LINE__);
 
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
   
@@ -733,6 +737,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  wtr_timer           %d",                      tbl_erps[erps_idx].wtr_timer);
   printf("\n  wtb_timer           %d",                      tbl_erps[erps_idx].wtb_timer);
   printf("\n  guard_timer         %d",                      tbl_erps[erps_idx].guard_timer);
+  printf("\n  guard_timer_p       %d",                      tbl_erps[erps_idx].guard_timer_previous);
   printf("\n  holdoff_timer       %d",                      tbl_erps[erps_idx].holdoff_timer);
   printf("\n  holdoff_timer_p     %d",                      tbl_erps[erps_idx].holdoff_timer_previous);
   printf("\n"); 
@@ -753,6 +758,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
   printf("\n  rplBlockedPortSide  %d",                      tbl_erps[erps_idx].rplBlockedPortSide);
   printf("\n  hwSync              %d",                      tbl_erps[erps_idx].hwSync);
+  printf("\n  hwFdbFlush          %d",                      tbl_erps[erps_idx].hwFdbFlush);
   printf("\n  state_machine       (0x%x) %s:%s",            tbl_erps[erps_idx].state_machine,
                                                             stateToString[ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)],
                                                             ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
@@ -842,7 +848,6 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
   tbl_erps[erps_idx].portState[port] = portState;
 
   tbl_erps[erps_idx].hwSync = 1;
-  globalhwSync = 1;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -995,6 +1000,8 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
 int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
+
+  tbl_erps[erps_idx].hwFdbFlush = 1;
 
   return(PROT_ERPS_EXIT_OK);
 }
@@ -1222,10 +1229,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     else if ( (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION) &&
               (tbl_erps[erps_idx].wtr_CMD == TIMER_CMD_START)                                ) {    
 
-      // WaitToRestore em multiplos de 1min
-      // wait_restore_timer em ms! Passam 10ms cada vez que se entra neste ciclo
-
-      // Wait_restore_timer/60000 converter para ms!
+      // WaitToRestore is in steps of 1min
+      // wait_restore_timer units is ms. Proc is called every PROT_ERPS_CALL_PROC_MS
+      // Wait_restore_timer/60000 converts to ms
 
       tbl_erps[erps_idx].wtr_timer+=PROT_ERPS_CALL_PROC_MS;
       if ( (tbl_erps[erps_idx].wtr_timer/60000) >= tbl_erps[erps_idx].protParam.waitToRestoreTimer ) {
@@ -1233,8 +1239,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         localRequest = LReq_WTRExp;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: WTRExp", erps_idx);
 
-        tbl_erps[erps_idx].wtr_timer = 0;          // Reset timer value
-        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP; // Stop timer
+        tbl_erps[erps_idx].wtr_timer = 0;             // Reset timer value
+        tbl_erps[erps_idx].wtr_CMD = TIMER_CMD_STOP;  // Stop timer
 
       }
 
@@ -1283,14 +1289,14 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // Operation of States
   //--------------------------------------------------------------------------------------//
 
-#if 0 /*** TO BE DONE ***/
-  if (tbl_erps[erps_idx].cx_active == PROT_ERPS_PORT0) {
+  if (localRequest != LReq_NONE) {
 
-    if ( SF[PROT_ERPS_PORT0] ) {
+    // Process holdoff timer
+    // holdoff_timer unit is ms! Proc is called every PROT_ERPS_CALL_PROC_MS
+    // holdoffTimer is in steps of 100ms
 
-      // Processamento do holdoff timer
-      // holdoff_timer em ms! Passam PROT_ERPS_CALL_PROC_MS ms cada vez que se entra neste ciclo
-      // holdoffTimer esta em multiplos de 100ms
+    if (tbl_erps[erps_idx].protParam.holdoffTimer) {
+
       tbl_erps[erps_idx].holdoff_timer_previous = tbl_erps[erps_idx].holdoff_timer;
       tbl_erps[erps_idx].holdoff_timer+=PROT_ERPS_CALL_PROC_MS;
       if (tbl_erps[erps_idx].holdoff_timer < tbl_erps[erps_idx].holdoff_timer_previous) {
@@ -1299,18 +1305,39 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       if (tbl_erps[erps_idx].holdoff_timer < (tbl_erps[erps_idx].protParam.holdoffTimer*100)) {
 
-        LOG_TRACE(LOG_CTX_ERPS, "prot id=%d, SF[PROT_ERPS_PORT0], hold off timer %d", i, tbl_erps[erps_idx].holdoff_timer);
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: hold-off Timer %d (ms)", erps_idx, tbl_erps[erps_idx].holdoff_timer);
 
-        SF[PROT_ERPS_PORT0] = 0;
+        localRequest = LReq_NONE;
       } else {
         tbl_erps[erps_idx].holdoff_timer = 0;
       }
-
-    } else {
-      tbl_erps[erps_idx].holdoff_timer = 0;
     }
   }
-#endif
+
+  if ( (remoteRequest != RReq_NONE) && (remoteRequest != RReq_EVENT) ) {
+
+    // Process guardTimer
+    // guardTimer unit is ms! Proc is called every PROT_ERPS_CALL_PROC_MS
+    // guardTimer is in steps of 10ms
+
+    if (tbl_erps[erps_idx].guard_CMD == TIMER_CMD_START) {
+
+      tbl_erps[erps_idx].guard_timer_previous = tbl_erps[erps_idx].guard_timer;
+      tbl_erps[erps_idx].guard_timer+=PROT_ERPS_CALL_PROC_MS;
+      if (tbl_erps[erps_idx].guard_timer < tbl_erps[erps_idx].guard_timer_previous) {
+        memset(&tbl_erps[erps_idx].guard_timer, 0xFF, sizeof(tbl_erps[erps_idx].guard_timer));
+      }
+
+      if (tbl_erps[erps_idx].guard_timer < (tbl_erps[erps_idx].protParam.guardTimer*10)) {
+
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Guard Timer %d (ms)", erps_idx, tbl_erps[erps_idx].guard_timer);
+
+        remoteRequest = RReq_NONE;
+      } else {
+        tbl_erps[erps_idx].guard_timer = 0;
+      }
+    }
+  }
 
 
   // 10.1.1.  Priority logic
@@ -1351,6 +1378,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     //Stop guard timer
     tbl_erps[erps_idx].guard_timer                      = 0;
+    tbl_erps[erps_idx].guard_timer_previous             = 0;
     tbl_erps[erps_idx].guard_CMD                        = TIMER_CMD_STOP;
 
     //Stop WTR timer
@@ -2648,22 +2676,32 @@ int ptin_prot_erps_proc(void)
 {
   L7_uint8 erps_idx;
 
+  // CONTROL
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
-
-    //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d; admin %d", erps_idx, tbl_erps[erps_idx].admin);
 
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
       continue;
     }
 
+    #if 1
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
+    #endif
+  }
 
-    if (tbl_erps[erps_idx].hwSync == 1) {
+  // HW Sync
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+      continue;
+    }
+
+    if ( (tbl_erps[erps_idx].hwSync == 1) || (tbl_erps[erps_idx].hwFdbFlush == 1) ){
       LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
+
+      ptin_hal_erps_hwreconfig(erps_idx);
+
       tbl_erps[erps_idx].hwSync = 0;
-
-      //ptin_hal_erps_reconfigEvc(erps_idx);
-
+      tbl_erps[erps_idx].hwFdbFlush = 0;
     }
   }
 
@@ -2760,15 +2798,30 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
 
     ptin_hal_erps_entry_init(/*erps_idx*/ param1);
 
-  } else if (test == 1) {
+  }
+  else if (test == 1) {
     LOG_INFO(LOG_CTX_ERPS,"Test 1: Rem prot ERPS#%d", param1);
 
     ptin_erps_remove_entry( /*erps_idx*/ param1);
 
     ptin_hal_erps_entry_deinit(/*erps_idx*/ param1);
 
-  } else {
-    LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n  Test 0: Add prot ERPS#");
+  }
+  else if (test == 2) {
+    LOG_INFO(LOG_CTX_ERPS,"Test 2: ERPS#%d Port State", param1);
+
+    tbl_erps[param1].portState[PROT_ERPS_PORT0] = param2 == 1? ERPS_PORT_BLOCKING : ERPS_PORT_FLUSHING;
+    tbl_erps[param1].portState[PROT_ERPS_PORT1] = param3 == 1? ERPS_PORT_BLOCKING : ERPS_PORT_FLUSHING;
+
+    tbl_erps[param1].hwFdbFlush = 1;
+    tbl_erps[param1].hwSync = 1;
+
+  }
+  else {
+    LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n"
+                          "  Test 0: Add prot\n"
+                          "  Test 1: Rem prot\n"
+                          "  Test 2: Port State\n");
   }
 }
 

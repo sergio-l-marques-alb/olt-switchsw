@@ -217,9 +217,10 @@ typedef struct {
     
     L7_uint32 wtr_timer;              ///< Timer
     L7_uint8  wtr_CMD;                ///< Timer
-    L7_uint32 wtb_timer;              ///< Timer
+    L7_uint32 wtb_timer;              ///< Timer      //// TO BE DONE ///
     L7_uint8  wtb_CMD;                ///< Timer
     L7_uint32 guard_timer;            ///< Timer
+    L7_uint32 guard_timer_previous;   ///< Timer
     L7_uint8  guard_CMD;              ///< Timer
     L7_uint16 holdoff_timer;          ///< Timer
     L7_uint16 holdoff_timer_previous; ///< Timer
@@ -242,6 +243,7 @@ typedef struct {
     L7_uint8 portState[2];            ///< blocking or flushing
     L7_uint8 rplBlockedPortSide;      ///< current RPL side port
     L7_uint8 hwSync;                  ///< configures VLAN on switch
+    L7_uint8 hwFdbFlush;              ///< FDB Flush by VLAN
 
     // FSM
     L7_uint8 state_machine;
