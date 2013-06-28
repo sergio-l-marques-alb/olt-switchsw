@@ -51,16 +51,10 @@ static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
 
 BROAD_POLICY_t inband_policyId = 0;
 
-#if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD==PTIN_BOARD_CXO640G)
  int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
  int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
  int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
-#else
- int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = PTIN_SLOTPORT_TO_INTF_MAP;
- int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_SLOT_MAP;
- int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS] = PTIN_INTF_TO_PORT_MAP;
-#endif
 #endif
 
 /********************************************************************
@@ -172,7 +166,7 @@ L7_RC_t ptin_hapi_phy_init(void)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #if ( PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   int i, rv;
   L7_uint32 preemphasis;
 
@@ -1543,10 +1537,8 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
   L7_uint32                     slot, lane;
-  #endif
-  #ifdef PTIN_WC_SLOT_MAP
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
   #endif
   L7_uint i;
@@ -1554,12 +1546,12 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
-  #ifdef PTIN_WC_SLOT_MAP
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
   #endif
 
-/* Not necessary for V2: sysbrds.c is already inverting slots for the protection matrix */
-#if (PTIN_BOARD==PTIN_BOARD_CXP360G || PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G)
+/* Not necessary for CXO640G: sysbrds.c is already inverting slots for the protection matrix */
+#if (PTIN_BOARD==PTIN_BOARD_CXP360G)
   const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
 
@@ -1579,13 +1571,11 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   /* Initialize USP map */
   memset(usp_map, 0xff, sizeof(usp_map));   /* -1 for all values */
 
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
-  #ifdef PTIN_WC_SLOT_MAP
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
   /* Initialize slot/lane map */
   memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
   memset(ptin_sys_intf_to_port_map, 0xff, sizeof(ptin_sys_intf_to_port_map));
-  #endif
   #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port mapping:");
@@ -1598,8 +1588,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
 
-    #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
-    #ifdef PTIN_WC_SLOT_MAP
+    #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
     /* Only 10/140/100Gbps ports */
     if ( hapiWCMapPtr[i].wcSpeedG > 1 )
     {
@@ -1615,12 +1604,11 @@ static L7_RC_t hapi_ptin_portMap_init(void)
       ptin_sys_intf_to_port_map[i] = lane;
     }
     #endif
-    #endif
 
     LOG_INFO(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# bcm_port=%2u", i, usp_map[i].port);
   }
 
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
   printf("Slot to intf mapping:");
   for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)
   {

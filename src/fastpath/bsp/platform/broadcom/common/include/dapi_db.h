@@ -50,7 +50,7 @@ typedef struct
 } HAPI_CARD_SLOT_MAP_t ;
 
 
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
 #define WC_MAX_NUMBER          18
 #define WC_MAX_LANES            4
@@ -164,7 +164,7 @@ typedef struct
   void                   *npInfo;
   L7_ushort16             npInfoSlot;
 
-  #ifdef PTIN_WC_SLOT_MAP
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   L7_uint32              *wcSlotMode;
   L7_ushort16             numOfWCSlotModeEntries;
 
@@ -195,7 +195,7 @@ typedef struct
 L7_RC_t dapiBroadCardInfoInit(SYSAPI_HPC_CARD_DESCRIPTOR_t *cardDesc);
 
 /* PTin added */
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**
  * Build a WC map from the array of port modes
  * 

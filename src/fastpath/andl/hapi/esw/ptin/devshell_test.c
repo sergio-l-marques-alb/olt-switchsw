@@ -642,7 +642,7 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
 }
 
 /* BER tests only for the CXO640G */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
 #include <bcm/port.h>
 #include <unistd.h>
@@ -682,11 +682,7 @@ extern int  send_data       (int canal_id,
 #define N_GROUPS_MAX  7
 #define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-#ifdef PTIN_WC_SLOT_MAP
- int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
-#else
- int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX] = { PTIN_SLOTPORT_TO_INTF_MAP, PTIN_SLOTPORT_TO_INTF_MAP_PROT  };
-#endif
+int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
 
 /* To save BER results */
 struct ber_t {
@@ -1492,6 +1488,11 @@ int ber_init(void)
   int slot, lane;
   int ret;
   int matrix;
+  int port, xe_port;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
 
   if (ptin_ber_tx_sem != L7_NULLPTR) {
     printf("BER has already been initialized!\n");
@@ -1508,13 +1509,6 @@ int ber_init(void)
   printf("We are in matrix: %s\n",((matrix) ? "Protection" : "Working"));
 
   mx = matrix & 1;
-
-  #ifdef PTIN_WC_SLOT_MAP
-  int port, xe_port;
-  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
-  DAPI_CARD_ENTRY_t            *dapiCardPtr;
-  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
-  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
 
   /* Ports information about the system */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
@@ -1538,7 +1532,6 @@ int ber_init(void)
         xe_slot_map[mx][slot][lane] = xe_port;
     }
   }
-  #endif
 
   printf("xe_slot_map:");
   for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)

@@ -281,7 +281,7 @@ L7_uint32 hpcSupportedCardsNumGet(void)
 }
 
 /* PTin added */
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**
  * Build a WC map from the array of port modes
  * 

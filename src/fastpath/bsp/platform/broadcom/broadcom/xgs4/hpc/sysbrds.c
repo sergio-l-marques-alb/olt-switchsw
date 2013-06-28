@@ -43,10 +43,54 @@
 #include "ptin_globaldefs.h"  /* PTin added */
 #include "logger.h"           /* PTin added */
 
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "broad_hpc_db.h"
 
 #define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
+
+const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1[] =
+/*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
+ * --------- --------- ---------  -------  -------*/
+{{        0,        0,        0,       0,       2 },
+{         1,        0,        0,       0,       3 },
+{         2,        0,        0,       0,       4 },
+{         3,        0,        0,       0,       5 },
+{         4,        0,        0,       0,       6 },
+{         5,        1,        0,       0,       7 },
+{         6,        1,        0,       0,       8 },
+{         7,        1,        0,       0,       9 },
+{         8,        1,        0,       0,      10 },
+{         9,        2,        0,       0,      11 },
+{        10,        2,        0,       0,      12 },
+{        11,        2,        0,       0,      13 },
+{        12,        2,        0,       0,      14 },
+{        13,        2,        0,       0,      15 },  
+{        14,        3,        0,       0,      16 },
+{        15,        3,        0,       0,      17 },
+{        16,        3,        0,       0,      18 },
+{        17,        3,        0,       0,      19 }};
+
+const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2[] =
+/*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
+ * --------- --------- ---------  -------  -------*/
+{{        0,        0,        1,       0,       6 },
+{         1,        0,        1,       0,       2 },
+{         2,        0,        1,       0,       3 },
+{         3,        0,        1,       0,       5 },
+{         4,        0,        1,       0,       4 },
+{         5,        1,        1,       0,       7 },
+{         6,        1,        1,       0,       8 },
+{         7,        1,        1,       0,       9 },
+{         8,        1,        1,       0,      10 },
+{         9,        2,        1,       0,      11 },
+{        10,        2,        1,       0,      12 },
+{        11,        2,        1,       0,      13 },
+{        12,        2,        1,       3,      18 },  /* RX and TX polarities inverted for WC 12: slot 18 */
+{        13,        2,        1,       0,      19 },  
+{        14,        3,        1,       0,      16 },
+{        15,        3,        1,       0,      17 },
+{        16,        3,        0,       0,      14 },  /* Lanes inverted for WC 16: slot 14 */ 
+{        17,        3,        0,       0,      15 }}; /* Lanes inverted for WC 17: slot 15 */
 
 L7_RC_t hpcBoardWCinit_bcm56846(void);
 #endif
@@ -401,280 +445,8 @@ L7_RC_t hpcConfigBoardSet()
         /* Configure to use LCPLL reference clock */
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
 
-        /* For CXO640G-V1 */
-        #if (PTIN_BOARD == PTIN_BOARD_CXO640G_V1 || PTIN_BOARD == PTIN_BOARD_CXO640G)
-        if (cpld_map->reg.id == CPLD_ID_CXO640G_V1)
-        {
-          if (sal_config_set(spn_PORTMAP"_1",   "3:10") != 0) return(L7_FAILURE); // slot 2 lane 2
-          if (sal_config_set(spn_PORTMAP"_2",   "4:10") != 0) return(L7_FAILURE); // slot 2 lane 3
-                                                                                  // 
-          if (sal_config_set(spn_PORTMAP"_3",   "7:10") != 0) return(L7_FAILURE); // slot 3 lane 2
-          if (sal_config_set(spn_PORTMAP"_4",   "8:10") != 0) return(L7_FAILURE); // slot 3 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_5",   "9:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_6",  "10:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_7",  "11:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_8",  "12:10") != 0) return(L7_FAILURE);
-
-          if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
-
-          if (sal_config_set(spn_PORTMAP"_13", "19:10") != 0) return(L7_FAILURE); // slot 6 lane 2
-          if (sal_config_set(spn_PORTMAP"_14", "20:10") != 0) return(L7_FAILURE); // slot 6 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_15", "23:10") != 0) return(L7_FAILURE); // slot 7 lane 2
-          if (sal_config_set(spn_PORTMAP"_16", "24:10") != 0) return(L7_FAILURE); // slot 7 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_17", "25:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_18", "26:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_19", "27:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_20", "28:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_21", "29:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_22", "30:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_23", "31:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_24", "32:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_25", "33:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_26", "34:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_27", "35:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_28", "36:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_29", "37:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_30", "38:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_31", "39:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_32", "40:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_33", "41:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_34", "42:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_35", "43:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_36", "44:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_37", "45:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_38", "46:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_39", "47:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_40", "48:10") != 0) return(L7_FAILURE);
-
-          if (sal_config_set(spn_PORTMAP"_41", "51:10") != 0) return(L7_FAILURE); // slot 14 lane 2
-          if (sal_config_set(spn_PORTMAP"_42", "52:10") != 0) return(L7_FAILURE); // slot 14 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_43", "55:10") != 0) return(L7_FAILURE); // slot 15 lane 2
-          if (sal_config_set(spn_PORTMAP"_44", "56:10") != 0) return(L7_FAILURE); // slot 15 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_45", "57:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_46", "58:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_47", "59:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_48", "60:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_49", "61:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_50", "62:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_51", "63:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_52", "64:10") != 0) return(L7_FAILURE);
-
-          if (sal_config_set(spn_PORTMAP"_53", "67:10") != 0) return(L7_FAILURE); // slot 18 lane 2
-          if (sal_config_set(spn_PORTMAP"_54", "68:10") != 0) return(L7_FAILURE); // slot 18 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_55", "71:10") != 0) return(L7_FAILURE); // slot 19 lane 2
-          if (sal_config_set(spn_PORTMAP"_56", "72:10") != 0) return(L7_FAILURE); // slot 19 lane 3
-
-          if (sal_config_set(spn_PORTMAP"_57",   "1:1") != 0) return(L7_FAILURE); // PTP
-
-          // extra mapping to fill 64 ports in total
-          if (sal_config_set(spn_PORTMAP"_58",   "2:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_59",   "5:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_60",   "6:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_61",  "65:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_62",  "66:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_63",  "69:1") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_64",  "70:1") != 0) return(L7_FAILURE);
-        }
-        else
-        {
-          /* Group Core 0 */
-          /* Slot 2: WC1: lanes 7-8 */
-          if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE); // slot 2 lane 2
-          if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE); // slot 2 lane 3
-
-          /* Slot 3: WC2: lanes 11-12 */
-          if (sal_config_set(spn_PORTMAP"_3",  "11:10") != 0) return(L7_FAILURE); // slot 3 lane 2
-          if (sal_config_set(spn_PORTMAP"_4",  "12:10") != 0) return(L7_FAILURE); // slot 3 lane 3
-
-          /* Slot 4: WC4: lanes 17-20 */
-          if (sal_config_set(spn_PORTMAP"_5",  "17:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_6",  "18:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_7",  "19:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_8",  "20:10") != 0) return(L7_FAILURE);
-
-          /* Slot 5: WC3: lanes 13-16 */
-          if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
-
-          /* Slot 6: WC0: lanes 3-4 */
-          if (sal_config_set(spn_PORTMAP"_13",  "3:10") != 0) return(L7_FAILURE); // slot 6 lane 2
-          if (sal_config_set(spn_PORTMAP"_14",  "4:10") != 0) return(L7_FAILURE); // slot 6 lane 3
-
-          /* Group Core 1 */
-          /* Slot 7: WC5: lanes 23-24 */
-          if (sal_config_set(spn_PORTMAP"_15", "23:10") != 0) return(L7_FAILURE); // slot 7 lane 2
-          if (sal_config_set(spn_PORTMAP"_16", "24:10") != 0) return(L7_FAILURE); // slot 7 lane 3
-
-          /* Slot 8: WC6: lanes 25-28 */
-          if (sal_config_set(spn_PORTMAP"_17", "25:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_18", "26:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_19", "27:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_20", "28:10") != 0) return(L7_FAILURE);
-
-          /* Slot 9: WC7: lanes 29-32 */
-          if (sal_config_set(spn_PORTMAP"_21", "29:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_22", "30:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_23", "31:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_24", "32:10") != 0) return(L7_FAILURE);
-
-          /* Slot 10: WC8: lanes 33-36 */
-          if (sal_config_set(spn_PORTMAP"_25", "33:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_26", "34:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_27", "35:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_28", "36:10") != 0) return(L7_FAILURE);
-
-          /* Group Core 2 */
-          /* Slot 11: WC9: lanes 37-40 */
-          if (sal_config_set(spn_PORTMAP"_29", "37:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_30", "38:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_31", "39:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_32", "40:10") != 0) return(L7_FAILURE);
-
-          /* Slot 12: WC10: lanes 41-44 */
-          if (sal_config_set(spn_PORTMAP"_33", "41:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_34", "42:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_35", "43:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_36", "44:10") != 0) return(L7_FAILURE);
-
-          /* Slot 13: WC11: lanes 45-48 */
-          if (sal_config_set(spn_PORTMAP"_37", "45:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_38", "46:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_39", "47:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_40", "48:10") != 0) return(L7_FAILURE);
-
-          /* Group Core 3 */
-          /* Slot 14: WC16: lanes 67-68 */
-          if (sal_config_set(spn_PORTMAP"_41", "67:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_42", "68:10") != 0) return(L7_FAILURE);
-
-          /* Slot 15: WC17: lanes 71-72 */
-          if (sal_config_set(spn_PORTMAP"_43", "71:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_44", "72:10") != 0) return(L7_FAILURE);
-
-          /* Slot 16: WC14: lanes 57-60 */
-          if (sal_config_set(spn_PORTMAP"_45", "57:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_46", "58:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_47", "59:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_48", "60:10") != 0) return(L7_FAILURE);
-
-          /* Slot 17: WC15: lanes 61-64 */
-          if (sal_config_set(spn_PORTMAP"_49", "61:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_50", "62:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_51", "63:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_52", "64:10") != 0) return(L7_FAILURE);
-
-          /* Group Core 2 */
-          /* Slot 18: WC12: lanes 51-52 */
-          if (sal_config_set(spn_PORTMAP"_53", "51:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_54", "52:10") != 0) return(L7_FAILURE);
-
-          /* Slot 19: WC13: lanes 55-56 */
-          if (sal_config_set(spn_PORTMAP"_55", "55:10") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PORTMAP"_56", "56:10") != 0) return(L7_FAILURE);
-          /* End of 10G ports */
-
-          /* PTP port: WC1: lane 5 */
-          if (sal_config_set(spn_PORTMAP"_57",   "5:1") != 0) return(L7_FAILURE); // GC0: WC1  lane 0
-
-          // extra mapping to fill 64 ports in total
-          if (sal_config_set(spn_PORTMAP"_58",   "6:1") != 0) return(L7_FAILURE); // GC0: WC1  lane 1
-          if (sal_config_set(spn_PORTMAP"_59",   "1:1") != 0) return(L7_FAILURE); // GC0: WC0  lane 0
-          if (sal_config_set(spn_PORTMAP"_60",   "2:1") != 0) return(L7_FAILURE); // GC0: WC0  lane 1
-          if (sal_config_set(spn_PORTMAP"_61",  "65:1") != 0) return(L7_FAILURE); // GC1: WC16 lane 0
-          if (sal_config_set(spn_PORTMAP"_62",  "66:1") != 0) return(L7_FAILURE); // GC3: WC16 lane 1
-          if (sal_config_set(spn_PORTMAP"_63",  "69:1") != 0) return(L7_FAILURE); // GC3: WC17 lane 0
-          if (sal_config_set(spn_PORTMAP"_64",  "70:1") != 0) return(L7_FAILURE); // GC3: WC17 lane 1
-
-          /* Swap RX and TX polarities of WC 12 (slot 18) */
-          if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_53", "0x0f00") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_53", "0x0f00") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_54", "0xf000") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_54", "0xf000") != 0) return(L7_FAILURE);
-          LOG_INFO(LOG_CTX_STARTUP, "Polarities inverted!");
-
-          /* TX Map */
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_1",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_2",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_3",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_4",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_5",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_6",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_7",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_8",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_9",  "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_10", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_11", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_12", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_13", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_14", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_15", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_16", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_17", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_18", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_19", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_20", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_21", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_22", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_23", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_24", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_25", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_26", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_27", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_28", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_29", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_30", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_31", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_32", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_33", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_34", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_35", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_36", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_37", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_38", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_39", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_40", "0x0123") != 0) return(L7_FAILURE);
-
-          /* Slots 14 and 15 are not inverted */
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_41", "0x3210") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_42", "0x3210") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_43", "0x3210") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_44", "0x3210") != 0) return(L7_FAILURE);
-
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_45", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_46", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_47", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_48", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_49", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_50", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_51", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_52", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_53", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_54", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_55", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_56", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_57", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_58", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_59", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_60", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_61", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_62", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_63", "0x0123") != 0) return(L7_FAILURE);
-          if (sal_config_set(spn_XGXS_TX_LANE_MAP"_64", "0x0123") != 0) return(L7_FAILURE);
-        }
-        #elif (PTIN_BOARD == PTIN_BOARD_CXO640G_V2)
-
-        #ifdef PTIN_WC_SLOT_MAP
+        /* For CXO640G */
+        #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
         if (hpcBoardWCinit_bcm56846() == L7_SUCCESS)
         {
           LOG_NOTICE(LOG_CTX_STARTUP,"WCs initialized successfully");
@@ -683,200 +455,8 @@ L7_RC_t hpcConfigBoardSet()
         {
           LOG_ERR(LOG_CTX_STARTUP,"Error initializing WCs");
         }
-        #else
-        /* For the future: new slot mapping */
-        /* Slot 2, 3, 18, 19: 20G; e o resto a 40G */
-
-        /* Slot 2: WC1: 7-8 (20G) */
-        //if (sal_config_set(spn_PORTMAP"_1",   "7:10") != 0) return(L7_FAILURE);
-        //if (sal_config_set(spn_PORTMAP"_2",   "8:10") != 0) return(L7_FAILURE);
-
-        /* Slot 3: WC2: 11-12 (20G) */
-        if (sal_config_set(spn_PORTMAP"_1",   "9:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_2",  "10:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_3",  "11:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_4",  "12:10") != 0) return(L7_FAILURE);
-
-        /* Slot 4: WC4: 17-20 */
-        if (sal_config_set(spn_PORTMAP"_5",  "17:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_6",  "18:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_7",  "19:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_8",  "20:10") != 0) return(L7_FAILURE);
-
-        /* Slot 5: WC3: 13-16 */
-        if (sal_config_set(spn_PORTMAP"_9",  "13:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_10", "14:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_11", "15:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_12", "16:10") != 0) return(L7_FAILURE);
-
-        /* Slot 6: WC0: 1-4 */
-        if (sal_config_set(spn_PORTMAP"_13",  "1:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_14",  "2:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_15",  "3:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_16",  "4:10") != 0) return(L7_FAILURE);
-
-        /* Slot 7: WC5: 21-24 */
-        if (sal_config_set(spn_PORTMAP"_17", "21:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_18", "22:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_19", "23:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_20", "24:10") != 0) return(L7_FAILURE);
-
-        /* Slot 8: WC6: 25-28 */
-        if (sal_config_set(spn_PORTMAP"_21", "25:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_22", "26:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_23", "27:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_24", "28:10") != 0) return(L7_FAILURE);
-
-        /* Slot 9: WC7: 29-32 */
-        if (sal_config_set(spn_PORTMAP"_25", "29:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_26", "30:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_27", "31:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_28", "32:10") != 0) return(L7_FAILURE);
-
-        /* Slot 10: WC8: 33-36 */
-        if (sal_config_set(spn_PORTMAP"_29", "33:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_30", "34:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_31", "35:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_32", "36:10") != 0) return(L7_FAILURE);
-
-        /* Slot 11: WC9: 37-40 */
-        if (sal_config_set(spn_PORTMAP"_33", "37:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_34", "38:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_35", "39:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_36", "40:10") != 0) return(L7_FAILURE);
-
-        /* Slot 12: WC10: 41-44 */
-        if (sal_config_set(spn_PORTMAP"_37", "41:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_38", "42:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_39", "43:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_40", "44:10") != 0) return(L7_FAILURE);
-
-        /* Slot 13: WC11: 45-48 */
-        if (sal_config_set(spn_PORTMAP"_41", "45:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_42", "46:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_43", "47:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_44", "48:10") != 0) return(L7_FAILURE);
-
-        /* Slot 14: WC16: 65-68 */
-        if (sal_config_set(spn_PORTMAP"_45", "65:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_46", "66:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_47", "67:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_48", "68:10") != 0) return(L7_FAILURE);
-
-        /* Slot 15: WC17: 69-72 */
-        if (sal_config_set(spn_PORTMAP"_49", "69:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_50", "70:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_51", "71:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_52", "72:10") != 0) return(L7_FAILURE);
-
-        /* Slot 16: WC14: 57-60 */
-        if (sal_config_set(spn_PORTMAP"_53", "57:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_54", "58:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_55", "59:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_56", "60:10") != 0) return(L7_FAILURE);
-
-        /* Slot 17: WC15: 61-64 */
-        if (sal_config_set(spn_PORTMAP"_57", "61:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_58", "62:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_59", "63:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_60", "64:10") != 0) return(L7_FAILURE);
-
-        /* Slot 18: WC12: 51-52 (20G) */
-        if (sal_config_set(spn_PORTMAP"_61", "49:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_62", "50:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_63", "51:10") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORTMAP"_64", "52:10") != 0) return(L7_FAILURE);
-
-        /* Slot 19: WC13: 55-56 (20G) */
-        //if (sal_config_set(spn_PORTMAP"_63", "55:10") != 0) return(L7_FAILURE);
-        //if (sal_config_set(spn_PORTMAP"_64", "56:10") != 0) return(L7_FAILURE);
-
-        LOG_INFO(LOG_CTX_STARTUP, "Portmap defined!");
-
-        /* Swap RX and TX polarities of WC 12 */
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_61", "0x000f") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_61", "0x000f") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_62", "0x00f0") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_62", "0x00f0") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_63", "0x0f00") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_63", "0x0f00") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_TX_POLARITY_FLIP"_64", "0xf000") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PHY_XAUI_RX_POLARITY_FLIP"_64", "0xf000") != 0) return(L7_FAILURE);
-        LOG_INFO(LOG_CTX_STARTUP, "Polarities inverted!");
-
-        /* TX Map */
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_1",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_2",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_3",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_4",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_5",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_6",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_7",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_8",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_9",  "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_10", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_11", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_12", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_13", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_14", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_15", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_16", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_17", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_18", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_19", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_20", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_21", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_22", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_23", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_24", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_25", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_26", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_27", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_28", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_29", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_30", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_31", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_32", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_33", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_34", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_35", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_36", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_37", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_38", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_39", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_40", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_41", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_42", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_43", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_44", "0x0123") != 0) return(L7_FAILURE);
-
-        /* Slots 14 and 15 are not inverted */
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_45", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_46", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_47", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_48", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_49", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_50", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_51", "0x3210") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_52", "0x3210") != 0) return(L7_FAILURE);
-
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_53", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_54", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_55", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_56", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_57", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_58", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_59", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_60", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_61", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_62", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_63", "0x0123") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_TX_LANE_MAP"_64", "0x0123") != 0) return(L7_FAILURE);
-        #endif
-        #endif
 
         /* Disable BAM */
-        #if 1
         if (sal_config_set(spn_PHY_AN_C73"_xe0",  "0x02") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PHY_AN_C73"_xe1",  "0x02") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PHY_AN_C73"_xe2",  "0x02") != 0) return(L7_FAILURE);
@@ -992,7 +572,7 @@ L7_RC_t hpcConfigBoardPhyPostSet(int       portNo,
   return L7_SUCCESS;
 }
 
-#ifdef PTIN_WC_SLOT_MAP
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**
  * Read a filename with the WC mapping
  * 
@@ -1028,7 +608,7 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
   }
 
   /* Clear output array */
-  memset(slot_mode, 0xff, sizeof(L7_uint32)*PTIN_SYS_SLOTS_MAX);
+  memset(slot_mode, 0x00, sizeof(L7_uint32)*PTIN_SYS_SLOTS_MAX);
 
   i = 0;
   while(!feof(fp)) 
@@ -1046,7 +626,7 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
     /* Validate values */
     if (slot_idx < PTIN_SYS_LC_SLOT_MIN || slot_idx > PTIN_SYS_LC_SLOT_MAX)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Invalid slot id (%u) in line %u", slot_idx, i);
+      LOG_WARNING(LOG_CTX_STARTUP, "Invalid slot id (%u) in line %u", slot_idx, i);
       continue;
     }
 
@@ -1180,6 +760,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
  */
 L7_RC_t hpcBoardWCinit_bcm56846(void)
 {
+  L7_uint8   protection, version;
   L7_uint16  i;
   L7_uint16  port_idx, slot_idx;
   L7_uint16  wc_idx, wc_lane;
@@ -1199,9 +780,27 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   memset(slot_mode, 0x00, sizeof(slot_mode));
   memset(wcMap, 0x00, sizeof(wcMap));
 
-  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (cpld_map->reg.slot_id==0) ? "Working" : "Protection");
+  protection = (cpld_map->reg.slot_id!=0);
+  version = (cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2;
 
-  LOG_DEBUG(LOG_CTX_STARTUP,"WC map:");
+  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (protection ? "Protection" : "Working"));
+
+  LOG_DEBUG(LOG_CTX_STARTUP,"Initializing WC map:");
+
+  /* Different WC base maps */
+  switch (version)
+  {
+  case 1:
+    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1,
+           dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1,
+           sizeof(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1));
+    break;
+  default:
+    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1,
+           dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2,
+           sizeof(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2));
+    break;
+  }
 
   /* If we are in protection side, we have to invert WCs */
   for (wc_idx=0; wc_idx<WC_MAX_NUMBER; wc_idx++)
@@ -1231,20 +830,24 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 
   LOG_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
 
-  /* Get slot modes from file */
-  if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
+  /* Only read map from file for version > 1 */
+  if (version>1)
   {
-    memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
-    LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
-  }
-  else
-  {
-    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
+    /* Get slot modes from file */
+    if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
+    {
+      memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
+      LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
+    }
+    else
+    {
+      LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
+    }
   }
   LOG_DEBUG(LOG_CTX_STARTUP,"Slot map:");
   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
   {
-    LOG_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[i]);
+    LOG_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i+1, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[i]);
   }
 
   /* Create map */
