@@ -367,6 +367,7 @@
 #define  DAPI_CMD_PTIN_PACKET_RATE_LIMIT_NAME            "DAPI_CMD_PTIN_PACKET_RATE_LIMIT"
 #define  DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU_NAME          "DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU"
 #define  DAPI_CMD_PTIN_PCS_PRBS_NAME                     "DAPI_CMD_PTIN_PCS_PRBS"
+#define  DAPI_CMD_PTIN_SLOT_MODE_NAME                    "DAPI_CMD_PTIN_SLOT_MODE"
 /* PTin end */
 
 #define DAPI_PORT_GET(_pDapiUsp,_dapi_g)     (_dapi_g->unit[(_pDapiUsp)->unit]->slot[(_pDapiUsp)->slot]->port[(_pDapiUsp)->port])

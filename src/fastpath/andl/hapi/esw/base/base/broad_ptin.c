@@ -64,6 +64,56 @@ L7_RC_t hapiBroadPtinInit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *d
 }
 
 /**
+ * Get slot mode list
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data NULL
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapiBroadPtinSlotMode(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G_V1 || PTIN_BOARD==PTIN_BOARD_CXO640G || PTIN_BOARD==PTIN_BOARD_CXO640G_V2)
+  #ifdef PTIN_WC_SLOT_MAP
+  ptin_slotmode_t *slotmode;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  L7_uint32                    *wcSlotMode;
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
+  wcSlotMode           = dapiCardPtr->wcSlotMode;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Slot mode operation");
+
+  slotmode = (ptin_slotmode_t *) data;
+
+  /* Get operation */
+  if (slotmode->operation == DAPI_CMD_GET)
+  {
+    memcpy(slotmode->slotMode, wcSlotMode, sizeof(L7_uint32)*PTIN_SYS_SLOTS_MAX);
+  }
+  /* Make a validation */
+  else if (slotmode->operation == DAPI_CMD_SET)
+  {
+    /* Return failure if map is not valid */
+    rc = hpcConfigWCmap_build(slotmode->slotMode, L7_NULLPTR);
+  }
+
+  //LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: %d",rc);
+  #endif
+  #endif
+
+  return rc;
+}
+
+/**
  * Set MEF Extension parameters
  * 
  * @param usp : interface

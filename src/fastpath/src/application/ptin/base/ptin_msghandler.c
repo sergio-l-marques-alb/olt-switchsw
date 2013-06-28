@@ -43,6 +43,16 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 }
 
 /* Macro to check infoDim consistency */
+#define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
+  if (inbuffer->infoDim < sizeof(msg_st)) {  \
+    LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting at leat %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
+    SetIPCNACK(outbuffer, res);               \
+    break;                                    \
+  }                                           \
+}
+
+/* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE(msg_st) {             \
   if (inbuffer->infoDim != sizeof(msg_st)) {  \
     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
@@ -423,8 +433,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_SLOT_MAP_MODE_GET (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_slotModeCfg_t);
-
+      CHECK_INFO_SIZE_ATLEAST(L7_uint32);
       msg_slotModeCfg_t *ptr;
 
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_slotModeCfg_t));
@@ -478,12 +487,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_SLOT_MAP_MODE_APPLY (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
+      //CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
 
-      msg_slotModeCfg_t *ptr = (msg_slotModeCfg_t *) inbuffer->info;
+      //msg_slotModeCfg_t *ptr = (msg_slotModeCfg_t *) inbuffer->info;
 
       /* Execute command */
-      rc = ptin_msg_slotMode_apply(ptr);
+      rc = ptin_msg_slotMode_apply();
 
       if (L7_SUCCESS != rc)
       {

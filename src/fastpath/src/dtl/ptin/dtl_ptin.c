@@ -490,6 +490,25 @@ L7_RC_t dtlPtinPcsPrbs( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
 }
 
 /**
+ * Slot mode
+ *  
+ * @param dapiCmd
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinSlotMode( ptin_slotmode_t *dapiCmd )
+{
+  DAPI_USP_t ddUsp;
+
+  /* All interfaces */
+  ddUsp.unit = -1;
+  ddUsp.slot = -1;
+  ddUsp.port = -1;
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_SLOT_MODE, (void *) dapiCmd);
+}
+
+/**
  * Consult available hardware resources
  *  
  * @param resources: Available resources

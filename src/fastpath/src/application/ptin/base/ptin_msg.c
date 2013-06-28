@@ -511,6 +511,31 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
  */
 L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
 {
+  L7_uint i;
+  L7_uint32 slot_list[PTIN_SYS_SLOTS_MAX];
+
+  memset(slotMode->slot_list, 0x00, sizeof(slotMode->slot_list));
+
+  /* Get list of slot modes */
+  if ( ptin_intf_slotMode_get(slot_list)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining list of slot modes");
+    return L7_FAILURE;
+  }
+
+  /* Run all slots */
+  for (i=0; i<MSG_SLOTMODECFG_NSLOTS && i<PTIN_SYS_SLOTS_MAX; i++)
+  {
+    slotMode->slot_list[i].slot_index  = i+1;
+    slotMode->slot_list[i].slot_config = 1;
+    slotMode->slot_list[i].slot_mode   = slot_list[i];
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list:");
+  for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
+  }
   LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
 
   return L7_SUCCESS;
@@ -525,7 +550,44 @@ L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
  */
 L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+  L7_uint i, slot, mode;
+  L7_uint32 slot_list[PTIN_SYS_SLOTS_MAX];
+
+  memset(slot_list, 0x00, sizeof(slot_list));
+
+  /* Run all slots */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list:");
+  for (i=0; i<MSG_SLOTMODECFG_NSLOTS; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Idx%02u: Slot %02u Active=%u Mode=%u", i,
+              slotMode->slot_list[i].slot_index, slotMode->slot_list[i].slot_config, slotMode->slot_list[i].slot_mode);
+
+    /* Valid slot? */
+    if (!slotMode->slot_list[i].slot_config)
+      continue;
+
+    slot = slotMode->slot_list[i].slot_index;
+    mode = slotMode->slot_list[i].slot_mode;
+    /* Validate slot */
+    if (slot>=PTIN_SYS_LC_SLOT_MIN && slot<=PTIN_SYS_LC_SLOT_MAX)
+    {
+      slot_list[slot-1] = mode;
+    }
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list to be validated:");
+  for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
+  }
+
+  /* Validate list of slot modes */
+  if ( ptin_intf_slotMode_validate(slot_list)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Slot mode list is not valid!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Slot mode list is valid!");
 
   return L7_SUCCESS;
 }
@@ -537,7 +599,7 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_slotMode_apply(msg_slotModeCfg_t *slotMode)
+L7_RC_t ptin_msg_slotMode_apply(void)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
 

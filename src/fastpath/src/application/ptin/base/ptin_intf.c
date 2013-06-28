@@ -3133,6 +3133,58 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
   return L7_SUCCESS;
 }
 
+/**
+ * Get slot mode list
+ *  
+ * @param slotmodes 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes)
+{
+  ptin_slotmode_t slot_mode;
+  L7_RC_t rc;
+
+  memset(&slot_mode,0x00,sizeof(ptin_slotmode_t));
+  slot_mode.operation = DAPI_CMD_GET;
+
+  rc=dtlPtinSlotMode(&slot_mode);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error reading slot mode list");
+    return rc;
+  }
+
+  /* Return list */
+  memcpy(slotmodes, slot_mode.slotMode, sizeof(L7_uint32)*PTIN_SYS_SLOTS_MAX);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Validate a slot mode list
+ *  
+ * @param slotmodes 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
+{
+  ptin_slotmode_t slot_mode;
+  L7_RC_t rc;
+
+  memset(&slot_mode,0x00,sizeof(ptin_slotmode_t));
+
+  slot_mode.operation = DAPI_CMD_SET;
+  memcpy(slot_mode.slotMode, slotmodes, sizeof(L7_uint32)*PTIN_SYS_SLOTS_MAX);
+
+  rc=dtlPtinSlotMode(&slot_mode);
+  if (rc!=L7_SUCCESS)  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error validating slot mode list");
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
 
 #if 0
 /**

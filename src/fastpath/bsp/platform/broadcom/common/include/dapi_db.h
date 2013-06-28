@@ -165,8 +165,8 @@ typedef struct
   L7_ushort16             npInfoSlot;
 
   #ifdef PTIN_WC_SLOT_MAP
-  HAPI_WC_SLOT_MAP_t     *wcSlotMap;
-  L7_ushort16             numOfWCSlotMapEntries;
+  L7_uint32              *wcSlotMode;
+  L7_ushort16             numOfWCSlotModeEntries;
 
   HAPI_WC_PORT_MAP_t     *wcPortMap;
   L7_ushort16             numOfWCPortMapEntries;
@@ -193,5 +193,20 @@ typedef struct
 } DAPI_BASE_CARD_ENTRY_t;
 
 L7_RC_t dapiBroadCardInfoInit(SYSAPI_HPC_CARD_DESCRIPTOR_t *cardDesc);
+
+/* PTin added */
+#ifdef PTIN_WC_SLOT_MAP
+/**
+ * Build a WC map from the array of port modes
+ * 
+ * @param slot_mode : Slot modes
+ * @param retMap    : Map to be returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS - Valid map 
+ *                   L7_NOT_SUPPORTED - Map not valid
+ *                   L7_FAILURE - Error processing file
+ */
+L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap);
+#endif
 
 #endif  /* INCLUDE_DAPI_DB */

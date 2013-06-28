@@ -141,7 +141,7 @@ extern L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_msg_slotMode_apply(msg_slotModeCfg_t *slotMode);
+extern L7_RC_t ptin_msg_slotMode_apply(void);
 
 
 /* Port Type Functions ********************************************************/ 

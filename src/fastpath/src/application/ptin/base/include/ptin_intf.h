@@ -419,6 +419,24 @@ extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
  */
 extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
 
+/**
+ * Get the current slot mode list
+ *  
+ * @param slotmodes 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes);
+
+/**
+ * Validate a slot mode list
+ *  
+ * @param slotmodes 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
+
 #endif  /* _PTIN_INTERFACE_H */
 
 

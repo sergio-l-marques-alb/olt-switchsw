@@ -41,7 +41,7 @@ void help_oltBuga(void)
         "m 1000 console[/dev/...]\n\r"
         "m 1001 console[/dev/...] - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
-        "m 1005 - Get currect slot map configuration\r\n"
+        "m 1005 - Get current slot map configuration\r\n"
         "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
         "m 1007 <port1> <port2> ... - Read number of PRBS errors\r\n"
         "m 1008 - Validate provided slot map configuration\r\n"

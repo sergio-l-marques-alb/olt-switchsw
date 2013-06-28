@@ -40,6 +40,14 @@ typedef struct {
   L7_uint8  intf_id;                            /* Interface Id# (phy ports / LAGs) */
 } ptin_intf_t;
 
+/* Slo modes */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t  operation;
+  L7_uint32 slotMode[PTIN_SYS_SLOTS_MAX];       /* List of slot modes */
+} ptin_slotmode_t;
+
+
 /* Switch Port PHY configurations *********************************************/
 #define PTIN_PHYCONF_MASK_SPEED         0x0001
 #define PTIN_PHYCONF_MASK_MEDIA         0x0002
