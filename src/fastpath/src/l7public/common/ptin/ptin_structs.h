@@ -320,7 +320,7 @@ typedef struct {
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1
 #define PTIN_EVC_MC_FLOOD_NONE      2
 
-#define PTIN_EVC_PORT_FLUSHING      0
+#define PTIN_EVC_PORT_FORWARDING    0
 #define PTIN_EVC_PORT_BLOCKING      1
 
 

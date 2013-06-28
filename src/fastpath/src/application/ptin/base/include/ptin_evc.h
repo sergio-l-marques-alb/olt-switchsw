@@ -299,6 +299,15 @@ extern L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan);
  */
 extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
 
+/**
+ * Flushes FDB for all int.VLAN associated to this evc_idx
+ * 
+ * @param int_vlan  Root Inner VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
+
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
  ********************************************************/

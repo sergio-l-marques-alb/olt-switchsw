@@ -3836,7 +3836,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
   evcs[evc_idx].intf[ptin_intf].type     = intf_cfg->mef_type;
   evcs[evc_idx].intf[ptin_intf].int_vlan = int_vlan;
   #ifdef PTIN_ERPS_EVC
-  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FLUSHING;
+  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
   #if ( !PTIN_BOARD_IS_MATRIX )
   if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
@@ -4001,7 +4001,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
   evcs[evc_idx].intf[ptin_intf].out_vlan = 0;
   evcs[evc_idx].intf[ptin_intf].int_vlan = 0;
   #ifdef PTIN_ERPS_EVC
-  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FLUSHING;
+  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
 
   return L7_SUCCESS;
@@ -4749,27 +4749,18 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Associate root internal vlan to the root intf */
-  rc = usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
-  if (rc != L7_SUCCESS)
+  if (usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to root intIfNum# %u (rc=%d)", int_vlan, intIfNum, rc);
-    return L7_FAILURE;
+    rc = L7_FAILURE;
   }
-
-#if 0
-  /* Configure the internal VLAN on this interface as tagged */
-  rc = usmDbVlanTaggedSet(1, int_vlan, intIfNum, L7_DOT1Q_TAGGED);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error setting intIfNum# %u internal VLAN %u as tagged (rc=%d)", intIfNum, int_vlan, rc);
-    return L7_FAILURE;
-  }
-#endif
 
 
 
   /* Get all leaf interfaces... */
   ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
@@ -4780,18 +4771,16 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
               evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
 
     /* Associate leaf internal vlan to the root intf */
-    rc = usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
-    if (rc != L7_SUCCESS)
+    if (usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, rc);
-      return L7_FAILURE;
+      rc = L7_FAILURE;
     }   
   }
 
+  evcs[evc_idx].intf[root_intf].portState = PTIN_EVC_PORT_FORWARDING;
 
-  evcs[evc_idx].intf[root_intf].portState = PTIN_EVC_PORT_FLUSHING;
-
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -4846,17 +4835,16 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Delete intIfNum from int_vlan */
-  rc = usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
-  if (rc != L7_SUCCESS)
+  if (usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
-    return L7_FAILURE;
+    rc = L7_FAILURE;
   }
-
-
 
   /* Get all leaf interfaces... */
   ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
@@ -4867,16 +4855,85 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
               evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
 
     /* Associate leaf internal vlan to the root intf */
-    rc = usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
-    if (rc != L7_SUCCESS)
+    if (usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, rc);
+      rc = L7_FAILURE;
     }   
   }
 
   evcs[evc_idx].intf[root_intf].portState = PTIN_EVC_PORT_BLOCKING;
 
-  return L7_SUCCESS;
+  return rc;
+}
+
+/**
+ * Flushes FDB for all int.VLAN associated to this evc_idx
+ * 
+ * @param int_vlan  Root Inner VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
+{
+  L7_uint   evc_idx;
+  L7_RC_t   rc = L7_SUCCESS;
+  L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
+  L7_uint   n_intf, l;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Int.VLAN=%u", int_vlan);
+
+  /* Validate arguments */
+  if (int_vlan>=4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVlan=%u)", int_vlan);
+    return L7_FAILURE;
+  }
+
+  /* Get evc id */
+  evc_idx = evcId_from_internalVlan[int_vlan];
+
+  /* Check if this internal vlan is in use by any evc */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC Not found");
+    return L7_FAILURE;
+  }
+
+  /* Check if this evc is in use... if not we have a non-consistent situation */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
+    return L7_FAILURE;
+  }
+
+  /* Flush FDB on Root VLAN */
+  if (fdbFlushByVlan(int_vlan) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", int_vlan, rc);
+    rc = L7_FAILURE;
+  }
+
+
+  /* Get all leaf interfaces... */
+  ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+  /* On all leaf interfaces, removes the root port */
+  for (l=0; l<n_intf; l++)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u",
+              evc_idx,
+              evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
+
+    /* Flush FDB on this Leaf VLAN */
+    if (fdbFlushByVlan(evcs[evc_idx].intf[intf_list[l]].int_vlan) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, rc);
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
 }
 
 #endif
@@ -6765,7 +6822,7 @@ void ptin_evc_dump(L7_uint evc_idx)
       printf("    Outer VLAN    = %-5u      Counter  = %s\n", evcs[evc_idx].intf[i].out_vlan, evcs[evc_idx].intf[i].counter != NULL ? "Active":"Disabled");
       printf("    Internal VLAN = %-5u      BW Prof. = %s\n", evcs[evc_idx].intf[i].int_vlan, evcs[evc_idx].intf[i].bwprofile != NULL ? "Active":"Disabled");
       #ifdef PTIN_ERPS_EVC
-      printf("    Port State    = %s\n", evcs[evc_idx].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Flushing");
+      printf("    Port State    = %s\n", evcs[evc_idx].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
       #endif
 
       /* Only stacked services have clients */
