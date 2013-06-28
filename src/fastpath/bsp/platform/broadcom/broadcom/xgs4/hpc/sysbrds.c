@@ -46,7 +46,7 @@
 #ifdef PTIN_WC_SLOT_MAP
 #include "broad_hpc_db.h"
 
-#define WC_MAP_FILE "/usr/local/ptin/var/wc_map.txt"
+#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
 L7_RC_t hpcBoardWCinit_bcm56846(void);
 #endif
@@ -1073,202 +1073,6 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
 }
 
 /**
- * Build a WC map from the array of port modes
- * 
- * @param slot_mode : Slot modes
- * @param retMap    : Map to be returned
- * 
- * @return L7_RC_t : L7_SUCCESS - Valid map 
- *                   L7_NOT_SUPPORTED - Map not valid
- *                   L7_FAILURE - Error processing file
- */
-static L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
-{
-  L7_int  i;
-  L7_int  slot, port;
-  L7_uint lane, total_lanes;
-
-  L7_int  wc_index, wc_group, speedG;
-  L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
-  L7_BOOL wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
-
-  HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
-
-  /* Validate arguments */
-  if (slot_mode==L7_NULLPTR || retMap==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_STARTUP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Clear temp var */
-  memset(&wcMap, 0x00, sizeof(wcMap));
-  memset(bw_max, 0x00, sizeof(bw_max));
-  memset(ports_per_segment, 0x00, sizeof(ports_per_segment));
-  memset(wclanes_in_use, 0x00, sizeof(wclanes_in_use));
-
-  /* Run all provided slots */
-  for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; slot++)
-  {
-    switch (slot_mode[slot-1])
-    {
-    case WC_SLOT_MODE_1x1G:
-      speedG = 1;   total_lanes = 1;
-      break;
-    case WC_SLOT_MODE_2x1G:
-      speedG = 1;   total_lanes = 2;
-      break;
-    case WC_SLOT_MODE_3x1G:
-      speedG = 1;   total_lanes = 3;
-      break;
-    case WC_SLOT_MODE_4x1G:
-      speedG = 1;   total_lanes = 4;
-      break;
-    case WC_SLOT_MODE_1x10G:
-      speedG = 10;  total_lanes = 1;
-      break;
-    case WC_SLOT_MODE_2x10G:
-      speedG = 10;  total_lanes = 2;
-      break;
-    case WC_SLOT_MODE_3x10G:
-      speedG = 10;  total_lanes = 3;
-      break;
-    case WC_SLOT_MODE_4x10G:
-      speedG = 10;  total_lanes = 4;
-      break;
-    case WC_SLOT_MODE_1x40G:
-      speedG = 40;  total_lanes = 1;
-      break;
-    case WC_SLOT_MODE_2x40G:
-      speedG = 40;  total_lanes = 2;
-      break;
-    case WC_SLOT_MODE_3x40G:
-      speedG = 40;  total_lanes = 3;
-      break;
-    default:
-      speedG = 0;   total_lanes = 0;
-    }
-
-    /* Run all lanes of each slot */
-    for (i=0; i<total_lanes && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
-    {
-      /* Find the first WC connected to this slot */
-      for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
-      {
-        /* Is this WC assigned to this slot? */
-        if (dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx != slot)
-          continue;
-
-        /* We have found a WC. Find the first free lane of this WC  */
-        for (lane=0; lane<WC_MAX_LANES && wclanes_in_use[wc_index][lane]; lane++);
-        /* Not found: go to the next WC */
-        if (lane>=WC_MAX_LANES)
-          continue;
-
-        /* We have a WC index and a lane */
-
-        /* Get WC group*/
-        wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].wcGroup;
-        if (wc_group >= WC_MAX_GROUPS)
-        {
-          LOG_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) for WC %u", wc_group, wc_index);
-          return L7_FAILURE;
-        }
-
-        /* Check if there is available BW to use this lane: if there is, we have found a valid WC */
-        if ((bw_max[wc_group]+speedG) <= WC_GROUP_MAX_BW &&
-            (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) <= WC_SEGMENT_MAX_PORTS)
-          break;
-      }
-      /* If no free and valid lanes were found, we have an error */
-      if (wc_index >= WC_MAX_NUMBER)
-      {
-        LOG_ERR(LOG_CTX_STARTUP,"No WC found for slot %u, lane %u", slot, i);
-        return L7_NOT_SUPPORTED;
-      }
-
-      /* We have a valid WC, and a valid lane */
-      wcMap[port].portNum  = port;
-      wcMap[port].slotNum  = slot;
-      wcMap[port].wcIdx    = wc_index;
-      wcMap[port].wcLane   = lane;
-      wcMap[port].wcSpeedG = speedG;
-      LOG_TRACE(LOG_CTX_STARTUP,"Port %u: slotNum %u, wcIdx=%u, wcLane=%u wcSpeedG=%u", port,
-                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
-
-      /* Lane is now in use */
-      wclanes_in_use[wc_index][lane] = L7_TRUE;
-
-      /* Update temp variables */
-      ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-      bw_max[wc_group] += speedG;
-      port++;
-    }
-  }
-
-  /* Fill remaining ports, with 1G ports */
-  while (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
-  {
-    /* Run all WCs searching for free lanes */
-    for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
-    {
-      /* Skip not used WCs */
-      if (dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx < 0)
-        continue;
-
-      /* Find the first free lane of this WC  */
-      for (lane=0; lane<WC_MAX_LANES && wclanes_in_use[wc_index][lane]; lane++);
-      /* Not found: go to the next WC */
-      if (lane>=WC_MAX_LANES)
-        continue;
-
-      /* We have a valid WC and lane */
-
-      /* Get WC group*/
-      wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].wcGroup;
-      if (wc_group >= WC_MAX_GROUPS)
-      {
-        LOG_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) for WC %u", wc_group, wc_index);
-        return L7_FAILURE;
-      }
-
-      /* Check if there is available BW to use this lane: if there is, we have found a valid WC */
-      if ((bw_max[wc_group]+1) <= WC_GROUP_MAX_BW &&
-          (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) <= WC_SEGMENT_MAX_PORTS)
-        break;
-    }
-    /* If no free and valid lanes were found, we have an error */
-    if (wc_index >= WC_MAX_NUMBER)
-    {
-      LOG_ERR(LOG_CTX_STARTUP,"No WC found for slot %u, lane %u", slot, i);
-      return L7_NOT_SUPPORTED;
-    }
-
-    /* We have a valid WC, and a valid lane */
-    wcMap[port].portNum  = port;
-    wcMap[port].slotNum  = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
-    wcMap[port].wcIdx    = wc_index;
-    wcMap[port].wcLane   = lane;
-    wcMap[port].wcSpeedG = 1;       /* 1 Gbps */
-    LOG_TRACE(LOG_CTX_STARTUP,"Port %u: slotNum %u, wcLane=%u wcSpeedG=1", port,
-              wcMap[port].slotNum, wcMap[port].wcLane, wcMap[port]);
-
-    /* Lane in use */
-    wclanes_in_use[wc_index][lane] = L7_TRUE;
-
-    /* Update temp variables */
-    ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-    bw_max[wc_group] += 1;    /* 1 Gbps */
-    port++;
-  }
-
-  /* Return port map */
-  memcpy(retMap, &wcMap, sizeof(wcMap));
-
-  return L7_SUCCESS;
-}
-
-/**
  * Validate map
  * 
  * @param wcMap : WC map
@@ -1376,6 +1180,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
  */
 L7_RC_t hpcBoardWCinit_bcm56846(void)
 {
+  L7_uint16  i;
   L7_uint16  port_idx, slot_idx;
   L7_uint16  wc_idx, wc_lane;
   L7_uint16  speedG;
@@ -1394,7 +1199,9 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   memset(slot_mode, 0x00, sizeof(slot_mode));
   memset(wcMap, 0x00, sizeof(wcMap));
 
-  LOG_INFO(LOG_CTX_STARTUP,"Board is %u matrix.", (cpld_map->reg.slot_id==0) ? "Working" : "Protection");
+  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (cpld_map->reg.slot_id==0) ? "Working" : "Protection");
+
+  LOG_DEBUG(LOG_CTX_STARTUP,"WC map:");
 
   /* If we are in protection side, we have to invert WCs */
   for (wc_idx=0; wc_idx<WC_MAX_NUMBER; wc_idx++)
@@ -1434,6 +1241,11 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   {
     LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
   }
+  LOG_DEBUG(LOG_CTX_STARTUP,"Slot map:");
+  for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+  {
+    LOG_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[i]);
+  }
 
   /* Create map */
   if (hpcConfigWCmap_build(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap)==L7_SUCCESS)
@@ -1446,13 +1258,23 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     LOG_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
   }
 
+  LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
+  for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
+  {
+    LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG",
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].portNum,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].slotNum,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcIdx,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcLane,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcSpeedG);
+  }
+
   /* Validate map */
   if (hpcConfigWCmap_validate(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP,"Not valid WC map!");
     return L7_FAILURE;
   }
-
   LOG_INFO(LOG_CTX_STARTUP,"WC map is valid!");
 
   /* Run all ports */
@@ -1497,7 +1319,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     if (invLanes)
     {
       sprintf(param_name,  "%s_%u", spn_XGXS_TX_LANE_MAP, bcm_port);
-      sprintf(param_value, "0x3210");
+      sprintf(param_value, "0x0123");
       if (sal_config_set(param_name, param_value) != 0)  return(L7_FAILURE);
     }
 
