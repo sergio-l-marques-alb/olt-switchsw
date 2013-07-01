@@ -234,10 +234,10 @@ typedef struct
   L7_BOOL   active;             /* Is channel active? */
   L7_uint32 ipAddr;             /* Channel IP address */
   L7_uint8  number_of_ports;    /* Number of interfaces being used */
-  L7_uint32 intIfNum_mask[L7_MAX_INTERFACE_COUNT/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */
+  L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */
   L7_uint16 number_of_clients;  /* Number of clients using this channel */
   L7_uint32 clients_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1]; /* List of (index) clients */
-  L7_uint16 intf_number_of_clients[L7_MAX_INTERFACE_COUNT];
+  L7_uint16 intf_number_of_clients[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
 } ptinSnoopChannelInfo_t;
 
 /* Port information */
@@ -282,7 +282,7 @@ typedef struct snoopInfoData_s
   #if 1
   ptinSnoopGlobalInfo_t   global;
   ptinSnoopChannelInfo_t  channel_list[SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY]; /* IP address: 4 fixed bits + 5 variable bits + 23 fixed bits for this group: 2^5=32 */
-  ptinSnoopPortInfo_t     port_list[L7_MAX_INTERFACE_COUNT];
+  ptinSnoopPortInfo_t     port_list[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
 
   L7_BOOL staticGroup;
   #endif

@@ -582,7 +582,7 @@ L7_RC_t snoopIntfAdd(L7_uchar8 *macAddr, L7_uint32 vlanId, L7_uint32 intIfNum,
     #if 1
     if (!snoopEntry->port_list[intIfNum].active)
     {
-      if (snoopEntry->global.number_of_ports<L7_MAX_INTERFACE_COUNT)
+      if (snoopEntry->global.number_of_ports<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
         snoopEntry->global.number_of_ports++;
 
       snoopEntry->port_list[intIfNum].active = L7_TRUE;
@@ -871,7 +871,7 @@ L7_BOOL snoopChannelsNone(snoopInfoData_t *snoopEntry)
 L7_BOOL snoopChannelsIntfNone(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
 {
   /* Validate interface */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+  if (intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     return L7_FALSE;
   }
@@ -946,7 +946,7 @@ L7_BOOL snoopChannelClientsIntfNone(snoopInfoData_t *snoopEntry, L7_uint32 intIf
   L7_uint           channel_index;
 
   /* Validate interface */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+  if (intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     return L7_FAILURE;
   }
@@ -1212,7 +1212,7 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   }
 
   /* Run all interfaces, and update number of channels for each interface */
-  for (i=0; i<L7_MAX_INTERFACE_COUNT; i++)
+  for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
       continue;
@@ -1424,7 +1424,7 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
   {
     if (intIfNum==L7_ALL_INTERFACES)
     {
-      for (i=0; i<L7_MAX_INTERFACE_COUNT; i++)
+      for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
       {
         if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
           continue;
@@ -1961,7 +1961,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
       client>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
-      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+      intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2103,7 +2103,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
       client>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
-      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+      intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2242,7 +2242,7 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_ui
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
-      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+      intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2318,7 +2318,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
-      intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT)
+      intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2428,7 +2428,7 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   }
 
   /* Update number of clients, at the interface level */
-  for (i=0; i<L7_MAX_INTERFACE_COUNT; i++)
+  for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
       continue;
@@ -2495,7 +2495,7 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     if (!snoopEntry->channel_list[channel_index].active)  continue;
 
     /* Update number of clients, at the interface level */
-    for (i=0; i<L7_MAX_INTERFACE_COUNT; i++)
+    for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
     {
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
         continue;
@@ -2673,7 +2673,7 @@ static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
 
   /* Only validate interface, if is not null */
   /* Validate Interface range */
-  if (intIfNum!=L7_ALL_INTERFACES && intIfNum>=L7_MAX_INTERFACE_COUNT)
+  if (intIfNum!=L7_ALL_INTERFACES && intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopIPChannelRemove: Invalid interface (%u)",intIfNum);
@@ -2808,7 +2808,7 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
   printf("VLAN=%u, MAC=%02X:%02X:%02X:%02X:%02X:%02X\r\n",vlanId,macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
   printf("  Global: #ports=%u, #channels=%u, #clients=%u\r\n",snoopEntry->global.number_of_ports,snoopEntry->global.number_of_channels,snoopEntry->global.number_of_clients);
   printf("  Port list:\r\n");
-  for (i=0; i<L7_MAX_INTERFACE_COUNT; i++)
+  for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
     if (!snoopEntry->port_list[i].active)  continue;
     printf("    IntIfNum=%u: #channels=%u, #clients=%u\r\n",i,snoopEntry->port_list[i].number_of_channels,snoopEntry->port_list[i].number_of_clients);
@@ -2820,7 +2820,7 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
     printf("    IPv4addr=%u.%u.%u.%u\r\n",(snoopEntry->channel_list[i].ipAddr>>24) & 0xff,(snoopEntry->channel_list[i].ipAddr>>16) & 0xff,(snoopEntry->channel_list[i].ipAddr>>8) & 0xff,snoopEntry->channel_list[i].ipAddr & 0xff);
     printf("    #ports=%u, #clients=%u\r\n",snoopEntry->channel_list[i].number_of_ports,snoopEntry->channel_list[i].number_of_clients);
     printf("    Intf list: ");
-    for (j=0; j<L7_MAX_INTERFACE_COUNT; j++)
+    for (j=0; j<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; j++)
     {
       if (PTIN_IS_MASKBITSET(snoopEntry->channel_list[i].intIfNum_mask,j))
         printf("%u ",j);
@@ -2834,7 +2834,7 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
     }
     printf("\r\n");
     printf("    #clients(intf): ");
-    for (j=0; j<L7_MAX_INTERFACE_COUNT; j++)
+    for (j=0; j<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; j++)
     {
       if (snoopEntry->channel_list[i].intf_number_of_clients[j]>0)
         printf("intf%u=>%u ",j,snoopEntry->channel_list[i].intf_number_of_clients[j]);
@@ -2923,7 +2923,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
       /* Ports information */
       printf("  Ports information:\r\n");
       printf("    port[#channels]=");
-      for (intIfNum=0; intIfNum<L7_MAX_INTERFACE_COUNT; intIfNum++)
+      for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
       {
         if (!avl_info->port_list[intIfNum].active)  continue;
         if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
@@ -2931,7 +2931,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
       }
       printf("\r\n");
       printf("    port[#clients ]=");
-      for (intIfNum=0; intIfNum<L7_MAX_INTERFACE_COUNT; intIfNum++)
+      for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
       {
         if (!avl_info->port_list[intIfNum].active)  continue;
         if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
@@ -2952,7 +2952,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
                avl_info->channel_list[i].number_of_ports,
                avl_info->channel_list[i].number_of_clients);
         printf("      Port[#clients]:");
-        for (intIfNum=0; intIfNum<L7_MAX_INTERFACE_COUNT; intIfNum++)
+        for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
         {
           if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].intIfNum_mask,intIfNum))  continue;
           if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
@@ -3023,7 +3023,7 @@ void ptin_igmp_mfdb_dump(void)
            ((info.usmdbMfdbType==L7_MFDB_TYPE_STATIC) ? "Static " : "Dynamic"),
            info.usmdbMfdbDescr);
     printf("  Forward ports:");
-    for (intIfNum=1; intIfNum<L7_MAX_INTERFACE_COUNT; intIfNum++)
+    for (intIfNum=1; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
     {
       if (!L7_INTF_ISMASKBITSET(info.usmdbMfdbFwdMask,intIfNum))  continue;
       if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
@@ -3031,7 +3031,7 @@ void ptin_igmp_mfdb_dump(void)
     }
     printf("\r\n");
     printf("  Filter ports :");
-    for (intIfNum=1; intIfNum<L7_MAX_INTERFACE_COUNT; intIfNum++)
+    for (intIfNum=1; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
     {
       if (!L7_INTF_ISMASKBITSET(info.usmdbMfdbFltMask,intIfNum))  continue;
       if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;

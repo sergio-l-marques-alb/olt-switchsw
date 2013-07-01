@@ -86,8 +86,10 @@
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
+(L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)
+
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
-# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT+L7_MAX_CPU_SLOTS_PER_UNIT+2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
@@ -214,7 +216,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
-# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT+L7_MAX_CPU_SLOTS_PER_UNIT+2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
@@ -348,7 +350,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
-# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT+L7_MAX_CPU_SLOTS_PER_UNIT+2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
@@ -502,7 +504,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
-# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT+L7_MAX_CPU_SLOTS_PER_UNIT+2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE PTIN_SYS_SLOTS_MAX    /* 20 clients per IGMP instance (20 slots) */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
@@ -620,7 +622,7 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
-# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT+L7_MAX_CPU_SLOTS_PER_UNIT+2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE PTIN_SYS_SLOTS_MAX    /* 20 clients per IGMP instance (20 slots) */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */

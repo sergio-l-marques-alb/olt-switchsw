@@ -374,10 +374,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
 
-#if SNOOP_PTIN_IGMPv3_PROXY 
+#if 1
   LOG_TRACE(LOG_CTX_PTIN_IGMP,
-                "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d",
-              pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum);
+                "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
+              pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
 #else
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Packet intercepted vlan %d, innerVlan=%u, intIfNum %d",
               pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum);
@@ -1274,8 +1274,6 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 #endif
         case L7_IGMP_V1_MEMBERSHIP_REPORT:
         case L7_IGMP_V2_MEMBERSHIP_REPORT:
-          if (igmpType==SNOOP_PTIN_IGMPv3_ROUTER)
-          
           LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORT: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
                     mcastPacket.intIfNum,mcastPacket.vlanId,mcastPacket.innerVlanId,
                     mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.payLoad[4],mcastPacket.payLoad[5],
