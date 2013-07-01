@@ -1686,6 +1686,13 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       return L7_FAILURE;
    }
 
+   //Make sure that the reported UDP.length is at least the minimum size possible
+   if(udp_header->length < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+      return L7_SUCCESS;
+   }
+
    //Check DHCPv6 frame for invalid options
    dhcp_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_packet_t);
    frame_len          = udp_header->length - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_packet_t);
@@ -1899,6 +1906,13 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       return L7_FAILURE;
+   }
+
+   //Make sure that the reported UDP.length is at least the minimum size possible
+   if(udp_header->length < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
+   {
+      LOG_NOTICE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+      return L7_SUCCESS;
    }
 
    //Check DHCPv6 frame for options
