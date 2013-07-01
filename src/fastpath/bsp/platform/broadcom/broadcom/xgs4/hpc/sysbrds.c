@@ -830,19 +830,16 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 
   LOG_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
 
-  /* Only read map from file for version > 1 */
-  if (version>1)
+  /* Read map from file */
+  /* Get slot modes from file */
+  if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
   {
-    /* Get slot modes from file */
-    if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
-    {
-      memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
-      LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
-    }
-    else
-    {
-      LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
-    }
+    memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
+    LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
+  }
+  else
+  {
+    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
   }
   LOG_DEBUG(LOG_CTX_STARTUP,"Slot map:");
   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
