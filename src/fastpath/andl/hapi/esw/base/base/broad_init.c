@@ -456,8 +456,8 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
 }
 
 /* PTin added: Only allow packets trap and copy to CPU */
-#define PTIN_BROAD_INIT_TRAP_TO_CPU       1
-#define PTIN_BROAD_INIT_ALLOW_COS_CHANGE  1
+#define PTIN_BROAD_INIT_TRAP_TO_CPU       0
+#define PTIN_BROAD_INIT_ALLOW_COS_CHANGE  0
 
 /*********************************************************************
 *
