@@ -261,7 +261,9 @@ inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_ui
   ptinIgmpClients_t *clients;
 
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
     return;
+  }
 
   clients = &igmpInstances[igmp_idx].igmpClients;
 
@@ -269,12 +271,16 @@ inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_ui
   if (clients->clients_in_use[client_idx]!=L7_NULLPTR)
   {
     if (clients->number_of_clients>0)
+    {
       clients->number_of_clients--;
+    }
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
       if (clients->number_of_clients_per_intf[ptin_port] > 0 )
+      {
         clients->number_of_clients_per_intf[ptin_port]--;
+      }
     }
   }
 
@@ -5259,7 +5265,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
       (client->innerVlan==0 || client->innerVlan>4095))
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_SUCCESS;
+    return L7_FAILURE;
   }
   #endif
 
@@ -5451,7 +5457,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
     }
 
     /* Remove client for AVL tree */
-    igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
+    igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
 
     osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -5634,7 +5640,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
     else
     {
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
+      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
 
       if (ptin_debug_igmp_snooping)
       {
@@ -5838,8 +5844,11 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
         return L7_FAILURE;
       }
 
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark igmp_idx=%u client_idx=%u",igmp_idx,client_idx);
+
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, ptin_port, client_idx);
+      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
     }
   }
 
