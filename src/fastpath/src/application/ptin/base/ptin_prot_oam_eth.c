@@ -81,7 +81,7 @@ st_RegEthOAMTrap v;
     if (NULL!=meg_id) memcpy(v.meg_id_prefix, meg_id, sizeof(v.meg_id_prefix));
     else            v.meg_id_prefix[0]=0;
     send_trap_ETH_OAM(&v, sizeof(v));
-    printf("TRAP %u"NLS, alarm);
+    //printf("TRAP %u"NLS, alarm);
 }
 void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
     ethsrv_oam_register(UNEXP_MEG, 0xffff, meg_id, mep_id, porta, vid);

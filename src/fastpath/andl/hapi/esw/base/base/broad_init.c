@@ -123,6 +123,7 @@ extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
 /* PTin added: packet trap */
 #if 1
 #include "ptin_globaldefs.h"
+#include "logger.h"
 #endif
 
 /* Max time to wait for a unit to be discovered by lower stacking layer */
@@ -525,6 +526,8 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   bcm_mac_t lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
   #endif
 
+  LOG_INFO(LOG_CTX_STARTUP,"Starting default rules initialization...");
+
   if ((hapiBroadRaptorCheck() == L7_TRUE) ||
       (hapiBroadRoboCheck()== L7_TRUE) || (hapiBroadHawkeyeCheck() == L7_TRUE) )
   {
@@ -548,18 +551,21 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&eap_ethtype, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"DOT1X EAPOL rule added");
 
   /* Drop BPDUs which are within the reserved range but not used. Add rule
      with least priority for the valid address range to trap to CPU */
   hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, res_macda, res_mac_drop_mask);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"BPDUs drop rule added");
 
   /* give BPDUs high priority */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, res_macda, res_macmask);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"High priority BPDU rule added");
   #endif
 
   /* PTin added: packet trap - LACPdu's */
@@ -579,6 +585,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
   hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  LOG_TRACE(LOG_CTX_STARTUP,"LACP rule added");
   #endif
 
 #ifdef L7_STACKING_PACKAGE
@@ -634,6 +641,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_LOOKUP_STATUS, (L7_uchar8 *)&tunnel_hit, (L7_uchar8 *)&tunnel_l3_hit);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
   }
 #endif /* L7_IPV6_PACKAGE */
 
@@ -649,6 +657,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   udp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&rip_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
   #endif
 
   /* give OSPF frames high priority. We give multicast frames
@@ -661,6 +670,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   ospf_proto, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"OSPF frames rule added");
   #endif
 
   /* give BGP frames high priority. We need to gaurantee that these get to the CPU if the CPU
@@ -672,6 +682,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   tcp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&bgp_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"BGP frames rule added");
   #endif
 
   /* Copy VRRP frames to cpu */
@@ -680,6 +691,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   vrrp_proto, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"VRRP rule added");
   
   /* give Router solicitation frames medium priority and copy to the CPU.
    * Restricted to XGS3 due to resource constraints on XGS2.
@@ -697,6 +709,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
      */
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SPORT,   (L7_uchar8 *)&icmp_rtr_solicit, (L7_uchar8 *)&icmp_type_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+    LOG_TRACE(LOG_CTX_STARTUP,"Router solicitation frames rule added");
     #endif
   }
 
@@ -720,6 +733,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_HOPLIMIT,   &hoplim, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER,   &icmp_prot, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0,0);
+    LOG_TRACE(LOG_CTX_STARTUP,"ICMPv6 frames rule added");
 
     /* Note that the rule above for OSPF packets will generally work for both IPv4 and IPv6. However, 
        in some cases (e.g. Helix), we use a UDF to qualify on some packet fields and in those cases
@@ -729,6 +743,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ospf_proto, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0,0);
+    LOG_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
     
     result = hapiBroadPolicyCommit(&Ip6SysId);
     if (result != L7_SUCCESS)
@@ -757,6 +772,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
   hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  LOG_TRACE(LOG_CTX_STARTUP,"ARP rule added");
 
   result = hapiBroadPolicyCommit(&hapiSystem->dynamicArpInspectUntrustedPolicyId);
   if (L7_SUCCESS != result)
@@ -781,6 +797,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&arp_ethtype, exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, bcast_macda, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+  LOG_TRACE(LOG_CTX_STARTUP,"High priority ARP rule added");
 
   result = hapiBroadPolicyCommit(&arpPolicyId);
   if (L7_SUCCESS != result)
@@ -807,11 +824,14 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
        hapiBroadPolicyRuleQualifierAdd(fpsRuleId, BROAD_FIELD_OVID,
                                        (L7_uchar8*)&vlanId, exact_match);
        hapiBroadPolicyRuleActionAdd(fpsRuleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+       LOG_TRACE(LOG_CTX_STARTUP,"Rule added");
+
        result = hapiBroadPolicyCommit(&fpsId);
        if (result == L7_SUCCESS)
        {
          hapiSystem->fpsSysId = fpsId;
        }
+       LOG_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
        #endif
     }
   }
@@ -831,6 +851,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
            (L7_SUCCESS == hapiBroadPolicyRuleActionAdd(isdpRuleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0)) &&
            (L7_SUCCESS == hapiBroadPolicyRuleActionAdd(isdpRuleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0)))
        {
+         LOG_TRACE(LOG_CTX_STARTUP,"cdp/udld/dtp/vtp/pagp frames rule added");
          if (L7_SUCCESS == hapiBroadPolicyCommit(&isdpId))
          {
            hapiSystem->isdpSysId = isdpId;
@@ -888,6 +909,8 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           break;
         }
+        LOG_TRACE(LOG_CTX_STARTUP,"DHCP frames rule added");
+
         if (L7_SUCCESS == hapiBroadPolicyCommit(&voiceId))
         {
           hapiSystem->voiceDhcpSysId = voiceId;
@@ -906,16 +929,19 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
 #ifdef L7_MCAST_PACKAGE
   hapiBroadConfigL3McastFilter(L7_TRUE);
+  LOG_TRACE(LOG_CTX_STARTUP,"Multicast package");
 #endif  
 #ifdef L7_LLPF_PACKAGE
   /*Drop rules to discard LLPF PDU's like cdp/dtp/vtp/pagp/sstp*/
   result = hapiBroadLlpfPolicyInstall(dapi_g);
+  LOG_TRACE(LOG_CTX_STARTUP,"LLPF rules added");
   if(L7_SUCCESS != result)
   {
     return result;
   }
 #endif
 
+  LOG_INFO(LOG_CTX_STARTUP,"Default rules initialization finished! (result=%d)",result);
 
   return result;
 }
