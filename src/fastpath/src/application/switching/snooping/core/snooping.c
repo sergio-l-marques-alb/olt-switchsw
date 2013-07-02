@@ -392,7 +392,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Validate intIfNum */
   if (pduInfo->intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
     return L7_FAILURE;
   }
 
@@ -1107,7 +1108,8 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",msg->intIfNum,msg->vlanId);
       }
       #else
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "No dynamic clients allowed for leafs of linecards");
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "No dynamic clients allowed for leafs of linecards");
       return L7_FAILURE;
       #endif
     }
