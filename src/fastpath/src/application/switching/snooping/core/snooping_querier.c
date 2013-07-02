@@ -1636,7 +1636,7 @@ L7_RC_t snoopIGMPFrameBuild(L7_uint32        intIfNum,
       val = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
                                          SNOOP_PARAM_MAX_RESPONSE_TIME,
                                          pSnoopCB->family);
-      val *= SNOOP_IGMP_FP_DIVISOR;
+      //val *= SNOOP_IGMP_FP_DIVISOR;   /* Value is in 1/10 s */
         /* Check for byteVal overflow */
       if (val >= (1 << (sizeof(byteVal) * 8)))
       {
@@ -1867,7 +1867,7 @@ L7_RC_t snoopMLDFrameBuild(L7_uint32       intIfNum,
      uintVal = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
                                         SNOOP_PARAM_MAX_RESPONSE_TIME,
                                         pSnoopCB->family);
-     shortVal = uintVal * SNOOP_MLD_FP_DIVISOR;
+     shortVal = uintVal /* * SNOOP_MLD_FP_DIVISOR*/;  /* Value is in 1/10 s */
    }
    else
    {

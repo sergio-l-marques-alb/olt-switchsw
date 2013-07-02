@@ -1470,7 +1470,8 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
 
         /* Add source to to the list of sources to query */
         LOG_TRACE(LOG_CTX_PTIN_IGMP, "Adding source %s to Q(G,S)", inetAddrPrint(&ipv4Addr, debug_buf));
-        if (snoop_ptin_sourcetimer_timeleft(&avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].sourceTimer) > (igmpCfg.querier.last_member_query_count * igmpCfg.querier.last_member_query_interval))
+        if (snoop_ptin_sourcetimer_timeleft(&avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].sourceTimer) >
+            (igmpCfg.querier.last_member_query_count * SNOOP_MAXRESP_INTVL_ROUND(igmpCfg.querier.last_member_query_interval, SNOOP_IGMP_FP_DIVISOR)))
         {
           sources2Query[sources2QueryCnt]=ipv4Addr;
           ++sources2QueryCnt;

@@ -665,7 +665,11 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   /* If retransmissions > 0, schedule another Group-Specific Query message. Otherwise free the position in the query buffer */
   if (queryData->retransmissions > 0)
   {
-    osapiTimerAdd((void *) snoopPTinQuerySend, (L7_uint32) queryData, 0, igmpCfg.querier.last_member_query_interval * 1000, &queryData->queryTimer);
+    osapiTimerAdd((void *) snoopPTinQuerySend,
+                  (L7_uint32) queryData,
+                  0,
+                  SNOOP_MAXRESP_INTVL_ROUND(igmpCfg.querier.last_member_query_interval * 1000, SNOOP_IGMP_FP_DIVISOR),
+                  &queryData->queryTimer);
   }
   else
   {
