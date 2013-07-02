@@ -4910,8 +4910,8 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
       (client->innerVlan==0 || client->innerVlan>4095))
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_SUCCESS;
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+    return L7_FAILURE;
   }
   #endif
 
@@ -5264,7 +5264,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
       (client->innerVlan==0 || client->innerVlan>4095))
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
     return L7_FAILURE;
   }
   #endif
