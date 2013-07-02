@@ -1083,38 +1083,33 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
   #if 1
   if (msg->client_idx == (L7_uint32) -1)
   {
-    /* Dynamic client management only for Linecard */
-    #if ( !PTIN_BOARD_IS_MATRIX )
-    L7_BOOL unstacked_service = L7_FALSE;
-
-    /* If and service is unstacked, and interface is a client, create dynamic client */
-    if ( (ptin_igmp_vlan_UC_is_unstacked(msg->vlanId, &unstacked_service) == L7_SUCCESS) &&
-         (unstacked_service) /*&& (msg->innerVlanId == 0)*/ )
-    #endif
+    /* Apenas se a interface e LEAF */
+    if (ptin_igmp_clientIntfVlan_validate(msg->intIfNum,msg->vlanId)==L7_SUCCESS)
     {
-      /* Apenas se a interface e LEAF */
-      if (ptin_igmp_clientIntfVlan_validate(msg->intIfNum,msg->vlanId)==L7_SUCCESS)
+      #if ( PTIN_BOARD_IS_MATRIX )
+      ptin_client_id_t  client;
+
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: Going to add dynamically a client");
+
+      /* Search for the dynamic client */
+        /* Client information */
+      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+      client.outerVlan = msg->vlanId;
+      client.innerVlan = msg->innerVlanId;
+      client.ipv4_addr = 0;
+      memcpy(client.macAddr,&msg->snoopBuffer[L7_MAC_ADDR_LEN],sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_MACADDR;
+
+      /* If the client does not exist, it will be created in dynamic mode */
+      if (ptin_igmp_dynamic_client_add(msg->intIfNum, msg->vlanId, &client, &msg->client_idx)!=L7_SUCCESS)
       {
-        ptin_client_id_t  client;
-
-        SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: Going to add dynamically a client");
-
-        /* Search for the dynamic client */
-          /* Client information */
-        client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-        client.outerVlan = msg->vlanId;
-        client.innerVlan = msg->innerVlanId;
-        client.ipv4_addr = 0;
-        memcpy(client.macAddr,&msg->snoopBuffer[L7_MAC_ADDR_LEN],sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_MACADDR;
-
-        /* If the client does not exist, it will be created in dynamic mode */
-        if (ptin_igmp_dynamic_client_add(msg->intIfNum, msg->vlanId, &client, &msg->client_idx)!=L7_SUCCESS)
-        {
-          msg->client_idx = (L7_uint) -1;
-          SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",msg->intIfNum,msg->vlanId);
-        }
+        msg->client_idx = (L7_uint) -1;
+        SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",msg->intIfNum,msg->vlanId);
       }
+      #else
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "No dynamic clients allowed for leafs of linecards");
+      return L7_FAILURE;
+      #endif
     }
   }
 
