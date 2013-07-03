@@ -343,8 +343,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_prot_erps_init();
   #endif
 
-  ptin_oam_eth_init();
-
   #if ( PTIN_BOARD_IS_STANDALONE )
   /* Open shared memory to communicate with the GPON application */
   if (fw_shm_open() != 0)
@@ -482,6 +480,9 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize EVC data structures */
   ptin_evc_init();
+
+  /* Initialize OAM data structures (includes task and timer) */
+  ptin_oam_eth_init();
 
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 
