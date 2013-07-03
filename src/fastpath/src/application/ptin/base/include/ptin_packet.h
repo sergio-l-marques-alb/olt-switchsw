@@ -43,4 +43,19 @@ extern L7_RC_t ptin_packet_deinit(void);
  */
 extern L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
+/**
+ * Routine to transmit frames
+ * 
+ * @param intIfNum 
+ * @param vlanId 
+ * @param innerVID 
+ * @param payload 
+ * @param payloadLen 
+ */
+extern void ptin_packet_send(L7_uint32 intIfNum,
+                      L7_uint32 vlanId,
+                      L7_uint32 innerVID,
+                      L7_uchar8 *payload,
+                      L7_uint32 payloadLen);
+
 #endif  /* _PTIN_PACKET_H */

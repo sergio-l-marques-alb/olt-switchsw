@@ -57,12 +57,6 @@ void ptin_packet_task(void);
 /* Process broadcast packet */
 L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg );
 
-/* Routine to transmit frames */
-void ptin_packet_send(L7_uint32 intIfNum,
-                      L7_uint32 vlanId,
-                      L7_uint32 innerVID,
-                      L7_uchar8 *payload,
-                      L7_uint32 payloadLen);
 
 /*****************
  * DEBUG ROUTINES
