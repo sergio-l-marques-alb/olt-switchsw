@@ -7369,6 +7369,9 @@ void ptin_igmpPair_dump(L7_int evc_mc, L7_int evc_uc)
 #endif
 }
 
+/**
+ * Dumps IGMP proxy configuration
+ */
 void ptin_igmp_proxy_dump(void)
 {
   printf("IGMP Proxy global:\r\n");
@@ -7406,7 +7409,12 @@ void ptin_igmp_proxy_dump(void)
   printf("Done!\r\n");
 }
 
-void ptin_igmp_querier_dump(L7_int evc_mc)
+/**
+ * Dumps IGMP queriers configuration
+ * 
+ * @param evcId : evc index
+ */
+void ptin_igmp_querier_dump(L7_int evcId)
 {
   L7_uint16 evc_idx, vlanId;
   ptin_HwEthMef10Evc_t evcConf;
@@ -7438,24 +7446,28 @@ void ptin_igmp_querier_dump(L7_int evc_mc)
   }
 
   /* Hello */
-  if ( evc_mc <= 0 )
+  if ( evcId <= 0 )
   {
     printf("\nPrinting all IGMP UC services.\r\n");
   }
   else
   {
-    printf("\nPrinting only IGMP UC service provided %u:\r\n",evc_mc);
+    printf("\nPrinting only IGMP UC service provided %u:\r\n",evcId);
   }
 
   for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++)
   {
     /* Print this? */
-    if (evc_mc>0 && evc_idx!=evc_mc)
+    if (evcId>0 && evc_idx!=evcId)
       continue;
 
     /* EVC must be active */
     if (!ptin_evc_is_in_use(evc_idx))
+    {
+      if (evcId>0)
+        printf("EVC %u does not exist!\r\n",evc_idx);
       continue;
+    }
 
     /* Get EVC configuration */
     if (ptin_evc_get(&evcConf) != L7_SUCCESS)
@@ -7466,7 +7478,11 @@ void ptin_igmp_querier_dump(L7_int evc_mc)
 
     /* IGMP flag should be active */
     if (!(evcConf.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+    {
+      if (evcId>0)
+        printf("EVC %u does not have IGMP flag active!\r\n",evc_idx);
       continue;
+    }
 
     /* Extract root vlan */
     if (ptin_evc_get_intRootVlan(evc_idx, &vlanId)!=L7_SUCCESS)
