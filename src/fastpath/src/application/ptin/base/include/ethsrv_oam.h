@@ -6,6 +6,7 @@ typedef unsigned short  u16;
 typedef unsigned long   u32;
 typedef unsigned long long u64;
 #ifndef NLS
+    //#define NLS "\n\r"
     #define NLS "\n\r"
 #endif
 

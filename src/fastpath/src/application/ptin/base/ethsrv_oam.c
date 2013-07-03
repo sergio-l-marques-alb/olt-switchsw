@@ -8,7 +8,7 @@
 //
 //
 //COPYRIGHT:
-//PT Inovação (a.k.a. PTIn, a.k.a. CET)
+//PT Inovaï¿½ï¿½o (a.k.a. PTIn, a.k.a. CET)
 //
 //
 //CONTACT:
@@ -21,6 +21,7 @@
 #include <stdio.h>
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
 #include <ethsrv_oam.h>
+#include <logger.h>
 //PUBLIC VARIABLES/OBJECTS**************************************************************
 __OAM_TIMER_CODE_VALUES_DECLARATION__
 __OAM_MC_MAC_DECLARATION__
@@ -622,7 +623,7 @@ u32 j, n, meps_procssd_per_function_call;
         else {//if (_p_mep->ME[i].LOC_timer*2 >= tmout*7) {
             if (_p_mep->ME[i].LOC_timer!=0L-1) {
                 ethsrv_oam_register_connection_loss((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
-                printf("Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
+                LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
             }
             _p_mep->ME[i].LOC_timer=   0L-1;
             timeout=1;
@@ -674,7 +675,7 @@ u32 j, n, meps_procssd_per_function_call;
         if (_p_mep_csf->LOS_timer*2 < tmout*7)   _p_mep_csf->LOS_timer += T_ms; //3.5*tmout
         else {
             if (_p_mep_csf->LOS_timer!=0L-1) {
-                printf("MEP %u: End of C-LOS"NLS, _p_mep->mep_id);
+                LOG_TRACE(LOG_CTX_OAM,"MEP %u: End of C-LOS"NLS, _p_mep->mep_id);
             }
             _p_mep_csf->LOS_timer=   0L-1;
         }
@@ -993,22 +994,22 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  if (_p_mep->ME[i_rmep].LOC_timer==0L-1) {
      if (flags_TO_RDI(p_ccm->flags)) {
          ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-         printf("MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+         LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
      }
      else {
          ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-         printf("Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, p_ccm->mep_id);
+         LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, p_ccm->mep_id);
      }
  }
  else
  if (!_p_mep->ME[i_rmep].RDI && flags_TO_RDI(p_ccm->flags)) {
      ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-     printf("MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+     LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
  }
  else
  if (_p_mep->ME[i_rmep].RDI && !flags_TO_RDI(p_ccm->flags)) {
      ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-     printf("MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+     LOG_TRACE(LOG_CTX_OAM,"MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
  }
 
  _p_mep->ME[i_rmep].LOC_timer=0;

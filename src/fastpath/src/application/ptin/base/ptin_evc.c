@@ -4881,7 +4881,7 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Int.VLAN=%u", int_vlan);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
 
   /* Validate arguments */
   if (int_vlan>=4096)
@@ -4917,6 +4917,8 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 
   /* Get all leaf interfaces... */
   ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
@@ -6792,6 +6794,8 @@ void ptin_evc_dump(L7_uint evc_idx)
       printf("MACLEARNING  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING)
       printf("CPUTrap  ");
+    if (evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+      printf("IGMP  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
       printf("DHCPop82  ");
     printf("\n");

@@ -618,8 +618,9 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
 
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
-  if (ptin_oam_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_ERPS,"APS Packet transmited to intIfNum=%u", intfNum);
+  if (ptin_oam_packet_debug_enable) {
+    LOG_TRACE(LOG_CTX_ERPS,"OAM Packet transmited to intIfNum=%u, vlanId=%u", intfNum, vlanId);
+  }
 
   return;
 }
@@ -687,10 +688,19 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 
   aps_frame = (aps_frame_t*) pktMsg->payload;
 
-  // packet arrives with internal VLAN ID. write back the control VID
-  aps_frame->vlan_tag[2] = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
-  aps_frame->vlan_tag[3] = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
+  // Check if this is an open ring configuration.
+  // On closed ring, packet should not be forwarded if port is blocked
+  if ( (tbl_erps[erps_idx].protParam.isOpenRing == L7_FALSE) && 
+       ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) || (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) ) {
 
+    // Port blocked. Do not forward packet
+    if (ptin_oam_packet_debug_enable)
+      LOG_TRACE(LOG_CTX_ERPS,"Port blocked! Do not forward APS packet.");
+
+    return L7_SUCCESS;
+  }
+
+  // Check Node ID
   if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
     // Own packet! Do not forward it.
 
@@ -700,6 +710,11 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
     return L7_SUCCESS;
   }
 
+  // Packet arrives with internal VLAN ID. write back the control VID
+  aps_frame->vlan_tag[2] = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
+  aps_frame->vlan_tag[3] = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
+
+  // Tx packet to the other Ring port
   if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
     txintport = tbl_halErps[erps_idx].port1intfNum;
   } else {

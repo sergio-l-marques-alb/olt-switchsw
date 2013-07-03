@@ -20,6 +20,8 @@
 #include "ptin_xlate_api.h"
 #include "ptin_intf.h"
 
+#include "ptin_prot_oam_eth.h"
+
 #include <unistd.h>
 
 
@@ -378,6 +380,28 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
   } // for(byte...)
 
   return L7_SUCCESS;
+}
+
+
+
+/********************************************************************************** 
+ *                               OAM Abstraction
+ **********************************************************************************/
+
+
+/**
+ * Get MEP alarm
+ * 
+ * @author joaom (6/28/2013)
+ * 
+ * @param slot    Unused
+ * @param index   MEP Idx
+ * 
+ * @return int    SF or No SF
+ */
+int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index)
+{  
+  return MEP_is_in_LOC(index, 0xffff, &oam);
 }
 
 #endif  // PTIN_ENABLE_ERPS

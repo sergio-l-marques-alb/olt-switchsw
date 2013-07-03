@@ -120,6 +120,8 @@ void ptin_debug(void)
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
   printf("  ptin_igmp_snoop_dump <id>           - prints IGMP snooping entries (use -1 to display all)\r\n");
+  printf("  ptin_igmp_proxy_dump                - prints IGMP proxy configuration\r\n");
+  printf("  ptin_igmp_querier_dump <evc_idx>    - prints IGMP querier configuration (none/0/-1 for all)\r\n");
   printf("  ptin_igmptimer_show                 - Show IGMP packet processing time data\r\n");
   printf("  ptin_igmptimer_clear                - Initializes IGMP packet processing time data\r\n");
   printf("  ptin_timers_clear                   - Inializes all processing timers\r\n");

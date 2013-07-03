@@ -137,6 +137,19 @@ extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_u
  */
 extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
 
+/**
+ * Get MEP alarm
+ * 
+ * @author joaom (6/28/2013)
+ * 
+ * @param slot    Unused
+ * @param index   MEP Idx
+ * 
+ * @return int    SF or No SF
+ */
+extern int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index);
+
+
 
 #endif //__HAL_ERPS_H__
 

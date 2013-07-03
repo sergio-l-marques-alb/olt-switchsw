@@ -403,8 +403,17 @@ void timerCallback(void *param)
     /* If no sources remain, remove group. Otherwise, switch to filter-mode INCLUDE */
     if (interfacePtr->numberOfSources == 0)
     {
+//    if(pTimerData->groupData->interfaces[pTimerData->interfaceIdx].isRoot!=L7_TRUE)
+//    {
+//      /*Close L2 Port on Switch*/
+//      if(snoopGroupIntfRemove(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx)!=L7_SUCCESS)
+//      {
+//        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfRemove()");
+//        return;
+//      }
+//    }
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
-      snoopPTinInterfaceRemove(interfacePtr);
+      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
     }
     else
     {

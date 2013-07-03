@@ -89,7 +89,7 @@ L7_RC_t snoopPTinClientAdd(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Sour
   /* If does not exist in any source, add it to the L2 table */
   if (clientSourceCnt == 0)
   {
-    snoopPTinL2ClientAdd(); // PLACEHOLDER
+    snoopPTinL2ClientAdd(); // PLACEHOLDER    
   }
 
   /* Add the client to this source*/
@@ -264,116 +264,7 @@ L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t* interfacePtr, snoopPTinL3S
 }
 
 
-#if 0
-/*************************************************************************
- * @purpose Adds a new source to the given source list in the first free
- *          index
- *
- * @param   interfacePtr  Interface to which the source list belongs
- * @param   sourceAddr    Address of the new source
- * @param   newSourceIdx  If source is successfully added, this will hold
- *                        the new source index in the source list. If
- *                        passed as L7_NULLPTR, it is not used
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE    Source list is full
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyDBSourceAdd(snoopPTinL3InfoData_t* ProxyDBPtr,L7_inet_addr_t sourceAddr,L7_uint8* newSourceIdx,L7_uint32 interfaceIdx)
-{
-//L7_uint16 idx;
-//
-///* Argument validation */
-//if (ProxyDBPtr == L7_NULLPTR || newSourceIdx == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-//{
-//  if (ProxyDBPtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
-//  {
-//    memset(&ProxyDBPtr->sources[idx], 0x00, sizeof(snoopPTinL3Source_t));
-//    ProxyDBPtr->sources[idx].status     = PTIN_SNOOP_SOURCESTATE_ACTIVE;
-//    ProxyDBPtr->sources[idx].sourceAddr = sourceAddr;
-//    *newSourceIdx                         = idx;
-//    ++ProxyDBPtr->numberOfSources;
-//    return L7_SUCCESS;
-//  }
-//}
 
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Search a specific source in a given source list
- *
- * @param   sourceList  List of sources on which to search for the given
- *                      source
- * @param   sourceAddr  Address of the requested source
- * @param   foundIdx    If source is found, this will hold the source
- *                      index in the source list. If passed as L7_NULLPTR
- *                      it is not used
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyDBSourceFind(snoopPTinProxyDBSource_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx)
-{
-  L7_uint16 idx;
-
-  /* Argument validation */
-  if (sourceList == L7_NULLPTR || foundIdx == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-  {
-    if ((sourceList[idx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE) && L7_INET_ADDR_COMPARE(&(sourceList[idx].sourceAddr),&sourceAddr)==L7_TRUE)
-    {
-      *foundIdx = idx;
-      return L7_SUCCESS;
-    }
-  }
-
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Remove a source entry, reseting all its fields and stopping
- *          the associated timer
- *
- * @param   interfacePtr        Interface in which the source is
- * @param   sourcePtr           Source to remove
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- * @note This method also removes every client associated with this source
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyDBSourceRemove(snoopPTinL3InfoData_t *ProxyDBPtr, snoopPTinL3Source_t *sourcePtr)
-{
-//  /* Argument validation */
-//  if (ProxyDBPtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//    return L7_FAILURE;
-//  }
-//
-//  /* Remove clients associated with this source */
-//  memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint8)*8)+1);
-//
-//snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
-//memset(sourcePtr, 0x00, sizeof(*sourcePtr));
-//  --ProxyDBPtr->numberOfSources;
-
-  return L7_SUCCESS;
-}
 
 /*************************************************************************
  * @purpose Adds a new source to the given source list in the first free
@@ -389,102 +280,28 @@ L7_RC_t snoopPTinProxyDBSourceRemove(snoopPTinL3InfoData_t *ProxyDBPtr, snoopPTi
  * @returns L7_FAILURE    Source list is full
  *
  *************************************************************************/
-L7_RC_t snoopPTinProxyGRSourceAdd(snoopPTinProxyGrouprecordInfoData_t *ProxyGRptr, L7_inet_addr_t sourceAddr, L7_uint8* newSourceIdx)
-{
-//  L7_uint16 idx;
-//  /* Argument validation */
-//  if (ProxyGRptr == L7_NULLPTR || newSourceIdx == L7_NULLPTR)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//    return L7_FAILURE;
-//  }
-//  for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-//  {
-//    if (ProxyGRptr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
-//    {
-//      memset(&ProxyGRptr->sourceAddr[idx], 0x00, sizeof(L7_inet_addr_t));
-////    ProxyGRptr->sources[idx].status     = PTIN_SNOOP_SOURCESTATE_ACTIVE;
-//      ProxyGRptr->sourceAddr[idx] = sourceAddr;
-//      *newSourceIdx                         = idx;
-//      ++ProxyGRptr->numberOfSources;
-//      return L7_SUCCESS;
-//    }
-//  }
-
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Search a specific source in a given source list
- *
- * @param   sourceList  List of sources on which to search for the given
- *                      source
- * @param   sourceAddr  Address of the requested source
- * @param   foundIdx    If source is found, this will hold the source
- *                      index in the source list. If passed as L7_NULLPTR
- *                      it is not used
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyGRSourceFind(snoopPTinProxyGrouprecordInfoData_t *sourceList, L7_inet_addr_t sourceAddr, L7_uint8* foundIdx)
-{
-//L7_uint16 idx;
-//
-///* Argument validation */
-//if (sourceList == L7_NULLPTR || foundIdx == L7_NULLPTR)
+//L7_RC_t snoopPTinGrouprecordAdd(L7_uint8 recordType, L7_uint32 interfaceIdx,L7_uint32 vlanId, L7_inet_addr_t groupAddr,L7_inet_addr_t   sourceAddr)
 //{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
+////  L7_INTF_MASK_t rootIntfList;
+////  L7_uint32      rootIntIfNum;
+////
+////
+////
+////  /* Argument validation */
+////  if (interfacePtr == L7_NULLPTR || newSourceIdx == L7_NULLPTR)
+////  {
+////    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+////    return L7_FAILURE;
+////  }
+////
+////
+////getRootInterface
+////
+////
 //
-//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-//{
-//  if /*((sourceList[idx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE) &&*/ L7_INET_ADDR_COMPARE(&sourceList[idx].sourceAddr,&sourceAddr)==L7_TRUE/*)*/
-//  {
-//    *foundIdx = idx;
-//    return L7_SUCCESS;
-//  }
-//}
+// }
 
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Remove a source entry, reseting all its fields and stopping
- *          the associated timer
- *
- * @param   interfacePtr        Interface in which the source is
- * @param   sourcePtr           Source to remove
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- * @note This method also removes every client associated with this source
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyGRSourceRemove(snoopPTinProxyGrouprecordInfoData_t *ProxyGRPtr)
-{
-//  /* Argument validation */
-//  if (ProxyDBPtr == L7_NULLPTR /*|| sourcePtr == L7_NULLPTR*/)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//    return L7_FAILURE;
-//  }
-//
-//  /* Remove clients associated with this source */
-//  memset(ProxyDBPtr->, 0x00, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint8)*8)+1);
-//
-////snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
-////memset(sourcePtr, 0x00, sizeof(*sourcePtr));
-//  --ProxyDBPtr->numberOfSources;
-
-  return L7_SUCCESS;
-}
-
-#endif
-
+ 
 /*************************************************************************
  * @purpose Remove an interface entry, reseting all its fields and
  *          stopping the group and query timers
@@ -495,7 +312,7 @@ L7_RC_t snoopPTinProxyGRSourceRemove(snoopPTinProxyGrouprecordInfoData_t *ProxyG
  * @returns L7_FAILURE
  *
  *************************************************************************/
-L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t* interfacePtr)
+L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr,L7_uint16 interfaceIdx)
 {
   snoopPTinL3Source_t     *sourcePtr;
   L7_uint32               i;
@@ -518,6 +335,16 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t* interfacePtr)
   }
   memset(interfacePtr, 0x00, sizeof(*interfacePtr));
 
+  if(interfacePtr->isRoot!=L7_TRUE)
+  {
+    /*Close L2 Port on Switch*/
+    if(snoopGroupIntfRemove(vlanId,&mcastGroupAddr,interfaceIdx)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfRemove()");
+      return L7_FAILURE;
+    }
+  }
+
   return L7_SUCCESS;
 }
 
@@ -530,18 +357,29 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t* interfacePtr)
  * @todo    Set query-timer.
  *
  *************************************************************************/
-void snoopPTinInitializeInterface(snoopPTinL3Interface_t *interfacePtr)
+L7_RC_t snoopPTinInitializeInterface(snoopPTinL3Interface_t *interfacePtr,L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr,L7_uint16 interfaceIdx)
 {
   /* Argument validation */
   if (interfacePtr == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return;
+    return L7_FAILURE;
   }
 
   memset(interfacePtr, 0x00, sizeof(*interfacePtr));
   interfacePtr->active     = L7_TRUE;
   interfacePtr->filtermode = PTIN_SNOOP_FILTERMODE_INCLUDE;
+
+  if(interfacePtr->isRoot!=L7_TRUE)
+  {
+    /*Open L2 Port on Switch*/
+    if(snoopGroupIntfAdd(vlanId,&mcastGroupAddr, interfaceIdx)!=L7_SUCCESS)
+    {
+     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");
+     return L7_FAILURE;
+    }
+  }
+  return L7_SUCCESS;
 }
 
 /*************************************************************************
@@ -1536,246 +1374,3 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
 }
 
 
-
-#if 0
-/************************************************************************************************************/
-/*MGMD Proxy*/
-
-
-/*************************************************************************
- * @purpose Search a specific client in a given client list
- *
- * @param clientList    List of clients on which to search for the given
- *                      client
- * @param clientIdx     Index of the requested client
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyClientFind(L7_uint8 *clientList, L7_uint8 clientIdx)
-{
-  if (PTIN_PROXY_IS_MASKBITSET(clientList, clientIdx))
-  {
-    return L7_SUCCESS;
-  }
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Adds a new client to the given source in the first free index
- *
- * @param interfacePtr  Interface in which the source is
- * @param sourcePtr     Source in which the client should be added
- * @param clientIdx     Index of the requested client
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- * @todo Add client to L2
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyClientAdd(snoopPTinL3InfoData_t *proxyPtr, snoopPTinL3Source_t *sourcePtr, L7_uint8 clientIdx)
-{
-//L7_uint8 i, clientSourceCnt;
-//
-///* Argument validation */
-//if (proxyPtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-///* Count the number of sources this client has */
-//for (i = 0, clientSourceCnt = 0; i < PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint8)*8)+1; ++i)
-//{
-//  if (snoopPTinProxyClientFind(proxyPtr->sources[i].clients, clientIdx))
-//  {
-//    ++clientSourceCnt;
-//    break;
-//  }
-//}
-//
-///* If does not exist in any source, add it to the L2 table */
-//if (clientSourceCnt == 0)
-//{
-//  snoopPTinProxyL2ClientAdd(); // PLACEHOLDER
-//}
-//
-///* Add the client to this source*/
-//if (L7_SUCCESS != snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
-//{
-//   PTIN_PROXY_SET_MASKBIT(sourcePtr->clients, clientIdx);
-//   ++sourcePtr->numberOfClients;
-//}
-
-  return L7_SUCCESS;
-}
-
-/*************************************************************************
- * @purpose Removes a client from the given source
- *
- * @param interfacePtr  Interface in which the source is
- * @param sourcePtr     Source from which the client should be removed
- * @param clientIdx     Index of the requested client
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- * @todo Remove client from L2
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxyClientRemove(snoopPTinL3InfoData_t *sourcePtr, L7_uint8 clientIdx)
-{
-//L7_uint8 i, clientSourceCnt;
-//
-///* Argument validation */
-//if (sourcePtr == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-///* Count the number of sources this client has */
-//for (i = 0, clientSourceCnt = 0; i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++i)
-//{
-//  if (snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
-//  {
-//    ++clientSourceCnt;
-//  }
-//}
-//
-///* If this client is only on one source, remove it from the L2 table */
-//if (clientSourceCnt == 1)
-//{
-//  snoopPTinProxyL2ClientRemove(); // PLACEHOLDER
-//}
-//
-///* Remove the client from this source */
-//if (L7_SUCCESS != snoopPTinProxyClientFind(sourcePtr->clients, clientIdx))
-//{
-//   PTIN_PROXY_UNSET_MASKBIT(sourcePtr->clients, clientIdx);
-//   --sourcePtr->numberOfClients;
-//}
-
-  return L7_SUCCESS;
-}
-#endif
-
-#if 0
-
-/*************************************************************************
- * @purpose Adds a new source to the given source list in the first free
- *          index
- *
- * @param   interfacePtr  Interface to which the source list belongs
- * @param   sourceAddr    Address of the new source
- * @param   newSourceIdx  If source is successfully added, this will hold
- *                        the new source index in the source list. If
- *                        passed as L7_NULLPTR, it is not used
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE    Source list is full
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxySourceAdd(snoopPTinProxyInfoData_t *interfacePtr, L7_uint32 sourceAddr, L7_uint8* newSourceIdx)
-{
-//L7_uint16 idx;
-//
-///* Argument validation */
-//if (interfacePtr == L7_NULLPTR || newSourceIdx == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-//{
-//  if (interfacePtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
-//  {
-//    memset(&interfacePtr->sources[idx], 0x00, sizeof(snoopPTinProxySource_t));
-//    interfacePtr->sources[idx].status     = PTIN_SNOOP_SOURCESTATE_ACTIVE;
-//    interfacePtr->sources[idx].sourceAddr = sourceAddr;
-//    *newSourceIdx                         = idx;
-//    ++interfacePtr->numberOfSources;
-//
-//    return L7_SUCCESS;
-//  }
-//}
-
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Search a specific source in a given source list
- *
- * @param   sourceList  List of sources on which to search for the given
- *                      source
- * @param   sourceAddr  Address of the requested source
- * @param   foundIdx    If source is found, this will hold the source
- *                      index in the source list. If passed as L7_NULLPTR
- *                      it is not used
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxySourceFind(snoopPTinProxySource_t *sourceList, L7_uint32 sourceAddr, L7_uint8* foundIdx)
-{
-//L7_uint16 idx;
-//
-///* Argument validation */
-//if (sourceList == L7_NULLPTR || foundIdx == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-//for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
-//{
-//  if ((sourceList[idx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE) && (sourceList[idx].sourceAddr == sourceAddr))
-//  {
-//    *foundIdx = idx;
-//    return L7_SUCCESS;
-//  }
-//}
-
-  return L7_FAILURE;
-}
-
-/*************************************************************************
- * @purpose Remove a source entry, reseting all its fields and stopping
- *          the associated timer
- *
- * @param   interfacePtr        Interface in which the source is
- * @param   sourcePtr           Source to remove
- *
- * @returns L7_SUCCESS
- * @returns L7_FAILURE
- *
- * @note This method also removes every client associated with this source
- *
- *************************************************************************/
-L7_RC_t snoopPTinProxySourceRemove(snoopPTinProxyInfoData_t *interfacePtr, snoopPTinProxySource_t *sourcePtr)
-{
-///* Argument validation */
-//if (interfacePtr == L7_NULLPTR || sourcePtr == L7_NULLPTR)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-//  return L7_FAILURE;
-//}
-//
-///* Remove clients associated with this source */
-//memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
-//
-//snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
-//memset(sourcePtr, 0x00, sizeof(*sourcePtr));
-//--interfacePtr->numberOfSources;
-
-  return L7_SUCCESS;
-}
-
-#endif
-
-/*End MGMD Proxy*/
-/************************************************************************************************************/

@@ -5265,7 +5265,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
       (client->innerVlan==0 || client->innerVlan>4095))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
   #endif
 
@@ -7367,5 +7367,163 @@ void ptin_igmpPair_dump(L7_int evc_mc, L7_int evc_uc)
 #else
   printf("IGMP Multi-MC not supported on this version\r\n");
 #endif
+}
+
+/**
+ * Dumps IGMP proxy configuration
+ */
+void ptin_igmp_proxy_dump(void)
+{
+  printf("IGMP Proxy global:\r\n");
+  printf(" Mask            = 0x%04x\r\n", igmpProxyCfg.mask);
+  printf(" Admin           = %u\r\n",     igmpProxyCfg.admin);
+  printf(" Network Version = %u\r\n",     igmpProxyCfg.networkVersion);
+  printf(" Client  Version = %u\r\n",     igmpProxyCfg.clientVersion);
+  printf(" IPv4 Address    = %03u.%03u.%03u.%03u\r\n",
+         (igmpProxyCfg.ipv4_addr.s_addr>>24) & 0xff, (igmpProxyCfg.ipv4_addr.s_addr>>16) & 0xff, (igmpProxyCfg.ipv4_addr.s_addr>>8) & 0xff, (igmpProxyCfg.ipv4_addr.s_addr) & 0xff);
+  printf(" COS             = %u\r\n",     igmpProxyCfg.igmp_cos);
+  printf(" Fast Leave?     = %u\r\n",     igmpProxyCfg.fast_leave);
+
+  printf("IGMP Querier:\r\n");
+  printf(" Mask                           = 0x%04x\r\n", igmpProxyCfg.querier.mask);
+  printf(" Flags                          = 0x%04x\r\n", igmpProxyCfg.querier.flags);
+  printf(" Robustness                     = %u\r\n",    igmpProxyCfg.querier.robustness);
+  printf(" Query Interval                 = %u\r\n",    igmpProxyCfg.querier.query_interval);
+  printf(" Query Response Interval        = %u\r\n",    igmpProxyCfg.querier.query_response_interval);
+  printf(" Group Mmbership Interval       = %u\r\n",    igmpProxyCfg.querier.group_membership_interval);
+  printf(" Other Querier Present Interval = %u\r\n",    igmpProxyCfg.querier.other_querier_present_interval);
+  printf(" Startup Querier Interval       = %u\r\n",    igmpProxyCfg.querier.startup_query_interval);
+  printf(" Startup Query Count            = %u\r\n",    igmpProxyCfg.querier.startup_query_count);
+  printf(" Last Member Query Interval     = %u\r\n",    igmpProxyCfg.querier.last_member_query_interval);
+  printf(" Last Member Query Count        = %u\r\n",    igmpProxyCfg.querier.last_member_query_count);
+  printf(" Older Host Present Timeout     = %u\r\n",    igmpProxyCfg.querier.older_host_present_timeout);
+
+  printf("IGMP Host:\r\n");
+  printf(" Mask                           = 0x%04x\r\n", igmpProxyCfg.host.mask);
+  printf(" Flags                          = 0x%04x\r\n", igmpProxyCfg.host.flags);
+  printf(" Robustness                     = %u\r\n",     igmpProxyCfg.host.robustness);
+  printf(" Unsolicited Report Interval    = %u\r\n",     igmpProxyCfg.host.unsolicited_report_interval);
+  printf(" Older Querier Present Timeout  = %u\r\n",     igmpProxyCfg.host.older_querier_present_timeout);
+  printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_records_per_report);
+
+  printf("Done!\r\n");
+}
+
+/**
+ * Dumps IGMP queriers configuration
+ * 
+ * @param evcId : evc index
+ */
+void ptin_igmp_querier_dump(L7_int evcId)
+{
+  L7_uint16 evc_idx, vlanId;
+  ptin_HwEthMef10Evc_t evcConf;
+  L7_inet_addr_t address;
+  L7_uint32 query_interval, expiry_interval;
+  L7_uint32 mode, version, participate, maxRespTime, operState;
+
+  /* Global configurations */
+  if (snoopQuerierAdminModeGet(&mode, L7_AF_INET)==L7_SUCCESS &&
+      snoopQuerierAddressGet(&address, L7_AF_INET)==L7_SUCCESS &&
+      snoopQuerierVersionGet(&version, L7_AF_INET)==L7_SUCCESS &&
+      snoopQuerierQueryIntervalGet(&query_interval, L7_AF_INET)==L7_SUCCESS &&
+      snoopQuerierExpiryIntervalGet(&expiry_interval, L7_AF_INET)==L7_SUCCESS)
+  {
+    printf("Global Querier Definitions:\r\n");
+    printf(" Admin    : %u\r\n", mode);
+    printf(" Address  : %03u.%03u.%03u.%03u\r\n",
+           (address.addr.ipv4.s_addr>>24) & 0xff,
+           (address.addr.ipv4.s_addr>>16) & 0xff,
+           (address.addr.ipv4.s_addr>> 8) & 0xff,
+           (address.addr.ipv4.s_addr) & 0xff );
+    printf(" Version  : %u\r\n", version);
+    printf(" Query Interval : %u\r\n", query_interval );
+    printf(" Expiry Interval: %u\r\n", expiry_interval);
+  }
+  else
+  {
+    printf("Error getting global querier definitions\r\n");
+  }
+
+  /* Hello */
+  if ( evcId <= 0 )
+  {
+    printf("\nPrinting all IGMP UC services.\r\n");
+  }
+  else
+  {
+    printf("\nPrinting only IGMP UC service provided %u:\r\n",evcId);
+  }
+
+  for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++)
+  {
+    /* Print this? */
+    if (evcId>0 && evc_idx!=evcId)
+      continue;
+
+    /* EVC must be active */
+    if (!ptin_evc_is_in_use(evc_idx))
+    {
+      if (evcId>0)
+        printf("EVC %u does not exist!\r\n",evc_idx);
+      continue;
+    }
+
+    /* Get EVC configuration */
+    if (ptin_evc_get(&evcConf) != L7_SUCCESS)
+    {
+      printf("Error getting EVC %u configuration!\r\n",evc_idx);
+      continue;
+    }
+
+    /* IGMP flag should be active */
+    if (!(evcConf.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+    {
+      if (evcId>0)
+        printf("EVC %u does not have IGMP flag active!\r\n",evc_idx);
+      continue;
+    }
+
+    /* Extract root vlan */
+    if (ptin_evc_get_intRootVlan(evc_idx, &vlanId)!=L7_SUCCESS)
+    {
+      printf("Error getting EVC %u internal root vlan!\r\n",evc_idx);
+      continue;
+    }
+
+    /* Validate vlan */
+    if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+    {
+      printf("Invalid vlan for EVC %u (%u)!\r\n",evc_idx,vlanId);
+      continue;
+    }
+
+    /* Get vlan configurations and states */
+    if (snoopQuerierVlanModeGet(vlanId, &mode, L7_AF_INET)==L7_SUCCESS &&
+        snoopQuerierVlanAddressGet(vlanId, &address, L7_AF_INET)==L7_SUCCESS &&
+        snoopQuerierOperVersionGet(vlanId, &version, L7_AF_INET)==L7_SUCCESS &&
+        snoopQuerierVlanElectionModeGet(vlanId, &participate, L7_AF_INET)==L7_SUCCESS &&
+        snoopQuerierOperStateGet(vlanId, &operState, L7_AF_INET)==L7_SUCCESS &&
+        snoopQuerierOperMaxRespTimeGet(vlanId, &maxRespTime, L7_AF_INET)==L7_SUCCESS)
+    {
+      printf("Querier definitions for EVC %u / internal vlan %u:\r\n",evc_idx,vlanId);
+      printf(" Admin   : %u\r\n", mode);
+      printf(" Address : %03u.%03u.%03u.%03u\r\n",
+             (address.addr.ipv4.s_addr>>24) & 0xff,
+             (address.addr.ipv4.s_addr>>16) & 0xff,
+             (address.addr.ipv4.s_addr>> 8) & 0xff,
+             (address.addr.ipv4.s_addr) & 0xff );
+      printf(" Election mode: %u\r\n", participate );
+      printf(" Version      : %u\r\n", version);
+      printf(" OperState    : %u\r\n", operState);
+      printf(" MaxRespTime  : %u\r\n", maxRespTime);
+    }
+    else
+    {
+      printf(" Error getting querier definitions for EVC %u / internal vlan %u\r\n", evc_idx, vlanId);
+    }
+  }
+
+  printf("Done!\r\n");
 }
 

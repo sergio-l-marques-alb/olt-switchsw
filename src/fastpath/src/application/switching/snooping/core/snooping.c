@@ -51,9 +51,7 @@
 #include"osapi.h"//MMELO
 
 #if SNOOP_PTIN_IGMPv3_PROXY
-#include "snooping_ptin_proxy_grouptimer.h"//MMELO
-#include "snooping_ptin_proxy_sourcetimer.h"//MMELO
-#include "snooping_ptin_proxy_interfacetimer.h"//MMELO
+#include "snooping_ptin_proxytimer.h"//MMELO
 //#include "snooping_ptin_util.h"//MMELO
 #endif 
 
@@ -390,7 +388,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 
   /* Validate intIfNum */
-  if (pduInfo->intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
+  if ((pduInfo->intIfNum == 0) || (pduInfo->intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP))
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
@@ -3405,35 +3403,37 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   pSnoopCB = mcastPacket->cbHandle;
 
 #if SNOOP_PTIN_IGMPv3_PROXY
-  L7_INTF_MASK_t rootIntfList;
-  L7_uint32      rootIntIfNum;
+//L7_INTF_MASK_t rootIntfList;
+  L7_uint32      rootIntIfNum=0;
   L7_uchar8     *dataPtrTmp;
-    /* Get Multicast Root Interface */
-  if (ptin_igmp_rootIntfs_getList(mcastPacket->vlanId, &rootIntfList) !=L7_SUCCESS)
-  {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_rootIntfs_getList() :%d",mcastPacket->vlanId);
-    return L7_FAILURE;
-  }
-  else
-  {
-    L7_BOOL result;
-    L7_INTF_NONZEROMASK(rootIntfList, result);
-    if (result==L7_FALSE)
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Empty root interface list :ptin_igmp_rootIntfs_getList()");
-      return L7_FAILURE;
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",rootIntfList.value);
-      L7_INTF_FHMASKBIT(rootIntfList, rootIntIfNum);
-      if (rootIntIfNum==0)
-      {
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Unable to get root interface Idx: L7_INTF_FHMASKBIT");
-        return L7_FAILURE;
-      }      
-    }
-  }
+////L7_BOOL        openL2Port=L7_FALSE;
+//
+//    /* Get Multicast Root Interface */
+//  if (ptin_igmp_rootIntfs_getList(mcastPacket->vlanId, &rootIntfList) !=L7_SUCCESS)
+//  {
+//    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to get ptin_igmp_rootIntfs_getList() :%d",mcastPacket->vlanId);
+//    return L7_FAILURE;
+//  }
+//  else
+//  {
+//    L7_BOOL result;
+//    L7_INTF_NONZEROMASK(rootIntfList, result);
+//    if (result==L7_FALSE)
+//    {
+//      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Empty root interface list :ptin_igmp_rootIntfs_getList()");
+//      return L7_FAILURE;
+//    }
+//    else
+//    {
+//      LOG_TRACE(LOG_CTX_PTIN_IGMP,"ptin_igmp_rootIntfs_getList() :%d",rootIntfList.value);
+//      L7_INTF_FHMASKBIT(rootIntfList, rootIntIfNum);
+//      if (rootIntIfNum==0)
+//      {
+//        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Unable to get root interface Idx: L7_INTF_FHMASKBIT");
+//        return L7_FAILURE;
+//      }
+//    }
+//  }
 #endif
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)
@@ -3499,6 +3499,9 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Dropped malformed packet :%d",mcastPacket->cbHandle->family);
     return L7_FAILURE;
   }
+//#if SNOOP_PTIN_IGMPv3_PROXY
+//  openL2Port=L7_FALSE;/*Flag for openning the L2 Ports*/
+//#endif
   
   while (noOfGroups > 0)
   {
@@ -3538,21 +3541,28 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     if (fwdFlag == L7_FALSE)
     {
       /* Create new entry in AVL tree for VLAN+IP if necessary */
-      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(rootIntfList, mcastPacket->vlanId, groupAddr,L7_MATCH_EXACT)))
+      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(mcastPacket->vlanId, groupAddr, L7_MATCH_EXACT)))
       {
-        if (L7_SUCCESS != snoopPTinL3EntryAdd(rootIntfList, mcastPacket->vlanId,groupAddr))
+        if (L7_SUCCESS != snoopPTinL3EntryAdd( mcastPacket->vlanId,groupAddr))
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
           return L7_FAILURE;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%d,%d,%d)",rootIntfList,groupAddr,mcastPacket->vlanId);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%d,%d)",groupAddr,mcastPacket->vlanId);
         }
-        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(rootIntfList, mcastPacket->vlanId, groupAddr,L7_MATCH_EXACT)))
+        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(mcastPacket->vlanId, groupAddr, L7_MATCH_EXACT)))
         {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
           return L7_FAILURE;
         }
+//#if SNOOP_PTIN_IGMPv3_PROXY
+//        else
+//        {
+//          openL2Port=L7_TRUE;
+//        }
+//#endif
       }
 #if 0
       /*Create new entry in ProxyDB for INT+VLAN+GroupAddr if necessary */      
@@ -3625,8 +3635,16 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
       if (snoopEntry->interfaces[mcastPacket->intIfNum].active == L7_FALSE)
       {
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Initializing interface idx: %u", mcastPacket->intIfNum);
-        snoopPTinInitializeInterface(&snoopEntry->interfaces[mcastPacket->intIfNum]);         
+        snoopPTinInitializeInterface(&snoopEntry->interfaces[mcastPacket->intIfNum],mcastPacket->vlanId,groupAddr,mcastPacket->intIfNum);                 
       }
+#if SNOOP_PTIN_IGMPv3_PROXY
+      /* If root interface is not used, initialize it */
+      if (snoopEntry->interfaces[rootIntIfNum].active == L7_FALSE)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Initializing root interface idx: %u", rootIntIfNum);
+        snoopPTinInitializeInterface(&snoopEntry->interfaces[rootIntIfNum],mcastPacket->vlanId,groupAddr,mcastPacket->intIfNum);
+      }
+#endif
 
       floodFlag = L7_FALSE;        
 
@@ -3639,7 +3657,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_MODE_IS_INCLUDE:
         { 
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportIsIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else
           snoopPTinMembershipReportIsIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources,dataPtr);
@@ -3649,7 +3667,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_MODE_IS_EXCLUDE:
         {
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportIsExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportIsExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportIsExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else
           snoopPTinMembershipReportIsExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
@@ -3659,7 +3677,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_CHANGE_TO_INCLUDE_MODE:
         {
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportToIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportToIncludeProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportToIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else          
           snoopPTinMembershipReportToIncludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
@@ -3669,7 +3687,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_CHANGE_TO_EXCLUDE_MODE:
         {
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportToExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportToExcludeProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportToExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else
           snoopPTinMembershipReportToExcludeProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
@@ -3679,7 +3697,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_ALLOW_NEW_SOURCES:
         {
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportAllowProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportAllowProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportAllowProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else
           snoopPTinMembershipReportAllowProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
@@ -3689,7 +3707,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         case L7_IGMP_BLOCK_OLD_SOURCES:
         {
 #if SNOOP_PTIN_IGMPv3_PROXY              
-          snoopPTinMembershipReportBlockProcess(snoopEntry, rootIntIfNum, mcastPacket->client_idx, noOfSources, &dataPtrTmp,L7_TRUE);
+          snoopPTinMembershipReportBlockProcess(snoopEntry, rootIntIfNum, mcastPacket->intIfNum, noOfSources, &dataPtrTmp,L7_TRUE);
           snoopPTinMembershipReportBlockProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr,L7_FALSE);          
 #else
           snoopPTinMembershipReportBlockProcess(snoopEntry, mcastPacket->intIfNum, mcastPacket->client_idx, noOfSources, &dataPtr);
@@ -3808,8 +3826,18 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     {
       dataPtr += (auxDataLen * 4);
     }
-
-    
+//#if SNOOP_PTIN_IGMPv3_PROXY
+//    if (openL2Port==L7_TRUE)
+//    {
+//    /*Open L2 Port on Switch*/
+//     if(snoopGroupIntfAdd(mcastPacket->vlanId,&groupAddr, &(snoopEntry->interfaces[mcastPacket->intIfNum))!=L7_SUCESS)
+//     {
+//       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");
+//       return L7_FAILURE;
+//     }
+//    }
+//#endif
+        
     noOfGroups -= 1;
   } /* end of while loop */
 

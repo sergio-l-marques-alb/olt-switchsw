@@ -49,9 +49,9 @@
 #endif
 
 #if SNOOP_PTIN_IGMPv3_PROXY
-#include "snooping_ptin_proxy_grouptimer.h"
-#include "snooping_ptin_proxy_sourcetimer.h"
-#include "snooping_ptin_proxy_interfacetimer.h"
+#include "snooping_ptin_proxytimer.h"
+
+
 #endif
 #endif
 
@@ -1118,8 +1118,10 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
 }
 #endif
 #if SNOOP_PTIN_IGMPv3_PROXY
+
+
 /*********************************************************************
-* @purpose  MGMD Proxy Execution block initializations
+* @purpose  Proxy Source Execution block initializations
 *
 * @param    None
 *
@@ -1131,38 +1133,37 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopPtinProxyAVLTreeDBInit(void)
+L7_RC_t snoopPtinProxySourceAVLTreeInit(void)
 {
   snoop_eb_t *pSnoopEB;
-
   pSnoopEB = &snoopEB;
-  pSnoopEB->snoopPTinProxyDBTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  pSnoopEB->snoopPTinProxyDBDataHeap = (snoopPTinProxyDBInfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyDBInfoData_t));
 
-  if ((pSnoopEB->snoopPTinProxyDBTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyDBDataHeap == L7_NULLPTR))
+  pSnoopEB->snoopPTinProxySourceTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  
+  pSnoopEB->snoopPTinProxySourceDataHeap = (snoopPTinProxySource_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+
+  if ((pSnoopEB->snoopPTinProxySourceTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxySourceDataHeap == L7_NULLPTR))
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
-            "Error allocating data for snoop PTin Proxy AVL Tree \n");
+            "Error allocating data for snoop PTin Proxy Source AVL Tree \n");
     return L7_FAILURE;
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxyDBAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxyDBTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-  memset(pSnoopEB->snoopPTinProxyDBDataHeap, 0x00, sizeof(snoopPTinProxyDBInfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
+  memset(&pSnoopEB->snoopPTinProxySourceAvlTree, 0x00, sizeof(avlTree_t));
+  memset(pSnoopEB->snoopPTinProxySourceTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinProxySourceDataHeap, 0x00, sizeof(snoopPTinProxySource_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
 
   /* AVL Tree creations - snoopAvlTree*/
-  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyDBAvlTree), pSnoopEB->snoopPTinProxyDBTreeHeap, pSnoopEB->snoopPTinProxyDBDataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxyDBInfoData_t), 0x10, sizeof(snoopPTinProxyDBInfoDataKey_t));
+  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxySourceAvlTree), pSnoopEB->snoopPTinProxySourceTreeHeap, pSnoopEB->snoopPTinProxySourceDataHeap,
+                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxySource_t), 0x10, sizeof(snoopPTinProxySourceKey_t));
   return L7_SUCCESS;
 }
 
-
-
 /*********************************************************************
-* @purpose  MGMD Proxy CSR Execution block initializations
+* @purpose  Proxy Group Execution block initializations
 *
 * @param    None
 *
@@ -1174,157 +1175,79 @@ L7_RC_t snoopPtinProxyAVLTreeDBInit(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t snoopPtinProxyAVLTreeGroupRecordInit(void)
-{
-//snoop_eb_t *pSnoopEB;
-//
-//pSnoopEB = &snoopEB;
-//pSnoopEB->snoopPTinProxyGrouprecordTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-//    L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-//pSnoopEB->snoopPTinProxyGrouprecordDataHeap = (snoopPTinProxyGrouprecordInfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-//    L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGrouprecordInfoData_t));
-//
-//if ((pSnoopEB->snoopPTinProxyGrouprecordTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyGrouprecordDataHeap == L7_NULLPTR))
-//{
-//    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
-//          "Error allocating data for snoop PTin Proxy CSR AVL Tree \n");
-//  return L7_FAILURE;
-//}
-//
-///* Initialize the storage for all the AVL trees */
-//memset(&pSnoopEB->snoopPTinProxyGrouprecordAvlTree, 0x00, sizeof(avlTree_t));
-//memset(pSnoopEB->snoopPTinProxyGrouprecordTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-//memset(pSnoopEB->snoopPTinProxyGrouprecordDataHeap, 0x00, sizeof(snoopPTinProxyGrouprecordInfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-//
-///* AVL Tree creations - snoopAvlTree*/
-//avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyGrouprecordAvlTree), pSnoopEB->snoopPTinProxyGrouprecordTreeHeap, pSnoopEB->snoopPTinProxyGrouprecordDataHeap,
-//                 L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxyGrouprecordInfoData_t), 0x10, sizeof(snoopPTinProxyGrouprecordInfoDataKey_t));
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
-* @purpose  MGMD Proxy Interface Timer Execution block initializations
-*
-* @param    None
-*
-* @returns  L7_SUCCESS - Initialization complete
-*           L7_FAILURE - Initilaization failed because of
-*                        insufficient system resources
-*
-* @notes
-*
-* @end
-*********************************************************************/
-L7_RC_t snoopPtinProxyAVLTreeInterfacetimerInit(void)
+L7_RC_t snoopPtinProxyGroupAVLTreeInit(void)
 {
   snoop_eb_t *pSnoopEB;
-
   pSnoopEB = &snoopEB;
-  pSnoopEB->snoopPTinProxyInterfacetimerTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+
+  pSnoopEB->snoopPTinProxyGroupTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  
+  pSnoopEB->snoopPTinProxyGroupDataHeap = (snoopPTinProxyGroup_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
+
+  if ((pSnoopEB->snoopPTinProxyGroupTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyGroupDataHeap == L7_NULLPTR))
+  {
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
+            "Error allocating data for snoop PTin Proxy Group AVL Tree \n");
+    return L7_FAILURE;
+  }
+
+  /* Initialize the storage for all the AVL trees */
+  memset(&pSnoopEB->snoopPTinProxyGroupAvlTree, 0x00, sizeof(avlTree_t));
+  memset(pSnoopEB->snoopPTinProxyGroupTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinProxyGroupDataHeap, 0x00, sizeof(snoopPTinProxyGroup_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+
+  /* AVL Tree creations - snoopAvlTree*/
+  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyGroupAvlTree), pSnoopEB->snoopPTinProxyGroupTreeHeap, pSnoopEB->snoopPTinProxyGroupDataHeap,
+                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxyGroup_t), 0x10, sizeof(snoopPTinProxyGroupKey_t));
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Proxy Interface Execution block initializations
+*
+* @param    None
+*
+* @returns  L7_SUCCESS - Initialization complete
+*           L7_FAILURE - Initilaization failed because of
+*                        insufficient system resources
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t snoopPtinProxyInterfaceAVLTreeInit(void)
+{
+  snoop_eb_t *pSnoopEB;
+  pSnoopEB = &snoopEB;
+
+  pSnoopEB->snoopPTinProxyInterfaceTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
       PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
-  pSnoopEB->snoopPTinProxyInterfacetimerDataHeap = (snoopPTinProxyInterfacetimerInfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterfacetimerInfoData_t));
+  
+  pSnoopEB->snoopPTinProxyInterfaceDataHeap = (snoopPTinProxyInterface_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+      PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterface_t));
 
-  if ((pSnoopEB->snoopPTinProxyInterfacetimerTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyInterfacetimerDataHeap == L7_NULLPTR))
+  if ((pSnoopEB->snoopPTinProxyInterfaceTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyInterfaceDataHeap == L7_NULLPTR))
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
-            "Error allocating data for snoop PTin Proxy Interface Timer AVL Tree \n");
+            "Error allocating data for snoop PTin Proxy Interface AVL Tree \n");
     return L7_FAILURE;
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxyInterfacetimerAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxyInterfacetimerTreeHeap, 0x00, sizeof(avlTreeTables_t) * PTIN_SYSTEM_N_IGMP_INSTANCES);//TODO@MMELO - Do we need to define a new constant with a higher value (>8)?
-  memset(pSnoopEB->snoopPTinProxyInterfacetimerDataHeap, 0x00, sizeof(snoopPTinProxyInterfacetimerInfoData_t) * PTIN_SYSTEM_N_IGMP_INSTANCES);//TODO@MMELO - Do we need to define a new constant with a higher value (>8)?
+  memset(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, 0x00, sizeof(avlTree_t));
+  memset(pSnoopEB->snoopPTinProxyInterfaceTreeHeap, 0x00, sizeof(avlTreeTables_t) * PTIN_SYSTEM_N_IGMP_INSTANCES);
+  memset(pSnoopEB->snoopPTinProxyInterfaceDataHeap, 0x00, sizeof(snoopPTinProxyInterface_t) * PTIN_SYSTEM_N_IGMP_INSTANCES);
 
   /* AVL Tree creations - snoopAvlTree*/
-  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyInterfacetimerAvlTree), pSnoopEB->snoopPTinProxyInterfacetimerTreeHeap, pSnoopEB->snoopPTinProxyInterfacetimerDataHeap,
-                   PTIN_SYSTEM_N_IGMP_INSTANCES, sizeof(snoopPTinProxyInterfacetimerInfoData_t), 0x10, sizeof(snoopPTinProxyInterfacetimerInfoDataKey_t));  
+  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyInterfaceAvlTree), pSnoopEB->snoopPTinProxyInterfaceTreeHeap, pSnoopEB->snoopPTinProxyInterfaceDataHeap,
+                   PTIN_SYSTEM_N_IGMP_INSTANCES, sizeof(snoopPTinProxyInterface_t), 0x10, sizeof(snoopPTinProxyInterfaceKey_t));
   return L7_SUCCESS;
 }
 
 
-/*********************************************************************
-* @purpose  MGMD Proxy Group Timer Execution block initializations
-*
-* @param    None
-*
-* @returns  L7_SUCCESS - Initialization complete
-*           L7_FAILURE - Initilaization failed because of
-*                        insufficient system resources
-*
-* @notes
-*
-* @end
-*********************************************************************/
-L7_RC_t snoopPtinProxyAVLTreeGrouptimerInit(void)
-{
-  snoop_eb_t *pSnoopEB;
-
-  pSnoopEB = &snoopEB;
-  pSnoopEB->snoopPTinProxyGrouptimerTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  pSnoopEB->snoopPTinProxyGrouptimerDataHeap = (snoopPTinProxyGrouptimerInfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGrouptimerInfoData_t));
-
-  if ((pSnoopEB->snoopPTinProxyGrouptimerTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyGrouptimerDataHeap == L7_NULLPTR))
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
-            "Error allocating data for snoop PTin Proxy Group Timer AVL Tree \n");
-    return L7_FAILURE;
-  }
-
-  /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxyGrouptimerAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxyGrouptimerTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-  memset(pSnoopEB->snoopPTinProxyGrouptimerDataHeap, 0x00, sizeof(snoopPTinProxyGrouptimerInfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-
-  /* AVL Tree creations - snoopAvlTree*/
-  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyGrouptimerAvlTree), pSnoopEB->snoopPTinProxyGrouptimerTreeHeap, pSnoopEB->snoopPTinProxyGrouptimerDataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxyGrouptimerInfoData_t), 0x10, sizeof(snoopPTinProxyGrouptimerInfoDataKey_t));
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
-* @purpose  MGMD Proxy Source Timer Execution block initializations
-*
-* @param    None
-*
-* @returns  L7_SUCCESS - Initialization complete
-*           L7_FAILURE - Initilaization failed because of
-*                        insufficient system resources
-*
-* @notes
-*
-* @end
-*********************************************************************/
-L7_RC_t snoopPtinProxyAVLTreeSourcetimerInit(void)
-{
-  snoop_eb_t *pSnoopEB;
-
-  pSnoopEB = &snoopEB;
-  pSnoopEB->snoopPTinProxySourcetimerTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(avlTreeTables_t));
-  pSnoopEB->snoopPTinProxySourcetimerDataHeap = (snoopPTinProxySourcetimerInfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(snoopPTinProxySourcetimerInfoData_t));
-
-  if ((pSnoopEB->snoopPTinProxySourcetimerTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxySourcetimerDataHeap == L7_NULLPTR))
-  {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
-            "Error allocating data for snoop PTin Proxy Source Timer AVL Tree \n");
-    return L7_FAILURE;
-  }
-
-  /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxySourcetimerAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxySourcetimerTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-  memset(pSnoopEB->snoopPTinProxySourcetimerDataHeap, 0x00, sizeof(snoopPTinProxySourcetimerInfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP);//TODO@MMELO - Do we need to define a new constant with a higher value (>256)?
-
-  /* AVL Tree creations - snoopAvlTree*/
-  avlCreateAvlTree(&(pSnoopEB->snoopPTinProxySourcetimerAvlTree), pSnoopEB->snoopPTinProxySourcetimerTreeHeap, pSnoopEB->snoopPTinProxySourcetimerDataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP, sizeof(snoopPTinProxySourcetimerInfoData_t), 0x10, sizeof(snoopPTinProxySourcetimerInfoDataKey_t));
-  return L7_SUCCESS;
-}
 #endif
 
 #endif
@@ -1378,6 +1301,8 @@ L7_RC_t snoopEBInit(void)
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE=%u PTIN_SYSTEM_MAXINTERFACES_PER_GROUP=%u",PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,PTIN_SYSTEM_MAXINTERFACES_PER_GROUP);
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
+
+#if 0 //Tobe Modified
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyDBTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyDBDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyDBInfoData_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfacetimerTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
@@ -1386,6 +1311,7 @@ L7_RC_t snoopEBInit(void)
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGrouptimerDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGrouptimerInfoData_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourcetimerTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourcetimerDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(snoopPTinProxySourcetimerInfoData_t));
+#endif
 
 /* DFF - PTin added: IGMPv3 snooping */
 #if SNOOP_PTIN_IGMPv3_GLOBAL
@@ -1415,48 +1341,31 @@ L7_RC_t snoopEBInit(void)
 #endif
   
 #if SNOOP_PTIN_IGMPv3_PROXY
-   if ( snoop_ptin_proxy_Sourcetimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
+
+  if ( snoopPtinProxySourceAVLTreeInit()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy Source
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Sourcetimer_init() failed ");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxySourceAVLTreeInit failed");
+    return L7_FAILURE;
+  }
+
+  if ( snoopPtinProxyGroupAVLTreeInit()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy Group
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyGroupAVLTreeInit failed");
+    return L7_FAILURE;
+  }
+
+  if ( snoopPtinProxyInterfaceAVLTreeInit()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy Interface
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyInterfaceAVLTreeInit failed");
+    return L7_FAILURE;
+  }
+
+  if ( snoop_ptin_proxytimer_init()!=L7_SUCCESS)//Initialization of Proxy Timer
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_timer_init() failed ");
     return L7_FAILURE;
   } 
 
-  if ( snoop_ptin_proxy_Grouptimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Grouptimer_init() failed ");
-    return L7_FAILURE;
-  } 
-
-    if ( snoop_ptin_proxy_Interfacetimer_init()!=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_proxy_Interfacetimer_init failed ");
-    return L7_FAILURE;
-  } 
-  if ( snoopPtinProxyAVLTreeDBInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeDBInit failed ");
-    return L7_FAILURE;
-  } 
-  if ( snoopPtinProxyAVLTreeGroupRecordInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeGroupRecordInit failed ");
-    return L7_FAILURE;
-  } 
-  if ( snoopPtinProxyAVLTreeInterfacetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeInterfacetimerInit() failed ");
-    return L7_FAILURE;
-  } 
-  if ( snoopPtinProxyAVLTreeGrouptimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeGrouptimerInit() failed ");
-    return L7_FAILURE;
-  } 
-  if ( snoopPtinProxyAVLTreeSourcetimerInit() !=L7_SUCCESS)//Initialization of Memory for the Component of Proxy (Upstream Interface)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopPtinProxyAVLTreeSourcetimerInit() failed ");
-    return L7_FAILURE;
-  } 
 
 #endif
     
