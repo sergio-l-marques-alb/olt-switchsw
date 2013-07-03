@@ -2227,6 +2227,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
             #endif
                               "}"
+            ,client_idx
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
             ,clientInfo->dhcpClientDataKey.ptin_port
             #endif

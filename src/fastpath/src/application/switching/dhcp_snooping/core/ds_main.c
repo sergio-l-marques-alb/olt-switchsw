@@ -1907,6 +1907,23 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    {
       return L7_FAILURE;
    }
+   //If the service is unstacked (client_idx==-1) then we have to determine the client_idx through the inner_vlan in the Binding Table
+   if(client_idx == -1)
+   {
+     ptin_client_id_t client;
+
+     client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+     client.innerVlan = dhcp_binding.innerVlanId;
+     client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+     if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
+     {
+       LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+               intIfNum, dhcp_binding.innerVlanId, vlanId);
+       ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
+       ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
+       return L7_SUCCESS;
+     }
+   }
 
    //Make sure that the reported UDP.length is at least the minimum size possible
    if(udp_header->length < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
