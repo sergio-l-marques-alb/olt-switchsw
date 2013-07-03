@@ -348,6 +348,24 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx);
  * Operator Command
  * @author joaom (6/5/2013)
  * @param erps_idx 
+ * @param cmd_port 
+ * @return int 
+ */
+int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port);
+
+/**
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
+ * @param cmd_port 
+ * @return int 
+ */
+int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port);
+
+/**
+ * Operator Command
+ * @author joaom (6/5/2013)
+ * @param erps_idx 
  * @return int 
  */
 int ptin_erps_cmd_clear(L7_uint8 erps_idx);
@@ -359,22 +377,6 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx);
  * @return int 
  */
 int ptin_erps_cmd_lockout(L7_uint8 erps_idx);
-
-/**
- * Operator Command
- * @author joaom (6/5/2013)
- * @param erps_idx 
- * @return int 
- */
-int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 switch_path);
-
-/**
- * Operator Command
- * @author joaom (6/5/2013)
- * @param erps_idx 
- * @return int 
- */
-int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 switch_path);
 
 /**
  * Delete all ERPS
