@@ -15,8 +15,10 @@
 #include <ptin_intf.h>
 #include <ethsrv_oam.h>
 #include <ptin_oam_packet.h>
+#include <ptin_packet.h>
 
 
+#include "ptin_xlate_api.h"
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
 
@@ -112,11 +114,9 @@ void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_
 int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
                   L7_uint8 *buf, L7_ulong32 length, //ETH client buffer and length
                   L7_uint64 vid, L7_uint8 prior, L7_uint8 CoS, L7_uint8 color, L7_uint16 ETHtype, L7_uint8 *pDMAC) {
-    L7_netBufHandle   bufHandle;
-    L7_uchar8        *dataStart;
     L7_INTF_TYPES_t   sysIntfType;
     L7_uint32         intIfNum;//=port+1;
-    DTL_CMD_TX_INFO_t dtlCmd;
+    L7_uint16         vidInternal;
     L7_uint8 buff[1600];//={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,};
     //length=70;
 
@@ -127,12 +127,6 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     // If outgoing interface is CPU interface, don't send it
     if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
          (sysIntfType == L7_CPU_INTF) )     return 1;
-
-    SYSAPI_NET_MBUF_GET(bufHandle);
-    if (bufHandle == L7_NULL) {
-      LOG_TRACE(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
-      return 2;
-    }
 
     if (NULL==pDMAC || NULL==buf) return 3;
 
@@ -160,21 +154,11 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
         length=64;            
     }
 
-    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
-    memcpy(dataStart, buff, length);
-    SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, length);
+    // Convert to internal VLAN ID
+    ptin_xlate_ingress_get( intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal );
 
-    {
-        //DTL_CMD_TX_INFO_t  dtlCmd;
+    ptin_packet_send(intIfNum, vidInternal, vid, buff, length);
 
-        memset((L7_uchar8 *)&dtlCmd, 0, sizeof(DTL_CMD_TX_INFO_t));
-
-        dtlCmd.priority            = 1;
-        dtlCmd.typeToSend          = DTL_L2RAW_UNICAST;
-        dtlCmd.intfNum             = intIfNum;
-        dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
-    }
-    //printf("send_eth_pckt() port=%u\n\r", port);
     return 0;
 }//send_eth_pckt
 
@@ -296,25 +280,10 @@ void ptin_oam_eth_task(void)
 {
   LOG_TRACE(LOG_CTX_OAM,"OAM ETH Task started");
 
-  /*
-   * TEST
-  */
-  init_eth_srv_oam(&oam);
-
-  ptin_ccm_packet_init();
-  ptin_ccm_packet_vlan_trap(13, 1);
-
-  osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
-
   if (osapiTaskInitDone(L7_PTIN_OAM_ETH_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_OAM, "Error syncing task");
     PTIN_CRASH();
   }
-
-
-
-  LOG_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
-
 
   /* Infinite Loop */
   while (1) {
@@ -333,6 +302,9 @@ void ptin_oam_eth_task(void)
           //LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received OK");
           {
            L7_uint32 i, ptin_port;//, vid;
+           L7_uint16 newOuterVlanId;           
+
+           ptin_xlate_egress_get( msg.intIfNum, msg.vlanId, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId );
 
            if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
            //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
@@ -346,7 +318,7 @@ void ptin_oam_eth_task(void)
                    {
                     int r;
 
-                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, msg.vlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam)))
+                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam)))
                         LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
                    goto _ptin_oam_eth_task1;
@@ -403,6 +375,17 @@ _ptin_oam_eth_task1:;
  */
 L7_RC_t ptin_oam_eth_init(void)
 {
+
+  init_eth_srv_oam(&oam);
+
+  ptin_ccm_packet_init();
+  ptin_ccm_packet_vlan_trap(13, 1);
+
+  osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
+
+  LOG_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
+
+
   oam_eth_TaskId = osapiTaskCreate("ptin_oam_eth_task", ptin_oam_eth_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
                                 L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
