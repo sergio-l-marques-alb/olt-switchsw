@@ -1105,12 +1105,12 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
         msg->client_idx = (L7_uint) -1;
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",msg->intIfNum,msg->vlanId);
       }
+      #else
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "No dynamic clients allowed for leafs of linecards");
+      return L7_FAILURE;
+      #endif
     }
-    #else
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "No dynamic clients allowed for leafs of linecards");
-    return L7_FAILURE;
-    #endif
   }
 
   /* Get proxy configurations */
