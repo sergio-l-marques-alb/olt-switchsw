@@ -168,6 +168,17 @@ extern L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx);
  */
 extern L7_RC_t ptin_ccm_packet_deinit(void);
 
+/** Send a packet on a specified interface and vlan
+*
+* @param    intIfNum   @b{(input)} Outgoing internal interface number
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    payload    @b{(input)} Message to be forwarded
+* @param    payloadLen @b{(input)} Length of message
+*
+* @return  void
+*/
+extern void ptin_oam_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 *payload, L7_uint32 payloadLen);
+
 /**
  * Send a APS packet on a specified interface and vlan
  * 
