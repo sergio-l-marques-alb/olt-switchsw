@@ -6794,6 +6794,8 @@ void ptin_evc_dump(L7_uint evc_idx)
       printf("MACLEARNING  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING)
       printf("CPUTrap  ");
+    if (evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+      printf("IGMP  ");
     if (evcs[evc_idx].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
       printf("DHCPop82  ");
     printf("\n");
