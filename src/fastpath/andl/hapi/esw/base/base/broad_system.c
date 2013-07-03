@@ -4314,8 +4314,6 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
-      /* give dhcp frames high priority and trap to the CPU. */
-
       /* CCM packets from client */
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
       if (result != L7_SUCCESS)  {
