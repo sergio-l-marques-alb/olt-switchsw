@@ -27,7 +27,7 @@ extern L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN];
 /// Hardware Abstraction Layer
 typedef struct _ptinHalErps_t {
 
-  L7_BOOL   used;
+  L7_BOOL   used;                   ///< ENTRY_FREE/ENTRY_BUSY
 
   L7_uint16 controlVidInternal;
 
@@ -38,6 +38,9 @@ typedef struct _ptinHalErps_t {
   L7_uint16 apsReqStatusTx;
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
+
+  L7_uint8 hwSync;                  ///< configures VLAN on switch
+  L7_uint8 hwFdbFlush;              ///< FDB Flush by VLAN
 
 } ptinHalErps_t;
 
@@ -136,6 +139,28 @@ extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_u
  * @return int 
  */
 extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
+
+/**
+ * Block or unblock ERP Port and/or Flush FDB
+ * 
+ * @author joaom (6/25/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return int 
+ */
+extern int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx);
+
+/**
+ * If the VLAN is protected force HE reconfiguration
+ * 
+ * @author joaom (07/04/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return int 
+ */
+extern int ptin_hal_erps_evcIsProtected(L7_uint16 int_vlan);
 
 /**
  * Get MEP alarm

@@ -106,6 +106,8 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
   LOG_TRACE(LOG_CTX_ERPS,"vid       %d --> %d", tbl_erps[erps_idx].protParam.controlVid,  tbl_halErps[erps_idx].controlVidInternal);
   LOG_TRACE(LOG_CTX_ERPS,"apsReqStatusRx   0x%x", tbl_halErps[erps_idx].apsReqStatusRx);
   LOG_TRACE(LOG_CTX_ERPS,"apsReqStatusTx   0x%x", tbl_halErps[erps_idx].apsReqStatusTx);
+  LOG_TRACE(LOG_CTX_ERPS,"hwSync           %d", tbl_halErps[erps_idx].hwSync);
+  LOG_TRACE(LOG_CTX_ERPS,"hwFdbFlush       %d", tbl_halErps[erps_idx].hwFdbFlush);
   
   return L7_SUCCESS;
 }
@@ -149,6 +151,10 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   // Init APS packets trap and queues
   ptin_aps_packet_init(erps_idx);
 
+  // HW Sync init
+  tbl_halErps[erps_idx].hwSync     = 0;
+  tbl_halErps[erps_idx].hwFdbFlush = 0;  
+
   tbl_halErps[erps_idx].used = L7_TRUE;
 
   // Print some Debug
@@ -178,6 +184,9 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
 
   // Delete APS packets trap and queues
   ptin_aps_packet_deinit(erps_idx);
+
+  // Delete association
+  erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = PROT_ERPS_UNUSEDIDX;
 
   // struct init
   memset(&tbl_halErps[erps_idx], 0, sizeof(ptinHalErps_t));
@@ -345,43 +354,91 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
   L7_uint16 byte, bit;
   L7_uint16 vid, internalVlan;
 
-  for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
-    for (bit=0; bit<8; bit++) {
-      if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
-        vid = (byte*8)+bit;
+  if ( (tbl_halErps[erps_idx].hwSync == 1) || (tbl_halErps[erps_idx].hwFdbFlush == 1) ) {
+    LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);      
 
-        // Convert to internal VLAN ID
-        if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan) ) {
+    for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+      for (bit=0; bit<8; bit++) {
+        if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+          vid = (byte*8)+bit;
 
-          LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
+          // Convert to internal VLAN ID
+          if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan) ) {
 
-          if (tbl_erps[erps_idx].hwSync) {
-            if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
-              switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
-            } else {            
-              switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+            LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
+
+            if (tbl_halErps[erps_idx].hwSync) {
+              if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
+                switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+              } else {            
+                switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+              }
+
+              if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
+                switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+              } else {            
+                switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+              }
             }
 
-            if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
-              switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
-            } else {            
-              switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+            if (tbl_halErps[erps_idx].hwFdbFlush) {
+              switching_fdbFlushByVlan(internalVlan);
             }
+
+            tbl_halErps[erps_idx].hwSync = 0;
+            tbl_halErps[erps_idx].hwFdbFlush = 0;
+
           }
 
-          if (tbl_erps[erps_idx].hwFdbFlush) {
-            switching_fdbFlushByVlan(internalVlan);
-          }
-          
-        }
+        } //if(vid_bmp...)
+      } // for(bit...)
+    } // for(byte...)
 
-      } //if(vid_bmp...)
-    } // for(bit...)
-  } // for(byte...)
+  }
 
   return L7_SUCCESS;
 }
 
+/**
+ * Block or unblock ERP Port and/or Flush FDB
+ * 
+ * @author joaom (6/25/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return int 
+ */
+int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx)
+{
+  tbl_halErps[erps_idx].hwSync = 1;
+  tbl_halErps[erps_idx].hwFdbFlush = 1;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * If the VLAN is protected force HE reconfiguration
+ * 
+ * @author joaom (07/04/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return int 
+ */
+int ptin_hal_erps_evcIsProtected(L7_uint16 int_vlan)
+{
+  L7_uint8 erps_idx = erpsIdx_from_internalVlan[int_vlan];
+
+  // Reference of erps_idx using internal vlan as reference
+  if (erps_idx != PROT_ERPS_UNUSEDIDX) {
+    tbl_halErps[erps_idx].hwSync = 1;
+    tbl_halErps[erps_idx].hwFdbFlush = 1;
+    return L7_SUCCESS;
+  }
+
+  return L7_FAILURE;
+}
 
 
 /********************************************************************************** 
