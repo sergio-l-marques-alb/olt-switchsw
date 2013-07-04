@@ -4675,6 +4675,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   /* Clear is_static list */
   memset(outputPtr, 0x00, MSG_MCACTIVECHANNELS_CHANNELS_MAX * sizeof(msg_MCActiveChannelsReply_t));
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito");
   for(i=0; i<MSG_MCACTIVECHANNELS_CHANNELS_MAX; i++)
   {
      outputPtr[i].chType = 0xFF;
