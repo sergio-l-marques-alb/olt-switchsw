@@ -4658,6 +4658,12 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   ptin_client_id_t client;
   L7_RC_t rc;
 
+  if(numberOfChannels == L7_NULLPTR)
+  {
+     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters");
+     return L7_FAILURE;
+  }
+
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of channels");
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId =%u",inputPtr->SlotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",inputPtr->evc_id);
@@ -4665,20 +4671,24 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   /* Client info */
   memset(&client,0x00,sizeof(ptin_client_id_t));
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito");
 
   /* Clear is_static list */
+  memset(outputPtr, 0x00, MSG_MCACTIVECHANNELS_CHANNELS_MAX * sizeof(msg_MCActiveChannelsReply_t));
   for(i=0; i<MSG_MCACTIVECHANNELS_CHANNELS_MAX; i++)
   {
-     memset(&outputPtr[i], 0x00, sizeof(msg_MCActiveChannelsReply_t));
      outputPtr[i].chType = 0xFF;
   }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," init feito");
 
   /* Get list of channels */
   number_of_channels = MSG_MCACTIVECHANNELS_CHANNELS_MAX;
 
   rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, MSG_MCACTIVECHANNELS_CHANNELS_MAX, &number_of_channels, clist, &total_channels);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," channel list obtida");
 
   *numberOfChannels = number_of_channels;
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," write channel num");
 
   if (rc==L7_SUCCESS)
   {
@@ -4699,6 +4709,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     return rc;
   }
   
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," returning");
   return L7_SUCCESS;
 }
 
