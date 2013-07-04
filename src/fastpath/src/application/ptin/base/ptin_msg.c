@@ -4677,30 +4677,29 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   {
      memset(&outputPtr[i], 0x00, sizeof(msg_MCActiveChannelsReply_t));
      outputPtr[i].chType = 0xFF;
-     LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito %u", i);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," init feito");
 
   /* Get list of channels */
   number_of_channels = *numberOfChannels;
 
-  rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, MSG_MCACTIVECHANNELS_CHANNELS_MAX, &number_of_channels, clist, &total_channels);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," channel list obtida");
-
-  *numberOfChannels = number_of_channels;
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," write channel num");
+  rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, inputPtr->entryId, &number_of_channels, clist, &total_channels);
+  LOG_ERR(LOG_CTX_PTIN_MSG,"nc %u tc %u", number_of_channels, total_channels);
 
   if (rc==L7_SUCCESS)
   {
+    *numberOfChannels = number_of_channels;
+    
     /* Copy channels to message */
     for (i=0; i<MSG_MCACTIVECHANNELS_CHANNELS_MAX && i<number_of_channels; i++)
     {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"%04X", clist[i].s_addr);
       outputPtr[i].chIP = clist[i].s_addr;
       outputPtr[i].entryId = i;
     }
   }
   else if (rc==L7_NOT_EXIST)
   {
+    *numberOfChannels = 0;
     LOG_WARNING(LOG_CTX_PTIN_MSG, "No channels to retrieve");
   }
   else
@@ -4709,7 +4708,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     return rc;
   }
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," returning");
   return L7_SUCCESS;
 }
 
