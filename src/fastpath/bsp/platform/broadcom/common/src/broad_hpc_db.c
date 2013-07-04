@@ -411,7 +411,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 
         /* We have found a WC. Find the first lane free to be searched */
 
-        wc_lane = (WC_MAX_LANES-(total_lanes%WC_MAX_LANES))%WC_MAX_LANES;
+        wc_lane = (WC_MAX_LANES - (total_lanes % WC_MAX_LANES)) % WC_MAX_LANES;
         if (speedG>10)  wc_lane = 0;    /* Use always lane 0, if speed is higher than 10Gbps */
 
         LOG_TRACE(LOG_CTX_STARTUP,"First lane search for WC %u: %u", wc_index, wc_lane);
