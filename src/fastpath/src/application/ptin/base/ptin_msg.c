@@ -4671,14 +4671,13 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   /* Client info */
   memset(&client,0x00,sizeof(ptin_client_id_t));
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito");
 
   /* Clear is_static list */
-  memset(outputPtr, 0x00, MSG_MCACTIVECHANNELS_CHANNELS_MAX * sizeof(msg_MCActiveChannelsReply_t));
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito");
   for(i=0; i<MSG_MCACTIVECHANNELS_CHANNELS_MAX; i++)
   {
+     memset(&outputPtr[i], 0x00, sizeof(msg_MCActiveChannelsReply_t));
      outputPtr[i].chType = 0xFF;
+     LOG_DEBUG(LOG_CTX_PTIN_MSG," memset feito %u", i);
   }
   LOG_DEBUG(LOG_CTX_PTIN_MSG," init feito");
 
