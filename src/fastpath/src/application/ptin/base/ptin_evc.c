@@ -25,6 +25,8 @@
 #include "usmdb_filter_api.h"
 #include "usmdb_mib_vlan_api.h"
 
+#include "ptin_hal_erps.h"
+
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -4713,9 +4715,6 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Unblocking root intf# %u [Int.VLAN=%u]...",
-           root_intf, int_vlan);
-
   /* Validate arguments */
   if (int_vlan>=4096)
   {
@@ -4739,6 +4738,9 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
     LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
     return L7_FAILURE;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Unblocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
+           root_intf, int_vlan, evc_idx);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -4799,9 +4801,6 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Blocking root intf# %u [Int.VLAN=%u]...",
-           root_intf, int_vlan);
-
   /* Validate arguments */
   if (int_vlan>=4096)
   {
@@ -4825,6 +4824,9 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
     LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
     return L7_FAILURE;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Blocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
+           root_intf, int_vlan, evc_idx);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -4881,8 +4883,6 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
-
   /* Validate arguments */
   if (int_vlan>=4096)
   {
@@ -4907,6 +4907,10 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing EVC#%u", evc_idx);
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
+
   /* Flush FDB on Root VLAN */
   if (fdbFlushByVlan(int_vlan) != L7_SUCCESS)
   {
@@ -4923,7 +4927,7 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
   {
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u",
+    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u",
               evc_idx,
               evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
 
