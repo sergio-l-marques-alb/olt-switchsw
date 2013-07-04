@@ -2575,18 +2575,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get list of multicast channels */
     case CCMSG_ETH_IGMP_GROUPS_GET:
     {
+      msg_MCActiveChannelsRequest_t *inputPtr;
+      msg_MCActiveChannelsReply_t   *outputPtr;
+      L7_uint16                     numberOfChannels;
+
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_GROUPS_GET (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_MCActiveChannels_t);
+      CHECK_INFO_SIZE(msg_MCActiveChannelsRequest_t);
 
-      msg_MCActiveChannels_t *ptr;
-      ptr = (msg_MCActiveChannels_t *) outbuffer->info;
-
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_MCActiveChannels_t));
+      inputPtr  = (msg_MCActiveChannelsRequest_t *) inbuffer->info;
+      outputPtr = (msg_MCActiveChannelsReply_t *)   outbuffer->info;
 
       /* Execute command */
-      rc = ptin_msg_IGMP_channelList_get(ptr);
+      rc = ptin_msg_IGMP_channelList_get(inputPtr, outputPtr, &numberOfChannels);
 
       if (L7_SUCCESS != rc)
       {
@@ -2596,7 +2598,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_MCActiveChannels_t);
+      outbuffer->infoDim = numberOfChannels * sizeof(msg_MCActiveChannelsReply_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }

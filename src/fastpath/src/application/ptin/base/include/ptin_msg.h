@@ -731,7 +731,7 @@ extern L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannels_t *channel_list);
+extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels);
 
 /**
  * Consult list of clients of a particular multicast channel
