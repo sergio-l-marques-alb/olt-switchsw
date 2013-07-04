@@ -69,13 +69,14 @@ typedef struct
 #define WC_SLOT_MODE_1x40G  3
 #define WC_SLOT_MODE_2x40G  4
 #define WC_SLOT_MODE_3x40G  5
-#define WC_SLOT_MODE_1x10G  6
-#define WC_SLOT_MODE_3x10G  7
-#define WC_SLOT_MODE_1x1G   8
-#define WC_SLOT_MODE_2x1G   9
-#define WC_SLOT_MODE_3x1G   10
-#define WC_SLOT_MODE_4x1G   11
-#define WC_SLOT_MODE_MAX    12
+#define WC_SLOT_MODE_1x100G 6
+#define WC_SLOT_MODE_1x10G  7
+#define WC_SLOT_MODE_3x10G  8
+#define WC_SLOT_MODE_1x1G   9
+#define WC_SLOT_MODE_2x1G   10
+#define WC_SLOT_MODE_3x1G   11
+#define WC_SLOT_MODE_4x1G   12
+#define WC_SLOT_MODE_MAX    13
 
 /*******************************************************************************
 *

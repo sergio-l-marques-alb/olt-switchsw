@@ -384,6 +384,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     case WC_SLOT_MODE_3x40G:
       speedG = 40;  total_lanes = 3;
       break;
+    case WC_SLOT_MODE_1x100G:
+      speedG = 100; total_lanes = 1;
+      break;
     default:
       speedG = 0;   total_lanes = 0;
     }
@@ -407,7 +410,12 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
         }
 
         /* We have found a WC. Find the first lane free to be searched */
-        wc_lane = ((total_lanes-i)<=WC_MAX_LANES) ? (total_lanes%WC_MAX_LANES) : 0;    /* First lane to be considered */
+
+        wc_lane = (WC_MAX_LANES-(total_lanes%WC_MAX_LANES))%WC_MAX_LANES;
+        if (speedG>10)  wc_lane = 0;    /* Use always lane 0, if speed is higher than 10Gbps */
+
+        LOG_TRACE(LOG_CTX_STARTUP,"First lane search for WC %u: %u", wc_index, wc_lane);
+
         /* Search for the first free lane */
         while (wc_lane < WC_MAX_LANES && wclanes_in_use[wc_index][wc_lane])
         {
@@ -456,8 +464,18 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     /* Run all WCs searching for free lanes */
     for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
     {
+      /* Slot index */
+      slot = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
+
       /* Skip not used WCs */
       if (dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx < 0)
+        continue;
+
+      /* Do not consider slots at 40G or more */
+      if (slot_mode[slot-1]==WC_SLOT_MODE_1x40G ||
+          slot_mode[slot-1]==WC_SLOT_MODE_2x40G ||
+          slot_mode[slot-1]==WC_SLOT_MODE_3x40G ||
+          slot_mode[slot-1]==WC_SLOT_MODE_1x100G)
         continue;
 
       /* Find the first free lane of this WC  */
