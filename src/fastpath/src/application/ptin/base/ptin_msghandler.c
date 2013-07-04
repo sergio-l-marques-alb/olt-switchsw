@@ -2584,8 +2584,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       CHECK_INFO_SIZE(msg_MCActiveChannelsRequest_t);
 
-      inputPtr  = (msg_MCActiveChannelsRequest_t *) inbuffer->info;
-      outputPtr = (msg_MCActiveChannelsReply_t *)   outbuffer->info;
+      inputPtr         = (msg_MCActiveChannelsRequest_t *) inbuffer->info;
+      outputPtr        = (msg_MCActiveChannelsReply_t *)   outbuffer->info;
+      numberOfChannels = outbuffer->infoDim / sizeof(msg_MCActiveChannelsReply_t);
 
       /* Execute command */
       rc = ptin_msg_IGMP_channelList_get(inputPtr, outputPtr, &numberOfChannels);
