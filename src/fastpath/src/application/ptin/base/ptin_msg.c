@@ -4673,7 +4673,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   memset(&client,0x00,sizeof(ptin_client_id_t));
 
   /* Clear is_static list */
-  for(i=0; i<numberOfChannels; i++)
+  for(i=0; i<(*numberOfChannels); i++)
   {
      memset(&outputPtr[i], 0x00, sizeof(msg_MCActiveChannelsReply_t));
      outputPtr[i].chType = 0xFF;
@@ -4682,7 +4682,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   LOG_DEBUG(LOG_CTX_PTIN_MSG," init feito");
 
   /* Get list of channels */
-  number_of_channels = numberOfChannels;
+  number_of_channels = *numberOfChannels;
 
   rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, MSG_MCACTIVECHANNELS_CHANNELS_MAX, &number_of_channels, clist, &total_channels);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," channel list obtida");
