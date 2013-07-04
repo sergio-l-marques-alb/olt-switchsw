@@ -205,7 +205,7 @@ typedef struct _erpsHAL_t {
 
 /// State Machine Parameters Configurations and States
 typedef struct {
-    L7_uint8 admin;             ///< ENTRY_FREE/ENTRY_BUSY
+    L7_uint8 admin;                   ///< ENTRY_FREE/ENTRY_BUSY
 
     erpsProtParam_t protParam;
     
@@ -241,9 +241,7 @@ typedef struct {
 
     // Ports State
     L7_uint8 portState[2];            ///< blocking or flushing
-    L7_uint8 rplBlockedPortSide;      ///< current RPL side port
-    L7_uint8 hwSync;                  ///< configures VLAN on switch
-    L7_uint8 hwFdbFlush;              ///< FDB Flush by VLAN
+    L7_uint8 rplBlockedPortSide;      ///< current RPL side port    
 
     // FSM
     L7_uint8 state_machine;

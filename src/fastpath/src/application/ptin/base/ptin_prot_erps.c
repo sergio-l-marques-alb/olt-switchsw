@@ -124,9 +124,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
 
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]       = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]       = ERPS_PORT_FLUSHING;
-  tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;
-  tbl_erps[erps_idx].hwSync                           = 0;
-  tbl_erps[erps_idx].hwFdbFlush                       = 0;  
+  tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;  
 
   tbl_erps[erps_idx].state_machine                    = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -333,8 +331,6 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].rplBlockedPortSide         = PROT_ERPS_PORT0;
-  tbl_erps[erps_idx].hwSync                     = 0;
-  tbl_erps[erps_idx].hwFdbFlush                 = 0;  
 
   tbl_erps[erps_idx].state_machine              = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -457,9 +453,6 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
   ptin_hal_erps_hwreconfig(erps_idx);
-
-  tbl_erps[erps_idx].hwSync = 0;
-  tbl_erps[erps_idx].hwFdbFlush = 0;
   
   ptin_erps_init_entry(erps_idx);
 
@@ -893,8 +886,6 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  portState[P0]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
   printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
   printf("\n  rplBlockedPortSide  %d",                      tbl_erps[erps_idx].rplBlockedPortSide);
-  printf("\n  hwSync              %d",                      tbl_erps[erps_idx].hwSync);
-  printf("\n  hwFdbFlush          %d",                      tbl_erps[erps_idx].hwFdbFlush);
   printf("\n  state_machine       (0x%x) %s:%s",            tbl_erps[erps_idx].state_machine,
                                                             stateToString[ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)],
                                                             ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
@@ -983,7 +974,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 
   tbl_erps[erps_idx].portState[port] = portState;
 
-  tbl_erps[erps_idx].hwSync = 1;
+  tbl_halErps[erps_idx].hwSync = 1;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -1005,7 +996,7 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
 {
   int ret = PROT_ERPS_EXIT_OK;  
 
-  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d, SF", erps_idx, port, sf&1);
+  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d, SF %d", erps_idx, port, sf&1);
 
   force_erps_SF[erps_idx][port] = sf;
 
@@ -1150,7 +1141,7 @@ int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
 
-  tbl_erps[erps_idx].hwFdbFlush = 1;
+  tbl_halErps[erps_idx].hwFdbFlush = 1;
 
   return(PROT_ERPS_EXIT_OK);
 }
@@ -2803,19 +2794,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
 
   if (localRequest != LReq_NONE) {
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating localRequest from %s to %s", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100]);
     tbl_erps[erps_idx].localRequest = localRequest;
   }
   if (remoteRequest != RReq_NONE) {
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating remoteRequest from %s to %s", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], remReqToString[remoteRequest]);
     tbl_erps[erps_idx].remoteRequest = remoteRequest;
 
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
     memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
   }  
 
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating SF[PROT_ERPS_PORT0] from %d to %d", erps_idx, tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0], SF[PROT_ERPS_PORT0]);
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = SF[PROT_ERPS_PORT0];
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating SF[PROT_ERPS_PORT1] from %d to %d", erps_idx, tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1], SF[PROT_ERPS_PORT1]);
   tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = SF[PROT_ERPS_PORT1];
 
   if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_OC) ) {
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Operator Command CLEAR; Clearing SF", erps_idx);
     tbl_erps[erps_idx].operator_cmd = PROT_ERPS_OPCMD_NR;
     tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = 0;
     tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = 0;
@@ -2849,7 +2845,6 @@ int ptin_prot_erps_proc(void)
     #endif
   }
 
-  #if 1
   // HW Sync
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
@@ -2857,41 +2852,10 @@ int ptin_prot_erps_proc(void)
       continue;
     }
 
-    if ( (tbl_erps[erps_idx].hwSync == 1) || (tbl_erps[erps_idx].hwFdbFlush == 1) ) {
-      LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
-
-      ptin_hal_erps_hwreconfig(erps_idx);
-
-      tbl_erps[erps_idx].hwSync = 0;
-      tbl_erps[erps_idx].hwFdbFlush = 0;
-    }
+    ptin_hal_erps_hwreconfig(erps_idx);
   }
-  #endif
 
   return(PROT_ERPS_EXIT_OK);
-}
-
-
-void ptin_prot_hwSync(void)
-{
-  L7_uint8 erps_idx;
-
-  // HW Sync
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
-
-    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
-      continue;
-    }
-
-    if ( (tbl_erps[erps_idx].hwSync == 1) || (tbl_erps[erps_idx].hwFdbFlush == 1) ) {
-      LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
-
-      ptin_hal_erps_hwreconfig(erps_idx);
-
-      tbl_erps[erps_idx].hwSync = 0;
-      tbl_erps[erps_idx].hwFdbFlush = 0;
-    }
-  }
 }
 
 
@@ -2996,10 +2960,6 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
 
     tbl_erps[param1].portState[PROT_ERPS_PORT0] = param2 == 1? ERPS_PORT_BLOCKING : ERPS_PORT_FLUSHING;
     tbl_erps[param1].portState[PROT_ERPS_PORT1] = param3 == 1? ERPS_PORT_BLOCKING : ERPS_PORT_FLUSHING;
-
-    tbl_erps[param1].hwFdbFlush = 1;
-    tbl_erps[param1].hwSync = 1;
-
   }
   else {
     LOG_INFO(LOG_CTX_ERPS,"\n\nUSAGE: \n"
