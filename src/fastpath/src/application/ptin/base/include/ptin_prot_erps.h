@@ -24,7 +24,8 @@
 //-------------------------------------------------------------------------
 #define PROT_ERPS_CALL_PROC_MS                10
 #define PROT_ERPS_CALL_PROC_US                1000*PROT_ERPS_CALL_PROC_MS
-#define PROT_ERPS_WAITING_STATES              3000
+#define PROT_ERPS_WAITING_CICLES_INIT         3000
+#define PROT_ERPS_WAITING_CICLES_PROC         10
 
 #define MAX_PROT_PROT_ERPS                    16
 #define PROT_ERPS_UNUSEDIDX                   0
@@ -247,7 +248,7 @@ typedef struct {
     L7_uint8 state_machine;
     L7_uint8 state_machine_h;         ///< LSN: State
                                       ///< MSN: isLocalOrRemoteState
-    L7_uint16 waitingstates;
+    L7_uint16 waitingcicles;
     
     //++++++++++++++++++++++++++++++++++++++++++++++++
     // HAL
