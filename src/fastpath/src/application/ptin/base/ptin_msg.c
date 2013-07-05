@@ -5695,17 +5695,17 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
 
 
   /* Copy data to ptin struct */
-  ptinErpsConf.megLevel       = msgErpsConf->megLevel;
-
-  ptinErpsConf.port0Role      = msgErpsConf->port0Role;
-  ptinErpsConf.port1Role      = msgErpsConf->port1Role;
-  ptinErpsConf.port0CfmIdx    = msgErpsConf->port0CfmIdx;
-  ptinErpsConf.port1CfmIdx    = msgErpsConf->port1CfmIdx;
-
-  ptinErpsConf.revertive      = msgErpsConf->revertive;
-  ptinErpsConf.guardTimer     = msgErpsConf->guardTimer;
-  ptinErpsConf.holdoffTimer   = msgErpsConf->holdoffTimer;
-  ptinErpsConf.waitToRestoreTimer  = msgErpsConf->waitToRestoreTimer;
+  ptinErpsConf.megLevel           = msgErpsConf->megLevel;
+                                  
+  ptinErpsConf.port0Role          = msgErpsConf->port0Role;
+  ptinErpsConf.port1Role          = msgErpsConf->port1Role;
+  ptinErpsConf.port0CfmIdx        = msgErpsConf->port0CfmIdx;
+  ptinErpsConf.port1CfmIdx        = msgErpsConf->port1CfmIdx;
+                                  
+  ptinErpsConf.revertive          = msgErpsConf->revertive;
+  ptinErpsConf.guardTimer         = msgErpsConf->guardTimer;
+  ptinErpsConf.holdoffTimer       = msgErpsConf->holdoffTimer;
+  ptinErpsConf.waitToRestoreTimer = msgErpsConf->waitToRestoreTimer;
 
   //ptinErpsConf.continualTxInterval;
   //ptinErpsConf.rapidTxInterval;
@@ -5729,6 +5729,8 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }
+
+  ptin_hal_erps_convert_vid_init(msgErpsConf->idx);
 
 #endif  // PTIN_ENABLE_ERPS
 
