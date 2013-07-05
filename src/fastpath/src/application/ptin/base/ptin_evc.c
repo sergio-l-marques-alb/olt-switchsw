@@ -4604,8 +4604,10 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
     return L7_FAILURE;
   }
 
+  #ifdef PTIN_ERPS_EVC
   if (ptin_hal_erps_evcIsProtected(root_intf, out_vlan) != L7_SUCCESS)
   {
+  #endif
     /* Associate root internal vlan to the root intf */
     rc = usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
     if (rc != L7_SUCCESS)
@@ -4613,10 +4615,12 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
       LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to root intIfNum# %u (rc=%d)", int_vlan, intIfNum, rc);
       return L7_FAILURE;
     }
+  #ifdef PTIN_ERPS_EVC
   }
   else {
     LOG_INFO(LOG_CTX_PTIN_EVC, "Associating of root Int.VLAN %u to root intIfNum# %u will be done later by ERPS", int_vlan, intIfNum);
   }
+  #endif
 
   /* Configure the internal VLAN on this interface as tagged */
   rc = usmDbVlanTaggedSet(1, int_vlan, intIfNum, L7_DOT1Q_TAGGED);
