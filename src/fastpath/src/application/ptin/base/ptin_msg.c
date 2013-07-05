@@ -5479,8 +5479,11 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
     po[n].err_code = S_OK;
 
     if (   !EMPTY_T_MEP(p_oam->mep_db[i_mep].ME[i])
-           ||  N_MAX_MEs_PER_MEP-1==i)
-      po[n++].bd.me=     p_oam->mep_db[i_mep].ME[i];
+           ||  N_MAX_MEs_PER_MEP-1==i) {
+      po[n].bd.me=     p_oam->mep_db[i_mep].ME[i];
+      if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
+      n++;
+    }
 
     if (n+1 > 17   ||  (n+1)*sizeof(msg_bd_me_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;
   }//for
