@@ -416,15 +416,15 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   msg.innerVlanId = pduInfo->innerVlanId;
   msg.payload     = payload;
   msg.payloadLen  = payloadLen;
-  msg.bufHandle   = bufHandle;  
+  msg.bufHandle   = bufHandle;
 
-  if (erpsIdx_from_internalVlan[vlanId] != PROT_ERPS_UNUSEDIDX) {
-    ptin_aps_packet_forward(erpsIdx_from_internalVlan[vlanId], &msg);
-    rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_internalVlan[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  if (erpsIdx_from_controlVidInternal[vlanId] != PROT_ERPS_UNUSEDIDX) {
+    ptin_aps_packet_forward(erpsIdx_from_controlVidInternal[vlanId], &msg);
+    rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_controlVidInternal[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   }
 
   if (ptin_oam_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_internalVlan[vlanId]);
+    LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_controlVidInternal[vlanId]);
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
