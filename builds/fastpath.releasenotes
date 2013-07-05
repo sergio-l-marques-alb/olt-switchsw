@@ -1,13 +1,37 @@
 Fastpath 6.3.0.2 Release Notes
-Version 2.0.0-r196
- - Req OLTTS-1198: Optimização do tempo de processamento de pacotes DHCP.
- - Req OLTTS-1113: Fastpath permite agora a reconfiguração das opções DHCP para um serviço activo.
- - Req OLTTS-1079: Adicionada a possibilidade ajuste das opções DHCP por ONT.
- - Fix OLTTS-1189: Não era possível configurar o porto PTP, nem serviços relacionados a ele, na CXO640G.
- - Fix OLTTS-1189: Inicialização do porto PTP na CXO640G actualizada.
- - Fix OLTTS-1189->OLTSWITCH-69: Faltavam várias inicializações de portos para a CXO640G.
- - Fix OLTTS-1180: DHCP circuit id building, during DHCP packet processing, corrected.
- - Fix OLTTS-1122: Corrigido problema relacionado com o parsing da string circuit-id.
- - Fix OLTTS-1054: Não era possível ter contadores a pedido do serviço e do cliente simultaneamente funcionais ao nível da transmissão.
- - Fix OLTTS-1051: Multicast probes estão agora funcionais.
- - Tsk OLTTS-923 ->OLTSWITCH-54: Default tap settings para a CXO640G alterados (main=50, post=13).
+Version 2.4.0-r470
+ - New OLTSWITCH-97 : IGMPv3 feature implemented.
+ - New OLTSWITCH-111: [ETH Prot] ITU-T G.8032/Y.1344 Ethernet Ring Protection Switching
+ - New OLTSWITCH-116: [ETH OAM] ITU-T G.8013/Y.1731 Ethernet OAM.
+ - Fix OLTSWITCH-119: PRBS tests improved.
+Version 2.4.1-r539
+ - New OLTTS-1511/OLTSWITCH-97 : Unified channel list with multiple MC services, and MC Querier over UC service features reactivated.
+ - New OLTTS-1511/OLTSWITCH-97 : IGMPv3 improved.
+ - New OLTTS-1555/OLTSWITCH-111: ERPS feature improved (ifilter is always enabled).
+ - New OLTTS-1602/OLTSWITCH-120: Slot configuration feature implemented (also aplicable to backplane original versions).
+ - New OLTTS-1674/OLTSWITCH-122: Debug logger is now being redirected to a file.
+ - Fix OLTTS-1706/OLTSWITCH-124: Error configuring IP address in the inBand interface.
+ - Fix OLTTS-1693/OLTSWITCH-127: Broken UDP packet causes a SIGSEGV.
+ - Fix OLTTS-1703/OLTSWITCH-129: Traffic control pause frames were always being trapped to CPU. Default trap rules deactivated.
+ - Fix OLTSWITCH-121: Port group initialization could cause memory violations. Protection included.
+ - Fix OLTSWITCH-123: LAG creation was reporting errors, but only sometimes such error were returned to manager.
+ - Fix OLTSWITCH-128: IGMP packets coming from logical interfaces were being dropped. Databases updated to include logical port processing.
+Version 2.4.2-r548
+ - Req OLTTS-969 /OLTSWITCH-132: Clientes dinâmicos não são possíveis nas linecards. Assim é obrigatório que a gestão os adicione estaticamente.
+ - New OLTSWITCH-133: Configuração do Proxy IGMP com escalas temporais diferentes.
+ - Fix OLTSWITCH-129: Log traces added for more debug.
+ - Fix OLTSWITCH-131: Clients flushing (static or dynamic) were not being correctly done.
+ - Fix OLTSWITCH-134: Validação da cvlan na adição de clientes IGMP.
+Version 2.4.3-r569
+ - Req OLTTS-1511/OLTSWITCH-97 : Changed the Routines to Support Saving the Proxy DB on the Router DB; "proxytimer" modified.
+ - Req OLTTS-1555/OLTSWITCH-111: Several improvements;
+ - Req OLTTS-1579/OLTSWITCH-116: Init functions rearranged.
+ - Req OLTTS-969 /OLTSWITCH-132: Dinamic clients not allowed in linecards. Code reinserted.
+ - Fix OLTTS-1368/OLTSWITCH-138: Fastpath is unable to determine client_idx for packets v6 packets sent by the DHCP Server.
+ - New OLTSWITCH-136: IGMP proxy/queriers configuration consulting routines implemented.
+Version 2.4.3-r573
+ - Fix OLTSWITCH-137 (Req OLTTS-1602/OLTSWITCH-120): Error mapping 40G ports.
+Version 2.4.3-r591
+ - Req OLTTS-1511/OLTSWITCH-97 : Multicast channels bugfix;
+ - Req OLTTS-1555/OLTSWITCH-111: Rotinas para verificação no EVC; Several improvements.
+ - Fix OLTTS-1816/OLTSWITCH-138: CLI: the status of CFM-probes on the cli do not report correctly the alarms.

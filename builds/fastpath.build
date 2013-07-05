@@ -11,7 +11,7 @@ TMP_PATH=./tmp
 
 USERNAME=olt
 DST_IPADDR=10.112.15.243
-DST_PATH=/home/olt/fastpath_builds
+DST_PATH=/home/olt/fastpath_builds/fastpath
 
 n_args=$#
 version=$1
