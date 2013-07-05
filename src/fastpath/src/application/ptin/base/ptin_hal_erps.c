@@ -32,7 +32,8 @@ L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0};
 ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
 
 /// Reference of erps_idx using internal vlan as reference
-L7_uint8 erpsIdx_from_internalVlan[4096] = {PROT_ERPS_UNUSEDIDX};
+L7_uint8 erpsIdx_from_controlVidInternal[4096]  = {PROT_ERPS_UNUSEDIDX};
+L7_uint8 erpsIdx_from_serviceVid[4096]          = {PROT_ERPS_UNUSEDIDX};
 
 // Task id
 L7_uint32 ptin_hal_apsPacketTx_TaskId = L7_ERROR;
@@ -116,6 +117,40 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
 /**
  * Initialize ERPS# hw abstraction layer
  * 
+ * @author joaom (7/05/2013)
+ * 
+ * @param erps_idx 
+ */
+L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
+{
+  L7_uint16 byte, bit;
+  L7_uint16 vid=0;
+
+  // Convert Services VID to internal VLAN ID
+  for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+    for (bit=0; bit<8; bit++) {
+
+      vid = (byte*8)+bit;
+
+      if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {       
+        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d", erps_idx, vid);
+        erpsIdx_from_serviceVid[vid] = erps_idx;
+      }
+
+      else {
+        erpsIdx_from_serviceVid[vid] = PROT_ERPS_UNUSEDIDX;
+      }
+
+    } // for(bit...)
+  } // for(byte...)
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Initialize ERPS# hw abstraction layer
+ * 
  * @author joaom (6/12/2013)
  * 
  * @param erps_idx 
@@ -134,11 +169,14 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   ptin_intf_port2intIfNum(tbl_erps[erps_idx].protParam.port0.idx, &tbl_halErps[erps_idx].port0intfNum);
   ptin_intf_port2intIfNum(tbl_erps[erps_idx].protParam.port1.idx, &tbl_halErps[erps_idx].port1intfNum);
 
-  // Convert to internal VLAN ID
+  // Convert Control VID to internal VLAN ID
   ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED, &tbl_halErps[erps_idx].controlVidInternal );
-  erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
+  erpsIdx_from_controlVidInternal[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
   ptin_xlate_ingress_get( tbl_halErps[erps_idx].port1intfNum, tbl_erps[erps_idx].protParam.controlVid, PTIN_XLATE_NOT_DEFINED, &tbl_halErps[erps_idx].controlVidInternal );
-  erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
+  erpsIdx_from_controlVidInternal[tbl_halErps[erps_idx].controlVidInternal] = erps_idx;
+
+  // Convert Services VIDs to internal VLANs ID
+  ptin_hal_erps_convert_vid_init(erps_idx);
 
   // Create HW Rule
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 1 /* enable */);
@@ -186,7 +224,7 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
   ptin_aps_packet_deinit(erps_idx);
 
   // Delete association
-  erpsIdx_from_internalVlan[tbl_halErps[erps_idx].controlVidInternal] = PROT_ERPS_UNUSEDIDX;
+  erpsIdx_from_controlVidInternal[tbl_halErps[erps_idx].controlVidInternal] = PROT_ERPS_UNUSEDIDX;
 
   // struct init
   memset(&tbl_halErps[erps_idx], 0, sizeof(ptinHalErps_t));
@@ -355,7 +393,7 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
   L7_uint16 vid, internalVlan;
 
   if ( (tbl_halErps[erps_idx].hwSync == 1) || (tbl_halErps[erps_idx].hwFdbFlush == 1) ) {
-    LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);      
+    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);      
 
     for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
       for (bit=0; bit<8; bit++) {
@@ -365,24 +403,29 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
           // Convert to internal VLAN ID
           if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan) ) {
 
-            LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
+            LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
 
-            if (tbl_halErps[erps_idx].hwSync) {
-              if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
-                switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
-              } else {            
-                switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+            if (internalVlan != 0) {
+              if (tbl_halErps[erps_idx].hwSync) {
+                if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) {
+                  switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+                } else {            
+                  switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
+                }
+
+                if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
+                  switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+                } else {            
+                  switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+                }
               }
 
-              if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) {
-                switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
-              } else {            
-                switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+              if (tbl_halErps[erps_idx].hwFdbFlush) {
+                switching_fdbFlushByVlan(internalVlan);
               }
-            }
 
-            if (tbl_halErps[erps_idx].hwFdbFlush) {
-              switching_fdbFlushByVlan(internalVlan);
+            } else {
+              LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: EVC with VLAN %d does not exist", erps_idx, vid);
             }
 
             tbl_halErps[erps_idx].hwSync = 0;
@@ -426,16 +469,24 @@ int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx)
  * 
  * @return int 
  */
-int ptin_hal_erps_evcIsProtected(L7_uint16 int_vlan)
+int ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan)
 {
-  L7_uint8 erps_idx = erpsIdx_from_internalVlan[int_vlan];
+  L7_uint8 erps_idx = erpsIdx_from_serviceVid[vlan];
 
   // Reference of erps_idx using internal vlan as reference
   if (erps_idx != PROT_ERPS_UNUSEDIDX) {
-    tbl_halErps[erps_idx].hwSync = 1;
-    tbl_halErps[erps_idx].hwFdbFlush = 1;
-    return L7_SUCCESS;
+
+    if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) ) {
+
+      LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
+
+      tbl_halErps[erps_idx].hwSync = 1;
+      tbl_halErps[erps_idx].hwFdbFlush = 1;
+      return L7_SUCCESS;
+    }
   }
+
+  LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
 
   return L7_FAILURE;
 }

@@ -48,7 +48,7 @@ typedef struct _ptinHalErps_t {
 extern ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
 
 /// Reference of erps_idx using internal vlan as reference
-extern L7_uint8 erpsIdx_from_internalVlan[4096];
+extern L7_uint8 erpsIdx_from_controlVidInternal[4096];
 
 
 /**
@@ -59,6 +59,16 @@ extern L7_uint8 erpsIdx_from_internalVlan[4096];
  * @param erps_idx 
  */
 extern L7_RC_t ptin_hal_erps_init(void);
+
+
+/**
+ * Initialize ERPS# hw abstraction layer
+ * 
+ * @author joaom (7/05/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx);
 
 
 /**
@@ -160,7 +170,7 @@ extern int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx);
  * 
  * @return int 
  */
-extern int ptin_hal_erps_evcIsProtected(L7_uint16 int_vlan);
+extern int ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 int_vlan);
 
 /**
  * Get MEP alarm
