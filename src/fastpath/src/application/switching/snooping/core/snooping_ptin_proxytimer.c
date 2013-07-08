@@ -12,6 +12,8 @@
 
 #include "comm_mask.h"
 
+#include "ptin_igmp.h"
+
 #include <unistd.h>
 
 #define TIMER_COUNT L7_MAX_GROUP_REGISTRATION_ENTRIES*(L7_MAX_PORT_COUNT+L7_MAX_NUM_LAG_INTF)
@@ -40,23 +42,23 @@ static L7_RC_t  timerDataDestroy(L7_sll_member_t *ll_member);
 static L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key);
 static void     timerCallback(void *param);
 
-/* MASKISEQ verifies if mask j equal to mask k. */
-
-static L7_BOOL L7_INTF_MASKISEQ(L7_INTF_MASK_t mask1,L7_INTF_MASK_t mask2) 
-{ 
-    L7_INTF_MASK_t *_p_;                                            
-    L7_INTF_MASK_t *_q_;                    
-                        
-    _p_ = (L7_INTF_MASK_t *)&mask1;
-    _q_ = (L7_INTF_MASK_t *)&mask2;                                         
-    L7_uint32 x;                                                                                                                  
-  for (x = 0; x < L7_INTF_INDICES; x++) 
- {                      
-    if (_p_->value[x] != _q_->value[x])      
-      return L7_FALSE;
- }
- return L7_TRUE;                                                            
-}
+///* MASKISEQ verifies if mask j equal to mask k. */
+//
+//static L7_BOOL L7_INTF_MASKISEQ(L7_INTF_MASK_t mask1,L7_INTF_MASK_t mask2)
+//{
+//    L7_INTF_MASK_t *_p_;
+//    L7_INTF_MASK_t *_q_;
+//
+//    _p_ = (L7_INTF_MASK_t *)&mask1;
+//    _q_ = (L7_INTF_MASK_t *)&mask2;
+//    L7_uint32 x;
+//  for (x = 0; x < L7_INTF_INDICES; x++)
+// {
+//    if (_p_->value[x] != _q_->value[x])
+//      return L7_FALSE;
+// }
+// return L7_TRUE;
+//}
 
 /*********************************************************************
 * @purpose  Start Snooping task
@@ -290,23 +292,23 @@ void cbEventqueueTask(void)
 *************************************************************************/
 L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
 {
-  if ((((snoopPTinProxyTimer_t *) p)->isInterface)==L7_TRUE && (((snoopPTinProxyTimer_t *) q)->isInterface)==L7_TRUE)
-  {
-    L7_INTF_MASK_t  pRootIntfList,qRootIntfList;
-    L7_uint32     pVlanId,qVlanId;
-   
-    pRootIntfList = ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) p)->groupData)->key.rootIntfList;
-    pVlanId =       ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) p)->groupData)->key.vlanId;
-
-    qRootIntfList = ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) q)->groupData)->key.rootIntfList;
-    qVlanId =       ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) q)->groupData)->key.vlanId;
-
-    if ( L7_INTF_MASKISEQ(pRootIntfList,qRootIntfList) &&  pVlanId   == qVlanId )
-      return 0;
-
-  }
-  else if(((snoopPTinProxyTimer_t *)p)->isInterface!=L7_TRUE &&  ((snoopPTinProxyTimer_t *) q)->isInterface!=L7_TRUE)
-  {
+//if ((((snoopPTinProxyTimer_t *) p)->isInterface)==L7_TRUE && (((snoopPTinProxyTimer_t *) q)->isInterface)==L7_TRUE)
+//{
+//  L7_uint16  prootIntIdx,qrootIntIdx;
+//  L7_uint32     pVlanId,qVlanId;
+//
+//  prootIntIdx = ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) p)->groupData)->key.rootIntIdx;
+//  pVlanId =       ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) p)->groupData)->key.vlanId;
+//
+//  qrootIntIdx = ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) q)->groupData)->key.rootIntIdx;
+//  qVlanId =       ((snoopPTinProxyInterface_t *) ((snoopPTinProxyTimer_t *) q)->groupData)->key.vlanId;
+//
+//  if (prootIntIdx==qrootIntIdx &&  pVlanId   == qVlanId )
+//    return 0;
+//
+//}
+//else if(((snoopPTinProxyTimer_t *)p)->isInterface!=L7_TRUE &&  ((snoopPTinProxyTimer_t *) q)->isInterface!=L7_TRUE)
+//{
     L7_uint32  pMemAddr,qMemAddr;
     L7_inet_addr_t pGroupAddr,qGroupAddr;
     L7_uint8        pRecordType,qRecordType;
@@ -323,7 +325,7 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
          pMemAddr         == qMemAddr         &&
          pRecordType   == qRecordType )
       return 0;
-  }
+//}
   return 1;
 }
 
@@ -379,12 +381,11 @@ void timerCallback(void *param)
 {
   char                    debug_buf[46];
 
-//snoopPTinL3Interface_t  *interfacePtr;
-  L7_BOOL               isInterface;
+  snoopPTinProxyGroup_t*     groupPtr=L7_NULLPTR;
+  snoopPTinProxyInterface_t* interfacePtr;
+
   L7_uint32               timerHandle;
-  snoopPTinProxyTimer_t *pTimerData;
-//snoopPTinL3Source_t     *sourcePtr;
-  void*                   groupData;
+  snoopPTinProxyTimer_t *pTimerData;  
   timerHandle = (L7_uint32) param;
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
@@ -408,21 +409,18 @@ void timerCallback(void *param)
 
   if (pTimerData->isInterface)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Interface timer expired (rootintlist:%u vlan:%u)",
-            ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.rootIntfList,((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);
-    groupData    = (snoopPTinProxyInterface_t *) pTimerData->groupData;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Interface timer expired (%u vlan:%u)",
+            ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);
+    interfacePtr    = (snoopPTinProxyInterface_t *) pTimerData->groupData;
   }
   else
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Group timer expired(group:%s)",
             inetAddrPrint(&(((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.groupAddr), debug_buf));
-    groupData    = (snoopPTinProxyGroup_t *) pTimerData->groupData;
+    groupPtr    = (snoopPTinProxyGroup_t *) pTimerData->groupData;
+    interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->key.memAddr;
   }
-  
-
-  //Save proxytimer's internal data
-  isInterface = pTimerData->isInterface;
-
+   
   /* Remove node for SLL list */
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
   {
@@ -432,47 +430,17 @@ void timerCallback(void *param)
   }
   osapiSemaGive(timerSem);
 
-  
-#if 0/*To do*/
-  /* Proxytimer triggers only affect groups in filter-mode EXCLUDE */
-  interfacePtr = &groupData->interfaces[interfaceIdx];
-  sourcePtr    = L7_NULLPTR;
-  if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_EXCLUDE)
+
+  if (interfacePtr==L7_NULLPTR)
   {
-    L7_uint32 i;
-
-    /* Remove every source whose timer has expired */
-    for (i = 0; i < sizeof(interfacePtr->sources); ++i)
-    {
-      sourcePtr = &interfacePtr->sources[i];
-      if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE))
-      {
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing sourceIdx %u", i);
-        snoopPTinSourceRemove(interfacePtr, sourcePtr);
-      }
-    }
-
-    /* If no sources remain, remove group. Otherwise, switch to filter-mode INCLUDE */
-    if (interfacePtr->numberOfSources == 0)
-    {
-      if(pTimerData->groupData->interfaces[pTimerData->interfaceIdx].isRoot!=L7_TRUE)
-      {
-        /*Close L2 Port on Switch*/
-        if(snoopGroupIntfRemove(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfRemove()");
-          return;
-        }
-      }
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
-      snoopPTinInterfaceRemove(interfacePtr);
-    }
-    else
-    {
-      interfacePtr->filtermode = PTIN_SNOOP_FILTERMODE_INCLUDE;
-    }
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"interfacePtr==L7_NULLPTR");
+    return ;
   }
-#endif
+  if (snoopPTinReportSchedule(interfacePtr->key.vlanId,groupPtr->key.groupAddr,pTimerData->reportType,0,pTimerData->isInterface,pTimerData->noOfRecords,pTimerData->groupData)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
+    return ;
+  } 
 }
 
 /*************************************************************************
@@ -487,7 +455,7 @@ void timerCallback(void *param)
  * @returns L7_FAILURE
  *
  *************************************************************************/
-L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 timeout, void* groupData, L7_BOOL isInterface)
+L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 timeout,L7_uint8 reportType, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupData)
 {
   L7_BOOL                 restart_timer = L7_FALSE;
   snoopPTinProxyTimer_t pTimerData;
@@ -506,6 +474,8 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   memset(&pTimerData, 0x00, sizeof(pTimerData));
   pTimerData.groupData     = groupData;
   pTimerData.isInterface  = isInterface;
+  pTimerData.noOfRecords  = noOfRecords;
+  pTimerData.reportType  =  reportType;
   if (SLLFind(&timerLinkedList, (void *)&pTimerData) != L7_NULL)
   {
     restart_timer = L7_TRUE;
@@ -525,22 +495,19 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   {
     pTimer->groupData    = groupData;
     pTimer->isInterface = isInterface;
+    pTimer->reportType=reportType;
+    pTimer->noOfRecords= noOfRecords;
   }
-
-
 
   if (isInterface)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting Proxy Interface timer (timeout:%u rootintlist:%u vlan:%u)",timeout,
-            ((snoopPTinProxyInterface_t *) groupData)->key.rootIntfList,((snoopPTinProxyInterface_t *) groupData)->key.vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Interface timer (timeout:%u)",timeout);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting Proxy Interface timer (timeout:%u group:%s)",timeout,
-            inetAddrPrint(&(((snoopPTinProxyGroup_t *) groupData)->key.groupAddr), debug_buf));
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
+              inetAddrPrint(&(((snoopPTinProxyGroup_t *) groupData)->key.groupAddr), debug_buf));
   }
-
-
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)
@@ -605,8 +572,7 @@ L7_RC_t snoop_ptin_proxytimer_stop(snoopPTinProxyTimer_t *pTimer)
 
   if (pTimer->isInterface)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stopping Proxy Interface timer (rootintlist:%u vlan:%u)",
-            ((snoopPTinProxyInterface_t *) pTimer->groupData)->key.rootIntfList,((snoopPTinProxyInterface_t *) pTimer->groupData)->key.vlanId);    
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stopping Proxy Interface timer");    
   }
   else
   {
@@ -651,3 +617,26 @@ L7_uint32 snoop_ptin_proxytimer_timeleft(snoopPTinProxyTimer_t *pTimer)
 
   return time_left;
 }
+
+
+/*************************************************************************
+ * @purpose Verify if the timer is running or not
+ * 
+ * @param   pTimer  Pointer to timer
+ *
+ * @returns Timer's time left
+ *
+ *************************************************************************/
+L7_BOOL snoop_ptin_proxytimer_isRunning(snoopPTinProxyTimer_t *pTimer)
+{
+  /* Argument validation */
+  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  { 
+    return L7_FALSE;
+  }
+  else
+  {
+    return L7_TRUE;
+  }
+}
+

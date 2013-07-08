@@ -19,6 +19,7 @@
 
 L7_RC_t   snoop_ptin_proxytimer_init(void);
 L7_RC_t   snoop_ptin_proxytimer_deinit(void);
-L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 timeout, void* groupData, L7_BOOL isInterface);
+L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 timeout,L7_uint8 reportType, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupData);
 L7_RC_t snoop_ptin_proxytimer_stop(snoopPTinProxyTimer_t *pTimer);
 L7_uint32 snoop_ptin_proxytimer_timeleft(snoopPTinProxyTimer_t *pTimer);
+L7_BOOL snoop_ptin_proxytimer_isRunning(snoopPTinProxyTimer_t *pTimer);

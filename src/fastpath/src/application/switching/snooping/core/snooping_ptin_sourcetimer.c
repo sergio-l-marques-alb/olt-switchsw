@@ -10,6 +10,8 @@
 #include "snooping_db.h"
 #include "snooping_ptin_db.h"
 
+#include "ptin_igmp.h"
+
 #include <unistd.h>
 
 #define TIMER_COUNT L7_MAX_GROUP_REGISTRATION_ENTRIES*(L7_MAX_PORT_COUNT+L7_MAX_NUM_LAG_INTF)*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP
@@ -363,6 +365,13 @@ void timerCallback(void *param)
   snoopPTinL3Source_t      *sourcePtr;
   snoopPTinL3InfoData_t*   groupData;
 
+  L7_BOOL             flagGroupRemove=L7_FALSE;
+  L7_inet_addr_t      sources2Report[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD];
+  L7_uint8            sources2ReportCnt=0;
+  L7_uint8            recordType=L7_IGMP_BLOCK_OLD_SOURCES;
+  snoopPTinProxyGroup_t* groupPtr=L7_NULLPTR;
+  L7_uint32 noOfRecords=1;
+
   timerHandle = (L7_uint32) param;
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
@@ -393,21 +402,63 @@ void timerCallback(void *param)
   sourcePtr    = &groupData->interfaces[interfaceIdx].sources[sourceIdx];
   osapiSemaGive(timerSem);
 
+
   if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
   {
     /* Remove source */
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));
     snoopPTinSourceRemove(interfacePtr, sourcePtr);
 
+    if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
+      {
+        if (sources2ReportCnt<PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD)
+        {
+          sources2Report[sources2ReportCnt]=sourcePtr->sourceAddr;
+          ++sources2ReportCnt;
+        }
+        else
+        {
+          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record Full Creating new Group Record");
+          if ( L7_SUCCESS != snoopPTinGroupRecordSourceListAdd(groupData->snoopPTinL3InfoDataKey.vlanId,&groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceListAdd()");
+            return;
+          } 
+          noOfRecords++;         
+          sources2ReportCnt=0;
+          sources2Report[sources2ReportCnt]=sourcePtr->sourceAddr;
+          ++sources2ReportCnt;          
+        }
+      }
+
     /* If no more sources remain, remove group */
     if (interfacePtr->numberOfSources == 0)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group has no more sources, thus it is being removed.");
-      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
+        flagGroupRemove=L7_TRUE;
     }
   }
 
-  osapiSemaTake(timerSem, L7_WAIT_FOREVER);
+  if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && flagGroupRemove==L7_FALSE)
+  {    
+    if (sources2ReportCnt>0 && L7_SUCCESS != snoopPTinGroupRecordSourceListAdd(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceListAdd()");
+      return;
+    }
+    else
+    {
+       if (snoopPTinReportSchedule(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
+        return;
+      }
+    }
+  }
+
+  osapiSemaTake(timerSem, L7_WAIT_FOREVER);  
   pTimerData->isRunning = L7_FALSE;
   osapiSemaGive(timerSem);
 }
@@ -595,3 +646,26 @@ L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer)
 
   return time_left;
 }
+
+
+/*************************************************************************
+ * @purpose Verify if the timer is running or not
+ * 
+ * @param   pTimer  Pointer to timer
+ *
+ * @returns Timer's time left
+ *
+ *************************************************************************/
+L7_BOOL snoop_ptin_sourcetimer_isRunning(snoopPTinL3Sourcetimer_t *pTimer)
+{
+  /* Argument validation */
+  if (pTimer == L7_NULLPTR || pTimer->timer == L7_NULLPTR)
+  { 
+    return L7_FALSE;
+  }
+  else
+  {
+    return L7_TRUE;
+  }
+}
+

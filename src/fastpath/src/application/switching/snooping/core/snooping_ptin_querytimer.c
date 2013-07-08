@@ -412,8 +412,6 @@ void timerCallback(void *param)
       interfacePtr->filtermode = PTIN_SNOOP_FILTERMODE_INCLUDE;
     }
   }
-/*Fixme RemoveMe*/
-  snoopPTinReportSchedule(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId , pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, 0, &pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr, 0 );
 }
 
 /*************************************************************************

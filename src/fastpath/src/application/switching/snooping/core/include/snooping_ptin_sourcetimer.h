@@ -22,3 +22,4 @@ L7_RC_t   snoop_ptin_sourcetimer_deinit(void);
 L7_RC_t   snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t* pTimer, L7_uint32 timeout, snoopPTinL3InfoData_t* groupData, L7_uint32 interfaceIdx, L7_uint32 sourceIdx);
 L7_RC_t   snoop_ptin_sourcetimer_stop(snoopPTinL3Sourcetimer_t *pTimer);
 L7_uint32 snoop_ptin_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer);
+L7_BOOL snoop_ptin_sourcetimer_isRunning(snoopPTinL3Sourcetimer_t *pTimer);

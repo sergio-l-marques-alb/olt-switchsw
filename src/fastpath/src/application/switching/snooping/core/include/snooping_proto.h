@@ -188,8 +188,6 @@ L7_RC_t snoopPimv1v2DvmrpProcess(mgmdSnoopControlPkt_t *mcastPacket,
                               L7_inet_addr_t *grpAddr, L7_uint32 ipProtoType);
 L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
 
-L7_RC_t igmp_reuse_packet_and_send(mgmdSnoopControlPkt_t *mcastPacket);
-
 /* End of function prototypes */
 #endif /* SNOOPING_PROTO_H */
 

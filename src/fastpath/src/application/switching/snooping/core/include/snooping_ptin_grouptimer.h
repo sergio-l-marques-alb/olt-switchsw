@@ -22,3 +22,4 @@ L7_RC_t   snoop_ptin_grouptimer_deinit(void);
 L7_RC_t   snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t *pTimer, L7_uint32 timeout, snoopPTinL3InfoData_t* groupData, L7_uint32 interfaceIdx);
 L7_RC_t   snoop_ptin_grouptimer_stop(snoopPTinL3Grouptimer_t *pTimer);
 L7_uint32 snoop_ptin_grouptimer_timeleft(snoopPTinL3Grouptimer_t *pTimer);
+L7_BOOL snoop_ptin_grouptimer_isRunning(snoopPTinL3Grouptimer_t *pTimer);

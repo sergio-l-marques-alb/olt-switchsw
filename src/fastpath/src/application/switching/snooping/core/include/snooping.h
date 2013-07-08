@@ -51,6 +51,10 @@
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
 #define SNOOP_IGMPv3_MAX_RECORD_GROUP_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+
+#define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
+
+#define SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL 1
 #endif
 
 typedef enum
@@ -341,6 +345,7 @@ typedef struct
   snoopPTinL3Sourcetimer_t sourceTimer;
   L7_uint8                 status;
   L7_uint16                numberOfClients;
+  L7_BOOL                                 isStatic;
 } snoopPTinL3Source_t;
 
 typedef struct
@@ -350,9 +355,7 @@ typedef struct
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;
   L7_uint8                active;
-#if SNOOP_PTIN_IGMPv3_PROXY
-  L7_BOOL                 isRoot;//
-#endif
+  L7_BOOL                                 isStatic;
 } snoopPTinL3Interface_t;
 
 typedef struct snoopPTinL3InfoDataKey_s
@@ -389,12 +392,17 @@ typedef enum
   SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY,
 }SnoopPtinProxy_Query_t;
 
+typedef struct  snoopPTinProxyGroup_s snoopPTinProxyGroup_t;
 
 typedef struct snoopPTinProxyTimer_s
 {
   L7_sll_member_t                   *next;
 
-  void                              *groupData;//Memory Address of Record
+  snoopPTinProxyGroup_t             *groupData;//Memory Address of Record
+  L7_uint32                          noOfRecords;
+
+  L7_uint8                           reportType;
+//L7_uint32                          selectedDelay;
 
   L7_BOOL                            isRunning;
 
@@ -420,8 +428,9 @@ typedef struct snoopPTinProxySource_s
   snoopPTinProxySourceKey_t          key;
   
   L7_uint8                           retransmissions;
+  L7_uint8                           robustnessVariable;
 
-  snoopPTinProxyTimer_t              timer;
+//snoopPTinProxyTimer_t              timer;
   
   snoopPTinProxySource_t            *nextSource;
   snoopPTinProxySource_t            *previousSource;
@@ -447,13 +456,14 @@ typedef struct snoopPTinProxyGroup_s
 {
   snoopPTinProxyGroupKey_t                key;
   L7_uint8                                retransmissions;
+  L7_uint8                                robustnessVariable;
   L7_uint16                               numberOfSources;//Number of active Sources
-  snoopPTinProxySource_t                 *source;//List Containing the Sources of this Group
+  snoopPTinProxySource_t                 *source;//List Containing the Sources of this Group  
 
   snoopPTinProxyTimer_t                  timer;   
   
-  snoopPTinProxyGroup_t            *nextGroup;
-  snoopPTinProxyGroup_t            *previousGroup;
+  snoopPTinProxyGroup_t            *nextGroupRecord;
+  snoopPTinProxyGroup_t            *previousGroupRecord;
 
   snoopInfoData_t          *L2MC;
 
@@ -461,8 +471,7 @@ typedef struct snoopPTinProxyGroup_s
 }snoopPTinProxyGroup_t;
 
 typedef struct snoopPTinProxyInterfaceKey_s
-{
-  L7_INTF_MASK_t                          rootIntfList;
+{  
   L7_uint32                               vlanId;
 } snoopPTinProxyInterfaceKey_t;
 
@@ -472,10 +481,11 @@ typedef struct snoopPTinProxyInterfaceInfoData_s
   snoopPTinProxyInterfaceKey_t    key;
 
   L7_uint8                                retransmissions;
+  L7_uint8                                robustnessVariable;
 
-  L7_uint32                               numberOfGroups;//Number of active Groups
+  L7_uint32                               numberOfGroupRecords;//Number of active Groups
   
-  snoopPTinProxyGroup_t            *group;
+  snoopPTinProxyGroup_t                  *groupRecord;
 
   snoopPTinProxyTimer_t                   timer;   
 

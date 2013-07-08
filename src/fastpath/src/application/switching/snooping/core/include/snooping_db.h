@@ -163,13 +163,15 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet
 L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t sourceAddr);
 L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t sourceAddr);
 
+L7_RC_t snoopPTinL3SourceEntryFind(L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr, L7_inet_addr_t sourceAddr, L7_uint32 flag,L7_uint32* foundIdx );
+
 snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 memAddr, L7_inet_addr_t groupAddr,L7_uint8 recordType, L7_uint32 flag);
 L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t groupAddr,L7_uint8 recordType);
 L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 memAddr, L7_inet_addr_t groupAddr,L7_uint8 recordType);
 
-snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId, L7_uint32 flag);
-L7_RC_t snoopPTinProxyInterfaceEntryAdd(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId);
-L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId);
+snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7_uint32 flag);
+L7_RC_t snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId);
+L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId);
 
 #endif
 
