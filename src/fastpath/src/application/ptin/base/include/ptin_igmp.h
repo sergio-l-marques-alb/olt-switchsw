@@ -62,7 +62,7 @@
                                                                             PTIN_IGMP_DEFAULT_QUERYINTERVAL,\
                                                                             PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL) /* (260 s) */
 
-#define PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT        64
+#define PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD        64
 
 
 /* FOR STATISTICS */

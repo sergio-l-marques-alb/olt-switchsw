@@ -3587,7 +3587,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinIgmpProxy.host.robustness                        = msgIgmpProxy->host.robustness;
   ptinIgmpProxy.host.unsolicited_report_interval       = msgIgmpProxy->host.unsolicited_report_interval;
   ptinIgmpProxy.host.older_querier_present_timeout     = msgIgmpProxy->host.older_querier_present_timeout;
-  ptinIgmpProxy.host.max_records_per_report            = msgIgmpProxy->host.max_records_per_report;
+  ptinIgmpProxy.host.max_sources_per_record            = msgIgmpProxy->host.max_records_per_report;
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
@@ -3615,7 +3615,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinIgmpProxy.host.older_querier_present_timeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Records per Report         = %u", ptinIgmpProxy.host.max_records_per_report);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Sources per Group Record   = %u", ptinIgmpProxy.host.max_sources_per_record);
 
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);

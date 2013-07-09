@@ -564,7 +564,7 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
   igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
-  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
+  igmpProxy.host.max_sources_per_record            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD;
 
   /* Apply default config */
   rc = ptin_igmp_proxy_config_set(&igmpProxy);
@@ -812,8 +812,8 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Max Records per Report */
   if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_MRPR)
   {
-    igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
+    igmpProxyCfg.host.max_sources_per_record = igmpProxy->host.max_sources_per_record;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_sources_per_record);
   }
 
   /* Update AUTO flags */
@@ -7404,7 +7404,7 @@ void ptin_igmp_proxy_dump(void)
   printf(" Robustness                     = %u\r\n",     igmpProxyCfg.host.robustness);
   printf(" Unsolicited Report Interval    = %u\r\n",     igmpProxyCfg.host.unsolicited_report_interval);
   printf(" Older Querier Present Timeout  = %u\r\n",     igmpProxyCfg.host.older_querier_present_timeout);
-  printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_records_per_report);
+  printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_sources_per_record);
 
   printf("Done!\r\n");
 }
