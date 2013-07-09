@@ -427,16 +427,14 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
             } else {
               LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: EVC with VLAN %d does not exist", erps_idx, vid);
             }
-
-            tbl_halErps[erps_idx].hwSync = 0;
-            tbl_halErps[erps_idx].hwFdbFlush = 0;
-
           }
 
         } //if(vid_bmp...)
       } // for(bit...)
     } // for(byte...)
 
+    tbl_halErps[erps_idx].hwSync = 0;
+    tbl_halErps[erps_idx].hwFdbFlush = 0;
   }
 
   return L7_SUCCESS;
