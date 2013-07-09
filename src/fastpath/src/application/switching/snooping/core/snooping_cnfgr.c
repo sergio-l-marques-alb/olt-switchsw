@@ -1302,16 +1302,23 @@ L7_RC_t snoopEBInit(void)
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
 
-#if 0 //Tobe Modified
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyDBTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyDBDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyDBInfoData_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfacetimerTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfacetimerDataHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterfacetimerInfoData_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGrouptimerTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGrouptimerDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGrouptimerInfoData_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourcetimerTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourcetimerDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP*sizeof(snoopPTinProxySourcetimerInfoData_t));
-#endif
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceDataHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterface_t));
+  
+
 
 /* DFF - PTin added: IGMPv3 snooping */
 #if SNOOP_PTIN_IGMPv3_GLOBAL
