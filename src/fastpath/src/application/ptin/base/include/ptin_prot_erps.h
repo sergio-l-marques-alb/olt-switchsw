@@ -127,9 +127,10 @@
 
 #define RReq_STAT_RB                    0x80
 #define RReq_STAT_DNF                   0x40
-#define RReq_STAT_BPR_SET(port)         (port==1? 0x20 : 0x00)
+#define RReq_STAT_BPR                   0x20
 #define RReq_STAT_ZEROS                 0x00
 
+#define RReq_STAT_BPR_SET(port)         (port==1? 0x20 : 0x00)
 #define APS_GET_REQ(aspReqStateRx)     ( (aspReqStateRx >> 4) & 0x0F )
 #define APS_GET_STATUS(aspReqStatusRx) ( (aspReqStatusRx    ) & 0xE0 )
 

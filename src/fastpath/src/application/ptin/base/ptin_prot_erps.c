@@ -894,7 +894,9 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  apsNodeIdRx[P0]     %.2x:%.2x:%.2x:%.2x:%.2x:%.2x", tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][1], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][2], 
                                                                   tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0][5]);
   printf("\n  apsNodeIdRx[P1]     %.2x:%.2x:%.2x:%.2x:%.2x:%.2x", tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][1], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][2], 
-                                                                  tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][5]);
+                                                                  tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][5]);  
+  printf("\n  apsBprRx[P0]        %d",                      tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0]);
+  printf("\n  apsBprRx[P1]        %d",                      tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]);
   printf("\n  portState[P0]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
   printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
   printf("\n  dnfStatus           %d",                      tbl_erps[erps_idx].dnfStatus);
@@ -1345,13 +1347,16 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     // stored for that ring port; and if it is different from the (node ID, BPR) pair already stored at the
     // other ring port, then a flush FDB action is triggered except when the new R-APS message has DNF
     // or the receiving Ethernet ring node's node ID
+    #if 0
     if (memcmp(apsNodeIdRx, tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], PROT_ERPS_MAC_SIZE) && !(APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)) {      
       ptin_erps_FlushFDB(erps_idx, __LINE__);
     }
+    #endif
 
     // An R-APS (NR) message received by this process
     // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
     // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
+    #if 0
     if (remoteRequest == RReq_NR) {
       memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
@@ -1359,6 +1364,10 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0; /*** TO BE DONE ***/
     }
+    #else
+    memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+    tbl_erps[erps_idx].apsBprRx[apsRxPort] = APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR;
+    #endif
 
 
     //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
