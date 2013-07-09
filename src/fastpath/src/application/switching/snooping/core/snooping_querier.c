@@ -52,6 +52,92 @@
 #include "ptin_igmp.h"
 #endif
 
+
+
+/*********************************************************************
+* @purpose  This function is used exclusively for encoding the floating
+*           point representation as described in RFC 3376 section 4.1.1
+*           (Max Resp Code) and section 4.1.7 (Querier's * Query Interval Code).
+*           An out of range parameter causes the output parm "code" to
+*           be set to 0.
+*
+* @param    num   @b{ (input) }    Number to be encoded
+* @param    code  @b{ (output) }   Coded value
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
+{
+  L7_int32 exp, mant;
+  L7_uchar8 *codev4;
+  L7_ushort16 *codev6;
+
+  if (family == L7_AF_INET)
+  {
+    codev4 = (L7_uchar8 *)code;
+    if (num < 128)
+    {
+      *codev4 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev4 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
+    }
+  }
+  else if (family == L7_AF_INET6)
+  {
+    codev6 = (L7_ushort16 *)code;
+    if (num < 32768)
+    {
+      *codev6 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev6 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
+    }
+  }
+}
+
+
+
 /* Snooping Querier state transition table */
 static snoopQuerierState_t snoopQuerierStateTable[snoopQuerierSTEvents][SNOOP_QUERIER_STATES] =
 {
@@ -1630,12 +1716,12 @@ L7_RC_t snoopIGMPFrameBuild(L7_uint32        intIfNum,
   /* Max response code */
   if (version >= SNOOP_IGMP_VERSION_2)
   {
-    if (version == SNOOP_IGMP_VERSION_2 && pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperState
-        == SNOOP_QUERIER_QUERIER)
-    {
-      val = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
+    val = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
                                          SNOOP_PARAM_MAX_RESPONSE_TIME,
                                          pSnoopCB->family);
+    if (version == SNOOP_IGMP_VERSION_2 && pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperState
+        == SNOOP_QUERIER_QUERIER)
+    {      
       //val *= SNOOP_IGMP_FP_DIVISOR;   /* Value is in 1/10 s */
         /* Check for byteVal overflow */
       if (val >= (1 << (sizeof(byteVal) * 8)))
@@ -1650,7 +1736,12 @@ L7_RC_t snoopIGMPFrameBuild(L7_uint32        intIfNum,
     }
     else
     {
+#if 0
       byteVal = pSnoopOperEntry->snoopQuerierInfo.maxResponseCode;
+#else
+      
+      snoop_fp_encode(L7_AF_INET, val, &byteVal);
+#endif
     }
   }
   else
@@ -1870,8 +1961,15 @@ L7_RC_t snoopMLDFrameBuild(L7_uint32       intIfNum,
      shortVal = uintVal /* * SNOOP_MLD_FP_DIVISOR*/;  /* Value is in 1/10 s */
    }
    else
-   {
+   {     
+#if 0
      shortVal = pSnoopOperEntry->snoopQuerierInfo.maxResponseCode;
+#else
+     uintVal = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
+                                        SNOOP_PARAM_MAX_RESPONSE_TIME,
+                                        pSnoopCB->family);
+     snoop_fp_encode(L7_AF_INET6, uintVal, &shortVal);
+#endif
    }
    SNOOP_PUT_SHORT(shortVal, dataPtr);
 
