@@ -741,6 +741,7 @@ typedef enum {
    ERPS_PORTROLE_NONRPL       = 0,
    ERPS_PORTROLE_RPL          = 1,
    ERPS_PORTROLE_RPLNEIGHBOUR = 2,
+   ERPS_PORTROLE_RPLNEXTNEIGH = 3,
 } ERPS_PORTROLE;
 
 typedef struct {
