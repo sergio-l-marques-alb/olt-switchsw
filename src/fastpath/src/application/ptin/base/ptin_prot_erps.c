@@ -22,6 +22,7 @@
 #include "logger.h"
 #include "ptin_cnfgr.h"
 
+#define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
 /* *******************************************************************************/
 /*                                  GLOBAL VARS                                  */
@@ -110,6 +111,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
   tbl_erps[erps_idx].operator_cmd_port                = 0;
 
   tbl_erps[erps_idx].localRequest                     = LReq_NONE;
+  tbl_erps[erps_idx].localReqPort                     = 0;
   tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
 
   tbl_erps[erps_idx].apsReqStatusTx                   = 0;
@@ -124,7 +126,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
 
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]       = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]       = ERPS_PORT_FLUSHING;
-  tbl_erps[erps_idx].rplBlockedPortSide               = PROT_ERPS_PORT0;  
+  tbl_erps[erps_idx].dnfStatus                        = 0;
 
   tbl_erps[erps_idx].state_machine                    = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -315,6 +317,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   tbl_erps[erps_idx].operator_cmd_port          = PROT_ERPS_PORT0;
 
   tbl_erps[erps_idx].localRequest               = LReq_NONE;
+  tbl_erps[erps_idx].localReqPort               = 0;
   tbl_erps[erps_idx].remoteRequest              = RReq_NONE;
 
   tbl_erps[erps_idx].apsReqStatusTx             = 0;
@@ -331,7 +334,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] = ERPS_PORT_FLUSHING;
   tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] = ERPS_PORT_FLUSHING;
-  tbl_erps[erps_idx].rplBlockedPortSide         = PROT_ERPS_PORT0;
+  tbl_erps[erps_idx].dnfStatus                  = 0;
 
   tbl_erps[erps_idx].state_machine              = ERPS_STATE_SetLocal(ERPS_STATE_Z_Init);
 
@@ -784,11 +787,20 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
     return(ret);
   }
 
-  status->rplBlockedPortSide = tbl_erps[erps_idx].rplBlockedPortSide;
   status->port0_SF           = tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0];
   status->port1_SF           = tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1];
   status->port0State         = tbl_erps[erps_idx].portState[PROT_ERPS_PORT0];
   status->port1State         = tbl_erps[erps_idx].portState[PROT_ERPS_PORT1];
+
+  status->apsReqStatusTx     = tbl_erps[erps_idx].apsReqStatusTx;
+  status->apsReqStatusRxP0   = tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0];
+  status->apsReqStatusRxP1   = tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1];
+
+  memcpy(status->apsNodeIdRxP0, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], PROT_ERPS_MAC_SIZE);
+  memcpy(status->apsNodeIdRxP1, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE);
+
+  status->dnfStatus          = tbl_erps[erps_idx].dnfStatus;
+
   status->guard_timer        = tbl_erps[erps_idx].guard_timer;
   status->wtr_timer          = tbl_erps[erps_idx].wtr_timer;
   status->wtb_timer          = tbl_erps[erps_idx].wtb_timer;
@@ -813,13 +825,11 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
 
   char *strBool[]       = { "FALSE", "TRUE", "FUZZY :) " };
   char *strPortRole[]   = { "NON RPL", "RPL Owner", "RPL Neighbour" };
-  char *strRevertive[]  = { "Non-Revertive", "Revertive" };  
+  char *strRevertive[]  = { "Non-Revertive", "Revertive" };
   char *strCmd[]        = { "NR", "OC", "LO", "FS", "MS", "ReplaceRPL", "ExeSignal" };
-  char *strCmdPath[]    = { "Switch to PORT0", "Switch to PORT1", "NONE" };  
+  char *strCmdPath[]    = { "Switch to PORT0", "Switch to PORT1", "NONE" };
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
-
-  /*** TO BE DONE ***/
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
@@ -876,6 +886,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n-----------------------------------------");
   printf("\nAPS State Machine:\n");
   printf("\n  localRequest        %s",                      locReqToString[tbl_erps[erps_idx].localRequest - 100]);
+  printf("\n  localReqPort        %d",                      tbl_erps[erps_idx].localReqPort);
   printf("\n  remoteRequest       %s",                      remReqToString[tbl_erps[erps_idx].remoteRequest]);
   printf("\n  apsReqStatusTx      (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusTx, remReqToString[((tbl_erps[erps_idx].apsReqStatusTx >> 12) & 0xF)]);
   printf("\n  apsReqStatusRx[P0]  (0x%x) %s",               tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0], remReqToString[((tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0] >> 12) & 0xF)]);
@@ -886,7 +897,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
                                                                   tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][3], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][4], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1][5]);
   printf("\n  portState[P0]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT0], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT0]]);
   printf("\n  portState[P1]       (0x%x) %s",               tbl_erps[erps_idx].portState[PROT_ERPS_PORT1], strPortState[tbl_erps[erps_idx].portState[PROT_ERPS_PORT1]]);
-  printf("\n  rplBlockedPortSide  %d",                      tbl_erps[erps_idx].rplBlockedPortSide);
+  printf("\n  dnfStatus           %d",                      tbl_erps[erps_idx].dnfStatus);
   printf("\n  state_machine       (0x%x) %s:%s",            tbl_erps[erps_idx].state_machine,
                                                             stateToString[ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)],
                                                             ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
@@ -976,6 +987,17 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
   tbl_erps[erps_idx].portState[port] = portState;
 
   tbl_halErps[erps_idx].hwSync = 1;
+
+  // When the ring port
+  // is changed to be blocked - as indicated by the block/unblock ring ports signal - the flush logic
+  // deletes the current (node ID, BPR) pair on both ring ports.
+  if (portState == ERPS_PORT_BLOCKING) {
+    memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], 0, PROT_ERPS_MAC_SIZE);
+    memset(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], 0, PROT_ERPS_MAC_SIZE);
+
+    tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] = 0;
+    tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1] = 0;
+  }
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -1061,6 +1083,12 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int 
 {
   int ret = PROT_ERPS_EXIT_OK;
   L7_uint16 apsTx;
+
+  if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) {
+    status |= RReq_STAT_BPR_SET(PROT_ERPS_PORT0);
+  } else if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) {
+    status |= RReq_STAT_BPR_SET(PROT_ERPS_PORT1);
+  }
 
   apsTx = ((reqstate << 12) & 0xF000) | (status & 0x00FF);
 
@@ -1200,18 +1228,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint32 apsRxPort                         = 0;
   L7_uint8  topPriorityRequest                = LReq_NONE;  //The current top priority request as defined in sub-clause 10.1.1.
   L7_BOOL   haveChanges                       = L7_FALSE;
-  L7_uint8  req_port                          = 0;          // Request or Failed Port
+  L7_uint8  reqPort                          = 0;           // Request or Failed Port
 
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
 
   switch (ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)) {
   
-
-  case ERPS_STATE_Freeze:
-    break;
-
-
   case ERPS_STATE_Z_Init:
 
     //Stop guard timer
@@ -1227,8 +1250,14 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     tbl_erps[erps_idx].wtb_timer                        = 0;
     tbl_erps[erps_idx].wtb_CMD                          = TIMER_CMD_STOP;
 
+    #ifdef SM_MODIFICATIONS
+    //Clear DNF
+    tbl_erps[erps_idx].dnfStatus                        = 0;
+    #endif
+
     //If RPL Owner Node:
     if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
+
       //Block RPL port
       //Unblock non-RPL port
       if ( tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL ) {                      // Port0 is RPL
@@ -1244,8 +1273,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       //If revertive:
       if ( (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION) ) {
+        #ifdef SM_MODIFICATIONS
+        // Start WTB timer
+        ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_START, __LINE__);
+        #else
         // Start WTR timer
         ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
+        #endif
       }
     }
     // Else if RPL Neighbour Node:
@@ -1297,7 +1331,35 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
+
     remoteRequest = APS_GET_REQ(apsReqStateRx);
+
+    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
+
+    // The flush logic retains for each ring port the information of node ID and blocked port reference 
+    // (BPR) of the last R-APS message received over that ring port.
+    // 
+    // For each new R-APS message received over one ring port, it extracts the (node ID, BPR) pair and 
+    // compares it with the previous (node ID, BPR) pair stored for that ring port. If it is different from the
+    // previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
+    // stored for that ring port; and if it is different from the (node ID, BPR) pair already stored at the
+    // other ring port, then a flush FDB action is triggered except when the new R-APS message has DNF
+    // or the receiving Ethernet ring node's node ID
+    if (memcmp(apsNodeIdRx, tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], PROT_ERPS_MAC_SIZE) && !(APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)) {      
+      ptin_erps_FlushFDB(erps_idx, __LINE__);
+    }
+
+    // An R-APS (NR) message received by this process
+    // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
+    // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
+    if (remoteRequest == RReq_NR) {
+      memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
+    } else {
+      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0; /*** TO BE DONE ***/
+    }
+
 
     //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
     //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
@@ -1333,19 +1395,19 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
         if ( (remoteRequest != RReq_FS) && (remoteRequest != RReq_MS) ) {
           localRequest = LReq_CLEAR;
-          req_port = tbl_erps[erps_idx].operator_cmd_port;
+          reqPort = tbl_erps[erps_idx].operator_cmd_port;
         }
       }
     }
 
     else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_FS) ) {
       localRequest = LReq_FS;
-      req_port = tbl_erps[erps_idx].operator_cmd_port;
+      reqPort = tbl_erps[erps_idx].operator_cmd_port;
     }
 
     else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_MS) ) {
       localRequest = LReq_MS;
-      req_port = tbl_erps[erps_idx].operator_cmd_port;
+      reqPort = tbl_erps[erps_idx].operator_cmd_port;
     }
 
     else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_LO) ) {
@@ -1400,31 +1462,27 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   else {
 
     if ( (SF[PROT_ERPS_PORT0] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]) ) {
-      if ( SF[PROT_ERPS_PORT0] ) {
+      if ( (SF[PROT_ERPS_PORT0]) ) {
         localRequest = LReq_SF;
-        req_port = PROT_ERPS_PORT0;
+        reqPort = PROT_ERPS_PORT0;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0]", erps_idx);
-      } else {
+      } else /*if ( !(SF[PROT_ERPS_PORT0]) )*/ {
         localRequest = LReq_SFc;
-        req_port = PROT_ERPS_PORT0;
+        reqPort = PROT_ERPS_PORT0;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0] Clear", erps_idx);
       }
-
-      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = SF[PROT_ERPS_PORT0];
     }
 
-    if ( (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SF) ) {
-      if ( SF[PROT_ERPS_PORT1] ) {
+    if ( (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) ) {
+      if ( (SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SF) ) {
         localRequest = LReq_SF;
-        req_port = PROT_ERPS_PORT1;
+        reqPort = PROT_ERPS_PORT1;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1]", erps_idx);
-      } else {
+      } else if ( !(SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SFc) ) {
         localRequest = LReq_SFc;
-        req_port = PROT_ERPS_PORT1;
+        reqPort = PROT_ERPS_PORT1;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1] Clear", erps_idx);
       }
-
-      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = SF[PROT_ERPS_PORT1];
     }
 
 
@@ -1498,9 +1556,6 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     // 13.  R-APS (NR,RB)
     else if ( (remoteRequest == RReq_NR) && ( APS_GET_STATUS(apsStatusRx) & RReq_STAT_RB) ) {
       topPriorityRequest = RReq_NR;
-      
-      // Rx Port information
-      tbl_erps[erps_idx].rplBlockedPortSide = apsRxPort;
     }
 
     // 14.  R-APS (NR)
@@ -1582,19 +1637,20 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
   }
 
-  if ( (localRequest != LReq_NONE) && (tbl_erps[erps_idx].localRequest != localRequest) ) {
-    haveChanges = L7_TRUE;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: localRequest: change from %s to %s", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100]);
-    tbl_erps[erps_idx].localRequest = localRequest;
+  if ( (localRequest != LReq_NONE) ) {
+    if ( (tbl_erps[erps_idx].localRequest != localRequest) /*|| (tbl_erps[erps_idx].localReqPort != reqPort)*/ ) {
+    
+      haveChanges = L7_TRUE;
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: localRequest: change from %s to %s on port %d", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100], reqPort);
+      tbl_erps[erps_idx].localRequest = localRequest;
+      tbl_erps[erps_idx].localReqPort = reqPort;
+    }
   }
   if ( (remoteRequest != RReq_NONE) && (tbl_erps[erps_idx].remoteRequest != remoteRequest) ) {
     haveChanges = L7_TRUE;
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: change from %s to %s", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], remReqToString[remoteRequest]);
 
     tbl_erps[erps_idx].remoteRequest = remoteRequest;
-
-    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
-    memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
   }
 
   if (!(haveChanges) && !(ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine) == ERPS_STATE_Z_Init)) {    
@@ -1603,9 +1659,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Processing Changes ...", erps_idx);
   if (topPriorityRequest>100) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], req_port);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
   } else {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], req_port);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
   }
 
 
@@ -1614,7 +1670,10 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //-------------------------------------------------------------------------  
 
   switch (ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)) {
- 
+
+  case ERPS_STATE_Freeze:
+    break;
+
   case ERPS_STATE_A_Idle:
 
     //Clear 2
@@ -1627,24 +1686,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //FS 3 
     if ( topPriorityRequest == LReq_FS ) {
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (FS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_DNF, __LINE__);
         
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (FS)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -1670,29 +1729,118 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     //local SF  5
     if ( topPriorityRequest == LReq_SF ) {
+      #ifdef SM_MODIFICATIONS
+
+      //Check which port is in SF: PORT0
+      if (reqPort == PROT_ERPS_PORT0) {
+
+        //If failed ring port is RPL port:
+        if (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) {
+          // Block failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
+
+          // Tx R-APS (SF, DNF)
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
+
+          // Unblock non-failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1 , ERPS_PORT_FLUSHING, __LINE__);
+
+          // Set DNF status
+          tbl_erps[erps_idx].dnfStatus = 1;
+        }
+
+        //Else if failed ring port is RPL next-neighbour port:
+        if (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEXTNEIGH) {
+          /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
+          // Block failed ring port
+          // Tx R-APS (SF) from failed ring port
+          // Unblock non-failed ring port
+        }
+
+        //Else:
+        else {
+          // Block failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
+
+          // Tx R-APS (SF)
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
+
+          // Unblock non-failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1 , ERPS_PORT_FLUSHING, __LINE__);
+
+          //Flush FDB
+          ptin_erps_FlushFDB(erps_idx, __LINE__);
+        }
+
+      } 
+      //Check which port is in SF: PORT1
+      else {
+
+        //If failed ring port is RPL port:
+        if (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) {
+          // Block failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
+
+          // Tx R-APS (SF, DNF)
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
+
+          // Unblock non-failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+
+          // Set DNF status
+          tbl_erps[erps_idx].dnfStatus = 1;
+        }
+
+        //Else if failed ring port is RPL next-neighbour port:
+        if (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEXTNEIGH) {   /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
+          // Block failed ring port
+          // Tx R-APS (SF) from failed ring port
+          // Unblock non-failed ring port
+        }
+
+        //Else:
+        else {
+          // Block failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
+
+          // Tx R-APS (SF)
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
+
+          // Unblock non-failed ring port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+
+          //Flush FDB
+          ptin_erps_FlushFDB(erps_idx, __LINE__);
+        }
+
+      }
+
+      #else
 
       //If failed ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
         //Tx R-APS (SF,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-failed ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block failed ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (SF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-failed ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
       }
+
+      #endif
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
@@ -1707,20 +1855,59 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     //R-APS (SF)  7
     if ( topPriorityRequest == RReq_SF ) {
+
+      #ifdef SM_MODIFICATIONS
       //Unblock non-failed ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+
+      //Stop Tx R-APS
+      ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+
+      //If not DNF
+      if (!(APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)) {
+        // flush FDB
+        ptin_erps_FlushFDB(erps_idx, __LINE__);
+
+        // If RPL next-neighbour node
+        if ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEXTNEIGH) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEXTNEIGH)) {
+          /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
+          //  Tx three R-APS (SF) message
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
+        }
+        // If RPL owner node
+        if ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) {
+          //  Tx three R-APS (SF) message
+          ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
+
+          //  clear DNF status
+          tbl_erps[erps_idx].dnfStatus = 0;
+        }
+      }
+
+      //Else:
+      else {
+        // If RPL owner node
+        if ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL)) {
+          //  set DNF status
+          tbl_erps[erps_idx].dnfStatus = 1;
+        }
+      }
+      #else
+      //Unblock non-failed ring port
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      #endif
     }
 
     //R-APS (MS)  8
     if ( topPriorityRequest == RReq_MS ) {
       //Unblock non-failed ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
@@ -1732,24 +1919,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //MS 9
     if ( topPriorityRequest == LReq_MS ) {
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (MS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_MS, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port , ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort , ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (MS)
         ptin_erps_aps_tx(erps_idx, RReq_MS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -1815,8 +2002,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
            (memcmp(apsNodeIdRx, ERP_NODE_ID, PROT_ERPS_MAC_SIZE) > 0) ) {
 
         //Unblock non-failed ring port
-        //ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_FLUSHING, __LINE__);
+        //ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_FLUSHING, __LINE__);
 
         //Stop Tx R-APS
         ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
@@ -1841,24 +2028,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //FS 17
     if ( topPriorityRequest == LReq_FS ) {
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (FS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (FS)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -1885,24 +2072,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //local SF  19
     if ( topPriorityRequest == LReq_SF ) {
       //If failed ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (SF,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-failed ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block failed ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (SF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-failed ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2042,24 +2229,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //FS 31
     if ( topPriorityRequest == LReq_FS ) {
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (FS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
-        // Block requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_BLOCKING, __LINE__);
+        // Block requested ring port
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (FS)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2086,23 +2273,23 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //local SF  33
     if ( topPriorityRequest == LReq_SF ) {
       //If failed ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
         //Tx R-APS (SF,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-failed ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block failed ring port       
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (SF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-failed ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2124,7 +2311,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //R-APS (SF)  35
     if ( topPriorityRequest == RReq_SF ) {
       //Unblock non-failed ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
@@ -2152,8 +2339,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         }
       }
 
-      // Next node state: E (*)
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      // Next node state: E (*) *: If both ring ports are unblocked, next node state is C
+      if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) {
+        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      } else {
+        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      }
     }
 
     //MS 37
@@ -2246,7 +2437,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //FS 45
     if ( topPriorityRequest == LReq_FS ) {
       //Block requested ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
       //Tx R-APS (FS)
       ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_ZEROS, __LINE__);
@@ -2399,7 +2590,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
           ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_BLOCKING, __LINE__);
         }
         
-        // Tx R-APS (NR, RB)  
+        // Tx R-APS (NR, RB)
         ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB, __LINE__);
 
         // Unblock non-RPL port
@@ -2420,24 +2611,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //FS 59
     if ( topPriorityRequest == LReq_FS ) {
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (FS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_DNF, __LINE__);
         
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (FS)
         ptin_erps_aps_tx(erps_idx, RReq_FS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2481,24 +2672,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //local SF  61
     if ( topPriorityRequest == LReq_SF ) {
       //If failed ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (SF,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-failed ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
           // Block failed ring port  
-          ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+          ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
           // Tx R-APS (SF)
           ptin_erps_aps_tx(erps_idx, RReq_SF, RReq_STAT_ZEROS, __LINE__);
 
           // Unblock non-failed ring port
-          ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+          ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
           // Flush FDB
           ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2528,19 +2719,28 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //R-APS (SF)  63
     if ( topPriorityRequest == RReq_SF ) {
       //Unblock non-failed ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
       //If RPL Owner Node:
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
+
+        #ifdef SM_MODIFICATIONS
+        //and not DNF
+        if (!(APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)) {
+          //   clear DNF status 
+          tbl_erps[erps_idx].dnfStatus = 0;
+        }
+        #endif
+
         //Stop WTR
         ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
         //Stop WTB
         ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
-
+      
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
     }
@@ -2549,7 +2749,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     //R-APS (MS)  64
     if ( topPriorityRequest == RReq_MS ) {
       //Unblock non-failed ring port
-      ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+      ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
@@ -2578,24 +2778,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       //If requested ring port is already blocked:
-      if (tbl_erps[erps_idx].portState[req_port] == ERPS_PORT_BLOCKING) {
+      if (tbl_erps[erps_idx].portState[reqPort] == ERPS_PORT_BLOCKING) {
 
         //Tx R-APS (MS,DNF)
         ptin_erps_aps_tx(erps_idx, RReq_MS, RReq_STAT_DNF, __LINE__);
 
         // Unblock non-requested ring port
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
       }
       // Else:
       else {
         // Block requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_BLOCKING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_BLOCKING, __LINE__);
 
         // Tx R-APS (MS)
         ptin_erps_aps_tx(erps_idx, RReq_MS, RReq_STAT_ZEROS, __LINE__);
 
         // Unblock non-requested ring port  
-        ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, (reqPort == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
 
         // Flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
@@ -2619,14 +2819,18 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
           //Tx R-APS (NR, RB,DNF)   
           ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB | RReq_STAT_DNF, __LINE__);
 
-          //Unblock non-RPL port  
-          if ( tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_NONRPL ) {                   // Port0 is non-RPL
-            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
-          }
-          if ( tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_NONRPL ) {                   // Port1 is non-RPL
-            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
-          }
+          //Unblock non-RPL port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
+          
+        } else if ( (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) {
+
+          //Tx R-APS (NR, RB,DNF)   
+          ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB | RReq_STAT_DNF, __LINE__);
+
+          //Unblock non-RPL port
+          ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);          
         }
+
         //Else :
         else {
           // Block RPL port
@@ -2636,6 +2840,34 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
             ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_BLOCKING, __LINE__);
           }
 
+          #ifdef SM_MODIFICATIONS
+          //If DNF status
+          if (tbl_erps[erps_idx].dnfStatus) {
+            //   Tx R-APS (NR, RB, DNF)
+            ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB | RReq_STAT_DNF, __LINE__);
+          }
+          //Else:
+          else {
+            //   Tx R-APS (NR, RB)
+            ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB, __LINE__);
+
+            //   Flush FDB
+            ptin_erps_FlushFDB(erps_idx, __LINE__);
+          }
+          
+          //  Unblock non-RPL port
+          if ( tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_NONRPL ) {                   // Port0 is non-RPL
+            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
+          }
+          if ( tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_NONRPL ) {                   // Port1 is non-RPL
+            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
+          }
+
+          //  clear DNF status
+          tbl_erps[erps_idx].dnfStatus = 0;
+          
+          #else
+
           // Tx R-APS (NR, RB)   
           ptin_erps_aps_tx(erps_idx, RReq_NR, RReq_STAT_RB, __LINE__);
 
@@ -2644,11 +2876,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
             ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
           }
           if ( tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_NONRPL ) {                   // Port1 is non-RPL
-            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
+            ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
           }
 
           // Flush FDB
           ptin_erps_FlushFDB(erps_idx, __LINE__);
+          #endif
         }
       }
 
@@ -2737,7 +2970,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       //If neither RPL Owner Node nor RPL Neighbour Node:
-      if ( ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPL))                 &&
+      if ( ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPL))                   &&
            ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPLNEIGHBOUR) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPLNEIGHBOUR))     ) {
 
         //Unblock ring ports
@@ -2774,8 +3007,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //If remote Node ID is higher than own Node ID:
       if (memcmp(apsNodeIdRx, ERP_NODE_ID, PROT_ERPS_MAC_SIZE) > 0) {
         //Unblock non-failed ring port
-        //ptin_erps_blockOrUnblockPort(erps_idx, (req_port == PROT_ERPS_PORT0)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0 , ERPS_PORT_FLUSHING, __LINE__);
-        ptin_erps_blockOrUnblockPort(erps_idx, req_port, ERPS_PORT_FLUSHING, __LINE__);
+        ptin_erps_blockOrUnblockPort(erps_idx, reqPort, ERPS_PORT_FLUSHING, __LINE__);
 
         // Stop Tx R-APS
         ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
