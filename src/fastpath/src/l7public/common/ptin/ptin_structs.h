@@ -665,7 +665,7 @@ typedef struct {
   L7_uint8  robustness;                         /* [Mask: 0x01] */
   L7_uint16 unsolicited_report_interval;        /* [Mask: 0x02] */
   L7_uint16 older_querier_present_timeout;      /* [Mask: 0x04] */
-  L7_uint8  max_records_per_report;             /* [Mask: 0x08] */
+  L7_uint8  max_sources_per_record;             /* [Mask: 0x08] */
 } ptin_IgmpV3HostCfg_t;
 
 /* Proxy's config structure */
