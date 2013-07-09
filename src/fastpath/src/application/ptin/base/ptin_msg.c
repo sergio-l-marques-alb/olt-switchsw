@@ -5768,16 +5768,24 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
     return L7_FAILURE;
   }
 
-  msgErpsStatus->rplBlockedPortSide = status.rplBlockedPortSide;
   msgErpsStatus->port0_SF           = status.port0_SF;
   msgErpsStatus->port1_SF           = status.port1_SF;
   msgErpsStatus->port0State         = status.port0State;
   msgErpsStatus->port1State         = status.port1State;
+
+  msgErpsStatus->apsReqStatusTx     = status.apsReqStatusTx;
+  msgErpsStatus->apsReqStatusRxP0   = status.apsReqStatusRxP0;
+  msgErpsStatus->apsReqStatusRxP1   = status.apsReqStatusRxP1;
+
+  memcpy(msgErpsStatus->apsNodeIdRxP0, status.apsNodeIdRxP0, PROT_ERPS_MAC_SIZE);
+  memcpy(msgErpsStatus->apsNodeIdRxP1, status.apsNodeIdRxP1, PROT_ERPS_MAC_SIZE);
+
+  msgErpsStatus->dnfStatus          = status.dnfStatus;
+
   msgErpsStatus->guard_timer        = status.guard_timer;
   msgErpsStatus->wtr_timer          = status.wtr_timer;
   msgErpsStatus->wtb_timer          = status.wtb_timer;
   msgErpsStatus->holdoff_timer      = status.holdoff_timer;
-
 
 #endif  // PTIN_ENABLE_ERPS
 

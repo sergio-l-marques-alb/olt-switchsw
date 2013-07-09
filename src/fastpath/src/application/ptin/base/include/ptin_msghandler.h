@@ -1191,16 +1191,29 @@ typedef struct {
 
 // Status
 typedef struct {
-  L7_uint32  idx;
-  L7_uint8   rplBlockedPortSide;
-  L7_uint8   port0_SF;
-  L7_uint8   port1_SF;
-  L7_uint8   port0State;
-  L7_uint8   port1State;
-  L7_uint16  guard_timer;
-  L7_uint32  wtr_timer;
-  L7_uint32  wtb_timer;
-  L7_uint16  holdoff_timer;
+  L7_uint32 idx;
+  L7_uint8  port0_SF;                // SF or NO SF
+  L7_uint8  port1_SF;
+  L7_uint8  port0State;              // ERPS_PORT_BLOCKING or ERPS_PORT_FORWARDING
+  L7_uint8  port1State;
+
+  L7_uint16 apsReqStatusTx;           //+----------------+-----------------+
+  L7_uint16 apsReqStatusRxP0;         //|8 7 6 5 4 3 2 1 | 8 7 6 5 4 3 2 1 |
+  L7_uint16 apsReqStatusRxP1;         //| Req/   | Sub-  |     Status      |
+                                      //| State  | code  | R|D|B| Status   |
+                                      //|        |       | B|N|P| Reserved |
+                                      //|        |       |  |F|R|          |
+                                      //+----------------+-----------------+  
+  
+  L7_uint8  apsNodeIdRxP0[L7_MAC_ADDR_LEN];  // Node ID (6 octets/MAC Format)
+  L7_uint8  apsNodeIdRxP1[L7_MAC_ADDR_LEN];
+
+  L7_uint8  dnfStatus;               // DNF (Do Not Flush) Status: True/False
+                                     
+  L7_uint16 guard_timer;             // elapsed time
+  L7_uint32 wtr_timer;
+  L7_uint32 wtb_timer;
+  L7_uint16 holdoff_timer;
 } __attribute__ ((packed)) msg_erps_status_t;
 
 
