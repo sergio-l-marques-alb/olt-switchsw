@@ -436,7 +436,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* IGMP */
   if (pSnoopCB->family == L7_AF_INET)
   {
-    L7_uchar8 *buffPtr;
+    L7_uchar8 *buffPtr, *igmpPtr;
     L7_uint16 ipHdrLen;
 
     /* Validate minimum size of packet */
@@ -451,21 +451,50 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /* Point to the start of ethernet payload */
     buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
-    ipHdrLen = (buffPtr[0] & 0x0f)*4;
-    if ( ipHdrLen < L7_IP_HDR_LEN )
-    {
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "IP Header Len is invalid %d",ipHdrLen);
-      return L7_FAILURE;
-    }
-
     /* Source address */
     srcAddr.family = L7_AF_INET;
     srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
 
-    /* Group address */
+    ipHdrLen = (buffPtr[0] & 0x0f)*4;
+    if ( ipHdrLen < L7_IP_HDR_LEN)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "IP Header Len is invalid %d",ipHdrLen);
+      return L7_FAILURE;
+    }
+    if ((L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + ipHdrLen + SNOOP_IGMPv1v2_HEADER_LENGTH) > dataLength)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "IP Header Len is too big (%d) for the packet length (%u)", ipHdrLen, dataLength);
+      return L7_FAILURE;
+    }
+
+    /* Starting of IGMP header */
+    igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+
+    /* Default group address */
     grpAddr.family = L7_AF_INET;
-    grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &buffPtr[24] + (ipHdrLen - L7_IP_HDR_LEN));
-       }
+    grpAddr.addr.ipv4.s_addr = 0;
+
+    /* Group address */
+    /* For V1/V2 and query messages, the group address is always located at the same place */
+    if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY ||
+        igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT ||
+        igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT ||
+        igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
+    {
+      grpAddr.family = L7_AF_INET;
+      grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[4]);
+    }
+    else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
+    {
+      if (*((L7_uint16 *) &igmpPtr[6]) > 0)
+      {
+        grpAddr.family = L7_AF_INET;
+        grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
+      }
+    }
+  }
   else
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: IPv6 not supported yet!");
