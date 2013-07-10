@@ -131,7 +131,7 @@ L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr)
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
+L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
 {
 //Commented by MMElo
   //  snoop_eb_t            *pSnoopEB;
@@ -280,7 +280,7 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFla
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t groupAddr, L7_uint8  reportType,L7_uint32 selectedDelay, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
+L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 selectedDelay, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
 {
   
   L7_uint32 newNoOfRecords=0;
@@ -1001,7 +1001,7 @@ void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_i
   }
 
   /* Search for the requested multicast group */
-  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
+  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
   {
     L7_uint32 ifIdx;
 

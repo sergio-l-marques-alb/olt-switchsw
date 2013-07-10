@@ -405,7 +405,7 @@ void timerCallback(void *param)
     if (interfacePtr->numberOfSources == 0)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
-      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
     }
     else
     {

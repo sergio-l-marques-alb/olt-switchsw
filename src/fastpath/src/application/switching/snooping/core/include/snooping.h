@@ -345,7 +345,7 @@ typedef struct
   snoopPTinL3Sourcetimer_t sourceTimer;
   L7_uint8                 status;
   L7_uint16                numberOfClients;
-  L7_BOOL                                 isStatic;
+  L7_BOOL                  isStatic;
 } snoopPTinL3Source_t;
 
 typedef struct
@@ -355,7 +355,7 @@ typedef struct
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;
   L7_uint8                active;
-  L7_BOOL                                 isStatic;
+  L7_BOOL                 isStatic;
 } snoopPTinL3Interface_t;
 
 typedef struct snoopPTinL3InfoDataKey_s

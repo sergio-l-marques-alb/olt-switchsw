@@ -433,7 +433,7 @@ void timerCallback(void *param)
     if (interfacePtr->numberOfSources == 0)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
-      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
 
       if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
         flagGroupRemove=L7_TRUE;
@@ -453,7 +453,7 @@ void timerCallback(void *param)
     }
     else
     {
-       if (snoopPTinReportSchedule(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr)!=L7_SUCCESS)
+       if (snoopPTinReportSchedule(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
         return ;
