@@ -32,7 +32,7 @@
 static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 static L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uchar8 *buffer, L7_uint32 *length);
 static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7_uchar8 *buffer, L7_uint32 *length);
-static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8 *buffer, L7_uint32 *length, L7_uchar8 *igmpFrameBuffer, L7_uint32 igmpFrameLength);
+static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType);
 
 static void     snoopPTinQuerySend        (L7_uint32 arg1);
 static L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPtr, L7_uint32 noOfGroupRecords);
@@ -373,6 +373,9 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
   L7_ushort16       shortVal;
   L7_uint32 i;
 
+//Fixme
+//We need to check if the MTU is reached or not!
+
 //L7_uint32 i,j,igmpFrameLength = SNOOP_IGMPv1v2_HEADER_LENGTH/*,ipv4Addr*/;
 
   /* Argument validation */
@@ -395,8 +398,12 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
   /* Checksum = 0*/
   chksumPtr = dataPtr;
   shortVal = 0;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);  
-
+  SNOOP_PUT_SHORT(shortVal, dataPtr);
+ 
+//Fixme
+/*The number of records needs to be obtained, since we do set a maximum number of sources per record*/
+//if (sources2ReportCnt<PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD)
+//    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record Full Creating new Group Record");
   /* Number of Records (M)*/
   shortVal=(L7_ushort16 ) noOfRecords;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
@@ -410,39 +417,6 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
     }
     groupPtr=groupPtr->next;
   }
-#if 0
-  for(i=0; i<*groupsCnt; ++i)
- {
-   /*Record Type*/
-   byteVal = snoopEntry->recordType;
-   SNOOP_PUT_BYTE(byteVal, dataPtr);
-
-   /*Aux Data Len*/
-   byteVal = 0x00;
-   SNOOP_PUT_BYTE(byteVal, dataPtr);
-
-   /* Number of Sources */
-  shortVal = snoopEntry->numberOfSources;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
-
-  if (L7_AF_INET==snoopEntry->snoopPTinProxyGrouprecordInfoDataKey.groupAddr.family)
-  {
-    inetAddressGet(L7_AF_INET, &(snoopEntry->snoopPTinProxyGrouprecordInfoDataKey.groupAddr),  &ipv4Addr );
-    /* Group Address */
-    SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
-    for(j=0; j<snoopEntry->numberOfSources; ++j)
-    {
-      inetAddressGet(L7_AF_INET, &(snoopEntry->sourceAddr[j]),  &ipv4Addr );
-      /* Source Address */
-      SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
-    }
-    /* Update frame length */
-    igmpFrameLength=igmpFrameLength+SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH+(L7_IP_ADDR_LEN*snoopEntry->numberOfSources);
-  }
-  snoopEntry=snoopEntry->next;
- }
-#endif
-
 
   /* Update frame length */
   *length = *length + SNOOP_IGMPv1v2_HEADER_LENGTH ;
@@ -533,7 +507,7 @@ static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7
  * @returns  L7_FAILURE
  *
  *********************************************************************/
-L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8 *buffer, L7_uint32 *length, L7_uchar8 *igmpFrameBuffer, L7_uint32 igmpFrameLength)
+L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType)
 {
   L7_uchar8           *dataPtr, *macHdrStartPtr, *ipHdrStartPtr, *chksumPtr, baseMac[L7_MAC_ADDR_LEN], destMac[L7_MAC_ADDR_LEN];
   L7_inet_addr_t      querierAddr, destIp;
@@ -641,7 +615,15 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t *pSnoopCB, L7_inet_add
     SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
 
     /* Destination Address */
-    ipv4Addr = (groupAddr.addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr.addr.ipv4.s_addr;
+    if (packetType==SNOOP_PTIN_MEMBERSHIP_REPORT)
+    {
+      ipv4Addr = L7_IP_IGMPV3_REPORT_ADDR;
+    }
+    else /*if  (packetType==SNOOP_PTIN_MEMBERSHIP_QUERY)*/
+    {
+      ipv4Addr = (groupAddr.addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr.addr.ipv4.s_addr;
+    }
+    
     SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
 
     /* IP Options */
@@ -750,7 +732,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   }
 
   /* Build MAC+IP frames and add the IGMP frame to the same packet */
-  rc = snoopPTinPacketBuild(mcastPacket.vlanId, pSnoopCB, queryData->groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength);
+  rc = snoopPTinPacketBuild(mcastPacket.vlanId, pSnoopCB, queryData->groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_QUERY);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
@@ -855,7 +837,7 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   }
 
   /* Build MAC+IP frames and add the IGMP frame to the same packet */
-  rc = snoopPTinPacketBuild(vlanId, pSnoopCB, groupPtr->key.groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength);
+  rc = snoopPTinPacketBuild(vlanId, pSnoopCB, groupPtr->key.groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_REPORT);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
