@@ -3199,8 +3199,11 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   L7_uchar8     *dataPtrTmp=L7_NULLPTR;
   snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;
   snoopPTinProxyGroup_t *dummyPtr=L7_NULLPTR, *groupPtr=L7_NULLPTR,*firstGroupPtr=L7_NULLPTR;
+  L7_uint32 internalVlanId=0,vlanId=0,previousVlanId=mcastPacket->vlanId;
+  char                debug_buf[IPV6_DISP_ADDR_LEN];
 
   L7_uint32 noOfRecords=0, dummy=0,totalRecords=0;
+  L7_uint16 mcastRootVlanId;
   
   L7_BOOL   firstGroup=L7_FALSE;
 
@@ -3314,10 +3317,25 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 
     if (fwdFlag == L7_FALSE)
     {      
-      /* Create new entry in AVL tree for VLAN+IP if necessary */
-      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(mcastPacket->vlanId, &groupAddr, L7_MATCH_EXACT)))
+//Fixme
+//The sourceAddr field is currently not used by ptin_igmp_McastRootVlan_get()
+      L7_inet_addr_t sourceAddr;
+      sourceAddr.addr.ipv4.s_addr=0;
+      sourceAddr.family = L7_AF_INET;         
+
+      if (ptin_igmp_McastRootVlan_get((L7_inet_addr_t *) &groupAddr, (L7_inet_addr_t *) &sourceAddr, internalVlanId, &mcastRootVlanId) !=L7_SUCCESS)
       {
-        if (L7_SUCCESS != snoopPTinL3EntryAdd( mcastPacket->vlanId,&groupAddr))
+        LOG_ERR(LOG_CTX_PTIN_IGMP,
+                "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
+                mcastPacket->vlanId, inetAddrPrint(&groupAddr,debug_buf) , inetAddrPrint(&sourceAddr,debug_buf));
+        return L7_FAILURE;
+      }
+      vlanId=(L7_uint32) mcastRootVlanId;
+
+      /* Create new entry in AVL tree for VLAN+IP if necessary */
+      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
+      {
+        if (L7_SUCCESS != snoopPTinL3EntryAdd( vlanId,&groupAddr))
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
           return L7_FAILURE;
@@ -3326,7 +3344,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         {
           LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%d,%d)",groupAddr,mcastPacket->vlanId);
         }
-        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(mcastPacket->vlanId, &groupAddr, L7_MATCH_EXACT)))
+        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
           return L7_FAILURE;
@@ -3342,18 +3360,18 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         if (snoopEntry->interfaces[mcastPacket->intIfNum].active == L7_FALSE)
         {
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Initializing interface idx: %u", mcastPacket->intIfNum);
-          snoopPTinInitializeInterface(&snoopEntry->interfaces[mcastPacket->intIfNum],mcastPacket->vlanId,&groupAddr,mcastPacket->intIfNum);            
+          snoopPTinInitializeInterface(&snoopEntry->interfaces[mcastPacket->intIfNum],vlanId,&groupAddr,mcastPacket->intIfNum);            
         }
         noOfRecords=0;
         /* If root interface is not used, initialize it */
         if (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active == L7_FALSE)
         {
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Initializing root interface idx: %u", SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM);
-          snoopPTinInitializeInterface(&snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM],mcastPacket->vlanId,&groupAddr,mcastPacket->intIfNum);
+          snoopPTinInitializeInterface(&snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM],vlanId,&groupAddr,mcastPacket->intIfNum);
 
-          if ( (interfacePtr=snoopPTinProxyInterfaceEntryFind(mcastPacket->vlanId, L7_MATCH_EXACT)) ==L7_NULLPTR)
+          if ( (interfacePtr=snoopPTinProxyInterfaceEntryFind(vlanId, L7_MATCH_EXACT)) ==L7_NULLPTR)
           {
-            if ((rc=snoopPTinGroupRecordInterfaceAdd(mcastPacket->vlanId,interfacePtr))!=L7_SUCCESS)
+            if ((rc=snoopPTinGroupRecordInterfaceAdd(vlanId,interfacePtr))!=L7_SUCCESS)
             {
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordInterfaceAdd()");
               return L7_FAILURE;
@@ -3494,13 +3512,30 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     }       
 
     totalRecords=totalRecords+noOfRecords;
+
+    //We need to check if this group as the same vlanId as the previous group. If not we schedule a new Report
+    if(previousVlanId!=vlanId)
+    {
+      previousVlanId=vlanId;
+      firstGroup=L7_FALSE;
+
+      if(noOfRecords>0)
+      {
+        if (snoopPTinReportSchedule(vlanId,&firstGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,totalRecords, firstGroupPtr)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
+          return L7_FAILURE;
+        }
+        totalRecords=0;
+      }
+    }
         
     noOfGroups -= 1;
   } /* end of while loop */
 
-  if(noOfRecords>0)
+  if(totalRecords>0)
   {
-    if (snoopPTinReportSchedule(mcastPacket->vlanId,&firstGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, firstGroupPtr)!=L7_SUCCESS)
+    if (snoopPTinReportSchedule(vlanId,&firstGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,totalRecords, firstGroupPtr)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_FAILURE;
