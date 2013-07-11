@@ -357,6 +357,57 @@ L7_RC_t ptin_ccm_packet_deinit(void)
 }
 
 
+#ifdef PTIN_ENABLE_ERPS
+
+/**
+ * Check Node ID 
+ * Refresh Rx counters 
+ * 
+ * @author joaom (7/10/2013)
+ * 
+ * @param erps_idx 
+ * @param pktMsg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aps_checkOwnNodeId(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
+{
+  L7_uint32   rxport;
+  aps_frame_t *aps_frame;
+
+  aps_frame = (aps_frame_t*) pktMsg->payload;
+
+  if (ptin_oam_packet_debug_enable)
+    LOG_TRACE(LOG_CTX_ERPS,"erps_idx %d, intIfNum %d, P0intIfNum %d, P1intIfNum %d", erps_idx, pktMsg->intIfNum, tbl_halErps[erps_idx].port0intfNum, tbl_halErps[erps_idx].port1intfNum);
+
+  // ERPS Rx Ring port
+  if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
+    rxport = 0;
+  } else if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port1intfNum ) {
+    rxport = 1;
+  } else {
+    return L7_FAILURE;
+  }
+
+  // Check Node ID
+  if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
+
+    // Own packet! Drop it.
+    // Refresh Rx Dropped counter
+    tbl_halErps[erps_idx].apsPacketsRxDropped[rxport] += 1;
+
+    if (ptin_oam_packet_debug_enable)
+      LOG_TRACE(LOG_CTX_ERPS,"Own APS Packet! Dropped.");
+
+    return L7_FAILURE;
+  }
+
+  // Refresh Rx counter
+  tbl_halErps[erps_idx].apsPacketsRxGood[rxport] += 1;
+ 
+  return L7_SUCCESS;
+}
+
 /**
  * Callback to be called for APS packets.
  * 
@@ -365,7 +416,6 @@ L7_RC_t ptin_ccm_packet_deinit(void)
  * 
  * @return L7_RC_t : L7_FAILURE (always)
  */
-#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 {
   L7_uchar8           *payload;
@@ -402,24 +452,32 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   }
 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
-  if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
+  if (ptin_evc_intfVlan_validate(intIfNum, vlanId) != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
       LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface", intIfNum, vlanId);
     return L7_FAILURE;
   }
 
-  /* Send packet to queue */
-  memset(&msg, 0x00, sizeof(msg));
-  msg.msgId       = PTIN_APS_PACKET_MESSAGE_ID;
-  msg.intIfNum    = pduInfo->intIfNum;
-  msg.vlanId      = pduInfo->vlanId;
-  msg.innerVlanId = pduInfo->innerVlanId;
-  msg.payload     = payload;
-  msg.payloadLen  = payloadLen;
-  msg.bufHandle   = bufHandle;
-
+  /* Proceed if the APS VLAN ID is associated to an ERPS instance */
   if (erpsIdx_from_controlVidInternal[vlanId] != PROT_ERPS_UNUSEDIDX) {
+
+    memset(&msg, 0x00, sizeof(msg));
+    msg.msgId       = PTIN_APS_PACKET_MESSAGE_ID;
+    msg.intIfNum    = pduInfo->intIfNum;
+    msg.vlanId      = pduInfo->vlanId;
+    msg.innerVlanId = pduInfo->innerVlanId;
+    msg.payload     = payload;
+    msg.payloadLen  = payloadLen;
+    msg.bufHandle   = bufHandle;
+
+    /* Validate Node ID before processing and forwarding packet*/
+    if (ptin_aps_checkOwnNodeId(erpsIdx_from_controlVidInternal[vlanId], &msg) != L7_SUCCESS) {    
+      return L7_FAILURE;
+    }      
+
     ptin_aps_packet_forward(erpsIdx_from_controlVidInternal[vlanId], &msg);
+
+    /* Send packet to queue */
     rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_controlVidInternal[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   }
 
@@ -537,12 +595,17 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
 
   if (status == L7_SUCCESS) {
     if ( msg.msgId == PTIN_APS_PACKET_MESSAGE_ID ) {
-      if (ptin_oam_packet_debug_enable) {
+      if ( ptin_oam_packet_debug_enable ) {
         LOG_TRACE(LOG_CTX_ERPS,"APS packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d", msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
-        for (i=0; i<msg.payloadLen; i++) {
-          printf("%.2x ", msg.payload[i]);
+
+        if ( msg.payloadLen < 128 ) {
+          L7_uint8 buf[512];
+
+          for (i=0; i<msg.payloadLen; i++) {
+            sprintf(buf, "%.2x ", msg.payload[i]);
+          }
+          LOG_TRACE(LOG_CTX_ERPS,"Payload: %s", buf);
         }
-        printf("\n\r");
       }
 
       aps_frame = (aps_frame_t*) msg.payload;
@@ -552,20 +615,14 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
       memcpy(aps_nodeid,  aps_frame->aspmsg.nodeid, L7_ENET_MAC_ADDR_LEN);
       *aps_rxport         = msg.intIfNum;
 
-      if (ptin_oam_packet_debug_enable)
-        LOG_TRACE(LOG_CTX_ERPS,"aps_rxport %d", *aps_rxport);
-
       return L7_SUCCESS;
+
     } else {
       if (ptin_oam_packet_debug_enable)
         LOG_TRACE(LOG_CTX_ERPS,"APS packet received with Unknown ID");
       return L7_FAILURE;
     }
   }
-  //else {
-  //  if (ptin_oam_packet_debug_enable)
-  //    LOG_TRACE(LOG_CTX_ERPS,"No packet from ptin_aps_packet queue#%d (status = %d)", queueidx, status);
-  //}
 
   return L7_FAILURE;
 }
@@ -663,6 +720,9 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
   memset(aps_frame.aspmsg.reseved2,   0, 24);
   aps_frame.aspmsg.endTlv             = 0x00;
 
+  tbl_halErps[erps_idx].apsPacketsTx[0] += 1;
+  tbl_halErps[erps_idx].apsPacketsTx[1] += 1;
+
   ptin_oam_packet_send(L7_ALL_INTERFACES,
                        tbl_halErps[erps_idx].controlVidInternal,
                        (L7_uchar8 *) &aps_frame,
@@ -684,12 +744,14 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
 L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 {
   L7_uint32   txintport;
+  L7_uint8    txport;
   aps_frame_t *aps_frame;
 
   aps_frame = (aps_frame_t*) pktMsg->payload;
 
   // Check if this is an open ring configuration.
-  // On closed ring, packet should not be forwarded if port is blocked
+  // On closed ring, packet should not be forwarded to a blocked port
+  // On closed ring, packet received at a blocked ring port should not be forwarded to the other ring port;
   if ( (tbl_erps[erps_idx].protParam.isOpenRing == L7_FALSE) && 
        ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) || (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) ) {
 
@@ -700,26 +762,21 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
     return L7_SUCCESS;
   }
 
-  // Check Node ID
-  if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
-    // Own packet! Do not forward it.
-
-    if (ptin_oam_packet_debug_enable)
-      LOG_TRACE(LOG_CTX_ERPS,"Own APS Packet! Do not forward it.");
-
-    return L7_SUCCESS;
+  // Tx packet to the other Ring port
+  if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
+    txintport = tbl_halErps[erps_idx].port1intfNum;
+    txport    = 1;
+  } else {
+    txintport = tbl_halErps[erps_idx].port0intfNum;
+    txport    = 0;
   }
+
+  // Refresh Tx counter
+  tbl_halErps[erps_idx].apsPacketsTx[txport] += 1;
 
   // Packet arrives with internal VLAN ID. write back the control VID
   aps_frame->vlan_tag[2] = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
   aps_frame->vlan_tag[3] = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
-
-  // Tx packet to the other Ring port
-  if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
-    txintport = tbl_halErps[erps_idx].port1intfNum;
-  } else {
-    txintport = tbl_halErps[erps_idx].port0intfNum;
-  }
 
   if (ptin_oam_packet_debug_enable)
     LOG_TRACE(LOG_CTX_ERPS,"Forwarding APS Packet transmited to intIfNum=%u", txintport);
