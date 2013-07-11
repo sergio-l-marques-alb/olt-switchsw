@@ -135,6 +135,7 @@ void ptin_debug(void)
   printf("  dsTraceFlagsSet <flags_mask>        - Enable detailed debug for DHCP snooping (flags_mask=0xff)\r\n");
   printf("  ptin_debug_igmp_enable <enable>     - Show more debugging logs for the IGMP module\r\n");
   printf("  ptin_debug_dhcp_enable <enable>     - Show more debugging logs for the DHCP module\r\n");
+  printf("  ptin_debug_xlate_enable <enable>    - Show more debugging logs for the XLATE module\r\n");
   printf("\r\n");
   printf("  ptin_erps_dump <id>                 - prints info about ERPS (use -1 to display all)\r\n");
   printf("\r\n");

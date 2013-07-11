@@ -24,6 +24,15 @@ static L7_uint16 xlate_table_egress_newVlan[PTIN_SYSTEM_N_INTERF][4096];
 /* List of portgroups for each interface */
 static L7_int xlate_table_portgroup[PTIN_SYSTEM_N_PORTS];
 
+
+L7_BOOL ptin_debug_xlate = 0;
+
+void ptin_xlate_debug_enable(L7_BOOL enable)
+{
+  ptin_debug_xlate = enable & 1;
+}
+
+
 /***************************************************************** 
  * INTERNAL FUNCTION PROTOTYPES
  *****************************************************************/
@@ -164,7 +173,7 @@ L7_RC_t ptin_xlate_init(void)
 {
   L7_RC_t rc1, rc2;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Initializing xlate module...");
+  LOG_TRACE(LOG_CTX_PTIN_XLATE, "Initializing xlate module...");
 
   /* Init data structs */
   rc1 = xlate_database_clear_all(PTIN_XLATE_STAGE_ALL);
@@ -172,7 +181,7 @@ L7_RC_t ptin_xlate_init(void)
   /* Reset class ids */
   rc2 = ptin_xlate_portgroup_reset_all();
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc1=%d, rc2=%d", rc1, rc2);
+  LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc1=%d, rc2=%d", rc1, rc2);
 
   /* Return result */
   if (rc1!=L7_SUCCESS || rc2!=L7_SUCCESS)
@@ -194,12 +203,13 @@ L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
 {
   L7_uint32 ptin_port;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u", intIfNum);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u", intIfNum);
 
   /* Validate arguments */
   if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_PORTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid interface");
     return L7_FAILURE;
   }
 
@@ -209,7 +219,8 @@ L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
     *portgroup = xlate_table_portgroup[ptin_port];
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=0");
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=0");
 
   return L7_SUCCESS;
 }
@@ -232,12 +243,13 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   ptin_vlanXlate_classId_t group;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u portgroup=%u", intIfNum, portgroup);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u portgroup=%u", intIfNum, portgroup);
 
   /* Validate interface */
   if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid interface");
     return L7_FAILURE;
   }
 
@@ -246,7 +258,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   {
     if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, " Error getting class id");
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " Error getting class id");
       return L7_FAILURE;
     }
   }
@@ -258,7 +270,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   /* Interface should be physical or LAG */
   if ( usmDbIntfTypeGet(intIfNum, &sysIntfType)!=L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Unable to find interface type");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Unable to find interface type");
     return L7_FAILURE;
   }
 
@@ -275,14 +287,14 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid interface type");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid interface type");
     return L7_FAILURE;
   }
 
   /* Check if there is members to be processed */
   if (intf_members_n==0)
   {
-    LOG_WARNING(LOG_CTX_PTIN_API, " WARN: No interfaces to be processed");
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " WARN: No interfaces to be processed");
     return L7_SUCCESS;
   }
 
@@ -325,7 +337,8 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -340,7 +353,8 @@ L7_RC_t ptin_xlate_portgroup_reset_all(void)
   L7_uint32 ptin_port, intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Resetting class ids...");
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Resetting class ids...");
 
   /* Run all interfaces */
   for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++ )
@@ -362,7 +376,8 @@ L7_RC_t ptin_xlate_portgroup_reset_all(void)
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -383,13 +398,14 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId);
 
   /* Validate arguments */
   if (outerVlanId>4095 || innerVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -439,7 +455,8 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
 
   /* Return status */
   return rc;
@@ -459,13 +476,14 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
   L7_uint16 oldVlanId;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, newOuterVlanId=%u",
-            intIfNum, newOuterVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u",
+              intIfNum, newOuterVlanId);
 
   /* Validate arguments */
   if (newOuterVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -488,7 +506,8 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
 
   /* Return status */
   return rc;
@@ -511,14 +530,15 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   /* Validate arguments */
   if (outerVlanId>4095 || innerVlanId>4095 ||
       newOuterVlanId>4095 || newInnerVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -547,7 +567,8 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
     rc = xlate_database_store(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId, newOuterVlanId);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -566,13 +587,14 @@ L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId);
 
   /* Validate arguments */
   if (outerVlanId>4095 || innerVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -600,7 +622,8 @@ L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -615,7 +638,8 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Beginning...");
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
   xlate.oper          = DAPI_CMD_CLEAR_ALL;
@@ -637,7 +661,8 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
     rc = xlate_database_clear_all(PTIN_XLATE_STAGE_INGRESS);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -657,19 +682,21 @@ L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR getting class id");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR getting class id");
     return L7_FAILURE;
   }
 
   rc = ptin_xlate_egress_portgroup_get(class_id, outerVlanId, innerVlanId, newOuterVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: newVlan=%u, rc=%d", *newOuterVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", *newOuterVlanId, rc);
 
   /* Return status */
   return rc;
@@ -689,19 +716,21 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, newOuterVlanId=%u",
-            intIfNum, newOuterVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u",
+              intIfNum, newOuterVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR getting class id");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR getting class id");
     return L7_FAILURE;
   }
 
   rc = ptin_xlate_egress_portgroup_get_originalVlan(class_id, outerVlanId, newOuterVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: oldVlan=%u, rc=%d", *outerVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", *outerVlanId, rc);
 
   /* Return status */
   return rc;
@@ -723,19 +752,21 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId, newOuterVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId, newOuterVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR getting class id");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR getting class id");
     return L7_FAILURE;
   }
 
   rc = ptin_xlate_egress_portgroup_add(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -754,19 +785,21 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
-            intIfNum, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR getting class id");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR getting class id");
     return L7_FAILURE;
   }
 
   rc = ptin_xlate_egress_portgroup_delete(class_id, outerVlanId, innerVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -787,14 +820,15 @@ L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVla
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "portgroup=%u, outerVlanId=%u, innerVlanId=%u",
-            portgroup, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, outerVlanId=%u, innerVlanId=%u",
+              portgroup, outerVlanId, innerVlanId);
 
   /* Validate arguments */
   if (portgroup==0 || 
       outerVlanId>4095 || innerVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -844,7 +878,8 @@ L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVla
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
 
   /* Return status */
   return rc;
@@ -864,14 +899,15 @@ L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_ui
   L7_uint16 oldVlanId;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "portgroup=%u, newOuterVlanId=%u",
-            portgroup, newOuterVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, newOuterVlanId=%u",
+              portgroup, newOuterVlanId);
 
   /* Validate arguments */
   if (portgroup==0 || 
       newOuterVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -894,7 +930,8 @@ L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_ui
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
 
   /* Return status */
   return rc;
@@ -916,15 +953,16 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "portgroup=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
-            portgroup, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              portgroup, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   /* Validate arguments */
   if (portgroup==0 || 
       outerVlanId>4095 || innerVlanId>4095 || 
       newOuterVlanId>4095 || (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095))
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -957,7 +995,8 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -976,14 +1015,15 @@ L7_RC_t ptin_xlate_egress_portgroup_delete( L7_uint32 portgroup, L7_uint16 outer
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "portgroup=%u, outerVlanId=%u, innerVlanId=%u",
-            portgroup, outerVlanId, innerVlanId);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, outerVlanId=%u, innerVlanId=%u",
+              portgroup, outerVlanId, innerVlanId);
 
   /* Validate arguments */
   if (portgroup==0 || 
       outerVlanId>4095 || innerVlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1011,7 +1051,8 @@ L7_RC_t ptin_xlate_egress_portgroup_delete( L7_uint32 portgroup, L7_uint16 outer
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1026,7 +1067,8 @@ L7_RC_t ptin_xlate_egress_delete_all( void )
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Beginning...");
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
   xlate.oper          = DAPI_CMD_CLEAR_ALL;
@@ -1048,7 +1090,8 @@ L7_RC_t ptin_xlate_egress_delete_all( void )
     rc = xlate_database_clear_all(PTIN_XLATE_STAGE_EGRESS);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1063,7 +1106,8 @@ L7_RC_t ptin_xlate_delete_all( void )
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Beginning...");
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
   xlate.oper          = DAPI_CMD_CLEAR_ALL;
@@ -1085,7 +1129,8 @@ L7_RC_t ptin_xlate_delete_all( void )
     rc = xlate_database_clear_all(PTIN_XLATE_STAGE_ALL);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1128,7 +1173,7 @@ static L7_RC_t xlate_database_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_ui
        ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
        ( outerVlanId>4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
     return L7_FAILURE;
   }
 
@@ -1173,7 +1218,7 @@ static L7_RC_t xlate_database_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_ui
        ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
        ( newOuterVlanId>4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, newOVlan=%u)", stage, intIfNum, ptin_port, newOuterVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, newOVlan=%u)", stage, intIfNum, ptin_port, newOuterVlanId);
     return L7_FAILURE;
   }
 
@@ -1218,7 +1263,7 @@ static L7_RC_t xlate_database_store(ptin_vlanXlate_stage_enum stage, L7_uint32 i
        ( outerVlanId>4095) ||
        ( newOuterVlanId>4095 ) )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u, newOVlan=%u)", stage, intIfNum, ptin_port, outerVlanId, newOuterVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u, newOVlan=%u)", stage, intIfNum, ptin_port, outerVlanId, newOuterVlanId);
     return L7_FAILURE;
   }
 
@@ -1258,7 +1303,7 @@ static L7_RC_t xlate_database_clear(ptin_vlanXlate_stage_enum stage, L7_uint32 i
        ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
        ( outerVlanId>4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
     return L7_FAILURE;
   }
 
@@ -1304,14 +1349,14 @@ static L7_RC_t xlate_database_portgroup_newVlan_get(ptin_vlanXlate_stage_enum st
   for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
   if (ptin_port>=PTIN_SYSTEM_N_PORTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: No interface was found using portgroup %u", portgroup);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
     return L7_FAILURE;
   }
 
   /* Calculate intIfNum */
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Port %u looks to not exist", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1339,14 +1384,14 @@ static L7_RC_t xlate_database_portgroup_oldVlan_get(ptin_vlanXlate_stage_enum st
   for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
   if (ptin_port>=PTIN_SYSTEM_N_PORTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: No interface was found using portgroup %u", portgroup);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
     return L7_FAILURE;
   }
 
   /* Calculate intIfNum */
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Port %u looks to not exist", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1380,7 +1425,7 @@ static L7_RC_t xlate_database_portgroup_store(ptin_vlanXlate_stage_enum stage, L
     /* Calculate intIfNum */
     if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Port %u looks to not exist", ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
       rc = L7_FAILURE;
       continue;
     }
@@ -1388,7 +1433,7 @@ static L7_RC_t xlate_database_portgroup_store(ptin_vlanXlate_stage_enum stage, L
     /* Call standard function */
     if (xlate_database_store(stage, intIfNum, outerVlanId, newOuterVlanId)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, " ERROR: xlate_database_store failed");
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: xlate_database_store failed");
       rc = L7_FAILURE;
       continue;
     }
@@ -1423,7 +1468,7 @@ static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L
     /* Calculate intIfNum */
     if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Port %u looks to not exist", ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
       rc = L7_FAILURE;
       continue;
     }
@@ -1431,7 +1476,7 @@ static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L
     /* Call standard function */
     if (xlate_database_clear(stage, intIfNum, outerVlanId)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, " ERROR: xlate_database_clear failed");
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: xlate_database_clear failed");
       rc = L7_FAILURE;
       continue;
     }
@@ -1456,7 +1501,7 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage)
        stage!=PTIN_XLATE_STAGE_INGRESS &&
        stage!=PTIN_XLATE_STAGE_EGRESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " ERROR: Invalid arguments (stage=%d)", stage);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d)", stage);
     return L7_FAILURE;
   }
 
@@ -1492,14 +1537,14 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
   /* Calculate USP */
   if (nimGetUnitSlotPort(intIfNum, &usp)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " Error getting USP (intIfNum=%u)", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " Error getting USP (intIfNum=%u)", intIfNum);
     return L7_FAILURE;
   }
 
   /* If interface is not physical neither LAG, error */
   if ( usp.slot>=L7_MAX_PHYSICAL_SLOTS_PER_UNIT && usp.slot!=L7_LAG_SLOT_NUM )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " Invalid interface type (usp={%d, %d, %d})", usp.unit, usp.slot, usp.port);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " Invalid interface type (usp={%d, %d, %d})", usp.unit, usp.slot, usp.port);
     return L7_FAILURE;
   }
 
@@ -1509,7 +1554,7 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
   /* Validate class id */
   if ( class_id == 0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, " Class id is null");
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " Class id is null");
     return L7_FAILURE;
   }
 
