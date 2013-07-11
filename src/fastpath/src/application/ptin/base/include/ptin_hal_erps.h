@@ -39,6 +39,11 @@ typedef struct _ptinHalErps_t {
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 
+  // Packets Packets
+  L7_uint32 apsPacketsTx[2];
+  L7_uint32 apsPacketsRxGood[2];
+  L7_uint32 apsPacketsRxDropped[2];
+
   L7_uint8 hwSync;                  ///< configures VLAN on switch
   L7_uint8 hwFdbFlush;              ///< FDB Flush by VLAN
 
@@ -60,6 +65,24 @@ extern L7_uint8 erpsIdx_from_controlVidInternal[4096];
  */
 extern L7_RC_t ptin_hal_erps_init(void);
 
+
+/**
+ * Print APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx);
+
+/**
+ * Clear APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx);
 
 /**
  * Initialize ERPS# hw abstraction layer
