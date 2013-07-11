@@ -26,6 +26,8 @@
 #include "snooping.h"//MMELO
 #include "avl_api.h"//MMELO
 
+#include <ctype.h>
+
 /*********************************************************************
 * Static Methods
 *********************************************************************/
@@ -935,6 +937,52 @@ if (L7_AF_INET == addr.family)
  }
 }
 
+
+static int convert_ipaddr2uint64(const char *ipaddr, L7_uint32 *value_uint64)
+{
+  const char *start_ipaddr;
+  L7_uint8  address[4] = { 0, 0, 0, 0};
+  L7_uint8  index;
+  L7_uint32 multiplier;
+
+  // Validate argument
+  if (ipaddr==L7_NULLPTR || *ipaddr=='\0' || value_uint64==L7_NULLPTR)
+    return -1;
+
+  // Search for the next non space/tab character
+  for (; (*ipaddr==' ' || *ipaddr=='\t') && *ipaddr!='\0'; ipaddr++ );
+
+  start_ipaddr = ipaddr;
+
+  // Search for the end of the argument
+  for (; *ipaddr!='\0' && (*ipaddr=='.' || isdigit(*ipaddr)) ; ipaddr++ );
+
+  if (start_ipaddr==ipaddr)
+    return -1;
+
+  // Initialize Decimal multiplier
+  multiplier = 1;
+  // Run all characters starting from the last one
+  for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
+    // If character is a decimal digit...
+    if (isdigit(*ipaddr)) {
+      address[index] += (L7_uint8) (*ipaddr-'0')*multiplier;   // update address array
+      multiplier*=10;                                       // update decimal multiplier for next digit
+    }
+    // Other, is a dot character
+    else
+    {
+      index++;                                              // Increment address array index
+      multiplier=1;                                         // Reinitialize decimal multiplier
+    }
+  }
+
+  // Calculate uint32 value
+  *value_uint64 = ((L7_uint32) address[0]<<0) | ((L7_uint32) address[1]<<8) | ((L7_uint32) address[2]<<16) | ((L7_uint32) address[3]<<24);
+
+  return 0;
+}
+
 /*************************************************************************
  * @purpose Debug method that prints stored information for a specific
  *          multicast group
@@ -945,11 +993,13 @@ if (L7_AF_INET == addr.family)
  * @return  none
  *
  *************************************************************************/
-void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_inet_addr_t groupAddr)
+void snoopPTinMcastgroupPrint(L7_uint32 vlanId,const char* groupAddrText)
 {
   char                  debug_buf[IPV6_DISP_ADDR_LEN];
   snoopPTinL3InfoData_t *snoopEntry;
-//L7_inet_addr_t        groupAddr;
+  L7_inet_addr_t        groupAddr;
+  memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
+  groupAddr.family=1;
       
   //char                 groupAddrStr[INET_ADDRSTRLEN];
   //char                *groupAddrPtr=L7_NULLPTR;
@@ -961,37 +1011,12 @@ void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_i
     return;
   }
 
-//  groupAddrPtr=addrStr;
-//  L7_uint16 i;
-//  for(i=0; i< INET_ADDRSTRLEN; i++)
-//  {
-////    printf("Char %s",groupAddrPtr );
-////    if (groupAddrPtr =='\0')
-////    {
-//////      groupAddrStr[i]='\0';
-////      break;
-////    }
-////    else
-////    {
-//////    groupAddrStr[i]=*groupAddrPtr;
-////      groupAddrPtr++;
-////    }
-//  }
-  
-//  groupAddrPtr=addrStr;  
-  //int atoi ( const char * str );
-   
 
-//char  *ptr=groupAddrStr;
-//ptr=ptr+IPV6_DISP_ADDR_LEN+1;
-//*ptr='\0';
-
-//groupAddr.addr.ipv4.s_addr= (L7_uint32) inet_addr(groupAddrStr);
-//
-//   groupAddr.addr.ipv4.s_addr= (L7_uint32) inet_addr("234.0.0.1");
-//
-////  groupAddr.addr.ipv4.s_addr=groupAddrStr;
-//  groupAddr.family=L7_AF_INET;
+  if (convert_ipaddr2uint64(groupAddrText,&groupAddr.addr.ipv4.s_addr)<0)
+  {
+    printf("Invalid ip address\r\n");
+    return;
+  }
 
 
   if (inetIsInMulticast(&groupAddr)!=L7_TRUE)        
@@ -1001,7 +1026,7 @@ void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList, L7_uint32 vlanId,L7_i
   }
 
   /* Search for the requested multicast group */
-  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
+  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
   {
     L7_uint32 ifIdx;
 
@@ -1080,7 +1105,7 @@ static L7_RC_t snoopPTinGroupRecordDecrementRetransmission(L7_uint32 noOfRecords
       newNoOfRecords--;
 
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing  Group Record:  GroupAdd=%s, RecordType=%u", inetAddrPrint(&groupPtrTmp->key.groupAddr, debug_buf),groupPtrTmp->key.recordType);     
-      if((rc=snoopPTinGroupRecordDelete((snoopPTinProxyInterface_t*) groupPtrTmp->key.memAddr,&groupPtrTmp->key.groupAddr , groupPtrTmp->key.recordType))!=L7_SUCCESS)
+      if((rc=snoopPTinGroupRecordRemove((snoopPTinProxyInterface_t*) groupPtrTmp->key.memAddr,&groupPtrTmp->key.groupAddr , groupPtrTmp->key.recordType))!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDelete()");        
       }
@@ -1112,7 +1137,7 @@ static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyG
     else    
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing Source from Group Record  %s", inetAddrPrint(&sourcePtrTmp->key.sourceAddr, debug_buf));     
-      if((rc=snoopPTinGroupRecordSourceDelete(groupPtr,&sourcePtrTmp->key.sourceAddr))!=L7_SUCCESS)
+      if((rc=snoopPTinGroupRecordSourceRemove(groupPtr,&sourcePtrTmp->key.sourceAddr))!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDelete()");        
       }

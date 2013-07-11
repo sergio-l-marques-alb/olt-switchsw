@@ -150,20 +150,18 @@ L7_RC_t snoopEntryCreate(L7_uchar8* macAddr, L7_uint32 vlanId, L7_uchar8 family,
   PTin - SNOOP L3 Mcast DB Entry Processing Routines
 *******************************************************************************/
 #if SNOOP_PTIN_IGMPv3_ROUTER
-snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr,L7_uint32 flag);
-L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId,L7_inet_addr_t* mcastGroupAddr);
-L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId,L7_inet_addr_t* mcastGroupAddr);
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr,L7_uint32 flag);
+L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr);
+L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId,L7_inet_addr_t mcastGroupAddr);
 #endif
 
 #if SNOOP_PTIN_IGMPv3_PROXY
 /******************************************************************************
   PTin - SNOOP Proxy Mcast DB Entry Processing Routines
 *******************************************************************************/
-snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr,L7_uint32 flag);
-L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr);
-L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr);
-
-L7_RC_t snoopPTinL3SourceEntryFind(L7_uint32 vlanId, L7_inet_addr_t mcastGroupAddr, L7_inet_addr_t sourceAddr, L7_uint32 flag,L7_uint32* foundIdx );
+snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet_addr_t sourceAddr,L7_uint32 flag);
+L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t sourceAddr);
+L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t sourceAddr);
 
 snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 memAddr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_uint32 flag);
 L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* groupAddr,L7_uint8 recordType);

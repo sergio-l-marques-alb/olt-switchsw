@@ -32,7 +32,7 @@ L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_B
 L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 selectedDelay, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr );
 
 //Debug method that prints stored information for a specific multicast group
-void snoopPTinMcastgroupPrint(L7_INTF_MASK_t rootIntfList,L7_uint32 vlanId,L7_inet_addr_t  groupAddrStr);
+void snoopPTinMcastgroupPrint(L7_uint32 vlanId,const char* groupAddrText);
 L7_RC_t snoopPTinL2ClientAdd      ();  //PLACEHOLDER
 L7_RC_t snoopPTinL2ClientRemove   ();  //PLACEHOLDER
 

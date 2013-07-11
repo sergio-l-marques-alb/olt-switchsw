@@ -356,6 +356,8 @@ typedef struct
   L7_uint8                numberOfSources;
   L7_uint8                active;
   L7_BOOL                 isStatic;
+  L7_uint32               clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
+  L7_uint16               numberOfClients;
 } snoopPTinL3Interface_t;
 
 typedef struct snoopPTinL3InfoDataKey_s

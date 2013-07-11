@@ -402,7 +402,7 @@ void timerCallback(void *param)
     for (i = 0; i < sizeof(interfacePtr->sources); ++i)
     {
       sourcePtr = &interfacePtr->sources[i];
-      if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE))
+      if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE) && sourcePtr->isStatic==L7_FALSE)
       {
         LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing sourceIdx %u", i);
         snoopPTinSourceRemove(interfacePtr, sourcePtr);
@@ -416,7 +416,7 @@ void timerCallback(void *param)
           else
           {
             LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record Full Creating new Group Record");
-            if ( L7_SUCCESS != snoopPTinGroupRecordSourceListAdd(groupData->snoopPTinL3InfoDataKey.vlanId,&groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
+            if ( L7_SUCCESS != snoopPTinGroupRecordAddSourceList(groupData->snoopPTinL3InfoDataKey.vlanId,&groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
             {
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceListAdd()");
               return;
@@ -432,11 +432,14 @@ void timerCallback(void *param)
     /* If no sources remain, remove group. Otherwise, switch to filter-mode INCLUDE */
     if (interfacePtr->numberOfSources == 0)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
-      snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      if (interfacePtr->isStatic==L7_FALSE)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
+        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
 
-      if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
-        flagGroupRemove=L7_TRUE;
+        if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
+          flagGroupRemove=L7_TRUE;
+      }
     }
     else
     {
@@ -444,9 +447,9 @@ void timerCallback(void *param)
     }       
   }
 
-  if (interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && flagGroupRemove==L7_FALSE)
+  if (flagGroupRemove==L7_FALSE && interfaceIdx==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
   {    
-    if (sources2ReportCnt>0 && L7_SUCCESS != snoopPTinGroupRecordSourceListAdd(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
+    if (sources2ReportCnt>0 && L7_SUCCESS != snoopPTinGroupRecordAddSourceList(pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType,sources2Report,sources2ReportCnt,groupPtr))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceListAdd()");
       return ;

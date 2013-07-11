@@ -52,41 +52,42 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 
 /************************************************************************************************************/
 /*MGMD Proxy*/
 #if 1
-L7_RC_t snoopPTinGroupRecordInterfaceAdd(L7_uint32 vlanId, snoopPTinProxyInterface_t* interfacePtr);
+//Process General Query Message
+L7_RC_t snoopPTinGeneralQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr,L7_uint32 *noOfRecords, L7_uint32 *timeout);
 
-L7_RC_t snoopPTinGroupRecordGroupAdd(snoopPTinProxyInterface_t* interfacePtr,L7_uint8 recordType, L7_inet_addr_t*   groupAddr,snoopPTinProxyGroup_t*  groupPtr );
+//Process Group Specific Query Message
+L7_RC_t snoopPTinGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *timeout);
+
+//Process Group & Source Specific Query Message
+L7_RC_t snoopPTinGroupSourceSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList, L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *timeOut);
+
+//Adds a Static Multicast Group with a Source List
+L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_addr_t *groupAddr,L7_uint32 noOfSources,L7_inet_addr_t* sourceAddr);
+
+//Removes a Static Multicast Group with a Source List
+L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_addr_t *groupAddr,L7_uint32 noOfSources,L7_inet_addr_t* sourceAddr);
+
+L7_RC_t snoopPTinProxyInterfaceAdd(L7_uint32 vlanId, snoopPTinProxyInterface_t* interfacePtr);
+
+L7_RC_t snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interfacePtr,L7_uint8 recordType, L7_inet_addr_t*   groupAddr,snoopPTinProxyGroup_t*  groupPtr );
 
 L7_RC_t snoopPTinGroupRecordSourcedAdd(snoopPTinProxyGroup_t * groupPtr,L7_inet_addr_t*   sourceAddr, snoopPTinProxySource_t* sourcePtr);
 
-L7_RC_t snoopPTinGroupRecordGroupFind(L7_uint32 vlanId,L7_inet_addr_t   *groupAddr,L7_uint8 recordType, snoopPTinProxyGroup_t*  groupPtr );
+L7_RC_t snoopPTinGroupRecordFind(L7_uint32 vlanId,L7_inet_addr_t   *groupAddr,L7_uint8 recordType, snoopPTinProxyGroup_t*  groupPtr );
 
 L7_RC_t snoopPTinGroupRecordSourceFind(L7_uint32 vlanId,L7_inet_addr_t   *groupAddr,L7_uint8 recordType, L7_inet_addr_t   *sourceAddr, snoopPTinProxySource_t*  sourcePtr );
 
-L7_RC_t snoopPTinGroupRecordSourceListAdd( L7_uint32  vlanId, L7_inet_addr_t *groupAddr, L7_uint8 recordType, L7_inet_addr_t   *sourceAddr, L7_uint32 sourceCnt,snoopPTinProxyGroup_t *groupPtr);
+L7_RC_t snoopPTinGroupRecordAddSourceList( L7_uint32  vlanId, L7_inet_addr_t *groupAddr, L7_uint8 recordType, L7_inet_addr_t   *sourceAddr, L7_uint32 sourceCnt,snoopPTinProxyGroup_t *groupPtr);
 
-L7_RC_t snoopPTinInterfaceDelete(snoopPTinProxyInterface_t* interfacePtr);
+L7_RC_t snoopPTinProxyInterfaceRemove(snoopPTinProxyInterface_t* interfacePtr);
 
-L7_RC_t snoopPTinGroupDeleteAll(snoopPTinProxyInterface_t* interfacePtr,L7_inet_addr_t* groupAddr);
+L7_RC_t snoopPTinRemoveAllGroupRecords(snoopPTinProxyInterface_t* interfacePtr,L7_inet_addr_t* groupAddr);
 
-L7_RC_t snoopPTinGroupRecordDelete(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType);
+L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType);
 
-L7_RC_t snoopPTinGroupRecordSourceDelete(snoopPTinProxyGroup_t*   groupPtr, L7_inet_addr_t *sourceAddr);
+L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_inet_addr_t *sourceAddr);
 
-L7_RC_t snoopPTinGroupRecordSourceDeleteAll(snoopPTinProxyGroup_t*   groupPtr);
-
-L7_RC_t snoopPTinPendingReport2GeneralQuery(L7_uint32 vlanId, L7_BOOL* pendingReport, L7_uint32* timeout, snoopPTinProxyInterface_t* interfacePtr);
-
-L7_RC_t snoopPTinPendingReport2GroupQuery(snoopPTinL3InfoData_t* avlTreeEntry, snoopPTinProxyInterface_t* interfacePtr, L7_BOOL *pendingReport, L7_uint32 *timeout, snoopPTinProxyGroup_t* groupPtr);
-
-L7_RC_t snoopPTinGeneralQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr,L7_uint32 *noOfRecords, L7_uint32 *timeout);
-
-L7_RC_t snoopPTinGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *timeout);
-
-L7_RC_t snoopPTinGroupSourceSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx, L7_ushort16 noOfSources, L7_uchar8** sourceList, L7_uint32 selectedDelay, L7_BOOL *sendReport, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *timeOut);
-
-L7_RC_t snoopPTinBuildCSR(L7_uint32 vlanId,snoopPTinProxyGroup_t *groupPtr, L7_uint32 *noOfRecords);
-
-L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_addr_t *groupAddr,L7_uint32 noOfSources,L7_inet_addr_t* sourceAddr);
+L7_RC_t snoopPTinGroupRecordRemoveAllSources(snoopPTinProxyGroup_t*   groupPtr);
 
 
 #endif
