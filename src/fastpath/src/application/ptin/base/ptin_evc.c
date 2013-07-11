@@ -1086,6 +1086,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
   #endif
 
+  /* For P2P topologies */
+  if ( is_p2p && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Determine pair of ports for 1:1 EVCs (needed for unstacked EVCs) */
   p2p_port1 = -1;
   p2p_port2 = -1;
