@@ -281,6 +281,7 @@ typedef struct _erpsStatus_t {
     L7_uint8  apsNodeIdRxP0[PROT_ERPS_MAC_SIZE];  // Node ID (6 octets/MAC Format)
     L7_uint8  apsNodeIdRxP1[PROT_ERPS_MAC_SIZE];
 
+    L7_uint8  state_machine;
     L7_uint8  dnfStatus;               // DNF (Do Not Flush) Status: True/False
                                        
     L7_uint16 guard_timer;             // elapsed time

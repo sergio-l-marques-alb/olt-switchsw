@@ -799,6 +799,7 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
   memcpy(status->apsNodeIdRxP0, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], PROT_ERPS_MAC_SIZE);
   memcpy(status->apsNodeIdRxP1, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE);
 
+  status->state_machine      = tbl_erps[erps_idx].state_machine;
   status->dnfStatus          = tbl_erps[erps_idx].dnfStatus;
 
   status->guard_timer        = tbl_erps[erps_idx].guard_timer;
@@ -1333,6 +1334,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
+    L7_uint8 aux;
+    L7_uint8 aux2[PROT_ERPS_MAC_SIZE] = {0};
 
     remoteRequest = APS_GET_REQ(apsReqStateRx);
 
@@ -1346,29 +1349,25 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     // previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
     // stored for that ring port; and if it is different from the (node ID, BPR) pair already stored at the
     // other ring port, then a flush FDB action is triggered except when the new R-APS message has DNF
-    // or the receiving Ethernet ring node's node ID
-    #if 0
-    if (memcmp(apsNodeIdRx, tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], PROT_ERPS_MAC_SIZE) && !(APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)) {      
-      ptin_erps_FlushFDB(erps_idx, __LINE__);
-    }
-    #endif
-
-    // An R-APS (NR) message received by this process
+    // or the receiving Ethernet ring node's node ID. An R-APS (NR) message received by this process
     // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
     // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
-    #if 0
+
     if (remoteRequest == RReq_NR) {
       memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
     } else {
-      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0; /*** TO BE DONE ***/
-    }
-    #else
-    memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
-    tbl_erps[erps_idx].apsBprRx[apsRxPort] = APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR;
-    #endif
+      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);   // Just copy, no need to compare.
+      aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR;
 
+      if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], aux2, PROT_ERPS_MAC_SIZE)) && (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], aux2, PROT_ERPS_MAC_SIZE)) ) {
+        if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux)) && 
+            !((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)) ) {
+          ptin_erps_FlushFDB(erps_idx, __LINE__);
+        }
+      }
+    }
 
     //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
     //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
