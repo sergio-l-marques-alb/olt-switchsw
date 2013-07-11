@@ -1026,7 +1026,7 @@ void snoopPTinMcastgroupPrint(L7_uint32 vlanId,const char* groupAddrText)
   }
 
   /* Search for the requested multicast group */
-  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
+  if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
   {
     L7_uint32 ifIdx;
 

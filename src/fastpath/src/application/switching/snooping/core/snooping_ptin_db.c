@@ -1416,18 +1416,18 @@ L7_RC_t snoopPTinGroupRecordSourcedAdd(snoopPTinProxyGroup_t* groupPtr,L7_inet_a
     return L7_FAILURE;
   }
 
-  if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,*sourceAddr,L7_MATCH_EXACT))!=L7_NULLPTR)
+  if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,sourceAddr,L7_MATCH_EXACT))!=L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing Source :%s, restoring retransmission variable",inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
     sourcePtr->retransmissions=sourcePtr->robustnessVariable;
     return L7_SUCCESS;
   }
-  if(snoopPTinProxySourceEntryAdd((L7_uint32) &groupPtr,*sourceAddr)!=L7_SUCCESS)
+  if(snoopPTinProxySourceEntryAdd((L7_uint32) &groupPtr,sourceAddr)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxySourceEntryAdd()");
     return L7_FAILURE;
   }
-   if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,*sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
+   if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxySourceEntryFind()");
     return L7_FAILURE;
@@ -1759,7 +1759,7 @@ L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_i
     return L7_FAILURE;
   }
     
-  if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,*sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
+  if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
   {
      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxySourceEntryFind()");
      return L7_SUCCESS;
@@ -1776,7 +1776,7 @@ L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_i
     sourcePtrTmp=sourcePtrTmp->nextSource;
   }     
 
-  if(snoopPTinProxySourceEntryDelete((L7_uint32) &groupPtr,*sourceAddr)!=L7_SUCCESS)
+  if(snoopPTinProxySourceEntryDelete((L7_uint32) &groupPtr,sourceAddr)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxySourceEntryDelete()");      
     return L7_FAILURE;
@@ -2092,7 +2092,7 @@ pending report and the selected delay.*/
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
       *sendReport=L7_TRUE;
         
-      if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
+      if ((sourcePtr=snoopPTinProxySourceEntryFind((L7_uint32) &groupPtr,&sourceAddr,L7_MATCH_EXACT))==L7_NULLPTR)
       {
         snoopPTinGroupRecordSourcedAdd(groupPtr,&sourceAddr, sourcePtr);
         
@@ -2460,18 +2460,18 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
   L7_uint32 noOfRecords=1;
 
   /* Create new entry in AVL tree for VLAN+IP if necessary */
-  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, *groupAddr, L7_MATCH_EXACT)))
+  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
   {
-    if (L7_SUCCESS != snoopPTinL3EntryAdd( vlanId,*groupAddr))
+    if (L7_SUCCESS != snoopPTinL3EntryAdd( vlanId,groupAddr))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
       return L7_FAILURE;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%u,%u)",*groupAddr,vlanId);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%u,%u)",groupAddr,vlanId);
     }
-    if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, *groupAddr, L7_MATCH_EXACT)))
+    if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
       return L7_FAILURE;
@@ -2660,7 +2660,7 @@ L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_
   L7_uint32 noOfRecords=1; 
 
   /* Create new entry in AVL tree for VLAN+IP if necessary */
-  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, *groupAddr, L7_MATCH_EXACT)))
+  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
   {    
       LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinL3EntryFind()");
       return L7_SUCCESS;       

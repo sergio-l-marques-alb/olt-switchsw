@@ -2821,7 +2821,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             }
 
             /*Let us verify if this group is registered by any IGMPv3 Host*/            
-            if ((proxyGroupPtr=snoopPTinL3EntryFind(mcastPacket->vlanId,mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))!=L7_SUCCESS )
+            if ((proxyGroupPtr=snoopPTinL3EntryFind(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))!=L7_SUCCESS )
             {
               LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",snoopPTinIPv4AddrPrint(mgmdMsg.mgmdGroupAddr.addr.ipv4.s_addr,debug_buf));
 //            return L7_SUCCESS;
@@ -3338,11 +3338,11 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 #endif
       L7_inet_addr_t groupAddrTmp=groupAddr;
       /* Create new entry in AVL tree for VLAN+IP if necessary */
-      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
+      if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
       {
         LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%04X,%04X)",groupAddr.addr.ipv4.s_addr,groupAddrTmp.addr.ipv4.s_addr);
 
-        if (L7_SUCCESS != snoopPTinL3EntryAdd(vlanId,groupAddr))
+        if (L7_SUCCESS != snoopPTinL3EntryAdd(vlanId,&groupAddr))
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
           return L7_FAILURE;
@@ -3351,7 +3351,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
         {
           LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%d,%d)",groupAddr,mcastPacket->vlanId);
         }
-        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
+        if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
           return L7_FAILURE;
