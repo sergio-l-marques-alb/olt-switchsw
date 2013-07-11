@@ -150,7 +150,8 @@
 #define CCMSG_ERPS_DEL                0x9171
 #define CCMSG_ERPS_CONF               0x9172
 #define CCMSG_ERPS_STATUS             0x9173
-
+#define CCMSG_ERPS_STATUS_NEXT        0x9174
+#define CCMSG_ERPS_STATUS_PAGESIZE    16
 
 
 
@@ -1167,6 +1168,7 @@ typedef struct {
 
 // Create/Reconfig/Remove
 typedef struct {
+  unsigned char    slotId;
   unsigned int     idx;
   unsigned int     ringId;
   unsigned char    isOpenRing;
@@ -1191,6 +1193,7 @@ typedef struct {
 
 // Status
 typedef struct {
+  L7_uint8  slotId;
   L7_uint32 idx;
   L7_uint8  port0_SF;                // SF or NO SF
   L7_uint8  port1_SF;
@@ -1208,6 +1211,7 @@ typedef struct {
   L7_uint8  apsNodeIdRxP0[L7_MAC_ADDR_LEN];  // Node ID (6 octets/MAC Format)
   L7_uint8  apsNodeIdRxP1[L7_MAC_ADDR_LEN];
 
+  L7_uint8  state_machine;
   L7_uint8  dnfStatus;               // DNF (Do Not Flush) Status: True/False
                                      
   L7_uint16 guard_timer;             // elapsed time

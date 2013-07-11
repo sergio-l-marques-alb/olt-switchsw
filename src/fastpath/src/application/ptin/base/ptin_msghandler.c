@@ -2940,7 +2940,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ERPS_STATUS:
       {
         LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+                 "Message received: CCMSG_ERPS_STATUS (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_status_t);
 
@@ -2967,7 +2967,38 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+    case CCMSG_ERPS_STATUS_NEXT:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CCMSG_ERPS_STATUS_NEXT (0x%04X)", inbuffer->msgId);
+      
+        CHECK_INFO_SIZE_MOD(msg_erps_status_t);
 
+        msg_erps_status_t *ptr;
+        L7_int            n;
+
+        ptr = (msg_erps_status_t *) outbuffer->info;
+
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_status_t));
+
+        /* Execute command */
+        rc = ptin_msg_erps_status_next(ptr, &n);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        outbuffer->infoDim = sizeof(msg_erps_status_t)*n;
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      
+      }
+      break;
 
 
 #ifdef __802_1x__

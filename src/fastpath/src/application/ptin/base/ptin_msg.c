@@ -5595,8 +5595,8 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   ptinErpsConf.holdoffTimer         = msgErpsConf->holdoffTimer;
   ptinErpsConf.waitToRestoreTimer   = msgErpsConf->waitToRestoreTimer;
 
-  ptinErpsConf.continualTxInterval  = 5;
-  ptinErpsConf.rapidTxInterval      = 1;
+  ptinErpsConf.continualTxInterval  = 5;  // 5 seconds
+  ptinErpsConf.rapidTxInterval      = 0;  // 3.33 ms
 
   memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
@@ -5768,6 +5768,8 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
     return L7_FAILURE;
   }
 
+  msgErpsStatus->slotId             = msgErpsStatus->slotId;
+  msgErpsStatus->idx                = msgErpsStatus->idx;
   msgErpsStatus->port0_SF           = status.port0_SF;
   msgErpsStatus->port1_SF           = status.port1_SF;
   msgErpsStatus->port0State         = status.port0State;
@@ -5780,6 +5782,7 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   memcpy(msgErpsStatus->apsNodeIdRxP0, status.apsNodeIdRxP0, PROT_ERPS_MAC_SIZE);
   memcpy(msgErpsStatus->apsNodeIdRxP1, status.apsNodeIdRxP1, PROT_ERPS_MAC_SIZE);
 
+  msgErpsStatus->state_machine      = status.state_machine;
   msgErpsStatus->dnfStatus          = status.dnfStatus;
 
   msgErpsStatus->guard_timer        = status.guard_timer;
@@ -5792,6 +5795,75 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   return L7_SUCCESS;
 
 }
+
+
+
+int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
+{
+
+#ifdef PTIN_ENABLE_ERPS
+
+  erpsStatus_t  status;
+  L7_uint32     nextIdx, i;
+
+  L7_uint8      slotId = msgErpsStatus->slotId;
+
+  *n = 0;
+  i  = 0;
+
+  nextIdx = msgErpsStatus->idx + 1;
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS Next Index %d", nextIdx);
+
+  while ( i < CCMSG_ERPS_STATUS_PAGESIZE ) {
+
+    /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+    if (nextIdx >= MAX_PROT_PROT_ERPS) {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", nextIdx, MAX_PROT_PROT_ERPS-1);
+      break;
+    }
+
+    if (ptin_erps_get_status(nextIdx, &status) != nextIdx) {
+      nextIdx++;
+      continue;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%d status retrieved", nextIdx);
+
+    msgErpsStatus[i].slotId             = slotId;
+    msgErpsStatus[i].idx                = nextIdx;
+    msgErpsStatus[i].port0_SF           = status.port0_SF;
+    msgErpsStatus[i].port1_SF           = status.port1_SF;
+    msgErpsStatus[i].port0State         = status.port0State;
+    msgErpsStatus[i].port1State         = status.port1State;
+
+    msgErpsStatus[i].apsReqStatusTx     = status.apsReqStatusTx;
+    msgErpsStatus[i].apsReqStatusRxP0   = status.apsReqStatusRxP0;
+    msgErpsStatus[i].apsReqStatusRxP1   = status.apsReqStatusRxP1;
+
+    memcpy(msgErpsStatus[i].apsNodeIdRxP0, status.apsNodeIdRxP0, PROT_ERPS_MAC_SIZE);
+    memcpy(msgErpsStatus[i].apsNodeIdRxP1, status.apsNodeIdRxP1, PROT_ERPS_MAC_SIZE);
+
+    msgErpsStatus[i].state_machine      = status.state_machine;
+    msgErpsStatus[i].dnfStatus          = status.dnfStatus;
+
+    msgErpsStatus[i].guard_timer        = status.guard_timer;
+    msgErpsStatus[i].wtr_timer          = status.wtr_timer;
+    msgErpsStatus[i].wtb_timer          = status.wtb_timer;
+    msgErpsStatus[i].holdoff_timer      = status.holdoff_timer;
+
+    i++;
+    nextIdx++;
+    *n += 1;
+
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "n=%d", *n);
+
+#endif  // PTIN_ENABLE_ERPS
+
+  return L7_SUCCESS;
+}
+
 
 
 

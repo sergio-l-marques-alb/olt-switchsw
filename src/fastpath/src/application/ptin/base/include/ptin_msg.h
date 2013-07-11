@@ -900,6 +900,18 @@ extern L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf);
  */
 extern L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus);
 
+/**
+ * ERPS status
+ * 
+ * @author joaom (6/24/2013)
+ * 
+ * @param ptr 
+ * @param n
+ * 
+ * @return L7_RC_t 
+ */
+extern int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n);
+
 
 
 
