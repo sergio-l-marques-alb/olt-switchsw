@@ -89,6 +89,52 @@ L7_RC_t ptin_hal_erps_init(void)
 
 
 /**
+ * Print APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
+{
+
+  LOG_INFO(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Tx         [P0] %d", tbl_halErps[erps_idx].apsPacketsTx[0]);
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Tx         [P1] %d", tbl_halErps[erps_idx].apsPacketsTx[1]);
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Rx Good    [P0] %d", tbl_halErps[erps_idx].apsPacketsRxGood[0]);
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Rx Good    [P1] %d", tbl_halErps[erps_idx].apsPacketsRxGood[1]);
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Rx Dropped [P0] %d", tbl_halErps[erps_idx].apsPacketsRxDropped[0]);
+  LOG_INFO(LOG_CTX_ERPS,"APS Packets Rx Dropped [P1] %d", tbl_halErps[erps_idx].apsPacketsRxDropped[1]);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Clear APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
+{
+
+  LOG_INFO(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  
+  tbl_halErps[erps_idx].apsPacketsTx[0]         = 0;
+  tbl_halErps[erps_idx].apsPacketsTx[1]         = 0;
+  tbl_halErps[erps_idx].apsPacketsRxGood[0]     = 0;
+  tbl_halErps[erps_idx].apsPacketsRxGood[1]     = 0;
+  tbl_halErps[erps_idx].apsPacketsRxDropped[0]  = 0;
+  tbl_halErps[erps_idx].apsPacketsRxDropped[1]  = 0;
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Print ERPS# entry
  * 
  * @author joaom (6/12/2013)
@@ -198,6 +244,8 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   // Print some Debug
   ptin_hal_erps_entry_print(erps_idx);
 
+  ptin_hal_erps_countersClear(erps_idx);
+
   return L7_SUCCESS;
 }
 
@@ -258,7 +306,7 @@ L7_RC_t ptin_hal_erps_deinit(void)
 
 
 /********************************************************************************** 
- *                                Packet Processing
+ *                               APS Packet Processing
  **********************************************************************************/
 
 /**
