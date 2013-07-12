@@ -1231,7 +1231,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint32 apsRxPort                         = 0;
   L7_uint8  topPriorityRequest                = LReq_NONE;  //The current top priority request as defined in sub-clause 10.1.1.
   L7_BOOL   haveChanges                       = L7_FALSE;
-  L7_uint8  reqPort                          = 0;           // Request or Failed Port
+  L7_uint8  reqPort                           = 0;          // Request or Failed Port
 
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
@@ -1321,7 +1321,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   if (tbl_erps[erps_idx].waitingcicles) {
     tbl_erps[erps_idx].waitingcicles--;
-    return(erps_idx);
+    return(PROT_ERPS_EXIT_OK);
   }
 
 
@@ -1359,7 +1359,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     } else {
       memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);   // Just copy, no need to compare.
       aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR;
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? 1 : 0;
 
       if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], aux2, PROT_ERPS_MAC_SIZE)) && (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], aux2, PROT_ERPS_MAC_SIZE)) ) {
         if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux)) && 
@@ -1661,7 +1661,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     tbl_erps[erps_idx].remoteRequest = remoteRequest;
   }
 
-  if (!(haveChanges) && !(ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine) == ERPS_STATE_Z_Init)) {    
+  if (!(haveChanges)) {
     return(PROT_ERPS_EXIT_OK);
   }
 
@@ -1669,6 +1669,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   if (topPriorityRequest>100) {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
   } else {
+    reqPort = apsRxPort;
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
   }
 
