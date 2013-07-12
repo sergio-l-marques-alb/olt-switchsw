@@ -64,11 +64,11 @@
 //-------------------------------------------------------------------------
 #define PROT_ERPS_OPCMD_NR                    0
 #define PROT_ERPS_OPCMD_OC                    1
-#define PROT_ERPS_OPCMD_LO                    2  //// TO BE DONE ///
+#define PROT_ERPS_OPCMD_LO                    2  //// The following command is for further study ///
 #define PROT_ERPS_OPCMD_FS                    3
 #define PROT_ERPS_OPCMD_MS                    4
-#define PROT_ERPS_OPCMD_ReplaceRPL            5  //// TO BE DONE ///
-#define PROT_ERPS_OPCMD_ExeSignal             6  //// TO BE DONE ///
+#define PROT_ERPS_OPCMD_ReplaceRPL            5  //// The following command is for further study ///
+#define PROT_ERPS_OPCMD_ExeSignal             6  //// The following command is for further study ///
 
 
 //-------------------------------------------------------------------------
@@ -392,6 +392,30 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx);
  * @return int 
  */
 int ptin_erps_cmd_lockout(L7_uint8 erps_idx);
+
+/**
+ * Operator Command
+ * 
+ * @author joaom (7/1/2013)
+ * 
+ * @param erps_idx 
+ * @param cmd_port 
+ * 
+ * @return int 
+ */
+int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port);
+
+/**
+ * Operator Command
+ * 
+ * @author joaom (7/1/2013)
+ * 
+ * @param erps_idx 
+ * @param cmd_port 
+ * 
+ * @return int 
+ */
+int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port);
 
 /**
  * Delete all ERPS

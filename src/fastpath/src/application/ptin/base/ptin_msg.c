@@ -5865,14 +5865,64 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
 }
 
 
+/**
+ * ERPS status
+ * 
+ * @author joaom (7/12/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
+{
 
+#ifdef PTIN_ENABLE_ERPS
 
+  int ret;
 
+  /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
+  if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
+    return L7_FAILURE;
+  }
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsCmd->idx);
 
+  switch ( msgErpsCmd->cmd )
+  {
+  case PROT_ERPS_OPCMD_FS:
+    ret = ptin_erps_cmd_force(msgErpsCmd->idx, msgErpsCmd->port);
+    break;
+  case PROT_ERPS_OPCMD_MS:
+    ret = ptin_erps_cmd_manual(msgErpsCmd->idx, msgErpsCmd->port);
+    break;
+  case PROT_ERPS_OPCMD_OC:
+    ret = ptin_erps_cmd_clear(msgErpsCmd->idx);
+    break;
+  case PROT_ERPS_OPCMD_LO:            //// The following command is for further study ///
+    ret = ptin_erps_cmd_lockout(msgErpsCmd->idx);
+    break;
+  case PROT_ERPS_OPCMD_ReplaceRPL:    //// The following command is for further study ///
+    ret = ptin_erps_cmd_replaceRpl(msgErpsCmd->idx, msgErpsCmd->port);
+    break;
+  case PROT_ERPS_OPCMD_ExeSignal:     //// The following command is for further study ///
+    ret = ptin_erps_cmd_exercise(msgErpsCmd->idx, msgErpsCmd->port);
+    break;
+  default:
+    return L7_FAILURE;
+  }
 
+  if (ret != msgErpsCmd->idx)
+  {
+    return L7_FAILURE;
+  }
 
+#endif  // PTIN_ENABLE_ERPS
 
+  return L7_SUCCESS;
+
+}
 
 
 

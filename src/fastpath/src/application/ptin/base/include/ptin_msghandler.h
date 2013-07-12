@@ -152,6 +152,7 @@
 #define CCMSG_ERPS_STATUS             0x9173
 #define CCMSG_ERPS_STATUS_NEXT        0x9174
 #define CCMSG_ERPS_STATUS_PAGESIZE    16
+#define CCMSG_ERPS_OPERATOR_CMD       0x9175
 
 
 
@@ -1221,6 +1222,13 @@ typedef struct {
 } __attribute__ ((packed)) msg_erps_status_t;
 
 
+// CMD
+typedef struct {
+  L7_uint8  slotId;
+  L7_uint32 idx;
+  L7_uint8  cmd;
+  L7_uint8  port;
+} __attribute__ ((packed)) msg_erps_cmd_t;
 
 
 

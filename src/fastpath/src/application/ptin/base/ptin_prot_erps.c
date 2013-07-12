@@ -553,7 +553,6 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
-  /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_FS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
   
@@ -680,7 +679,6 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
     return(ret);
   }
 
-  /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_LO;
   tbl_erps[erps_idx].operator_cmd_port  = 0;
   
@@ -717,7 +715,6 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
-  /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ReplaceRPL;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
   
