@@ -29,7 +29,7 @@ BIN_FILE	= switchdrvr
 DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER		= /opt/eldk/usr/bin/ppc_85xxDP-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/tmp/linux-2.6.27.56_1G
+export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-2.6.27.56
 
 CARD_FOLDER 	= FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
