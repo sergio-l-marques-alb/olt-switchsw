@@ -2254,9 +2254,11 @@ static L7_RC_t snoopPTinPendingReport2GroupQuery(snoopPTinL3InfoData_t* avlTreeE
  * @returns L7_FAILURE
  *
  *************************************************************************/
+static snoopPTinL3InfoData_t groupList[L7_MAX_GROUP_REGISTRATION_ENTRIES];
+
 static L7_RC_t snoopPTinBuildCSR(L7_uint32 vlanId,snoopPTinProxyGroup_t *groupPtr, L7_uint32 *noOfRecordsPtr)
 {
-  snoopPTinL3InfoData_t groupList[L7_MAX_GROUP_REGISTRATION_ENTRIES],*groupListPtr=L7_NULLPTR;
+  snoopPTinL3InfoData_t *groupListPtr=L7_NULLPTR;
   L7_uint noOfGroups=L7_MAX_GROUP_REGISTRATION_ENTRIES;
 
   L7_inet_addr_t      sources2Report[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD]={};
