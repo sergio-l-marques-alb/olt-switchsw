@@ -67,7 +67,7 @@
 #include "bcmx/bcmx_int.h"
 #include "bcm_int/rpc/rlink.h"
 /* PTin removed: SDK 6.3.0 */
-#if 0
+#if (SDK_MAJOR_VERSION <= 5)
 #include "bcmx/filter.h"
 #endif
 #include "bcmx/l3.h"
@@ -1312,10 +1312,10 @@ void hpcHardwareDefaultConfigApply(void)
     }
 #endif
     /* PTin modified: SDK 6.3.0 */
-    #if 0
-    rv = bcm_custom_register(i, custom_bcmx_port_handler);
-    #else
+    #if (SDK_MAJOR_VERSION >= 6)
     rv = bcm_custom_register(i, custom_bcmx_port_handler, (void *) 0);
+    #else
+    rv = bcm_custom_register(i, custom_bcmx_port_handler);
     #endif
      if (rv != BCM_E_NONE)
      {
@@ -2290,7 +2290,7 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
 }
 
 /* PTin TODO: SDK 6.3.0 */
-#if 0
+#if (SDK_MAJOR_VERSION <= 5)
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
 *

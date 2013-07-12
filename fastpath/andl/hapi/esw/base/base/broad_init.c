@@ -84,7 +84,7 @@
 #include "bcmx/lport.h"
 #include "bcmx/link.h"
 /* PTin removed: SDK 6.3.0 */
-#if 0
+#if (SDK_MAJOR_VERSION <= 5)
 #include "bcmx/filter.h"
 #endif
 #include "bcmx/switch.h"
