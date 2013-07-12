@@ -344,10 +344,10 @@ int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, in
   }
 
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, 1+l2mc_index_count, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, 2+l2mc_index_count, args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, args);
   #endif
 
   return rv;
