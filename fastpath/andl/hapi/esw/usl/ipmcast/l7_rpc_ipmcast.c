@@ -450,6 +450,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   L7_uint32                  i;
   usl_bcmx_port_ipmc_cmd_t  *ipmc_cmd;
   uint32                     args[BCM_CUSTOM_ARGS_MAX];
+  uint32                     n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -477,11 +478,14 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   ipmc_cmd->vlan_id = vlan_id;
   ipmc_cmd->tagged = tagged;
 
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, args);
   #endif
 
   return rv;
@@ -543,6 +547,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   L7_uint32                     i;
   usl_bcmx_port_ipmc_cmd_t     *ipmc_cmd;
   uint32                        args[BCM_CUSTOM_ARGS_MAX];
+  uint32                        n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -571,11 +576,14 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   ipmc_cmd->vlan_id = vlan_id;
   ipmc_cmd->tagged = 0;
 
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
   #endif
 
   return rv;
@@ -639,6 +647,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   L7_uint32                    i;
   usl_bcmx_port_ipmc_cmd_t    *ipmc_cmd;
   uint32                       args[BCM_CUSTOM_ARGS_MAX];
+  uint32                       n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -669,11 +678,14 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   memcpy (ipmc_cmd->mac, mac, 6);
   ipmc_cmd->ttl = ttl;
   
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, args);
   #endif
 
   return rv;
@@ -728,6 +740,7 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
   int                          rv = BCM_E_NONE;
   usl_bcmx_port_ipmc_cmd_t    *ipmc_cmd;
   uint32                       args[BCM_CUSTOM_ARGS_MAX];
+  uint32                       n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -744,11 +757,14 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 
   ipmc_cmd->encap_id = encap_id;
   
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
   #endif
 
   return rv;
@@ -807,6 +823,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
   L7_uint32 i;
   usl_bcmx_port_ipmc_cmd_t *ipmc_cmd;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -833,11 +850,14 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 
   ipmc_cmd->vlan_id = vlan_id;
 
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
   #endif
 
   return rv;
@@ -892,6 +912,7 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
   int rv = BCM_E_NONE;
   usl_bcmx_port_ipmc_cmd_t *ipmc_cmd;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
 
   memset (&args, 0, sizeof (args));
 
@@ -906,11 +927,14 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
 
   ipmc_cmd->encap_id = encap_id;
 
+  n_args = sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(uint32);
+  if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
+
   /* PTin modified: SDK 6.3.0 */
-  #if 0
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);
+  #if (SDK_MAJOR_VERSION >= 6)
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, sizeof(usl_bcmx_port_ipmc_cmd_t)/sizeof(L7_uint32), args);
+  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);
   #endif
 
   return rv;
