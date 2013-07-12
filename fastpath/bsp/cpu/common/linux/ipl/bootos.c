@@ -349,7 +349,8 @@ int fp_main(int argc, char *argv[])
   pthread_cond_init( &osapiTimerCond, &attr);
   #endif
 
-  LOG_INFO(LOG_CTX_MISC,"Hello World!\r\n");
+  LOG_INFO(LOG_CTX_MISC,"Hello World!");
+  LOG_INFO(LOG_CTX_MISC,"SDK version is 0x%08x!",SDK_VERSION);
 
   /* Set up platform-specific functions for storing and retrieving the
   ** error log information.

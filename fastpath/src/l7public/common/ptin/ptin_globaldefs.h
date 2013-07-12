@@ -10,6 +10,16 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
+/* SDK version */
+#define SDK_MAJOR_VERSION   6
+#define SDK_MINOR_VERSION   3
+#define SDK_REVISION_ID     0
+#define SDK_PATCH_ID        0
+#define SDK_VERSION         (((unsigned long) (SDK_MAJOR_VERSION)<<24) |  \
+                             ((unsigned long) (SDK_MINOR_VERSION)<<16) |  \
+                             ((unsigned long) (SDK_REVISION_ID)<<8) |     \
+                             ((unsigned long) (SDK_PATCH_ID)))
+
 /* Global to all platforms */
 #define PTIN_SYSTEM_MAX_N_FULLSLOTS   18
 #define PTIN_SYSTEM_MAX_N_PORTS       36
