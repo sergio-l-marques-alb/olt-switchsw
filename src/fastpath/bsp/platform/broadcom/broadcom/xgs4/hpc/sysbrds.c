@@ -834,8 +834,16 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   /* Get slot modes from file */
   if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
   {
-    memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
-    LOG_INFO(LOG_CTX_STARTUP,"Slot mode list updated successfully");
+    /* Test new map */
+    if (hpcConfigWCmap_build(slot_mode, L7_NULLPTR)==L7_SUCCESS)
+    {
+      memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
+      LOG_INFO(LOG_CTX_STARTUP,"Slot mode list is valid! Slot mode list updated successfully");
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Error validating WC map! Assuming default slot mode list.");
+    }
   }
   else
   {
@@ -856,6 +864,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   else
   {
     LOG_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
+    return L7_FAILURE;
   }
 
   LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
