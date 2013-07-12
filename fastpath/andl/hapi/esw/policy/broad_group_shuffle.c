@@ -24,6 +24,8 @@
 #include "broad_group_xgs3.h"
 #include "l7_usl_policy_db.h"
 
+#include "logger.h"
+
 /* Group Definitions */
 
 #define GROUP_NONE               0
@@ -947,33 +949,26 @@ static int _policy_policy_destroy_with_counter_backup(int unit, BROAD_POLICY_t p
         COMPILER_64_ZERO(val2);
 
         rv = BCM_E_EMPTY;
-        if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
-        {
-          /* TODO: SDK 6.3.0 */
-          #if 1
-          rv = BCM_E_NONE;
-          #else
-          rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val2);
-          #endif
-        }
-        else
-        {
-          /* TODO: SDK 6.3.0 */
-          #if 1
-          rv = BCM_E_NONE;
-          #else
-          rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val1);
-          #endif
-          if (rv == BCM_E_NONE)
+
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_MAJOR_VERSION >= 6)
+          LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
+          rv = BCM_E_UNAVAIL;
+        #else
+          if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
-            /* TODO: SDK 6.3.0 */
-            #if 1
-            rv = BCM_E_NONE;
-            #else
-            rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 1, &val2);
-            #endif
+            rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val2);
           }
-        }
+          else
+          {
+            rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 0, &val1);
+            if (rv == BCM_E_NONE)
+            {
+              rv = bcm_field_counter_get(unit, policyInfo.entry[ruleId], 1, &val2);
+            }
+          }
+        #endif
+
         if (rv == BCM_E_NONE)
         {
           counterPtr = osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(*counterPtr));
@@ -1044,46 +1039,37 @@ static int _policy_counters_restore(int unit)
     {
       if (counterPtr->ruleId < policyInfo.entryCount)
       {
-        if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
-        {
-          /* TODO: SDK 6.3.0 */
-          #if 1
-          rv = BCM_E_NONE;
-          #else
-          rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val2);
-          #endif
-          if (rv != BCM_E_NONE)
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_MAJOR_VERSION >= 6)
+          LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
+          rv = BCM_E_UNAVAIL;
+        #else
+          if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
+            rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val2);
+            if (rv != BCM_E_NONE)
+            {
+              if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+                sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
+            }
           }
-        }
-        else
-        {
-          /* TODO: SDK 6.3.0 */
-          #if 1
-          rv = BCM_E_NONE;
-          #else
-          rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val1);
-          #endif
-          if (rv != BCM_E_NONE)
+          else
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
+            rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 0, counterPtr->val1);
+            if (rv != BCM_E_NONE)
+            {
+              if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+                sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
+            }
+    
+            rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 1, counterPtr->val2);
+            if (rv != BCM_E_NONE)
+            {
+              if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+                sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
+            }
           }
-  
-          /* TODO: SDK 6.3.0 */
-          #if 1
-          rv = BCM_E_NONE;
-          #else
-          rv = bcm_field_counter_set(unit, policyInfo.entry[counterPtr->ruleId], 1, counterPtr->val2);
-          #endif
-          if (rv != BCM_E_NONE)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("- bcm_field_counter_set() returned %d\n", rv);
-          }
-        }
+        #endif
       }
       else
       {

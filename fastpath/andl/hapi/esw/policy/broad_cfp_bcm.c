@@ -37,7 +37,8 @@ typedef struct
 {
     BROAD_GROUP_t        group;
     BROAD_ENTRY_t        entry[BROAD_MAX_RULES_PER_POLICY];
-    L7_int               policer_id[BROAD_MAX_RULES_PER_POLICY];    /* PTin added: policer */
+    int                  policer_id[BROAD_MAX_RULES_PER_POLICY];    /* PTin added: SDK 6.3.0 */
+    int                  counter_id[BROAD_MAX_RULES_PER_POLICY];    /* PTin added: SDK 6.3.0 */
     bcm_pbmp_t           pbm;
     bcm_pbmp_t           pbmMask;
     unsigned char        flags;
@@ -342,8 +343,9 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
     int                 savePbm = FALSE;
     bcm_pbmp_t          savedPbm, savedPbmMask;
     int                 rv = BCM_E_NONE;
-    L7_short16           policyIdx;
+    L7_short16          policyIdx;
     BROAD_POLICY_RULE_ENTRY_t *rulePtr;
+    L7_int              policer_id = 0, counter_id = 0;  /* PTin added: SDK 6.3.0 */
 
     CHECK_UNIT(unit);
     CHECK_POLICY(policy);
@@ -463,7 +465,10 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
           srcRule = rulePtr->meterSrcEntry;
           rulePtr->meterSrcEntry = policyPtr->entry[srcRule];
 
-          rv = policy_cfp_group_add_rule(unit, policyPtr->policyStage, group, rulePtr, policyPtr->pbm, &entry);
+          /* PTin modified: SDK 6.3.0 */
+          policer_id = counter_id = 0;
+          rv = policy_cfp_group_add_rule(unit, policyPtr->policyStage, group, rulePtr, policyPtr->pbm, &entry,
+                                         &policer_id, &counter_id);     /* PTin modified: SDK 6.3.0 */
           if (BCM_E_NONE != rv)
           {
               if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -474,6 +479,11 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
                * must be saved in order to ensure proper removal. */
               if(entry != BROAD_ENTRY_INVALID)
               {
+                /* PTin added: SDK 6.3.0 */
+                #if 1
+                policyPtr->policer_id[i] = policer_id;
+                policyPtr->counter_id[i] = counter_id;
+                #endif
                 policyPtr->entry[i] = entry;
                 policyPtr->entryCount++;
               }
@@ -582,7 +592,13 @@ int l7_bcm_cfp_policy_destroy(int unit, BROAD_POLICY_t policy)
     {
       for (i = policyPtr->entryCount - 1; i >= 0 ; --i)
       {
-          tmprv = policy_cfp_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i]);
+          tmprv = policy_cfp_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i],
+                                               policyPtr->policer_id[i], policyPtr->counter_id[i]);   /* PTin modified: SDK 6.3.0 */
+          /* PTin added: SDK 6.3.0 */
+          #if 1
+          policyPtr->policer_id[i] = 0;
+          policyPtr->counter_id[i] = 0;
+          #endif
           if (BCM_E_NONE != tmprv)
               rv = tmprv;
       }

@@ -150,10 +150,10 @@ bcm_field_qualify_t l2l3l4SrcMacGroupQset[] =    /* l2/l3/l4 */
     bcmFieldQualifyEtherType,
     bcmFieldQualifyOuterVlan,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyL2Format,
     bcmFieldQualifyVlanFormat,
@@ -194,16 +194,16 @@ bcm_field_qualify_t l2l3l4ClassIdQset[] =    /* l2/l3/l4 */
     bcmFieldQualifyL3DestHostHit,
     bcmFieldQualifyIngressStpState,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyLookupClass0,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyDstClassField,
+#else
+    bcmFieldQualifyLookupClass0,
 #endif
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -236,16 +236,16 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
     bcmFieldQualifyL3DestHostHit,
     bcmFieldQualifyIngressStpState,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyLookupClass0,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyDstClassField,
+#else
+    bcmFieldQualifyLookupClass0,
 #endif
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -445,16 +445,16 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyIpType,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyLookupClass0,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyDstClassField,
+#else
+    bcmFieldQualifyLookupClass0,
 #endif
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -477,16 +477,16 @@ bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyIpType,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyLookupClass0,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyDstClassField,
+#else
+    bcmFieldQualifyLookupClass0,
 #endif
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -509,16 +509,16 @@ bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyIpType,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyLookupClass0,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyDstClassField,
+#else
+    bcmFieldQualifyLookupClass0,
 #endif
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifySrcMacGroup,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifySrcClassL2,
+#else
+    bcmFieldQualifySrcMacGroup,
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -576,10 +576,10 @@ bcm_field_qualify_t l2QsetEgress[] =    /* l2 */
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyInnerVlanId,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOutPort,
     bcmFieldQualifyVlanFormat,
@@ -599,10 +599,10 @@ bcm_field_qualify_t l3l4QsetEgress[] =    /* l3/l4 */
     bcmFieldQualifyL4DstPort,
     bcmFieldQualifyDSCP,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOutPort,
     bcmFieldQualifyIp4,
@@ -623,10 +623,10 @@ bcm_field_qualify_t ipv6L3L4QsetEgress[] =  /* includes VLAN ID */
     bcmFieldQualifyL4SrcPort,     /* also used for ICMP Msg Type */
     bcmFieldQualifyL4DstPort,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOutPort,
     bcmFieldQualifyIp6,
@@ -640,10 +640,10 @@ bcm_field_qualify_t l2l3l4QsetLookup[] =    /* l2/l3 */
 {
     bcmFieldQualifyInPort,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifySrcIp,
@@ -666,10 +666,10 @@ bcm_field_qualify_t dot1adQsetLookup[] =    /* dot1ad specific qset */
 {                                                  
     bcmFieldQualifyInPort,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifyInnerVlan,
@@ -686,10 +686,10 @@ static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
 {                                                  
     bcmFieldQualifyInPort,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifySrcMac,
     bcmFieldQualifyDstMac,
@@ -709,10 +709,10 @@ bcm_field_qualify_t ipv6L3L4QsetLookup[] =  /* includes VLAN ID */
 {
     bcmFieldQualifyInPort,
 /* PTin modified: SDK 6.3.0 */
-#if 0
-    bcmFieldQualifyPortClass,
-#else
+#if (SDK_MAJOR_VERSION >= 6)
     bcmFieldQualifyInterfaceClassPort,
+#else
+    bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcMac,

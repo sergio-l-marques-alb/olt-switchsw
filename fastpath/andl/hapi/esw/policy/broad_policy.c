@@ -1182,7 +1182,7 @@ L7_RC_t hapiBroadPolicyRuleMeterAdd(BROAD_POLICY_RULE_t     rule,
     }
 
     rulePtr->ruleFlags |= BROAD_METER_SPECIFIED;
-    memcpy(&rulePtr->u.meter.meterInfo, meterInfo, sizeof(*meterInfo));
+    memcpy(&rulePtr->policer.policerInfo, meterInfo, sizeof(*meterInfo));   /* PTin modified: SDK 6.3.0 */
 
     return L7_SUCCESS;
 }
@@ -1218,8 +1218,8 @@ L7_RC_t hapiBroadPolicyRuleCounterAdd(BROAD_POLICY_RULE_t  rule,
         return L7_ERROR;
     }
 
-    rulePtr->ruleFlags                  |= BROAD_COUNTER_SPECIFIED;
-    rulePtr->u.counter.counterInfo.mode = mode;
+    rulePtr->ruleFlags               |= BROAD_COUNTER_SPECIFIED;
+    rulePtr->counter.counterInfo.mode = mode;       /* PTin modified: SDK 6.3.0 */
 
     return L7_SUCCESS;
 }
@@ -1311,7 +1311,7 @@ L7_RC_t hapiBroadPolicyStatsGet(BROAD_POLICY_t        policy,
         {
             /* counted mode */
             stat->meter = L7_FALSE;
-            stat->statMode.counter.count = 0;
+            stat->statMode.counter.count = 0;     /* PTin modified: SDK 6.3.0 */
         }
 
         /* Free any rules allocated by usl_bcmx_policy_info_get(). */
@@ -2419,17 +2419,19 @@ void hapiBroadPolicyDebugRule(BROAD_POLICY_RULE_ENTRY_t *rulePtr, BROAD_POLICY_S
 
     if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
     {
+        /* PTin modified: SDK 6.3.0 */
         sysapiPrintf("     Metered  (%c%c)    : CIR %d CBS %d PIR %d PBS %d\n",
-                     rulePtr->u.meter.meterInfo.colorMode == BROAD_METER_COLOR_BLIND ? 'C' : '-',
+                     rulePtr->policer.policerInfo.colorMode == BROAD_METER_COLOR_BLIND ? 'C' : '-',
                      rulePtr->ruleFlags & BROAD_METER_SHARED ? 'S' : '-',
-                     rulePtr->u.meter.meterInfo.cir, rulePtr->u.meter.meterInfo.cbs,
-                     rulePtr->u.meter.meterInfo.pir, rulePtr->u.meter.meterInfo.pbs);
+                     rulePtr->policer.policerInfo.cir, rulePtr->policer.policerInfo.cbs,
+                     rulePtr->policer.policerInfo.pir, rulePtr->policer.policerInfo.pbs);
     }
 
     if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
     {
+        /* PTin modified: SDK 6.3.0 */
         sysapiPrintf("     Counted  (%c%c)\n",
-                     rulePtr->u.counter.counterInfo.mode == BROAD_COUNT_PACKETS ? 'P' : 'B',
+                     rulePtr->counter.counterInfo.mode == BROAD_COUNT_PACKETS ? 'P' : 'B',
                      rulePtr->ruleFlags & BROAD_COUNTER_SHARED ? 'S' : '-');
     }
 }
