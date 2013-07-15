@@ -24,6 +24,8 @@
 
 #define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
+#define SM_PTIN_MODS      // State machine modification due to observed incoherent situations
+
 /* *******************************************************************************/
 /*                                  GLOBAL VARS                                  */
 /* *******************************************************************************/
@@ -108,7 +110,7 @@ int ptin_erps_init_entry(L7_uint8 erps_idx)
   tbl_erps[erps_idx].holdoff_timer_previous           = 0;
 
   tbl_erps[erps_idx].operator_cmd                     = PROT_ERPS_OPCMD_NR;
-  tbl_erps[erps_idx].operator_cmd_port                = 0;
+  tbl_erps[erps_idx].operator_cmd_port                = PROT_ERPS_PORT0;
 
   tbl_erps[erps_idx].localRequest                     = LReq_NONE;
   tbl_erps[erps_idx].localReqPort                     = 0;
@@ -363,11 +365,12 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
  * @author joaom (6/5/2013)
  * 
  * @param erps_idx 
+ * @param mask 
  * @param conf 
  * 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf)
+int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *conf)
 {
   int ret = erps_idx;
 
@@ -385,14 +388,28 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf)
     return(ret);
   }
 
-  tbl_erps[erps_idx].protParam.revertive              = conf->revertive;
+  //bit10
+  if (mask & 0x0400)
+    tbl_erps[erps_idx].protParam.revertive              = conf->revertive;
 
-  tbl_erps[erps_idx].protParam.holdoffTimer           = conf->holdoffTimer;
-  tbl_erps[erps_idx].protParam.guardTimer             = conf->guardTimer;
-  tbl_erps[erps_idx].protParam.waitToRestoreTimer     = conf->waitToRestoreTimer;
+  if (mask & 0x0800)
+    tbl_erps[erps_idx].protParam.guardTimer             = conf->guardTimer;
 
-  tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
-  tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
+  if (mask & 0x1000)
+    tbl_erps[erps_idx].protParam.holdoffTimer           = conf->holdoffTimer;
+
+  if (mask & 0x2000)
+    tbl_erps[erps_idx].protParam.waitToRestoreTimer     = conf->waitToRestoreTimer;
+
+  if (mask & 0x4000)
+    tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
+
+  if (mask & 0x8000)
+    tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
+
+  // service List
+  if (mask & 0x8000)
+    memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
 
 
   if (tbl_erps[erps_idx].protParam.holdoffTimer > 100) {   // [0, 10] seconds
@@ -554,7 +571,7 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
   }
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_FS;
-  tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
+  tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -598,7 +615,7 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_MS;
-  tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
+  tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -645,7 +662,7 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   #endif
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_OC;
-  tbl_erps[erps_idx].operator_cmd_port  = 0;
+  tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -680,7 +697,7 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
   }
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_LO;
-  tbl_erps[erps_idx].operator_cmd_port  = 0;
+  tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -716,7 +733,7 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
   }
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ReplaceRPL;
-  tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
+  tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -753,7 +770,7 @@ int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ExeSignal;
-  tbl_erps[erps_idx].operator_cmd_port  = cmd_port;
+  tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -1191,12 +1208,15 @@ int ptin_erps_startTimer(L7_uint8 erps_idx, L7_uint8 timer, L7_uint8 timerCmd, i
   switch (timer) {
   case WTR_TIMER_CMD:
     tbl_erps[erps_idx].wtr_CMD = timerCmd;
+    if (timerCmd == TIMER_CMD_STOP) tbl_erps[erps_idx].wtr_timer = 0;
     break;
   case WTB_TIMER_CMD:
     tbl_erps[erps_idx].wtb_CMD = timerCmd;
+    if (timerCmd == TIMER_CMD_STOP) tbl_erps[erps_idx].wtb_timer = 0;
     break;
   case GUARD_TIMER_CMD:
     tbl_erps[erps_idx].guard_CMD = timerCmd;
+    if (timerCmd == TIMER_CMD_STOP) tbl_erps[erps_idx].guard_timer = 0;
     break;
   }
 
@@ -1354,14 +1374,21 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
     } else {
-      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);   // Just copy, no need to compare.
-      aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? 1 : 0;
 
-      if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], aux2, PROT_ERPS_MAC_SIZE)) && (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], aux2, PROT_ERPS_MAC_SIZE)) ) {
-        if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux)) && 
-            !((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)) ) {
-          ptin_erps_FlushFDB(erps_idx, __LINE__);
+      // extracts the (node ID, BPR) pair ...
+      aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
+
+      if ( memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux) ) { // ...and compares it with the previous (node ID, BPR)
+
+        memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+
+        if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], aux2, PROT_ERPS_MAC_SIZE)) && (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], aux2, PROT_ERPS_MAC_SIZE)) ) {
+          if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) && 
+              !((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)) ) {
+
+            ptin_erps_FlushFDB(erps_idx, __LINE__);
+          }
         }
       }
     }
@@ -1549,13 +1576,33 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
 
     // 11.  WTB Expires (WTB timer)
-    else if (localRequest == LReq_WTBExp) {
-      topPriorityRequest = LReq_WTBExp;
-    }
-
     // 12.  WTB Running (WTB timer)
-    else if (localRequest == LReq_WTBRun) {
-      topPriorityRequest = LReq_WTBRun;
+    else if ( tbl_erps[erps_idx].wtb_CMD == TIMER_CMD_START ) {
+
+      // wtb_timer units is ms. Proc is called every PROT_ERPS_CALL_PROC_MS
+      // WTB timer is defined to be 5 seconds longer than the guardtimer
+
+      tbl_erps[erps_idx].wtb_timer+=PROT_ERPS_CALL_PROC_MS;
+      if ( (tbl_erps[erps_idx].wtb_timer) >= (tbl_erps[erps_idx].protParam.guardTimer+5000) ) {
+
+        localRequest = LReq_WTBExp;
+        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: WTBExp", erps_idx);
+
+        tbl_erps[erps_idx].wtb_timer = 0;             // Reset timer value
+        tbl_erps[erps_idx].wtb_CMD = TIMER_CMD_STOP;  // Stop timer
+
+      }
+
+      // 11.
+      if (localRequest == LReq_WTBExp) {
+        topPriorityRequest = LReq_WTBExp;
+      }
+
+      // 12.
+      else {
+        topPriorityRequest = LReq_WTBRun;
+      }
+
     }
 
     // 13.  R-APS (NR,RB)
@@ -1599,29 +1646,27 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
   }
 
-  if ( (remoteRequest == RReq_SF) ) {
 
-    // Process guardTimer
-    // guardTimer unit is ms! Proc is called every PROT_ERPS_CALL_PROC_MS
-    // guardTimer is in steps of 10ms
+  // Process guardTimer
+  // guardTimer unit is ms! Proc is called every PROT_ERPS_CALL_PROC_MS
+  // guardTimer is in steps of 10ms
 
-    if (tbl_erps[erps_idx].guard_CMD == TIMER_CMD_START) {
+  if (tbl_erps[erps_idx].guard_CMD == TIMER_CMD_START) {
 
-      tbl_erps[erps_idx].guard_timer_previous = tbl_erps[erps_idx].guard_timer;
-      tbl_erps[erps_idx].guard_timer+=PROT_ERPS_CALL_PROC_MS;
-      if (tbl_erps[erps_idx].guard_timer < tbl_erps[erps_idx].guard_timer_previous) {
-        memset(&tbl_erps[erps_idx].guard_timer, 0xFF, sizeof(tbl_erps[erps_idx].guard_timer));
-      }
+    tbl_erps[erps_idx].guard_timer_previous = tbl_erps[erps_idx].guard_timer;
+    tbl_erps[erps_idx].guard_timer+=PROT_ERPS_CALL_PROC_MS;
+    if (tbl_erps[erps_idx].guard_timer < tbl_erps[erps_idx].guard_timer_previous) {
+      memset(&tbl_erps[erps_idx].guard_timer, 0xFF, sizeof(tbl_erps[erps_idx].guard_timer));
+    }
 
-      if (tbl_erps[erps_idx].guard_timer < (tbl_erps[erps_idx].protParam.guardTimer*10)) {
+    if (tbl_erps[erps_idx].guard_timer < (tbl_erps[erps_idx].protParam.guardTimer*10)) {
 
-        LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Guard Timer %d (ms)", erps_idx, tbl_erps[erps_idx].guard_timer);
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Guard Timer %d (ms)", erps_idx, tbl_erps[erps_idx].guard_timer);
 
-        remoteRequest = RReq_NONE;
-      } else {
-        tbl_erps[erps_idx].guard_CMD = TIMER_CMD_STOP;
-        tbl_erps[erps_idx].guard_timer = 0;
-      }
+      remoteRequest = RReq_NONE;
+    } else {
+      tbl_erps[erps_idx].guard_CMD = TIMER_CMD_STOP;
+      tbl_erps[erps_idx].guard_timer = 0;
     }
   }
 
@@ -2120,6 +2165,15 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         //Start WTR
         ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
+
+      #ifdef SM_PTIN_MODS
+      //If RPL Owner Node (Neighbour) and revertive mode:
+      if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEIGHBOUR) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEIGHBOUR)) &&
+            (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                                             ) {
+        //Start WTR
+        ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
+      }
+      #endif
       
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
