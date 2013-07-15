@@ -5725,7 +5725,7 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
 
-  if (ptin_erps_conf_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
+  if (ptin_erps_conf_entry(msgErpsConf->idx, 0xFFFF, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }
@@ -5881,13 +5881,19 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
 
   int ret;
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u: CMD %d, Port %d", msgErpsCmd->idx, msgErpsCmd->cmd, msgErpsCmd->port);
+
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS) {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsCmd->idx);
+  if ( (msgErpsCmd->port != 0) && (msgErpsCmd->port != 1) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Port %d is out of range [0,1]", msgErpsCmd->port);
+    return L7_FAILURE;
+  }
 
   switch ( msgErpsCmd->cmd )
   {

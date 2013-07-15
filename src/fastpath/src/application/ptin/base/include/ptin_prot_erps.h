@@ -346,10 +346,11 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group);
  * Used to reconfigure an existing entry
  * @author joaom (6/5/2013)
  * @param erps_idx 
+ * @param mask 
  * @param conf 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint8 erps_idx, erpsProtParam_t *conf);
+int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *conf);
 
 /**
  * Delete ERPS# instance
