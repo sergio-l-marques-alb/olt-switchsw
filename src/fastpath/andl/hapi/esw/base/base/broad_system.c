@@ -3987,7 +3987,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
     aps_index_free = (L7_uint16)-1;
     for (aps_index=0; aps_index<APS_TRAP_MAX_VLANS; aps_index++)
     {
-      if (aps_index_free >= DHCP_TRAP_MAX_VLANS &&
+      if (aps_index_free >= APS_TRAP_MAX_VLANS &&
          (vlan_list[aps_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[aps_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         aps_index_free = aps_index;
