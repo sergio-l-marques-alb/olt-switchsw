@@ -1242,6 +1242,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   L7_uint8  localRequest                      = LReq_NONE;
   L7_uint8  remoteRequest                     = RReq_NONE;
+  L7_uint16 apsReqStatusRx                    = 0;
   L7_uint8  apsReqStateRx                     = 0;
   L7_uint8  apsStatusRx                       = 0;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE]   = {0};
@@ -1356,6 +1357,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     remoteRequest = APS_GET_REQ(apsReqStateRx);
 
+    apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
+
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
 
     // The flush logic retains for each ring port the information of node ID and blocked port reference 
@@ -1379,7 +1382,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
 
-      if ( memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux) ) { // ...and compares it with the previous (node ID, BPR)
+      if ( memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux) ) { // ...and compares it with the previous (node ID, BPR)
 
         memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
 
@@ -1696,9 +1699,10 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       tbl_erps[erps_idx].localReqPort = reqPort;
     }
   }
-  if ( (remoteRequest != RReq_NONE) && (tbl_erps[erps_idx].remoteRequest != remoteRequest) ) {
+  if ( (remoteRequest != RReq_NONE) && (apsReqStatusRx != tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) ) {
     haveChanges = L7_TRUE;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: change from %s to %s", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], remReqToString[remoteRequest]);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: change from %s (0x%x) to %s (0x%x)", erps_idx, remReqToString[tbl_erps[erps_idx].remoteRequest], apsReqStatusRx, 
+                                                                                                    remReqToString[remoteRequest], tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]);
 
     tbl_erps[erps_idx].remoteRequest = remoteRequest;
   }
