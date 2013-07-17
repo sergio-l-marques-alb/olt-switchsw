@@ -159,7 +159,7 @@
 #define ERPS_PORT_BLOCKING              1
 
 
-#define ERP_NODE_ID                    srcMacAddr
+#define ERPS_NODE_ID                    srcMacAddr
 
 //-------------------------------------------------------------------------
 //  DB Structures
@@ -351,6 +351,17 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group);
  * @return int 
  */
 int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *conf);
+
+/**
+ * Reinit an ERPS instance
+ * 
+ * @author joaom (7/17/2013)
+ * 
+ * @param erps_idx 
+ * 
+ * @return int 
+ */
+int ptin_erps_reinit_entry( L7_uint8 erps_idx);
 
 /**
  * Delete ERPS# instance
