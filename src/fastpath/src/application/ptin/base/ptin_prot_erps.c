@@ -893,7 +893,7 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
   memcpy(status->apsNodeIdRxP0, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], PROT_ERPS_MAC_SIZE);
   memcpy(status->apsNodeIdRxP1, tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE);
 
-  status->state_machine      = tbl_erps[erps_idx].state_machine;
+  status->state_machine      = ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine);
   status->dnfStatus          = tbl_erps[erps_idx].dnfStatus;
 
   status->guard_timer        = tbl_erps[erps_idx].guard_timer;
