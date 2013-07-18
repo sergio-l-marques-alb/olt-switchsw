@@ -25,14 +25,15 @@
 #include <unistd.h>
 
 
-/// Mac Addr used as APS Src Mac and as ERP Node ID
+/// Mac Addr used as APS Src MAC and as ERP Node ID
 L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN] = {0};
 
 /// SW Data Base containing ERPS HAL information
 ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
 
-/// Reference of erps_idx using internal vlan as reference
+/// Reference of erps_idx using internal VLAN ID as reference
 L7_uint8 erpsIdx_from_controlVidInternal[4096]  = {PROT_ERPS_UNUSEDIDX};
+/// Reference of erps_idx using Service VLAN ID as reference
 L7_uint8 erpsIdx_from_serviceVid[4096]          = {PROT_ERPS_UNUSEDIDX};
 
 // Task id
@@ -79,7 +80,7 @@ L7_RC_t ptin_hal_erps_init(void)
   }
   LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
 
-  // Get base MAC address and use it as src MAC and Node Id
+  // Get base MAC address and use it as Src MAC and Node ID
   if (bspapiMacAddrGet(srcMacAddr) != L7_SUCCESS) {
     PTIN_CRASH();
   }
@@ -172,14 +173,14 @@ L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
   L7_uint16 byte, bit;
   L7_uint16 vid=0;
 
-  // Convert Services VID to internal VLAN ID
+  // Convert Services VID to internal VID
   for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
     for (bit=0; bit<8; bit++) {
 
       vid = (byte*8)+bit;
 
       if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {       
-        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN %d", erps_idx, vid);
+        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d", erps_idx, vid);
         erpsIdx_from_serviceVid[vid] = erps_idx;
       }
 
@@ -333,7 +334,7 @@ L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 
 
 
 /**
- * Send an APS packet on ring interfaces
+ * Send an APS packet on both ring interfaces
  * 
  * @author joaom (6/11/2013)
  * 
@@ -350,7 +351,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 st
   apsTx = ((req_state << 12) & 0xF000) | (status & 0x00FF);
 
   if ((tbl_halErps[erps_idx].apsReqStatusTx != apsTx) && (req_state != RReq_NONE)) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req_state, status);
+    //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req_state, status);
     ptin_hal_erps_sendapsX3(erps_idx, req_state, status);
   }
 
@@ -361,7 +362,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 st
 
 
 /**
- * Task for APS constant transmission
+ * Task for APS continual transmission
  * 
  * @author joaom (6/17/2013)
  */
@@ -392,7 +393,7 @@ void ptin_hal_apsPacketTx_task(void)
 
 
 /**
- * Receives an APS packet on a specified interface and vlan 
+ * Receives an APS packet on a specified interface and VLAN ID
  * 
  * @author joaom (6/14/2013)
  * 
