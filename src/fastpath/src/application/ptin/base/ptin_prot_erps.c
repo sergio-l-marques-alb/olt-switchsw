@@ -918,7 +918,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 
-  char *strBool[]       = { "FALSE", "TRUE", "FUZZY :) " };
+  char *strBool[]       = { "FALSE", "TRUE", "FUZZYDO" };
   char *strPortRole[]   = { "NON RPL", "RPL Owner", "RPL Neighbour" };
   char *strRevertive[]  = { "Non-Revertive", "Revertive" };
   char *strCmd[]        = { "NR", "OC", "LO", "FS", "MS", "ReplaceRPL", "ExeSignal" };
@@ -1881,7 +1881,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
       
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
     //local SF  5
@@ -2122,7 +2122,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
       // Next node state: B
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
       #endif
     }
 
@@ -2140,7 +2140,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
       // Next node state: C
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
     }
 
     //MS 9
@@ -2217,7 +2217,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       // Next node state: A
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
     }
 
     //R-APS (NR)  15
@@ -2240,7 +2240,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       // Next node state: A
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
     }
 
     break;
@@ -2295,7 +2295,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
       
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
 
@@ -2379,7 +2379,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == RReq_SF ) {
       //No action
       // Next node state: B
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
     }
 
 
@@ -2387,7 +2387,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == RReq_MS ) {
       //No action
       // Next node state: B
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
     }
 
 
@@ -2434,7 +2434,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( (topPriorityRequest == RReq_NR) && (APS_GET_STATUS(apsStatusRx) & RReq_STAT_RB) ) {
       //No action
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
     //R-APS (NR)  29
@@ -2449,7 +2449,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
       
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
 
@@ -2521,7 +2521,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
       
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
 
@@ -2592,7 +2592,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
       // Next node state: B
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
     }
 
     //R-APS (MS)  36
@@ -2616,9 +2616,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: E (*) *: If both ring ports are unblocked, next node state is C
       if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) {
-        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
       } else {
-        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+        ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
       }
     }
 
@@ -2662,7 +2662,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( (topPriorityRequest == RReq_NR) && (APS_GET_STATUS(apsStatusRx) & RReq_STAT_RB) ) {
       //No action
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
 
@@ -2677,7 +2677,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
 
@@ -2729,7 +2729,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == RReq_FS ) {
       //No action     
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
     //local SF  47
@@ -2752,7 +2752,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == RReq_SF ) {
       //No action
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
 
@@ -2760,7 +2760,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( topPriorityRequest == RReq_MS ) {
       //No action
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
 
@@ -2806,7 +2806,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( (topPriorityRequest == RReq_NR) && (APS_GET_STATUS(apsStatusRx) & RReq_STAT_RB) ) {
       //No action
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
     //R-APS (NR)  57      
@@ -2820,7 +2820,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
       
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
     break;
@@ -2940,7 +2940,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
            
       // Next node state: D
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
     }
 
 
@@ -3037,7 +3037,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
       
       // Next node state: B
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
     }
 
 
@@ -3063,7 +3063,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       // Next node state: C
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
     }
 
     //MS 65
@@ -3296,7 +3296,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       // Next node state: A
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
     }
 
 
@@ -3317,7 +3317,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
       
       // Next node state: E
-      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
     }
 
     break;
@@ -3325,10 +3325,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   }//switch
 
   if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_OC) ) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Operator Command CLEAR; Clearing SF", erps_idx);
-    tbl_erps[erps_idx].operator_cmd = PROT_ERPS_OPCMD_NR;
-    tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = 0;
-    tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = 0;
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Operator Command CLEAR", erps_idx);
+
+    tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]       = PROT_ERPS_SF_CLEAR;
+    tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]       = PROT_ERPS_SF_CLEAR;
+
+    tbl_erps[erps_idx].wtr_timer                        = 0;
+    tbl_erps[erps_idx].wtr_CMD                          = TIMER_CMD_STOP;
+    tbl_erps[erps_idx].wtb_timer                        = 0;
+    tbl_erps[erps_idx].wtb_CMD                          = TIMER_CMD_STOP;
+    tbl_erps[erps_idx].holdoff_timer                    = 0;
+    tbl_erps[erps_idx].holdoff_timer_previous           = 0;
+
+    tbl_erps[erps_idx].operator_cmd                     = PROT_ERPS_OPCMD_NR;
+    tbl_erps[erps_idx].operator_cmd_port                = PROT_ERPS_PORT0;
+
+    tbl_erps[erps_idx].localRequest                     = LReq_NONE;
+    tbl_erps[erps_idx].localReqPort                     = PROT_ERPS_PORT0;
+    tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
   }
 
   // Give some time for have system stability
