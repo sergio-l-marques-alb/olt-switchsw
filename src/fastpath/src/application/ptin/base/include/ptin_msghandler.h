@@ -1188,7 +1188,7 @@ typedef struct {
   unsigned char    holdoffTimer;
   unsigned char    waitToRestoreTimer;
 
-  //service List
+  //Service VLAN ID Inclusion List
   L7_uint8         vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];
 } __attribute__ ((packed)) msg_erps_t;
 
@@ -1196,9 +1196,9 @@ typedef struct {
 typedef struct {
   L7_uint8  slotId;
   L7_uint32 idx;
-  L7_uint8  port0_SF;                // SF or NO SF
+  L7_uint8  port0_SF;                 // SF or NO SF
   L7_uint8  port1_SF;
-  L7_uint8  port0State;              // ERPS_PORT_BLOCKING or ERPS_PORT_FORWARDING
+  L7_uint8  port0State;               // ERPS_PORT_BLOCKING or ERPS_PORT_FORWARDING
   L7_uint8  port1State;
 
   L7_uint16 apsReqStatusTx;           //+----------------+-----------------+
@@ -1209,13 +1209,13 @@ typedef struct {
                                       //|        |       |  |F|R|          |
                                       //+----------------+-----------------+  
   
-  L7_uint8  apsNodeIdRxP0[L7_MAC_ADDR_LEN];  // Node ID (6 octets/MAC Format)
+  L7_uint8  apsNodeIdRxP0[L7_MAC_ADDR_LEN];   // Node ID (6 octets/MAC Format)
   L7_uint8  apsNodeIdRxP1[L7_MAC_ADDR_LEN];
 
   L7_uint8  state_machine;
-  L7_uint8  dnfStatus;               // DNF (Do Not Flush) Status: True/False
+  L7_uint8  dnfStatus;                // DNF (Do Not Flush) Status: True/False
                                      
-  L7_uint16 guard_timer;             // elapsed time
+  L7_uint16 guard_timer;              // elapsed time
   L7_uint32 wtr_timer;
   L7_uint32 wtb_timer;
   L7_uint16 holdoff_timer;

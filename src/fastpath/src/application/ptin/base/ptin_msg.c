@@ -5562,7 +5562,6 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
 #ifdef PTIN_ENABLE_ERPS
 
-//ptin_erps_t       ptinErpsConf;
   erpsProtParam_t ptinErpsConf;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
@@ -5672,7 +5671,7 @@ L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf)
 
 
 /**
- * ERPS Configuration
+ * ERPS Reconfiguration
  * 
  * @author joaom (6/22/2013)
  * 
@@ -5797,7 +5796,16 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
 }
 
 
-
+/**
+ * ERPS status
+ * 
+ * @author joaom (6/24/2013)
+ * 
+ * @param ptr 
+ * @param n
+ * 
+ * @return L7_RC_t 
+ */
 int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
 {
 
@@ -5866,7 +5874,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
 
 
 /**
- * ERPS status
+ * ERPS Commands
  * 
  * @author joaom (7/12/2013)
  * 

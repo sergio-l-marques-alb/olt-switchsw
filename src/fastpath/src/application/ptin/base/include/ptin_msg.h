@@ -879,7 +879,7 @@ extern L7_RC_t ptin_msg_erps_set(msg_erps_t *ptr);
 extern L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf);
 
 /**
- * ERPS Configuration
+ * ERPS Reconfiguration
  * 
  * @author joaom (6/22/2013)
  * 
@@ -913,7 +913,7 @@ extern L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus);
 extern int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n);
 
 /**
- * ERPS status
+ * ERPS Commands
  * 
  * @author joaom (7/12/2013)
  * 

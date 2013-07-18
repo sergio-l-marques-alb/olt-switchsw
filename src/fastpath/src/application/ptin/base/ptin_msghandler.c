@@ -2881,7 +2881,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ERPS_DEL:
       {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_ERPS_DEL (0x%04X)", inbuffer->msgId);
     
       CHECK_INFO_SIZE_MOD(msg_erps_t);
 
