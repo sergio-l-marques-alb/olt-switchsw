@@ -102,8 +102,7 @@ extern void *ptin_ccm_packetRx_queue;
  * 
  * @author joaom (6/13/2013)
  * 
- * @param vlanId HW rule will not use this, only MAC is used to 
- *               create the rule
+ * @param vlanId 
  * @param enable 
  * 
  * @return L7_RC_t 
@@ -168,7 +167,7 @@ extern L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx);
  */
 extern L7_RC_t ptin_ccm_packet_deinit(void);
 
-/** Send a packet on a specified interface and vlan
+/** Send a packet on a specified interface and VLAN
 *
 * @param    intIfNum   @b{(input)} Outgoing internal interface number
 * @param    vlanId     @b{(input)} VLAN ID
@@ -180,7 +179,7 @@ extern L7_RC_t ptin_ccm_packet_deinit(void);
 extern void ptin_oam_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 *payload, L7_uint32 payloadLen);
 
 /**
- * Send a APS packet on a specified interface and vlan
+ * Send a APS packet on a specified interface and VLAN
  * 
  * @author joaom (6/17/2013)
  * 
@@ -191,7 +190,7 @@ extern void ptin_oam_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 
 extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status);
 
 /**
- * Process received APS packet on specified interface and vlan
+ * Process received APS packet on specified interface and VLAN
  * 
  * @author joaom (6/15/2013)
  * 
