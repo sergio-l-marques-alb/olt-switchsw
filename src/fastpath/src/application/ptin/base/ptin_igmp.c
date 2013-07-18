@@ -564,7 +564,7 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
   igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
-  igmpProxy.host.max_sources_per_record            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_RECORD;
+  igmpProxy.host.max_sources_per_record            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD;
 
   /* Apply default config */
   rc = ptin_igmp_proxy_config_set(&igmpProxy);
@@ -2884,6 +2884,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t
         LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to internal vlan %u",intVlan);
       return L7_FAILURE;
     }
+    
   }
 
   /* Get Multicast root vlan */
@@ -4078,7 +4079,7 @@ static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid group address");
     return L7_FAILURE;
-  }
+  }  
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel_group=0x%08x, group_address=0x%08x!",
@@ -4124,6 +4125,7 @@ static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
     *evc_mc = avl_infoData->evc_mc;
   }
 
+  
   return L7_SUCCESS;
 }
 

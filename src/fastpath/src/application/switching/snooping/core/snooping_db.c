@@ -3792,8 +3792,7 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
 #endif
   snoop_eb_t *pSnoopEB;
 
-  pSnoopEB = snoopEBGet();
-  LOG_WARNING(LOG_CTX_PTIN_IGMP, "1");
+  pSnoopEB = snoopEBGet(); 
 
 #if 0
   fdbGetTypeOfVL(&fdbType);
@@ -3805,14 +3804,10 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
   }
 #endif
 
-  memset(&snoopEntry, 0x00, sizeof(snoopPTinL3InfoData_t));
-  LOG_WARNING(LOG_CTX_PTIN_IGMP, "2");
-  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, mcastGroupAddr, sizeof(L7_inet_addr_t));
-  LOG_WARNING(LOG_CTX_PTIN_IGMP, "3");
-  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));  
-  LOG_WARNING(LOG_CTX_PTIN_IGMP, "4");
-  pData = avlInsertEntry(&pSnoopEB->snoopPTinL3AvlTree, &snoopEntry);
-  LOG_WARNING(LOG_CTX_PTIN_IGMP, "5");
+  memset(&snoopEntry, 0x00, sizeof(snoopPTinL3InfoData_t));  
+  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, mcastGroupAddr, sizeof(L7_inet_addr_t));  
+  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));    
+  pData = avlInsertEntry(&pSnoopEB->snoopPTinL3AvlTree, &snoopEntry);  
 
   if (pData == L7_NULL)
   {
@@ -3917,7 +3912,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr,L7_uint32 flag)
+snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr,L7_uint32 flag)
 {
   snoopPTinProxySource_t *snoopEntry;
   snoopPTinProxySourceKey_t key;
@@ -3935,7 +3930,7 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet
   fdbGetTypeOfVL(&fdbType);
 #endif
 
-  memcpy(&key.memAddr, &memAddr, sizeof(L7_uint32));  
+  memcpy(&key.groupPtr, &groupPtr, sizeof(snoopPTinProxyGroup_t*));  
   memcpy(&key.sourceAddr,sourceAddr,sizeof(L7_inet_addr_t));
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxySourceAvlTree, &key, flag);
   if (flag == L7_MATCH_GETNEXT)
@@ -3971,7 +3966,7 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_uint32 memAddr, L7_inet
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr)
+L7_RC_t snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr)
 {
   snoopPTinProxySource_t snoopEntry;
   snoopPTinProxySource_t *pData;
@@ -3994,8 +3989,9 @@ L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* sourceAd
 #endif
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinProxySource_t));
+  memcpy(&snoopEntry.key.groupPtr, &groupPtr, sizeof(snoopPTinProxyGroup_t*)); 
   memcpy(&snoopEntry.key.sourceAddr, sourceAddr, sizeof(L7_inet_addr_t));
-  memcpy(&snoopEntry.key.memAddr,         &memAddr,         sizeof(L7_uint32)); 
+
   snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxySourceAvlTree, &snoopEntry);
@@ -4003,7 +3999,7 @@ L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* sourceAd
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinProxySourceEntryFind(memAddr, sourceAddr,AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinProxySourceEntryFind(groupPtr, sourceAddr,AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     } 
@@ -4028,7 +4024,7 @@ L7_RC_t snoopPTinProxySourceEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* sourceAd
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* sourceAddr)
+L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr)
 {
   snoopPTinProxySource_t *pData;
   snoopPTinProxySource_t *snoopEntry;
@@ -4041,7 +4037,7 @@ L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* sourc
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxySourceEntryFind(memAddr, sourceAddr, L7_MATCH_EXACT);
+  pData = snoopPTinProxySourceEntryFind(groupPtr, sourceAddr, L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -4100,7 +4096,7 @@ L7_RC_t snoopPTinProxySourceEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* sourc
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 memAddr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_uint32 flag)
+snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_uint32 flag)
 {
   snoopPTinProxyGroup_t *snoopEntry;
   snoopPTinProxyGroupKey_t key;
@@ -4118,7 +4114,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 memAddr, L7_inet_a
   fdbGetTypeOfVL(&fdbType);
 #endif
 
-  memcpy(&key.memAddr, &memAddr, sizeof(L7_uint32));  
+  memcpy(&key.interfacePtr,&interfacePtr, sizeof(snoopPTinProxyInterface_t*));  
   memcpy(&key.groupAddr,groupAddr,sizeof(L7_inet_addr_t));
   memcpy(&key.recordType,&recordType,sizeof(L7_uint8));
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);
@@ -4155,7 +4151,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 memAddr, L7_inet_a
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
+L7_RC_t snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {
   snoopPTinProxyGroup_t snoopEntry;
   snoopPTinProxyGroup_t *pData;
@@ -4178,8 +4174,8 @@ L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* groupAddr
 #endif
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyGroup_t));
-  memcpy(&snoopEntry.key.groupAddr, groupAddr, sizeof(L7_inet_addr_t));
-  memcpy(&snoopEntry.key.memAddr, &memAddr, sizeof(L7_uint32)); 
+  memcpy(&snoopEntry.key.interfacePtr, &interfacePtr, sizeof(snoopPTinProxyInterface_t*)); 
+  memcpy(&snoopEntry.key.groupAddr, groupAddr, sizeof(L7_inet_addr_t));  
   memcpy(&snoopEntry.key.recordType, &recordType, sizeof(L7_uint8));   
   snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
@@ -4188,7 +4184,7 @@ L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* groupAddr
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinProxyGroupEntryFind(memAddr, groupAddr,recordType, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinProxyGroupEntryFind(interfacePtr, groupAddr,recordType, AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     } 
@@ -4213,7 +4209,7 @@ L7_RC_t snoopPTinProxyGroupEntryAdd(L7_uint32 memAddr, L7_inet_addr_t* groupAddr
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
+L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {
   snoopPTinProxyGroup_t *pData;
   snoopPTinProxyGroup_t *snoopEntry;
@@ -4226,7 +4222,7 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 memAddr, L7_inet_addr_t* groupA
 #endif
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxyGroupEntryFind(memAddr, groupAddr,recordType, L7_MATCH_EXACT);
+  pData = snoopPTinProxyGroupEntryFind(interfacePtr, groupAddr,recordType, L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");

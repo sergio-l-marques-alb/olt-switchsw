@@ -85,6 +85,7 @@ L7_RC_t     snoopPtinProxyAVLTreeInterfacetimerInit(void);
 L7_RC_t     snoopPtinProxyAVLTreeGrouptimerInit(void);
 L7_RC_t     snoopPtinProxyAVLTreeSourcetimerInit(void);
 #endif
+void  checkIGMPv3Size(void);
 
 #endif
 

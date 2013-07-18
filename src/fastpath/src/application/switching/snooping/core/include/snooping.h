@@ -50,7 +50,7 @@
 #if SNOOP_PTIN_IGMPv3_PROXY
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
-#define SNOOP_IGMPv3_MAX_RECORD_GROUP_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+#define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 
@@ -395,6 +395,7 @@ typedef enum
   SNOOP_PTIN_MEMBERSHIP_QUERY
 }SnoopPtinProxy_Query_t;
 
+
 typedef struct  snoopPTinProxyGroup_s snoopPTinProxyGroup_t;
 
 typedef struct snoopPTinProxyTimer_s
@@ -419,7 +420,7 @@ typedef struct snoopPTinProxyTimer_s
 
 typedef struct snoopPTinProxySourceKey_s
 {
-  L7_uint32                          memAddr;//Memory Address of Group Record
+  snoopPTinProxyGroup_t*             groupPtr;//Memory Address of Group Record
   L7_inet_addr_t                     sourceAddr;
 } snoopPTinProxySourceKey_t;
 
@@ -444,16 +445,14 @@ typedef struct snoopPTinProxySource_s
 
 }snoopPTinProxySource_t;
 
+typedef struct  snoopPTinProxyInterface_s snoopPTinProxyInterface_t;
+
 typedef struct snoopPTinProxyGroupKey_s
 {
-  L7_uint32                               memAddr;//Memory Address of Interface Record
+  snoopPTinProxyInterface_t*              interfacePtr;//Memory Address of Interface Record
   L7_inet_addr_t                          groupAddr;//IPv4(v6) Multicast Group Address
   L7_uint8                                recordType;//MGMD_GROUP_REPORT_TYPE_t  
 } snoopPTinProxyGroupKey_t;
-
-
-typedef struct snoopPTinProxyGroup_s snoopPTinProxyGroup_t;
-
 
 typedef struct snoopPTinProxyGroup_s
 {
@@ -479,7 +478,7 @@ typedef struct snoopPTinProxyInterfaceKey_s
 } snoopPTinProxyInterfaceKey_t;
 
 
-typedef struct snoopPTinProxyInterfaceInfoData_s
+typedef struct snoopPTinProxyInterface_s
 {
   snoopPTinProxyInterfaceKey_t    key;
 

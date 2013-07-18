@@ -282,7 +282,7 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
   qVlanId         = ((snoopPTinL3Sourcetimer_t *) q)->groupData->snoopPTinL3InfoDataKey.vlanId;
   qInterfaceIdx   = ((snoopPTinL3Sourcetimer_t *) q)->interfaceIdx;
 
-  if ( L7_INET_ADDR_COMPARE(&pMcastGroupAddr,&qMcastGroupAddr)==L7_TRUE && 
+  if ( L7_INET_ADDR_COMPARE(&pMcastGroupAddr,&qMcastGroupAddr)==0 && 
        pVlanId         == qVlanId         &&
        pInterfaceIdx   == qInterfaceIdx )
     return 0;

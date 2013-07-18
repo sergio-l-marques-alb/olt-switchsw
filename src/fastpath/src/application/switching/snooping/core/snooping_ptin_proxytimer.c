@@ -309,20 +309,20 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
 //}
 //else if(((snoopPTinProxyTimer_t *)p)->isInterface!=L7_TRUE &&  ((snoopPTinProxyTimer_t *) q)->isInterface!=L7_TRUE)
 //{
-    L7_uint32  pMemAddr,qMemAddr;
+    snoopPTinProxyInterface_t* pInterfacePtr,*qInterfacePtr;
     L7_inet_addr_t pGroupAddr,qGroupAddr;
     L7_uint8        pRecordType,qRecordType;
 
-    pMemAddr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.memAddr;
+    pInterfacePtr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.interfacePtr;
     pGroupAddr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.groupAddr;
     pRecordType = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.recordType;
 
-    qMemAddr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.memAddr;
+    qInterfacePtr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.interfacePtr;
     qGroupAddr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.groupAddr;
     qRecordType = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.recordType;
 
-    if ( L7_INET_ADDR_COMPARE(&pGroupAddr,&qGroupAddr)==L7_TRUE &&
-         pMemAddr         == qMemAddr         &&
+    if ( L7_INET_ADDR_COMPARE(&pGroupAddr,&qGroupAddr)==0 &&
+         pInterfacePtr         == qInterfacePtr         &&
          pRecordType   == qRecordType )
       return 0;
 //}
@@ -418,7 +418,7 @@ void timerCallback(void *param)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Group timer expired(group:%s)",
             inetAddrPrint(&(((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.groupAddr), debug_buf));
     groupPtr    = (snoopPTinProxyGroup_t *) pTimerData->groupData;
-    interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->key.memAddr;
+    interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->key.interfacePtr;
   }
    
   /* Remove node for SLL list */
@@ -436,6 +436,7 @@ void timerCallback(void *param)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"interfacePtr==L7_NULLPTR");
     return ;
   }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
   if (snoopPTinReportSchedule(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,pTimerData->reportType,0,pTimerData->isInterface,pTimerData->noOfRecords,pTimerData->groupData)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
