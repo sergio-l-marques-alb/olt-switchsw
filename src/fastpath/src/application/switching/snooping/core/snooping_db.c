@@ -992,6 +992,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
   L7_uint channel_index,i;
   ptin_client_id_t clientData;
   L7_inet_addr_t ip_addr;
+  L7_uint igmp_network_version;
 
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,intIfNum,0,0)!=L7_SUCCESS)
@@ -1009,6 +1010,9 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopIntfChannelsRemoveAll: Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlan, intIfNum, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Run all channels */
   for (channel_index=0; channel_index<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel_index++)
@@ -1057,15 +1061,18 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
       /* Deactivate channel (only for dynamic entries) */
       if (!snoopEntry->staticGroup)
       {
-        /* Send LEAVES upsteam */
+        /* Send LEAVES upsteam (only for IGMP v2) */
         /* Send two leave messages */
-        ip_addr.family = L7_AF_INET;
-        ip_addr.addr.ipv4.s_addr = snoopEntry->channel_list[channel_index].ipAddr;
-        if (igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS ||
-            igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS)
+        if (igmp_network_version <= 2)
         {
-          if (ptin_debug_igmp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
+          ip_addr.family = L7_AF_INET;
+          ip_addr.addr.ipv4.s_addr = snoopEntry->channel_list[channel_index].ipAddr;
+          if (igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS ||
+              igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS)
+          {
+            if (ptin_debug_igmp_snooping)
+              LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
+          }
         }
 
         memset(&snoopEntry->channel_list[channel_index],0x00,sizeof(ptinSnoopChannelInfo_t));
@@ -1862,6 +1869,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr)
 {
   snoopInfoData_t *snoopEntry;
+  L7_uint          igmp_network_version;
 
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
@@ -1871,6 +1879,9 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
   snoopEntry = snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT);
@@ -1923,12 +1934,15 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
   }
 
   /* Send two leave messages */
-  if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
-      igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+  if (igmp_network_version <= 2)
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
-    return L7_FAILURE;
+    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
+        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -2098,6 +2112,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 {
   snoopInfoData_t *snoopEntry;
   L7_BOOL fwdFlag = L7_FALSE;
+  L7_uint         igmp_network_version;
 
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
@@ -2115,6 +2130,9 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   {
     *send_leave_to_network = L7_FALSE;
   }
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, intIfNum, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
   snoopEntry = snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT);
@@ -2204,21 +2222,24 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   }
 
   /* Send one leave */
-  if (fwdFlag)
+  if (igmp_network_version <= 2)
   {
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
-        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+    if (fwdFlag)
     {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leave to router interfaces");
-      return L7_FAILURE;
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+      {
+        if (ptin_debug_igmp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leave to router interfaces");
+        return L7_FAILURE;
+      }
     }
-  }
 
-  /* Forward leave to network? */
-  if (send_leave_to_network!=L7_NULLPTR)
-  {
-    *send_leave_to_network = fwdFlag;
+    /* Forward leave to network? */
+    if (send_leave_to_network!=L7_NULLPTR)
+    {
+      *send_leave_to_network = fwdFlag;
+    }
   }
 
   return L7_SUCCESS;
@@ -2261,7 +2282,7 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_ui
   if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "snoop entry does not exist");
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoop entry does not exist");
     /* Entry does not exist... give back the semaphore and create new entry */
     if (snoopEntryCreate(dmac, vlanId, L7_AF_INET, L7_FALSE)!=L7_SUCCESS)
     {
@@ -3065,6 +3086,7 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
   snoopInfoData_t  *snoopEntry;
   mfdbMemberInfo_t  mfdb;
   L7_RC_t           rc = L7_SUCCESS;
+  L7_uint           igmp_network_version;
 
   snoopEntry = snoopEntryFind(macAddr, vlanId, family, L7_MATCH_EXACT);
 
@@ -3077,6 +3099,9 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
   #if 1
   L7_uint channel_idx;
   L7_inet_addr_t channel;
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Remove all channels (and send leaves) */
   for (channel_idx=0; channel_idx<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel_idx++)
@@ -3102,12 +3127,15 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
     }
 
     /* Send two leave messages */
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS ||
-        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS)
+    if (igmp_network_version <= 2)
     {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
-      continue;
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS ||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS)
+      {
+        if (ptin_debug_igmp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
+        continue;
+      }
     }
   }
   #endif

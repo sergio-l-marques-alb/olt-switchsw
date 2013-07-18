@@ -2729,6 +2729,12 @@ L7_uint32 snoopCheckPrecedenceParamGet(L7_uint32 vlanId, L7_uint32 intIfNum,
     case SNOOP_PARAM_MCAST_RTR_EXPIRY_TIME:
       return FD_IGMP_SNOOPING_MCAST_RTR_EXPIRY_TIME;
       break;
+
+    case SNOOP_PARAM_IGMP_NETWORK_VERSION:
+      return igmpCfg.networkVersion;
+
+    case SNOOP_PARAM_IGMP_CLIENT_VERSION:
+      return igmpCfg.clientVersion;
   }
   return 0;
   #endif
