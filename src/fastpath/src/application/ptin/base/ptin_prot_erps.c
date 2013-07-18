@@ -733,7 +733,7 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   //The Clear command is only valid if:
   //a) a local Forced Switch or Manual Switch command is in effect (Clear operation a) described in clause 8)
 
-  #if 0
+  #if 1
   if ( (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_FS) || (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_MS) ){
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
@@ -961,7 +961,7 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
   printf("\n  continualTxInterval %d",                      tbl_erps[erps_idx].protParam.continualTxInterval);
   printf("\n  rapidTxInterval     %d",                      tbl_erps[erps_idx].protParam.rapidTxInterval);
   printf("\n-----------------------------------------");
-  printf("\n\nERPS#%d States:\n",                           erps_idx);
+  printf("\n\nERPS#%d Status:\n",                           erps_idx);
   printf("\n  status_SF[P0]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]);
   printf("\n  status_SF[P1]       %d",                      tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]);
   printf("\n");
@@ -1327,7 +1327,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint8  apsStatusRx                       = 0;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE]   = {0};
   L7_uint32 apsRxPort                         = 0;
-  L7_uint8  topPriorityRequest                = LReq_NONE;  //The current top priority request as defined in sub-clause 10.1.1.
+  L7_uint8  topPriorityRequest                = LReq_NONE;  // The current top priority request as defined in sub-clause 10.1.1.
   L7_BOOL   haveChanges                       = L7_FALSE;
   L7_uint8  reqPort                           = 0;          // Request or Failed Port
 
@@ -1786,7 +1786,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       tbl_erps[erps_idx].localReqPort = reqPort;
 
       if (topPriorityRequest>100) haveChanges = L7_TRUE;
-      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Remote Request with more Priority...", erps_idx);
+      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Remote Request with higher Priority...", erps_idx);
     }
   }
   if ( remoteRequest != RReq_NONE ) {
@@ -1797,7 +1797,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       tbl_erps[erps_idx].remoteRequest = remoteRequest;
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
-      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with more Priority...", erps_idx);
+      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
 
     }
     else if ( (remoteRequest == RReq_NR) && ( (APS_GET_STATUS(apsReqStatusRx) & RReq_STAT_RB) != (APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) & RReq_STAT_RB) ) ) {
@@ -1805,7 +1805,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]), APS_GET_STATUS(apsReqStatusRx));
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
-      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with more Priority...", erps_idx);
+      else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
     }
   }
 
