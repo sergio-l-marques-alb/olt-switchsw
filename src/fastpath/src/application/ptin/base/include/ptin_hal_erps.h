@@ -20,7 +20,7 @@
 #include "ptin_include.h"
 #include "ptin_prot_erps.h"
 
-/// Mac Addr used as APS Src Mac and as ERP Node ID
+/// MAC Addr used as APS Src MAC and as ERP Node ID
 extern L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN];
 
 
@@ -34,12 +34,12 @@ typedef struct _ptinHalErps_t {
   L7_uint32 port0intfNum;
   L7_uint32 port1intfNum;
 
-  // APS    
+  // APS
   L7_uint16 apsReqStatusTx;
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 
-  // Packets Packets
+  // Packets
   L7_uint32 apsPacketsTx[2];
   L7_uint32 apsPacketsRxGood[2];
   L7_uint32 apsPacketsRxDropped[2];
@@ -52,12 +52,12 @@ typedef struct _ptinHalErps_t {
 /// SW Data Base containing ERPS HAL information
 extern ptinHalErps_t tbl_halErps[MAX_PROT_PROT_ERPS];
 
-/// Reference of erps_idx using internal vlan as reference
+/// Reference of erps_idx using internal VLAN ID as reference
 extern L7_uint8 erpsIdx_from_controlVidInternal[4096];
 
 
 /**
- * Initialize ERPS hw abstraction layer
+ * Initialize ERPS HW abstraction layer
  * 
  * @author joaom (6/17/2013)
  * 
@@ -85,7 +85,7 @@ extern L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx);
 extern L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx);
 
 /**
- * Initialize ERPS# hw abstraction layer
+ * Initialize ERPS# HW abstraction layer
  * 
  * @author joaom (7/05/2013)
  * 
@@ -95,7 +95,7 @@ extern L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx);
 
 
 /**
- * Initialize ERPS# hw abstraction layer
+ * Initialize ERPS# HW abstraction layer
  * 
  * @author joaom (6/12/2013)
  * 
@@ -105,7 +105,7 @@ extern L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx);
 
 
 /**
- * DEInitialize ERPS# hw abstraction layer
+ * DEInitialize ERPS# HW abstraction layer
  * 
  * @author joaom (6/12/2013)
  * 
@@ -115,7 +115,7 @@ extern L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx);
 
 
 /**
- * DEInitialize ERPS hw abstraction layer
+ * DEInitialize ERPS HW abstraction layer
  * 
  * @author joaom (6/17/2013)
  * 
@@ -124,7 +124,7 @@ extern L7_RC_t ptin_hal_erps_deinit(void);
 
 
 /**
- * Send a APS packet on a specified interface and vlan
+ * Send a APS packet on a specified interface and VLAN
  * 
  * @author joaom (6/11/2013)
  * 
@@ -151,7 +151,7 @@ extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_u
 extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
 
 /**
- * Receives an APS packet on a specified interface and vlan 
+ * Receives an APS packet on a specified interface and VLAN 
  * 
  * @author joaom (6/14/2013)
  * 
@@ -185,7 +185,7 @@ extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
 extern int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx);
 
 /**
- * If the VLAN is protected force HE reconfiguration
+ * If the VLAN is protected force HW reconfiguration
  * 
  * @author joaom (07/04/2013)
  * 
