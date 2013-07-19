@@ -1724,6 +1724,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   L7_uint16 channel_index;
   snoopInfoData_t *snoopEntry;
   L7_BOOL fwdFlag = L7_FALSE;
+  L7_uint32 igmp_network_version;
 
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
@@ -1739,6 +1740,9 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   {
     *send_leave_to_network = L7_FALSE;
   }
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
   if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
@@ -1836,7 +1840,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   }
 
   /* Send two joins */
-  if (fwdFlag)
+  if (fwdFlag && igmp_network_version<=2) 
   {
     if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS ||
         igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
@@ -1968,6 +1972,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 {
   snoopInfoData_t *snoopEntry;
   L7_BOOL fwdFlag = L7_FALSE;
+  L7_uint32 igmp_network_version;
 
   ptin_timer_start(3,"snoop_client_add_procedure-start");
 
@@ -1989,6 +1994,9 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   }
 
   ptin_timer_start(5,"snoop_client_add_procedure-snoopEntryCreate");
+
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, intIfNum, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
   if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
@@ -2071,7 +2079,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 
   ptin_timer_start(4,"snoop_client_add_procedure-igmp_generate_packet_and_send");
   /* Send one join */
-  if (fwdFlag)
+  if (fwdFlag && igmp_network_version<=2)
   {
     if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS ||
         igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
