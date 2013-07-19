@@ -502,6 +502,8 @@
 #else
 #define SOC_IS_TRIUMPH2(unit)  (0)
 #endif
+/* PTin added: No support for TRIUMPH3 */
+#define SOC_IS_TRIUMPH3(unit)  (0)
 
 #ifdef  BCM_APOLLO_SUPPORT
 #define SOC_IS_APOLLO(unit)    ((!SOC_INFO(unit).spi_device) && \
