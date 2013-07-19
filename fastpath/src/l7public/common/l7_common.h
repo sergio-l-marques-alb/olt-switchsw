@@ -45,7 +45,4 @@
 #include "l7_packet.h"
 #include "component_mask.h"
 
-/* PTin added: globaldefs */
-#include "ptin_globaldefs.h"
-
 #endif

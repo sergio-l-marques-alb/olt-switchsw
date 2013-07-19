@@ -350,7 +350,7 @@ int fp_main(int argc, char *argv[])
   #endif
 
   LOG_INFO(LOG_CTX_MISC,"Hello World!");
-  LOG_INFO(LOG_CTX_MISC,"SDK version is 0x%08x!",SDK_VERSION);
+  LOG_INFO(LOG_CTX_MISC,"SDK version is 0x%08x!",SDK_VERSION_IS);
 
   /* Set up platform-specific functions for storing and retrieving the
   ** error log information.
