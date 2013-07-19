@@ -66,8 +66,11 @@
 #include "bcmx/bcmx.h"
 #include "bcmx/bcmx_int.h"
 #include "bcm_int/rpc/rlink.h"
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION <= 5)
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No included */
+#else
 #include "bcmx/filter.h"
 #endif
 #include "bcmx/l3.h"
@@ -91,7 +94,7 @@
 #include "soc/phyreg.h"
 #endif
 
-/* PTin added: init */
+/* PTin added: includes */
 #if 1
 #include "logger.h" /* PTin added */
 #define PTIN_TRAP_TO_CPU  0
@@ -1312,7 +1315,7 @@ void hpcHardwareDefaultConfigApply(void)
     }
 #endif
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     rv = bcm_custom_register(i, custom_bcmx_port_handler, (void *) 0);
     #else
     rv = bcm_custom_register(i, custom_bcmx_port_handler);
@@ -1786,59 +1789,71 @@ void hpcHardwareDefaultConfigApply(void)
      * there is no reason not to use this feature when supported 
      * (hence treat this as default config whereever applicable). 
      */
-     
+
     if (soc_feature(i, soc_feature_dual_hash))
     {
-       /* PTin TODO: BCM56643 */
-       #if 0
        int hashControl;
 
        /* The key is to select the a different hashing algorithm 
         * than L2/L3 hash. (default CRC32L).
         */
+
        rv = bcm_switch_control_get(i, bcmSwitchHashL2, &hashControl);
-       if (rv != BCM_E_NONE)
+       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: BCM56643 */
        {
           LOG_ERROR (rv);
        }
-
-       if (hashControl == BCM_HASH_CRC32L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
-       else if (hashControl == BCM_HASH_CRC32U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
-       else if (hashControl == BCM_HASH_CRC16L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
-       else if (hashControl == BCM_HASH_CRC16U)
-           rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
-  
-       if (rv != BCM_E_NONE)
+       /* PTin added: (BCM56643) Execute, only if success */
+       if (rv == BCM_E_NONE)
        {
-          LOG_ERROR (rv);
+         if (hashControl == BCM_HASH_CRC32L)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
+         else if (hashControl == BCM_HASH_CRC32U)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
+         else if (hashControl == BCM_HASH_CRC16L)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
+         else if (hashControl == BCM_HASH_CRC16U)
+             rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
+    
+         if (rv != BCM_E_NONE)
+         {
+            LOG_ERROR (rv);
+         }
+       }
+       else
+       {
+         LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L2");
        }
 
        if (soc_feature(i, soc_feature_l3))
        {
-       rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
-       if (rv != BCM_E_NONE)
-       {
-          LOG_ERROR (rv);
-       }
+         rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
+         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: BCM56643 */
+         {
+            LOG_ERROR (rv);
+         }
+         /* PTin added: (BCM56643) Execute, only if success */
+         if (rv == BCM_E_NONE)
+         {
+           if (hashControl == BCM_HASH_CRC32L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
+           else if (hashControl == BCM_HASH_CRC32U)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
+           else if (hashControl == BCM_HASH_CRC16L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
+           else if (hashControl == BCM_HASH_CRC16U)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
 
-       if (hashControl == BCM_HASH_CRC32L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
-       else if (hashControl == BCM_HASH_CRC32U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
-       else if (hashControl == BCM_HASH_CRC16L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
-       else if (hashControl == BCM_HASH_CRC16U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
-
-       if (rv != BCM_E_NONE)
-       {
-          LOG_ERROR (rv);
+           if (rv != BCM_E_NONE)
+           {
+              LOG_ERROR (rv);
+           }
+         }
+         else
+         {
+           LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L3");
+         }
        }
-       }
-       #endif
     }
 
     if (SOC_IS_RAPTOR(i) || SOC_IS_HAWKEYE(i)) 
@@ -2290,7 +2305,9 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
 }
 
 /* PTin TODO: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION <= 5)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* None */
+#else
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
 *

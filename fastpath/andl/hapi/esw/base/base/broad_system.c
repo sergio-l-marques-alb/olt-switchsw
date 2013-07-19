@@ -41,8 +41,11 @@
 #include "bcm/l2.h"
 #include "bcm/rate.h"
 #include "bcm/mirror.h"
-/* TODO: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION <= 5)
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm/filter.h"
 #endif
 #include "soc/cmic.h"
@@ -58,13 +61,15 @@
 #include "bcmx/mirror.h"
 #include "bcmx/rate.h"
 /* PTin removed: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION <= 5)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcmx/filter.h"
 #endif
 #include "bcmx/switch.h"
 #include "bcmx/bcmx_int.h"
 /* TODO: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION >= 6)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 //#include "soc/ea/tk371x/igmp.h"
 #else
 #include "bcmx/igmp.h"
@@ -81,9 +86,8 @@
 #include "platform_config.h"
 #include "l7_usl_port_db.h"
 
-/* PTin added: IGMP snooping */
+/* PTin added: includes */
 #if 1
-#include "ptin_globaldefs.h"
 #include "logger.h"
 #endif
 
@@ -277,7 +281,7 @@ void hapiBroadMirrorEnable (void)
     }
 
     /* TODO: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     rv = BCM_E_NONE;    /* Always enabled */
     #else
     rv = bcmx_mirror_pfmt_set(1);
@@ -3147,7 +3151,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   if (hapiBroadRoboCheck() == L7_TRUE)
   {
     /* TODO: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     /* Nothing to be done */
     #else
     bcmx_igmp_snooping_enable_set(enableFilter);
@@ -5098,7 +5102,7 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     {
       *(L7_uint32 *)&msg[0] = numElems;
       /* PTin modified: SDK 6.3.0 */
-      #if (SDK_MAJOR_VERSION >= 6)
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
       rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
       #else
       rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
@@ -5122,7 +5126,7 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
   {
     *(L7_uint32 *)&msg[0] = numElems;
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
     #else
     rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);

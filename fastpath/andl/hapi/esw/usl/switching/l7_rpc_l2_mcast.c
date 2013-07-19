@@ -31,6 +31,8 @@
 #include "l7_rpc_l2_mcast.h"
 #include "l7_usl_bcm_port.h"
 
+#include "ptin_globaldefs.h"
+
 #define RV_REPLACE(_trv, _rv)                   \
         BCMX_RV_REPLACE_OK(_trv, _rv, BCM_E_UNAVAIL)
 
@@ -344,7 +346,7 @@ int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, in
   }
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, 1+l2mc_index_count, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, args);

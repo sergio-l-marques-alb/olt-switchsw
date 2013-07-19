@@ -36,7 +36,8 @@
 #include <sal/appl/config.h>
 
 /* PTin added: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION >= 6)
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 #include "bcm_int/common/trunk.h"
 #endif
 
@@ -117,7 +118,7 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
     cpudb_entry_t *l_entry;
     int iter;
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     L7_uint32          number_of_members;
     bcm_trunk_info_t   trunk_info;
     bcm_trunk_member_t member_array[BCM_TRUNK_MAX_PORTCNT];
@@ -140,7 +141,7 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
     /* setup the modids and trunks for the interconnect */
     for (src_unit = 0; src_unit < l_entry->base.num_units; src_unit++) {
       /* PTin modified: SDK 6.3.0 */
-      #if (SDK_MAJOR_VERSION >= 6)
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
       memset(&trunk_info,0,sizeof(trunk_info));
       memset(member_array,0,sizeof(member_array));
       number_of_members = 0;

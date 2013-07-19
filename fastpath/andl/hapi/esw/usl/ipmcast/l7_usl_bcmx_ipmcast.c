@@ -20,6 +20,7 @@
 **********************************************************************/
 
 #include "l7_common.h"
+#include "ptin_globaldefs.h"
 
 #ifdef L7_MCAST_PACKAGE
 
@@ -119,10 +120,7 @@ void usl_ipmc_bcmx_resume(void)
 int usl_bcmx_ipmc_add(usl_bcm_ipmc_addr_t *data)
 {
   int     rv;
-  /* TODO: SDK 6.3.0 */
-  #if 0
   int     index = USL_BCM_IPMC_INVALID_INDEX;
-  #endif
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   USL_IPMC_BCMX_LOCK_TAKE();
@@ -130,7 +128,18 @@ int usl_bcmx_ipmc_add(usl_bcm_ipmc_addr_t *data)
   do
   {
     /* TODO: SDK 6.3.0 */
-    #if 0
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    if ((data->flags & BCM_MULTICAST_WITH_ID) == L7_FALSE)
+    {
+      hwRv = usl_ipmc_hw_id_allocate(data, &index);
+      if (hwRv != BCM_E_NONE)
+      {
+        break;        
+      }
+      data->ipmc_index = index;
+      data->flags &= ~((uint32) BCM_MULTICAST_WITH_ID);
+    }
+    #else
     /* Allocate hw index if not assigned by HAPI */
     if ((data->flags & BCM_IPMC_USE_IPMC_INDEX) == L7_FALSE)
     {

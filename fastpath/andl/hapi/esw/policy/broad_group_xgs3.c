@@ -18,6 +18,11 @@
 *
 **********************************************************************/
 
+/* PTin added: includes */
+#if 1
+#include "ptin_globaldefs.h"
+#endif
+
 #include "broad_group_xgs3.h"
 #include "bcm/field.h"
 #include "bcm/policer.h"    /* PTin added: policer */
@@ -27,11 +32,15 @@
 #include "broad_group_sqset.h"
 #include "broad_group_shuffle.h"
 #include "platform_config.h"
-#include "logger.h"         /* PTin added: for debug purposes */
 
 /* PTin added: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION >= 6)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 #include "bcm_int/ea/tk371x/field.h"
+#endif
+
+/* PTin added: includes */
+#if 1
+#include "logger.h"
 #endif
 
 /* used for the Higig B0 workaround */
@@ -72,7 +81,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
     //bcmFieldQualifyLookupClass0,    /* Class ID from VFP, to be used in IFP */
 /* PTin modified: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION >= 6)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifySrcClassL2,
 #else
     bcmFieldQualifySrcMacGroup,     /* Class ID from L2X, to be used in IFP */
@@ -88,7 +97,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyOutPort,        /* OutPort, PTin added: FP */
     bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
 /* PTin modified: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION >= 6)
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifyInterfaceClassPort,
 #else
     bcmFieldQualifyPortClass,      /* PortClass, PTin added: FP */
@@ -2140,7 +2149,7 @@ int _policy_group_calc_qset(int                             unit,
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
         #else
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
@@ -2154,7 +2163,7 @@ int _policy_group_calc_qset(int                             unit,
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyOutPort);
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
         #else
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
@@ -2651,7 +2660,7 @@ static int _policy_group_add_std_field(int                   unit,
           if ((BCM_E_NONE == rv) && ((tempVlan != 0) || (tempVlanMask != 0)))
           {
             /* PTin modified: SDK 6.3.0 */
-            #if (SDK_MAJOR_VERSION >= 6)
+            #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
             rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
             #else
             rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
@@ -2736,7 +2745,7 @@ static int _policy_group_add_std_field(int                   unit,
 //      break;
     case BROAD_FIELD_L2_CLASS_ID:
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_SrcClassL2(unit, eid, *((uint8*)value), 0xF);
         #else
         rv = bcm_field_qualify_SrcMacGroup(unit, eid, *((uint8*)value), 0xF);
@@ -2840,7 +2849,7 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_PORTCLASS:
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, *((uint32*)value), *((uint32*)mask));
         #else
         rv = bcm_field_qualify_PortClass(unit, eid, *((uint32*)value), *((uint32*)mask));
@@ -3308,7 +3317,7 @@ static int _policy_group_add_actions(int                   unit,
 }
 
 /* Only use these routines for SDK version >= 5.6.0 */
-#if (SDK_VERSION >= 0x05060000)
+#if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
 
 static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_field_entry_t eid, bcm_field_group_t gid, BROAD_POLICY_RULE_ENTRY_t *rulePtr)
 {
@@ -4281,7 +4290,7 @@ int policy_group_add_rule(int                        unit,
               sysapiPrintf("- adding a meter\n");
   
           /* PTin modified: SDK 6.3.0 */
-          #if (SDK_VERSION >= 0x05060000)
+          #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
           rv = _policy_group_add_policer(unit, policyStage, eid, gid, rulePtr);
           #else
           rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);
@@ -4295,7 +4304,7 @@ int policy_group_add_rule(int                        unit,
             sysapiPrintf("- adding a counter\n");
 
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION >= 0x05060000)
+        #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
         rv = _policy_group_add_stat(unit, eid, gid, rulePtr);
         #else
         rv = _policy_group_add_counter(unit, eid, rulePtr);
@@ -4375,12 +4384,8 @@ int policy_group_set_pbm(int                  unit,
         return rv;
 
     BCM_PBMP_OR(maskPbm, PBMP_PORT_ALL(unit));
-    /* PTin removed: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
-    LOG_WARNING(LOG_CTX_PTIN_HAPI, "TODO: LB ports not considered!");
-    #else
     BCM_PBMP_OR(maskPbm, PBMP_LB(unit));
-    #endif
+
     rv = bcm_field_qualify_InPorts(unit, eid, pbm, maskPbm);
     if (BCM_E_NONE != rv)
         return rv;
@@ -4463,7 +4468,7 @@ int policy_group_set_portclass(int                  unit,
         }
 
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
         #else
         rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
@@ -4488,7 +4493,7 @@ int policy_group_set_portclass(int                  unit,
         portClassBmp = 1 << portClass;
 
         /* PTin modified: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClassBmp, portClassBmp);
         #else
         rv = bcm_field_qualify_PortClass(unit, eid, portClassBmp, portClassBmp);
@@ -4727,7 +4732,7 @@ int policy_group_delete_rule(int                  unit,
         return rv;
 
     /* PTin added: SDK 6.3.0 */
-    #if (SDK_VERSION >= 0x05060000)
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     if (policer_id>0)
     {
       rv = bcm_field_entry_policer_detach(unit, eid, 0);
@@ -4820,7 +4825,7 @@ int policy_group_get_stats(int                  unit,
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
     /* PTin added: SDK 6.3.0 */
-    #if (SDK_VERSION >= 0x05060000)
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
 
     int stat_size, stat_id;
     bcm_field_stat_t stat_type[2];
@@ -4890,7 +4895,7 @@ int policy_group_stats_clear(int                  unit,
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_VERSION >= 0x05060000)
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     int                stat_id;
 
     /* Get stat id for this entry */
@@ -5089,7 +5094,7 @@ int policy_group_create_default_rule(int unit,
     *entry = BCM_ENTRY_TO_BROAD_ENTRY(eid);
 
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_MAJOR_VERSION >= 6)
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     rv = bcm_field_qualify_EtherType(unit, eid, 0x0800, 0xFFFF);
     if (BCM_E_NONE != rv)
       return rv;
@@ -5423,7 +5428,7 @@ void debug_entry_counter(int unit, bcm_field_entry_t eid)
     int    rv;
 
     /* PTin modified: SDK 6.3.0 */
-    #if (SDK_VERSION >= 0x05060000)
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     int    i;
     int    stat_id;
     int    stat_size;

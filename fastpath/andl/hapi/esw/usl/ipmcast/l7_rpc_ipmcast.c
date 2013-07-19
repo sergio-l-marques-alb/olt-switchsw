@@ -32,6 +32,8 @@
 
 #include "l7_rpc_ipmcast.h"
 
+#include "ptin_globaldefs.h"
+
 #define RV_REPLACE(_trv, _rv)                   \
         BCMX_RV_REPLACE_OK(_trv, _rv, BCM_E_UNAVAIL)
 
@@ -482,7 +484,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, args);
@@ -580,7 +582,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
@@ -682,7 +684,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, args);
@@ -761,7 +763,7 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
@@ -854,7 +856,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
@@ -931,7 +933,7 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
   if (sizeof(usl_bcmx_port_ipmc_cmd_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);

@@ -30,8 +30,11 @@
 #include "bcmx/vlan.h"
 #include "bcmx/stg.h"
 #include "bcm_int/esw/mbcm.h"
-/* PTin removed: SDK 6.3.0 */
-#if 0
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm_int/esw/draco.h"
 #endif
 #include "ibde.h"

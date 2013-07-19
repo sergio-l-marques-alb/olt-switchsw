@@ -19,7 +19,10 @@
 
 #include "broad_qos.h"
 /* PTin removed: SDK 6.3.0 */
-#if 0
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm/diffserv.h"
 #endif
 #include "soc/debug.h"
@@ -63,8 +66,10 @@ void hapiBroadQosDebugInit(void)
 
 L7_RC_t debugDsStats(L7_uint32 dpid, L7_uint32 cfid)
 {
-  /* TODO: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done! */
+  #else
     L7_uint32                 unit;
     bcm_ds_counters_t         ds_counter;
     L7_uint32                 rv;

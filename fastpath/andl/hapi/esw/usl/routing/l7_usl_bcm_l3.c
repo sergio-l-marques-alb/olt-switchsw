@@ -32,6 +32,12 @@
 #include "l7_usl_bcm_l3.h"
 #include "l7_usl_l3_db.h"
 
+/* PTin added: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#include "logger.h"
+#endif
+
 L7_BOOL uslDebugL3Enable = L7_FALSE;
 void uslDebugL3EnableSet(L7_BOOL flag)
 {
@@ -508,12 +514,17 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
-        /* TODO: SDK 6.3.0 */
-        #if 1
-        rv = BCM_E_NONE;
-        #else
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
+
+        /* PTin added: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        if (rv == BCM_E_UNAVAIL)
+        {
+          LOG_WARNING(LOG_CTX_PTIN_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
+          rv = BCM_E_INIT;
+        }
         #endif
+
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;

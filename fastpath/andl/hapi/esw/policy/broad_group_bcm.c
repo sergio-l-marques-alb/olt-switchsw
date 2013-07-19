@@ -27,7 +27,11 @@
 #include "l7_usl_policy_db.h"
 #include "l7_usl_common.h"
 
+/* PTin added: includes */
+#if 1
 #include "logger.h"
+#include "ptin_globaldefs.h"
+#endif
 
 /* Policy Group Map Table Definitions */
 
@@ -208,10 +212,10 @@ static void _policy_group_set_default_pbm(int unit, BROAD_POLICY_TYPE_t type, BR
         /* by default applies to all non-stacking ports */
         SOC_PBMP_OR(tempPbm, PBMP_E_ALL(unit));
         /* TODO: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
-        LOG_WARNING(LOG_CTX_PTIN_HAPI, "TODO: LB ports not considered!");
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+          LOG_WARNING(LOG_CTX_PTIN_HAPI, "TODO: LB ports not considered!");
         #else
-        SOC_PBMP_OR(tempPbm, PBMP_LB(unit));
+          SOC_PBMP_OR(tempPbm, PBMP_LB(unit));
         #endif
         SOC_PBMP_ASSIGN(policyPtr->pbm, tempPbm);
         break;

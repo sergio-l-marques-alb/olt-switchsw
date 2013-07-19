@@ -29,7 +29,9 @@
 #include "bcm/custom.h"
 #include "bcm/l2.h"
 #include "bcm/link.h"
- 
+
+#include "ptin_globaldefs.h"
+
 extern int l7_rpc_server_mcast_port_update_groups(int unit, bcm_port_t port, 
                                            int setget, uint32 *args);
 
@@ -66,7 +68,7 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
   if (sizeof(bcast_limit)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, args);
@@ -144,7 +146,7 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
   if (sizeof(mcast_limit)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, args);
@@ -223,7 +225,7 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
   if (sizeof(dlf_limit)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, args);
@@ -301,7 +303,7 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
   if (sizeof(mode)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, args);
@@ -379,7 +381,7 @@ int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port,
   if (sizeof(priority)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, args);
@@ -458,7 +460,7 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
   if (sizeof(max_frame_size)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, args);
@@ -537,7 +539,7 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
   if (sizeof(learn_mode)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, args);
@@ -616,7 +618,7 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
   if (sizeof(dtag_mode)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, args);
@@ -696,7 +698,7 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   if (sizeof(tpid)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, args);
@@ -737,7 +739,7 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   if (sizeof(tpid)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, args);
@@ -778,7 +780,7 @@ int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   if (sizeof(tpid)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, args);
@@ -928,7 +930,7 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
   if (sizeof(vid)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, args);
@@ -1007,7 +1009,7 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
   if (sizeof(mode)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, args);
@@ -1097,7 +1099,7 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
   if ((sizeof(medium)+sizeof(*config))%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, args);
@@ -1186,7 +1188,7 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
   if (sizeof(pauseConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, args);
@@ -1266,7 +1268,7 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
   if (sizeof(cosqSchedConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, args);
@@ -1345,7 +1347,7 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
   if (sizeof(shaperConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, args);
@@ -1436,7 +1438,7 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
   if ((sizeof(cmd)+sizeof(*vlanConfig))%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, args);
@@ -1531,7 +1533,7 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
   if ((sizeof(stg)+sizeof(stpState))%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, args);
@@ -1630,7 +1632,7 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
   if ((sizeof(cmd)+sizeof(pbvlanConfig))%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, args);
@@ -1716,7 +1718,7 @@ int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
   if (sizeof(dot1xStatus)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, args);
@@ -1790,7 +1792,7 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -1830,7 +1832,7 @@ l7_rpc_client_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -2038,7 +2040,7 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
   if (sizeof(usl_bcm_port_dot1x_client_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, args);
@@ -2080,7 +2082,7 @@ l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
   if (sizeof(usl_bcm_port_dot1x_client_t)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, args);
@@ -2183,7 +2185,7 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -2269,7 +2271,7 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   uint32  args[BCM_CUSTOM_ARGS_MAX];
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -2310,7 +2312,7 @@ l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   uint32  args[BCM_CUSTOM_ARGS_MAX];
  
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -2467,7 +2469,7 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
   if (sizeof(mirrorConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, args);
@@ -2587,7 +2589,7 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
   if (sizeof(enable)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
@@ -2666,7 +2668,7 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
   if (sizeof(*wredParams)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, args);
@@ -2745,7 +2747,7 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
   if (sizeof(*sflowConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, args);
@@ -2817,7 +2819,7 @@ int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_B
   if (sizeof(enable)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, args);
@@ -2889,7 +2891,7 @@ int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L
   if (sizeof(drop)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, args);
@@ -2961,7 +2963,7 @@ int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BO
   if (sizeof(enable)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, args);
@@ -3033,7 +3035,7 @@ int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7
   if (sizeof(drop)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, args);
@@ -3105,7 +3107,7 @@ int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_
   if (sizeof(key)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, args);
@@ -3177,7 +3179,7 @@ int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan
   if (sizeof(key)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, args);
@@ -3254,7 +3256,7 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
   if (sizeof(pfcConfig)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, args);
@@ -3331,7 +3333,7 @@ int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port,
 
   memcpy (args, stat, sizeof (*stat));
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
   rv = bcmx_custom_port_get(port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
@@ -3411,7 +3413,7 @@ int l7_rpc_client_port_pfc_stats_clear(bcmx_lport_t port)
   if (sizeof(port)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
-  #if (SDK_MAJOR_VERSION >= 6)
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, n_args, args);
   #else
   rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, args);

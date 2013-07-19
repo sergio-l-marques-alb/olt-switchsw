@@ -24,7 +24,11 @@
 #include "broad_group_xgs3.h"
 #include "l7_usl_policy_db.h"
 
+/* PTin added: includes */
+#if 1
 #include "logger.h"
+#include "ptin_globaldefs.h"
+#endif
 
 /* Group Definitions */
 
@@ -951,7 +955,7 @@ static int _policy_policy_destroy_with_counter_backup(int unit, BROAD_POLICY_t p
         rv = BCM_E_EMPTY;
 
         /* TODO: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
           LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
           rv = BCM_E_UNAVAIL;
         #else
@@ -1040,7 +1044,7 @@ static int _policy_counters_restore(int unit)
       if (counterPtr->ruleId < policyInfo.entryCount)
       {
         /* TODO: SDK 6.3.0 */
-        #if (SDK_MAJOR_VERSION >= 6)
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
           LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
           rv = BCM_E_UNAVAIL;
         #else

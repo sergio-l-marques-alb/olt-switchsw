@@ -28,7 +28,8 @@
 #include "bcmx/l2.h"
 
 /* PTin added: SDK 6.3.0 */
-#if 1
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 #include "bcm_int/common/trunk.h"
 #endif
 

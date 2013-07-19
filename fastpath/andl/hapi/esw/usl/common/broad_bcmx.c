@@ -31,6 +31,8 @@
 #include "l7_rpc_ipmcast.h"
 #endif
 
+#include "ptin_globaldefs.h"  /* PTin added: SDK 6.3.0 */
+
 /*********************************************************************
 *
 * @purpose Dispatch function to handle custom BCMX port requests.
@@ -46,11 +48,11 @@
 *
 *********************************************************************/
 /* PTin modified: SDK 6.3.0 */
-#if 0
-int custom_bcmx_port_handler(int unit, bcm_port_t port, int setget, int type, uint32 *args)
-#else
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 int custom_bcmx_port_handler(int unit, bcm_port_t port, int setget, int type,
                              int length, uint32 *args, int *actual_length, void *user_data)
+#else
+int custom_bcmx_port_handler(int unit, bcm_port_t port, int setget, int type, uint32 *args)
 #endif
 {
   int     rv = BCM_E_NOT_FOUND;

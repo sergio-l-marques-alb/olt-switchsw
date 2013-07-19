@@ -48,7 +48,10 @@
 #include "soc/hash.h"
 #include "soc/l2x.h"
 /* PTin removed: SDK 6.3.0 */
-#if 0
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm_int/esw/draco.h"
 #endif
 #include "bcm_int/control.h"
@@ -1174,8 +1177,10 @@ L7_RC_t hapiBroadDebugUCMemDump(L7_int32 ingress_port)
 /* The following functions are useful for XGS since table entries are hashed */
 int hapiBroadDebugHash(L7_uint32 unit, L7_uint32 keyType, L7_uint32 key63_32, L7_uint32 key31_0)
 {
-  /* PTin modified: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  return L7_SUCCESS;
+  #else
   hashinput_entry_t   hent;
   uint32              key[2];
   uint32              result = -1;
@@ -1193,8 +1198,6 @@ int hapiBroadDebugHash(L7_uint32 unit, L7_uint32 keyType, L7_uint32 key63_32, L7
   SOC_IF_ERROR_RETURN(READ_HASH_OUTPUTr(unit, &result));
 
   return(int)result;
-  #else
-  return L7_SUCCESS;
   #endif
 }
 
@@ -1218,8 +1221,10 @@ int hapiBroadDebugFindL2(L7_uint32 unit, L7_uint32 vidMacHi, L7_uint32 macLo)
 
 int hapiBroadDebugFindL3(L7_uint32 unit, L7_uint32 ipAddr)
 {
-  /* PTin modified: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   int rc;
 
   rc = hapiBroadDebugHash(unit, XGS_HASH_KEY_TYPE_L3UC, 0, ipAddr);
@@ -1794,8 +1799,10 @@ L7_RC_t hapiBroadDebugMmuSet(int unit,
                              int ibpcellset,
                              int ibpdiscardset)
 {
-  /* TODO: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   soc_port_t            port;
   uint32                cos, val;
 
@@ -2120,8 +2127,10 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
 */
 int hapiBroadDebugFltInst1 (void)
 {
-  /* TODO: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   bcm_filterid_t test_flt;
   int rv;
   int unit;
@@ -2165,8 +2174,10 @@ int hapiBroadDebugFltInst1 (void)
 */
 int hapiBroadDebugFltReInst1 (void)
 {
-  /* TODO: SDK 6.3.0 */
-  #if 0
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   bcm_filterid_t test_flt;
   int rv;
   int unit;

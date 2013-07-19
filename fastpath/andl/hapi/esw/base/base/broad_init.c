@@ -83,8 +83,11 @@
 #include "bcm/stack.h"
 #include "bcmx/lport.h"
 #include "bcmx/link.h"
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_MAJOR_VERSION <= 5)
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcmx/filter.h"
 #endif
 #include "bcmx/switch.h"
@@ -121,11 +124,6 @@ extern void fp_stk_mgr_system_db_dump();
 extern void ut(L7_uint32 i);
 extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
 
-#endif
-
-/* PTin added: packet trap */
-#if 1
-#include "ptin_globaldefs.h"
 #endif
 
 /* Max time to wait for a unit to be discovered by lower stacking layer */
