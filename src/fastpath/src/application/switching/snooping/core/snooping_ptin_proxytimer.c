@@ -309,20 +309,26 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
 //}
 //else if(((snoopPTinProxyTimer_t *)p)->isInterface!=L7_TRUE &&  ((snoopPTinProxyTimer_t *) q)->isInterface!=L7_TRUE)
 //{
-    snoopPTinProxyInterface_t* pInterfacePtr,*qInterfacePtr;
+
+//  snoopPTinProxyInterface_t* pInterfacePtr,*qInterfacePtr;
+
+    L7_uint32 pvlanId,qvlanId;
     L7_inet_addr_t pGroupAddr,qGroupAddr;
     L7_uint8        pRecordType,qRecordType;
 
-    pInterfacePtr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.interfacePtr;
+//  pInterfacePtr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.interfacePtr;
+    pvlanId =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.vlanId;
     pGroupAddr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.groupAddr;
     pRecordType = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)p)->groupData)->key.recordType;
 
-    qInterfacePtr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.interfacePtr;
+    qvlanId =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.vlanId;
+//  qInterfacePtr = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.interfacePtr;
     qGroupAddr =((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.groupAddr;
     qRecordType = ((snoopPTinProxyGroup_t *) ((snoopPTinProxyTimer_t *)q)->groupData)->key.recordType;
 
     if ( L7_INET_ADDR_COMPARE(&pGroupAddr,&qGroupAddr)==0 &&
-         pInterfacePtr         == qInterfacePtr         &&
+//       pInterfacePtr         == qInterfacePtr         &&
+         pvlanId         == qvlanId         &&
          pRecordType   == qRecordType )
       return 0;
 //}
@@ -418,7 +424,7 @@ void timerCallback(void *param)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Group timer expired(group:%s)",
             inetAddrPrint(&(((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.groupAddr), debug_buf));
     groupPtr    = (snoopPTinProxyGroup_t *) pTimerData->groupData;
-    interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->key.interfacePtr;
+    interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->interfacePtr;
   }
    
   /* Remove node for SLL list */

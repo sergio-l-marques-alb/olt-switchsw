@@ -156,6 +156,7 @@ static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 max_resp_time)
   /* report suppression override*/
   if (selectedDelay == 0)
     selectedDelay = 1;
+  
   return (selectedDelay);
 }
 
@@ -2673,7 +2674,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Response Time=%d",maxRespTime);
   /* Calculate the Selected delay */
   selectedDelay = snoopPTinProxy_selected_delay_calculate((L7_int32) maxRespTime);
-  selectedDelay =maxRespTime;
+  if(selectedDelay==1 && maxRespTime>1)
+    selectedDelay =maxRespTime/2;
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Selected Delay=%d",selectedDelay);
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)/*IPv4*/
@@ -2904,12 +2906,20 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
   if (groupPtr !=L7_NULLPTR && sendReport==L7_TRUE)
   {     
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");      
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Schedulling Membership Report Message with timeout: %u ",timeout);      
     if (snoopPTinReportSchedule(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,queryType,timeout,isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_FAILURE;
     }
+  }
+  else if (groupPtr ==L7_NULLPTR && sendReport!=L7_TRUE)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "sendReport Flag is equal to L7_TRUE, while groupPtr=L7_NULLPTR");      
+  }
+  else
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "sendReport Flag is equal to L7_FALSE");      
   }
   
            
@@ -3387,6 +3397,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
             SNOOP_GET_ADDR6(ipBuf, dataPtr);
             inetAddressSet(L7_AF_INET6, ipBuf, &groupAddr);
           }
+        }
+        
+        /*Open L2 Port on Switch*/
+        if(snoopGroupIntfAdd(vlanId,&groupAddr, mcastPacket->intIfNum)!=L7_SUCCESS)
+        {
+         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");
+         return L7_FAILURE;
         }        
 
          /* Create new entry in AVL tree for VLAN+IP if necessary */

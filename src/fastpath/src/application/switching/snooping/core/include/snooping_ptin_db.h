@@ -87,13 +87,13 @@ L7_RC_t snoopPTinGroupRecordAddSourceList( L7_uint32  vlanId, L7_inet_addr_t *gr
 
 L7_RC_t snoopPTinProxyInterfaceRemove(snoopPTinProxyInterface_t* interfacePtr);
 
-L7_RC_t snoopPTinRemoveAllGroupRecords(snoopPTinProxyInterface_t* interfacePtr,L7_inet_addr_t* groupAddr);
+L7_RC_t snoopPTinGroupRecordRemoveAll(snoopPTinProxyInterface_t* interfacePtr,L7_inet_addr_t* groupAddr);
 
 L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType);
 
 L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_inet_addr_t *sourceAddr);
 
-L7_RC_t snoopPTinGroupRecordRemoveAllSources(snoopPTinProxyGroup_t*   groupPtr);
+L7_RC_t snoopPTinGroupRecordSourceRemoveAll(snoopPTinProxyGroup_t*   groupPtr);
 
 
 #endif
