@@ -342,10 +342,46 @@ _ptin_oam_eth_task1:;
 
 
 
-  ptin_ccm_packet_vlan_trap(13, 0);
-  ptin_ccm_packet_deinit();
+  //ptin_ccm_packet_vlan_trap(301, 7, 0);
+  ptin_ccm_packet_deinit(0xffff);
 }//ptin_oam_eth_task
 
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t ptin_ccm_packet_trap(L7_uint16 prt, L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable) {
+L7_uint32 intIfNum;
+L7_uint16 vidInternal;
+
+    if (oam_level>=N_OAM_LEVELS
+        ||
+        L7_SUCCESS!=ptin_intf_port2intIfNum(prt, &intIfNum)
+        ||
+        L7_SUCCESS!=ptin_xlate_ingress_get( intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal)) return L7_FAILURE;
+
+    if (enable) {
+        if (L7_SUCCESS!=ptin_ccm_packet_init(oam_level)) return L7_FAILURE;
+        if (L7_SUCCESS!=ptin_ccm_packet_vlan_trap(vidInternal, oam_level, 1)) {
+            ptin_ccm_packet_deinit(oam_level);
+            return L7_FAILURE;
+        }
+    }
+    else {
+        ptin_ccm_packet_deinit(oam_level);
+        ptin_ccm_packet_vlan_trap(vidInternal, oam_level, 0);
+    }
+
+    return L7_SUCCESS;
+}
 
 
 
@@ -378,8 +414,7 @@ L7_RC_t ptin_oam_eth_init(void)
 
   init_eth_srv_oam(&oam);
 
-  ptin_ccm_packet_init();
-  ptin_ccm_packet_vlan_trap(13, 1);
+  ptin_ccm_packet_init(0xffff);
 
   osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
 

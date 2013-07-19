@@ -50,6 +50,9 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg);
 /* Queue id */
 void *ptin_ccm_packetRx_queue                     = L7_NULLPTR;
 
+#include <ethsrv_oam.h>
+L7_long32 nr_using_ETH_oam_lvl[N_OAM_TMR_VALUES];
+
 /* Callback to be called for CCM packets. */
 L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 
@@ -155,7 +158,7 @@ L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
+L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
@@ -170,7 +173,7 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
   dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.oamConfig.level       = 0;
+  dapiCmd.cmdData.oamConfig.level       = oam_level;
   dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_CCM;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -244,26 +247,39 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_ccm_packet_init(void)
+L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 {
-  sysnetNotifyEntry_t snEntry;  
+  sysnetNotifyEntry_t snEntry;
+  L7_long32 i;
 
-  /* Queue that will process timer events */
-  ptin_ccm_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_CCM_PacketRx_Queue",
-                                                       PTIN_CCM_PACKET_MAX_MESSAGES, PTIN_CCM_PDU_MSG_SIZE);
-  if (ptin_ccm_packetRx_queue == L7_NULLPTR) {
-    LOG_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
-    return L7_FAILURE;
+  if (oam_level>=N_OAM_TMR_VALUES) {
+      /* Queue that will process timer events */
+      if (L7_NULLPTR==ptin_ccm_packetRx_queue) {
+        ptin_ccm_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_CCM_PacketRx_Queue",
+                                                               PTIN_CCM_PACKET_MAX_MESSAGES, PTIN_CCM_PDU_MSG_SIZE);
+        if (L7_NULLPTR==ptin_ccm_packetRx_queue) {
+          LOG_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
+          return L7_FAILURE;
+        }
+        LOG_TRACE(LOG_CTX_OAM,"CCM packet queue created.");
+    
+        for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
+      }
+
+      return L7_SUCCESS;       //Just creation of the message queue
   }
-  LOG_TRACE(LOG_CTX_OAM,"CCM packet queue created.");
+
+  if (nr_using_ETH_oam_lvl[oam_level]++) return L7_SUCCESS; //No need to register if already done. (Only need that on "nr_us..."'s transition 0->1.)
 
   /* Register CCM packets */
   strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
   snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
   snEntry.type = SYSNET_MAC_ENTRY;
   memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
+  snEntry.u.macAddr[5]&=0xf0;
+  snEntry.u.macAddr[5]|=oam_level;
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback callback!");
+    LOG_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback !");
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
@@ -329,20 +345,42 @@ L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_ccm_packet_deinit(void)
+L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
 {
   sysnetNotifyEntry_t snEntry;
+  L7_long32 a,b,i;
 
-  /* Deregister broadcast packets capture */
-  strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
-  snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
-  snEntry.type = SYSNET_MAC_ENTRY;
-  memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
-  if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback callback!");
-    return L7_FAILURE;
+  if (oam_level<N_OAM_TMR_VALUES) {
+    if (0==nr_using_ETH_oam_lvl[oam_level]) return L7_FAILURE;
+    if (1==nr_using_ETH_oam_lvl[oam_level]--) a=b=oam_level;
+    else {
+      //a=N_OAM_TMR_VALUES;
+      //b=0;
+      return L7_SUCCESS;
+    }
   }
-  LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
+  else {//oam_level>=N_OAM_TMR_VALUES   reset, deregister and delete message queue
+    a=0;
+    b=N_OAM_TMR_VALUES-1;
+    for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
+  }
+
+  for (i=a; i<=b; i++) {
+    /* Deregister broadcast packets capture */
+    strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
+    snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
+    snEntry.type = SYSNET_MAC_ENTRY;
+    memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
+    snEntry.u.macAddr[5]&=0xf0;
+    snEntry.u.macAddr[5]|=i;
+    if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
+      LOG_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback !");
+      if (oam_level<N_OAM_TMR_VALUES) return L7_FAILURE;
+    }
+    LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
+  }//for
+
+  if (oam_level<N_OAM_TMR_VALUES) return L7_SUCCESS;
 
   /* Queue that will process timer events */
   if (ptin_ccm_packetRx_queue != L7_NULLPTR) {

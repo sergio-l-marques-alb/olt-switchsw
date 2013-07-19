@@ -749,7 +749,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId, DAPI_t *dapi_g);
 
 /* PTin added: CCM */
-L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g);
+L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin modified: IGMP snooping */, L7_BOOL switchFrame, DAPI_t *dapi_g);
 L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g);

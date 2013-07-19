@@ -129,7 +129,7 @@ extern L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable);
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+extern L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable);
 
 /**
  * Initialize ptin_aps_packet module
@@ -147,7 +147,7 @@ extern L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx);
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_ccm_packet_init(void);
+extern L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level);
 
 /**
  * DEInitialize ptin_aps_packet module
@@ -165,7 +165,7 @@ extern L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx);
  * 
  * @return L7_RC_t :  L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_ccm_packet_deinit(void);
+extern L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level);
 
 /** Send a packet on a specified interface and VLAN
 *
