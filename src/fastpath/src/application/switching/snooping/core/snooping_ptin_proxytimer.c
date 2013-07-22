@@ -442,7 +442,7 @@ void timerCallback(void *param)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"interfacePtr==L7_NULLPTR");
     return ;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Trigger Membership Report Message");
   if (snoopPTinReportSchedule(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,pTimerData->reportType,0,pTimerData->isInterface,pTimerData->noOfRecords,pTimerData->groupData)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");

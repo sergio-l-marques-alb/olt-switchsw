@@ -16,12 +16,6 @@
 
 #include "snooping.h"
 
-//Convert an IPv4 address in integer format to string
-char *snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer);
-
-//Convert an IP address in integer format to string
-char *snoopPTinIPAddrPrint(const L7_inet_addr_t addr, L7_uchar8* buf);
-
 //Check if a given timer is running
 L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr);
 

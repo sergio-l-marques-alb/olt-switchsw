@@ -4006,7 +4006,7 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_inet_addr_t* groupAddr,
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr)
+snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr, L7_BOOL* newEntry)
 {
   snoopPTinProxySource_t snoopEntry;
   snoopPTinProxySource_t *pData;
@@ -4016,6 +4016,14 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
   L7_FDB_TYPE_t fdbType;
 #endif
   snoop_eb_t *pSnoopEB;
+
+  /*Arguments Validation*/
+  if (newEntry == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_NULLPTR;
+  }
+  *newEntry=L7_FALSE; 
 
   pSnoopEB = snoopEBGet();
 
@@ -4034,20 +4042,21 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
   memcpy(&snoopEntry.key.groupAddr, &(groupPtr->key.groupAddr), sizeof(L7_inet_addr_t)); 
   memcpy(&snoopEntry.key.sourceAddr, sourceAddr, sizeof(L7_inet_addr_t));
 
-  snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
+//snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.groupPtr=groupPtr;
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxySourceAvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Source Address added to the AVL Tree (groupAddr:%s sourceAddr:%s)",inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),inetAddrPrint(sourceAddr, debug_buf2));
     /*entry was added into the avl tree*/
     if ((pData = snoopPTinProxySourceEntryFind(&groupPtr->key.groupAddr, sourceAddr,AVL_EXACT)) == L7_NULLPTR)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find Source Address in the AVL Tree, after adding it! (groupAddr:%s sourceAddr:%s)", inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),inetAddrPrint(sourceAddr, debug_buf2));    
       return L7_NULLPTR;
-    } 
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Source Address added to the AVL Tree (groupAddr:%s sourceAddr:%s)",inetAddrPrint(&pData->key.groupAddr, debug_buf),inetAddrPrint(&pData->key.sourceAddr, debug_buf2));
+    }    
+    *newEntry=L7_TRUE; 
     return pData;
   }
 
@@ -4060,6 +4069,13 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
 
   /*entry already exists*/
   LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Source Address  previouly added to the AVL Tree (groupAddr:%s sourceAddr:%s)",inetAddrPrint(&pData->key.groupAddr, debug_buf),inetAddrPrint(&pData->key.sourceAddr, debug_buf2));
+
+  if (pData->groupPtr != groupPtr)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Fixing groupPtr");
+    pData->groupPtr=groupPtr;      
+  }
+
   return pData;
 }
 
@@ -4203,7 +4219,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
+snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_BOOL* newEntry )
 {
   snoopPTinProxyGroup_t snoopEntry;
   snoopPTinProxyGroup_t *pData;
@@ -4214,6 +4230,13 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
 #endif
   snoop_eb_t *pSnoopEB;
 
+  /*Arguments Validation*/
+  if (newEntry == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_NULLPTR;
+  }
+  *newEntry=L7_FALSE; 
   pSnoopEB = snoopEBGet();
 
 #if 0
@@ -4232,19 +4255,20 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   memcpy(&snoopEntry.key.groupAddr, groupAddr, sizeof(L7_inet_addr_t));  
   memcpy(&snoopEntry.key.recordType, &recordType, sizeof(L7_uint8));   
   snoopEntry.interfacePtr=interfacePtr;
-  snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
+//snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record added to the AVL Tree(vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId,inetAddrPrint(groupAddr, debug_buf),recordType);
     /*entry was added into the avl tree*/
     if ((pData = snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId, groupAddr,recordType, AVL_EXACT)) == L7_NULLPTR)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find Group Record in the AVL Tree, after adding it! (vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
       return L7_NULLPTR;
-    } 
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record added to the AVL Tree(vlanId:%u groupAddr:%s recordtype:%u)",pData->key.vlanId,inetAddrPrint(&pData->key.groupAddr, debug_buf),pData->key.recordType);
+    }       
+    *newEntry=L7_TRUE;
     return pData;
   }
 
@@ -4257,6 +4281,13 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
 
   /*entry already exists*/
   LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record previouly added to the AVL Tree(vlanId:%u groupAddr:%s recordtype:%u)",pData->key.vlanId,inetAddrPrint(&pData->key.groupAddr, debug_buf),pData->key.recordType);
+
+  if (pData->interfacePtr != interfacePtr)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Fixing interfacePtr");
+    pData->interfacePtr=interfacePtr;
+  }   
+
   return pData;
 }
 
@@ -4395,7 +4426,7 @@ snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId)
+snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_BOOL* newEntry)
 {
   snoopPTinProxyInterface_t snoopEntry;
   snoopPTinProxyInterface_t *pData;
@@ -4404,6 +4435,15 @@ snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId)
   L7_FDB_TYPE_t fdbType;
 #endif
   snoop_eb_t *pSnoopEB;
+
+
+  /*Arguments Validation*/
+  if (newEntry == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_NULLPTR;
+  }
+  *newEntry=L7_FALSE; 
 
   pSnoopEB = snoopEBGet();
 
@@ -4419,19 +4459,20 @@ snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId)
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinProxyInterface_t));  
   memcpy(&snoopEntry.key.vlanId, &vlanId, sizeof(L7_uint32));     
-  snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
+//snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Interface added to the AVL Tree(vlanId:%u)",vlanId);
     /*entry was added into the avl tree*/
     if ((pData = snoopPTinProxyInterfaceEntryFind(vlanId, AVL_EXACT)) == L7_NULLPTR)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find Interface in the AVL Tree, after adding it! (vlanId:%u)",vlanId);
       return L7_NULLPTR;
-    } 
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Interface added to the AVL Tree(vlanId:%u)",pData->key.vlanId);
+    }    
+    *newEntry=L7_TRUE; 
     return pData;
   }
 

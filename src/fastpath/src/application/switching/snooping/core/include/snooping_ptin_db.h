@@ -75,7 +75,7 @@ L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_
 
 snoopPTinProxyInterface_t* snoopPTinProxyInterfaceAdd(L7_uint32 vlanId);
 
-snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interfacePtr,L7_uint8 recordType, L7_inet_addr_t* groupAddr);
+snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interfacePtr,L7_uint8 recordType, L7_inet_addr_t* groupAddr, L7_BOOL* newEntryFlag);
 
 L7_RC_t snoopPTinGroupRecordSourcedAdd(snoopPTinProxyGroup_t* groupPtr,L7_inet_addr_t* sourceAddr);
 

@@ -50,7 +50,7 @@
 #if SNOOP_PTIN_IGMPv3_PROXY
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
-#define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+#define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 64 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 

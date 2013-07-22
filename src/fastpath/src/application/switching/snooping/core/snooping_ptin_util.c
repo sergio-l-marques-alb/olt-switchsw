@@ -39,9 +39,9 @@ static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopC
 static void     snoopPTinQuerySend        (L7_uint32 arg1);
 static L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPtr, L7_uint32 noOfGroupRecords);
 
-static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
+static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
 
-static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyGroup_t* groupPtr);
+static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr);
 
 
 
@@ -301,7 +301,7 @@ L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_
   {
     snoopPTinReportSend(vlanId,groupPtr,noOfRecords);
 
-    if((newgroupPtr=snoopPTinGroupRecordDecrementRetransmission(noOfRecords,groupPtr,&newNoOfRecords))==L7_NULLPTR && newNoOfRecords>0)
+    if((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecords,groupPtr,&newNoOfRecords))==L7_NULLPTR && newNoOfRecords>0)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordDecrementRetransmission()");
       return L7_FAILURE;
@@ -885,122 +885,53 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   return rc;
 }
 
-/*************************************************************************
- * @purpose Convert an IP address in integer format to string
- *
- * @param   ip      IP address to convert
- * @param   buffer  Buffer in which the converted string will be placed.
- *                  Must have at least 15 bytes.
- *
- * @return  String with IP address
- *
- *************************************************************************/
-char* snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer)
-{
-  L7_uchar8 bytes[4];
 
-  if (buffer == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_NULLPTR;
+#if 0
+static int convert_ipaddr2uint64(const char *ipaddr, L7_uint32 *value_uint64)
+{
+  const char *start_ipaddr;
+  L7_uint8  address[4] = { 0, 0, 0, 0};
+  L7_uint8  index;
+  L7_uint32 multiplier;
+
+  // Validate argument
+  if (ipaddr==L7_NULLPTR || *ipaddr=='\0' || value_uint64==L7_NULLPTR)
+    return -1;
+
+  // Search for the next non space/tab character
+  for (; (*ipaddr==' ' || *ipaddr=='\t') && *ipaddr!='\0'; ipaddr++ );
+
+  start_ipaddr = ipaddr;
+
+  // Search for the end of the argument
+  for (; *ipaddr!='\0' && (*ipaddr=='.' || isdigit(*ipaddr)) ; ipaddr++ );
+
+  if (start_ipaddr==ipaddr)
+    return -1;
+
+  // Initialize Decimal multiplier
+  multiplier = 1;
+  // Run all characters starting from the last one
+  for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
+    // If character is a decimal digit...
+    if (isdigit(*ipaddr)) {
+      address[index] += (L7_uint8) (*ipaddr-'0')*multiplier;   // update address array
+      multiplier*=10;                                       // update decimal multiplier for next digit
+    }
+    // Other, is a dot character
+    else
+    {
+      index++;                                              // Increment address array index
+      multiplier=1;                                         // Reinitialize decimal multiplier
+    }
   }
 
-  bytes[0] = ip & 0xFF;
-  bytes[1] = (ip >> 8) & 0xFF;
-  bytes[2] = (ip >> 16) & 0xFF;
-  bytes[3] = (ip >> 24) & 0xFF;
-  sprintf(buffer, "%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
+  // Calculate uint32 value
+  *value_uint64 = ((L7_uint32) address[0]<<0) | ((L7_uint32) address[1]<<8) | ((L7_uint32) address[2]<<16) | ((L7_uint32) address[3]<<24);
 
-  return buffer;
+  return 0;
 }
-
-/*********************************************************************
-*
-* @purpose Given an address and a buffer, fill in the buffer with a
-*          displayable rendition of the address, appropriate to the
-*          address family.
-*
-* @param   L7_uchar8       *buf   (output buffer)
-* @param   L7_uint32        len   (length of buffer)
-* @param   L7_inet_addr_t  *addr  (address)
-*
-* @returns none
-*
-* @notes   Fills in address; returns '<INV_FAM_xx>' where xx is the
-*          hexadecimal value of the family if it's not IPv4 or IPv6.
-*          Assumes valid buf, len, addr are passed in.
-*
-* @end
-*
-*********************************************************************/
-char *snoopPTinIPAddrPrint(const L7_inet_addr_t addr, L7_uchar8 *buf)
-{
-const L7_uchar8 *rp=L7_NULLPTR;
-if (L7_AF_INET == addr.family)
- {
-   /* It's IPv4; parse as IPv4 */
-   inet_ntop(L7_AF_INET, &addr.addr.ipv4, buf, sizeof(buf));
-   return (L7_uchar8 *)rp;
- }
- else if (L7_AF_INET6 == addr.family)
- {
-   /* It's IPv6; parse as IPv6 */
-   inet_ntop(L7_AF_INET6, &addr.addr.ipv6, buf, sizeof(buf));
-   return (L7_uchar8 *)rp;
- }
- else
- {
-   /* It's not covered already; indicate invalid */
-   LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IP Address Family :%d",addr.family);
-   return (L7_uchar8 *) L7_NULL;
- }
-}
-
-//
-//static int convert_ipaddr2uint64(const char *ipaddr, L7_uint32 *value_uint64)
-//{
-//  const char *start_ipaddr;
-//  L7_uint8  address[4] = { 0, 0, 0, 0};
-//  L7_uint8  index;
-//  L7_uint32 multiplier;
-//
-//  // Validate argument
-//  if (ipaddr==L7_NULLPTR || *ipaddr=='\0' || value_uint64==L7_NULLPTR)
-//    return -1;
-//
-//  // Search for the next non space/tab character
-//  for (; (*ipaddr==' ' || *ipaddr=='\t') && *ipaddr!='\0'; ipaddr++ );
-//
-//  start_ipaddr = ipaddr;
-//
-//  // Search for the end of the argument
-//  for (; *ipaddr!='\0' && (*ipaddr=='.' || isdigit(*ipaddr)) ; ipaddr++ );
-//
-//  if (start_ipaddr==ipaddr)
-//    return -1;
-//
-//  // Initialize Decimal multiplier
-//  multiplier = 1;
-//  // Run all characters starting from the last one
-//  for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
-//    // If character is a decimal digit...
-//    if (isdigit(*ipaddr)) {
-//      address[index] += (L7_uint8) (*ipaddr-'0')*multiplier;   // update address array
-//      multiplier*=10;                                       // update decimal multiplier for next digit
-//    }
-//    // Other, is a dot character
-//    else
-//    {
-//      index++;                                              // Increment address array index
-//      multiplier=1;                                         // Reinitialize decimal multiplier
-//    }
-//  }
-//
-//  // Calculate uint32 value
-//  *value_uint64 = ((L7_uint32) address[0]<<0) | ((L7_uint32) address[1]<<8) | ((L7_uint32) address[2]<<16) | ((L7_uint32) address[3]<<24);
-//
-//  return 0;
-//}
+#endif
 
 /*************************************************************************
  * @purpose Debug method that prints stored information for a specific
@@ -1151,7 +1082,7 @@ void snoopPTinGroupRecordPrint(L7_uint32 vlanId,L7_uint32 groupAddrText,L7_uint8
 }
 
 
-static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *newNoOfRecords)
+static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *newNoOfRecords)
 {  
   L7_RC_t rc=L7_SUCCESS;
   L7_uint32 i;
@@ -1177,8 +1108,8 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
   groupPtrAux=groupPtr;
   for (i=0;i<noOfRecords&&groupPtrAux!=L7_NULLPTR;i++)
   {
-    rc=snoopPTinGroupRecordSourceDecrementRetransmission(groupPtrAux);
-    if (--groupPtrAux->retransmissions==0)   
+    rc=snoopPTinGroupRecordSourceIncrementTransmissions(groupPtrAux);
+    if (++groupPtrAux->retransmissions==groupPtrAux->robustnessVariable)   
     {
       groupAddr[noOfGroupRecord2remove]=&groupPtrAux->key.groupAddr;
       recordType[noOfGroupRecord2remove++]=groupPtrAux->key.recordType;            
@@ -1232,7 +1163,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
 }
 
 
-static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyGroup_t* groupPtr)
+static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr)
 {  
   L7_RC_t rc=L7_SUCCESS;  
   snoopPTinProxySource_t* sourcePtrTmp;
@@ -1250,7 +1181,7 @@ static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyG
   sourcePtrTmp=groupPtr->source;
   for (i=0;i<groupPtr->numberOfSources && sourcePtrTmp!=L7_NULLPTR;i++)
   {    
-    if (--sourcePtrTmp->retransmissions==0)
+    if (++sourcePtrTmp->retransmissions==sourcePtrTmp->robustnessVariable)
     {
       sourceAddr[noOfSources2Remove++]=&sourcePtrTmp->key.sourceAddr;
     }
