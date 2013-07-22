@@ -29,6 +29,7 @@
 #include "broad_common.h"
 #include "l7_usl_bcm_port.h"
 
+#include "ptin_globaldefs.h"  /* PTin added: SDK 6.3.0 */
 
 /*********************************************************************
 *
@@ -44,9 +45,14 @@
 * @end
 *
 *********************************************************************/
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+int custom_bcmx_port_handler(int unit, bcm_port_t port, int setget, int type,
+                             int length, uint32 *args, int *actual_length, void *user_data);
+#else
 int custom_bcmx_port_handler(int unit, bcm_port_t port, int setget, int type,
                              uint32 *args);
-
+#endif
 
 /*********************************************************************
 *
