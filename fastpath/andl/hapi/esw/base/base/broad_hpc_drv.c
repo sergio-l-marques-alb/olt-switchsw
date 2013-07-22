@@ -66,7 +66,13 @@
 #include "bcmx/bcmx.h"
 #include "bcmx/bcmx_int.h"
 #include "bcm_int/rpc/rlink.h"
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No included */
+#else
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/l3.h"
 #include "bcm/vlan.h"
 
@@ -88,7 +94,7 @@
 #include "soc/phyreg.h"
 #endif
 
-/* PTin added: init */
+/* PTin added: includes */
 #if 1
 #include "logger.h" /* PTin added */
 #define PTIN_TRAP_TO_CPU  0
@@ -601,9 +607,11 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
       if (soc_feature(unit, soc_feature_packet_rate_limit)) {
 #ifdef BCM_TRX_SUPPORT
         extern int _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps, int burst);
-#ifdef BCM_TRIUMPH2_SUPPORT
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/) {
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
+        /* PTin updated: platform */
+        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/ ||
+            SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+        {
           extern int bcm_tr2_cosq_port_pps_set(int unit, bcm_port_t port,
                                                bcm_cos_queue_t cosq, int pps);   
           rv = bcm_tr2_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
@@ -1306,7 +1314,12 @@ void hpcHardwareDefaultConfigApply(void)
       LOG_ERROR (i);
     }
 #endif
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    rv = bcm_custom_register(i, custom_bcmx_port_handler, (void *) 0);
+    #else
     rv = bcm_custom_register(i, custom_bcmx_port_handler);
+    #endif
      if (rv != BCM_E_NONE)
      {
        LOG_ERROR (rv);
@@ -1326,8 +1339,9 @@ void hpcHardwareDefaultConfigApply(void)
 
 #ifdef L7_STACKING_PACKAGE
         static int xgs_stack_cos_map[] = {0,1,2,3,4,5,6,6};
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) ||
+            SOC_IS_TRIUMPH3(i))       /* PTin added: new switch BCM56643 */
         {
           /* 
            * XGS3 does not suffer from the same problem that caused us to map 7 -> 6
@@ -1565,8 +1579,9 @@ void hpcHardwareDefaultConfigApply(void)
         {
           rv = bcm_switch_control_set (i, bcmSwitchCpuProtoBpduPriority, HAPI_BROAD_INGRESS_BPDU_COS);
         }
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/)
+        /* PTin updated: platform */
+        else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
+                 SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1644,8 +1659,9 @@ void hpcHardwareDefaultConfigApply(void)
           LOG_ERROR (rv);
         }
 
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
+            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1693,8 +1709,9 @@ void hpcHardwareDefaultConfigApply(void)
           }
         }
 
-        // PTin added: new switch => SOC_IS_VALKYRIE2
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i))
+        /* PTin updated: platform */
+        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
+            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */
@@ -1772,7 +1789,7 @@ void hpcHardwareDefaultConfigApply(void)
      * there is no reason not to use this feature when supported 
      * (hence treat this as default config whereever applicable). 
      */
-     
+
     if (soc_feature(i, soc_feature_dual_hash))
     {
        int hashControl;
@@ -1780,48 +1797,63 @@ void hpcHardwareDefaultConfigApply(void)
        /* The key is to select the a different hashing algorithm 
         * than L2/L3 hash. (default CRC32L).
         */
+
        rv = bcm_switch_control_get(i, bcmSwitchHashL2, &hashControl);
-       if (rv != BCM_E_NONE)
+       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: BCM56643 */
        {
           LOG_ERROR (rv);
        }
-
-       if (hashControl == BCM_HASH_CRC32L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
-       else if (hashControl == BCM_HASH_CRC32U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
-       else if (hashControl == BCM_HASH_CRC16L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
-       else if (hashControl == BCM_HASH_CRC16U)
-           rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
-  
-       if (rv != BCM_E_NONE)
+       /* PTin added: (BCM56643) Execute, only if success */
+       if (rv == BCM_E_NONE)
        {
-          LOG_ERROR (rv);
+         if (hashControl == BCM_HASH_CRC32L)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32U);
+         else if (hashControl == BCM_HASH_CRC32U)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC32L);
+         else if (hashControl == BCM_HASH_CRC16L)
+            rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16U);
+         else if (hashControl == BCM_HASH_CRC16U)
+             rv = bcm_switch_control_set(i, bcmSwitchHashL2Dual, BCM_HASH_CRC16L);
+    
+         if (rv != BCM_E_NONE)
+         {
+            LOG_ERROR (rv);
+         }
+       }
+       else
+       {
+         LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L2");
        }
 
        if (soc_feature(i, soc_feature_l3))
        {
-       rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
-       if (rv != BCM_E_NONE)
-       {
-          LOG_ERROR (rv);
-       }
+         rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
+         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: BCM56643 */
+         {
+            LOG_ERROR (rv);
+         }
+         /* PTin added: (BCM56643) Execute, only if success */
+         if (rv == BCM_E_NONE)
+         {
+           if (hashControl == BCM_HASH_CRC32L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
+           else if (hashControl == BCM_HASH_CRC32U)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
+           else if (hashControl == BCM_HASH_CRC16L)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
+           else if (hashControl == BCM_HASH_CRC16U)
+              rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
 
-       if (hashControl == BCM_HASH_CRC32L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32U);
-       else if (hashControl == BCM_HASH_CRC32U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC32L);
-       else if (hashControl == BCM_HASH_CRC16L)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16U);
-       else if (hashControl == BCM_HASH_CRC16U)
-          rv = bcm_switch_control_set(i, bcmSwitchHashL3Dual, BCM_HASH_CRC16L);
-
-       if (rv != BCM_E_NONE)
-       {
-          LOG_ERROR (rv);
+           if (rv != BCM_E_NONE)
+           {
+              LOG_ERROR (rv);
+           }
+         }
+         else
+         {
+           LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L3");
+         }
        }
-    }
     }
 
     if (SOC_IS_RAPTOR(i) || SOC_IS_HAWKEYE(i)) 
@@ -2272,6 +2304,10 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
   return rc;
 }
 
+/* PTin TODO: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* None */
+#else
 /*********************************************************************
 * @purpose  Qualifies BCMX filter with non-stack ports.
 *
@@ -2363,6 +2399,7 @@ void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter)
 
  bcmx_lplist_free(&portList);
 }
+#endif
 
 /* The following code is a patch to support Ax-B0 XGS3 parts 
  *  It addresses the Higig Problem Opcode 0 issue

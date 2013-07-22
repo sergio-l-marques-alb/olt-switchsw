@@ -147,7 +147,8 @@ int hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
 
 #endif /* TRIUMPH ONLY */
 
-#ifdef BCM_ENDURO_SUPPORT
+/* PTin updated: new platform TRIUMP3 */
+#if defined (BCM_ENDURO_SUPPORT) || defined (BCM_TRIUMPH_SUPPORT)
 /*New Macros for enduro*/
 #define EN_MMU_IN_PORT_MIN_CELLS                72
 #define EN_MMU_PG_HDRM_LIMIT_CELLS              216 /*(3 * mtu number of cells)*/

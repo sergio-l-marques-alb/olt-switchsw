@@ -341,15 +341,17 @@ L7_BOOL hapiBroadDot1xVFPTableSupported()
 
   switch (board_info->npd_id)
   {
+  /* PTin updated: new platform */
   case __BROADCOM_56514_ID:
   case __BROADCOM_56624_ID:
   case __BROADCOM_56680_ID:
-  case __BROADCOM_56685_ID:  /* PTin added: new switch */
-  case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+  case __BROADCOM_56685_ID:   /* PTin added: new switch */
+  case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
   case __BROADCOM_56820_ID:
   case __BROADCOM_56634_ID:
   case __BROADCOM_56524_ID:
   case __BROADCOM_56636_ID:
+  case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
     supported = L7_TRUE;
     break;
   default:
@@ -393,17 +395,19 @@ L7_BOOL hapiBroadDot1xVlanAssignmentSupported()
 
   switch (board_info->npd_id)
   {
+  /* PTin updated: new platform */
   case __BROADCOM_56314_ID:
   case __BROADCOM_56514_ID:
   case __BROADCOM_56624_ID:
   case __BROADCOM_56680_ID:
   case __BROADCOM_56685_ID:  /* PTin added: new switch */
-  case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+  case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
   case __BROADCOM_56820_ID:
   case __BROADCOM_56634_ID:
   case __BROADCOM_56524_ID:
   case __BROADCOM_56636_ID:
   case __BROADCOM_56304_ID:
+  case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
 
     supported = L7_TRUE;
     break;
@@ -450,16 +454,18 @@ L7_BOOL hapiBroadDot1xPolicySupported()
 
   switch (board_info->npd_id)
   {
+  /* PTin updated: new platform */
   case __BROADCOM_56314_ID:
   case __BROADCOM_56514_ID:
   case __BROADCOM_56624_ID:
   case __BROADCOM_56680_ID:
-  case __BROADCOM_56685_ID:  /* PTin added: new switch */
-  case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+  case __BROADCOM_56685_ID:   /* PTin added: new switch */
+  case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
   case __BROADCOM_56820_ID:
   case __BROADCOM_56634_ID:
   case __BROADCOM_56524_ID:
   case __BROADCOM_56636_ID:
+  case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
 
     supported = L7_TRUE;
     break;
