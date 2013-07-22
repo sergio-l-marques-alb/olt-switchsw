@@ -2913,7 +2913,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
   if (groupPtr !=L7_NULLPTR && sendReport==L7_TRUE && timeout>=1)
   {     
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Schedulling Membership Report Message with timeout: %u ",timeout);      
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Scheduling Membership Report Message with timeout: %u ",timeout);      
     if (snoopPTinReportSchedule(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,queryType,selectedDelay,isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");

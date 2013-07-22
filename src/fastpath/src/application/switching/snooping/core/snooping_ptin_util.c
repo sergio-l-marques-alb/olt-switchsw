@@ -282,13 +282,13 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFla
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 selectedDelay, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
+L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 timeOut, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
 {
   
   L7_uint32 newNoOfRecords=0;
   snoopPTinProxyGroup_t* newgroupPtr=L7_NULLPTR;
 
-  snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;
+  snoopPTinProxyTimer_t *proxyTimer;
   
   /* Argument validation */
   if (groupPtr == L7_NULLPTR )
@@ -297,7 +297,12 @@ L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_
     return L7_FAILURE;
   }
 
-  if (selectedDelay==0)
+  if (isInterface==L7_TRUE)
+    proxyTimer=&groupPtr->interfacePtr->timer;
+  else
+    proxyTimer=&groupPtr->timer;
+
+  if (timeOut==0)/*We need to send right away this Membership Report Message*/
   {
     snoopPTinReportSend(vlanId,groupPtr,noOfRecords);
 
@@ -306,46 +311,23 @@ L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordDecrementRetransmission()");
       return L7_FAILURE;
     }
-    if(newNoOfRecords>0)
+    
+    if(newNoOfRecords>0)   
     {
-      if (isInterface==L7_TRUE) 
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Re-Scheduling Membership Report Message with timeout: %u ",SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL);  
+      if (snoop_ptin_proxytimer_start(proxyTimer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,newgroupPtr)!=L7_SUCCESS)
       {
-        interfacePtr=(snoopPTinProxyInterface_t *) groupPtr->interfacePtr;
-        if (snoop_ptin_proxytimer_start(&interfacePtr->timer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,groupPtr)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-          return L7_FAILURE;
-        }    
-      }
-      else
-      {
-        if (snoop_ptin_proxytimer_start(&groupPtr->timer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,newgroupPtr)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-          return L7_FAILURE;
-        }    
-
-      }
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
+        return L7_FAILURE;
+      }      
     }
   }
-  else
+  else/*Schedule a Membership Report Message*/
   {
-    if (isInterface==L7_TRUE)
+    if (snoop_ptin_proxytimer_start(proxyTimer,timeOut,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
     {
-      interfacePtr=(snoopPTinProxyInterface_t *) groupPtr->interfacePtr;
-      if (snoop_ptin_proxytimer_start(&interfacePtr->timer,selectedDelay,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-        return L7_FAILURE;
-      }
-    }
-    else
-    {
-      if (snoop_ptin_proxytimer_start(&groupPtr->timer,selectedDelay,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-        return L7_FAILURE;
-      }
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
+      return L7_FAILURE;
     }
   }
    
