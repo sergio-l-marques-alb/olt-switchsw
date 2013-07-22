@@ -113,7 +113,11 @@ typedef struct
 {
     BROAD_GROUP_t                  group;
     BROAD_ENTRY_t                 *entry;
-    L7_int                        *policer_id;    /* PTin added: policer */
+    /* PTin added: SDK 6.3.0 */
+    #if 1
+    int                           *policer_id;
+    int                           *counter_id;
+    #endif
     bcm_pbmp_t                     pbm;
     unsigned char                  flags;
     BROAD_POLICY_TYPE_t            policyType;
@@ -142,7 +146,8 @@ policy_map_table_t;
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 L7_RC_t l7_bcm_policy_hwInfo_get(int unit, BROAD_POLICY_t policy_id, L7_uint rule_id,
-                                 BROAD_GROUP_t *group_id, BROAD_ENTRY_t *entry_id, L7_int *policer_id);
+                                 BROAD_GROUP_t *group_id, BROAD_ENTRY_t *entry_id,
+                                 int *policer_id, int *counter_id);   /* PTin added: SDK 6.3.0 */
 /* PTin end */
 
 int l7_bcm_policy_init();

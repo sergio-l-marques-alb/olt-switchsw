@@ -113,13 +113,15 @@ int policy_group_add_rule(int                        unit,
                           bcm_pbmp_t                 pbm,
                           int                        skip_actions,
                           BROAD_ENTRY_t             *entry,
-                          L7_int                    *policer_id);     /* PTin modified: policer */
+                          int                       *policer_id,      /* PTin modified: SDK 6.3.0 */
+                          int                       *counter_id);
 
 int policy_group_delete_rule(int                  unit,
                              BROAD_POLICY_STAGE_t policyStage,
                              BROAD_GROUP_t        group,
                              BROAD_ENTRY_t        entry,
-                             L7_int               policer_id);        /* PTin modified: policer */
+                             int                  policer_id,         /* PTin added: SDK 6.3.0 */
+                             int                  counter_id);
 
 int policy_group_rule_priority_set(int                          unit,
                                    BROAD_POLICY_STAGE_t         policyStage,

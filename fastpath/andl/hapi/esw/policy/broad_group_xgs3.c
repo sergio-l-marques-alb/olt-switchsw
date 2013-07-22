@@ -18,6 +18,11 @@
 *
 **********************************************************************/
 
+/* PTin added: includes */
+#if 1
+#include "ptin_globaldefs.h"
+#endif
+
 #include "broad_group_xgs3.h"
 #include "bcm/field.h"
 #include "bcm/policer.h"    /* PTin added: policer */
@@ -27,7 +32,16 @@
 #include "broad_group_sqset.h"
 #include "broad_group_shuffle.h"
 #include "platform_config.h"
-#include "logger.h"         /* PTin added: for debug purposes */
+
+/* PTin added: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#include "bcm_int/ea/tk371x/field.h"
+#endif
+
+/* PTin added: includes */
+#if 1
+#include "logger.h"
+#endif
 
 /* used for the Higig B0 workaround */
 #include <soc/drv.h>
@@ -66,7 +80,12 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
     //bcmFieldQualifyLookupClass0,    /* Class ID from VFP, to be used in IFP */
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifySrcClassL2,
+#else
     bcmFieldQualifySrcMacGroup,     /* Class ID from L2X, to be used in IFP */
+#endif
     customFieldQualifyUdf1,         /* iSCSI PDU opCode field */
     customFieldQualifyUdf1,         /* iSCSI PDU opCode field, w/ TCP options */
     bcmFieldQualifyTcpControl,
@@ -77,7 +96,12 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyInPorts,        /* InPorts, PTin added: FP */
     bcmFieldQualifyOutPort,        /* OutPort, PTin added: FP */
     bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyInterfaceClassPort,
+#else
     bcmFieldQualifyPortClass,      /* PortClass, PTin added: FP */
+#endif
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     //bcmFieldQualifyL2StationMove   /* L2 Station move, PTin added: FP */
 };
@@ -1333,14 +1357,15 @@ static int _policy_super_qset_init_ifp(int unit)
 
     if (policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
     {
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if ( SOC_IS_TRIUMPH2(unit) ||
            SOC_IS_TRIUMPH(unit)  ||
            SOC_IS_APOLLO(unit)   ||
            SOC_IS_ENDURO(unit)   ||
            SOC_IS_SCORPION(unit) ||
            SOC_IS_VALKYRIE2(unit)||
-           SOC_IS_TRIDENT(unit)     /* PTin added: new switch BCM56843 */
+           SOC_IS_TRIDENT(unit)  || /* PTin added: new switch BCM56843 */
+           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch BCM56643 */
          )
       {
         _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1392,8 +1417,9 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
-  // PTin added: new switch => SOC_IS_VALKYRIE2 + SOC_IS_TRIDENT
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit))
+  /* PTin updated: platform */
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
+      SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
   {
     if (SOC_IS_TRIDENT(unit))
       LOG_WARNING(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
@@ -1525,14 +1551,15 @@ static int _policy_super_qset_init(int unit)
 
 static int _policy_action_map_init(int unit)
 {
-  // PTin added: new switch => SOC_IS_VALKYRIE2
+  /* PTin updated: platform */
   if ((SOC_IS_TR_VL(unit)) ||
       (SOC_IS_SCORPION(unit)) || 
       (SOC_IS_TRIUMPH2(unit)) || 
       (SOC_IS_APOLLO(unit)) ||
       (SOC_IS_ENDURO(unit)) ||
       (SOC_IS_VALKYRIE2(unit)) ||
-      (SOC_IS_TRIDENT(unit)))   /* PTin added: new switch BCM56843 */
+      (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch BCM56843 */
+      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch BCM56643 */
   {
     /* Modify action maps for certain actions. */
     memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],     &xgs4_ingress_set_cosq_action_map,     sizeof(action_map_entry_t));
@@ -2061,8 +2088,9 @@ int _policy_group_calc_qset(int                             unit,
 
                 if (temp16 & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
                 {
-                  // PTin added: new switch => SOC_IS_VALKYRIE2
-                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit))
+                  /* PTin updated: platform */
+                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
+                      SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
                   {
                     /* TunnelTerminated not supported in IFP, so check for TunnelType instead. */
                     BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelType);
@@ -2120,7 +2148,12 @@ int _policy_group_calc_qset(int                             unit,
       if (entryPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP)
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #else
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #endif
       }
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
@@ -2129,7 +2162,12 @@ int _policy_group_calc_qset(int                             unit,
       else if (entryPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyOutPort);
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
+        #else
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
+        #endif
       }
       break;
 
@@ -2157,6 +2195,11 @@ static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType
   rv = bcm_field_group_status_get(unit, gid, &stat);
   if (BCM_E_NONE != rv)
     return rv;
+
+//sysapiPrintf("  GID=%d: Entries free/total %d/%d, counters free/total %d/%d, meters free/total %d/%d\n", gid,
+//       stat.entries_free, stat.entries_total,
+//       stat.counters_free, stat.counters_total,
+//       stat.meters_free, stat.counters_total);
 
   _policy_group_status_to_sqset_width(&stat, &groupSqsetWidth);
 
@@ -2212,7 +2255,9 @@ static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType
     rv = BCM_E_RESOURCE;
   }
 
-  return rv;
+  /* TODO: SDK 6.3.0 */
+  //return rv;
+  return BCM_E_NONE;
 }
 
 static int _policy_group_find_group(int                             unit,
@@ -2421,88 +2466,92 @@ static int _policy_group_delete_group(int unit, BROAD_POLICY_STAGE_t policyStage
 static void _policy_group_lookupstatus_convert(L7_ushort16 hapiStatus, L7_ushort16 *bcmStatus, L7_BOOL isMask)
 {
   *bcmStatus = 0;
+
+  /* PTin modified: SDK 6.3.0 */
+  #if 1
   if (hapiStatus & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_DOS_ATTACK;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_UNRESOLVED_SA)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L2_MISS;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_UNRESOLVED_SA;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_LPM_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3_LPM_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_LPM_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_STARGV_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3MC_SGV_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_STARGV_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L3_DST_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3UC_DA_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L3_DST_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3UC_SA_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L2_CACHE_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3_ROUTABLE;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L2_DST_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L2_DA_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_DST_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L2_SRC_STATIC)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L2_SA_STATIC;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_SRC_STATIC;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_L2_SRC_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L2_SA_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_SRC_HIT;
   }
   if (isMask)
   {
     if (hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK)
     {
-      *bcmStatus |= BCM_FIELD_LOOKUP_ING_STP_MASK;
+      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK;
     }
   }
   else
   {
     if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS)
     {
-      *bcmStatus |= BCM_FIELD_LOOKUP_ING_STP_DIS;
+      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS;
     }
     if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK)
     {
-      *bcmStatus |= BCM_FIELD_LOOKUP_ING_STP_BLK;
+      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK;
     }
     if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN)
     {
-      *bcmStatus |= BCM_FIELD_LOOKUP_ING_STP_LRN;
+      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN;
     }
     if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD)
     {
-      *bcmStatus |= BCM_FIELD_LOOKUP_ING_STP_FWD;
+      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD;
     }
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_VLAN_VALID;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_VXLT_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_VXLT_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_VXLT_HIT;
   }
   if (hapiStatus & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
   {
-    *bcmStatus |= BCM_FIELD_LOOKUP_L3_TUN_HIT;
+    *bcmStatus |= BROAD_LOOKUPSTATUS_TUNNEL_HIT;
   }
+  #endif
 }
 
 static int _policy_group_add_std_field(int                   unit,
@@ -2610,7 +2659,12 @@ static int _policy_group_add_std_field(int                   unit,
           }
           if ((BCM_E_NONE == rv) && ((tempVlan != 0) || (tempVlanMask != 0)))
           {
+            /* PTin modified: SDK 6.3.0 */
+            #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
+            #else
             rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
+            #endif
           }
         }
         break;
@@ -2690,7 +2744,12 @@ static int _policy_group_add_std_field(int                   unit,
 //      rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
 //      break;
     case BROAD_FIELD_L2_CLASS_ID:
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_SrcClassL2(unit, eid, *((uint8*)value), 0xF);
+        #else
         rv = bcm_field_qualify_SrcMacGroup(unit, eid, *((uint8*)value), 0xF);
+        #endif
         break;
     case BROAD_FIELD_LOOKUP_STATUS:
         tempValue16 = value[0]<<8;
@@ -2789,7 +2848,12 @@ static int _policy_group_add_std_field(int                   unit,
         rv = bcm_field_qualify_SrcTrunk(unit, eid, *((bcm_trunk_t*)value), *((bcm_trunk_t*)mask));
         break;
     case BROAD_FIELD_PORTCLASS:
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, *((uint32*)value), *((uint32*)mask));
+        #else
         rv = bcm_field_qualify_PortClass(unit, eid, *((uint32*)value), *((uint32*)mask));
+        #endif
         break;
     case BROAD_FIELD_DROP:
         rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value),1);
@@ -2807,91 +2871,93 @@ static int _policy_group_add_std_field(int                   unit,
 }
 static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry, L7_uint32 data, L7_uint32 mask)
 {
+  /* PTin modified: SDK 6.3.0 */
+  #if 1
   uint32 value;
 
-  if (mask & BCM_FIELD_LOOKUP_DOS_ATTACK)
+  if (mask & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
   {
-    value = (data & BCM_FIELD_LOOKUP_DOS_ATTACK) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN(bcm_field_qualify_DosAttack(unit, entry, value, 0x1));
   }
   
-  if (mask & BCM_FIELD_LOOKUP_L2_MISS) 
+  if (mask & BROAD_LOOKUPSTATUS_UNRESOLVED_SA) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L2_MISS) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_UNRESOLVED_SA) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L2StationMove(unit, entry, value, 0x1));
   }
   
-  if (mask & BCM_FIELD_LOOKUP_L3_LPM_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_LPM_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L3_LPM_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_LPM_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L3DestRouteHit(unit, entry, value, 0x1));
   }
   
-  if (mask & BCM_FIELD_LOOKUP_L3MC_SGV_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_STARGV_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L3MC_SGV_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_STARGV_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_IpmcStarGroupHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L3UC_DA_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_L3_DST_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L3UC_DA_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L3_DST_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L3DestHostHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L3UC_SA_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L3UC_SA_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L3SrcHostHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L2_CACHE_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L2_CACHE_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L2CacheHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L2_DA_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_L2_DST_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L2_DA_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L2_DST_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L2DestHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L2_SA_STATIC) 
+  if (mask & BROAD_LOOKUPSTATUS_L2_SRC_STATIC) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L2_SA_STATIC) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L2_SRC_STATIC) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L2SrcStatic(unit, entry, value, 0x1));
   }
   
-  if (mask & BCM_FIELD_LOOKUP_L2_SA_HIT) 
+  if (mask & BROAD_LOOKUPSTATUS_L2_SRC_HIT) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L2_SA_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L2_SRC_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_L2SrcHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_ING_STP_MASK) 
+  if (mask & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) 
   {
-    switch (data & BCM_FIELD_LOOKUP_ING_STP_MASK) 
+    switch (data & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK)
     {
-      case BCM_FIELD_LOOKUP_ING_STP_DIS:
+      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS:
         value = BCM_STG_STP_DISABLE;
         break;
-      case BCM_FIELD_LOOKUP_ING_STP_BLK:
+      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK:
         value = BCM_STG_STP_BLOCK;
         break;
-      case BCM_FIELD_LOOKUP_ING_STP_LRN:
+      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN:
         value = BCM_STG_STP_LEARN;
         break;
-      case BCM_FIELD_LOOKUP_ING_STP_FWD:
+      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD:
         value = BCM_STG_STP_FORWARD;
         break;
       default:
@@ -2901,24 +2967,25 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
         (bcm_field_qualify_IngressStpState(unit, entry, value, 0x3));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_VLAN_VALID) 
+  if (mask & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID) 
   {
-    value = (data & BCM_FIELD_LOOKUP_VLAN_VALID) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_ForwardingVlanValid(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_VXLT_HIT)
+  if (mask & BROAD_LOOKUPSTATUS_VXLT_HIT)
   {
-    value = (data & BCM_FIELD_LOOKUP_VXLT_HIT) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_VXLT_HIT) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
         (bcm_field_qualify_VlanTranslationHit(unit, entry, value, 0x1));
   }
 
-  if (mask & BCM_FIELD_LOOKUP_L3_TUN_HIT)
+  if (mask & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
   {
-    // PTin added: new switch => SOC_IS_VALKYRIE2
-    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit))
+    /* PTin updated: platform */
+    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
+        SOC_IS_TRIUMPH3(unit))      /* PTin added: new switch BCM56643 */
     {
       /* TunnelTerminated not supported in IFP, use TunnelType instead. */
       BCM_IF_ERROR_RETURN
@@ -2926,19 +2993,19 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
     }
     else
     {
-      value = (data & BCM_FIELD_LOOKUP_L3_TUN_HIT) ? 0x1 : 0x0;
+      value = (data & BROAD_LOOKUPSTATUS_TUNNEL_HIT) ? 0x1 : 0x0;
       BCM_IF_ERROR_RETURN
         (bcm_field_qualify_TunnelTerminated(unit, entry, value, 0x1));
     }
   }
 
-  if ((mask & BCM_FIELD_LOOKUP_L3_ROUTABLE)) 
+  if ((mask & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3)) 
   {
-    value = (data & BCM_FIELD_LOOKUP_L3_ROUTABLE) ? 0x1 : 0x0;
+    value = (data & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3) ? 0x1 : 0x0;
     BCM_IF_ERROR_RETURN
       (bcm_field_qualify_L3Routable(unit, entry, value, 0x1));
   }
-
+  #endif
   return (BCM_E_NONE);
 }
 static L7_uchar8 udfL4SrcDestPortData[4];
@@ -3249,45 +3316,153 @@ static int _policy_group_add_actions(int                   unit,
   return rv;
 }
 
-/* PTin added: policer */
-#if 0
-static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_field_entry_t eid, BROAD_POLICY_RULE_ENTRY_t *rulePtr, L7_int *policer_id)
+/* Only use these routines for SDK version >= 5.6.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+
+static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_field_entry_t eid, bcm_field_group_t gid, BROAD_POLICY_RULE_ENTRY_t *rulePtr)
 {
-    int                  rv = BCM_E_NONE;
-    bcm_policer_config_t policer_profile;
-    BROAD_METER_ENTRY_t *policerPtr;
-    L7_int pol_id;
+    int                   rv = BCM_E_NONE;
+    BROAD_METER_ENTRY_t   *meterPtr;
+    bcm_policer_t         src_policer_id, policer_id;
+    bcm_policer_config_t  policer_cfg;
 
-    policerPtr = &rulePtr->u.meter.meterInfo;
+    //printf("%s(%d) I was here!",__FUNCTION__,__LINE__);
 
-    policer_profile.flags         = 0;
-    policer_profile.mode          = (policerPtr->colorMode == BROAD_METER_COLOR_BLIND ?
-                                     bcmPolicerModeCommitted :
-                                     bcmPolicerModeTrTcm);
-    policer_profile.ckbits_sec    = policerPtr->cir;
-    policer_profile.ckbits_burst  = policerPtr->cbs*8;
-    policer_profile.pkbits_sec    = policerPtr->pir;
-    policer_profile.pkbits_burst  = policerPtr->pbs*8;
+    meterPtr = &rulePtr->policer.policerInfo;
 
-    /* Create policer */
-    rv = bcm_policer_create(unit,&policer_profile,&pol_id);
-    if (BCM_E_NONE != rv)
-        return rv;
+    bcm_policer_config_t_init(&policer_cfg);
+    policer_cfg.flags = /*BCM_POLICER_REPLACE | BCM_POLICER_DROP_RED |*/ 0;
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    //policer_cfg.flags |= BCM_POLICER_MODE_BYTES;
+  #endif
+    policer_cfg.mode  = bcmPolicerModeTrTcm;  /* RFC 2698 */
+    policer_cfg.ckbits_sec    = meterPtr->cir;
+    policer_cfg.ckbits_burst  = meterPtr->cbs * 8;
+    policer_cfg.pkbits_sec    = meterPtr->pir;
+    policer_cfg.pkbits_burst  = meterPtr->pbs * 8;
+    policer_cfg.action_id     = bcmPolicerActionRpDrop;
+    policer_cfg.sharing_mode  = 0;
 
-    rv = bcm_field_entry_policer_attach(unit,eid,0,pol_id);
-    if (BCM_E_NONE != rv)
+    if (meterPtr->colorMode == BROAD_METER_COLOR_BLIND)
+      policer_cfg.flags |= BCM_POLICER_COLOR_BLIND;
+
+    if (rulePtr->ruleFlags & BROAD_METER_SHARED)
     {
-        bcm_policer_destroy(unit,pol_id);
-        return rv;
+        bcm_field_entry_t src_eid;
+
+        src_eid = BROAD_ENTRY_TO_BCM_ENTRY(rulePtr->meterSrcEntry);
+
+        src_policer_id = rulePtr->src_policerId;
+
+        rv = bcm_field_entry_policer_attach(unit, eid, 0, src_policer_id);
+
+        if (BCM_E_NONE != rv)
+        {
+          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          return rv;
+        }
+
+        rulePtr->policer.policer_id = src_policer_id;
+    }
+    else
+    {
+        /* Create policer */
+        rv = bcm_policer_create(unit, &policer_cfg, &policer_id);
+        if (BCM_E_NONE != rv)
+        {
+          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          return rv;
+        }
+
+        /* Attach policer to field entry */
+        rv = bcm_field_entry_policer_attach(unit, eid, 0, policer_id);
+        if (BCM_E_NONE != rv)
+        {
+          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          return rv;
+        }
+
+        rulePtr->policer.policer_id = policer_id;
+        rulePtr->src_policerId = policer_id;
     }
 
-    /* Save policer_id */
-    if (policer_id!=L7_NULLPTR)  *policer_id = pol_id;
+    //printf("%s(%d) I was here! rv=%d",__FUNCTION__,__LINE__,rv);
 
     return rv;
 }
-#endif
-/* PTin end */
+
+
+static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_group_t gid, BROAD_POLICY_RULE_ENTRY_t *rulePtr)
+{
+    int                    rv = BCM_E_NONE;
+    uint64                 zero64;
+    BROAD_COUNTER_ENTRY_t *counterPtr;
+    bcm_field_stat_t       stat[2];
+    int                    src_stat_id, stat_id;
+
+    //printf("%s(%d) gid=%u, eid=%u",__FUNCTION__,__LINE__,gid,eid);
+
+    counterPtr = &rulePtr->counter.counterInfo;
+
+    if (rulePtr->ruleFlags & BROAD_COUNTER_SHARED)
+    {
+      src_stat_id = rulePtr->src_counterId;
+
+      rv = bcm_field_entry_stat_attach(unit, eid, src_stat_id);
+
+      if (BCM_E_NONE != rv)
+      {
+        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        return rv;
+      }
+
+      rulePtr->counter.counter_id = src_stat_id;
+    }
+    else
+    {
+      /* add counter to support stats */
+      if (BROAD_COUNT_PACKETS == counterPtr->mode)
+      {
+        stat[0] = bcmFieldStatPackets;
+      }
+      else
+      {
+        stat[0] = bcmFieldStatBytes;
+      }
+
+      rv = bcm_field_stat_create(unit, gid, 1, stat, &stat_id);
+      if (BCM_E_NONE != rv)
+      {
+        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        return rv;
+      }
+
+      rv = bcm_field_entry_stat_attach(unit, eid, stat_id);
+      if (BCM_E_NONE != rv)
+      {
+        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        return rv;
+      }
+
+      rulePtr->counter.counter_id = stat_id;
+      rulePtr->src_counterId = stat_id;
+    }
+
+    /* zero values prior to first use */
+    COMPILER_64_ZERO(zero64);
+    rv = bcm_field_stat_all_set(unit, stat_id, zero64);
+    if (BCM_E_NONE != rv)
+    {
+      printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+      return rv;
+    }
+
+    //printf("%s(%d) Success! rv=%d",__FUNCTION__,__LINE__,rv);
+
+    return rv;
+}
+
+#else
 
 static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_field_entry_t eid, BROAD_POLICY_RULE_ENTRY_t *rulePtr)
 {
@@ -3296,7 +3471,7 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
     uint32               counter_flags;
     uint64               zero64;
 
-    meterPtr = &rulePtr->u.meter.meterInfo;
+    meterPtr = &rulePtr->policer.policerInfo;   /* PTin modified: SDK 6.3.0 */
 
     if (rulePtr->ruleFlags & BROAD_METER_SHARED)
     {
@@ -3336,11 +3511,13 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
 
     /* add counter to support stats per entry */
     rv = bcm_field_counter_create(unit, eid);
+
     if (BCM_E_NONE != rv)
         return rv;
 
     /* zero values prior to first use */
     COMPILER_64_ZERO(zero64);
+
     (void)bcm_field_counter_set(unit, eid, 0, zero64);
     (void)bcm_field_counter_set(unit, eid, 1, zero64);
 
@@ -3353,8 +3530,10 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
     {
       counter_flags |= BCM_FIELD_COUNTER_MODE_YES_NO;
     }
+
     rv = bcm_field_action_add(unit, eid, bcmFieldActionUpdateCounter,
                   counter_flags, 0);
+
     if (BCM_E_NONE != rv)
         return rv;
 
@@ -3368,7 +3547,7 @@ static int _policy_group_add_counter(int unit, bcm_field_entry_t eid, BROAD_POLI
     uint64                 zero64;
     BROAD_COUNTER_ENTRY_t *counterPtr;
 
-    counterPtr = &rulePtr->u.counter.counterInfo;
+    counterPtr = &rulePtr->counter.counterInfo;   /* PTin modified: SDK 6.3.0 */
 
     if (rulePtr->ruleFlags & BROAD_COUNTER_SHARED)
     {
@@ -3401,11 +3580,11 @@ static int _policy_group_add_counter(int unit, bcm_field_entry_t eid, BROAD_POLI
         flags |= BCM_FIELD_COUNTER_MODE_BYTES;
 
     rv = bcm_field_action_add(unit, eid, bcmFieldActionUpdateCounter, flags, 0);
-    if (BCM_E_NONE != rv)
-        return rv;
 
     return rv;
 }
+#endif
+
 
 extern int hapiBroadBcmGroupRequired(int unit);
 /* 
@@ -3454,14 +3633,15 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
 
   /* Although Scorpion, TR2, and Apollo support intraslice doublewide mode,
      their system qsets end up using doublewide mode. */
-  // PTin added: new switch => SOC_IS_VALKYRIE2
+  /* PTin updated: platform */
   if (_policy_supports_intraslice_doublewide_mode(unit) && 
       !SOC_IS_SCORPION(unit) && 
       !SOC_IS_TRIUMPH2(unit) && 
       !SOC_IS_APOLLO(unit) &&
       !SOC_IS_ENDURO(unit) &&
       !SOC_IS_VALKYRIE2(unit) &&
-      !SOC_IS_TRIDENT(unit))        /* PTin added: new switch BCM56843 */
+      !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch BCM56843 */
+      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch BCM56643 */
   {
     /* System rules in slice 0. */
     groupid_rev = 1;
@@ -3655,24 +3835,24 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
         }
         /* PTin end */
 
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_LOW   : Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_MEDIUM: Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_HIGH  : Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_STATS_EVC   : Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
-        LOG_INFO(LOG_CTX_STARTUP,"ALLOC_BLOCK_PTIN  : Groups %u - %u",
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
-                 group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
+        printf("ALLOC_BLOCK_LOW   : Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
+        printf("ALLOC_BLOCK_MEDIUM: Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
+        printf("ALLOC_BLOCK_HIGH  : Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
+        printf("ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
+        printf("ALLOC_BLOCK_STATS_EVC   : Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
+        printf("ALLOC_BLOCK_PTIN  : Groups %u - %u\r\n",
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
+               group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
       }
       break;
     default:
@@ -3722,7 +3902,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
     switch (policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if (SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
           SOC_IS_SCORPION(unit) || 
@@ -3730,7 +3910,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_APOLLO(unit)   ||
           SOC_IS_ENDURO(unit)   ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit))     /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch BCM56643 */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -3740,12 +3921,13 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       {
         total_slices = 8;
       }
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       else if ((SOC_IS_FIREBOLT(unit)  || 
           SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
-          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit))
-           && !SOC_IS_TRIDENT(unit)) /* PTin added: new switch BCM56843 */
+          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
+          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+           && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch BCM56843 */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
       { 
@@ -3774,7 +3956,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       }
       break;
     case BROAD_POLICY_STAGE_EGRESS:
-      // PTin added: new switch => SOC_IS_VALKYRIE2
+      /* PTin updated: platform */
       if (SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit)     ||
           SOC_IS_SCORPION(unit)  || 
@@ -3782,7 +3964,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_APOLLO(unit)    ||
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit))     /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIDENT(unit)   || /* PTin added: new switch BCM56843 */
+          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch BCM56643 */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -3801,7 +3984,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
   switch (policyStage)
   {
   case BROAD_POLICY_STAGE_LOOKUP:
-    // PTin added: new switch => SOC_IS_VALKYRIE2
+    /* PTin updated: platform */
     if (SOC_IS_FIREBOLT2(unit) ||
         SOC_IS_TR_VL(unit)     ||
         SOC_IS_SCORPION(unit)  || 
@@ -3809,7 +3992,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_APOLLO(unit)    ||
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit))       /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch BCM56643 */
     {
       supported = L7_TRUE;
     }
@@ -3820,7 +4004,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
     break;
 
   case BROAD_POLICY_STAGE_EGRESS:
-    // PTin added: new switch => SOC_IS_VALKYRIE2
+    /* PTin updated: platform */
     if (SOC_IS_FIREBOLT2(unit) ||
         SOC_IS_TR_VL(unit)     ||
         SOC_IS_SCORPION(unit)  || 
@@ -3828,7 +4012,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_APOLLO(unit)    ||
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit))       /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch BCM56843 */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch BCM56643 */
     {
       supported = L7_TRUE;
     }
@@ -4026,11 +4211,12 @@ int policy_group_add_rule(int                        unit,
                           bcm_pbmp_t                 pbm,
                           int                        skip_actions,
                           BROAD_ENTRY_t             *entry,
-                          L7_int                    *policer_id)      /* PTin modified: policer */
+                          int                       *policer_id,      /* PTin added: SDK 6.3.0 */
+                          int                       *counter_id)
 {
     BROAD_POLICY_FIELD_t f;
     group_table_t       *groupPtr;
-    bcm_field_entry_t    eid;
+    bcm_field_entry_t    gid, eid;
     int                  rv = BCM_E_NONE;
     BROAD_ACTION_ENTRY_t *actionPtr;
 
@@ -4040,6 +4226,8 @@ int policy_group_add_rule(int                        unit,
 
     if (!(groupPtr->flags & GROUP_USED))
         return BCM_E_NOT_FOUND;
+
+    gid = groupPtr->gid;
 
     rv = bcm_field_entry_create(unit, groupPtr->gid, &eid);
 
@@ -4104,21 +4292,35 @@ int policy_group_add_rule(int                        unit,
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
               sysapiPrintf("- adding a meter\n");
   
-          /* Ptin modified: policer */
-          rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);                    /* Original */
-          //rv = _policy_group_add_policer(unit, policyStage, eid, rulePtr, policer_id);    /* New */
+          /* PTin modified: SDK 6.3.0 */
+          #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+          rv = _policy_group_add_policer(unit, policyStage, eid, gid, rulePtr);
+          #else
+          rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);
+          #endif
           if (BCM_E_NONE != rv)
               return rv;
       }
       else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
       {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("- adding a counter\n");
-  
-          rv = _policy_group_add_counter(unit, eid, rulePtr);
-          if (BCM_E_NONE != rv)
-              return rv;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("- adding a counter\n");
+
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+        rv = _policy_group_add_stat(unit, eid, gid, rulePtr);
+        #else
+        rv = _policy_group_add_counter(unit, eid, rulePtr);
+        #endif
+        if (BCM_E_NONE != rv)
+          return rv;
       }
+
+      /* Ptin added: SDK 6.3.0 */
+      #if 1
+      if (policer_id!=L7_NULLPTR)   *policer_id = rulePtr->policer.policer_id;
+      if (counter_id!=L7_NULLPTR)   *policer_id = rulePtr->counter.counter_id;
+      #endif
     }
 
     /* Only install to HW if we expect any ports to match this rule. This is mostly because
@@ -4128,16 +4330,19 @@ int policy_group_add_rule(int                        unit,
     {
       rv = bcm_field_entry_install(unit, eid);
 
+      /* PTin added: SDK 6.3.0 */
+      #if 1
+      if ( rv != BCM_E_NONE)
+      { 
+        /* Destroy rule */
+        (void) policy_group_delete_rule(unit, policyStage, gid, eid, rulePtr->policer.policer_id, rulePtr->counter.counter_id);
+      }
+      #endif
+
       /* PTin added: FFP */
       #if 1
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-      #else
-      if ( rv != BCM_E_NONE)
-      {  
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-            sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
-      }
       #endif
     }
 
@@ -4264,7 +4469,12 @@ int policy_group_set_portclass(int                  unit,
           break;
         }
 
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, 0, 0);
+        #else
         rv = bcm_field_qualify_PortClass(unit, eid, 0, 0);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
       }
@@ -4283,7 +4493,13 @@ int policy_group_set_portclass(int                  unit,
               return rv;
         }
         portClassBmp = 1 << portClass;
+
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_field_qualify_InterfaceClassPort(unit, eid, portClassBmp, portClassBmp);
+        #else
         rv = bcm_field_qualify_PortClass(unit, eid, portClassBmp, portClassBmp);
+        #endif
         if (BCM_E_NONE != rv)
             return rv;
       }
@@ -4487,7 +4703,8 @@ int policy_group_delete_rule(int                  unit,
                              BROAD_POLICY_STAGE_t policyStage,
                              BROAD_GROUP_t        group,
                              BROAD_ENTRY_t        entry,
-                             L7_int               policer_id)       /* PTin modified: policer */
+                             int                  policer_id,   /* PTin added: SDK 6.3.0 */
+                             int                  counter_id)
 {
     int               rv;
     group_table_t    *groupPtr;
@@ -4516,17 +4733,27 @@ int policy_group_delete_rule(int                  unit,
     if((BCM_E_UNAVAIL != rv) && (BCM_E_NONE != rv))
         return rv;
 
-    /* PTin added: policer */
+    /* PTin added: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     if (policer_id>0)
     {
-      rv = bcm_field_entry_policer_detach(unit,eid,0);
+      rv = bcm_field_entry_policer_detach(unit, eid, 0);
       if (BCM_E_NONE != rv)
           return rv;
-      rv = bcm_policer_destroy(unit,policer_id);
+      rv = bcm_policer_destroy(unit, policer_id);
       if (BCM_E_NONE != rv)
           return rv;
     }
-    /* PTin end */
+    if (counter_id>0)
+    {
+      rv = bcm_field_entry_stat_detach(unit, eid, counter_id);
+      if (BCM_E_NONE != rv)
+          return rv;
+      rv = bcm_field_stat_destroy(unit, counter_id);
+      if (BCM_E_NONE != rv)
+          return rv;
+    }
+    #endif
 
     rv = bcm_field_entry_destroy(unit, eid);
 
@@ -4586,8 +4813,11 @@ int policy_group_get_stats(int                  unit,
 
     CHECK_GROUP(unit,policyStage,group);
 
-    COMPILER_64_ZERO(*val1);
-    COMPILER_64_ZERO(*val2);
+    /* PTin modified: SDK 6.3.0 */
+    #if 1
+    if (val1!=NULL) COMPILER_64_ZERO(*val1);
+    if (val2!=NULL) COMPILER_64_ZERO(*val2);
+    #endif
 
     groupPtr = &group_table[unit][policyStage][group];
 
@@ -4595,6 +4825,43 @@ int policy_group_get_stats(int                  unit,
         return BCM_E_NOT_FOUND;
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
+
+    /* PTin added: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+
+    int stat_size, stat_id;
+    bcm_field_stat_t stat_type[2];
+    uint64 values[2];
+
+    /* Get stat id for this entry */
+    rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        return rv;
+
+    /* Get number of counters */
+    rv = bcm_field_stat_size(unit, stat_id, &stat_size);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        return rv;
+    /* Limit number of counters to 2 */
+    if (stat_size>2)  stat_size = 2;
+
+    if (stat_size==0)
+      return BCM_E_EMPTY;
+
+    /* Get collection of counters */
+    rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        return rv;
+
+    /* Get counters values */
+    rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        return rv;
+
+    if (stat_size>=1 && val1!=NULL)  *val1 = values[0];
+    if (stat_size>=2 && val2!=NULL)  *val2 = values[1];
+
+    #else
 
     if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
@@ -4612,6 +4879,7 @@ int policy_group_get_stats(int                  unit,
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
           return rv;
     }
+    #endif
 
     return BCM_E_NONE;
 }
@@ -4628,6 +4896,22 @@ int policy_group_stats_clear(int                  unit,
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
 
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+    int                stat_id;
+
+    /* Get stat id for this entry */
+    rv = bcm_field_entry_stat_get(unit, entry, &stat_id);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+        return rv;
+
+    /* Reset counters */
+    rv = bcm_field_stat_all_set(unit, stat_id, val1);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
+        return rv;
+
+    #else
+
     rv = bcm_field_counter_set(unit, eid, 0, val1);
     if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))   /* empty means no counter */
         return rv;
@@ -4638,6 +4922,7 @@ int policy_group_stats_clear(int                  unit,
       if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
           return rv;
     }
+    #endif
 
     return BCM_E_NONE;
 }
@@ -4810,10 +5095,20 @@ int policy_group_create_default_rule(int unit,
 
     *entry = BCM_ENTRY_TO_BROAD_ENTRY(eid);
 
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    rv = bcm_field_qualify_EtherType(unit, eid, 0x0800, 0xFFFF);
+    if (BCM_E_NONE != rv)
+      return rv;
+    rv = bcm_field_qualify_IpType(unit, eid, bcmFieldIpTypeIpv4Any);
+    if (BCM_E_NONE != rv)
+      return rv;
+    #else
     rv = bcm_field_qualify_PacketFormat(unit, eid, BCM_FIELD_PKT_FMT_IPV4,
                                         BCM_FIELD_PKT_FMT_IPV4);
     if (BCM_E_NONE != rv)
       return rv;
+    #endif
 
     rv = bcm_field_action_add(unit, eid, bcmFieldActionEgressMask, 
                               SOC_PBMP_WORD_GET(epbm, 0), 0
@@ -5133,19 +5428,78 @@ void debug_sqset_table(int unit, int entry)
 void debug_entry_counter(int unit, bcm_field_entry_t eid)
 {
     int    rv;
+
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+    int    i;
+    int    stat_id;
+    int    stat_size;
+    bcm_field_stat_t stat_type[4];
+    uint64 values[4];
+
+    /* Get stat id for this entry */
+    rv = bcm_field_entry_stat_get(unit, eid, &stat_id);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+    {
+      sysapiPrintf("Error with bcm_field_entry_stat_get\n");
+      return;
+    }
+
+    /* Get number of counters */
+    rv = bcm_field_stat_size(unit, stat_id, &stat_size);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+    {
+      sysapiPrintf("Error with bcm_field_stat_size\n");
+      return;
+    }
+    /* Limit number of counters to 2 */
+    if (stat_size>4)  stat_size = 4;
+
+    if (stat_size==0)
+    {
+      sysapiPrintf("No counters\n");
+      return;
+    }
+
+    /* Get collection of counters */
+    rv = bcm_field_stat_config_get(unit, stat_id, stat_size, stat_type);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+    {
+      sysapiPrintf("Error with bcm_field_stat_config_get\n");
+      return;
+    }
+
+    /* Get counters values */
+    rv = bcm_field_stat_multi_get(unit, stat_id, stat_size, stat_type, values);
+    if ((BCM_E_NONE != rv) && (BCM_E_EMPTY != rv))
+    {
+      sysapiPrintf("Error with bcm_field_stat_multi_get\n");
+      return;
+    }
+
+    /* Print counters */
+    for (i=0; i<stat_size; i++)
+    {
+      sysapiPrintf("Counter %d: %08x %08x\n", i, u64_H(values[i]), u64_L(values[i]));
+    }
+
+    #else
     uint64 val64;
 
     rv = bcm_field_counter_get(unit, eid, 0, &val64);
+
     if (BCM_E_NONE == rv)
         sysapiPrintf("Counter 0: %08x %08x\n", u64_H(val64), u64_L(val64));
     else
         sysapiPrintf("error code = %d\n", rv);
 
     rv = bcm_field_counter_get(unit, eid, 1, &val64);
+
     if (BCM_E_NONE == rv)
         sysapiPrintf("Counter 1: %08x %08x\n", u64_H(val64), u64_L(val64));
     else
         sysapiPrintf("error code = %d\n", rv);
+    #endif
 }
 
 /* PTin added: FFP */
