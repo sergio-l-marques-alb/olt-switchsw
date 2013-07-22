@@ -1,1 +1,0 @@
-#define CONFIG_FEC_ENET 1
