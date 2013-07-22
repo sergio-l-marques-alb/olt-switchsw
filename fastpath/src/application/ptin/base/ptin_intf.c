@@ -118,6 +118,17 @@ L7_RC_t ptin_intf_init(void)
     LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u => intIfNum# %02u", i, intIfNum);
   }
 
+  LOG_INFO(LOG_CTX_PTIN_INTF, "Waiting for interfaces to be attached...");
+  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
+    {
+      osapiSleep(1);
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Port %u attached!",i);
+  }
+  LOG_INFO(LOG_CTX_PTIN_INTF, "All interfaces attached!");
+
   /* LAG Lookup tables are not initialized because there are no LAGs created yet
    * L7_FEAT_LAG_PRECREATE must be cleared! (checked on ptin_globaldefs.h) */
 
