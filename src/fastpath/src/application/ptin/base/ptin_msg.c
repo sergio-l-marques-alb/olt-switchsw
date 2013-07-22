@@ -142,8 +142,10 @@ void ptin_msg_defaults_reset(void)
   ptin_evc_destroy_all();
 
   /* ERPS */
+  #ifdef PTIN_ENABLE_ERPS
   ptin_erps_clear();
   ptin_hal_erps_clear();
+  #endif
 
   return;
 }
