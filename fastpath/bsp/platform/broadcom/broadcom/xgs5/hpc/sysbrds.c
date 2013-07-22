@@ -502,7 +502,6 @@ L7_RC_t hpcConfigBoardSet()
         }
 
         /* Disable BAM */
-        #if 1
         if (sal_config_set(spn_PHY_AN_C73"_xe0",  "0x02") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PHY_AN_C73"_xe1",  "0x02") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PHY_AN_C73"_xe2",  "0x02") != 0) return(L7_FAILURE);
