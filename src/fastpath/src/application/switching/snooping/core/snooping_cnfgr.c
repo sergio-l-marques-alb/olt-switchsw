@@ -42,6 +42,8 @@
 
 #include "ptin_globaldefs.h"
 
+#include "snooping_db.h"
+
 #if SNOOP_PTIN_IGMPv3_ROUTER
 #include "snooping_ptin_grouptimer.h"
 #include "snooping_ptin_sourcetimer.h"
@@ -50,6 +52,8 @@
 
 #if SNOOP_PTIN_IGMPv3_PROXY
 #include "snooping_ptin_proxytimer.h"
+
+
 
 
 #endif
@@ -1094,6 +1098,12 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
   snoop_eb_t *pSnoopEB;
   pSnoopEB = &snoopEB;
 
+#if 0
+  snoopPTinL3InfoData_t  *snoopEntry; 
+  L7_inet_addr_t          groupAddr;
+  L7_uint32               vlanId;
+#endif
+
   pSnoopEB->snoopPTinL3TreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
       L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   
@@ -1115,6 +1125,34 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
   /* AVL Tree creations - snoopAvlTree*/
   avlCreateAvlTree(&(pSnoopEB->snoopPTinL3AvlTree), pSnoopEB->snoopPTinL3TreeHeap, pSnoopEB->snoopPTinL3DataHeap,
                    L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
+
+
+#if 0
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Testing AVL Tree initialization");
+  memset(&groupAddr, 0x00, sizeof(groupAddr));
+  vlanId=0x0;
+  groupAddr.family=L7_AF_INET;
+  groupAddr.addr.ipv4.s_addr=0x0000;
+  /* Create new entry in AVL tree for VLAN+IP if necessary */
+  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
+  {
+    if (L7_SUCCESS != snoopPTinL3EntryAdd(vlanId,&groupAddr))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
+      return L7_FAILURE;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%04X,%u)",groupAddr.addr.ipv4.s_addr,vlanId);
+    }
+    if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
+      return L7_FAILURE;
+    }
+  }
+#endif
+
   return L7_SUCCESS;
 }
 #endif

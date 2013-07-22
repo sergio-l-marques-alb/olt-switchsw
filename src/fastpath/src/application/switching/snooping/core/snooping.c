@@ -1270,7 +1270,9 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
                   mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
                   mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.destMac[4],mcastPacket.payLoad[5],
                   mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
+          ptin_timer_start(34,"snoopMgmdSrcSpecificMembershipQueryProcess");
           rc = snoopMgmdSrcSpecificMembershipQueryProcess(&mcastPacket);
+          ptin_timer_stop(34);
         }
 #endif
         break;      
@@ -1281,7 +1283,9 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
                     mcastPacket.intIfNum,mcastPacket.vlanId,mcastPacket.innerVlanId,
                     mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.payLoad[4],mcastPacket.payLoad[5],
                     mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
+          ptin_timer_start(35,"snoopMgmdSrcSpecificMembershipReportProcess");
           rc = snoopMgmdSrcSpecificMembershipReportProcess(&mcastPacket);
+          ptin_timer_stop(35);
           break;
 #else
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3 Rec'd: Operating on v2 Only!");
@@ -2629,6 +2633,9 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 #else//Proxy
   else /* MLD Message */
   {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"IPv6 currently not supported, packet silently discarded");
+    return L7_SUCCESS;
+
     memset(&mgmdMsg, 0x00, sizeof(L7_mgmdQueryMsg_t));
     SNOOP_GET_BYTE(mgmdMsg.mgmdType, dataPtr);   /* Version/Type */
     SNOOP_GET_BYTE(byteVal, dataPtr);  /* Code */
@@ -2929,7 +2936,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopMgmdSrcSpecificMembershipQueryProcess: Query was processed");         
   
   ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, ptin_igmp_stat);
-         
+          
   return L7_SUCCESS;
 }
 
@@ -3005,7 +3012,8 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
     }
   }
   else
-  { /* MLD Message */
+  {
+    /* MLD Message */
     memset(&mgmdMsg, 0x00, sizeof(L7_mgmdMsg_t));
     SNOOP_GET_BYTE(mgmdMsg.mgmdType, dataPtr);         /* Version/Type */
     SNOOP_GET_BYTE(byteVal, dataPtr);  /* Max response time */
@@ -3275,6 +3283,10 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   }
   else
   {
+
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"IPv6 currently not supported, packet silently discarded");
+    return L7_SUCCESS;
+
     L7_uchar8 mldv3ReportAddr[L7_IP6_ADDR_LEN];
 
     memset(mldv3ReportAddr, 0x00, L7_IP6_ADDR_LEN);

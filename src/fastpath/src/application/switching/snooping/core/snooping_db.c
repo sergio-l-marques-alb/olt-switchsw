@@ -3796,7 +3796,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mc
       }
 #endif
       memcpy(&key, &snoopEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
-      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+      snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &key, flag);
     }
   }
 
@@ -3982,7 +3982,7 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_inet_addr_t* groupAddr,
       }
 #endif
       memcpy(&key, &pData->key, sizeof(snoopPTinProxySourceKey_t));
-      pData = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+      pData = avlSearchLVL7(&pSnoopEB->snoopPTinProxySourceAvlTree, &key, flag);
     }
   }
 
@@ -4100,8 +4100,8 @@ L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet
 #endif /* L7_MCAST_PACKAGE */
 #endif
 
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Source Address from the AVL Tree (groupAddr:%s sourceAddr:%s)",inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),inetAddrPrint(sourceAddr, debug_buf2));
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxySourceAvlTree, pData);
-
   if (pData == L7_NULL)
   {
     /* Entry does not exist */    
@@ -4110,8 +4110,7 @@ L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet
   }
   if (pData == snoopEntry)
   {
-    /* Entry deleted */
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Source Address removed from the AVL Tree (groupAddr:%s sourceAddr:%s)",inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),inetAddrPrint(sourceAddr, debug_buf2));
+    /* Entry deleted */    
 #if 0
 #ifdef L7_NSF_PACKAGE
     if (pSnoopEB->snoopBackupElected == L7_TRUE)
@@ -4180,7 +4179,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
       }
 #endif
       memcpy(&key, &pData->key, sizeof(snoopPTinProxyGroupKey_t));
-      pData = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+      pData = avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);
     }
   }
 
@@ -4297,6 +4296,7 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, 
 #endif /* L7_MCAST_PACKAGE */
 #endif
 
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Group Record from the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, pData);
 
   if (pData == L7_NULL)
@@ -4307,8 +4307,7 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, 
   }
   if (pData == snoopEntry)
   {
-    /* Entry deleted */
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record removed from the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
+    /* Entry deleted */    
 #if 0
 #ifdef L7_NSF_PACKAGE
     if (pSnoopEB->snoopBackupElected == L7_TRUE)
@@ -4372,7 +4371,7 @@ snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7
       }
 #endif
       memcpy(&key, &pData->key, sizeof(snoopPTinProxyInterfaceKey_t));
-      pData = avlSearchLVL7(&pSnoopEB->snoopAvlTree, &key, flag);
+      pData = avlSearchLVL7(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &key, flag);
     }
   }
 
@@ -4483,7 +4482,7 @@ L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId)
   snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
 #endif /* L7_MCAST_PACKAGE */
 #endif
-
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Interface from the AVL Tree (vlanId:%u)",vlanId);
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, pData);
 
   if (pData == L7_NULL)
@@ -4494,8 +4493,7 @@ L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId)
   }
   if (pData == snoopEntry)
   {
-    /* Entry deleted */
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Interface removed from the AVL Tree (vlanId:%u)",vlanId);
+    /* Entry deleted */    
 #if 0
 #ifdef L7_NSF_PACKAGE
     if (pSnoopEB->snoopBackupElected == L7_TRUE)
