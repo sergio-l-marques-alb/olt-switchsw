@@ -83,7 +83,13 @@
 #include "bcm/stack.h"
 #include "bcmx/lport.h"
 #include "bcmx/link.h"
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/switch.h"
 #include "ibde.h"
 #include "l7_usl_api.h"
