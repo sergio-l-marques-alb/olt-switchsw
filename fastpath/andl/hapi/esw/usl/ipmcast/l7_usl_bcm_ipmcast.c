@@ -21,6 +21,7 @@
 **********************************************************************/
 
 #include "l7_common.h"
+#include "ptin_globaldefs.h"
 
 #ifdef L7_MCAST_PACKAGE
 
@@ -85,6 +86,21 @@ int l7_ipmc_to_bcm(usl_bcm_ipmc_addr_t  *ipmc,
   bcm_ipmc->mod_id = ipmc->mod_id; 
   bcm_ipmc->v = 1;   /* VALID */
   bcm_ipmc->flags = ipmc->flags;
+
+  /* PTin modified: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_ipmc->group = ipmc->ipmc_index;
+
+  bcm_ipmc->vrf = ipmc->vrf;
+  bcm_ipmc->lookup_class = ipmc->lookup_class;
+  bcm_ipmc->distribution_class = ipmc->distribution_class;
+
+  /* Invalid id */
+  if (ipmc->ipmc_index <= 0)
+  {
+    rv = BCM_E_BADID;
+  }
+  #else
   bcm_ipmc->ipmc_index = ipmc->ipmc_index; 
   if (ipmc->ipmc_index >= 0)
   {
@@ -100,6 +116,7 @@ int l7_ipmc_to_bcm(usl_bcm_ipmc_addr_t  *ipmc,
   BCM_PBMP_OR(bcm_ipmc->l2_pbmp, PBMP_HL_ALL(bcm_unit));
   BCM_PBMP_ASSIGN (bcm_ipmc->l2_ubmp, ipmc->l2_ubmp[my_modid]);
   BCM_PBMP_ASSIGN (bcm_ipmc->l3_pbmp, ipmc->l3_pbmp[my_modid]);
+  #endif
 
   return rv;
 }
@@ -121,6 +138,12 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
   bcm_pbmp_t    pbmp;
   L7_uint32     port;
   bcm_ipmc_addr_t bcm_ipmc;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_multicast_t group;
+  L7_uint32 flags;
+  L7_BOOL   create_group;
+  #endif
 
   /* Check if the hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
@@ -130,9 +153,58 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
     {
       if (!BCM_IS_FABRIC(bcm_unit))
       {
+        /* PTin added: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+
+        /* Input group id */
+        group = ipmc->ipmc_index;
+
+        /* Default flags */
+        flags = BCM_MULTICAST_TYPE_L2 | BCM_MULTICAST_TYPE_L3;
+        
+        /* Create group, by default */
+        create_group = L7_TRUE;
+
+        /* Check if provided group is valid */
+        if ( group > 0)
+        {
+          rv = bcm_multicast_group_is_free(bcm_unit, group);
+          if (rv != BCM_E_NONE || rv != BCM_E_EXISTS)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Invalid group index %d", group);
+            break;
+          }
+
+          /* If group id exists, no need to create it */
+          if (rv == BCM_E_EXISTS)
+          {
+            create_group = L7_FALSE;
+          }
+          /* Otherwise, create group with specific group id */
+          else
+          {
+            flags |= BCM_MULTICAST_WITH_ID;
+          }
+        }
+
+        /* Create group, if necessary */
+        if (create_group)
+        {
+          rv = bcm_multicast_create(bcm_unit, flags, &group);
+          if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          {
+            break;
+          }
+        }
+
+        /* Save group id */
+        ipmc->ipmc_index = group;
+        bcm_ipmc.group   = group;
+        #endif
+
         /* populate the SDK bcm structure from USL bcm structure for this unit */
         rv = l7_ipmc_to_bcm(ipmc, bcm_unit, &bcm_ipmc);  
-        if (rv != BCM_E_NONE)
+        if (rv != BCM_E_NONE && rv != BCM_E_BADID)  /* PTin modified: SDK 6.3.0 */
         {
           break;    
         }
@@ -145,7 +217,8 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
         {
           bcm_ipmc.flags |= BCM_IPMC_REPLACE;
         }
-        rv = bcm_ipmc_add(bcm_unit, &bcm_ipmc);      
+
+        rv = bcm_ipmc_add(bcm_unit, &bcm_ipmc);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
@@ -160,7 +233,12 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
 
         BCM_PBMP_ITER(pbmp, port)
         {
+          /* PTin modified: SDK 6.3.0 */
+          #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+          rv = bcm_ipmc_bitmap_set(bcm_unit, ipmc->ipmc_index, port, pbmp);
+          #else
           rv = bcm_ipmc_bitmap_set(bcm_unit, bcm_ipmc.ipmc_index, port, pbmp);
+          #endif
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             break;
@@ -198,6 +276,9 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
   L7_uint32            port;
   bcm_ipmc_addr_t      bcm_ipmc;
   bcm_vlan_vector_t    vlan_vector;
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_vlan_vector_t    vlan_vector_empty;
+  #endif
   
   /* Check if the hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
@@ -211,6 +292,37 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
 
       /* Set the replication config for all L3 ports to an empty VLAN vector. */
       memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
+
+      /* Ptin TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      /* Remove replication vectors */
+      if (ipmc->ipmc_index > 0)
+      {
+        /* Run all ports, and check if there are replicators to be removed */
+        BCM_PBMP_CLEAR(pbmp);
+        BCM_PBMP_OR(pbmp, PBMP_FE_ALL(bcm_unit));
+        BCM_PBMP_OR(pbmp, PBMP_GE_ALL(bcm_unit));
+        BCM_PBMP_OR(pbmp, PBMP_XE_ALL(bcm_unit));
+        BCM_PBMP_OR(pbmp, PBMP_HG_ALL(bcm_unit));
+        BCM_PBMP_OR(pbmp, PBMP_HL_ALL(bcm_unit));
+
+        BCM_VLAN_VEC_ZERO(vlan_vector_empty);
+
+        BCM_PBMP_ITER(pbmp, port)
+        {
+          /* Only consider ports, where there is replication vectors */
+          if (bcm_multicast_repl_get(bcm_unit, ipmc->ipmc_index, port, vlan_vector) == BCM_E_NONE)
+          {
+            rv = bcm_multicast_repl_set(bcm_unit, ipmc->ipmc_index, port, vlan_vector_empty);
+            if (rv != BCM_E_NONE)
+            {
+              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't clear VLAN vector for IPMC index %d, unit %d, port %d, rv %d", 
+                      ipmc->ipmc_index, bcm_unit, port, rv);
+            }
+          }
+        }
+      }
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, ipmc->ipmc_index, &bcm_ipmc);
       if (rv == BCM_E_NONE)
       {
@@ -226,8 +338,15 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
           }
         }
       }
+      #endif
 
       rv = l7_ipmc_to_bcm(ipmc, bcm_unit, &bcm_ipmc);
+
+      if (rv != BCM_E_NONE)
+      {
+        break;
+      }
+
       if (keep)
       {   
         bcm_ipmc.flags |= BCM_IPMC_KEEP_ENTRY;
@@ -243,6 +362,19 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
       {
         break;
       }
+
+      /* PTin added: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = bcm_multicast_destroy(bcm_unit, ipmc->ipmc_index);
+
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        break;
+      }
+
+      ipmc->ipmc_index = -1;
+      bcm_ipmc.group   = -1;
+      #endif
     }
 
     /* Delete the entry to the local fabric chips if we have an mc index */
@@ -309,7 +441,22 @@ int usl_bcm_ipmc_rpf_set (usl_bcm_ipmc_addr_t  *ipmc)
       }
 
       memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
+      /* PTin modified: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      /* Get IPMC data */
+      rv = l7_ipmc_to_bcm(ipmc, bcm_unit, &bcm_ipmc);
+      if (rv != BCM_E_NONE)
+      {
+        break;
+      }
+      rv = bcm_ipmc_find(bcm_unit, &bcm_ipmc);
+      if (rv != BCM_E_NONE)
+      {
+        break;
+      }
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, ipmc->ipmc_index, &bcm_ipmc);
+      #endif
       if (rv != BCM_E_NONE)
       {
         break;
@@ -369,6 +516,12 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
   L7_int32            index;
   int                 rv = BCM_E_NONE;
   bcm_ipmc_addr_t     bcm_ipmc;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_port_t port;
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #endif
 
   memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
 
@@ -384,7 +537,12 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
         continue;
       }
    
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = l7_ipmc_to_bcm(ipmc_addr, bcm_unit, &bcm_ipmc);
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, index, &bcm_ipmc);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         break;
@@ -402,6 +560,60 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
         break;
       }
 
+      /* PTin removed: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      /* Add L2 ports */
+      BCM_PBMP_ITER(ipmc_addr->l2_pbmp[modid], port)
+      {
+        /* Get gport */
+        rv = bcm_port_gport_get(bcm_unit, port, &gport);
+        if (rv != BCM_E_NONE)
+          break;
+
+        /* Get encap id */
+        rv = bcm_multicast_l2_encap_get(bcm_unit, ipmc_addr->ipmc_index, gport, ipmc_addr->vid, &encap_id);
+        if (rv != BCM_E_NONE)
+          break;
+
+        /* Add egress port */
+        rv = bcm_multicast_egress_add(bcm_unit, ipmc_addr->ipmc_index, gport, encap_id);
+        if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          break;
+      }
+      /* If error, undo procedure */
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        (void) bcm_multicast_egress_delete_all(bcm_unit, ipmc_addr->ipmc_index);
+        break;
+      }
+
+      #if 0
+      /* Add L3 ports */
+      BCM_PBMP_ITER(ipmc_addr->l3_pbmp[modid], port)
+      {
+        /* Get gport */
+        rv = bcm_port_gport_get(bcm_unit, port, &gport);
+        if (rv != BCM_E_NONE)
+          break;
+
+        /* Get encap id */
+        rv = bcm_multicast_l3_encap_get(bcm_unit, ipmc_addr->ipmc_index, gport, ipmc_addr->vid, &encap_id);
+        if (rv != BCM_E_NONE)
+          break;
+
+        /* Add egress port */
+        rv = bcm_multicast_egress_add(bcm_unit, ipmc_addr->ipmc_index, gport, encap_id);
+        if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          break;
+      }
+      /* If error, undo procedure */
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        (void) bcm_multicast_egress_delete_all(bcm_unit, ipmc_addr->ipmc_index);
+        break;
+      }
+      #endif
+      #else
       BCM_PBMP_ASSIGN (bcm_ipmc.l2_pbmp, ipmc_addr->l2_pbmp[modid]);
       BCM_PBMP_OR(bcm_ipmc.l2_pbmp, PBMP_HG_ALL(bcm_unit));
       BCM_PBMP_OR(bcm_ipmc.l2_pbmp, PBMP_HL_ALL(bcm_unit));
@@ -412,11 +624,13 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
       {
         bcm_ipmc.flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
       }
+
       rv = bcm_ipmc_add(bcm_unit, &bcm_ipmc);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         break;
       }
+      #endif
     }
   }
 
@@ -450,10 +664,15 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
   usl_bcm_ipmc_addr_t            l7_ipmc, l7_ipmc_tmp;
   bcm_ipmc_addr_t                ipmc;
   int                            index;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #else
   bcm_pbmp_t                     tagged_pbmp, untagged_pbmp;
+  #endif
   L7_uint32                      i;
   L7_int32                       myModid;
-
 
   rv = bcm_stk_my_modid_get(unit, &myModid);
   if (rv != BCM_E_NONE)
@@ -491,6 +710,30 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
       /* Check if the hw should be configured */
       if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
       {
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        /* Valdiate group id */
+        if (ipmc_cmd->ipmc_index <= 0)
+        {
+          rv = BCM_E_BADID;
+          continue;
+        }
+        /* Get gport */
+        rv = bcm_port_gport_get(unit, port, &gport);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Get encap id */
+        rv = bcm_multicast_l2_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Add egress port */
+        rv = bcm_multicast_egress_add(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+        if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          continue;
+
+        #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
         if (rv != BCM_E_NONE)
         {
@@ -524,6 +767,7 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
         {
           continue;
         }
+        #endif
       }
 
       if (USL_BCM_CONFIGURE_DB(USL_IPMC_ROUTE_DB_ID) == L7_FALSE)
@@ -579,6 +823,11 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
   int                           index;
   L7_uint32                     i;
   L7_int32                      myModid;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #endif
 
   rv = bcm_stk_my_modid_get(unit, &myModid);
   if (rv != BCM_E_NONE)
@@ -616,6 +865,30 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
       /* Check if the hw should be configured */
       if (USL_BCM_CONFIGURE_HW(USL_IPMC_ROUTE_DB_ID) == L7_TRUE)
       {
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        /* Valdiate group id */
+        if (ipmc_cmd->ipmc_index <= 0)
+        {
+          rv = BCM_E_BADID;
+          continue;
+        }
+        /* Get gport */
+        rv = bcm_port_gport_get(unit, port, &gport);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Get encap id */
+        rv = bcm_multicast_l2_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Add egress port */
+        rv = bcm_multicast_egress_delete(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+        if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          continue;
+
+        #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
         if (rv != BCM_E_NONE)
         {
@@ -626,7 +899,6 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
         {
           continue;
         }
-
 
         BCM_PBMP_PORT_REMOVE(ipmc.l2_pbmp, port);
         BCM_PBMP_PORT_REMOVE(ipmc.l2_ubmp, port);
@@ -642,6 +914,7 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
         {
           continue;
         }
+        #endif
       }
 
       if (USL_BCM_CONFIGURE_DB(USL_IPMC_ROUTE_DB_ID) == L7_FALSE)
@@ -691,7 +964,13 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
   int                       rv = BCM_E_NONE;
   bcm_ipmc_addr_t           ipmc;
   int                       index;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #else
   bcm_pbmp_t                l3_pbmp;
+  #endif
   L7_uint32                 i;
   int                       ipmc_untag_flag;
   L7_uint32                 myModid;
@@ -741,6 +1020,30 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      /* Validate group id */
+      if (ipmc_cmd->ipmc_index <= 0)
+      {
+        rv = BCM_E_BADID;
+        continue;
+      }
+      /* Get gport */
+      rv = bcm_port_gport_get(unit, port, &gport);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Get encap id */
+      rv = bcm_multicast_l3_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Add egress port */
+      rv = bcm_multicast_egress_add(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+      if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+        continue;
+
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
       if (rv != BCM_E_NONE)
       {
@@ -762,14 +1065,33 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
         ipmc.flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
       }
       rv = bcm_ipmc_add(unit, &ipmc); 
+
       if (rv != BCM_E_NONE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add IPMC entry for index %d, rv %d", index, rv);
         continue;
       }
+      #endif
 
       /* Set up VLAN replication.
       */
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = bcm_multicast_repl_get(unit, index, port, vlan_vector);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get replication info for IPMC entry index %d, rv %d", index, rv);
+        continue;
+      }
+
+      BCM_VLAN_VEC_SET(vlan_vector, ipmc_cmd->vlan_id);
+      rv = bcm_multicast_repl_set(unit, index, port, vlan_vector);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
+        continue;
+      }
+      #else
       rv = bcm_ipmc_repl_get(unit, index, port, vlan_vector);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -784,6 +1106,7 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
         continue;
       }
+      #endif
 
       (void)bcm_ipmc_egress_port_set(unit, port, 
                                      ipmc_cmd->mac,
@@ -836,7 +1159,13 @@ int usl_bcm_ipmc_egress_port_add (int unit, bcm_port_t port,
   L7_uint32                 myModid;
   L7_uint32                 ipmc_group_index[L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL];
   L7_uint32                 num_ipmc_groups = 0;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #else
   bcm_multicast_t group;
+  #endif
 
   rv = bcm_stk_my_modid_get(unit, &myModid);
   if (rv != BCM_E_NONE)
@@ -880,6 +1209,34 @@ int usl_bcm_ipmc_egress_port_add (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      if ( ipmc_cmd->ipmc_index <= 0)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
+        rv = BCM_E_BADID;
+        continue;
+      }
+
+      /* Get gport */
+      rv = bcm_port_gport_get(unit, port, &gport);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Get encap id */
+      rv = bcm_multicast_l3_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Add egress port */
+      rv = bcm_multicast_egress_add(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+      if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add IPMC entry for index %d, rv %d", index, rv);
+        continue;
+      }
+
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
       if (rv != BCM_E_NONE)
       {
@@ -899,6 +1256,7 @@ int usl_bcm_ipmc_egress_port_add (int unit, bcm_port_t port,
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add IPMC entry for index %d, rv %d", index, rv);
         continue;
       }
+      #endif
     }
   }
 
@@ -944,7 +1302,13 @@ int usl_bcm_ipmc_egress_port_delete (int unit, bcm_port_t port,
   L7_uint32                 myModid;
   L7_uint32                 ipmc_group_index[L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL];
   L7_uint32                 num_ipmc_groups = 0;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #else
   bcm_multicast_t group;
+  #endif
 
   rv = bcm_stk_my_modid_get(unit, &myModid);
   if (rv != BCM_E_NONE)
@@ -988,6 +1352,33 @@ int usl_bcm_ipmc_egress_port_delete (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      if ( ipmc_cmd->ipmc_index <= 0)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get IPMC entry for index %d, rv %d", index, rv);
+        rv = BCM_E_BADID;
+        continue;
+      }
+
+      /* Get gport */
+      rv = bcm_port_gport_get(unit, port, &gport);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Get encap id */
+      rv = bcm_multicast_l3_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+      if (rv != BCM_E_NONE)
+        continue;
+
+      /* Add egress port */
+      rv = bcm_multicast_egress_delete(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+      if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete IPMC entry for index %d, rv %d", index, rv);
+        continue;
+      }
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
       if (rv != BCM_E_NONE)
       {
@@ -1007,6 +1398,7 @@ int usl_bcm_ipmc_egress_port_delete (int unit, bcm_port_t port,
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add IPMC entry for index %d, rv %d", index, rv);
         continue;
       }
+      #endif
     }
   }
 
@@ -1102,6 +1494,11 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
   L7_uint32                      myModid;
   L7_uint32                      ipmc_group_index[L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL];
   L7_uint32                      num_ipmc_groups = 0;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #endif
 
   rv = bcm_stk_my_modid_get(unit, &myModid);
   if (rv != BCM_E_NONE)
@@ -1143,6 +1540,15 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
 
       memset(&ipmc, 0, sizeof(ipmc));
 
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      /* Validate group id */
+      if (ipmc_cmd->ipmc_index <= 0)
+      {
+        rv = BCM_E_BADID;
+        continue;
+      }
+      #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
       if (rv != BCM_E_NONE)
       {
@@ -1154,9 +1560,27 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
       {
         continue;
       }
+      #endif
 
       /* Set up VLAN replication.
       */
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = bcm_multicast_repl_get(unit, index, port, vlan_vector);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get replication info for IPMC entry index %d, rv %d", index, rv);
+        continue;
+      }
+
+      BCM_VLAN_VEC_CLR(vlan_vector, ipmc_cmd->vlan_id);
+      rv = bcm_multicast_repl_set(unit, index, port, vlan_vector);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
+        continue;
+      }
+      #else
       rv = bcm_ipmc_repl_get(unit, index, port, vlan_vector);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1171,12 +1595,31 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set replication info for IPMC entry index %d, rv %d", index, rv);
         continue;
       }
+      #endif
 
       /* If the egress port doesn't have any more replicated VLANs then remove the
       ** port from the L3 group.
       */
       if (usl_db_ipmc_vlan_vector_is_empty(vlan_vector))
       {
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        /* Get gport */
+        rv = bcm_port_gport_get(unit, port, &gport);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Get encap id */
+        rv = bcm_multicast_l3_encap_get(unit, ipmc_cmd->ipmc_index, gport, ipmc_cmd->vlan_id, &encap_id);
+        if (rv != BCM_E_NONE)
+          continue;
+
+        /* Add egress port */
+        rv = bcm_multicast_egress_delete(unit, ipmc_cmd->ipmc_index, gport, encap_id);
+        if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+          continue;
+
+        #else
         BCM_PBMP_PORT_REMOVE(ipmc.l3_pbmp, port);
         ipmc.flags |= BCM_IPMC_REPLACE;
         if (usl_db_ipmc_rpf_check_mode_get() == L7_FALSE)
@@ -1184,6 +1627,7 @@ int usl_bcm_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
           ipmc.flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
         }
         rv = bcm_ipmc_add(unit, &ipmc);
+        #endif
       }
     }
   }
@@ -1233,11 +1677,20 @@ int usl_bcm_ipmc_inuse_get(usl_bcm_ipmc_addr_t *usl_ipmc, L7_uint32 *flags)
         break;    
       }
 
+      /* TODO: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = bcm_ipmc_find(bcm_unit, &bcm_ipmc);
+      if (rv != BCM_E_NONE)
+      {
+        continue;
+      }
+      #else
       rv = bcm_ipmc_get_by_index(bcm_unit, bcm_ipmc.ipmc_index, &bcm_ipmc);
       if (rv != BCM_E_NONE)
       {
         continue;
       }
+      #endif
 
       if (!bcm_ipmc.v) 
       {
@@ -1283,6 +1736,11 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
   bcm_ipmc_addr_t     bcm_ipmc;
   L7_BOOL             vlanVectorIsEmpty;
   L7_BOOL             ipmcEntryChanged = L7_FALSE;
+  /* PTin added: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcm_gport_t gport;
+  bcm_if_t encap_id;
+  #endif
 
   memset (&bcm_ipmc, 0, sizeof (bcm_ipmc));
 
@@ -1298,7 +1756,12 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
       }
       if (myModid == modid)
       {
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = l7_ipmc_to_bcm(ipmcEntry, bcm_unit, &bcm_ipmc);
+        #else
         rv = bcm_ipmc_get_by_index(bcm_unit, ipmcEntry->ipmc_index, &bcm_ipmc);
+        #endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
@@ -1312,6 +1775,33 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
 
         vlanVectorIsEmpty = usl_db_ipmc_vlan_vector_is_empty(vlanVector);
         ipmcEntryChanged = L7_FALSE;
+
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        /* Get gport */
+        rv = bcm_port_gport_get(bcm_unit, bcmPort, &gport);
+        if (rv != BCM_E_NONE)
+          break;
+        /* Get encap id */
+        rv = bcm_multicast_l3_encap_get(bcm_unit, ipmcEntry->ipmc_index, gport, ipmcEntry->vid, &encap_id);
+        if (rv != BCM_E_NONE)
+          break;
+
+        if ((vlanVectorIsEmpty == L7_TRUE) && (BCM_PBMP_MEMBER(ipmcEntry->l3_pbmp[modid], bcmPort)))
+        {
+          /* Remove egress port */
+          rv = bcm_multicast_egress_delete(bcm_unit, ipmcEntry->ipmc_index, gport, encap_id);
+          if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+            break;
+        }
+        else if ((vlanVectorIsEmpty == L7_FALSE) && (!BCM_PBMP_MEMBER(ipmcEntry->l3_pbmp[modid], bcmPort)))
+        {
+          /* Add egress port */
+          rv = bcm_multicast_egress_add(bcm_unit, ipmcEntry->ipmc_index, gport, encap_id);
+          if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+            break;
+        }
+        #else
         if ((vlanVectorIsEmpty == L7_TRUE) && (BCM_PBMP_MEMBER(bcm_ipmc.l3_pbmp, bcmPort)))
         {
           /* Remove the port. */
@@ -1338,12 +1828,22 @@ int usl_bcm_ipmc_l3_port_repl_set(L7_uint32 modid, L7_uint32 bcmPort, usl_bcm_ip
             break;
           }
         }
+        #endif
 
+        /* TODO: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+        rv = bcm_multicast_repl_set(bcm_unit, ipmcEntry->ipmc_index, bcmPort, vlanVector);
+        if (L7_BCMX_OK(rv) != L7_TRUE)
+        {
+          break;
+        }
+        #else
         rv = bcm_ipmc_repl_set(bcm_unit, ipmcEntry->ipmc_index, bcmPort, vlanVector);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
         }
+        #endif
       }
     }
   }
