@@ -386,6 +386,20 @@ L7_uint16 vidInternal;
 
 
 
+void eth_srv_oam_msg_defaults_reset(void) {
+L7_uint32 i;
+
+    for (i=0; i<N_MEPs; i++) {
+        if (EMPTY_T_MEP(oam.mep_db[i])) continue;
+        ptin_ccm_packet_trap(oam.mep_db[i].prt, oam.mep_db[i].vid, oam.mep_db[i].level, 0);
+    }
+    init_eth_srv_oam(&oam);
+}
+
+
+
+
+
 
 
 

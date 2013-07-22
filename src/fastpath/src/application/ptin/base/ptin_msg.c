@@ -27,7 +27,7 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 #include "nimapi.h"
-#include <ethsrv_oam.h>//"ptin_oam.h"
+#include <ptin_prot_oam_eth.h>
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
 
@@ -134,6 +134,7 @@ void ptin_msg_defaults_reset(void)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration");
 
+  eth_srv_oam_msg_defaults_reset();
   /* EVCs */
   ptin_evc_destroy_all();
 
