@@ -134,7 +134,10 @@ void ptin_msg_defaults_reset(void)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration");
 
+#ifdef __Y1731_802_1ag_OAM_ETH__
   eth_srv_oam_msg_defaults_reset();
+#endif
+
   /* EVCs */
   ptin_evc_destroy_all();
 
