@@ -115,6 +115,15 @@ extern L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx);
 
 
 /**
+ * Clear ERPS hw abstraction layer
+ * 
+ * @author joaom (7/22/2013)
+ * 
+ */
+extern L7_RC_t ptin_hal_erps_clear(void);
+
+
+/**
  * DEInitialize ERPS HW abstraction layer
  * 
  * @author joaom (6/17/2013)

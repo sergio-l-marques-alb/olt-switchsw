@@ -285,6 +285,29 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
 
 
 /**
+ * Clear ERPS hw abstraction layer
+ * 
+ * @author joaom (7/22/2013)
+ * 
+ */
+L7_RC_t ptin_hal_erps_clear(void)
+{
+  int erps_idx, ret=L7_SUCCESS;
+
+  LOG_TRACE(LOG_CTX_ERPS, "");
+
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+    if ((ret=ptin_hal_erps_entry_deinit(erps_idx))!=L7_SUCCESS) {
+      LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);
+      ret = L7_FAILURE;
+    }
+  }
+  
+  return ret;
+}
+
+
+/**
  * DEInitialize ERPS hw abstraction layer
  * 
  * @author joaom (6/17/2013)

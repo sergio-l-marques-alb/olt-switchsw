@@ -128,12 +128,18 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
  *  
  * Actions: 
  *  - EVCs are destroyed (including counter, bw profiles, clientes, etc)
+ *  - ERPS intances are destroyed
  */
 void ptin_msg_defaults_reset(void)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration");
 
+  /* EVCs */
   ptin_evc_destroy_all();
+
+  /* ERPS */
+  ptin_erps_clear();
+  ptin_hal_erps_clear();
 
   return;
 }
