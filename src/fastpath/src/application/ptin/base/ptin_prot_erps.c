@@ -1081,6 +1081,13 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
 
+  #ifdef SM_PTIN_MODS
+  // If both ports were in Flushing State and now changing to Blocking, force a Flush FDB
+  if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) ) {
+    ptin_erps_FlushFDB(erps_idx, __LINE__);
+  }
+  #endif
+
   tbl_erps[erps_idx].portState[port] = portState;
 
   tbl_halErps[erps_idx].hwSync = 1;
@@ -1411,7 +1418,6 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     // Next node state: E
     ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending), __LINE__);
-
     break;
 
   }//switch
@@ -1592,7 +1598,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
     }
 
-    if ( SF[PROT_ERPS_PORT1] ) {
+    if ( (SF[PROT_ERPS_PORT1]) && (localRequest == LReq_NONE) ) {
         localRequest = LReq_SF;
         reqPort = PROT_ERPS_PORT1;
     }
@@ -1838,6 +1844,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //FS 3 
@@ -1868,6 +1875,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //R-APS (FS)  4
@@ -1882,6 +1890,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //local SF  5
@@ -2056,6 +2065,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
     //local clear SF  6
@@ -2063,6 +2073,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //R-APS (SF)  7
@@ -2120,10 +2131,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       //Stop Tx R-APS
       ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+      #endif
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
-      #endif
+      break;
     }
 
     //R-APS (MS)  8
@@ -2141,6 +2153,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //MS 9
@@ -2171,6 +2184,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //WTR Expires  10
@@ -2178,6 +2192,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //WTR Running  11
@@ -2185,6 +2200,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //WTB Expires  12
@@ -2192,6 +2208,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //WTB Running  13
@@ -2199,6 +2216,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //R-APS (NR, RB)  14
@@ -2218,6 +2236,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //R-APS (NR)  15
@@ -2241,6 +2260,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     break;
@@ -2253,6 +2273,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
     //FS 17
@@ -2283,6 +2304,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //R-APS (FS)  18
@@ -2296,6 +2318,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2343,6 +2366,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2362,6 +2386,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       #ifdef SM_PTIN_MODS
+      #if 0
       //If RPL Owner Node (Neighbour) and revertive mode:
       if ( ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEIGHBOUR) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEIGHBOUR)) &&
             (tbl_erps[erps_idx].protParam.revertive == PROT_ERPS_REVERTIVE_OPERATION)                                                                             ) {
@@ -2369,9 +2394,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
       }
       #endif
+      #endif
       
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2380,6 +2407,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2388,6 +2416,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2396,6 +2425,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2404,6 +2434,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2412,6 +2443,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2420,6 +2452,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2428,6 +2461,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
     //R-APS (NR, RB)  28
@@ -2435,6 +2469,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
     //R-APS (NR)  29
@@ -2450,6 +2485,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2478,6 +2514,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
 
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2509,6 +2546,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //R-APS (FS)  32
@@ -2522,6 +2560,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2567,6 +2606,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -2575,6 +2615,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
 
@@ -2593,6 +2634,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
     //R-APS (MS)  36
@@ -2617,8 +2659,10 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       // Next node state: E (*) *: If both ring ports are unblocked, next node state is C
       if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) ) {
         ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
+        break;
       } else {
         ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+        break;
       }
     }
 
@@ -2627,6 +2671,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
 
@@ -2635,6 +2680,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //WTR Running  39
@@ -2642,6 +2688,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //WTB Expires  40
@@ -2649,6 +2696,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //WTB Running  41
@@ -2656,6 +2704,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //R-APS (NR, RB)  42
@@ -2663,6 +2712,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2678,6 +2728,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2706,6 +2757,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -2722,6 +2774,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2730,6 +2783,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action     
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //local SF  47
@@ -2737,6 +2791,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2745,6 +2800,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2753,6 +2809,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2761,6 +2818,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2769,6 +2827,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2777,6 +2836,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2785,6 +2845,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2793,6 +2854,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
     //WTB Running  55
@@ -2800,6 +2862,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     } 
 
     //R-APS (NR, RB)  56
@@ -2807,6 +2870,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
     //R-APS (NR)  57      
@@ -2821,6 +2885,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
     break;
@@ -2881,6 +2946,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
     //FS 59
@@ -2919,6 +2985,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2941,6 +3008,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
            
       // Next node state: D
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_D_ForcedSwitch),__LINE__);
+      break;
     }
 
 
@@ -2995,6 +3063,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -3003,6 +3072,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
 
@@ -3038,6 +3108,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: B
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_B_Protection),__LINE__);
+      break;
     }
 
 
@@ -3064,6 +3135,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //MS 65
@@ -3103,6 +3175,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: C
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_C_ManualSwitch),__LINE__);
+      break;
     }
 
     //WTR Expires  66
@@ -3185,6 +3258,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
 
@@ -3193,6 +3267,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
     //WTB Expires  68
@@ -3247,6 +3322,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
 
@@ -3255,6 +3331,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //No action
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_E_Pending),__LINE__);
+      break;
     } 
 
     //R-APS (NR, RB)  70
@@ -3297,6 +3374,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       // Next node state: A
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_A_Idle),__LINE__);
+      break;
     }
 
 
@@ -3318,6 +3396,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       
       // Next node state: E
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetRemote(ERPS_STATE_E_Pending),__LINE__);
+      break;
     }
 
     break;
