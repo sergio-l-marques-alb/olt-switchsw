@@ -475,14 +475,13 @@ void timerCallback(void *param)
           } 
           noOfRecords=0;
 #endif
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing root interface");
-          snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing root interface");          
         }
         else
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing leaf interface");
-          snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing leaf interface");          
         }
+        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
       }
     }
     else
