@@ -1403,7 +1403,6 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
   L7_uint32           noOfRecords=0; 
   L7_inet_addr_t* sourceAddr;
   L7_int8  sourceIdx = -1;    
-   
 
   /* Argument validation */
   if (avlTreeEntry == L7_NULLPTR || sourceList == L7_NULLPTR ||  groupPtr== L7_NULLPTR )
@@ -1426,8 +1425,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
     return L7_FAILURE;
   }
-
-  
+    
   if ( (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM) && (noOfSources==0) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
   {                       
     groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
@@ -2260,7 +2258,7 @@ L7_RC_t snoopPTinGroupRecordSourceRemoveAll(snoopPTinProxyGroup_t*   groupPtr)
    
   if (groupPtr->source == L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record Empty");
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record Empty");
     groupPtr->numberOfSources=0;
     return L7_SUCCESS;
   }

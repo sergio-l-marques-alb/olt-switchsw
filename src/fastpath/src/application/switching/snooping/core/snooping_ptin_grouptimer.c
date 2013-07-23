@@ -557,8 +557,8 @@ L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t* pTimer, L7_uint32 t
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting grouptimer (group:%s timeout:%u vlan:%u ifIdx:%u)",
-            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),timeout,
-            groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
+            inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),timeout,
+            pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)

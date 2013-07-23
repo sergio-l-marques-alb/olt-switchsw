@@ -365,7 +365,7 @@ L7_RC_t timerDataDestroy (L7_sll_member_t *ll_member)
 void timerCallback(void *param)
 {
   L7_uint32                intIfNum, sourceIdx;
-  char                     debug_buf[46];
+  char                     debug_buf[IPV6_DISP_ADDR_LEN],debug_buf2[IPV6_DISP_ADDR_LEN];
   snoopPTinL3Interface_t   *interfacePtr;
   L7_uint32                timerHandle;
   snoopPTinL3Sourcetimer_t *pTimerData;
@@ -390,9 +390,7 @@ void timerCallback(void *param)
     osapiSemaGive(timerSem);
     return;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u)", 
-            inetAddrPrint(&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
-
+  
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
   {
@@ -409,6 +407,8 @@ void timerCallback(void *param)
   sourcePtr    = &groupData->interfaces[intIfNum].sources[sourceIdx];
   osapiSemaGive(timerSem);
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr)", 
+            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, intIfNum, inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
 
   if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
   {
@@ -520,7 +520,7 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint32
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
   /* Check if this timer already exists */
-  memset(&pTimerData, 0x00, sizeof(snoopPTinL3Sourcetimer_t));
+  memset(&pTimerData, 0x00, sizeof(snoopPTinL3Sourcetimer_t));  
   pTimerData.groupData    = groupData;
   pTimerData.interfaceIdx = interfaceIdx;
   pTimerData.sourceIdx    = sourceIdx;
@@ -551,8 +551,8 @@ L7_RC_t snoop_ptin_sourcetimer_start(snoopPTinL3Sourcetimer_t *pTimer, L7_uint32
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting sourcetimer (timeout:%u group:%s vlan:%u ifIdx:%u srcAddr:%s)",
-            timeout, inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), 
-            groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, inetAddrPrint(&(groupData->interfaces[interfaceIdx].sources[sourceIdx].sourceAddr), debug_buf2));
+            timeout, inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), 
+            pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx, inetAddrPrint(&(pTimer->groupData->interfaces[interfaceIdx].sources[sourceIdx].sourceAddr), debug_buf2));
 
   /* If timeout was configured as 0, do not set up the timer */
   if(timeout == 0)

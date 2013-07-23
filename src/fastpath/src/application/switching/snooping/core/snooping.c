@@ -3230,7 +3230,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 
   L7_uchar8     *dataPtrTmp=L7_NULLPTR;
   snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;  
-  snoopPTinProxyGroup_t *groupPtr=L7_NULLPTR,*firstGroupPtr=L7_NULLPTR;
+  snoopPTinProxyGroup_t* groupPtr;
+  snoopPTinProxyGroup_t *firstGroupPtr=L7_NULLPTR;
   L7_uint32 /*internalVlanId=0,*/i,vlanId=mcastPacket->vlanId/*,previousVlanId=mcastPacket->vlanId*/;
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 

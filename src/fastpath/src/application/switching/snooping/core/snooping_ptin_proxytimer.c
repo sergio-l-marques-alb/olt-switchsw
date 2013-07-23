@@ -513,7 +513,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   else
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
-              inetAddrPrint(&(((snoopPTinProxyGroup_t *) groupData)->key.groupAddr), debug_buf));
+              inetAddrPrint(&pTimer->groupData->key.groupAddr, debug_buf));
   }
 
   /* New timer handle */
