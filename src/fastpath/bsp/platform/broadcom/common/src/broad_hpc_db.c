@@ -502,25 +502,38 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     /* If no free and valid lanes were found, we have an error */
     if (wc_index >= WC_MAX_NUMBER)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"No WC found for slot %u, lane %u", slot, i);
+      LOG_ERR(LOG_CTX_STARTUP,"No WC lane found for port %u", port);
+      #if 0
+      wcMap[port].portNum  = port;
+      wcMap[port].slotNum  = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
+      wcMap[port].wcIdx    = 0;
+      wcMap[port].wcLane   = 0;
+      wcMap[port].wcSpeedG = 0;
+      LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
+                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+      #else
       return L7_NOT_SUPPORTED;
+      #endif
+    }
+    else
+    {
+      /* We have a valid WC, and a valid lane */
+      wcMap[port].portNum  = port;
+      wcMap[port].slotNum  = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
+      wcMap[port].wcIdx    = wc_index;
+      wcMap[port].wcLane   = wc_lane;
+      wcMap[port].wcSpeedG = 1;       /* 1 Gbps */
+      LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
+                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+
+      /* Lane in use */
+      wclanes_in_use[wc_index][wc_lane] = L7_TRUE;
+
+      /* Update temp variables */
+      ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
+      bw_max[wc_group] += 1;    /* 1 Gbps */
     }
 
-    /* We have a valid WC, and a valid lane */
-    wcMap[port].portNum  = port;
-    wcMap[port].slotNum  = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
-    wcMap[port].wcIdx    = wc_index;
-    wcMap[port].wcLane   = wc_lane;
-    wcMap[port].wcSpeedG = 1;       /* 1 Gbps */
-    LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
-              wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
-
-    /* Lane in use */
-    wclanes_in_use[wc_index][wc_lane] = L7_TRUE;
-
-    /* Update temp variables */
-    ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-    bw_max[wc_group] += 1;    /* 1 Gbps */
     port++;
   }
 
