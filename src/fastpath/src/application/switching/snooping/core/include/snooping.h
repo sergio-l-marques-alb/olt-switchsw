@@ -422,7 +422,11 @@ typedef struct snoopPTinProxyTimer_s
 
 typedef struct snoopPTinProxySourceKey_s
 {  
+#if 0
   L7_inet_addr_t                     groupAddr;//IPv4(v6) Multicast Group Address
+#else
+  snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
+#endif
   L7_inet_addr_t                     sourceAddr;
 } snoopPTinProxySourceKey_t;
 
@@ -432,7 +436,7 @@ typedef struct snoopPTinProxySource_s
 {
   
   snoopPTinProxySourceKey_t          key;
-  snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
+//snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
 
   L7_uint8                           retransmissions;
   L7_uint8                           robustnessVariable;

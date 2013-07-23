@@ -23,8 +23,7 @@
             result = _i_;                                              \
             break;                                                   \
         }                                                            \
-        else                                                         \
-            result = -1;                                              \
+    result = -1;                                              \
 }
 
 #if SNOOP_PTIN_IGMPv3_PROXY

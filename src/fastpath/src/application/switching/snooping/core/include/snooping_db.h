@@ -159,7 +159,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId,L7_inet_addr_t* mcastGroupAddr);
 /******************************************************************************
   PTin - SNOOP Proxy Mcast DB Entry Processing Routines
 *******************************************************************************/
-snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr,L7_uint32 flag);
+snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr,L7_uint32 flag);
 snoopPTinProxySource_t *snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr, L7_BOOL* newEntry);
 L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr);
 

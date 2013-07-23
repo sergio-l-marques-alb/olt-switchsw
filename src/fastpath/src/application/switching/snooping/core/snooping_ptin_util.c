@@ -1091,7 +1091,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
   for (i=0;i<noOfRecords&&groupPtrAux!=L7_NULLPTR;i++)
   {
     rc=snoopPTinGroupRecordSourceIncrementTransmissions(groupPtrAux);
-    if (++groupPtrAux->retransmissions==groupPtrAux->robustnessVariable)   
+    if (++groupPtrAux->retransmissions>=groupPtrAux->robustnessVariable)   
     {
       groupAddr[noOfGroupRecord2remove]=&groupPtrAux->key.groupAddr;
       recordType[noOfGroupRecord2remove++]=groupPtrAux->key.recordType;            
@@ -1163,7 +1163,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
   sourcePtrTmp=groupPtr->source;
   for (i=0;i<groupPtr->numberOfSources && sourcePtrTmp!=L7_NULLPTR;i++)
   {    
-    if (++sourcePtrTmp->retransmissions==sourcePtrTmp->robustnessVariable)
+    if (++sourcePtrTmp->retransmissions>=sourcePtrTmp->robustnessVariable)
     {
       sourceAddr[noOfSources2Remove++]=&sourcePtrTmp->key.sourceAddr;
     }
