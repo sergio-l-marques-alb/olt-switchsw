@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RADIUSNamedAccountingServerStatus" title="RADIUS Named Accounting Server Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="securityRadius_RadiusAccountingServerIndex" id="1">
+                    <action type="value" value="valMapEmptyString" show="1_3" hide="1_1|1_2"/>
+                    <action type="default" hide="1_3"/>
+                </element> 
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusAccountingName" id="2" name="RADIUS Accounting Server Name"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusAccountingServerAddress" id="3" name="IP Address"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusAccountingPort" id="4" name="Port Number"/>
+                <element control="label" obj-name="securityRadius_RadiusAccountingIsSecretSet" id="5" name="Secret Configured"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="3">
+                <message>No configured RADIUS named Accounting servers exist.</message>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

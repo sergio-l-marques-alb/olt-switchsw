@@ -1,0 +1,87 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename     xxtrace.ext
+ *
+ * @purpose      Trace utility 
+ *
+ * @component    Routing Utils Component
+ *
+ * @comments
+ *
+ * @create       
+ *
+ * @author
+ *
+ * @end                                                                        
+ *
+ * ********************************************************************/
+#ifndef XXTRACE_EXT
+
+#define XXTRACE_EXT
+
+/* The following define should be configired for max resolution */
+#if RTOS==ATMOS_RTOS
+#include <timelib.h>
+#define XX_TRACE_GET_TIMESTAMP     CYCLES_TO_USEC(TIMER_CURRENT_TIME)
+#else
+#include "timer.ext"
+#define XX_TRACE_GET_TIMESTAMP     TIMER_SysTime( )
+#endif
+
+/* XXTrc_Create
+ * Creates a new circular trace buffer
+ * Returns trace buffer handle
+ */
+t_Handle XXTrc_Create( const char *name, /* Trace buffer name */
+                       int nBufs );      /* Number of entries */
+
+
+/* XXTrc_Enable
+ * Enable trace buffer
+ * Returns the previous status: TRUE=enabled, FALSE=disabled
+ */
+Bool    XXTrc_Enable( t_Handle hTrace ); /* Trace buffer handle. NULL=last created */
+
+
+/* XXTrc_Disable
+ * Disable trace buffer
+ * Returns the previous status: TRUE=enabled, FALSE=disabled
+ */
+Bool    XXTrc_Disable( t_Handle hTrace );/* Trace buffer handle. NULL=last created */
+
+
+/* XXTrc_Put
+ * Add entry to the trace buffer
+ */
+void     XXTrc_Put( t_Handle hTrace,     /* Trace buffer handle. NULL=last created */
+                    const char *who,     /* Tracepoint identification */
+                    U32 d1, U32 d2, U32 d3, U32 d4 ); /* Entry data */
+
+
+/* XXTrc_Print
+ * Print recorded data
+ */
+void     XXTrc_Print( t_Handle hTrace ); /* Trace buffer handle. NULL=last created */
+
+
+/* XXTrc_Delete
+ * Delete trace buffer
+ */
+void     XXTrc_Delete( t_Handle hTrace );
+
+/* L7_TIMETRC
+ * Macro to generate trace entry or no code
+ * depends on DO_TIMETRC setting in local.h
+ */
+#if DO_TIMETRC
+#define L7_TIMETRC(trc,who,d1,d2,d3,d4) XXTrc_Put(trc,who,d1,d2,d3,d4)
+#else
+#define L7_TIMETRC(trc,who,d1,d2,d3,d4)
+#endif
+
+
+#endif

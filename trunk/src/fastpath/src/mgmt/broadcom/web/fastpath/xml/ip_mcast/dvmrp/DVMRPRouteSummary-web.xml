@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DVMRPRouteSummary" title="DVMRP Route Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteSource" id="1" name="Source Address"/>
+                <element properties="filter,iterate" obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteSourceMask" id="2" name="Source Mask"/>
+                <element obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteUpstreamNeighbor" id="3" name="Upstream Neighbor"/>
+                <element obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteIfIndex" id="4" name="Interface"/>
+                <element obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteMetric" id="5" name="Metric"/>
+                <element obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteExpiryTime" id="6" name="Expiry Time (hh:mm:ss)"/>
+                <element obj-name="IPMCASTdvmrpRouteTable_dvmrpRouteUpTime" id="7" name="Up Time (hh:mm:ss)"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

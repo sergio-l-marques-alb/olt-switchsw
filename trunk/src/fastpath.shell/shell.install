@@ -1,0 +1,28 @@
+#!/bin/sh
+
+PLATFORMS="CXO640G-MX CXO360G-MX TG16G TOLT8G"
+FILESYSTEM=rootfs
+
+BASE=../../builds
+APPS_FOLDER=$BASE/apps
+
+BIN_PATH=./bin
+BIN_FILE=fastpath.shell
+
+# Base folder, where install scripts are, should exist
+if [ ! -e $BASE ]; then
+  echo "'$BASE' folder is missing."
+  exit 1;
+fi
+
+for plat in $PLATFORMS; do
+
+  echo "Creating necessary folders for $plat..."
+  mkdir -p $APPS_FOLDER/image/$plat/$FILESYSTEM/usr/local/ptin/sbin
+
+  echo "Copying $BIN_FILE to $plat folder..."
+  cp $BIN_PATH/$BIN_FILE $APPS_FOLDER/image/$plat/$FILESYSTEM/usr/local/ptin/sbin
+
+done
+
+echo "Done!"

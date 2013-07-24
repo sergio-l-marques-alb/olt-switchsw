@@ -1,0 +1,269 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename        arp.ext
+ *
+ * @purpose         External ARP object definitions
+ *
+ * @component       ARP Component   
+ *
+ * @comments
+ *
+ * @create          02/13/2002
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef arp_extrn_file
+#define arp_extrn_file
+
+#include "std.h"
+#include "atmtypes.h"
+#include "l3_comm_structs.h"
+#include "xx.ext"
+
+typedef enum ARP_OBJ_Status
+{
+   ARP_OBJ_STAT_Invalid = 0,
+   ARP_OBJ_STAT_Valid   = 0x414F        /* 'AO' */
+} ARP_OBJ_Status;
+
+typedef enum ARP_ENT_Status
+{
+   ARP_ENT_STAT_Invalid = 0,
+   ARP_ENT_STAT_Valid   = 0x4145        /* 'AE' */
+} ARP_ENT_Status;
+
+/* ethernet header definition */
+typedef struct t_EthHeader
+{
+    byte    dstMACAddr[6];
+    byte    srcMACAddr[6];
+    byte    type[2];
+}t_EthHeader;
+
+/* ARP Resolution info */
+typedef struct t_ARPResInfo
+{
+   t_Lay3Addr destAddr;               /* dest. layer 3 address (filled in by
+                                         ARP user */
+   t_LIH    lanNmb;                   /* Layer 2 interface ID to send
+                                         ARP Resolution request (filled in by
+                                         ARP user)  */
+   byte    dllHeaderSize;             /* DLL header size (filled by ARP user)*/
+   byte    dllHeader[14];/* DLL header (filled by ARP user)*/
+} t_ARPResInfo;
+
+/* Static ARP entry info */
+typedef struct t_ARPStatInfo
+{
+   t_Lay3Addr l3Addr;                    /* layer 3 address */
+   t_LIH      lanNmb;                    /* Layer 2 interface Id */
+   byte       l2Addr[sizeof(t_MACAddr)]; /* layer 2 assosiated address */
+}t_ARPStatInfo;
+
+/* ARP Table events */
+typedef enum
+{
+   ARP_EVNT_NewEntry      = 1, /* new ARP entry */
+   ARP_EVNT_ModifiedEntry = 2, /* modified ARP entry */
+   ARP_EVNT_DeletedEntry  = 4, /* deleted ARP entry */
+   ARP_EVNT_Refresh       = 8  /* refresh ARP entry callback */
+}e_L3amEvent;
+
+/* ARP Resolution response callback */
+typedef e_Err (* ARP_RES_IND)
+(
+   IN t_Handle userId,                 /* ARP user Id passed to
+                                          ipMapLay3ARPResolution call*/
+   IN t_Handle reqId,                  /* request Id passed to
+                                          ipMapLay3ARPResolution call*/
+   IN OUT t_ARPResInfo *arpInfo        /* ARP Resolution request/response */
+);
+
+/* Callback routine definition */
+typedef e_Err (*F_ARPCallback)(t_Handle    userId,    /* user Id */
+                               t_Handle      reqId,     /* request Id */
+                               t_ARPResInfo *arpResInfo);
+
+/* NAK callback routine definition */
+typedef e_Err (*F_ARPNAKCallback)(t_Handle userId,   /* user Id */
+                                  t_Handle  regId);   /* request Id */
+
+/* Transmit routine definition */
+typedef e_Err (*F_ARPTransmit)(t_Handle txId,     /* transmit object Id */
+                               void     *p_Frame, /* frame pointer */
+                               word     flags);   /* control flags */
+
+/* ARP lock controls */
+typedef struct t_ARP_LockCtrl
+{
+  t_Mutex           semId;              /* semaphore id */
+  long              ownerTaskId;        /* current lock owner task */
+  long              ownerLockCount;     /* nested lock count for current owner */
+  unsigned long     lockTotal;          /* total number of times locked        */
+  unsigned long     unlockTotal;        /* total number of times unlocked      */
+}t_ARP_LockCtrl;
+
+/* ARP event callback prototype definition */
+typedef e_Err (*F_ARPEventCallback)(t_Handle userId, t_ARPResInfo *p_arpRes, 
+                                    e_L3amEvent event);
+#define MAX_ADDRESS_SIZE 6
+
+/* ARP configuration structure */
+typedef struct t_ARPCfg
+{
+   word             arpAgeTime;  /* arp age time (in seconds) */
+   word             arpRespTime; /* arp response timeout (in seconds) */
+   word             arpCacheSize;/* max number of ARP entries (0 - unlimited) */
+   word             retrNmb;     /* number of retransmitions */
+   word             dynamicRenew;/* arp dynamic renew mode */
+   F_ARPTransmit    f_Transmit;  /* ARP transmit routine or NULLP */
+   F_ARPNAKCallback f_NAC;       /* NAK callback pointer or NULLP */
+}t_ARPCfg;
+
+/* ARP table entry according to the RFC 1213 */
+typedef struct t_ARPEntry
+{
+    ulng atIfIndex;
+    byte atPhysAddress[MAX_ADDRESS_SIZE];
+    ulng atNetAddress;
+}t_ARPEntry;
+
+/* create ARP object */
+e_Err ARP_Init(t_ARPCfg *p_config,  /* configuration data pointer */
+               t_Handle userId,     /* user Id */
+               t_Handle lowId,      /* low layer transmit Id */
+               word     queueSize,  /* frame queue size limit */
+               t_Handle *p_Id);     /* pointer to put object Id */ 
+
+/* Delete ARP object */
+e_Err ARP_Delete(t_Handle *p_Id);
+
+/* Remove Older entries from ARP cache */
+e_Err ARP_PurgeOldEntries(t_Handle *p_ObjId);
+
+/* Update transmit callback */
+void ARP_UpdateTx(t_Handle Id, F_ARPTransmit f_Tx, t_Handle txId);
+
+/* Add layer 2 interface */
+e_Err ARP_AddInterface(t_Handle arpId, F_ARPTransmit f_Tx, t_Handle txId, t_LIH ifNumber);
+
+/* Delete layer 2 interface */
+e_Err ARP_DelInterface(t_Handle arpId, t_LIH ifNumber);
+
+/* Update NAK callback */
+void ARP_UpdateNAK(t_Handle Id, F_ARPNAKCallback f_NAK, t_Handle userId);
+
+/* Add local MAC and IP address */
+e_Err ARP_AddLocAddr(t_Handle Id,         /* object Id */
+                     t_IPAddr *ipAddr,    /* IP address pointer */
+                     t_MACAddr *macAddr,  /* MAC address pointer */
+                     word      flags);    /* Control bit flag associated with
+                                             the address */
+
+/* Delete local MAC address */
+e_Err ARP_DelLocAddr(t_Handle Id,         /* object Id */
+                     t_IPAddr *ipAddr,    /* IP address pointer */
+                     word      flags);    /* Control bit flag associated with 
+                                             the address */
+
+
+/* Get first available source MAC address for the given inteface number */
+e_Err ARP_GetSrcMAC(t_Handle   Id,      /* object Id */
+                    word       flags,   /* Control bit flag (interface number) */
+                    t_MACAddr *srcMAC); /* Pointer to store MAC address */
+
+/* Add address to arp cache */
+e_Err ARP_AddDstAddr(t_Handle  Id,          /* object Id  */
+                     t_IPAddr  *ipAddr,     /* IP address pointer  */
+                     t_MACAddr *p_macAddr,  /* mac address pointer */
+                     word      flags);      /* control bitflag     */
+
+/* delete address from the ARP cache */
+e_Err ARP_DelDstAddr(t_Handle Id,           /* object Id */
+                     t_IPAddr *ipAddr,      /* IP address pointer */
+                     word     flags);       /* control bitflag    */
+
+/* Handle incoming ARP frames */ 
+e_Err ARP_Receive(t_Handle Id,              /* object Id */
+                  void     *p_Frame,        /* IP frame pointer */
+                  unsigned int rxIntIfNum,  /* receive internal interface number */
+                  word     flags);          /* control flag (interface index)  */
+
+/* Address resolution request */
+e_Err ARP_GetMACAddr(t_Handle      Id,       /* object Id */
+                     t_IPAddr      *ipAddr,  /* IP address pointer (fill in by user)*/
+                     word          flags,    /* control flag */
+                     t_MACAddr     *macAddr);/* pointer to put MAC address (fill in by ARP) */
+
+e_Err ARP_SendARPReq(t_Handle      Id,         /* object Id (fill in by user) */
+                     byte          *ipAddr,    /* target IP address pointer (fill in by user) */
+                     t_Handle      userId,     /* callback user Id (fill in by user)*/
+                     word          flags);     /* control flag (interface index)  */
+
+e_Err ARP_SendARPReqNoRxmt(t_Handle Id,         /* object Id */
+                           byte *ipAddr,        /* IP address pointer (fill in by user)*/
+                           word index);         /* interface index */
+
+e_Err ARP_SendGratARP(t_Handle Id, byte *ipAddr, word ifIndex);
+
+/* Adjust entry timeout */
+e_Err ARP_AdjustTimeout(t_Handle arpId, ulng newAgeTime);
+
+/* Trim the ARP cache */
+e_Err ARP_TrimCache(t_Handle p_Id,      /* object Id */
+                    word     maxEnt);   /* new maximum ARP cache size */
+
+/* Clear the ARP cache */
+e_Err ARP_ClearCache(t_Handle arpId,    /* object Id */
+                     word intf,         /* interface number, or 0 for all */
+                     Bool allowGw);     /* flag to clear gateway entries as well */
+
+/* Retrieve various ARP cache statistics */
+e_Err ARP_GetCacheStats(t_Handle arpId,               /* object Id */
+                        L7_arpCacheStats_t *pStats);  /* pointer to output struct */
+
+/* Stop ARP entry timers */
+e_Err ARP_StopEntryTimers(t_Handle arpId,         /* object Id */
+                          t_Handle p_adrEntry);   /* pointer to ARP entry */
+
+
+/* Get first ARP entry for the given if index */
+e_Err ARP_GetARPEntryFirst(IN t_Handle     objHandle,
+                           IN t_LIH        ifIndex,
+                           OUT t_ARPEntry *p_entry);
+
+/* Get next ARP entry for the given if index */
+e_Err ARP_GetARPEntryNext(IN t_Handle        objHandle,
+                          IN t_LIH           ifIndex,
+                          IN OUT t_ARPEntry *p_entry);
+
+e_Err ARP_DestroyAddrEntry(t_Handle p_adrEntry);
+
+/* ARP Debug */
+void ARP_ObjectInfoShow(IN t_Handle p_Obj);
+
+
+/* ARP entry types */
+#define ARP_ENTRY_TYPE_UNUSED   0
+#define ARP_ENTRY_TYPE_LOCAL    1
+#define ARP_ENTRY_TYPE_STATIC   2
+#define ARP_ENTRY_TYPE_GATEWAY  3
+#define ARP_ENTRY_TYPE_DYNAMIC  4
+#define ARP_ENTRY_TYPE_MAINT    5
+#define ARP_ENTRY_TYPE_GRAT     6
+
+
+#define HW_ETHERNET   0x0001  /* Hardware type Ethernet (0x0001) */
+#define ETHERTYPE_IP  0x0800  /* EtherType IP (0x0800)  */
+#define ETHERTYPE_ARP 0x0806  /* EtherType ARP (0x0806) */
+#define ARP_REQUEST   0x0001  /* Operation: Arp request (0x0001) */
+#define ARP_RESPONSE  0x0002  /* Operation: Arp response(0x0002) */
+#endif
+/****************end of file****************************/

@@ -1,0 +1,109 @@
+<!-- For now,let us write this file manually, later this gets generated from the container xml -->
+<div id="homeNavigation" style="visibility:hidden;float:left; overflow: hidden; width:1px; height:1px;">
+    <ul id='thisNavi'>
+        <li><a href="#" onClick=loadPage(this,'System.html','Home')>System Description</a></li>
+    </ul>
+</div>
+<div id="setupNavigation" style="visibility:hidden;float:left; overflow: hidden; width:1px; height:1px;">
+<ul id='thisNavi'>
+    <li>System
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'network.html','Setup|System')>Network</a></li>
+            <li><a href="#" onClick=loadPage(this,'PortConfiguration.html','Setup|System')>Port Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'sntp.html','Setup|System')>SNTP</a></li>
+            <li><a href="#" onClick=loadPage(this,'logging.html','Setup|System')>Logging</a></li>
+        </ul>
+    </li>
+    <li>Switching
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'igmpcfg.html','Setup|Switching')>IGMP Snooping</a></li>
+            <li><a href="#" onClick=loadPage(this,'switching.html','Setup|Switching')>Basic Switching</a></li>
+            <li><a href="#" onClick=loadPage(this,'flowControl.html','Setup|Switching')>Flow Control</a></li>
+
+        </ul>
+    </li>
+    <li>Security
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'dot1x.html','Setup|Security')>Authentication</a></li>
+            <li><a href="#" onClick=loadPage(this,'aclnew.html','Setup|Security')>Create ACL</a></li>
+            <li><a href="#" onClick=loadPage(this,'aclcfg.html','Setup|Security')>Configure ACL</a></li>
+            <li><a href="#" onClick=loadPage(this,'aclIntfCfg.html','Setup|Security')>Apply ACL</a></li>
+            <li><a href="#" onClick=loadPage(this,'security.html','Setup|Security')>Advanced Security</a></li>
+        </ul>
+    </li>
+    <li>Spanning Tree
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'stpcfg.html','Setup|Spanning&nbsp;Tree')>Global Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'stpintf.html','Setup|Spanning&nbsp;Tree')>CST </a></li>
+            <li><a href="#" onClick=loadPage(this,'mstintf.html','Setup|Spanning&nbsp;Tree')>MST </a></li>
+        </ul>
+    </li>
+    <li>QoS
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'COSIntfQCfg.html','Setup|QoS')>Queue</a></li>
+            <li><a href="#" onClick=loadPage(this,'COSDSCPQCfg.html','Setup|QoS')>IP-DSCP</a></li>
+            <li><a href="#" onClick=loadPage(this,'CosDot1pCfg.html','Setup|QoS')>802.1p</a></li>
+            <li><a href="#" onClick=loadPage(this,'CosIntfCfg.html','Setup|QoS')>COS Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'autovoip.html','Setup|QoS')>Auto-VoIP</a></li>
+        </ul>
+    </li>
+    <li>VLANs
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'vlanConfig.html','Setup|VLANs')>VLAN Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'VLANPortConfig.html','Setup|VLANs')>VLAN Ports</a></li>
+            <li><a href="#" onClick=loadPage(this,'vlanview.html','Setup|VLANs')>Participation/Tagging</a></li>
+        </ul>
+    </li>
+    <li>LLDP
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'lldpcfg.html','Setup|LLDP')>LLDP Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'lldplocaldev.html','Setup|LLDP')>Local Device</a></li>
+            <li><a href="#" onClick=loadPage(this,'lldpremotedev.html','Setup|LLDP')>Remote Device</a></li>
+        </ul>
+    </li>
+    <li>LLDP-MED
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'lldpmedcfg.html','Setup|LLDP-MED')>LLDP-MED Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'lldpmedremotedev.html','Setup|LLDP-MED')>Remote Device</a></li>
+        </ul>
+    </li>
+    <li>Port Channel
+        <ul>
+            <li><a href="#" onClick=loadPage(this,'portchnew.html','Setup|Port&nbsp;Channel')>Create PortChannel</a></li>
+            <li><a href="#" onClick=loadPage(this,'portchdel.html','Setup|Port&nbsp;Channel')>Delete PortChannel</a></li>
+            <li><a href="#" onClick=loadPage(this,'portchcfg.html','Setup|Port&nbsp;Channel')>Configuration</a></li>
+            <li><a href="#" onClick=loadPage(this,'lagview.html','Setup|Port&nbsp;Channel')>Ports Participation</a></li>
+        </ul>
+    </li>
+</ul> 
+</div>
+<div id="summaryNavigation" style="visibility:hidden;float:left; overflow: hidden; width:1px; height:1px;">
+    <ul id='thisNavi'>
+        <li><a href="#" onClick=loadPage(this,'aclSumm.html','Summary')>ACL Summary</a></li>
+        <li><a href="#" onClick=loadPage(this,'L2Table.html','Summary')>L2 Table</a></li>
+        <li><a href="#" onClick=loadPage(this,'bufferedlog.html','Summary')>Log</a></li> 
+        <li><a href="#" onClick=loadPage(this,'PortSummary.html','Summary')>Port Details</a></li>
+        <li><a href="#" onClick=loadPage(this,'lldpstats.html','Summary')>LLDP Stats</a></li>
+        <li><a href="#" onClick=loadPage(this,'MFDBTable.html','Summary')>MFDB Table</a></li>
+        <li><a href="#" onClick=loadPage(this,'portchstat.html','Summary')>Port Channel</a></li>
+    </ul> 
+</div>
+<div id="toolsNavigation" style="visibility:hidden;float:left; overflow: hidden; width:1px; height:1px;">
+    <ul id='thisNavi'>
+        <li><a href="#" onClick=loadPage(this,'backup.html','Tools')>Backup Manager</a></li>
+        <li><a href="#" onClick=loadPage(this,'update.html','Tools')>Update Manager</a></li>
+        <li><a href="#" onClick=loadPage(this,'userManager.html','Tools')>User Manager</a></li>
+        <li><a href="#" onclick=loadPage(this,'Save.html','Tools')>Save Configuration</a></li>
+        <li><a href="#" onclick=loadPage(this,'reboot.html','Tools')>Reboot Switch</a></li>
+        <li><a href="#" onclick=loadPage(this,'restore.html','Tools')>Factory Defaults</a></li>
+        <li><a href="#" onclick=loadPage(this,'cableDiag.html','Tools')>Cable Diagnostics</a></li>
+    </ul>
+</div>
+<div id="TopNav">
+	<ul>
+		<li><a href="#" onClick="navigate(this,'System.html','homeNavigation','Home|System&nbsp;Description')">Home</a></li>
+		<li><a href="#" onClick="navigate(this,'network.html','setupNavigation','Setup|System|Network')">Setup</a></li>
+		<li><a href="#" onClick="navigate(this,'aclSumm.html','summaryNavigation','Summary|ACL&nbsp;Summary')">Summary</a></li>
+		<li><a href="#" onClick="navigate(this,'backup.html','toolsNavigation','Tools|Backup&nbsp;Manager')">Tools</a></li>
+	</ul>
+</div>

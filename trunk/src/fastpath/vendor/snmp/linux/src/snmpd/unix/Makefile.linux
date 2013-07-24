@@ -1,0 +1,1892 @@
+
+
+TOPDIR = ../..
+SNMPDTOPDIR = ..
+
+
+#
+#
+# Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+#
+# This software is furnished under a license and may be used and copied
+# only in accordance with the terms of such license and with the
+# inclusion of the above copyright notice. This software or any other
+# copies thereof may not be provided or otherwise made available to any
+# other person. No title to and ownership of the software is hereby
+# transferred.
+#
+# The information in this software is subject to change without notice
+# and should not be construed as a commitment by SNMP Research, Incorporated.
+#
+# Restricted Rights Legend:
+#  Use, duplication, or disclosure by the Government is subject to
+#  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+#  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+#  subparagraphs (c)(4) and (d) of the Commercial Computer
+#  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+#  clauses in the NASA FAR Supplement and other corresponding
+#  governmental regulations.
+#
+#
+
+#
+#                PROPRIETARY NOTICE
+#
+# This software is an unpublished work subject to a confidentiality agreement
+# and is protected by copyright and trade secret law.  Unauthorized copying,
+# redistribution or other use of this work is prohibited.
+#
+# The above notice of copyright on this source code product does not indicate
+# any actual or intended publication of such source code.
+#
+#
+
+# 
+# Operating System Information
+#
+
+RM = rm -f
+RMDIR = rmdir
+MOVE = mv
+CP = cp
+CAT = cat
+MKDIR = mkdir
+# PRESERVE is the flag to $(CP) to duplicate the modification time and
+# permission modes of the original file or directory.
+PRESERVE = -p
+
+
+# Extensions to certain kinds of files are set here.
+LIBEXT = a
+BINEXT =
+OBJEXT = o
+
+
+LIBPRF = lib
+
+
+              OS = -DLINUX
+              os = linux
+      SR_OSTYPE =
+         OSFLAGS =
+      SOCKETLIBS =
+            LLIB =
+      LINTLIBOPT =
+        LINTOPTS =
+     THREAD_LIBS = -lpthread
+     SR_SEM_LIBS = -lrt
+      EXTRA_DEFS = 
+
+
+              CC = cc
+              LD = cc
+      DEBUGFLAGS = -g -Wall -fno-builtin -Wpointer-arith -Wstrict-prototypes
+            LINT = lint
+              AR = ar
+             LEX = flex
+            YACC = yacc
+          AROPTS = cr
+          RANLIB = touch
+
+      EXTRA_SRCS =
+      EXTRA_OBJS =
+
+# for shared libraries
+DYNCFLAGS = -fPIC
+DYNLDFLAGS = -shared
+DYN_LINK_FLAGS = -rdynamic
+DYNLDLIBS =
+DYNLD = ld 
+DYN_LIB_LIBS = -ldl
+SHLIBPRF = lib
+SHLIBEXT = so
+IPC_DEFAULT = -DSR_UDS_IPC
+IPC_DEFAULT_LIB = uds
+
+
+#
+# Directories
+#
+
+
+OSBASEDIR =
+
+
+SRM_ARCH = $(shell /bin/arch)
+
+OSLIBDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).lib
+OSOBJDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).obj
+OSBINDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).bin
+
+SECUR_DIR = $(TOPDIR)/../basic
+
+LIBDIR      = $(SECUR_DIR)/$(OSLIBDIR)
+BINDIR      = $(SECUR_DIR)/$(OSBINDIR)
+INSTALLDIR  = $(SECUR_DIR)/$(OSBINDIR)
+MIBS_DIR    = $(TOPDIR)/mibs
+RFCS_DIR    = $(TOPDIR)/mibs/rfcs
+IDRAFTS_DIR = $(TOPDIR)/mibs/internet-drafts
+IANA_DIR    = $(TOPDIR)/mibs/iana
+MIBCOMP_DIR = $(SECUR_DIR)/$(OSBINDIR)
+
+#
+# Subordinant Makefile
+#
+
+
+BASEMAKEFILENAME = Makefile
+
+
+SUBMAKEFILE = $(BASEMAKEFILENAME).$(os)
+#
+# Compile Options
+#
+
+LIGHT = -DNOTICE
+DEBUG = -DSR_DEBUG
+SR_MIB_TABLE_HASHING = -DSR_MIB_TABLE_HASHING
+SR_CONFIG_FP = -DSR_CONFIG_FP
+PROXY =
+SETS = -DSETS
+WEB_AGT =
+WEB_MGR =
+
+CUSTOMER_DEFINES =
+
+epictest := EPICTEST = -DSR_EPICTEST
+EPIC = -DSR_EPIC
+
+EXPORT =
+
+SNMP_V1_PACKET = -DSR_SNMPv1_PACKET -DSR_SNMPv1_WRAPPER
+
+SNMP_V2C_PACKET = -DSR_SNMPv2c_PACKET -DSR_SNMPv1_WRAPPER -DSR_SNMPv2_PDU
+
+SNMP_V1_PACKET_MIB = -DSR_SNMPv1_PACKET_MIB
+
+SNMP_V3_PACKET = -DSR_SNMPv3_PACKET -DSR_SNMPv2_PDU
+SNMP_V3_PACKET_MIB = -DSR_SNMPv3_PACKET_MIB
+
+SYS_OR_TABLE =
+
+TRANSPORT_TABLE = -DSR_TRANSPORT_TABLE
+
+
+NOTIFY_COMPLIANCE_LEVEL = \
+	-DSR_NOTIFY_FULL_COMPLIANCE
+
+PROXY_COMPLIANCE_LEVEL =
+
+SNMPV3_COMPLIANCE_OPTIONS = \
+	$(NOTIFY_COMPLIANCE_LEVEL) \
+	$(PROXY_COMPLIANCE_LEVEL)
+
+USER_SEC_MODEL = -DSR_USER_SEC_MODEL
+
+SUPPORTED_SECURITY_MODELS = \
+	$(USER_SEC_MODEL)
+
+3DES_PRIVACY_PROTOCOL =
+AES_PRIVACY_PROTOCOL =
+
+SUPPORTED_PRIVACY_PROTOCOLS = \
+	$(3DES_PRIVACY_PROTOCOL) \
+	$(AES_PRIVACY_PROTOCOL)
+
+
+MD5_HASH_ALGORITHM = -DSR_MD5_HASH_ALGORITHM
+SHA_HASH_ALGORITHM = -DSR_SHA_HASH_ALGORITHM
+
+SUPPORTED_HASHING_ALGORITHMS = \
+	$(SHA_HASH_ALGORITHM) \
+	$(MD5_HASH_ALGORITHM)
+
+SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION = -DSR_SNMPv3_ADMIN
+
+SNMP_ADMINISTRATIVE_MIB_SUPPORT = -DSR_SNMP_ADMIN_MIB
+
+SUPPORTED_PACKET_VERSIONS = \
+	$(SNMP_V1_PACKET) \
+	$(SNMP_V2C_PACKET) \
+	$(SNMP_V3_PACKET)
+
+SUPPORTED_PACKET_MIBS = \
+	$(SNMP_V1_PACKET_MIB) \
+	$(SNMP_V3_PACKET_MIB)
+
+SUPPORTED_APO_LEVEL =
+
+GENERATE_CONFIGURATION = \
+	-DSR_GENERATE_CONFIGURATION \
+	-DSR_GENERATE_SNMPV3_CONFIGURATION
+#	-DSR_GENERATE_OLD_STYLE_CONFIGURATION
+
+SNMP_OPTIONS = \
+	$(CUSTOMER_DEFINES)  \
+	$(EXPORT) \
+	$(SYS_OR_TABLE) \
+	$(TRANSPORT_TABLE) \
+	$(SUPPORTED_PACKET_VERSIONS) \
+	$(SUPPORTED_PACKET_MIBS) \
+	$(SUPPORTED_APO_LEVEL) \
+	$(SUPPORTED_SECURITY_MODELS) \
+	$(SUPPORTED_PRIVACY_PROTOCOLS) \
+	$(SUPPORTED_HASHING_ALGORITHMS) \
+	$(SNMPV3_COMPLIANCE_OPTIONS) \
+	$(SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION) \
+	$(SNMP_ADMINISTRATIVE_MIB_SUPPORT) \
+	$(EPIC) $(EPICTEST) \
+	$(GENERATE_CONFIGURATION)
+
+
+#
+# Transports
+#
+
+IP_TRANSPORT = -DSR_IP
+
+IPX_TRANSPORT =
+
+TRANSPORTS = $(IP_TRANSPORT) $(IPX_TRANSPORT)
+
+
+#
+# What to build
+#
+
+TARGET = $(OSOBJDIR)/snmpd$(BINEXT)
+
+#
+# MIB information
+#
+
+WEB_EXCL =
+
+MIB_EXCL = -1.3.6.1.2.1.8
+
+
+PASS_1_MIBCOMP_FLAGS = \
+		-snmpmibh \
+		-row_status \
+		-userpart \
+		-snmpoid_only \
+		-c "snmp 1 $(WEB_EXCL) $(MIB_EXCL)"
+
+
+EXTEND_BASE = your
+EXTEND_MIB_DEF_FILES = $(OSOBJDIR)/yourmib.def
+PASS_2_MIBCOMP_FLAGS = \
+		-o $(EXTEND_BASE) \
+		-per_file_init \
+		-stubs_only
+EXTEND_MIBOUT = \
+		$(OSOBJDIR)/v_$(EXTEND_BASE).stb \
+		$(OSOBJDIR)/k_$(EXTEND_BASE).stb
+
+EXTEND_OBJS =
+
+EXTEND_LIBS =
+
+EXTEND_DEFS =
+
+
+#
+# Directories relative to $(TOPDIR)
+#
+
+REMOTEDIR = $(SNMPDTOPDIR)/unix
+#MOSY = $(MIBCOMP_DIR)/mosy
+MIBCOMP = $(MIBCOMP_DIR)/mibgc
+POSTMOSY = $(MIBCOMP_DIR)/postmosy
+PREMOSY = $(MIBCOMP_DIR)/premosy
+MGRTOOL = $(MIBCOMP_DIR)/mgrtool
+LINTLIBDIR = $(TOPDIR)/seclib
+
+#
+# Flags for Make Depend, Compile, and Link
+#
+
+SR_INCDIR = $(TOPDIR)/include
+AGT_INCDIR = $(SNMPDTOPDIR)/shared
+
+
+INC_DIRS = -I. \
+           -I$(TOPDIR)/snmpd/include \
+           -I$(TOPDIR)/snmpd/mibs \
+           -I$(OSOBJDIR) \
+           -I$(SR_INCDIR) \
+           -I$(AGT_INCDIR) \
+	   -I$(REMOTEDIR) \
+           $(ARC_INC_DIRS)
+
+MIBOUTDEFS = \
+	     -DMIBDEFS=\"snmpdefs.h\" \
+             -DMIBPART=\"snmppart.h\" \
+             -DMIBSUPP=\"snmpsupp.h\" \
+             -DMIBTYPE=\"snmptype.h\" \
+             -DMIBPROT=\"snmpprot.h\" \
+             -DMIBOID=\"snmpoid.c\"
+
+SR_CONFIG_FP = -DSR_CONFIG_FP
+
+DEFS = \
+	$(OS) \
+	$(SR_OSTYPE) \
+	$(NETTYPE) \
+	$(DEBUG) \
+	$(LIGHT) \
+	$(SETS) \
+	$(MIBOUTDEFS) \
+	$(SR_MIB_TABLE_HASHING) \
+	$(SR_CONFIG_FP) \
+	-DDAEMONIZE \
+	$(SNMP_OPTIONS) \
+	$(PROXY) \
+	$(TRANSPORTS) \
+	$(EXTEND_DEFS) \
+	$(EXTRA_DEFS) \
+	$(SYSOPTS)
+
+LINTFLAGS = $(DEFS) $(COPTIONS)
+COPTIONS = $(DEFS) $(INC_DIRS)
+CFLAGS = $(DEBUGFLAGS) $(COPTIONS) $(INC_DIRS)
+
+
+#
+# Compile Commands
+#
+
+
+CORULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+THREADRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+REMOTERULE = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR)/$(@F:.o=.c)
+REMOTERULE2 = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR2)/$(@F:.o=.c)
+MGRCORULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(@F:.o=.c)
+YACCRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(OSOBJDIR)/$(@F:.o=.c)
+MOSYRULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(SECLIBDIR)/$(@F:.o=.c)
+
+
+# MIBGuide additions go here
+
+#
+# Sources, Objects, and Libraries
+#
+
+
+CORE_MIB_DEF_FILES = \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/smi.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/mib-2.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/srAgentInfo.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/apoCap.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/apo.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-arch.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v2-tc.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v2-smi.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/coex.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v2-mib.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v2-tm.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-acm.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-mpd.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-notif.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-proxy.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-tgt.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/v3-usm.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/usm-tran.def \
+	$(MIBS_DIR)/common/$(OSOBJDIR)/snmp-res.def
+
+
+SRCS = \
+	$(REMOTEDIR)/authname.c \
+	$(REMOTEDIR)/report.c \
+	$(REMOTEDIR)/chk_view.c \
+	$(REMOTEDIR)/chk_filt.c \
+	$(REMOTEDIR)/k_or.c \
+	$(REMOTEDIR)/k_set.c \
+	$(REMOTEDIR)/v_or.c \
+	$(REMOTEDIR)/v_set.c \
+	$(REMOTEDIR)/main.c \
+	$(REMOTEDIR)/dosnmp.c \
+	$(REMOTEDIR)/notify.c \
+	$(REMOTEDIR)/trap_bc.c \
+	$(REMOTEDIR)/agtctx.c \
+	$(REMOTEDIR)/agtinit.c \
+	$(REMOTEDIR)/geninit.c \
+	$(REMOTEDIR)/fnames.c \
+	$(REMOTEDIR)/mgmt.c \
+	$(REMOTEDIR)/pclo.c \
+	$(REMOTEDIR)/snmpresp.c \
+	$(REMOTEDIR)/sets.c \
+	$(REMOTEDIR)/objectdb.c \
+	$(REMOTEDIR)/v_at.c \
+	$(REMOTEDIR)/k_at.c \
+	$(REMOTEDIR)/v_if.c \
+	$(REMOTEDIR)/v_ip.c \
+	$(REMOTEDIR)/v_icmp.c \
+	$(REMOTEDIR)/v_snmpv1.c \
+	$(REMOTEDIR)/v_srAgentInfo.c \
+	$(REMOTEDIR)/k_srAgentInfo.c \
+	$(REMOTEDIR)/k_snmpv1.c \
+	$(REMOTEDIR)/v_system.c \
+	$(REMOTEDIR)/k_system.c \
+	$(REMOTEDIR)/v_apoCap.c \
+	$(REMOTEDIR)/k_apoCap.c \
+	$(REMOTEDIR)/v_tcp.c \
+	$(EXTRA_SRCS) \
+	$(REMOTEDIR)/k_$(os).c \
+	$(REMOTEDIR)/k_shared.c \
+	$(REMOTEDIR)/epiccore.c \
+	$(REMOTEDIR)/v_udp.c
+
+OBJS = \
+	$(OSOBJDIR)/authname.$(OBJEXT) \
+	$(OSOBJDIR)/report.$(OBJEXT) \
+	$(OSOBJDIR)/chk_view.$(OBJEXT) \
+	$(OSOBJDIR)/chk_filt.$(OBJEXT) \
+        $(OSOBJDIR)/k_or.$(OBJEXT) \
+        $(OSOBJDIR)/k_set.$(OBJEXT) \
+        $(OSOBJDIR)/v_or.$(OBJEXT) \
+        $(OSOBJDIR)/v_set.$(OBJEXT) \
+        $(OSOBJDIR)/main.$(OBJEXT) \
+        $(OSOBJDIR)/dosnmp.$(OBJEXT) \
+        $(OSOBJDIR)/notify.$(OBJEXT) \
+        $(OSOBJDIR)/trap_bc.$(OBJEXT) \
+	$(OSOBJDIR)/agtctx.$(OBJEXT) \
+	$(OSOBJDIR)/agtinit.$(OBJEXT) \
+	$(OSOBJDIR)/geninit.$(OBJEXT) \
+	$(OSOBJDIR)/fnames.$(OBJEXT) \
+	$(OSOBJDIR)/mgmt.$(OBJEXT) \
+	$(OSOBJDIR)/pclo.$(OBJEXT) \
+	$(OSOBJDIR)/snmpresp.$(OBJEXT) \
+	$(OSOBJDIR)/sets.$(OBJEXT) \
+	$(OSOBJDIR)/objectdb.$(OBJEXT) \
+	$(OSOBJDIR)/v_at.$(OBJEXT) \
+	$(OSOBJDIR)/k_at.$(OBJEXT) \
+	$(OSOBJDIR)/v_if.$(OBJEXT) \
+	$(OSOBJDIR)/v_ip.$(OBJEXT) \
+	$(OSOBJDIR)/v_icmp.$(OBJEXT) \
+	$(OSOBJDIR)/v_snmpv1.$(OBJEXT) \
+	$(OSOBJDIR)/v_srAgentInfo.$(OBJEXT) \
+	$(OSOBJDIR)/k_srAgentInfo.$(OBJEXT) \
+	$(OSOBJDIR)/k_snmpv1.$(OBJEXT) \
+	$(OSOBJDIR)/v_system.$(OBJEXT) \
+	$(OSOBJDIR)/k_system.$(OBJEXT) \
+	$(OSOBJDIR)/v_apoCap.$(OBJEXT) \
+	$(OSOBJDIR)/k_apoCap.$(OBJEXT) \
+        $(OSOBJDIR)/v_tcp.$(OBJEXT) \
+	$(EXTRA_OBJS) \
+	$(OSOBJDIR)/k_$(os).$(OBJEXT) \
+	$(EXTEND_OBJS) \
+	$(OSOBJDIR)/k_shared.$(OBJEXT) \
+	$(OSOBJDIR)/epiccore.$(OBJEXT) \
+	$(OSOBJDIR)/v_udp.$(OBJEXT)
+
+
+LIBS = \
+        $(LIBDIR)/$(LIBPRF)coex.$(LIBEXT) \
+        $(LIBDIR)/$(LIBPRF)snmpv3.$(LIBEXT) \
+        $(LIBDIR)/$(LIBPRF)agent.$(LIBEXT) \
+        $(LIBDIR)/$(LIBPRF)engine.$(LIBEXT) \
+        $(LIBDIR)/$(LIBPRF)devkit.$(LIBEXT) \
+	$(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT) \
+        $(PKG_LIBS)
+
+
+LINTLIBS = \
+       $(LINTLIBDIR)/$(LLIB)snmpuser.ln \
+       $(LINTLIBDIR)/$(LLIB)agent.ln \
+       $(LINTLIBDIR)/$(LLIB)snmp.ln
+
+MIBOUT = \
+	$(OSOBJDIR)/snmpoid.c
+
+#
+# Agent Targets
+#
+
+all:: $(OSOBJDIR) $(SOURCELINKS) $(EXTRA_SRCS) $(TARGET)
+
+install::
+	$(CP) $(TARGET) $(INSTALLDIR)
+
+epictest: all
+
+
+LINTLIBNAME = snmp
+LINTLIBNAMEEXT = .ln
+
+lint: $(LIBDIR)/$(LLIB)snmp.ln
+
+$(LIBDIR)/$(LLIB)snmp.ln: $(SRCS)
+	$(LINT) $(LINTOPTS) $(LINTLIBOPT)$(LINTLIBNAME) $(LINTFLAGS) $(SRCS)
+	$(MOVE) $(LLIB)$(LINTLIBNAME)$(LINTLIBNAMEEXT) $(LIBDIR)
+
+
+clean::
+	-$(RM) $(OSOBJDIR)/*.$(OBJEXT)
+	-$(RM) $(OSOBJDIR)/*.stb
+	-$(RM) $(OSOBJDIR)/*.def
+	-$(RM) $(OSOBJDIR)/*.dat
+	-$(RM) $(OSOBJDIR)/*.h
+	-$(RM) $(OSOBJDIR)/*.c
+	-$(RM) $(TARGET)
+	-$(RMDIR) $(OSOBJDIR)
+
+$(TARGET): $(MIBOUT) $(EXTEND_MIBOUT) $(OBJS) $(EXTEND_LIBS) $(LIBS)
+	$(CC) -o $(TARGET)  $(LDFLAGS) $(OBJS) $(EXTEND_LIBS) $(LIBS) $(SOCKETLIBS) $(SR_SEM_LIBS)
+
+
+$(OSOBJDIR):
+	-$(MKDIR) $(OSOBJDIR)
+
+$(MIBOUT): $(CORE_MIB_DEF_FILES) $(EXTEND_MIB_DEF_FILES)
+	$(POSTMOSY) $(PASS_1_MIBCOMP_FLAGS) -o snmp $(CORE_MIB_DEF_FILES) \
+	$(EXTEND_MIB_DEF_FILES)
+	$(MGRTOOL) -i $(CORE_MIB_DEF_FILES) $(EXTEND_MIB_DEF_FILES)
+	-$(MOVE) snmpinfo.dat $(OSOBJDIR)
+	-$(MOVE) snmpoid.c $(OSOBJDIR)
+	-$(MOVE) snmp-mib.h $(OSOBJDIR)
+	$(EXTRA_MIBOUT_COMMAND)
+
+$(EXTEND_MIBOUT): $(EXTEND_MIB_DEF_FILES)
+	$(POSTMOSY) $(PASS_2_MIBCOMP_FLAGS) $(EXTEND_MIB_DEF_FILES)
+	-$(MOVE) v_$(EXTEND_BASE).stb $(OSOBJDIR)
+	-$(MOVE) k_$(EXTEND_BASE).stb $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)defs.h $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)part.h $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)info.dat $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)supp.h $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)oid.c $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)type.h $(OSOBJDIR)
+	-$(MOVE) $(EXTEND_BASE)prot.h $(OSOBJDIR)
+
+$(OSOBJDIR)/dosnmp.$(OBJEXT): $(REMOTEDIR)/dosnmp.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/authname.$(OBJEXT): $(REMOTEDIR)/authname.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/chk_view.$(OBJEXT): $(REMOTEDIR)/chk_view.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/chk_filt.$(OBJEXT): $(REMOTEDIR)/chk_filt.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_or.$(OBJEXT): $(REMOTEDIR)/k_or.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_set.$(OBJEXT): $(REMOTEDIR)/k_set.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_or.$(OBJEXT): $(REMOTEDIR)/v_or.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_set.$(OBJEXT): $(REMOTEDIR)/v_set.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/main.$(OBJEXT): $(REMOTEDIR)/main.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/notify.$(OBJEXT): $(REMOTEDIR)/notify.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/trap_bc.$(OBJEXT): $(REMOTEDIR)/trap_bc.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/agtctx.$(OBJEXT): $(REMOTEDIR)/agtctx.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/agtinit.$(OBJEXT): $(REMOTEDIR)/agtinit.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/geninit.$(OBJEXT): $(REMOTEDIR)/geninit.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/fnames.$(OBJEXT): $(REMOTEDIR)/fnames.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/mgmt.$(OBJEXT): $(REMOTEDIR)/mgmt.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/pclo.$(OBJEXT): $(REMOTEDIR)/pclo.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/report.$(OBJEXT): $(REMOTEDIR)/report.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/snmpresp.$(OBJEXT): $(REMOTEDIR)/snmpresp.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/sets.$(OBJEXT): $(REMOTEDIR)/sets.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/objectdb.$(OBJEXT): $(REMOTEDIR)/objectdb.c $(OSOBJDIR)/snmpoid.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/v_at.$(OBJEXT): $(REMOTEDIR)/v_at.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_at.$(OBJEXT): $(REMOTEDIR)/k_at.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_if.$(OBJEXT): $(REMOTEDIR)/v_if.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_ip.$(OBJEXT): $(REMOTEDIR)/v_ip.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_icmp.$(OBJEXT): $(REMOTEDIR)/v_icmp.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_snmpv1.$(OBJEXT): $(REMOTEDIR)/v_snmpv1.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_srAgentInfo.$(OBJEXT): $(REMOTEDIR)/v_srAgentInfo.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_srAgentInfo.$(OBJEXT): $(REMOTEDIR)/k_srAgentInfo.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_snmpv1.$(OBJEXT): $(REMOTEDIR)/k_snmpv1.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_system.$(OBJEXT): $(REMOTEDIR)/v_system.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_system.$(OBJEXT): $(REMOTEDIR)/k_system.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_apoCap.$(OBJEXT): $(REMOTEDIR)/v_apoCap.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_apoCap.$(OBJEXT): $(REMOTEDIR)/k_apoCap.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/v_tcp.$(OBJEXT): $(REMOTEDIR)/v_tcp.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/epiccore.$(OBJEXT): $(REMOTEDIR)/epiccore.c
+	$(REMOTERULE)
+
+
+$(OSOBJDIR)/v_udp.$(OBJEXT): $(REMOTEDIR)/v_udp.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_shared.$(OBJEXT): $(REMOTEDIR)/k_shared.c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_$(os).$(OBJEXT): $(REMOTEDIR)/k_$(os).c
+	$(REMOTERULE)
+
+$(OSOBJDIR)/k_$(EXTEND_BASE).c:  $(OSOBJDIR)/k_$(EXTEND_BASE).stb
+	@if [ ! -f $(OSOBJDIR)/k_$(EXTEND_BASE).c ] ; then \
+	  $(CP) $(OSOBJDIR)/k_$(EXTEND_BASE).stb \
+	        $(OSOBJDIR)/k_$(EXTEND_BASE).c ; \
+	else \
+	  echo "$(OSOBJDIR)/k_$(EXTEND_BASE).c ALREADY EXISTS AND WAS NOT" \
+	       "REPLACED!!" ; \
+	  echo "REMOVE $(OSOBJDIR)/k_$(EXTEND_BASE).c TO USE THE NEW" \
+	       "k_$(EXTEND_BASE).stb FILE!!" ; \
+	fi
+
+$(OSOBJDIR)/v_$(EXTEND_BASE).c: $(OSOBJDIR)/v_$(EXTEND_BASE).stb
+	@if [ ! -f $(OSOBJDIR)/v_$(EXTEND_BASE).c ] ; then \
+	  $(CP) $(OSOBJDIR)/v_$(EXTEND_BASE).stb \
+	        $(OSOBJDIR)/v_$(EXTEND_BASE).c ; \
+	else \
+	  echo "$(OSOBJDIR)/v_$(EXTEND_BASE).c ALREADY EXISTS AND WAS NOT" \
+	       "REPLACED!!" ; \
+	  echo "REMOVE $(OSOBJDIR)/v_$(EXTEND_BASE).c TO USE THE NEW" \
+	       "v_$(EXTEND_BASE).stb FILE!!" ; \
+	fi
+
+$(OSOBJDIR)/k_$(EXTEND_BASE).$(OBJEXT): $(OSOBJDIR)/k_$(EXTEND_BASE).c
+	$(YACCRULE)
+
+$(OSOBJDIR)/v_$(EXTEND_BASE).$(OBJEXT): $(OSOBJDIR)/v_$(EXTEND_BASE).c
+	$(YACCRULE)
+
+
+all:: $(BINDIR) $(BINDIR)/snmpd$(BINEXT)
+
+# should put rules for extension MIBs and miscellany here
+
+yourmib.my:
+	$(CP) ../yourmib.my .
+
+
+all:: $(BINDIR) $(BINDIR)/snmpd$(BINEXT)
+
+$(BINDIR):
+	-$(MKDIR) $(BINDIR)
+
+$(BINDIR)/snmpd$(BINEXT): $(BINDIR) $(TARGET)
+	-$(CP) $(TARGET) $(BINDIR)
+
+$(OSOBJDIR)/yourmib.def: yourmib.my
+	$(MIBCOMP) -o $(OSOBJDIR)/yourmib.def -s yourmib.my
+
+$(OSOBJDIR)/lteainit.$(OBJEXT): $(REMOTEDIR)/lteainit.c
+	$(REMOTERULE)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+$(OSOBJDIR)/authname.o: ../shared/authname.c ../../include/sr_conf.h
+$(OSOBJDIR)/authname.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/authname.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/authname.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/authname.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/authname.o: ../../include/sri/getport.h
+$(OSOBJDIR)/authname.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/authname.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/authname.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/authname.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/authname.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/authname.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/authname.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/authname.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/report.o: ../shared/report.c ../../include/sr_conf.h
+$(OSOBJDIR)/report.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/report.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/report.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/report.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/report.o: ../../include/sri/getport.h
+$(OSOBJDIR)/report.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/report.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/report.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/report.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/report.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/report.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/report.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/report.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/report.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/report.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/report.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/report.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/report.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/report.o: ../../snmpd/mibs/snmpv3/v3type.h ../../include/lookup.h
+$(OSOBJDIR)/report.o: ../../include/v2table.h ../../include/v3_msg.h
+$(OSOBJDIR)/chk_view.o: ../shared/chk_view.c ../../include/sr_conf.h
+$(OSOBJDIR)/chk_view.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/chk_view.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/chk_view.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/chk_view.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/getport.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/chk_view.o: ../../include/sri/gettime.h ../../include/lookup.h
+$(OSOBJDIR)/chk_view.o: ../../include/v2table.h snmptype.h
+$(OSOBJDIR)/chk_view.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/chk_view.o: ../../snmpd/include/method.h coretype.h userpart.h
+$(OSOBJDIR)/chk_view.o: ../include/userpart.h ../mibs/snmpv3/userpart.h
+$(OSOBJDIR)/chk_view.o: ../mibs/coex/userpart.h
+$(OSOBJDIR)/chk_view.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/chk_view.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/chk_view.o: ../../include/frmt_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/chk_view.o: ../../snmpd/include/chk_view.h
+$(OSOBJDIR)/chk_filt.o: ../shared/chk_filt.c ../../include/sr_conf.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/getport.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/chk_filt.o: ../../include/sri/gettime.h ../../include/lookup.h
+$(OSOBJDIR)/chk_filt.o: ../../include/v2table.h snmptype.h
+$(OSOBJDIR)/chk_filt.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/chk_filt.o: ../../snmpd/include/method.h coretype.h userpart.h
+$(OSOBJDIR)/chk_filt.o: ../include/userpart.h ../mibs/snmpv3/userpart.h
+$(OSOBJDIR)/chk_filt.o: ../mibs/coex/userpart.h
+$(OSOBJDIR)/chk_filt.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/chk_filt.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/chk_filt.o: ../../include/oid_lib.h
+$(OSOBJDIR)/k_or.o: ../shared/k_or.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_or.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_or.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_or.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_or.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_or.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_or.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_or.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_or.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_or.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/k_or.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/include/method.h ../../snmpd/include/mibout.h
+$(OSOBJDIR)/k_or.o: snmpdefs.h coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/k_or.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/k_or.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_or.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_or.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_set.o: ../shared/k_set.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_set.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_set.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_set.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_set.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_set.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_set.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_set.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_set.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_set.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/k_set.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/k_set.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/k_set.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_set.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_set.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_or.o: ../shared/v_or.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_or.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_or.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_or.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_or.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_or.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_or.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_or.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_or.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_or.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/include/method.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/v_or.o: ../../include/inst_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/v_or.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/v_or.o: ../../include/diag.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_or.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_or.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_or.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_or.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_set.o: ../shared/v_set.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_set.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_set.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_set.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_set.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_set.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_set.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_set.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_set.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_set.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/v_set.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_set.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_set.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/include/min_v.h ../../snmpd/include/mibout.h
+$(OSOBJDIR)/v_set.o: snmpdefs.h coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_set.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_set.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_set.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_set.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/main.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/main.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/main.o: ../../include/sr_time.h ../../include/sr_snmp.h
+$(OSOBJDIR)/main.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/main.o: ../../include/sr_copyright.h ../../include/sri/getport.h
+$(OSOBJDIR)/main.o: ../../include/sri/make_lib.h ../../include/sri/free_lib.h
+$(OSOBJDIR)/main.o: ../../include/sri/bld_pkt.h ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/main.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/main.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/main.o: ../../include/sr_trans.h ../../include/sr_msg.h
+$(OSOBJDIR)/main.o: ../../include/sr_fdset.h ../../include/compat.h
+$(OSOBJDIR)/main.o: ../../include/sr_dmn.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/main.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/mapctx.h ../../snmpd/include/method.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/main.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/main.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/main.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/main.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/chk_view.h ../shared/mgmt.h
+$(OSOBJDIR)/main.o: ../../include/tmq.h ../../include/sr_cfg.h
+$(OSOBJDIR)/main.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/main.o: ../../include/scan.h ../../snmpd/include/trap.h
+$(OSOBJDIR)/main.o: ../../include/ntfy_oid.h ../../snmpd/include/sr_ntfy.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/snmpv2d.h ../shared/agtinit.h
+$(OSOBJDIR)/main.o: ../../snmpd/include/fnames.h ../shared/geninit.h
+$(OSOBJDIR)/main.o: ../shared/agtctx.h sitedefs.h ../../include/mib_tabl.h
+$(OSOBJDIR)/main.o: ../../include/snmp-mib.h
+$(OSOBJDIR)/dosnmp.o: ../shared/dosnmp.c ../../include/sr_conf.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_featr.h ../shared/dosnmpv3.c
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/getport.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/dosnmp.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/dosnmp.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/dosnmp.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/dosnmp.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/mibs/snmpv3/v3type.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/mibs/snmpv3/v3defs.h ../shared/agtctx.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/include/chk_view.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/include/snmpv2d.h
+$(OSOBJDIR)/dosnmp.o: ../../snmpd/include/trap.h ../../include/ntfy_oid.h
+$(OSOBJDIR)/dosnmp.o: ../shared/report.h ../../include/lookup.h
+$(OSOBJDIR)/dosnmp.o: ../../include/v2table.h ../../include/v3_msg.h
+$(OSOBJDIR)/notify.o: ../shared/notify.c ../../include/sr_conf.h
+$(OSOBJDIR)/notify.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/notify.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/notify.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/notify.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/notify.o: ../../include/sri/getport.h
+$(OSOBJDIR)/notify.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/notify.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/notify.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/notify.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/notify.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/notify.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/notify.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/notify.o: ../../include/oid_lib.h ../../include/sr_msg.h
+$(OSOBJDIR)/notify.o: ../../include/ntfy_cvt.h ../../include/ntfy_oid.h
+$(OSOBJDIR)/notify.o: ../../include/sr_cfg.h ../../include/lookup.h
+$(OSOBJDIR)/notify.o: ../../include/v2table.h ../../include/v3_tag.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/notify.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/notify.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/notify.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/notify.o: ../../snmpd/mibs/snmpv3/v3prot.h ../shared/agtctx.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/sr_ntfy.h ../../include/sr_ip.h
+$(OSOBJDIR)/notify.o: ../../include/v3_msg.h ../../snmpd/include/trap.h
+$(OSOBJDIR)/notify.o: ../../include/sr_user.h ../../snmpd/include/snmpv2d.h
+$(OSOBJDIR)/notify.o: ../../snmpd/include/chk_view.h
+$(OSOBJDIR)/notify.o: ../../include/sri/vbtable.h ../../include/epic.h
+$(OSOBJDIR)/notify.o: ../../include/epiccore.h ../shared/notifyv3.c
+$(OSOBJDIR)/notify.o: ../../include/frmt_lib.h ../../include/pclo.h
+$(OSOBJDIR)/notify.o: ../../include/v3_vta.h ../../snmpd/include/chk_filt.h
+$(OSOBJDIR)/notify.o: ../../include/sr_fdset.h ../../include/tmq.h
+$(OSOBJDIR)/notify.o: ../shared/notify.h ../../include/cacheid.h
+$(OSOBJDIR)/trap_bc.o: ../shared/trap_bc.c ../../include/sr_conf.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/getport.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/trap_bc.o: ../../include/sr_msg.h ../../include/sr_cfg.h
+$(OSOBJDIR)/trap_bc.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/trap_bc.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/trap_bc.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/include/sr_ntfy.h ../../include/v3_msg.h
+$(OSOBJDIR)/trap_bc.o: ../../snmpd/include/trap.h ../../include/ntfy_oid.h
+$(OSOBJDIR)/agtctx.o: ../shared/agtctx.c ../../include/sr_conf.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_featr.h ../shared/agtctxv3.c
+$(OSOBJDIR)/agtctx.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/getport.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/agtctx.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_msg.h ../../include/sr_vta.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/include/context.h ../../include/sr_user.h
+$(OSOBJDIR)/agtctx.o: ../../include/sr_cfg.h ../../include/lookup.h
+$(OSOBJDIR)/agtctx.o: ../../include/v2table.h ../../include/scan.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/agtctx.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/agtctx.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/include/snmpv2d.h
+$(OSOBJDIR)/agtctx.o: ../../snmpd/include/chk_view.h ../shared/agtctx.h
+$(OSOBJDIR)/agtctx.o: ../../include/v3_msg.h ../../snmpd/mibs/snmpv3/v3defs.h
+$(OSOBJDIR)/agtinit.o: ../shared/agtinit.c ../../include/sr_conf.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/getport.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/agtinit.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/agtinit.o: ../../include/snmpid.h ../../include/sr_cfg.h
+$(OSOBJDIR)/agtinit.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/agtinit.o: ../../include/scan.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/agtinit.o: ../../include/snmpv2.h ../../include/ct_old.h
+$(OSOBJDIR)/agtinit.o: snmptype.h ../../snmpd/include/context.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/include/method.h coretype.h userpart.h
+$(OSOBJDIR)/agtinit.o: ../include/userpart.h ../mibs/snmpv3/userpart.h
+$(OSOBJDIR)/agtinit.o: ../mibs/coex/userpart.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_msg.h ../../include/v1_msg.h
+$(OSOBJDIR)/agtinit.o: ../../include/v3_msg.h ../../snmpd/include/mapctx.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/include/chk_view.h sitedefs.h
+$(OSOBJDIR)/agtinit.o: ../../include/sr_bdata.h ../../include/v3_vta.h
+$(OSOBJDIR)/agtinit.o: ../shared/agtinit.h ../../snmpd/include/fnames.h
+$(OSOBJDIR)/agtinit.o: ../../include/compat.h ../../snmpd/mibs/coex/i_comm.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_arch.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_mpd.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_usm.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_ac.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_ctx.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_group.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_notif.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_tgt.h
+$(OSOBJDIR)/agtinit.o: ../../snmpd/mibs/snmpv3/i_view.h
+$(OSOBJDIR)/geninit.o: ../shared/geninit.c ../../include/sr_conf.h
+$(OSOBJDIR)/geninit.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/geninit.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/geninit.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/geninit.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/getport.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/geninit.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/geninit.o: ../../include/snmpid.h ../../include/sr_cfg.h
+$(OSOBJDIR)/geninit.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/geninit.o: ../../include/scan.h sitedefs.h ../../include/diag.h
+$(OSOBJDIR)/geninit.o: ../shared/geninit.h
+$(OSOBJDIR)/fnames.o: ../shared/fnames.c ../../include/sr_conf.h
+$(OSOBJDIR)/fnames.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/fnames.o: ../../include/sr_featr.h ../../include/sr_proto.h
+$(OSOBJDIR)/fnames.o: ../../include/sr_type.h ../../snmpd/include/fnames.h
+$(OSOBJDIR)/fnames.o: ../../include/diag.h
+$(OSOBJDIR)/mgmt.o: ../shared/mgmt.c ../../include/sr_conf.h
+$(OSOBJDIR)/mgmt.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/mgmt.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/mgmt.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/mgmt.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/mgmt.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/mgmt.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/mgmt.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/mgmt.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/mgmt.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/mgmt.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/mgmt.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/mgmt.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/mgmt.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/mgmt.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/mgmt.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/mgmt.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/mgmt.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/mgmt.o: ../../snmpd/include/chk_view.h ../shared/mgmt.h
+$(OSOBJDIR)/mgmt.o: ../shared/dosnmp.h sitedefs.h ../../snmpd/include/trap.h
+$(OSOBJDIR)/mgmt.o: ../../include/ntfy_oid.h ../../include/pclo.h
+$(OSOBJDIR)/pclo.o: ../shared/pclo.c ../../include/sr_conf.h
+$(OSOBJDIR)/pclo.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/pclo.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/pclo.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/pclo.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/gettime.h ../../include/compat.h
+$(OSOBJDIR)/pclo.o: ../../include/diag.h ../../include/sr_trans.h
+$(OSOBJDIR)/pclo.o: ../../include/prnt_lib.h ../../include/pclo.h
+$(OSOBJDIR)/pclo.o: ../../include/sr_msg.h ../../include/lookup.h
+$(OSOBJDIR)/pclo.o: ../../include/v2table.h ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/pclo.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/pclo.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/pclo.o: ../../snmpd/mibs/snmpv3/v3supp.h undefs.h
+$(OSOBJDIR)/pclo.o: ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/pclo.o: ../../snmpd/mibs/snmpv3/v3defs.h ../../include/v1_msg.h
+$(OSOBJDIR)/pclo.o: ../../include/v3_msg.h ../../include/sri/vbtable.h
+$(OSOBJDIR)/pclo.o: ../../include/sri/sr_kwmatch.h ../../include/epic.h
+$(OSOBJDIR)/pclo.o: ../../include/epiccore.h
+$(OSOBJDIR)/snmpresp.o: ../shared/snmpresp.c ../../include/sr_conf.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sr_featr.h ../../include/sr_type.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sr_time.h ../../include/sr_snmp.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sr_proto.h ../../include/sr_copyright.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/getport.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/snmpresp.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/snmpresp.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/snmpresp.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/snmpresp.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/mibs/snmpv3/v3type.h sitedefs.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/include/chk_view.h
+$(OSOBJDIR)/snmpresp.o: ../../include/oid_lib.h
+$(OSOBJDIR)/snmpresp.o: ../../snmpd/include/objectdb.h
+$(OSOBJDIR)/sets.o: ../shared/sets.c ../../include/sr_conf.h
+$(OSOBJDIR)/sets.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/sets.o: ../../include/sr_featr.h ../../include/sr_type.h
+$(OSOBJDIR)/sets.o: ../../include/sr_time.h ../../include/sr_snmp.h
+$(OSOBJDIR)/sets.o: ../../include/sr_proto.h ../../include/sr_copyright.h
+$(OSOBJDIR)/sets.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/sets.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/sets.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/sets.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/sets.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/sets.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/sets.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/sets.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/sets.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/sets.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/sets.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/sets.o: ../../snmpd/mibs/snmpv3/v3type.h
+$(OSOBJDIR)/sets.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/sets.o: ../../snmpd/include/chk_view.h
+$(OSOBJDIR)/sets.o: ../../snmpd/include/snmpv2d.h ../../include/frmt_lib.h
+$(OSOBJDIR)/sets.o: ../../include/tc_time.h ../../include/prnt_lib.h
+$(OSOBJDIR)/sets.o: ../../snmpd/include/objectdb.h
+$(OSOBJDIR)/objectdb.o: ../shared/objectdb.c ../../include/sr_conf.h
+$(OSOBJDIR)/objectdb.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/objectdb.o: ../../include/sr_featr.h ../../include/sr_time.h
+$(OSOBJDIR)/objectdb.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/objectdb.o: ../../include/sr_proto.h ../../include/sr_copyright.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/getport.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/objectdb.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/objectdb.o: ../../include/sr_msg.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/objectdb.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/method.h snmptype.h coretype.h
+$(OSOBJDIR)/objectdb.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/objectdb.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/objectdb.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/snmpv3/v3prot.h snmpsupp.h
+$(OSOBJDIR)/objectdb.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/objectdb.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/snmpv3/v3supp.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/chk_view.h sitedefs.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/snmpv2d.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/getvar.h ../../include/oid_lib.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/include/objectdb.h
+$(OSOBJDIR)/objectdb.o: ../../include/inst_lib.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/objectdb.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/objectdb.o: ../../include/scan.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/objectdb.o: ../../include/prnt_lib.h ../../include/compat.h
+$(OSOBJDIR)/objectdb.o: snmppart.h corepart.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/objectdb.o: ../../snmpd/mibs/snmpv3/v3part.h
+$(OSOBJDIR)/objectdb.o: $(OSOBJDIR)/snmpoid.c
+$(OSOBJDIR)/v_at.o: ../shared/v_at.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_at.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_at.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_at.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_at.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_at.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_at.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_at.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_at.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_at.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/include/method.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/v_at.o: ../../include/inst_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/v_at.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/v_at.o: ../../include/diag.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_at.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_at.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_at.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_at.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_at.o: ../shared/k_at.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_featr.h ../../include/sr_type.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_proto.h ../../include/diag.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_snmp.h ../../include/sr_time.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_copyright.h ../../include/sri/getport.h
+$(OSOBJDIR)/k_at.o: ../../include/sri/make_lib.h ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_at.o: ../../include/sri/bld_pkt.h ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_at.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_at.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/k_at.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/include/method.h ../../snmpd/include/mibout.h
+$(OSOBJDIR)/k_at.o: snmpdefs.h coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/k_at.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/k_at.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_at.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_at.o: ../../snmpd/mibs/snmpv3/v3prot.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_if.o: ../shared/v_if.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_if.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_if.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_if.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_if.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_if.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_if.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_if.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_if.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_if.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/include/method.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/v_if.o: ../../include/inst_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/v_if.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/v_if.o: ../../include/diag.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_if.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_if.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_if.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_if.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_ip.o: ../shared/v_ip.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_ip.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_ip.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_ip.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_ip.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_ip.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_ip.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_ip.o: ../../include/sri/prse_pkt.h ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_ip.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_ip.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/include/method.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/v_ip.o: ../../include/inst_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/v_ip.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/v_ip.o: ../../include/diag.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_ip.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_ip.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_ip.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_ip.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_icmp.o: ../shared/v_icmp.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/getport.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/nvt_chk.h ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_icmp.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_icmp.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_icmp.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_icmp.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_icmp.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_icmp.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_icmp.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_snmpv1.o: ../shared/v_snmpv1.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/getport.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_snmpv1.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/v_snmpv1.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/v_snmpv1.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/v_snmpv1.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/v_snmpv1.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_snmpv1.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/v_snmpv1.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_snmpv1.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../shared/v_srAgentInfo.c
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/osconf/linux.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_time.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/getport.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/sr_trans.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/include/makevb.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/inst_lib.h ../../include/oid_lib.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../include/diag.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/include/mibout.h snmpdefs.h
+$(OSOBJDIR)/v_srAgentInfo.o: coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/v_srAgentInfo.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/v_srAgentInfo.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/v_srAgentInfo.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../mibs/snmpv3/userpart.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/v_srAgentInfo.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../shared/k_srAgentInfo.c
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/osconf/linux.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_time.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/sr_trans.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/include/makevb.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/include/mibout.h snmpdefs.h
+$(OSOBJDIR)/k_srAgentInfo.o: coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/k_srAgentInfo.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/k_srAgentInfo.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/k_srAgentInfo.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../mibs/snmpv3/userpart.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../include/diag.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/k_srAgentInfo.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_srAgentInfo.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_snmpv1.o: ../shared/k_snmpv1.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/include/comunity.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/v2clssc.h ../../include/sr_trans.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/include/makevb.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/k_snmpv1.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/k_snmpv1.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/k_snmpv1.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/k_snmpv1.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_snmpv1.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/k_snmpv1.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_snmpv1.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/k_snmpv1.o: ../../include/sr_cfg.h ../../include/scan.h
+$(OSOBJDIR)/v_system.o: ../shared/v_system.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_system.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_system.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_system.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_system.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/getport.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_system.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_system.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_system.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/v_system.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/v_system.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/v_system.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/v_system.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_system.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/v_system.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_system.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_system.o: ../shared/k_system.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_system.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_system.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_system.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_system.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_system.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/include/comunity.h
+$(OSOBJDIR)/k_system.o: ../../include/v2clssc.h ../../include/sr_trans.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/k_system.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/k_system.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/k_system.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/k_system.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_system.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/k_system.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_system.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_system.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/k_system.o: ../../include/sr_cfg.h ../../include/scan.h
+$(OSOBJDIR)/k_system.o: sitedefs.h
+$(OSOBJDIR)/v_apoCap.o: ../shared/v_apoCap.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/getport.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_apoCap.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/include/min_v.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/v_apoCap.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/v_apoCap.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/v_apoCap.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/v_apoCap.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_apoCap.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/v_apoCap.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_apoCap.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_apoCap.o: ../shared/k_apoCap.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/include/makevb.h ../../include/lookup.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/v2table.h ../../snmpd/include/min_v.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/k_apoCap.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/k_apoCap.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/k_apoCap.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/k_apoCap.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_apoCap.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/k_apoCap.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_apoCap.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_apoCap.o: ../../include/compat.h
+$(OSOBJDIR)/v_tcp.o: ../shared/v_tcp.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/v_tcp.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_tcp.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_tcp.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/include/min_v.h ../../snmpd/include/mibout.h
+$(OSOBJDIR)/v_tcp.o: snmpdefs.h coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_tcp.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_tcp.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_tcp.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_tcp.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/k_linux.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/k_linux.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/k_linux.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/k_linux.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/k_linux.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_linux.o: ../../include/sri/gettime.h ../../include/diag.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/include/comunity.h ../../include/v2clssc.h
+$(OSOBJDIR)/k_linux.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/k_linux.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/k_linux.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_linux.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/mibs/snmpv3/v3prot.h sitedefs.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/include/trap.h ../../include/ntfy_oid.h
+$(OSOBJDIR)/k_linux.o: ../../include/tmq.h ../../snmpd/include/makevb.h
+$(OSOBJDIR)/k_linux.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/k_linux.o: ../../snmpd/include/min_v.h k_ipforw.c
+$(OSOBJDIR)/k_shared.o: ../shared/k_shared.c ../../include/sr_conf.h
+$(OSOBJDIR)/k_shared.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/k_shared.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/k_shared.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/k_shared.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/getport.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/k_shared.o: ../../include/sri/gettime.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/include/comunity.h
+$(OSOBJDIR)/k_shared.o: ../../include/v2clssc.h ../../include/sr_trans.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/include/context.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/k_shared.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/k_shared.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/k_shared.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/k_shared.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/k_shared.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/k_shared.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/k_shared.o: ../../snmpd/mibs/snmpv3/v3prot.h sitedefs.h
+$(OSOBJDIR)/epiccore.o: ../shared/epiccore.c ../../include/sr_conf.h
+$(OSOBJDIR)/epiccore.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/epiccore.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/epiccore.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/epiccore.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/getport.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/gettime.h ../../include/sr_trans.h
+$(OSOBJDIR)/epiccore.o: ../../include/sr_msg.h ../../include/sr_fdset.h
+$(OSOBJDIR)/epiccore.o: ../../include/compat.h ../../snmpd/include/comunity.h
+$(OSOBJDIR)/epiccore.o: ../../include/v2clssc.h ../../snmpd/include/context.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/mapctx.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/mibout.h snmpdefs.h coredefs.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h
+$(OSOBJDIR)/epiccore.o: coresupp.h undefs.h ../mibs/snmpv3/undefs.h
+$(OSOBJDIR)/epiccore.o: ../mibs/coex/undefs.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h
+$(OSOBJDIR)/epiccore.o: corepart.h ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h
+$(OSOBJDIR)/epiccore.o: coretype.h userpart.h ../include/userpart.h
+$(OSOBJDIR)/epiccore.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/coex/coextype.h ../../include/diag.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h
+$(OSOBJDIR)/epiccore.o: coreprot.h ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/mibs/snmpv3/v3prot.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/snmpd.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/chk_view.h ../shared/mgmt.h
+$(OSOBJDIR)/epiccore.o: ../../include/tmq.h ../../include/sr_cfg.h
+$(OSOBJDIR)/epiccore.o: ../../include/lookup.h ../../include/v2table.h
+$(OSOBJDIR)/epiccore.o: ../../include/scan.h ../../snmpd/include/trap.h
+$(OSOBJDIR)/epiccore.o: ../../include/ntfy_oid.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/snmpv2d.h ../shared/agtinit.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/fnames.h ../shared/geninit.h
+$(OSOBJDIR)/epiccore.o: ../shared/agtctx.h ../../include/v1_msg.h
+$(OSOBJDIR)/epiccore.o: ../../include/oid_lib.h ../../include/sr_snb.h
+$(OSOBJDIR)/epiccore.o: ../../include/v3_msg.h ../../include/sr_auth.h
+$(OSOBJDIR)/epiccore.o: ../../include/pw2key.h ../../include/sr_priv.h
+$(OSOBJDIR)/epiccore.o: ../../snmpd/include/sr_ntfy.h
+$(OSOBJDIR)/epiccore.o: ../../include/sri/vbtable.h ../../include/epic.h
+$(OSOBJDIR)/epiccore.o: ../../include/epiccore.h
+$(OSOBJDIR)/v_udp.o: ../shared/v_udp.c ../../include/sr_conf.h
+$(OSOBJDIR)/v_udp.o: ../../include/sr_vrsn.h ../../include/osconf/linux.h
+$(OSOBJDIR)/v_udp.o: ../../include/sr_featr.h ../../include/sr_snmp.h
+$(OSOBJDIR)/v_udp.o: ../../include/sr_type.h ../../include/sr_proto.h
+$(OSOBJDIR)/v_udp.o: ../../include/sr_time.h ../../include/sr_copyright.h
+$(OSOBJDIR)/v_udp.o: ../../include/sri/getport.h ../../include/sri/make_lib.h
+$(OSOBJDIR)/v_udp.o: ../../include/sri/free_lib.h ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/v_udp.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/v_udp.o: ../../include/sri/auth_lib.h ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/v_udp.o: ../../include/sri/sigfunc.h ../../include/sri/gettime.h
+$(OSOBJDIR)/v_udp.o: ../../include/sr_trans.h ../../snmpd/include/context.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/include/method.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/include/makevb.h ../../include/inst_lib.h
+$(OSOBJDIR)/v_udp.o: ../../include/oid_lib.h ../../include/lookup.h
+$(OSOBJDIR)/v_udp.o: ../../include/v2table.h ../../include/diag.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/include/min_v.h ../../snmpd/include/mibout.h
+$(OSOBJDIR)/v_udp.o: snmpdefs.h coredefs.h ../../snmpd/mibs/coex/coexdefs.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/snmpv3/v3defs.h snmpsupp.h coresupp.h
+$(OSOBJDIR)/v_udp.o: undefs.h ../mibs/snmpv3/undefs.h ../mibs/coex/undefs.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/coex/coexsupp.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/snmpv3/v3supp.h snmppart.h corepart.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/coex/coexpart.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/snmpv3/v3part.h snmptype.h coretype.h
+$(OSOBJDIR)/v_udp.o: userpart.h ../include/userpart.h
+$(OSOBJDIR)/v_udp.o: ../mibs/snmpv3/userpart.h ../mibs/coex/userpart.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/coex/coextype.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/snmpv3/v3type.h snmpprot.h coreprot.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/coex/coexprot.h
+$(OSOBJDIR)/v_udp.o: ../../snmpd/mibs/snmpv3/v3prot.h

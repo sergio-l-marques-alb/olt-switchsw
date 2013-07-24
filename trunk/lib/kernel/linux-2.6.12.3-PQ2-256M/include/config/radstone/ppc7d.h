@@ -1,0 +1,1 @@
+#undef CONFIG_RADSTONE_PPC7D

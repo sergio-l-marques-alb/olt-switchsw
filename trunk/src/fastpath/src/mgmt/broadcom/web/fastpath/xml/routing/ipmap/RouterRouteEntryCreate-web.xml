@@ -1,0 +1,40 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RouterRouteEntryCreate" title="Router Route Entry Create">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="list" obj-name="routingipstaticrouteconfig_routeType" id="1" name="Route Type">
+                     <action type="enum" show = "1_4_1|1_5_1|1_6_1|1_6_2" hide="1_2_1|1_3_1" setval_ids="1_2_1|1_3_1|1_4_1" setval_args="Default_IPAddress|Default_IPAddress|valMapEmptyString"/>
+                     <action type="enum" show = "1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_6_2" setval_ids="1_2_1|1_3_1|1_4_1|1_5_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|Default_Router_Preference"/>
+                     <action type="enum" show = "1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_6_2"  hide="1_4_1" setval_ids = "1_2_1|1_3_1|1_4_1|1_5_1" setval_args = "valMapEmptyString|valMapEmptyString|Default_IPAddress|Default_Router_Preference"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" properties="filter,iterate,write-only" value="" maxLength="15" obj-name="routingipstaticrouteconfig_ipaddress" id="1" name="Network Address"/>
+            </node>
+            <node id="3">
+                <element control="textbox" properties="filter,iterate,write-only" value="" maxLength="15" obj-name="routingipstaticrouteconfig_ipmask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="4">
+                <element control="textbox" properties="filter,iterate,write-only" value="" maxLength="15" obj-name="routingipstaticrouteconfig_nexthopipaddress" id="1" name="Next Hop IP Address"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" control="textbox" properties="write-only" value="" maxLength="10" obj-name="routingipstaticrouteconfig_preference" id="1" name="Preference"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" target-page="ConfiguredRoutes.html" help="Submits the form on this page to the Switch" id="1" name="Cancel">
+                <action type="button" disable="1_1_1|1_2_1|1_3_1|1_4_1|1_5_1|1_6_2"/>
+                </button>
+
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingipstaticrouteconfig_RowStatus" help="Submits the form on this page to the Switch" id="2" name="Submit">
+                <action type="button" disable="1_6_1"/>
+                </button> 
+
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

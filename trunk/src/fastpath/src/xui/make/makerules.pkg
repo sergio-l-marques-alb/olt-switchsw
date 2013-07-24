@@ -1,0 +1,121 @@
+# This file defines special package-level build rules and is included by make.magic.
+#
+
+#XML_COMMON
+include $(FP_ROOT)/src/modb/make/make.xml.pkg
+#XML_PRODUCT
+include $(FP_ROOT)/src/mgmt/$(L7_CUSTOMER)/web/make/make.xml.pkg
+#WEB_CONTENT, JAVA_CONTENT
+include $(FP_ROOT)/src/mgmt/$(L7_CUSTOMER)/web/make/make.html.pkg
+
+SRC_DIR=$(FP_ROOT)/src/xui/framework
+DST_DIR=$(FP_ROOT)/$(OUT_OBJECTS)/xui
+XIE_DIR=$(SRC_DIR)/tools/xie
+
+CAT_NAME="Default"
+CAT_DIR=$(DST_DIR)/workspace
+CAT_FILE=$(DST_DIR)/catalog.txt
+XLIB_FILE=$(DST_DIR)/xui.out
+
+#define DEPEND_DIR_LIST 
+#$(XML_COMMON) $(XML_PRODUCT) $(WEB_CONTENT) $(JAVA_CONTENT)
+#endef
+
+DEPEND_DIR_LIST = $(XML_COMMON) $(XML_PRODUCT) $(WEB_CONTENT) $(JAVA_CONTENT)
+DEPEND_XML_LIST = $(foreach dir, $(DEPEND_DIR_LIST), $(wildcard $(FP_ROOT)/$(dir)/*.xml))
+
+$(XLIB_FILE):  $(DEPEND_XML_LIST)
+	$(CREATING_MSG)
+#
+# Setup the required folder structure
+#
+	$(DBG) mkdir -p $(DST_DIR)
+	$(DBG) mkdir -p $(CAT_DIR)
+	$(DBG) mkdir -p $(CAT_DIR)/$(CAT_NAME)
+	$(DBG) mkdir -p $(CAT_DIR)/app
+#
+# Generate the XML file list for the current packages.
+#
+	$(DBG) rm -f $(CAT_FILE)
+	$(DBG) for d in $(XML_COMMON); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(CAT_FILE); done
+	$(DBG) for d in $(XML_PRODUCT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(CAT_FILE); done
+	$(DBG) for d in $(WEB_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(CAT_FILE); done
+	$(DBG) for d in $(JAVA_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(CAT_FILE); done
+
+#	$(DBG) for x in $(DEPEND_XML_LIST); do echo "$$x" >> $(DST_DIR)/catalog.txt; done
+#
+# Copy the Tool and required JAR files in to output folder
+#
+	$(DBG) cp -f $(XIE_DIR)/xie.jar $(CAT_DIR)/app/xie.jar
+	$(DBG) cp -r -f $(XIE_DIR)/lib  $(CAT_DIR)/app/lib
+	$(DBG) cp -f $(XIE_DIR)/yuicompressor-2.4.2.jar $(CAT_DIR)/app/yuicompressor-2.4.2.jar
+#
+# Read the XML files and Generate Code
+#
+	$(DBG) echo "====================Starting XUI : `date`==============================="
+	$(DBG) java -Djava.awt.headless=true -mx1024m -ms100m -Xss10m -jar $(CAT_DIR)/app/xie.jar -xemode $(CAT_NAME) $(CAT_FILE) $(DST_DIR) $(FP_ROOT)
+	$(DBG) echo "====================Completed XUI : `date`=============================="
+	touch $(XLIB_FILE)
+
+
+BLDLIB_PKG := $(XLIB_FILE)
+
+.PHONY: clean
+clean::
+	$(DBG) rm -rf $(DST_DIR)/content/
+	$(DBG) rm -rf $(DST_DIR)/workspace/
+	$(DBG) rm -f $(DST_DIR)/*
+	$(DBG) rm -f codegen.d
+	$(DBG) rm -f build-dependencies
+
+
+# Output location for xui files.
+#
+out_xui := $(DOT)
+
+# Clean entire XUI output subdirectory tree.
+#
+# Note: Due to the large number of *.o and *.d files involved, using the $(RM)
+#       command can exceed the internal command size limits of the shell.
+#       In addition, since there are subdirectories that also need to be 
+#       removed as part of the cleanup, the best course of action is to 
+#       remove the entire xui output subtree and recreate its top-level 
+#       directory (which will be empty).
+#
+define cleanup-method-exec
+  -$(DBG)find $(out_xui) -name "*.o" -exec $(RM) {} ;
+  -$(DBG)find $(out_xui) -name "*.d" -exec $(RM) {} ;
+  -$(DBG)find $(out_xui) -name "*.log" -exec $(RM) {} ;
+endef
+
+define cleanup-method-xargs
+  -$(DBG)find $(out_xui) -name "*.o" | xargs -n 100 $(RM)
+  -$(DBG)find $(out_xui) -name "*.d" | xargs -n 100 $(RM)
+  -$(DBG)find $(out_xui) -name "*.log" | xargs -n 100 $(RM)
+endef
+
+clean::
+	@echo "Cleaning XUI output directory subtree" $(HUSH)
+ ifeq (1,$(BLD_L7_HOSTOS_MSWIN32))
+  ifeq ($(OLD_MAKE_VER),$(MAKE_VERSION))
+	$(cleanup-method-exec)
+  else
+	$(cleanup-method-xargs)
+  endif
+ endif
+ ifeq (1,$(BLD_L7_HOSTOS_LINUX))
+	$(cleanup-method-xargs)
+ endif
+ ifeq (1,$(BLD_L7_HOSTOS_SOLARIS))
+	$(cleanup-method-exec)
+ endif
+
+.PHONY: debug-variables
+debug-variables::
+# Note:  Leave the unquoted _DEFS lines as is to avoid conflict with quotes within the variable definitions.
+	@$(echo) ""
+	@$(echo) "Makefile Debug Local Variables For '$(PKGNAME)' Package:"
+	@$(echo) "=========================================================="
+	@$(echo) "DEPEND_DIR_LIST=$(DEPEND_DIR_LIST)"
+	@$(echo) ""
+

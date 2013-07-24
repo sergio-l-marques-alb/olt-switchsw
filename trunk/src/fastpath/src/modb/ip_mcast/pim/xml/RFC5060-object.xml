@@ -1,0 +1,1125 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="ipmcast" version="1.0" >
+<module name="pimGroupMappingTable"  key-method = "individual">
+<key-combo list="pimGroupMappingOrigin,pimGroupMappingGrpAddress,pimGroupMappingGrpPrefixLength,pimGroupMappingRPAddress"/>
+<object name="pimGroupMappingOrigin"  >
+<core  type="uint" key="yes" access="read-write" descr="The mechanism by which this group mapping was learned"/>
+<ui  name="PIM Group Mapping Origin" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.1"/> 
+</ui></object>
+<object name="pimGroupMappingAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of the IP multicast group address"/>
+<ui  name="Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.2"/> 
+</ui></object>
+<object name="pimGroupMappingGrpAddress"  >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The IP multicast group address that, when combined with pimGroupMappingGrpPrefixLength, gives the group prefix for this mapping.  The InetAddressType is given by the pimGroupMappingAddressType object"/>
+<ui  name="Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.3"/> 
+</ui></object>
+<object name="pimGroupMappingGrpPrefixLength"  >
+<core  type="uint" key="yes" access="read-write" descr="The multicast group prefix length that, when combined with pimGroupMappingGrpAddress, gives the group prefix for this mapping.  The InetAddressType is given by the pimGroupMappingAddressType object"/>
+<ui  name="Group Prefix Length" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.4"/> 
+</ui></object>
+<object name="pimGroupMappingRPAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of the RP to be used for groups within this group prefix, or unknown(0) if no RP is to be used or if the RP address is unknown. This object must be unknown(0) if pimGroupMappingPimMode is ssm(2), or if pimGroupMappingOrigin is embedded(6)"/>
+<ui  name="RP Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.5"/> 
+</ui></object>
+<object name="pimGroupMappingRPAddress"  >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The IP address of the RP to be used for groups within this group prefix.  The InetAddressType is given by the pimGroupMappingRPAddressType object"/>
+<ui  name="RP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.6"/> 
+</ui></object>
+<object name="pimGroupMappingPimMode" depends="pimGroupMappingOrigin,pimGroupMappingAddressType,pimGroupMappingGrpAddress,pimGroupMappingGrpPrefixLength,pimGroupMappingRPAddressType,pimGroupMappingRPAddress" >
+<core  type="enum" xtype="L7_XUI_PIM_MODE_t" access="read-only" descr="The PIM mode to be used for groups in this group prefix."/>
+<ui  name="PIM Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.7"/> 
+</ui></object>
+<object name="pimGroupMappingPrecedence" depends="pimGroupMappingOrigin,pimGroupMappingAddressType,pimGroupMappingGrpAddress,pimGroupMappingGrpPrefixLength,pimGroupMappingRPAddressType,pimGroupMappingRPAddress" >
+<core  type="uint" access="read-only" descr="The precedence of this row, used in the algorithm that determines which row applies to a given group address. Numerically higher values for this object indicate lower precedences, with the value zero denoting the highest precedence"/>
+<ui  name="Precedence" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.13.1.8"/> 
+</ui></object>
+</module>
+<module name="pimInterfaceTable"  key-method = "individual">
+<key-combo list="pimInterfaceIPVersion,pimInterfaceIfIndex"/>
+<object name="pimInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user"  xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of this PIM interface"/>
+<ui  name="Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.1"/> 
+</ui></object>
+<object name="pimInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user"  xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of this PIM interface"/>
+<ui  name="Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.1"/> 
+</ui></object>
+<object name="pimInterfaceIPVersion"  >
+<core  type="enum" xtype="L7_XUI_INET_VER_t" key="yes" access="read-write" descr="The IP version of this PIM interface. A physical interfacemay be configured in multiple modes concurrently, e.g. IPv4 and IPv6, however the traffic is considered to be logically separate."/>
+<ui  name="IP Version" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.2"/> 
+</ui></object>
+<object name="pimInterfaceAddressType" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="The address type of this PIM interface."/>
+<ui  name="Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.3"/> 
+</ui></object>
+<object name="pimInterfaceAddress" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The primary IP address of this router on this PIM interface.  The InetAddressType is given by the pimInterfaceAddressType object"/>
+<ui  name="Interface IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.4"/> 
+</ui></object>
+<object name="pimInterfaceGenerationIDValue" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="The value of the Generation ID this router inserted in the last PIM Hello message it sent on this interface"/>
+<ui  name="Generation ID Value" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.5"/> 
+</ui></object>
+<object name="pimInterfaceDR" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The primary IP address of the Designated Router on this PIM interface.  The InetAddressType is given by the pimInterfaceAddressType object"/>
+<ui  name="DR IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.6"/> 
+</ui></object>
+<object name="pimInterfaceDRPriority" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" min="L7_PIMSM_INTERFACE_DR_PRIORITY_MIN" max="L7_PIMSM_INTERFACE_DR_PRIORITY_MAX" descr="The Designated Router Priority value inserted into the DR Priority option in PIM Hello messages transmitted on this interface.  Numerically higher values for this object indicate higher priorities"/>
+<ui  name="DR Priority" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.7"/> 
+</ui></object>
+<object name="pimInterfaceDRPriorityEnabled" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if all routers on this interface are using the DR Priority option"/>
+<ui  name="DR Priority Enabled" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.8"/> 
+</ui></object>
+<object name="pimInterfaceHelloInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" min="L7_PIM_INTERFACE_HELLO_INTERVAL_MIN" max="L7_PIM_INTERFACE_HELLO_INTERVAL_MAX" default="FD_PIMSM_DEFAULT_INTERFACE_HELLO_INTERVAL" access="read-write" descr="The frequency at which PIM Hello messages are transmitted on this interface.  This object corresponds to the 'Hello_Period' timer value defined in the PIM-SM specification.  A value of zero represents an 'infinite' interval, and indicates that periodic PIM Hello messages should not be sent on this interface"/>
+<ui  name="Hello Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.9"/> 
+</ui></object>
+<object name="pimInterfaceTrigHelloInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The maximum time before this router sends a triggered PIM Hello message on this interface.  This object corresponds to the 'Trigered_Hello_Delay' timer value defined in the PIM-SM specification.  A value of zero has no special meaning and indicates that triggered PIM Hello messages should always be sent immediately"/>
+<ui  name="Triggered Hello Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.10"/> 
+</ui></object>
+<object name="pimInterfaceHelloHoldtime" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The value set in the Holdtime field of PIM Hello messages transmitted on this interface.  A value of 65535 represents an 'infinite' holdtime.  Implementations are recommended to use a holdtime that is 3.5 times the value of pimInterfaceHelloInterval, or 65535 if pimInterfaceHelloInterval is set to zero"/>
+<ui  name="Hello Holdtime" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.11"/> 
+</ui></object>
+<object name="pimInterfaceJoinPruneInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" min="L7_PIMSM_INTERFACE_JOINPRUNE_INTERVAL_MIN" max="L7_PIMSM_INTERFACE_JOINPRUNE_INTERVAL_MAX" access="read-write" descr="The frequency at which this router sends PIM Join/Prune messages on this PIM interface.  This object corresponds to the 't_periodic' timer value defined in the PIM-SM specification.  A value of zero represents an 'infinite' interval, and indicates that periodic PIM Join/Prune messages should not be sent on this interface"/>
+<ui  name="Join Prune Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.12"/> 
+</ui></object>
+<object name="pimInterfaceJoinPruneHoldtime" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The value inserted into the Holdtime field of a PIM Join/Prune message sent on this interface.  A value of 65535 represents an 'infinite' holdtime.  Implementations are recommended to use a holdtime that is 3.5 times the value of pimInterfaceJoinPruneInterval, or 65535 if pimInterfaceJoinPruneInterval is set to zero.  PIM-DM implementations are recommended to use the value of pimInterfacePruneLimitInterval"/>
+<ui  name="Join Prune Holdtime" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.13"/> 
+</ui></object>
+<object name="pimInterfaceDFElectionRobustness" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The minimum number of PIM DF-Election messages that must be lost in order for DF election on this interface to fail"/>
+<ui  name="DF Election Robustness" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.14"/> 
+</ui></object>
+<object name="pimInterfaceLanDelayEnabled" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if all routers on this interface are using the LAN Prune Delay option."/>
+<ui  name="Lan Delay Enabled" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.15"/> 
+</ui></object>
+<object name="pimInterfacePropagationDelay" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The expected propagation delay between PIM routers on this network or link. This router inserts this value into the Propagation_Delay field of the LAN Prune Delay option in the PIM Hello messages sent on this interface.  Implementations SHOULD enforce a lower bound on the permitted values for this object to allow for scheduling and processing delays within the local router"/>
+<ui  name="Propagation Delay" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.16"/> 
+</ui></object>
+<object name="pimInterfaceOverrideInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The value this router inserts into the Override_Interval field of the LAN Prune Delay option in the PIM Hello  messages it sends on this interface"/>
+<ui  name="Override Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.17"/> 
+</ui></object>
+<object name="pimInterfaceEffectPropagDelay" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="The Effective Propagation Delay on this interface.  This object is always 500 if pimInterfaceLanDelayEnabled is FALSE"/>
+<ui  name="Effect Propagation Delay" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.18"/> 
+</ui></object>
+<object name="pimInterfaceEffectOverrideIvl" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="The Effective Override Interval on this interface. This object is always 2500 if pimSmInterfaceLanDelayEnabled is FALSE."/>
+<ui  name="Effective Override Interval" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.19"/> 
+</ui></object>
+<object name="pimInterfaceSuppressionEnabled" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="Whether join suppression is enabled on this interface. This object is always TRUE if pimInterfaceLanDelayEnabled is FALSE"/>
+<ui  name="Join Suppression Enabled" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.20"/> 
+</ui></object>
+<object name="pimInterfaceBidirCapable" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if all routers on this interface are using the Bidirectional-PIM Capable option."/>
+<ui  name="Bi-directional PIM Capable" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.21"/> 
+</ui></object>
+<object name="pimInterfaceDomainBorder" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="Whether or not this interface is a PIM domain border.  This includes acting as a border for PIM Bootstrap Router (BSR) messages, if the BSR mechanism is in use"/>
+<ui  name="PIM Domain Border" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.22"/> 
+</ui></object>
+<object name="pimInterfaceStubInterface" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="Whether this interface is a 'stub interface'.  If this object is set to TRUE, then no PIM packets are sent out this interface, and any received PIM packets are ignored"/>
+<ui  name="Stub Interface" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.23"/> 
+</ui></object>
+<object name="pimInterfacePruneLimitInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The minimum interval that must transpire between two successive Prunes sent by a router.  This object corresponds to the 't_limit' timer value defined in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="Prune Limit Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.24"/> 
+</ui></object>
+<object name="pimInterfaceGraftRetryInterval" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The minimum interval that must transpire between two successive Grafts sent by a router.  This object corresponds to the 'Graft_Retry_Period' timer value defined in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="Graft Retry Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.25"/> 
+</ui></object>
+<object name="pimInterfaceSRPriorityEnabled" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if all routers on this interface are using the State Refresh option.  This object is used only by PIM-DM"/>
+<ui  name="State Refresh Priority Enabled" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.26"/> 
+</ui></object>
+<object name="pimInterfaceStatus" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="enum" xtype="L7_ADMIN_MODE_t"  access="read-write" descr="The status of this entry.  Creating the entry enables PIM on the interface; destroying the entry disables PIM on the interface"/>
+<ui  name="Interface Status" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.27"/> 
+</ui></object>
+<object name="pimInterfaceOperStatus" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="enum" xtype="operStatus_t" access="read-only" descr="The Operational status of this PIM Interface."/>
+<ui  name="Interface Operational Status" style="plainText">
+</ui></object>
+<object name="pimInterfaceStorageType" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-write" descr="The storage type for this row.  Rows having the value 'permanent' need not allow write-access to any columnar objects in the row"/>
+<ui  name="Interface Storage Type" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.1.1.28"/> 
+</ui></object>
+<!-- Missing1 Object Start -->
+<object name="pimInterfaceNeighborCount" depends="pimInterfaceIPVersion,pimInterfaceIfIndex" >
+<core  type="uint" access="read-only" descr="The number of PIM Neighbors present on this interface"/>
+<ui  name="Neighbor Count" style="plainText">
+</ui></object>
+<!-- Missing1 Object End -->
+</module>
+<module name="pimSGRptTable"  key-method = "individual">
+<object name="pimStarGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this multicast group"/>
+<ui  name="(*,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.1"/> 
+</ui></object>
+<object name="pimStarGGrpAddress" depends="pimStarGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address.  The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(*,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.2"/> 
+</ui></object>
+<object name="pimSGRptSrcAddress" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The source address for this entry.  The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(S,G,Rpt) Source Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.8.1.1"/> 
+</ui></object>
+<object name="pimSGRptUpTime" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(S,G,Rpt) Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.8.1.2"/> 
+</ui></object>
+<object name="pimSGRptUpstreamPruneState" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress" >
+<core  type="uint" access="read-only" descr="Whether the local router should prune the source off the RP tree.  This corresponds to the state of the upstream (S,G,rpt) state machine for triggered messages in the PIM-SM specification"/>
+<ui  name="(S,G,Rpt) Upstream Prune State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.8.1.3"/> 
+</ui></object>
+<object name="pimSGRptUpstreamOverrideTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router sends a triggered (S,G,rpt) Join message on pimStarGRPFIfIndex.  This timer is called the (S,G,rpt) Upstream Override Timer in the PIM-SM specification.  This object is zero if the timer is not running"/>
+<ui  name="(S,G,Rpt) Upstream Override Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.8.1.4"/> 
+</ui></object>
+</module>
+<module name="pimSGTable" key-method = "individual" >
+<key-combo list="pimSGGrpAddress,pimSGSrcAddress"/>
+<object name="pimSGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of the source and multicast group for this entry"/>
+<ui  name="(S,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.1"/> 
+</ui></object>
+<object name="pimSGGrpAddress" depends="pimSGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address for this entry. The InetAddressType is given by the pimSGAddressType object"/>
+<ui  name="(S,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.2"/> 
+</ui></object>
+<object name="pimSGSrcAddress" depends="pimSGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The source address for this entry. The InetAddressType is given by the pimSGAddressType object"/>
+<ui  name="(S,G) Source Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.3"/> 
+</ui></object>
+<object name="pimSGUpTime" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(S,G) Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.4"/> 
+</ui></object>
+<object name="pimSGPimMode" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="enum" xtype="L7_XUI_PIM_MODE_t" access="read-only" descr="Whether pimSmSGGrpAddress is an SSM (Source Specific Multicast, used with PIM-SM) or ASM (Any Source Multicast, used with PIM-SM) group"/>
+<ui  name="(S,G) Pim Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.5"/> 
+</ui></object>
+<object name="pimSGUpstreamJoinState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="Whether the local router should join the shortest-path treefor the source and group represented by this entry. This corresponds to the state of the upstream (S,G) state machinein the PIM-SM specification"/>
+<ui  name="(S,G) Upstream Join State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.6"/> 
+</ui></object>
+<object name="pimSGUpstreamJoinTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router next sends aperiodic (S,G) Join message on pimSmSGRPFIfIndex. This timeris called the (S,G) Upstream Join Timer in the PIM-SMspecification. This object is zero if the timer is not running"/>
+<ui  name="(S,G) Upstream Join Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.7"/> 
+</ui></object>
+<object name="pimSGUpstreamNeighbor" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The primary address of the neighbor on pimSmSGRPFIfIndex that the local router is sending periodic (S,G) Join messages to. This is zero if the the RPF next hop is unknown or is not a PIM neighbor"/>
+<ui  name="(S,G) Upstream Neighbor Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.8"/> 
+</ui></object>
+<object name="pimSGRPFIfIndex" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the RPF interface towards the source, or zero if the RPF interface is unknown"/>
+<ui  name="(S,G) RPF Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.9"/> 
+</ui></object>
+<object name="pimSGRPFIfIndex" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the RPF interface towards the source, or zero if the RPF interface is unknown"/>
+<ui  name="(S,G) RPF Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.9"/> 
+</ui></object>
+<object name="pimSGRPFNextHopType" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The address type of the RPF next hop towards the source, or unknown(0) if the RPF next hop is unknown"/>
+<ui  name="(S,G) RPF Nexthop Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.10"/> 
+</ui></object>
+<object name="pimSGRPFNextHop" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The address of the RPF next hop towards the source.  The InetAddressType is given by the pimSGRPFNextHopType.  This address is called MRIB.next_hop(S) in the PIM-SM specification"/>
+<ui  name="(S,G) RPF Next Hop" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.11"/> 
+</ui></object>
+<object name="pimSGRPFRouteProtocol" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="enum" xtype="L7_XUI_IANA_PROTO_ID_t" access="read-only" descr="The routing mechanism via which the route used to find the RPF interface towards the source was learned"/>
+<ui  name="(S,G) RPF Route Protocol" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.12"/> 
+</ui></object>
+<object name="pimSGRPFRouteAddress" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The IP address which when combined with the corresponding value of pimSGRPFRoutePrefixLength identifies the route used to find the RPF interface towards the source"/>
+<ui  name="(S,G) RPF Route Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.13"/> 
+</ui></object>
+<object name="pimSGRPFRoutePrefixLength" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The prefix length which when combined with the corresponding value of pimSGRPFRouteAddress identifies the route used to find the RPF interface towards the source"/>
+<ui  name="(S,G) RPF Prefix Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.14"/> 
+</ui></object>
+<object name="pimSGRPFRouteMetricPref" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The metric preference of the route used to find the RPF interface towards the source"/>
+<ui  name="(S,G) RPF MetricPreference" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.15"/> 
+</ui></object>
+<object name="pimSGRPFRouteMetric" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The metric preference of the route used to find the RPF interface towards the source"/>
+<ui  name="(S,G) RPF Route Metric" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.16"/> 
+</ui></object>
+<object name="pimSGSPTBit" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="Whether the SPT bit is set; and therefore whether forwarding is taking place on the shortest-path tree"/>
+<ui  name="(S,G) SPT Bit" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.17"/> 
+</ui></object>
+<object name="pimSGKeepaliveTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The time remaining before, in the absence of explicit (S,G) local membership or (S,G) Join messages received to maintain it, this (S,G) state expires"/>
+<ui  name="(S,G) Keepalive Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.18"/> 
+</ui></object>
+<object name="pimSGDRRegisterState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="enum" xtype="L7_XUI_PIMSGDRREG_STATE_t" access="read-only" descr="Whether the local router should encapsulate (S,G) datapackets in Register messages and send them to the RP"/>
+<ui  name="(S,G) DR Register State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.19"/> 
+</ui></object>
+<object name="pimSGDRRegisterStopTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="If pimSGDRRegisterState is 'prune', this is the timeremaining before the local router sends a Null-Registermessage to the RP. If pimSGDRRegisterState is 'joinPending', this is the time remaining before the local router resumes encapsulating data packets and sending them to the RP.  Otherwise, this is zero.  This timer is called the Register-Stop Timer in the PIM-SM specification"/>
+<ui  name="(S,G) DR Register-Stop Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.20"/> 
+</ui></object>
+<object name="pimSGRPRegisterPMBRAddressType" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The address type of the first PIM Multicast Border Router to send a Register message with the Border bit set. This object is unknown(0) if the local router is not the RP for the group"/>
+<ui  name="(S,G) RP Register PMBR Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.21"/> 
+</ui></object>
+<object name="pimSGRPRegisterPMBRAddress" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The IP address of the first PIM Multicast Border Router tosend a Register message with the Border bit set. Thisobject is zero if the local router is not the RP for thegroup. The InetAddressType is given by the pimSGAddressTypeobject"/>
+<ui  name="(S,G) RP Register PMBR Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.22"/> 
+</ui></object>
+<object name="pimSGUpstreamPruneState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="Whether the local router has pruned itself from the tree. This corresponds to the state of the upstream prune (S,G) state machine in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="(S,G) Upstream Prune State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.23"/> 
+</ui></object>
+<object name="pimSGUpstreamPruneLimitTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router may send a (S,G) Prune message on pimSGRPFIfIndex.  This timer is called the (S,G) Prune Limit Timer in the PIM-DM specification.  This object is zero if the timer is not running.  This object is used only by PIM-DM"/>
+<ui  name="(S,G) Upstream Prune Limit Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.24"/> 
+</ui></object>
+<object name="pimSGOriginatorState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="Whether the router is an originator for an (S,G) message flow.  This corresponds to the state of the per-(S,G) Originator state machine in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="(S,G) Originator State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.25"/> 
+</ui></object>
+<object name="pimSGSourceActiveTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="If pimSGOriginatorState is 'originator', this is the time remaining before the local router reverts to a notOriginator state.  Otherwise, this is zero.  This timer is called the Source Active Timer in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="(S,G) Source Active Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.26"/> 
+</ui></object>
+<object name="pimSGStateRefreshTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress" >
+<core  type="uint" access="read-only" descr="If pimSGOriginatorState is 'originator', this is the time remaining before the local router sends a State Refresh message.  Otherwise, this is zero.  This timer is called the State Refresh Timer in the PIM-DM specification.  This object is used only by PIM-DM"/>
+<ui  name="(S,G) State Refresh Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.27"/> 
+</ui></object>
+</module>
+<module name="pimAnycastRPSetTable"  key-method = "individual">
+<key-combo list="pimAnycastRPSetAnycastAddress,pimAnycastRPSetRouterAddress"/>
+<object name="pimAnycastRPSetAddressType"  >
+<core  type="uint" key="yes" access="read-write" descr="The address type of the Anycast-RP address and router address"/>
+<ui  name="Anycast RP-Set AddressType" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.1"/> 
+</ui></object>
+<object name="pimAnycastRPSetAnycastAddress"  >
+<core  type="string" key="yes" access="read-write" descr="The Anycast-RP address. The InetAddressType is given by the pimAnycastRPSetAddressType object"/>
+<ui  name="Anycast RP-Set Anycast Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.2"/> 
+</ui></object>
+<object name="pimAnycastRPSetRouterAddress"  >
+<core  type="string" key="yes" access="read-write" descr="The address of a router that is a member of the Anycast-RP set"/>
+<ui  name="Anycast RP-Set Router Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.3"/> 
+</ui></object>
+<object name="pimAnycastRPSetLocalRouter" depends="pimAnycastRPSetAddressType,pimAnycastRPSetAnycastAddress,pimAnycastRPSetRouterAddress" >
+<core  type="uint" access="read-only" descr="Whether this entry corresponds to the local router"/>
+<ui  name="Anycast RP-Set Local Router" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.4"/> 
+</ui></object>
+<object name="pimAnycastRPSetRowStatus" depends="pimAnycastRPSetAddressType,pimAnycastRPSetAnycastAddress,pimAnycastRPSetRouterAddress" >
+<core  type="uint" access="read-write" descr="The status of this row, by which rows in this table can be created and destroyed"/>
+<ui  name="Anycast RP-Set Row Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.5"/> 
+</ui></object>
+<object name="pimAnycastRPSetStorageType" depends="pimAnycastRPSetAddressType,pimAnycastRPSetAnycastAddress,pimAnycastRPSetRouterAddress" >
+<core  type="uint" access="read-write" descr="The storage type for this row. Rows having the value 'permanent' need not allow write-access to any columnar objects in the row"/>
+<ui  name="Anycast RP-Set Storage Type" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.12.1.6"/> 
+</ui></object>
+</module>
+<module name="pimBidirDFElectionTable" key-method = "individual">
+<object name="pimBidirDFElectionAddressType"  >
+<core  type="uint" key="yes" access="read-write" descr="The address type of the RP for which the DF state is being maintained."/>
+<ui  name="pimBidirDFElectionAddressType" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.1"/> 
+</ui></object>
+<object name="pimBidirDFElectionRPAddress"  >
+<core  type="uint" key="yes" access="read-write" descr="The IP address of the RP for which the DF state is being maintained."/>
+<ui  name="pimBidirDFElectionAddressType" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.2"/> 
+</ui></object>
+<object name="pimBidirDFElectionIfIndex"  >
+<core  type="uint" key="yes" access="read-write" descr="The value of ifIndex for the interface for which the DF state is being maintained."/>
+<ui  name="pimBidirDFElectionIfIndex" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.3"/> 
+</ui></object>
+<object name="pimBidirDFElectionWinnerAddressType" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The primary address type of the winner of the DF Election process. A value of unknown(0) indicates there is currently no DF."/>
+<ui  name="pimBidirDFElectionWinnerAddressType" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.4"/> 
+</ui></object>
+<object name="pimBidirDFElectionWinnerAddress" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="string" access="read-only" descr="The primary IP address of the winner of the DF Election process."/>
+<ui  name="pimBidirDFElectionWinnerAddress" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.5"/> 
+</ui></object>
+<object name="pimBidirDFElectionWinnerUpTime" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The time since the current winner (last) became elected as the DF for this RP."/>
+<ui  name="pimBidirDFElectionWinnerUpTime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.6"/> 
+</ui></object>
+<object name="pimBidirDFElectionWinnerMetricPref" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The metric preference advertised by the DF Winner, or zero if there is currently no DF."/>
+<ui  name="pimBidirDFElectionWinnerMetricPref" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.7"/> 
+</ui></object>
+<object name="pimBidirDFElectionWinnerMetric" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The metric advertised by the DF Winner, or zero if there is currently no DF."/>
+<ui  name="pimBidirDFElectionWinnerMetric" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.8"/> 
+</ui></object>
+<object name="pimBidirDFElectionState" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The state of this interface with respect to DF-Election for this RP. The states correspond to the ones defined in the BIDIR-PIM specification."/>
+<ui  name="pimBidirDFElectionState" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.9"/> 
+</ui></object>
+<object name="pimBidirDFElectionStateTimer" depends="pimBidirDFElectionAddressType,pimBidirDFElectionRPAddress,pimBidirDFElectionIfIndex" >
+<core  type="uint" access="read-only" descr="The minimum time remaining after which the local router will expire the current DF state represented by pimBidirDFElectionState."/>
+<ui  name="pimBidirDFElectionStateTimer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.10.1.10"/> 
+</ui></object>
+</module>
+<module name="pimNeighborTable" key-method = "individual">
+<key-combo list="pimNeighborIfIndex,pimNeighborAddress"/>
+<object name="pimNeighborIfIndex" depends="pimNeighborAddressType" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The value of ifIndex for the interface used to reach this PIM neighbor."/>
+<ui  name="Neighbor Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.1"/> 
+</ui></object>
+<object name="pimNeighborIfIndex" depends="pimNeighborAddressType" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The value of ifIndex for the interface used to reach this PIM neighbor."/>
+<ui  name="Neighbor Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.1"/> 
+</ui></object>
+<object name="pimNeighborAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this PIM neighbor."/>
+<ui  name="Neighbor Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.2"/> 
+</ui></object>
+<object name="pimNeighborAddress" depends="pimNeighborAddressType"  >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The address type of this PIM neighbor"/>
+<ui  name="Neighbor IP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.3"/> 
+</ui></object>
+<object name="pimNeighborGenerationIDPresent" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if this neighbor is using the Generation ID option."/>
+<ui  name="Generation ID Present" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.4"/> 
+</ui></object>
+<object name="pimNeighborGenerationIDValue" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="The value of the Generation ID from the last PIM Hello message received from this neighbor. This object is always zero if pimNeighborGenerationIDPresent is FALSE."/>
+<ui  name="Generation ID Value" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.5"/> 
+</ui></object>
+<object name="pimNeighborUpTime" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="The time since this PIM neighbor (last) became a neighbor of the local router."/>
+<ui  name="Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.6"/> 
+</ui></object>
+<object name="pimNeighborExpiryTime" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="The minimum time remaining before this PIM neighbor will time out. The value zero indicates that this PIM neighbor will never time out."/>
+<ui  name="Expiry Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.7"/> 
+</ui></object>
+<object name="pimNeighborDRPriorityPresent" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if this neighbor is using the DR Priority option."/>
+<ui  name="DR Priority Present" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.8"/> 
+</ui></object>
+<object name="pimNeighborDRPriority" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="The value of the Designated Router Priority from the last PIM Hello message received from this neighbor. This object is always zero if pimNeighborDRPriorityPresent is FALSE."/>
+<ui  name="DR Priority" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.9"/> 
+</ui></object>
+<object name="pimNeighborLanPruneDelayPresent" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if this neighbor is using the LAN Prune Delay option."/>
+<ui  name="Lan Prune Delay Present" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.10"/> 
+</ui></object>
+<object name="pimNeighborTBit" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Whether the T bit was set in the LAN Prune Delay option received from this neighbor. The T bit specifies the ability of the neighbor to disable join suppression. This object is always TRUE if pimNeighborLanPruneDelayPresent is FALSE."/>
+<ui  name="T Bit" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.11"/> 
+</ui></object>
+<object name="pimNeighborPropagationDelay" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="The value of the Propagation_Delay field of the LAN Prune Delay option received from this neighbor. This object is always zero if pimNeighborLanPruneDelayPresent is FALSE."/>
+<ui  name="Propagation Delay" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.12"/> 
+</ui></object>
+<object name="pimNeighborOverrideInterval" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="The value of the Override_Interval field of the LAN Prune Delay option received from this neighbor. This object is always zero if pimNeighborLanPruneDelayPresent is FALSE."/>
+<ui  name="Override Interval" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.13"/> 
+</ui></object>
+<object name="pimNeighborBidirCapable" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if this neighbor is using the Bidirectional-PIM Capable option."/>
+<ui  name="Bidirectional Capable" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.14"/> 
+</ui></object>
+<object name="pimNeighborSRCapable" depends="pimNeighborAddressType,pimNeighborIfIndex,pimNeighborAddress" >
+<core  type="uint" access="read-only" descr="Evaluates to TRUE if this neighbor is using the State Refresh Capable option. This object is used only by PIM-DM."/>
+<ui  name="State Refresh Capable" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.2.1.15"/> 
+</ui></object>
+</module>
+<module name="pimStarGITable"  >
+<object name="pimStarGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this multicast group"/>
+<ui  name="(*,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.1"/> 
+</ui></object>
+<object name="pimStarGGrpAddress" depends="pimStarGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address. The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(*,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.2"/> 
+</ui></object>
+<object name="pimStarGIIfIndex" depends="pimStarGAddressType,pimStarGGrpAddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(*,G,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.1"/> 
+</ui></object>
+<object name="pimStarGIIfIndex" depends="pimStarGAddressType,pimStarGGrpAddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(*,G,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.1"/> 
+</ui></object>
+<object name="pimStarGIUpTime" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(*,G,I) Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.2"/> 
+</ui></object>
+<object name="pimStarGILocalMembership" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="Whether the local router has (*,G) local membership on this interface (resulting from a mechanism such as IGMP or MLD). This corresponds to local_receiver_include(*,G,I) in the PIM-SM specification"/>
+<ui  name="(*,G,I) Local Membership" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.3"/> 
+</ui></object>
+<object name="pimStarGIJoinPruneState" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="enum" xtype="L7_XUI_PIMSGDRREG_STATE_t" access="read-only" descr="The state resulting from (*,G) Join/Prune messagesreceived on this interface. This corresponds to the stateof the downstream per-interface (*,G) state machine in the PIM-SM specification"/>
+<ui  name="(*,G,I) Join-prune State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.4"/> 
+</ui></object>
+<object name="pimStarGIPrunePendingTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router acts on a (*,G) Prune message received on this interface, during which the router is waiting to see whether another downstream router will override the Prune message.  This timer is called the (*,G) Prune-Pending Timer in the PIM-SM specification.  This object is zero if the timer is not running"/>
+<ui  name="(*,G,I) Prune Pending Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.5"/> 
+</ui></object>
+<object name="pimStarGIJoinExpiryTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before (*,G) Join state for this interface expires.  This timer is called the (*,G) Join Expiry Timer in the PIM-SM specification.  This object is zero if the timer is not running.  A value of 'FFFFFFFF'h indicates an infinite expiry time"/>
+<ui  name="(*,G,I) Join Expiry Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.6"/> 
+</ui></object>
+<object name="pimStarGIAssertState" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="The (*,G) Assert state for this interface. Thiscorresponds to the state of the per-interface (*,G) Assertstate machine in the PIM-SM specification. If pimSmStarGPimSmMode is 'bidir', this object must be 'noInfo'"/>
+<ui  name="(*,G,I) Assert State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.7"/> 
+</ui></object>
+<object name="pimStarGIAssertTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimStarGIAssertState is 'iAmAssertWinner', this is the time remaining before the local router next sends a (*,G) Assert message on this interface.  If pimStarGIAssertState is 'iAmAssertLoser', this is the time remaining before the (*,G) Assert state expires.  If pimStarGIAssertState is 'noInfo', this is zero.  This timer is called the (*,G) Assert Timer in the PIM-SM specification"/>
+<ui  name="(*,G,I) Assert Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.8"/> 
+</ui></object>
+<object name="pimStarGIAssertWinnerAddressType" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="If pimStarGIAssertState is 'iAmAssertLoser', this is the address type of the assert winner; otherwise, this object is unknown(0)"/>
+<ui  name="(*,G,I) Assert Winner Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.9"/> 
+</ui></object>
+<object name="pimStarGIAssertWinnerAddress" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="If pimStarGIAssertState is 'iAmAssertLoser', this is the address of the assert winner. The InetAddressType is given by the pimStarGIAssertWinnerAddressType object"/>
+<ui  name="(*,G,I) Assert Winner Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.10"/> 
+</ui></object>
+<object name="pimStarGIAssertWinnerMetricPref" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimStarGIAssertState is 'iAmAssertLoser', this is the metric preference of the route to the RP advertised by the assert winner; otherwise, this object is zero"/>
+<ui  name="(*,G,I) Assert Winner Metric Preference" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.11"/> 
+</ui></object>
+<object name="pimStarGIAssertWinnerMetric" depends="pimStarGAddressType,pimStarGGrpAddress,pimStarGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimStarGIAssertState is 'iAmAssertLoser', this is the routing metric of the route to the RP advertised by the assert winner; otherwise, this object is zero"/>
+<ui  name="(*,G,I) Assert Winner Metric" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.5.1.12"/> 
+</ui></object>
+</module>
+<module name="pimStaticRPTable"  key-method="individual">
+<key-combo list="pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength"/>
+<object name="pimStaticRPAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this entry"/>
+<ui  name="RP Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.1"/> 
+</ui></object>
+<object name="pimStaticRPGrpAddress" depends="pimStaticRPAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address that, when combined with pimStaticRPGrpPrefixLength, gives the group prefix for this entry. The InetAddressType is given by the pimStaticRPAddressType object"/>
+<ui  name="RP Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.2"/> 
+</ui></object>
+<object name="pimStaticRPGrpPrefixLength" depends="pimStaticRPAddressType,pimStaticRPGrpAddress" >
+<core  type="user" xtype ="formatv4v6mask_t" key="yes" access="read-write" descr="The multicast group prefix length that, when combined with pimStaticRPGrpAddress, gives the group prefix for this entry"/>
+<ui  name="RP Group Prefix Length" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.3"/> 
+</ui></object>
+<object name="pimStaticRPRPAddress" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="user" xtype="ipv4_ipv6" access="read-write" descr="The IP address of the RP to be used for groups within this group prefix. The InetAddressType is given by the pimStaticRPAddressType object"/>
+<ui  name="RP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.4"/> 
+</ui></object>
+<object name="pimStaticRPPimMode" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="enum" xtype="L7_XUI_PIM_MODE_t" access="read-write" descr="The PIM mode to be used for groups in this group prefix"/>
+<ui  name="RP Pim Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.5"/> 
+</ui></object>
+<object name="pimStaticRPOverrideDynamic" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="enum" xtype="TrueFalse_t" access="read-write" descr="Whether this static RP configuration will override other group mappings in this group prefix. If this object is TRUE, then it will override: - RP information learned dynamically for groups in this group prefix. - RP information configured in pimStaticRPTable with pimStaticRPOverrideDynamic set to FALSE"/>
+<ui  name="RP Override Dynamic" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.6"/> 
+</ui></object>
+<object name="pimStaticRPPrecedence" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="uint" access="read-write" descr="The value for pimGroupMappingPrecedence to be used for this static RP configuration. This allows fine control over which configuration is overridden by this static configuration"/>
+<ui  name="RP Precedence" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.7"/> 
+</ui></object>
+<object name="pimStaticRPRowStatus" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t"  access="read-write" descr="The status of this row, by which rows in this table can be created and destroyed"/>
+<ui  name="RP Row Status" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.8"/> 
+</ui></object>
+<object name="pimStaticRPStorageType" depends="pimStaticRPAddressType,pimStaticRPGrpAddress,pimStaticRPGrpPrefixLength" >
+<core  type="uint" access="read-write" descr="The storage type for this row. Rows having the value 'permanent' need not allow write-access to any columnar objects in the row"/>
+<ui  name="RP Storage Type" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.11.1.9"/> 
+</ui></object>
+</module>
+<module name="pimSGRptITable"  key-method="individual">
+<key-combo list="pimSGRptSrcAddress,pimSGRptIIfIndex"/>
+<object name="pimStarGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this multicast group"/>
+<ui  name="(*,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.1"/> 
+</ui></object>
+<object name="pimStarGGrpAddress" depends="pimStarGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address. The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(*,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.2"/> 
+</ui></object>
+<object name="pimSGRptSrcAddress" depends="pimStarGGrpAddress,pimStarGAddressType"  >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The source address for this entry. The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(S,G,Rpt) Source Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.8.1.1"/> 
+</ui></object>
+<object name="pimSGRptIIfIndex"  depends="pimStarGGrpAddress,pimStarGAddressType" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(S,G,Rpt,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.1"/> 
+</ui></object>
+<object name="pimSGRptIIfIndex"  depends="pimStarGGrpAddress,pimStarGAddressType" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(S,G,Rpt,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.1"/> 
+</ui></object>
+<object name="pimSGRptIUpTime" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress,pimSGRptIIfIndex" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(S,G,Rpt,I) UpTime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.2"/> 
+</ui></object>
+<object name="pimSGRptILocalMembership" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress,pimSGRptIIfIndex" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="Whether the local router has both (*,G) include local membership and (S,G) exclude local membership on this interface (resulting from a mechanism such as IGMP or MLD). This corresponds to local_receiver_exclude(S,G,I) in the PIM-SM specification"/>
+<ui  name="(S,G,Rpt,I) Local Membership" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.3"/> 
+</ui></object>
+<object name="pimSGRptIJoinPruneState" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress,pimSGRptIIfIndex" >
+<core  type="enum" xtype="L7_XUI_PIMSGDRREG_STATE_t" access="read-only" descr="The state resulting from (S,G,rpt) Join/Prune messages received on this interface. This corresponds to the state of the downstream per-interface (S,G,rpt) state machine in the PIM-SM specification"/>
+<ui  name="(S,G,Rpt,I) Join Prune State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.4"/> 
+</ui></object>
+<object name="pimSGRptIPrunePendingTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress,pimSGRptIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router starts pruning this source off the RP tree. This timer is called the (S,G,rpt) Prune-Pending Timer in the PIM-SM specification. This object is zero if the timer is not running"/>
+<ui  name="(S,G,Rpt,I) Prune-pending Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.5"/> 
+</ui></object>
+<object name="pimSGRptIPruneExpiryTimer" depends="pimStarGAddressType,pimStarGGrpAddress,pimSGRptSrcAddress,pimSGRptIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before (S,G,rpt) Prune state for this interface expires. This timer is called the (S,G,rpt) Prune Expiry Timer in the PIM-SM specification. This object is zero if the timer is not running. A value of 'FFFFFFFF'h indicates an infinite expiry time"/>
+<ui  name="(S,G,Rpt,I) Prune Expiry Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.9.1.6"/> 
+</ui></object>
+</module>
+<module name="pimNbrSecAddressTable"  >
+<object name="pimNbrSecAddressIfIndex"  >
+<core type="uint" key="yes" access="read-write" descr="The value of ifIndex for the interface used to reach this PIM neighbor"/>
+<ui  name="Secondary Address If Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.3.1.1"/> 
+</ui></object>
+<object name="pimNbrSecAddressType"  >
+<core  type="uint" key="yes" access="read-write" descr="The address type of this PIM neighbor"/>
+<ui  name="Secondary Address Type" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.3.1.2"/> 
+</ui></object>
+<object name="pimNbrSecAddressPrimary"  >
+<core  type="string" key="yes" access="read-write" descr="The primary IP address of this PIM neighbor. The InetAddressType is given by the pimNbrSecAddressType object"/>
+<ui  name="Secondary Address Primary" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.3.1.3"/> 
+</ui></object>
+<object name="pimNbrSecAddress"  >
+<core  type="string" key="yes" access="read-write" descr="The secondary IP address of this PIM neighbor. The InetAddressType is given by the pimNbrSecAddressType object"/>
+<ui  name="Secondary Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.3.1.4"/> 
+</ui></object>
+</module>
+<module name="pimStarGTable" key-method = "individual" >
+<object name="pimStarGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of this multicast group"/>
+<ui  name="(*,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.1"/> 
+</ui></object>
+<object name="pimStarGGrpAddress" depends="pimStarGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address. The InetAddressType is given by the pimStarGAddressType object"/>
+<ui  name="(*,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.2"/> 
+</ui></object>
+<object name="pimStarGUpTime" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(*,G) Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.3"/> 
+</ui></object>
+<object name="pimStarGPimMode" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_XUI_PIM_MODE_t" access="read-only" descr="Whether this entry represents an ASM (Any Source Multicast, used with PIM-SM) or BIDIR-PIM group"/>
+<ui  name="(*,G) Pim Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.4"/> 
+</ui></object>
+<object name="pimStarGRPAddressType" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="The address type of the Rendezvous Point (RP), or unknown(0) if the RP address is unknown"/>
+<ui  name="(*,G) RP Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.5"/> 
+</ui></object>
+<object name="pimStarGRPAddress" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The address type of the Rendezvous Point (RP), or unknown(0) if the RP address is unknown"/>
+<ui  name="(*,G) RP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.6"/> 
+</ui></object>
+<object name="pimStarGPimModeOrigin" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_XUI_PIMGROUPMAPPINGORIGINTYPE_t" access="read-only" descr="The mechanism by which the PIM mode and RP for the group were learned"/>
+<ui  name="(*,G) Pim Mode Origin" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.7"/> 
+</ui></object>
+<object name="pimStarGRPIsLocal" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="Whether the local router is the RP for the group"/>
+<ui  name="(*,G) RP Is Local" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.8"/> 
+</ui></object>
+<object name="pimStarGUpstreamJoinState" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="Whether the local router should join the RP tree for the group. This corresponds to the state of the upstream (*,G) state machine in the PIM-SM specification"/>
+<ui  name="(*,G) Upstream Join State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.9"/> 
+</ui></object>
+<object name="pimStarGUpstreamJoinTimer" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router next sends a periodic (*,G) Join message on pimStarGRPFIfIndex. This timer is called the (*,G) Upstream Join Timer in the PIM-SM specification. This object is zero if the timer is not running"/>
+<ui  name="(*,G) Upstream Join Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.10"/> 
+</ui></object>
+<object name="pimStarGUpstreamNeighborType" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="The primary address type of the upstream neighbor, or unknown(0) if the upstream neighbor address is unknown or is not a PIM neighbor"/>
+<ui  name="(*,G) Upstream Neighbor Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.11"/> 
+</ui></object>
+<object name="pimStarGUpstreamNeighbor" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The primary address of the neighbor on pimStarGRPFIfIndex that the local router is sending periodic (*,G) Join messages to. The InetAddressType is given by the pimStarGUpstreamNeighborType object. This address is called RPF'(*,G) in the PIM-SM specification"/>
+<ui  name="(*,G) Upstream Neighbor" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.12"/> 
+</ui></object>
+<object name="pimStarGRPFIfIndex" depends="pimStarGAddressType,pimStarGGrpAddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the Reverse Path Forwarding (RPF) interface towards the RP, or zero if the RPF interface is unknown"/>
+<ui  name="(*,G) RPF Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.13"/> 
+</ui></object>
+<object name="pimStarGRPFIfIndex" depends="pimStarGAddressType,pimStarGGrpAddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the Reverse Path Forwarding (RPF) interface towards the RP, or zero if the RPF interface is unknown"/>
+<ui  name="(*,G) RPF Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.13"/> 
+</ui></object>
+<object name="pimStarGRPFNextHopType" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="The address type of the RPF next hop towards the RP, or unknown(0) if the RPF next hop is unknown"/>
+<ui  name="(*,G) RPF Next Hop Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.14"/> 
+</ui></object>
+<object name="pimStarGRPFNextHop" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The address of the RPF next hop towards the RP. The InetAddressType is given by the pimStarGRPFNextHopType object. This address is called MRIB.next_hop(RP(G)) in the PIM-SM specification"/>
+<ui  name="(*,G) RPF Next Hop" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.15"/> 
+</ui></object>
+<object name="pimStarGRPFRouteProtocol" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="enum" xtype="L7_XUI_IANA_PROTO_ID_t" access="read-only" descr="The routing mechanism via which the route used to find the RPF interface towards the RP was learned"/>
+<ui  name="(*,G) RPF Route Protocol" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.16"/> 
+</ui></object>
+<object name="pimStarGRPFRouteAddress" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="The IP address that, when combined with the corresponding value of pimStarGRPFRoutePrefixLength, identifies the route used to find the RPF interface towards the RP. The InetAddressType is given by the pimStarGRPFNextHopType object "/>
+<ui  name="(*,G) RPF Route Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.17"/> 
+</ui></object>
+<object name="pimStarGRPFRoutePrefixLength" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="The prefix length that, when combined with the corresponding value of pimStarGRPFRouteAddress, identifies the route used to find the RPF interface towards the RP. The InetAddressType is given by the pimStarGRPFNextHopType object"/>
+<ui  name="(*,G) RPF Route Prefix Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.18"/> 
+</ui></object>
+<object name="pimStarGRPFRouteMetricPref" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="The metric preference of the route used to find the RPF interface towards the RP"/>
+<ui  name="(*,G) RPF Route Metric Pref" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.19"/> 
+</ui></object>
+<object name="pimStarGRPFRouteMetric" depends="pimStarGAddressType,pimStarGGrpAddress" >
+<core  type="uint" access="read-only" descr="The routing metric of the route used to find the RPF interface towards the RP"/>
+<ui  name="(*,G) RPF Route Metric" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.4.1.20"/> 
+</ui></object>
+</module>
+<module name="pimSGITable" key-method = "individual" >
+<key-combo list="pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex"/>
+<object name="pimSGAddressType"  >
+<core  type="enum" xtype="L7_InetAddrType_t" key="yes" access="read-write" descr="The address type of the source and multicast group for this entry"/>
+<ui  name="(S,G) Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.1"/> 
+</ui></object>
+<object name="pimSGGrpAddress" depends="pimSGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The multicast group address for this entry. The InetAddressType is given by the pimSGAddressType object"/>
+<ui  name="(S,G) Group Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.2"/> 
+</ui></object>
+<object name="pimSGSrcAddress" depends="pimSGAddressType" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The source address for this entry. The InetAddressType is given by the pimSGAddressType object"/>
+<ui  name="(S,G) Source Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.6.1.3"/> 
+</ui></object>
+<object name="pimSGIIfIndex" depends="pimSGAddressType" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(S,G,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.1"/> 
+</ui></object>
+<object name="pimSGIIfIndex" depends="pimSGAddressType" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex of the interface that this entry corresponds to"/>
+<ui  name="(S,G,I) Interface Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.1"/> 
+</ui></object>
+<object name="pimSGIUpTime" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time since this entry was created by the local router"/>
+<ui  name="(S,G,I) Uptime" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.2"/> 
+</ui></object>
+<object name="pimSGILocalMembership" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="Whether the local router has (S,G) local membership on this interface (resulting from a mechanism such as IGMP or MLD)"/>
+<ui  name="(S,G,I) Local Membership" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.3"/> 
+</ui></object>
+<object name="pimSGIJoinPruneState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="enum" xtype="L7_XUI_PIMSGDRREG_STATE_t" access="read-only" descr="The state resulting from (S,G) Join/Prune messages received on this interface"/>
+<ui  name="(S,G,I) Join-prune State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.4"/> 
+</ui></object>
+<object name="pimSGIPrunePendingTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before the local router acts on an (S,G) Prune message received on this interface, during which the router is waiting to see whether another downstream router will override the Prune message"/>
+<ui  name="(S,G,I) Prune-pending Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.5"/> 
+</ui></object>
+<object name="pimSGIJoinExpiryTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="The time remaining before (S,G) Join state for this interface expires"/>
+<ui  name="(S,G,I) Join Expiry Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.6"/> 
+</ui></object>
+<object name="pimSGIAssertState" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="enum" xtype="L7_XUI_PIMSGIASSERTSTATE_t" access="read-only" descr="The (S,G) Assert state for this interface"/>
+<ui  name="(S,G,I) Assert State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.7"/> 
+</ui></object>
+<object name="pimSGIAssertTimer" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimSGIAssertState is 'iAmAssertWinner', this is the time remaining before the local router next sends a (S,G) Assert message on this interface"/>
+<ui  name="(S,G,I) Assert Timer" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.8"/> 
+</ui></object>
+<object name="pimSGIAssertWinnerAddressType" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="If pimSGIAssertState is 'iAmAssertLoser', this is the address type of the assert winner; otherwise, this object is unknown(0)"/>
+<ui  name="(S,G,I) Assert Winner Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.9"/> 
+</ui></object>
+<object name="pimSGIAssertWinnerAddress" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="user" xtype="ipv4_ipv6" access="read-only" descr="If pimSGIAssertState is 'iAmAssertLoser', this is the address of the assert winner. The InetAddressType is given by the pimSGIAssertWinnerAddressType object"/>
+<ui  name="(S,G,I) Assert Winner Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.10"/> 
+</ui></object>
+<object name="pimSGIAssertWinnerMetricPref" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimSGIAssertState is 'iAmAssertLoser', this is the metric preference of the route to the source advertised by the assert winner; otherwise, this object is zero"/>
+<ui  name="(S,G,I) Assert Winner Metric Preference" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.11"/> 
+</ui></object>
+<object name="pimSGIAssertWinnerMetric" depends="pimSGAddressType,pimSGGrpAddress,pimSGSrcAddress,pimSGIIfIndex" >
+<core  type="uint" access="read-only" descr="If pimSGIAssertState is 'iAmAssertLoser', this is the routing metric of the route to the source advertised by the assert winner; otherwise, this object is zero"/>
+<ui  name="(S,G,I) Assert Winner Metric" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.7.1.12"/> 
+</ui></object>
+</module>
+<module name="pimNetMgmtNotification"  >
+<object name="pimInvalidRegisterAddressType"  >
+<core  type="uint" access="read-only" descr="The address type stored in pimInvalidRegisterOrigin, pimInvalidRegisterGroup, and pimInvalidRegisterRp. If no invalid Register messages have been received, then this object is set to unknown(0)."/>
+<ui  name="pimInvalidRegisterAddressType" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.33"/> 
+</ui></object>
+<object name="pimInvalidRegisterOrigin"  >
+<core  type="string" access="read-only" descr="The source address of the last invalid Register message received by this device."/>
+<ui  name="pimInvalidRegisterOrigin" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.34"/> 
+</ui></object>
+<object name="pimInvalidRegisterGroup"  >
+<core  type="string" access="read-only" descr="The IP multicast group address to which the last invalid Register message received by this device was addressed."/>
+<ui  name="pimInvalidRegisterGroup" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.35"/> 
+</ui></object>
+<object name="pimInvalidRegisterRp"  >
+<core  type="string" access="read-only" descr="The RP address to which the last invalid Register message received by this device was delivered."/>
+<ui  name="pimInvalidRegisterRp" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.36"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneNotificationPeriod"  >
+<core  type="uint" access="read-write" descr="The minimum time that must elapse between pimInvalidJoinPrune notifications originated by this router."/>
+<ui  name="pimInvalidJoinPruneNotificationPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.37"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneMsgsRcvd"  >
+<core  type="uint" access="read-only" descr="The number of invalid PIM Join/Prune messages that have been received by this device."/>
+<ui  name="pimInvalidJoinPruneMsgsRcvd" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.38"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneAddressType"  >
+<core  type="uint" access="read-only" descr="The address type stored in pimInvalidJoinPruneOrigin, pimInvalidJoinPruneGroup, and pimInvalidJoinPruneRp. If no invalid Join/Prune messages have been received, this object is set to unknown(0)."/>
+<ui  name="pimInvalidJoinPruneAddressType" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.39"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneOrigin"  >
+<core  type="string" access="read-only" descr="The source address of the last invalid Join/Prune message received by this device."/>
+<ui  name="pimInvalidJoinPruneOrigin" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.40"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneGroup"  >
+<core  type="string" access="read-only" descr="The IP multicast group address carried in the last invalid Join/Prune message received by this device."/>
+<ui  name="pimInvalidJoinPruneGroup" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.41"/> 
+</ui></object>
+<object name="pimInvalidJoinPruneRp"  >
+<core  type="string" access="read-only" descr="The RP address carried in the last invalid Join/Prune message received by this device."/>
+<ui  name="pimInvalidJoinPruneRp" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.42"/> 
+</ui></object>
+<object name="pimRPMappingNotificationPeriod"  >
+<core  type="uint" access="read-write" descr="The minimum time that must elapse between pimRPMappingChange notifications originated by this router."/>
+<ui  name="pimRPMappingNotificationPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.43"/> 
+</ui></object>
+<object name="pimRPMappingChangeCount"  >
+<core  type="uint" access="read-only" descr="The number of changes to active RP mappings on this device."/>
+<ui  name="pimRPMappingChangeCount" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.44"/> 
+</ui></object>
+<object name="pimInterfaceElectionNotificationPeriod"  >
+<core  type="uint" access="read-write" descr="The minimum time that must elapse between pimInterfaceElection notifications originated by this router. "/>
+<ui  name="pimInterfaceElectionNotificationPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.45"/> 
+</ui></object>
+<object name="pimInterfaceElectionWinCount"  >
+<core  type="uint" access="read-only" descr="The number of times this device has been elected DR or DF on any interface."/>
+<ui  name="pimInterfaceElectionWinCount" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.46"/> 
+</ui></object>
+<object name="pimRefreshInterval"  >
+<core  type="uint" access="read-write" descr="The interval between successive State Refresh messages sent by an Originator. This timer period is called the RefreshInterval in the PIM-DM specification. This object is used only by PIM-DM."/>
+<ui  name="pimRefreshInterval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.47"/> 
+</ui></object>
+</module>
+<module name="pimStorage"  >
+<object name="pimDeviceConfigStorageType"  >
+<core  type="uint" access="read-write" descr="The storage type used for the global PIM configuration of this device."/>
+<ui  name="pimDeviceConfigStorageType" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.48"/> 
+</ui></object>
+</module>
+<module name="pimDiagnosticsGroup"  >
+<object name="pimOutAsserts"  >
+<core  type="uint" access="read-only" descr="The number of Asserts sent by this router."/>
+<ui  name="pimOutAsserts" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.22"/> 
+</ui></object>
+<object name="pimInAsserts"  >
+<core  type="uint" access="read-only" descr="The number of Asserts received by this router. Asserts are multicast to all routers on a network. This counter is incremented by all routers that receive an assert, not only those routers that are contesting the assert."/>
+<ui  name="pimInAsserts" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.23"/> 
+</ui></object>
+<object name="pimLastAssertInterface"  >
+<core  type="uint" access="read-only" descr="The interface on which this router most recently sent or received an assert, or zero if this router has not sent or received an assert."/>
+<ui  name="pimLastAssertInterface" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.24"/> 
+</ui></object>
+<object name="pimLastAssertGroupAddressType"  >
+<core  type="uint" access="read-only" descr="The address type of the multicast group address in the most recently sent or received assert. If this router has not sent or received an assert, then this object is set to unknown(0)."/>
+<ui  name="pimLastAssertGroupAddressType" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.25"/> 
+</ui></object>
+<object name="pimLastAssertGroupAddress"  >
+<core  type="string" access="read-only" descr="The multicast group address in the most recently sent or received assert. The InetAddressType is given by the pimLastAssertGroupAddressType object."/>
+<ui  name="pimLastAssertGroupAddress" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.26"/> 
+</ui></object>
+<object name="pimLastAssertSourceAddressType"  >
+<core  type="uint" access="read-only" descr="The address type of the source address in the most recently sent or received assert."/>
+<ui  name="pimLastAssertSourceAddressType" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.27"/> 
+</ui></object>
+<object name="pimLastAssertSourceAddress"  >
+<core  type="string" access="read-only" descr="The source address in the most recently sent or received assert. The InetAddressType is given by the pimLastAssertSourceAddressType object."/>
+<ui  name="pimLastAssertSourceAddress" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.28"/> 
+</ui></object>
+<object name="pimNeighborLossNotificationPeriod"  >
+<core  type="uint" access="read-write" descr="The minimum time that must elapse between pimNeighborLoss notifications originated by this router. The maximum value 65535 represents an 'infinite' time, in which case, no pimNeighborLoss notifications are ever sent."/>
+<ui  name="pimNeighborLossNotificationPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.29"/> 
+</ui></object>
+<object name="pimNeighborLossCount"  >
+<core  type="uint" access="read-only" descr="The number of neighbor loss events that have occurred."/>
+<ui  name="pimNeighborLossCount" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.30"/> 
+</ui></object>
+<object name="pimInvalidRegisterNotificationPeriod"  >
+<core  type="uint" access="read-write" descr="The minimum time that must elapse between pimInvalidRegister notifications originated by this router. The default value of 65535 represents an 'infinite' time, in which case, no pimInvalidRegister notifications are ever sent."/>
+<ui  name="pimInvalidRegisterNotificationPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.31"/> 
+</ui></object>
+<object name="pimInvalidRegisterMsgsRcvd"  >
+<core  type="uint" access="read-only" descr="The number of invalid PIM Register messages that have been received by this device."/>
+<ui  name="pimInvalidRegisterMsgsRcvd" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.32"/> 
+</ui></object>
+</module>
+<module name="pimRouterStatisticsGroup"  >
+<object name="pimStarGEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimStarGTable."/>
+<ui  name="pimStarGEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.16"/> 
+</ui></object>
+<object name="pimStarGIEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimStarGITable."/>
+<ui  name="pimStarGIEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.17"/> 
+</ui></object>
+<object name="pimSGEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimSGTable."/>
+<ui  name="pimSGEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.18"/> 
+</ui></object>
+<object name="pimSGIEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimSGITable."/>
+<ui  name="pimSGIEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.19"/> 
+</ui></object>
+<object name="pimSGRptEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimSGRptTable."/>
+<ui  name="pimSGRptEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.20"/> 
+</ui></object>
+<object name="pimSGRptIEntries"  >
+<core  type="uint" access="read-only" descr="The number of entries in the pimSGRptITable."/>
+<ui  name="pimSGRptIEntries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.21"/> 
+</ui></object>
+</module>
+<module name="pimTuningParametersGroup"  >
+<object name="pimKeepalivePeriod"  >
+<core  type="uint" access="read-write" descr="The duration of the Keepalive Timer."/>
+<ui  name="pimKeepalivePeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.14"/> 
+</ui></object>
+<object name="pimRegisterSuppressionTime"  >
+<core  type="uint" access="read-write" descr="The duration of the Register Suppression Timer."/>
+<ui  name="pimRegisterSuppressionTime" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.157.1.15"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

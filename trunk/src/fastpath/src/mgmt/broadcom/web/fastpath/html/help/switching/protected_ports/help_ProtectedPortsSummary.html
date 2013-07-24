@@ -1,0 +1,66 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Protected Ports Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY CLASS = "helppageattributes">
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="PROTECTED_PORTS">
+<HR SIZE=4 WIDTH="100%" ALIGN=center>
+
+<H2><A NAME=prot_port_summ></A>Help for Protected Ports Summary</H2>
+
+<H3>Non-Configurable Data</H3>
+
+<UL TYPE=disc>
+ <UL TYPE=circle>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="MULTIPLE_PROT_PORT_GROUPS">
+  <LI><B>Group ID</B>
+  - The protected ports can be combined into a logical group. Traffic can flow
+    between protected ports belonging to different groups, but not within the same
+    group. The valid range of the Group ID is
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(0, L7_PROTECTED_PORT_MAX_GROUPS-1);
+      ' > .
+  </LI>
+  <LI><B>Group Name</B>
+  -  Displays the alphanumeric string associated with a Group ID.
+  </LI>
+  <LI><B>Protected Port(s)</B>
+  - The display list consists of all the protected ports. It is to be noted that
+    no traffic forwarding is possible between two protected ports of a same group,
+    but traffic can flow between protected ports of different groups.
+  </LI>
+<EMWEB_ELSE>
+  <LI><B>Group Name</B>
+  -  Displays the alphanumeric string associated with the protected ports.
+  </LI>
+  <LI><B>Protected Port(s)</B>
+  - The display list consists of all the protected ports. It is to be noted that
+    no traffic forwarding is possible between two protected ports.
+  </LI>
+</EMWEB_IF>
+ </UL>
+</UL>
+
+<H3>Command Buttons</H3>
+
+<UL TYPE=disc>
+ <UL TYPE=circle>
+  <LI><B>Refresh </B>- Refresh the data on the screen to obtain data on current
+ state of the ports.
+  </LI>
+ </UL>
+</UL>
+
+<HR SIZE=4 WIDTH="100%" ALIGN=center>
+</EMWEB_IF>
+</BODY>
+</HTML>
+
+

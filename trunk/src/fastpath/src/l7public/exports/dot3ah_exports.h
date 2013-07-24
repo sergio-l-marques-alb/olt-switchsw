@@ -1,0 +1,190 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2000-2008
+*
+**********************************************************************
+*
+* @filename dot3ah_exports.h
+*
+* @purpose  Defines constants and feature definitions that are shared by Management and the application 
+*
+* @component 
+*
+* @comments 
+*           
+*
+* @Notes   
+*
+* @created 
+*
+* @author 
+* @end
+*
+**********************************************************************/
+
+#ifndef __DOT3AH_EXPORTS_H_
+#define __DOT3AH_EXPORTS_H_
+
+
+typedef enum
+{
+  L7_DOT3AH_FEATURE_ID = 0,
+  L7_DOT3AH_PROTOCOL_FEATURE_ID,
+  L7_DOT3AH_LAN_ISOLATION_FEATURE_ID,
+  L7_DOT3AH_FEATURE_ID_TOTAL,
+}L7_DOT3AH_FEATURE_IDS_t;
+
+
+/* DOT3AH Constants */
+#ifdef L7_DOT3AH_PACKAGE
+
+typedef enum
+{
+  L7_DOT3AH_MODE_UNKNOWN = 0,
+  L7_DOT3AH_MODE_ACTIVE,
+  L7_DOT3AH_MODE_PASSIVE,
+  L7_DOT3AH_MODE_INVALID,
+  L7_DOT3AH_MODE_MAX
+} L7_DOT3AH_MODE_TYPE_t;
+
+typedef enum
+{
+  L7_DOT3AH_INFORMATION_PDU = 0,
+  L7_DOT3AH_EVENT_NOTIFICATION_PDU,
+  L7_DOT3AH_VARIABLE_REQUEST_PDU,
+  L7_DOT3AH_VARIABLE_RESPONSE_PDU,
+  L7_DOT3AH_LOOPBACK_PDU,
+  L7_DOT3AH_ORG_SPECIFIC_PDU,
+  L7_DOT3AH_ERR_SYMBOL_PERIOD_EVENT_PDU,
+  L7_DOT3AH_ERR_FRAME_EVENT_PDU,
+  L7_DOT3AH_ERR_FRAME_PERIOD_EVENT_PDU,
+  L7_DOT3AH_ERR_FRAME_SECONDS_SUM_EVENT_PDU,
+  L7_DOT3AH_ORG_SPECIFIC_EVENT_PDU,
+  L7_DOT3AH_PDU_INVALID,
+  L7_DOT3AH_PDU_MAX
+} L7_DOT3AH_PDU_TYPE_t;
+
+typedef enum
+{
+  L7_DOT3AH_DISABLE = 0,
+  L7_DOT3AH_DISCOVERY_FAULT_STATE,
+  L7_DOT3AH_DISCOVERY_ACTIVE_SEND_LOCAL,
+  L7_DOT3AH_DISCOVERY_PASSIVE_WAIT,
+  L7_DOT3AH_DISCOVERY_SEND_LOCAL_REMOTE,
+  L7_DOT3AH_DISCOVERY_SEND_LOCAL_REMOTE_OK,
+  L7_DOT3AH_DISCOVERY_SEND_ANY,
+  L7_DOT3AH_REMOTE_LOOPBACK_INITIALIZE,
+  L7_DOT3AH_REMOTE_LOOPBACK_RECEIVE,
+  L7_DOT3AH_REMOTE_LOOPBACK_INFO_RECEIVE,
+  L7_DOT3AH_REMOTE_LOOPBACK_EXIT,
+  L7_DOT3AH_TRANSMIT_RESET,
+  L7_DOT3AH_TRANSMIT_WAIT_FOR_TX,
+  L7_DOT3AH_TRANSMIT_TX_OAMPDU,
+  L7_DOT3AH_TRANSMIT_DEC_PDU_CNT,
+  L7_DOT3AH_STATE_ANY
+} L7_DOT3AH_STATES_t;
+
+
+  /* Multiplexer and Parser Action */
+#define  L7_DOT3AH_RESERVED (1 << 0)
+#define  L7_DOT3AH_PAR_LB      (1 << 1)
+#define  L7_DOT3AH_PAR_DISCARD (1 << 2)
+#define  L7_DOT3AH_MUX_DISCARD (1 << 3)
+#define  L7_DOT3AH_INTERFACE_ENABLE_INTERFACE L7_MAX_PORT_COUNT
+
+typedef enum
+{
+  L7_DOT3AH_NONE_LB,
+  L7_DOT3AH_LOCAL_LB,
+  L7_DOT3AH_REM_LB,
+  L7_DOT3AH_INVALID_LB,
+} L7_DOT3AH_LB_t;
+
+
+
+typedef enum
+{
+    L7_DOT3AH_PORT_LOOPBACK_NONE = 0,
+    L7_DOT3AH_PORT_LOOPBACK_MAC,
+    L7_DOT3AH_PORT_LOOPBACK_PHY,
+    L7_DOT3AH_PORT_LOOPBACK_COUNT
+} L7_DOT3AH_PORT_LOOPBACK_t;
+
+#define DOT3AH_OUI_LENGTH                 3
+#define DOT3AH_VSI_LENGTH                 4
+
+#define L7_ORG_SPEC_INFO_TLV (1 << 0)
+#define L7_LOCAL_INFO_TLV    (1 << 1)
+#define L7_REMOTE_INFO_TLV   (1 << 2)
+
+#define L7_DOT3AH_PDU_TIMER_DEFAULT        1000 /* msec */
+#define L7_DOT3AH_REM_LB_EXPIRY_TIMER_DEFAULT        50
+#define L7_DOT3AH_PDU_DEFAULT_COUNT                  10
+
+#define L7_DOT3AH_CFG_ORG_SPECIFIC_INFO_TLV        (1 << 7)
+#define L7_DOT3AH_CFG_ORG_SPECIFIC_EVENT           (1 << 6)
+#define L7_DOT3AH_CFG_ORG_SPECIFIC_PDU             (1 << 5)
+#define L7_DOT3AH_CFG_VAR_RETRIVAL_SUPPORT         (1 << 4)
+#define L7_DOT3AH_CFG_LINK_EVENT_SUPPORT           (1 << 3)
+#define L7_DOT3AH_CFG_REM_LB_SUPPORT               (1 << 2)
+#define L7_DOT3AH_CFG_UNI_DIR_SUPPORT              (1 << 1)
+#define L7_DOT3AH_CFG_MODE                         (1 << 0)
+
+
+#define L7_DOT3AH_CFG_MODE_DEFAULT                 L7_DOT3AH_MODE_PASSIVE
+#define L7_DOT3AH_CFG_REM_LB_SUPPORT_DEFAULT       L7_ENABLE
+#define L7_DOT3AH_CFG_LINK_EVENT_SUPPORT_DEFAULT   L7_ENABLE
+
+
+#define L7_DOT3AH_MIN_LINK_TIME_OUT                 2
+#define L7_DOT3AH_MAX_LINK_TIME_OUT                 30
+#define L7_DOT3AH_DEFAULT_LINK_TIME_OUT             10
+
+#define L7_DOT3AH_MIN_ERR_FRAME_THRESHOLD_HIGH      1
+#define L7_DOT3AH_MAX_ERR_FRAME_THRESHOLD_HIGH      65535
+#define L7_DOT3AH_DEFAULT_ERR_FRAME_THRESHOLD_HIGH  1
+
+#define L7_DOT3AH_MIN_ERR_FRAME_THRESHOLD_LOW      1
+#define L7_DOT3AH_MAX_ERR_FRAME_THRESHOLD_LOW      65535
+#define L7_DOT3AH_DEFAULT_ERR_FRAME_THRESHOLD_LOW  1
+
+#define L7_DOT3AH_MIN_ERR_FRAME_THRESHOLD_WINDOW      1
+#define L7_DOT3AH_MAX_ERR_FRAME_THRESHOLD_WINDOW      60
+#define L7_DOT3AH_DEFAULT_ERR_FRAME_THRESHOLD_WINDOW  1
+
+#define L7_DOT3AH_MIN_ERR_FRAME_PERIOD_THRESHOLD_WINDOW      1
+#define L7_DOT3AH_MAX_ERR_FRAME_PERIOD_THRESHOLD_WINDOW             60
+#define L7_DOT3AH_DEFAULT_ERR_FRAME_PERIOD_THRESHOLD_WINDOW         1
+#define L7_DOT3AH_MIN_ERR_FRAME_SUM_SEC_THRESHOLD_WINDOW      10
+#define L7_DOT3AH_MAX_ERR_FRAME_SUM_SEC_THRESHOLD_WINDOW      900
+#define L7_DOT3AH_DEFAULT_ERR_FRAME_SUM_SEC_THRESHOLD_WINDOW  60
+
+/* Table 57.7.State field is modified as-per IEEE Std 802.3ah-2005 */
+#define L7_DOT3AH_NO_LOOPBACK                      0x00
+#define L7_DOT3AH_INIT_LOOPBACK                    0x0C
+#define L7_DOT3AH_REM_LOOPBACK_PEER                0x05
+#define L7_DOT3AH_REM_LOOPBACK_LOC                 0x06
+#define L7_DOT3AH_REM_LOOPBACK_PROGRESS            0x02
+
+#define L7_DOT3AH_MIN_PDU_TRANS_RATE                           1
+#define L7_DOT3AH_MAX_PDU_TRANS_RATE                          10
+#define L7_DOT3AH_DEFAULT_PDU_TRANS_RATE                      1
+
+#define L7_DOT3AH_MIN_REM_LB_TIME                    10
+#define L7_DOT3AH_MAX_REM_LB_TIME                   100
+#define L7_DOT3AH_DEFAULT_REM_LB_TIME                50
+
+#define CHECK_FLAG(V,F)      ((V) & (F))
+#define SET_FLAG(V,F)        (V) = (V) | (F)
+#define UNSET_FLAG(V,F)      (V) = (V) & ~(F)
+#define FLAG_ISSET(V,F)      (((V) & (F)) == (F))
+
+#endif
+
+/******************** conditional Override *****************************/
+
+#ifdef INCLUDE_DOT3AH_EXPORTS_OVERRIDES
+#include "dot3ah_exports_overrides.h"
+#endif
+
+#endif /* __DOT3AH_EXPORTS_H_*/

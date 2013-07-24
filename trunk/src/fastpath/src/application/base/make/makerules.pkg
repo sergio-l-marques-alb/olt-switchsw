@@ -1,0 +1,26 @@
+# This file defines special package-level build rules and is included by make.magic.
+#
+
+# Local source path abbreviations (for convenience).
+#
+src_zlib   := $(FP_BASE)/src/system_support/base/l7util/zlib
+
+zlib_files := $(wildcard $(foreach type, $(SRC_FILE_TYPES), $(src_zlib)/*.$(type)))
+zlib_files := $(filter-out $(addprefix $(FP_BASE)/,$(src_file_excl_zlib)),$(zlib_files))
+
+zlib_objs  := $(notdir $(foreach type, $(SRC_FILE_TYPES), \
+		$(patsubst %.$(type),%.o,$(filter %.$(type),$(zlib_files)))))
+
+
+bldlib:: $(zlib_arc_name)
+	$(NOOP)
+
+
+# Create a zlib archive file to be used later by the text-based config boot menu executable.
+#
+$(zlib_arc_name): $(zlib_objs)
+	$(ARCHIVING_MSG)
+	$(DBG) $(AR) rcs $@ $^
+	$(DBG) sleep $(TOUCH_SLEEP)
+	$(DBG) touch $@
+

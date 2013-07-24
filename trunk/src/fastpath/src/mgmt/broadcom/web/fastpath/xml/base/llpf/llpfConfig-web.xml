@@ -1,0 +1,72 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="llpfConfig" title="Link Local Protocol Filtering Configuration" java-script="llpfConfig_js">
+       
+<!-- Group for a read-only users -->
+
+     <group  id="1" level="ReadOnlyUser" heading="  ">
+        <node id="1">
+             <element control="combo" properties="filter" obj-name="basellpf_ifIndex" id="1" name="Interface"/>
+        </node>
+     </group>
+
+     <group level="ReadOnlyUser" id="2" heading="  ">
+          <repeat present="vtable" edit="inline" heading=" " id="1">     
+            <element control="label" properties="iterate" obj-name="basellpf_protocolType" id="1" name="Protocol">
+                <action type="enum" web_name="ISDP" />
+                <action type="enum" web_name="VTP"  />
+                <action type="enum" web_name="DTP"  />
+                <action type="enum" web_name="UDLD" />
+                <action type="enum" web_name="PAGP" />
+                <action type="enum" web_name="SSTP" />
+                <action type="enum" web_name="Blockall"  />
+                <action type="enum" discard="yes" web_name="Last" />
+             </element>
+             <element control="label" obj-name="basellpf_BlockMode" id="2" name="Mode">
+                  <!-- web_name for TRUE/FALSE -->
+                  <action type="enum" web_name="Enable"/>
+                  <action type="enum" web_name="Disable"/>
+            </element>
+         </repeat>
+    </group>
+
+    <!-- Group for a Read-Write Users -->
+     <group level="ReadWriteUser" id="3" heading="  ">
+          <node id="1">
+             <element control="combo" properties="filter" obj-name="basellpf_ifIndex" id="1" name="Interface"/>
+          </node>
+     </group>
+     <group level="ReadWriteUser" id="4" heading="  ">
+          <repeat present="vtable" edit="inline" heading=" " id="1">     
+            <element control="label" properties="iterate" clazz="rowdataattributes" obj-name="basellpf_protocolType" id="1" name="Protocol">
+                <action type="enum" web_name="ISDP" />
+                <action type="enum" web_name="VTP"  />
+                <action type="enum" web_name="DTP"  />
+                <action type="enum" web_name="UDLD" />
+                <action type="enum" web_name="PAGP" />
+                <action type="enum" web_name="SSTP" />
+                <action type="enum" web_name="Blockall"  />
+                <action type="enum" discard="yes" web_name="Last"/>
+            </element>
+             <element control="combo" obj-name="basellpf_BlockMode" id="2" name="Mode">
+                <!-- web_name for TRUE/FALSE -->
+                <action type="enum" web_name="Enable"/>
+                <action type="enum" web_name="Disable"/>
+             </element>
+          </repeat>
+     </group>
+      
+
+     <group id="5" heading="  ">
+          <node id="1">
+           <button level="ReadWriteUser" scope="page" type="buttonSubmit" help="Submits the form" id="1" name="Submit"/>
+           <button scope="page" type="buttonClear" help="Refreshes the form" id="2" name="Refresh"/>
+          </node>
+     </group>
+
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Persistent Log Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<EMWEB_IF ID=IF_L7_PERSISTENT_LOG_SUPPORTED>
+<h2><a name=pers></a>Help for Persistent Log Configuration</h2>
+A persistent log is a log that is stored in persistent storage.
+Persistent storage survives across platform reboots.
+The first log type is the system startup log.
+The system startup log stores the first N messages received after
+system reboot. The second log type is the system operation log.
+The system operation log stores the last N messages received
+during system operation.
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Admin Status
+    </b> -  A log that is "Disabled" shall not log messages.
+      A log that is "Enabled" shall log messages.
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+      Enable or Disable logging by selecting the
+      corresponding line on the pull down entry field.
+      </EMWEB_IF>
+       By default it is Disable.
+      </li>
+
+<li><b>Severity Filter</b>
+      - A log records messages equal to or above a configured severity threshold.
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+      Select the severity option by selecting the corresponding line on the
+      pull down entry field.
+      </EMWEB_IF>
+      These severity levels have been enumerated below:<BR>
+        -Emergency : system is unusable <BR>
+        -Alert : action must be taken immediately<BR>
+        -Critical : critical conditions<BR>
+        -Error : error conditions<BR>
+        -Warning : warning conditions<BR>
+        -Notice : normal but significant conditions<BR>
+        -Informational : informational messages<BR>
+        -Debug : debug-level messages<BR>
+       By default it is Alert.
+    </li>
+</ul>
+</ul>
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >
+  </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+</EMWEB_IF>
+
+</body>
+
+</html>
+
+

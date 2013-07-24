@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Port Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=portcon></a>Help for Port Configuration</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> -
+      Selects the interface for which data is to be displayed or
+      configured.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>STP Mode</b> - The
+      Select the Spanning Tree Protocol Administrative Mode for the port or
+      LAG. The possible values are: </li>
+  <ul type=square>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DOT1S_FEATURE" >
+   <li>Enable - select this to enable the Spanning Tree Protocol for this port.</li>
+   <li>Disable - select this to disable the Spanning Tree Protocol for this port. </li>
+      STP Mode is disabled by default.
+<EMWEB_ELSE>
+   <li>802.1D - select this if you want the port to
+       participate in the Spanning Tree Protocol and to go through all of the
+       spanning tree states when the link state transitions from Down to Up. </li>
+   <li>Fast - select this if you want the port to
+       participate in the Spanning Tree Protocol and to enter the forwarding
+       state when the link state transitions from Down to Up faster than when
+       STP Mode is 802.1D. In the &quot;Fast&quot; state, the Forwarding Delay
+       timer is ignored on Link Up. </li>
+   <li>Off - select this to disable the Spanning Tree Protocol
+       for this port. This mode is also referred to as manual spanning
+       tree. </li>
+</EMWEB_IF>
+  </ul>
+  <li><b>Admin Mode</b> -
+      Use the pull-down menu to select the Port control administration state.
+      You must select enable if you want the port to participate
+      in the network. The factory default is enabled. </li>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="POLICY_PORT_BCAST_CONTROL_FEATURE">
+  <li><b>Broadcast Storm
+      Recovery Mode</b> - Enable or disable this option by selecting the
+      corresponding line on the pull-down entry field.
+      When you specify Enable for Broadcast Storm Recovery and the broadcast
+      traffic on the specified Ethernet port exceeds the configured threshold,
+      the switch blocks (discards) the broadcast traffic.
+      The factory default is disabled. </li>
+  <li><b>Broadcast Storm
+      Recovery Level</b> - Specify the data rate at which storm control activates.
+       The factory default is 5 percent of port speed. The level units can be
+       set to percent or packets-per-second.</li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="POLICY_PORT_MCAST_CONTROL_FEATURE">
+  <li><b>Multicast Storm
+      Recovery Mode</b> - Enable or disable this option by selecting the
+      corresponding line on the pull-down entry field.
+      When you specify Enable for Multicast Storm Recovery and the multicast
+      traffic on the specified Ethernet port exceeds the configured threshold,
+      the switch blocks (discards) the multicast traffic.
+      The factory default is disabled.</li>
+  <li><b>Multicast Storm
+      Recovery Level</b> - Specify the data rate at which storm control activates.
+       The factory default is 5 percent of port speed. The level units can be
+       set to percent or packets-per-second.</li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="POLICY_PORT_UCAST_CONTROL_FEATURE">
+  <li><b>Unicast Storm
+      Recovery Mode</b> - Enable or disable this option by selecting the
+      corresponding line on the pull-down entry field.
+      When you specify Enable for Unicast Storm Recovery and the unicast
+      traffic on the specified Ethernet port exceeds the configured threshold,
+      the switch blocks (discards) the unicast traffic.
+      The factory default is disabled.</li>
+  <li><b>Unicast Storm
+      Recovery Level</b> - Specify the data rate at which storm control activates.
+       The factory default is 5 percent of port speed. The level units can be
+       set to percent or packets-per-second.</li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="POLICY_PORT_FLOW_CONTROL_FEATURE">
+  <li><b>Flow Control Mode</b> -
+      Use the pull-down menu to enable or disable flow control for the port.
+      The factory default is disabled. </li>
+</EMWEB_IF>
+  <li><b>LACP Mode</b> -
+      Selects the Link Aggregation Control Protocol administration state. The mode must be enabled
+      in order for the port to participate in Link Aggregation.  May be enabled or
+      disabled by selecting the corresponding line on the pull-down entry field.
+      The factory default is enabled. </li>
+  <li><b>Physical Mode</b> -
+      Use the pull-down menu to select the port's speed and duplex mode.
+      If you select auto
+      the duplex mode and speed will be set by the
+      auto-negotiation process. Note that the port's maximum capability (full
+      duplex and 100 Mbps) will be advertised. Otherwise, your selection will determine
+      the port's duplex mode and transmission rate. The factory default is
+      auto. The selection when applied against the "All" option in emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY; is applied to all applicable interfaces only. </li>
+  <li><b>Link Trap</b> - This object
+      determines whether or not to send a trap when link status changes. The
+      factory default is enabled. </li>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="L7_NIM_JUMBOFRAMES_FEATURE" >
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="L7_NIM_JUMBOFRAMES_PER_INTERFACE_FEATURE" >
+  <li><b>Maximum Frame Size</b> - The maximum ethernet frame size the interface supports or
+      is configured, including ethernet header, CRC, and payload.
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_MIN_FRAME_SIZE, L7_MAX_FRAME_SIZE);
+    ' >. The default maximum frame size is
+      <EMWEB_STRING EMWEB_TYPE=DECIMAL_INT C='
+      staticUINT32 = L7_MIN_FRAME_SIZE;
+      return &staticUINT32;
+    ' >.
+      </li>
+<EMWEB_ELSE>
+  <li><b>Maximum Frame Size</b> - The maximum ethernet frame size all interfaces support or
+      are configured, including ethernet header, CRC, and payload.
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_MIN_FRAME_SIZE, L7_MAX_FRAME_SIZE);
+    ' >. The default maximum frame size is
+      <EMWEB_STRING EMWEB_TYPE=DECIMAL_INT C='
+      staticUINT32 = L7_MIN_FRAME_SIZE;
+      return &staticUINT32;
+    ' >. Note: This parameter is system-wide and is set for all ports.
+      </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Type</b> -The
+      possible values are: </li>
+  <ul type=square>
+   <li>Normal - the port is a normal port. </li>
+   <li>Trunk Member - the port is
+       a member of a Link Aggregation trunk. Look at the LAG screens for more
+       information. </li>
+   <li>Mirrored - the port is a mirrored port.</li>
+   <li>Probe - the port is a
+       monitoring port. Look at the Port Monitoring screens for more
+       information.</li>
+
+  </ul>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DOT1S_FEATURE" >
+<EMWEB_ELSE>
+  <li><b>Forwarding State</b>
+      - The port's current state Spanning Tree state.
+      This state controls what action a port takes on receipt of a
+      frame. If the bridge detects a malfunctioning port it will
+      place that port into the broken state. The other five states are defined in IEEE 802.1D: </li>
+  <ul type=square>
+   <li>Disabled </li>
+   <li>Blocking </li>
+   <li>Listening </li>
+   <li>Learning </li>
+   <li>Forwarding </li>
+   <li>Broken </li>
+  </ul>
+</EMWEB_IF>
+  <li><b>Physical Status</b>
+      - Indicates the port speed and duplex mode for Physical interfaces. Does not report Physical Status for LAG interfaces. Physical status is unknown when a port is down.</li>
+  <li><b>Link Status</b> -
+      Indicates whether the Link is up or down. </li>
+  <li ><b>Interface Index</b> - The interface index of the interface table entry associated with
+      this port. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >  If you want the
+  switch to retain the new values across a power cycle you must perform a save. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>

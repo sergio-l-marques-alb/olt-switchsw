@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "web.dtd">
+
+ <FastPathXML>
+    <webxml  version="1.0" name="sdmTemplate"  title="SDM Template Preference"> 
+        <group  level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="sdmTemplateConfiguration_current" id="1" name="SDM Current Template ID"/>
+            </node>
+            <node id="2" run_if="SDM_TEMPLATE_DATACENTER_SUPPORTED">
+                <element control="combo" properties="read-write" obj-name="sdmTemplateConfiguration_next" id="1" name="SDM Next Template ID">
+                     <action invoke="both" type="enum" discard="no" hide="1_5_1" disable="1_5_1"/>
+                     <action invoke="both" type="enum" discard="no" hide="1_5_1" disable="1_5_1"/>
+                     <action invoke="both" type="enum" discard="no" hide="1_5_1" disable="1_5_1"/>
+                     <action invoke="both" type="enum" discard="no" hide="1_5_1" disable="1_5_1"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="combo" properties="read-write" obj-name="sdmTemplateConfiguration_next" id="1" name="SDM Next Template ID">
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="yes" />
+                </element>
+            </node>
+             <node id="3">
+		    <message>Summary</message>
+            </node>
+            <repeat present="plain" edit="no" heading=" " id="3">
+                <element control="label" properties="iterate" obj-name="sdmTemplateConfiguration_ID" id="1" name="SDM Template"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_ARPEntries" id="2" name="ARP Entries"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv4UnicastRoutes" id="3" name="IPv4 Unicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6NDPEntries" id="4" name="IPv6 NDP Entries"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6UnicastRoutes" id="5" name="IPv6 Unicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_ECMPNextHops" id="6" name="ECMP Next Hops"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv4MulticastRoutes" id="7" name="IPv4 Multicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6MulticastRoutes" id="8" name="IPv6 Multicast Routes"/>
+            </repeat>
+            <node id="4"> 
+                 <button scope="page" type="buttonSubmit" target-page="sdmTemplate.html" help="Submits the form on this page to the Switch" id="1" name="Submit"> 
+                 </button>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="sdmTemplateConfiguration_current" id="1" name="SDM Current Template ID"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="sdmTemplateConfiguration_next" id="1" name="SDM Next Template ID">
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="no" />
+                     <action invoke="both" type="enum" discard="no" />
+                </element>
+            </node>
+            <node id="3">
+		    <message>Summary</message>
+            </node>
+            <repeat present="plain" edit="no" heading=" " id="3">
+                <element control="label" properties="iterate" obj-name="sdmTemplateConfiguration_ID" id="1" name="SDM Template"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_ARPEntries" id="2" name="ARP Entries"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv4UnicastRoutes" id="3" name="IPv4 Unicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6NDPEntries" id="4" name="IPv6 NDP Entries"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6UnicastRoutes" id="5" name="IPv6 Unicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_ECMPNextHops" id="6" name="ECMP Next Hops"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv4MulticastRoutes" id="7" name="IPv4 Multicast Routes"/>
+                <element control="label" obj-name="sdmTemplateConfiguration_IPv6MulticastRoutes" id="8" name="IPv6 Multicast Routes"/>
+            </repeat>
+            <node id="4"> 
+                 <button scope="page" type="buttonClear" target-page="sdmTemplate.html" help="Submits the form on this page to the Switch" id="1" name="Refresh"> 
+                 </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

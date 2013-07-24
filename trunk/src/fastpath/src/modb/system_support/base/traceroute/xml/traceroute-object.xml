@@ -1,0 +1,329 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="TraceRouteHopStats">
+<key-combo list="traceRouteCtlOwnerIndex,traceRouteCtlTestName"/>
+<object name="traceRouteCtlOwnerIndex">
+<core type="string" key="yes" access="read-write" descr="To facilitate the provisioning of access control by a security administrator using the View-Based Access Control Model (RFC 2575, VACM) for tables in which multiple users may need to independently create or modify entries, the initial index is used as an &apos;owner index&apos;. Such an initial index has a syntax of SnmpAdminString, and can thus be trivially mapped to a securityName or groupName as defined in VACM, in accordance with a security policy. When used in conjunction with such a security policy all entries in the table belonging to a particular user (or group) will have the same value for this initial index. For a given user&apos;s entries in a particular table, the object identifiers for the information in these entries will have the same subidentifiers (except for the &apos;column&apos; subidentifier) up to the end of the encoded owner index. To configure VACM to permit access to this portion of the table, one would create vacmViewTreeFamilyTable entries with the value of vacmViewTreeFamilySubtree including the owner index portion, and vacmViewTreeFamilyMask &apos;wildcarding&apos; the column subidentifier. More elaborate configurations are possible."/>
+<ui name="Ctl Owner Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.1"/> 
+</ui></object>
+<object name="traceRouteCtlTestName">
+<core type="string" key="yes" access="read-write" descr="The name of a traceroute test. This is locally unique, within the scope of an traceRouteCtlOwnerIndex."/>
+<ui name="Ctl TestName" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.2"/> 
+</ui></object>
+<object name="traceRouteHopsHopIndex" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" key="yes" access="read-write" descr="Specifies the hop index for a traceroute hop. Values for this object with respect to the same traceRouteCtlOwnerIndex and traceRouteCtlTestName MUST start at 1 and increase monotonically. The traceRouteHopsTable keeps the current traceroute path per traceRouteCtlEntry if enabled by setting the corresponding traceRouteCtlCreateHopsEntries to true(1). All hops (traceRouteHopsTable entries) in a traceroute path MUST be updated at the same time when a traceroute operation completes. Care needs to be applied when either a path changes or can&apos;t be determined. The initial portion of the path, up to the first hop change, MUST retain the same traceRouteHopsHopIndex values. The remaining portion of the path SHOULD be assigned new traceRouteHopsHopIndex values."/>
+<ui name="Hop Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.1"/> 
+</ui></object>
+<object name="HopsIpTgtAddressType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="This objects indicates the type of address stored in the corresponding traceRouteHopsIpTargetAddress object."/>
+<ui name="Target Hops IP AddressType" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.2"/> 
+</ui></object>
+<object name="HopsIpTgtAddress" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="string" access="read-only" descr="This object reports the IP address associated with the hop. A value for this object should be reported as a numeric IP address and not as a DNS name."/>
+<ui name="Target Hops IP Target Address" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.3"/> 
+</ui></object>
+<object name="HopsMinRtt" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="The minimum traceroute round-trip-time (RTT) received for this hop. A value of 0 for this object implies that no RTT has been received."/>
+<ui name="Hop's Minimum Round Trip Time" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.4"/> 
+</ui></object>
+<object name="HopsMaxRtt" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="The maximum traceroute round-trip-time (RTT) received for this hop. A value of 0 for this object implies that no RTT has been received."/>
+<ui name="Hop's Maximum Round Trip Time" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.5"/> 
+</ui></object>
+<object name="HopsAverageRtt" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="The current average traceroute round-trip-time (RTT) for this hop."/>
+<ui name="Hop's Average Round Trip Time"  style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.6"/> 
+</ui></object>
+<object name="HopsRttSumOfSquares" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="This object contains the sum of all traceroute responses received for this hop. Its purpose is to enable standard deviation calculation."/>
+<ui name="Hop's RTT SumOfSquares" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.7"/> 
+</ui></object>
+<object name="HopsSentProbes" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="The value of this object reflects the number of probes sent for this hop during this traceroute test. The value of this object should start at 0."/>
+<ui name="Hop's Sent Probes" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.8"/> 
+</ui></object>
+<object name="HopsProbeResponses" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="uint" access="read-only" descr="Number of responses received for this hop during this traceroute test. This value of this object should start at 0."/>
+<ui name="Hop's Probe Responses" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.9"/> 
+</ui></object>
+<object name="HopsLastGoodProbe" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName,traceRouteHopsHopIndex">
+<core type="string" access="read-only" descr="Date and time was the last response was received for a probe for this hop during this traceroute test."/>
+<ui name="Hop's Last Good Probe" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.5.1.10"/> 
+</ui></object>
+</module>
+
+<module name="traceRouteResults">
+<key-combo list="traceRouteCtlOwnerIndex,traceRouteCtlTestName"/>
+<object name="traceRouteCtlOwnerIndex">
+<core type="string" key="yes" access="read-write" descr="To facilitate the provisioning of access control by a security administrator using the View-Based Access Control Model (RFC 2575, VACM) for tables in which multiple users may need to independently create or modify entries, the initial index is used as an &apos;owner index&apos;. Such an initial index has a syntax of SnmpAdminString, and can thus be trivially mapped to a securityName or groupName as defined in VACM, in accordance with a security policy. When used in conjunction with such a security policy all entries in the table belonging to a particular user (or group) will have the same value for this initial index. For a given user&apos;s entries in a particular table, the object identifiers for the information in these entries will have the same subidentifiers (except for the &apos;column&apos; subidentifier) up to the end of the encoded owner index. To configure VACM to permit access to this portion of the table, one would create vacmViewTreeFamilyTable entries with the value of vacmViewTreeFamilySubtree including the owner index portion, and vacmViewTreeFamilyMask &apos;wildcarding&apos; the column subidentifier. More elaborate configurations are possible."/>
+<ui name="Owner Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.1"/> 
+</ui></object>
+<object name="traceRouteCtlTestName">
+<core type="string" key="yes" access="read-write" descr="The name of a traceroute test. This is locally unique, within the scope of an traceRouteCtlOwnerIndex."/>
+<ui name="TestName" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.2"/> 
+</ui></object>
+<object name="OperStatus" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="enum" xtype="enable_t" access="read-only" descr="Reflects the operational state of an traceRouteCtlEntry: enabled(1) - Test is active. disabled(2) - Test has stopped."/>
+<ui name="Operational Status" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.1"/> 
+</ui></object>
+<object name="CurHopCount" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-only" descr="Reflects the current TTL value (range from 1 to 255) for a remote traceroute operation. Maximum TTL value is determined by traceRouteCtlMaxTtl."/>
+<ui name="Current HopCount" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.2"/> 
+</ui></object>
+<object name="CurProbeCount" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-only" descr="Reflects the current probe count (1..10) for a remote traceroute operation. The maximum probe count is determined by traceRouteCtlProbesPerHop."/>
+<ui name="Current Probe Count" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.3"/> 
+</ui></object>
+<object name="IpTgtAddrType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-only" descr="This objects indicates the type of address stored in the corresponding traceRouteResultsIpTgtAddr object."/>
+<ui name="Target IP AddrType" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.4"/> 
+</ui></object>
+<object name="IpTgtAddr" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-only" descr="This objects reports the IP address associated with a traceRouteCtlTargetAddress value when the destination address is specified as a DNS name. The value of this object should be a zero length octet string when a DNS name is not specified or when a specified DNS name fails to resolve."/>
+<ui name="Target IP Address" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.5"/> 
+</ui></object>
+<object name="TestAttempts" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-only" descr="The current number of attempts to determine a path to a target. The value of this object MUST be started at 0."/>
+<ui name="Test Attempts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.6"/> 
+</ui></object>
+<object name="TestSuccesses" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-only" descr="The current number of attempts to determine a path to a target that have succeeded. The value of this object MUST be reported as 0 when no attempts have succeeded."/>
+<ui name="Test Successes" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.7"/> 
+</ui></object>
+<object name="LastGoodPath" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-only" descr="The date and time when the last complete path was determined."/>
+<ui name="Last GoodPath" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.3.1.8"/> 
+</ui></object>
+<object name="MaxConcurrentRequests">
+<core type="uint" access="read-only" descr="The maximum number of concurrent active traceroute requests that are allowed within an agent implementation. A value of 0 for this object implies that there is no limit for the number of concurrent active requests in effect."/>
+<ui name="Maxmum Concurrent Requests" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.81.1.1"/> 
+</ui></object>
+</module>
+
+<module name="traceRouteCtrlConfig">
+<key-combo list="traceRouteCtlOwnerIndex,traceRouteCtlTestName"/>
+<object name="traceRouteCtlOwnerIndex">
+<core type="string" key="yes" access="read-write" descr="To facilitate the provisioning of access control by a security administrator using the View-Based Access Control Model (RFC 2575, VACM) for tables in which multiple users may need to independently create or modify entries, the initial index is used as an &apos;owner index&apos;. Such an initial index has a syntax of SnmpAdminString, and can thus be trivially mapped to a securityName or groupName as defined in VACM, in accordance with a security policy. When used in conjunction with such a security policy all entries in the table belonging to a particular user (or group) will have the same value for this initial index. For a given user&apos;s entries in a particular table, the object identifiers for the information in these entries will have the same subidentifiers (except for the &apos;column&apos; subidentifier) up to the end of the encoded owner index. To configure VACM to permit access to this portion of the table, one would create vacmViewTreeFamilyTable entries with the value of vacmViewTreeFamilySubtree including the owner index portion, and vacmViewTreeFamilyMask &apos;wildcarding&apos; the column subidentifier. More elaborate configurations are possible."/>
+<ui name="Owner Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.1"/> 
+</ui></object>
+<object name="traceRouteCtlTestName">
+<core type="string" key="yes" access="read-write" descr="The name of a traceroute test. This is locally unique, within the scope of an traceRouteCtlOwnerIndex."/>
+<ui name="TestName" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.2"/> 
+</ui></object>
+<object name="CtlTargetAddressType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="enum" xtype="L7_IP_ADDRESS_TYPE_t" access="read-write" descr="Specifies the type of host address to be used on the traceroute request at the remote host."/>
+<ui name="Target AddressType" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.3"/> 
+</ui></object>
+<object name="CtlTargetAddress" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="ipv4" access="read-write" descr="Specifies the host address used on the traceroute request at the remote host. The host address type can be determined by the examining the value of the corresponding traceRouteCtlTargetAddressType index element. A value for this object MUST be set prior to transitioning its corresponding traceRouteCtlEntry to active(1) via traceRouteCtlRowStatus."/>
+<ui name="Target Address" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.4"/> 
+</ui></object>
+<object name="CtlByPassRouteTable" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" min="0" max="0" default="0" descr="The purpose of this object is to optionally enable bypassing the route table. If enabled, the remote host will bypass the normal routing tables and send directly to a host on an attached network. If the host is not on a directly-attached network, an error is returned. This option can be used to perform the traceroute operation to a local host through an interface that has no route defined (e.g., after the interface was dropped by routed)."/>
+<ui name="ByPass Route Table" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.5"/> 
+</ui></object>
+<object name="CtlDataSize" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_PROBE_SIZE" max="TRACEROUTE_MAX_PROBE_SIZE" default="TRACEROUTE_DEFAULT_PROBE_SIZE" access="read-write" descr="Specifies the size of the data portion of a traceroute request in octets. A traceroute request is essentially transmitted by encoding a UDP datagram into a IP packet. So subtracting the size of a UDP header (8 octets) and the size of a IP header (20 octets) yields a maximum of 65507 octets."/>
+<ui name="Data Size" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.6"/> 
+</ui></object>
+<object name="CtlTimeOut" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_INTERVAL" max="TRACEROUTE_MAX_INTERVAL" default="TRACEROUTE_DEFAULT_PROBE_INTERVAL" access="read-write" descr="Specifies the time-out value, in seconds, for a traceroute request."/>
+<ui name="TimeOut" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.7"/> 
+</ui></object>
+<object name="CtlProbesPerHop" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_PROBE_PER_HOP" max="TRACEROUTE_MAX_PROBE_PER_HOP" default="TRACEROUTE_DEFAULT_PROBE_PER_HOP" access="read-write" descr="Specifies the number of times to reissue a traceroute request with the same time-to-live (TTL) value."/>
+<ui name="Probes Per Hop" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.8"/> 
+</ui></object>
+<object name="CtlPort" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_PORT" max="TRACEROUTE_MAX_PORT" default="TRACEROUTE_DEFAULT_PORT" access="read-write" descr="Specifies the UDP port to send the traceroute request to. Need to specify a port that is not in use at the destination (target) host. The default value for this object is the IANA assigned port, 33434, for the traceroute function."/>
+<ui name="Control Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.9"/> 
+</ui></object>
+<object name="CtlMaxTtl" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_TTL" max="TRACEROUTE_MAX_TTL" default="TRACEROUTE_DEFAULT_MAX_TTL" access="read-write" descr="Specifies the maximum time-to-live value."/>
+<ui name="Maximum TTL" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.10"/> 
+</ui></object>
+<object name="CtlDSField" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" min="0" max="0" default="0" descr="Specifies the value to store in the Differentiated Services (DS) Field in the IP packet used to encapsulate the traceroute probe. The DS Field is defined as the Type of Service (TOS) octet in a IPv4 header or as the Traffic Class octet in a IPv6 header. The value of this object must be a decimal integer in the range from 0 to 255. This option can be used to determine what effect an explicit DS Field setting has on a traceroute response. Not all values are legal or meaningful. DS Field usage is often not supported by IP implementations. A value of 0 means that the function represented by this option is not supported. Useful TOS octet values are probably &apos;16&apos; (low delay) and &apos;8&apos; ( high throughput)."/>
+<ui name="DS Field" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.11"/> 
+</ui></object>
+<object name="CtlSourceAddressType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" min="L7_IP_ADDRESS_TYPE_UNKNOWN" max="L7_IP_ADDRESS_TYPE_UNKNOWN" default="L7_IP_ADDRESS_TYPE_UNKNOWN" descr="Specifies the type of the source address, traceRouteCtlSourceAddress, to be used at a remote host when performing a traceroute operation."/>
+<ui name="Source AddressType" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.12"/> 
+</ui></object>
+<object name="CtlSourceAddress" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-write" descr="Use the specified IP address (which must be given as an IP number, not a hostname) as the source address in outgoing probe packets. On hosts with more than one IP address, this option can be used to force the source address to be something other than the primary IP address of the interface the probe packet is sent on. If the IP address is not one of this machine&apos;s interface addresses, an error is returned and nothing is sent. A zero length octet string value for this object disables source address specification. The address type (InetAddressType) that relates to this object is specified by the corresponding value of traceRouteCtlSourceAddressType."/>
+<ui name="Source Address" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.13"/> 
+</ui></object>
+<object name="CtlIfIndex" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="Setting this object to an interface&apos;s ifIndex prior to starting a remote traceroute operation directs the traceroute probes to be transmitted over the specified interface. A value of zero for this object implies that this option is not enabled."/>
+<ui name="Unit/Slot/Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.14"/> 
+</ui></object>
+<object name="CtlIfIndex" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="Setting this object to an interface&apos;s ifIndex prior to starting a remote traceroute operation directs the traceroute probes to be transmitted over the specified interface. A value of zero for this object implies that this option is not enabled."/>
+<ui name="Slot/Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.14"/> 
+</ui></object>
+<object name="CtlMiscOptions" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-write" descr="Enables an application to specify implementation dependent options."/>
+<ui name="Miscellaneous Options" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.15"/> 
+</ui></object>
+<object name="CtlMaxFailures" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_FAIL" max="TRACEROUTE_MAX_FAIL" default="TRACEROUTE_DEFAULT_MAX_FAIL" access="read-write" descr="The value of this object indicates the maximum number of consecutive timeouts allowed before terminating a remote traceroute request. A value of either 255 (maximum hop count/possible TTL value) or a 0 indicates that the function of terminating a remote traceroute request when a specific number of successive timeouts are detected is disabled."/>
+<ui name="Maximum Failures" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.16"/> 
+</ui></object>
+<object name="CtlDontFragment" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_FAIL" max="TRACEROUTE_MAX_FAIL" default="TRACEROUTE_DEFAULT_MAX_FAIL" descr="This object enables setting of the don&apos;t fragment flag (DF) in the IP header for a probe. Use of this object enables performing a manual PATH MTU test."/>
+<ui name="Dont Fragment" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.17"/> 
+</ui></object>
+<object name="CtlInitialTtl" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" min="TRACEROUTE_MIN_INIT_TTL" max="TRACEROUTE_MAX_INIT_TTL" default="TRACEROUTE_DEFAULT_INIT_TTL" access="read-write" descr="The value of this object specifies the initial TTL value to use. This enables bypassing the initial (often well known) portion of a path."/>
+<ui name="Initial TTL" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.18"/> 
+</ui></object>
+<object name="CtlFrequency" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" descr="The number of seconds to wait before repeating a traceroute test as defined by the value of the various objects in the corresponding row. The number of hops in a single traceroute test is determined by the value of the corresponding traceRouteCtlProbesPerHop object. After a single test completes the number of seconds as defined by the value of traceRouteCtlFrequency MUST elapse before the next traceroute test is started. A value of 0 for this object implies that the test as defined by the corresponding entry will not be repeated."/>
+<ui name="Frequency" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.19"/> 
+</ui></object>
+<object name="CtlStorageType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage Type" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.20"/> 
+</ui></object>
+<object name="CtlAdminStatus" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" min="L7_ENABLE" max="L7_DIAG_DISABLE" default="L7_ENABLE" descr="Reflects the desired state that an traceRouteCtlEntry should be in: enabled(1) - Attempt to activate the test as defined by this traceRouteCtlEntry. disabled(2) - Deactivate the test as defined by this traceRouteCtlEntry. Refer to the corresponding traceRouteResultsOperStatus to determine the operational state of the test defined by this entry."/>
+<ui name="Admin Status" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.21"/> 
+</ui></object>
+<object name="CtlDescr" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-write" descr="The purpose of this object is to provide a descriptive name of the remote traceroute test."/>
+<ui name="Description" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.22"/> 
+</ui></object>
+<object name="MaxRows" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" descr="The maximum number of entries allowed in the traceRouteProbeHistoryTable. An implementation of this MIB will remove the oldest entry in the traceRouteProbeHistoryTable to allow the addition of an new entry once the number of rows in the traceRouteProbeHistoryTable reaches this value. Old entries are not removed when a new test is started. Entries are added to the traceRouteProbeHistoryTable until traceRouteCtlMaxRows is reached before entries begin to be removed. A value of 0 for this object disables creation of traceRouteProbeHistoryTable entries."/>
+<ui name="Maximum Rows" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.23"/> 
+</ui></object>
+<object name="CtlTrapGeneration" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-write" descr="The value of this object determines when and if to to generate a notification for this entry: pathChange(0) - Generate a traceRoutePathChange notification when the current path varies from a previously determined path. testFailure(1) - Generate a traceRouteTestFailed notification when the full path to a target can&apos;t be determined. testCompletion(2) - Generate a traceRouteTestCompleted notification when the path to a target has been determined. The value of this object defaults to zero, indicating that none of the above options have been selected."/>
+<ui name="Trap Generation" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.24"/> 
+</ui></object>
+<object name="CtlCreateHopsEntries" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="uint" access="read-write" descr="The current path for a traceroute test is kept in the traceRouteHopsTable on a per hop basis when the value of this object is true(1)."/>
+<ui name="Create TraceRoute Hop Entries" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.25"/> 
+</ui></object>
+<object name="CtlType" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="string" access="read-write" descr="The value of this object is used either to report or select the implementation method to be used for performing a traceroute operation. The value of this object may be selected from traceRouteImplementationTypeDomains. Additional implementation types should be allocated as required by implementers of the DISMAN-TRACEROUTE-MIB under their enterprise specific registration point and not beneath traceRouteImplementationTypeDomains."/>
+<ui name="Ctl Type" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.26"/> 
+</ui></object>
+<object name="TraceRouteCtrlRowStatus" depends="traceRouteCtlOwnerIndex,traceRouteCtlTestName">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This object allows entries to be created and deleted         in the traceRouteCtlTable.  Deletion of an entry in         this table results in all corresponding (same traceRouteCtlOwnerIndex and traceRouteCtlTestName  index values) traceRouteResultsTable, traceRouteProbeHistoryTable, and traceRouteHopsTable entries being deleted. A value MUST be specified for traceRouteCtlTargetAddress prior to a transition to active(1) state being         accepted.         Activation of a remote traceroute operation is         controlled via traceRouteCtlAdminStatus and not         by transitioning of this object&apos;s value to active(1).         Transitions in and out of active(1) state are not         allowed while an entry&apos;s traceRouteResultsOperStatus         is active(1) with the exception that deletion of         an entry in this table by setting its RowStatus         object to destroy(6) will stop an active  traceroute operation.The operational state of an traceroute operation  can be determined by examination of the corresponding traceRouteResultsOperStatus object."/>
+<ui name="TraceRoute RowStatus" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.81.1.2.1.27"/> 
+</ui></object>
+</module>
+
+
+<module name="traceRoute">
+
+<object name="IPAddress">
+<core type="string" access="read-write" descr="The IP address or domain name used for traceroute."/>
+<ui name="IPAddress" style="inputLine">
+</ui></object>
+
+<object name="maxFail">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_FAIL" max="TRACEROUTE_MAX_FAIL" default="TRACEROUTE_DEFAULT_MAX_FAIL" descr="Specify the max fail to terminate the traceroute after failing to receive a response for this number of consecutive probes."/>
+<ui name="Maximum Failures" style="inputLine">
+</ui></object>
+
+<object name="probes">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_PROBE_PER_HOP" max="TRACEROUTE_MAX_PROBE_PER_HOP" default="TRACEROUTE_DEFAULT_PROBE_PER_HOP" descr="Specify the number of probes to send for each TTL value."/>
+<ui name="Probes" style="inputLine">
+</ui></object>
+
+<object name="maxTTL">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_TTL" max="TRACEROUTE_MAX_TTL" default="TRACEROUTE_DEFAULT_MAX_TTL" descr="specify the maximum TTL."/>
+<ui name="Maximum TTL" style="inputLine">
+</ui></object>
+
+<object name="initTTL">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_INIT_TTL" max="TRACEROUTE_MAX_INIT_TTL" default="TRACEROUTE_DEFAULT_INIT_TTL" descr="Specify the initial time-to-live, the maximum number of router hops between local and remote system."/>
+<ui name="Initial TTL" style="inputLine">
+</ui></object>
+
+<object name="interval">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_INTERVAL" max="TRACEROUTE_MAX_INTERVAL" default="TRACEROUTE_DEFAULT_PROBE_INTERVAL" descr="Interval specify the time between probes."/>
+<ui name="Probe Interval" style="inputLine">
+</ui></object>
+
+<object name="port">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_PORT" max="TRACEROUTE_MAX_PORT" default="TRACEROUTE_DEFAULT_PORT" descr="Destination port of the probe."/>
+<ui name="Destination Port" style="inputLine">
+</ui></object>
+
+<object name="size">
+<core type="uint" access="read-write" min="TRACEROUTE_MIN_PROBE_SIZE" max="TRACEROUTE_MAX_PROBE_SIZE" default="TRACEROUTE_DEFAULT_PROBE_SIZE" descr="Size of the payload of the Echo Requests sent."/>
+<ui name="Probe Size" style="inputLine">
+</ui></object>
+
+<object name="traceoutput">
+<core type="string" access="read-only" descr="traceroute Reply Status."/>
+<ui name="TraceRoute Output" style="plainText">
+</ui></object>
+
+<object name="traceAction">
+<core type="uint" access="write-only" descr="traceroute query function."/>
+<ui name="TraceRoute Action" style="plainText">
+</ui></object>
+
+</module>
+
+</objectxml>
+</FastPathXML>
+

@@ -1,0 +1,49 @@
+# Issued by pradcliff on 16-apr-2002 to: 'sledford@lvl7.com'
+
+##
+## License File for the Virata Corporation EmWeb/Compiler
+##
+##     This license is for the EmWeb/Compiler from the Vitata Corporation.
+##     It is provided subject to the terms and conditions of the
+##     EmWeb License and Distribution Agreement signed by your company
+##     and the Virata Corporation.
+##
+## Put this license in a file named 'agranat.lic' in a directory
+## pointed to by the environment variable EMWEB_HOME, or install
+## it in the directory used by any existing FlexLM license server.
+## On Windows, make sure the you don't have an invisible .txt
+## file extention on it.
+##
+## Unlimited License File for the GlobespanVirata Inc. EmWeb/Compiler
+##
+## Put this license in a file named 'agranat.lic' in a directory
+## pointed to by the environment variable EMWEB_HOME, or by the
+## environment variable LM_LICENSE_PATH
+##
+## No license server is required with this license.
+##
+#
+FEATURE EmWeb agranat 1.0 permanent uncounted 52D5BC37A52A HOSTID=ANY \
+	ck=143
+FEATURE EmWebXMLP agranat 1.0 permanent uncounted FFB31793C5FD \
+	HOSTID=ANY ck=143
+FEATURE EmWebUPnP agranat 1.0 permanent uncounted 61CA2982E4E0 \
+	HOSTID=ANY ck=84
+FEATURE EmWebArchiveSymbols agranat 1.0 permanent uncounted \
+	2AFE62480CE6 HOSTID=ANY ck=121
+FEATURE EmWebMap agranat 1.0 permanent uncounted 639988A7E6BD \
+	HOSTID=ANY ck=108
+FEATURE EmWebSNMP agranat 1.0 permanent uncounted C2FD2E84E4E1 \
+	HOSTID=ANY ck=87
+FEATURE ISOS-EmWeb agranat 1.0 permanent uncounted 22950AA6A7B5 \
+	HOSTID=ANY ck=156
+FEATURE ISOS-EmWebXMLP agranat 1.0 permanent uncounted BA748B4902A3 \
+	HOSTID=ANY ck=123
+FEATURE ISOS-EmWebUPnP agranat 1.0 permanent uncounted CF2F7836DEB5 \
+	HOSTID=ANY ck=190
+FEATURE ISOS-EmWebArchiveSymbols agranat 1.0 permanent uncounted \
+	A3F77D55B12C HOSTID=ANY ck=178
+FEATURE ISOS-EmWebMap agranat 1.0 permanent uncounted 3F71D272DB9E \
+	HOSTID=ANY ck=114
+FEATURE ISOS-EmWebSNMP agranat 1.0 permanent uncounted D2E272310E9D \
+	HOSTID=ANY ck=98

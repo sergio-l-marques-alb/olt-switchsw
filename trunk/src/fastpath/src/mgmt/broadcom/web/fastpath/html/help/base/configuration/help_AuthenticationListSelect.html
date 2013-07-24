@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Select Authentication List</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="90%" align=center>
+
+<h2><a name=status></a>Help for Select Authentication List</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Console</b> - Authentication profiles used to authenticate console users. </li>
+ <ul>
+  <li><b>Login or Enable</b>
+  - Specify the login list and enable list which will be used to validate switch or port access for the users associated with the list.
+ </ul>
+
+  <li><b>Telnet</b> - Authentication profiles used to authenticate Telnet users. </li>
+ <ul>
+  <li><b>Login or Enable</b>
+  -  Specify the login list and enable list which will be used to validate switch or port access for the users associated with the list.
+ </ul>
+
+  <li><b>Secure Telnet(SSH)</b> - Authentication profiles used to authenticate Secure Shell (SSH) users. SSH provides clients secure and encrypted remote connections to a device. </li>
+<ul>
+ 
+  <li><b>Login or Enable</b>
+  - Specify the login list and enable list which will be used to validate switch or port access for the users associated with the list.
+</ul>
+
+  <li><b>HTTP and Secure HTTP</b> - Authentication method used for HTTP access and Secure HTTP access, respectively. Possible field values are:  </li>
+  <ul>
+    <li><b>Method 1</b> - Use the dropdown menu to select the method that should appear first in the selected authentication list.
+                          If you select a method that does not time out as the first method, such as 'local' no other method will be tried, even if you have specified more than one method. The options are: </li>
+	  <UL>
+    
+		<LI><B>Undefined</B>- the authentication method is disabled (this may not be assigned as the first method)</LI>
+	    <LI><B>Enable</B>- uses the enable password for authentication.</LI>
+		<LI><B>Line</B>- uses the Line password for authentication.</LI>
+        <LI><B>Local</B>- the user's locally stored ID and password will be used for authentication </B>
+		<LI><B>None</B>- the user is not authenticated </LI>
+        <LI><B>Radius</B>- the user's ID and password will be authenticated using the RADIUS server instead of locally </B>
+        <LI><B>TACACS+</B>- the user's ID and password will be authenticated using the TACACS+ server</LI>
+      </ul>
+	<li><b>Method 2</b> - Use the dropdown menu to select the method, if any, that should appear second in the selected authentication list.
+                          This is the method that will be used if the first method times out.
+                          If you select a method that does not time out as the second method, the third method will not be tried. </li>
+    <li><b>Method 3</b> - Use the dropdown menu to select the method, if any, that should appear third in the selected authentication list.
+                          This is the method that will be used if the second method times out.
+                          If you select a method that does not time out as the third method, the fourth method will not be tried. </li>
+    <li><b>Method 4</b> - Use the dropdown menu to select the method, if any, that should appear fourth in the selected authentication list. </li>
+  </ul>  
+  <li><b>DOT1X</b> - Authentication method used for Dot1x access. Possible field values are:  </li>
+  <ul>
+    <li><b>Method</b> - Use the dropdown menu to select the method that should appear in the selected authentication list. The options are: </li>
+	  <UL>
+              <LI><B>Undefined</B>- the authentication method is disabled.</LI>
+              <LI><B>IAS</B>- the user's ID and password in Internal Authentication Server Database will be used for authentication.</B>
+              <LI><B>Local</B>- the user's locally stored ID and password will be used for authentication.</B>
+              <LI><B>None</B>- the user is not authenticated.</LI>
+              <LI><B>Radius</B>- the user's ID and password will be authenticated using the RADIUS server.</B>
+      </ul>
+   </ul>	
+ </ul>
+</ul>
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+     <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li> 
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

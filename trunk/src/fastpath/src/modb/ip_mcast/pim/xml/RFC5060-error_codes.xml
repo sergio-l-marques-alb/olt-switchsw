@@ -1,0 +1,14 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+
+<FastPathXML>
+    <misc version="1.0">
+      <error output="\n Error! Failed to Set. Another MCAST protocol is already enabled." name="IPMCAST_ALREADY_SET"/> 
+        <error output="\n Error: Value('$$objValue$$') is out of range for $$objName$$. The valid range is %d to %d" name="PIM4_BSR_HASHMASKLEN_OUT_OF_RANGE" args="L7_PIMSM_INTERFACE_CBSR_HASH_MASK_LENGTH_MIN,L7_PIMSM_INTERFACE_CBSR_HASH_MASK_LENGTH_MAX"/> 
+        <error output="\n Error: Value('$$objValue$$') is out of range for $$objName$$. The valid range is %d to %d" name="PIM6_BSR_HASHMASKLEN_OUT_OF_RANGE" args="L7_PIMSM6_INTERFACE_CBSR_HASH_MASK_LENGTH_MIN,L7_PIMSM6_INTERFACE_CBSR_HASH_MASK_LENGTH_MAX"/> 
+      <error output="\n Error! Failed to Set. Group address not in Global scope range.Use (ff[0-f]e::)" name="PIM_RP_CANDIDATE_GROUP_ADDRESS_NOT_IN_GLOBAL_SCOPE"/> 
+      <error output="\n Error! The static RP could not be created; Trying to configure Duplicate RP Address for the same Group Range." name="PIM_RP_STATIC_ADDR_DUPLICATE"/> 
+      <error output="\n Error! Non-Zero Data Threshold Rate is currently not supported on this platform.  Only Switch on First Packet policy is supported." name="PIM_NON_ZERO_SPT_THRESHOLD"/> 
+    </misc>
+</FastPathXML>

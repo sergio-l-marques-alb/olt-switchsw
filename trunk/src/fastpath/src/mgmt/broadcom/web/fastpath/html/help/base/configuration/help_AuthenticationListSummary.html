@@ -1,0 +1,67 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Authentication List Summary</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="90%" align=center>
+
+<h2><a name=status></a>Help For Authentication List Summary</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Login Authentication List</b> - Displays all login authentication profiles. </li>
+  <li><b>Methods</b> - User authentication methods. Possible options are:  </li>
+      <ul>
+	    <LI><B>Enable</B>- uses the enable password for authentication.</LI>
+		<LI><B>Line</B>- uses the Line password for authentication.</LI>
+        <LI><B>Local</B>- the user's locally stored ID and password will be used for authentication </B>
+		<LI><B>None</B>- the user is not authenticated </LI>
+        <LI><B>Radius</B>- the user's ID and password will be authenticated using the RADIUS server instead of locally </B>
+        <LI><B>TACACS+</B>- the user's ID and password will be authenticated using the TACACS+ server</LI>
+      </ul>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Remove</b> - Removes the authentication profile when checked.  </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+   <li>The same fields are displayed in case of <b>Enable Authentication List</b> Table.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li>The Authentication Lists and Authentication Methods configured for each List of <b>Console</b>, <b>Telnet</b>, <b>SSH</b>, <b>HTTPS</b>, <b>HTTP</b> and <b>DOT1X</b> are displayed respectively. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+     <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li> 
+ </EMWEB_IF>
+	 <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>

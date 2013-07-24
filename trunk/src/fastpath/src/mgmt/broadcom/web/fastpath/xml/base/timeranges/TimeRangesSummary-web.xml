@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd">
+<FastPathXML>
+    <webxml version="1.0" name="TimeRangeSummary" title="Time Range Summary">
+        <group id="1" heading=" ">
+            <repeat present="plain" edit="no" heading=" " id="1">
+                <element control="label" properties="iterate,hidden" obj-name="baseTimeRange_timeRangeIndex" id="1" name="Time Range Name"/>
+                <element control="label" properties="iterate" obj-name="baseTimeRange_timeRangeName" id="2" name="Time Range Name"/>
+                <element control="label" obj-name="baseTimeRange_timeRangeStatus" id="3"  name="Time Range Status" />
+                <element control="label" obj-name="baseTimeRange_timeRangeNumPeriodicEntries" id="3"  name="Periodic Entry Count" />
+                <element control="label" obj-name="baseTimeRange_timeRangeAbsoluteEntryExist" id="3"  name="Absolute Entry" />
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

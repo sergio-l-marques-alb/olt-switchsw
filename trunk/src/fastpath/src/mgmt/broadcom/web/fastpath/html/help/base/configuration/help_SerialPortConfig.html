@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Serial Port Configuration Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2><a name=serport></a>Help for Serial Port Configuration</h2>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Selection Criteria</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+
+ <ul type=circle>
+ 
+    <li><b>Baud Rate (bps)</b> -
+
+      Select the default baud rate for the serial port connection from the
+
+      pull-down menu. You may choose from 1200, 2400,
+
+      4800, 9600, 19200, 38400, 57600, and 115200 baud. The factory default is
+
+      9600 baud. </li>
+ </ul>
+
+</ul>	  
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Serial Port Login
+
+      Timeout (minutes)</b> - Specify how many minutes of inactivity should occur on
+
+      a serial port connection before the switch closes the
+
+      connection. Enter a number between 0 and 160: the factory
+
+      default is 5. <B><I>Entering 0 disables the timeout.</B></I> </li>
+ 
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Character Size
+
+      (bits)</b> - The number of bits in a character. This is always 8. </li>
+
+  <li><b>Flow Control</b> -
+
+      Whether hardware flow control is enabled or disabled. It is always disabled. </li>
+
+  <li><b>Stop Bits</b> - The
+
+      number of stop bits per character. Its is always 1. </li>
+
+  <li><b>Parity</b> - The
+
+      parity method used on the serial port. It is always None. </li>
+
+  
+ </ul>
+
+</ul>
+
+
+
+<h3>Command Buttons</h3>
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+<EMWEB_ELSE>
+	<li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >. </li>
+</EMWEB_IF>
+
+ </ul>
+
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFInterfaceConfig" title="OSPF Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="1" name="Interface">
+                    <action type="default" enable="1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29" show="1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28" /> 
+                    <action type="value" value="^(0/6/[0-7])$" disable="1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28" hide="1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,hidden" cpval="routingswitchIPInterfaceConfig_IfIndex" obj-name="routingospfInterface_AddressLess" id="1" name="ospfInterface_AddressLess"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingswitchIPInterfaceConfig_ipAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingswitchIPInterfaceConfig_netMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="routingospfInterface_AdminStat" id="1" name="OSPF Admin Mode"/>
+            </node>
+            <node id="7">
+                <element maxLength="15" obj-name="routingospfInterface_AreaId" id="1" name="OSPF Area ID"/>
+            </node>
+            <node id="8">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingospfInterface_RtrPriority" id="1" name="Router Priority"/>
+            </node>
+            <node id="9">
+                <element arghelp="HELP_FORMAT_FP" maxLength="4" obj-name="routingospfInterface_RetransInterval" id="1" name="Retransmit Interval(secs)"/>
+            </node>
+            <node id="10">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="routingospfInterface_HelloInterval" id="1" name="Hello Interval(secs)"/>
+            </node>
+            <node id="11">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="routingospfInterface_RtrDeadInterval" id="1" name="Dead Interval(secs)"/>
+            </node>
+            <node id="12">
+                <element obj-name="routingospfInterface_LSAAckInterval" id="1" name="LSA Acknowledge Interval(secs)"/>
+            </node>
+            <node id="13">
+                <element arghelp="HELP_FORMAT_FP" maxLength="4" obj-name="routingospfInterface_TransitDelay" id="1" name="Transmit Delay(secs)"/>
+            </node>
+            <node id="14">
+                <element control="combo" obj-name="routingospfInterface_IpMtuIgnoreFlag" id="1" name="MTU Ignore"/>
+            </node>
+            <node id="15">
+                <element control="combo" obj-name="routingospfInterface_PassiveMode" id="1" name="Passive Mode"/>
+            </node>
+            <node id="16">
+                <element control="combo" obj-name="routingospfInterface_Type" id="1" name="Network Type">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                </element>
+            </node>
+            <node id="17">
+		<element control="label" properties="read-only" obj-name="routingospfInterface_AuthType" id="1" name="Authentication Type">
+                     <action type="enum" hide="1_18_1|1_19_1"/>
+		     <action type="enum" show="1_18_1" hide="1_19_1"/>
+		     <action type="enum" show="1_18_1|1_19_1"/>
+		</element>
+		<button scope="page" type="buttonClear" target-page="OSPFInterfaceAuthConfig.html" help="Submits the form on this page to the Switch" id="2" name="Configure"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AuthKey" id="1" name="Authentication Key"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AuthKeyId" id="1" name="Authentication Key ID"/>
+            </node>
+            <node id="20">
+                <element obj-name="routingospfInterface_State" id="1" name="State"/>
+            </node>
+            <node id="21">
+                <element obj-name="routingospfInterface_DesignatedRouter" id="1" name="Designated Router"/>
+            </node>
+            <node id="22">
+                <element obj-name="routingospfInterface_BackupDesignatedRouter" id="1" name="Backup Designated Router"/>
+            </node>
+            <node id="23">
+                <element obj-name="routingospfInterface_Events" id="1" name="Number of Link Events"/>
+            </node>
+            <node id="24">
+                <element obj-name="routingospfInterface_LocalLinkOpaqueLSAs" id="1" name="Local Link LSAs"/>
+            </node>
+            <node id="25">
+                <element obj-name="routingospfInterface_LocalLinkOpaqueLSACksum" id="1" name="Local Link LSA Checksum"/>
+            </node>
+            <node id="26">
+                <element properties="filter,hidden" cpval="routingswitchIPInterfaceConfig_IfIndex" obj-name="routingospfIfMetric_AddressLessIf" id="1" name="AddressLessIf"/>
+            </node>
+            <node id="27">
+                <element properties="filter,hidden" cpval="routingospfInterface_IpAddress" obj-name="routingospfIfMetric_IpAddress" id="1" name="IpAddress"/>
+            </node>
+            <node id="28">
+                <element properties="filter,iterate,hidden" value="0" obj-name="routingospfIfMetric_TOS" id="1" name="TOS"/>
+            </node>
+            <node id="29">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="routingospfIfMetric_Value" id="1" name="Metric Cost"/>
+            </node>
+            <node id="30">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="1" name="Interface">
+                    <action type="default" enable="2_8|2_9|2_10|2_11|2_12|2_13|2_14|2_15|2_16|2_17|2_18|2_19|2_20|2_21|2_22|2_23|2_24|2_25|2_26|2_27|2_28|2_29" show="2_8|2_9|2_10|2_11|2_12|2_13|2_14|2_15|2_16|2_17|2_18|2_19|2_20|2_21|2_22|2_23|2_24|2_25|2_26|2_27|2_28" /> 
+                    <action type="value" value="^(0/[6-7]/[0-7])$" disable="2_8|2_9|2_10|2_11|2_12|2_13|2_15|2_16|2_17|2_18|2_19|2_20|2_21|2_22|2_23|2_24|2_25|2_26|2_27|2_28" hide="2_8|2_9|2_10|2_11|2_12|2_13|2_15|2_16|2_17|2_18|2_19|2_20|2_21|2_22|2_23|2_24|2_25|2_26|2_27|2_28"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,hidden" cpval="routingswitchIPInterfaceConfig_IfIndex" obj-name="routingospfInterface_AddressLess" id="1" name="ospfInterface_AddressLess"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingswitchIPInterfaceConfig_ipAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingswitchIPInterfaceConfig_netMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AdminStat" id="1" name="OSPF Admin Mode"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AreaId" id="1" name="OSPF Area ID"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_RtrPriority" id="1" name="Router Priority"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_RetransInterval" id="1" name="Retransmit Interval(secs)"/>
+            </node>
+            <node id="10">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_HelloInterval" id="1" name="Hello Interval(secs)"/>
+            </node>
+            <node id="11">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_RtrDeadInterval" id="1" name="Dead Interval(secs)"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_LSAAckInterval" id="1" name="LSA Acknowledge Interval(secs)"/>
+            </node>
+            <node id="13">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_TransitDelay" id="1" name="Transmit Delay(secs)"/>
+            </node>
+            <node id="14">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_IpMtuIgnoreFlag" id="1" name="MTU Ignore"/>
+            </node>
+            <node id="15">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_PassiveMode" id="1" name="Passive Mode"/>
+            </node>
+            <node id="16">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_Type" id="1" name="Network Type"/>
+            </node>
+            <node id="17">
+		<element control="label" properties="read-only" obj-name="routingospfInterface_AuthType" id="1" name="Authentication Type"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AuthKey" id="1" name="Authentication Key"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_AuthKeyId" id="1" name="Authentication Key ID"/>
+            </node>
+            <node id="20">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_State" id="1" name="State"/>
+            </node>
+            <node id="21">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_DesignatedRouter" id="1" name="Designated Router"/>
+            </node>
+            <node id="22">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_BackupDesignatedRouter" id="1" name="Backup Designated Router"/>
+            </node>
+            <node id="23">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_Events" id="1" name="Number of Link Events"/>
+            </node>
+            <node id="24">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_LocalLinkOpaqueLSAs" id="1" name="Local Link LSAs"/>
+            </node>
+            <node id="25">
+                <element control="label" properties="read-only" obj-name="routingospfInterface_LocalLinkOpaqueLSACksum" id="1" name="Local Link LSA Checksum"/>
+            </node>
+            <node id="26">
+                <element properties="filter,hidden" cpval="routingswitchIPInterfaceConfig_IfIndex" obj-name="routingospfIfMetric_AddressLessIf" id="1" name="AddressLessIf"/>
+            </node>
+            <node id="27">
+                <element properties="filter,hidden" cpval="routingospfInterface_IpAddress" obj-name="routingospfIfMetric_IpAddress" id="1" name="IpAddress"/>
+            </node>
+            <node id="28">
+                <element properties="filter,iterate,hidden" value="0" obj-name="routingospfIfMetric_TOS" id="1" name="TOS"/>
+            </node>
+            <node id="29">
+                <element control="label" properties="read-only" obj-name="routingospfIfMetric_Value" id="1" name="Metric Cost"/>
+            </node>
+            <node id="30">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+	
+        </group>
+    </webxml>
+</FastPathXML>

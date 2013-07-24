@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>File Transfer Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=upload></a>Help for System Utilities Upload File From Switch</h2>
+
+<p><br>
+Use this menu to upload a file from the switch. </p>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>File Type</b> - Specify what type of file you want to upload:
+    <UL TYPE="SQUARE">
+        <LI><B>Code</B>
+        - Specify code when you want to retrieve a stored code image.</LI>
+        <LI><B>Configuration</B>
+        - Specify configuration when you want to retrieve the stored
+        configuration.</LI>
+        <LI><B>Text Configuration</B> - Specify Text based configuration when you want to retrieve the script file.</LI>
+        <LI><B>Error Log</B>
+        - Specify error log to retrieve the system error (persistent) log,
+        sometimes referred to as the event log.</LI>
+        <LI><B>Buffered Log</B>
+        - Specify buffered log to retrieve the system buffered (in-memory) log.</LI>
+        <LI><B>Trap Log</B>
+        - Specify trap log to retrieve the system trap records.</LI>
+        <li><b>CLI Banner</b>
+        - Specify CLI Banner when you want retrieve the CLI banner file.</li>
+       <li><b>Startup Log</b> - Specify Log file when you want to retrieve the logs generated during system boot up.</li>
+     </UL>
+       The factory default is Error Log.
+<EMWEB_IF ID="dimFilename">
+  <li><b>Image Name</b>
+      - Specify which code image you want to upload, either image1 or image2.
+      This field is only visible when Code is selected as the File Type.
+      The factory default is image1.</li>
+<EMWEB_ELSE>
+  <li><b>Image</b>
+      - Specify which code image you want to upload, either active or backup.
+      This field is only visible when Code is selected as the File Type.
+      The factory default is active.</li>
+</EMWEB_IF>
+  <li><b>Transfer Mode</b>
+      - Specify what protocol to use to transfer the file.
+    <UL TYPE="SQUARE">
+        <LI><B>TFTP </B> - Trivial File Transfer Protocol </LI>
+
+
+        <LI><B>SFTP </B> - Secure File Transfer Program</LI>
+        <LI><B>SCP</B> - Secure Copy </LI>
+
+
+    </UL>
+  </li>
+  <li><b>Server Address Type</b>
+      - Specify either IPv4 or IPv6 or DNS to indicate the format of the Server Address
+      field.  The factory default is IPv4.</li>
+  <li><b>Server Address</b>
+      - Enter the IP address of the server in accordance with the
+      format indicated by the Server Address Type. The factory default is
+      the IPv4 address 0.0.0.0. </li>
+  <li><b>Transfer File Path</b>
+      - Enter the path on the server where the selected file has to be located. You
+      may enter up to 32 characters. The factory default is blank. </li>
+  <li><b>Transfer File Name</b>
+      - Enter the name of the file you want to upload from the switch to the server.
+      You may enter up to 32 characters. The factory default is blank. </li>
+
+
+  <li><b>User Name</b>
+      - Enter the username for remote login to SFTP/SCP server where the file will be sent.
+      This field is visible only when SFTP or SCP transfer
+      modes are selected. </li>
+  <li><b>Password</b>
+      - Enter the password for remote login to SFTP/SCP server where the file will be sent.
+      This field is visible only when SFTP or SCP transfer
+      modes are selected. </li>
+
+
+  <li><b>Start File Transfer</b>
+      - To initiate the upload, check this box before pressing the Submit button.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>File Transfer Status</b> - The last row of the table is used to display information about the progress of
+     the file transfer.  </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b>
+       - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >
+      </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

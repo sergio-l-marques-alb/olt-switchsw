@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDSnoopingVLANStatus" title="MLD Snooping VLAN Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="write-only,hidden" value="MLDSnooping" obj-name="SwitchingSnoopingVlanGroup_SnoopingProtocol" id="1"/>
+                <element properties="filter,iterate" obj-name="SwitchingSnoopingVlanGroup_dot1qVlanIndex" control="label" id="2" name="VLAN ID"/>
+                <element obj-name="SwitchingSnoopingVlanGroup_SnoopingVlanAdminMode" id="3" control="label" name="Admin Mode"/>
+                <element obj-name="SwitchingSnoopingVlanGroup_SnoopingVlanFastLeaveAdminMode" id="4"  control="label" name="Fast Leave Admin Mode"/>
+                <element obj-name="SwitchingSnoopingVlanGroup_SnoopingVlanGroupMembershipInterval" id="5" control="label" name="Group Membership Interval (secs)"/>
+                <element obj-name="SwitchingSnoopingVlanGroup_SnoopingVlanMaxResponseTime" id="6" control="label" name="Max Response Time (secs)"/>
+                <element obj-name="SwitchingSnoopingVlanGroup_SnoopingVlanMRPExpirationTime" id="7" control="label" name="Multicast Router Expiry Time (secs)"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

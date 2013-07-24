@@ -1,0 +1,78 @@
+##############################################################################
+#
+# make.targets.objdist
+#
+# Purpose:  
+#      Adds object-code packages to all possible targets that can be built by
+#      the make system in accordance with package.cfg definitions.
+#
+# Note:
+#      Requires that the make.cfg file be included prior to including this file.
+#
+# Note:
+#      This file is deleted when a buildable view is converted to a 
+#      linkable object build.
+#
+##############################################################################
+
+# Construct a customized list of targets for this build combination.
+#
+
+common_targets += ipstack security switching
+# PTin added: ptin module
+common_targets += ptin
+
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+  common_targets += routing
+endif
+
+# All known flex targets are treated as object-only.
+#
+flex_targets += $(L7_FLEX)
+
+# Using IPV6 package to build IPV6_MGMT source files.
+#
+ifeq (1,$(BLD_L7_FLEX_IPV6_MGMT))
+  flex_targets := $(filter-out ipv6_mgmt,$(flex_targets))
+  ifeq (0,$(BLD_L7_FLEX_IPV6))
+    flex_targets += ipv6
+  endif
+endif
+
+# Filter out DIFFSERV_STD target since it is built by QOS package.
+#
+ifeq (1,$(BLD_L7_FLEX_DIFFSERV_STD))
+  flex_targets := $(filter-out diffserv_std,$(flex_targets))
+endif
+
+# Filter out SECURE_MGMT target since it is built by SECURITY package.
+#
+ifeq (1,$(BLD_L7_FLEX_SECURE_MGMT))
+  flex_targets := $(filter-out secure_mgmt,$(flex_targets))
+endif
+
+# Look for OPENSSL library support.
+#
+ifeq (1,$(BLD_L7_FLEX_OPENSSL_LIB))
+  flex_targets += openssl
+endif
+
+# Look for TR069 library support.
+#
+ifeq (1,$(BLD_L7_FLEX_TR069_LIB))
+  flex_targets += tr069
+endif
+
+other_targets +=
+
+
+# This definition replaces the one created in make.targets, since it contains
+# more information regarding the object-only package targets.
+#
+LIB_TARGETS     := $(common_targets) $(flex_targets) $(mgmt_targets) $(other_targets)
+
+# When creating linkable object file, do not build targets distributed as source code.
+ifeq (1,$(LINKABLE_OBJECT_BUILD))
+  LIB_TARGETS   := $(filter-out $(srcdist_targets),$(LIB_TARGETS))
+endif
+

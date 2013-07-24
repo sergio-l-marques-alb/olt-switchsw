@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DVMRPGlobalCfg" title="DVMRP Global Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="IPMCASTMulticastDVMRPConfigGroup_dvmrpGlobalAdminMode" id="1" name="Admin Mode"/>
+                <element level="ReadOnlyUser" control="label" obj-name="IPMCASTMulticastDVMRPConfigGroup_dvmrpGlobalAdminMode" id="2" name="Admin Mode"/>
+            </node>
+            <node id="2">
+                <element obj-name="IPMCASTdvmrpInterfaceTable_dvmrpVersionString" id="1" name="Version"/>
+            </node>
+            <node id="3">
+                <element obj-name="IPMCASTdvmrpInterfaceTable_dvmrpNumRoutes" id="1" name="Total Number of Routes"/>
+            </node>
+            <node id="4">
+                <element obj-name="IPMCASTdvmrpInterfaceTable_dvmrpReachableRoutes" id="1" name="Reachable Routes"/>
+            </node>
+            <node id="5">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the information on this page" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

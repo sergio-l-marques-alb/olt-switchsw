@@ -1,0 +1,54 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DHCP Server Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=dhcp_pool_options></a>Help for DHCP Server Pool Options</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Pool Name</b> - Shows all the existing Pool Names.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Option Code</b> - Specifies the Option Code configured for the selected Pool.</li>
+  <li><b>ASCII Value</b> - Specifies the Option ASCII Value for the selected pool.</li>
+  <li><b>Hex Value</b> - Specifies the Option Hex Value for the selected pool.</li>
+  <li><b>IP Address Value</b> - Specifies the Option IP Address Value for the selected pool.</li>
+  </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>Delete</b> - Deletes the checked option for the selected Pool.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</body>
+
+</html>
+
+

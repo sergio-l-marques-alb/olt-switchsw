@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPServerConflictsInfo" java-script="DHCP_Conflicts" title="DHCP Server Conflicts Information">
+        <group id="1" heading=" ">
+            <node id="1">
+              <element control="combo" uienum="dhcpServerConflictSelector_t" properties="filter" value="All Conflicts" obj-name="xLibObjects_dummy" id="1" name="DHCP Conflict">
+                  <action type="enum" hide="1_2_1|1_3_1" disable="1_2_1|1_3_1" enable="1_5_1" show="1_5_1"/>
+                  <action type="enum"  hide="1_5_1" disable="1_5_1" enable="1_2_1|1_3_1" show="1_2_1|1_3_1"/>	
+              </element>
+            </node>            
+			<node id="2">
+                <element control="textbox" arghelp="IP_Address" properties="write-only" value="" obj-name="xLibObjects_dummy" id="1" name="Conflict IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+			 <node id="5">
+                <button scope="page" type="buttonClear" help="Submits the form on this page to the Switch" id="1" name="Refresh"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="4">
+                <element properties="filter,iterate" obj-name="baseDhcpServerAddressConflict_IPAddr" id="1" name="IP Address"/>
+                <element properties="" obj-name="baseDhcpServerAddressConflict_DhcpServerAddressConflictDetectionType" id="2" name="Detection Method"/>
+                <element properties="" obj-name="baseDhcpServerAddressConflict_DhcpServerAddressConflictDetectionTime" id="3" name="Detection Time"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>

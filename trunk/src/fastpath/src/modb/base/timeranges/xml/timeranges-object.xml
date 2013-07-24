@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="TimeRange" key-method="individual">
+<!-- <key-combo list="timeRangeIndex,timeRangeEntryIndex"/> -->
+<!--<object name="timeRangeIndexNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for the timeRangeIndex to be used when creating a new Time Range. A value of zero indicates the Time Range table is full."/>
+<ui name="Time Range Free Index" style="plainText">
+</ui></object> -->
+<object name="timeRangeIndex">
+<core type="uint" properties="key" access="read-write" descr="The Time Range table index, this instance is associated with, When creating a new Time Range. Refer to the timeRangeIndexNextFree object to determine the next available timeRangeIndex to use."/>
+<ui name="Time Range Index" style="choiceNselect1">
+</ui></object>
+<object name="timeRangeName" depends="timeRangeIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="The name of this Time Range entry, which must consist of1 to 31 alphanumeric characters and uniquely identify this Time Range." validation="validate_name31"/>
+<ui name="Time Range Name" style="choiceNselect1">
+</ui></object>
+<object name="timeRangeStatus" depends="timeRangeIndex">
+<core type="enum" xtype="L7_XUI_TIMERANGE_STATUS_t" access="read-only" descr="Status of this instance.It could be either active or inactive"/>
+<ui name="timeRangeStatus" style="inputLine">
+</ui></object>
+<object name="timeRangeRowStatus" depends="timeRangeIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="write-only" descr="Status of this instance.It could be either active, createAndGo or destroy"/>
+<ui name="timeRangeRowStatus" style="inputLine">
+</ui></object>
+<object name="timeRangeNumPeriodicEntries" depends="timeRangeIndex">
+<core type="uint" access="read-only" descr="Current number of periodic entries"/>
+<ui name="Periodic Entries" style="inputLine">
+</ui></object>
+<object name="timeRangeAbsoluteEntryExist" depends="timeRangeIndex">
+<core type="enum" xtype="L7_XUI_ABSOLUTE_ENTRY_EXISTS_t" access="read-only" descr="Specifies whether an absolute time entry exists"/>
+<ui name="timeRangeAbsoluteEntryExist" style="inputLine">
+</ui></object>
+<object name="timeRangeTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the TimeRange Table"/>
+<ui name="TimeRange Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="timeRangeTableMaxSizeStatus">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="Status to detect max time ranges are configured or not"/>
+<ui name="Time Range Max Size Status" style="plainText"/>
+</object>
+<object name="timeRangeEntryTableMaxSizeStatus" depends="timeRangeIndex">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="Status to detect max time range entries are configured or not"/>
+<ui name="Time Range Entry Max Size Status" style="plainText"/>
+</object>
+<object name="timeRangeEntryIndex" depends="timeRangeIndex">
+<core type="uint" key="yes" access="read-write" descr="The index of this entry instance within an Time Range."/>
+<ui name="Time Range Entry Index" style="choiceNselect1">
+</ui></object>
+<object name="timeRangeEntryType" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="enum" xtype="L7_XUI_TIMERANGE_ENTRY_TYPE_t" access="read-write" descr="Type of the timerange entry.It could be either absolute or periodic"/>
+<ui name="TimeRange Entry Type" style="inputLine">
+</ui></object>
+<object name="timeRangeAbsoluteStartDateAndTime" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="enum" xtype="enable_t" access="read-write" descr="Mentions whether the Start Date and Time is specified "/>
+<ui name="timeRangeAbsoluteStartDateAndTime" style="inputLine"/>
+</object>
+<object name="timeRangeAbsoluteEndDateAndTime" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="enum" xtype="enable_t" access="read-write" descr="Mentions whether the End Date and Time is specified "/>
+<ui name="timeRangeAbsoluteEndDateAndTime" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteStartMonth" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="Start month for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteStartMonth" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteStartDate" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="1" max="31" default="1" access="read-write" descr="Start date for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteStartDate" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteStartYear" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMERANGE_MIN_YEAR" max="L7_TIMERANGE_MAX_YEAR" default="L7_TIMERANGE_MIN_YEAR" access="read-write" descr="Start yearfor the absolute time range entry."/>
+<ui name="timeRangeAbsoluteStartYear" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteEndMonth" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="End month for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteEndMonth" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteEndDate" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="1" max="31" default="1" access="read-write" descr="End date for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteEndDate" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteEndYear" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMERANGE_MIN_YEAR" max="L7_TIMERANGE_MAX_YEAR" default="L7_TIMERANGE_MIN_YEAR" access="read-write" descr="End year for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteEndYear" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteStartTimeHours" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Start hour for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteStartTimeHours" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteStartTimeMinutes" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Start minute for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteStartTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteEndTimeHours" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="End hour for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteEndTimeHours" style="inputLine"/>
+</object>
+
+<object name="timeRangeAbsoluteEndTimeMinutes" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="End Minute for the absolute time range entry."/>
+<ui name="timeRangeAbsoluteEndTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="timeRangePeriodicStartDay" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="user" xtype="dayList_t"  access="read-write" properties="range,dynamic" descr="The start day for an periodic entry in the time range"/>
+<ui name="Periodic time entry's start day" style="choice2select1">
+</ui></object>
+<object name="timeRangePeriodicEndDay" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="user" xtype="dayList_t"   access="read-write" properties="range,dynamic" descr="The end day for an periodic entry in the time range"/>
+<ui name="Periodic time entry's end day" style="choice2select1">
+</ui></object>
+<object name="timeRangePeriodicStartTimeHours" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Start hour for the Periodic time range entry."/>
+<ui name="timeRangePeriodicStartTimeHours" style="inputLine"/>
+</object>
+
+<object name="timeRangePeriodicStartTimeMinutes" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Start minute for the Periodic time range entry."/>
+<ui name="timeRangePeriodicStartTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="timeRangePeriodicEndTimeHours" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="End hour for the Periodic time range entry."/>
+<ui name="timeRangePeriodicEndTimeHours" style="inputLine"/>
+</object>
+
+<object name="timeRangePeriodicEndTimeMinutes" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="End Minute for the Periodic time range entry."/>
+<ui name="timeRangePeriodicEndTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="timeRangeEntryStatus" depends="timeRangeEntryIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="write-only" descr="Status of this instance.It could be either active, createAndGo or destroy"/>
+<ui name="timeRangeEntryStatus" style="inputLine">
+</ui></object>
+
+<!--
+<object name="timeRangePeriodicStatus" depends="timeRangeIndex,timeRangeEntryIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status of this instance.It could be either active, createAndGo or destroy"/>
+<ui name="timeRangePeriodicStatus" style="inputLine">
+</ui></object> -->
+
+</module>
+</objectxml>
+</FastPathXML>

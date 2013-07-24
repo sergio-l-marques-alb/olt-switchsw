@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DVLANSummary_Intf" title="DVLAN Interface Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element control="label" properties="filter,iterate" obj-name="baseDVLANTunneling_Interface" id="1" name="Interface"/>
+                <element control="label" properties="read-only" obj-name="baseDVLANTunneling_Mode" id="2" name="Interface Mode"/>
+                <element control="label" properties="read-only" obj-name="baseDVLANTunneling_CustID" id="4" name="Customer ID" run_if="DVLANTAG_CUSTID_FEATURE"/>
+                <element control="label" properties="filter,iterate" obj-name="baseDVLANTunneling_EtherType" id="3" name="Interface EtherType"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

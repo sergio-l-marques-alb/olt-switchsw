@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--#INCLUDE INCLPATH = "src/mgmt/emweb/web/web.h" -->
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>LLDP - 802.1AB Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h2><a name=lldp_med_intf_cfg></a>Help for LLDP-MED Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b>   
+  - Specifies the list of ports on which LLDP-MED - 802.1AB can be configured. 'All' option 
+    is provided to configure all interfaces on the DUT and to be consistent with CLI. To view 
+    the summary of all interfaces refer to 'Interface Summary' webpage. Interface configuration 
+    page will not be able to display summary of 'All' interfaces, summary of individual 
+    interfaces is visible from 'Interface Configuration' webpage. 'Interface Configuration' webpage 
+    for 'All' option will always display LLDP-MED mode and notification mode as 'disabled' and checkboxes 
+    for 'Transmit TLVs' will always be unchecked. </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>LLDP-MED Mode </b>   
+  - Specifies the Link Layer Discovery Protocol-Media Endpoint Discovery(LLDP-MED) mode 
+    for the selected interface. By enabling MED, we will be effectively 
+    enabling the transmit and receive function of LLDP. </li>
+
+  <li><b>Config Notification Mode </b>   
+  - Specifies the LLDP-MED topology notification mode for the selected interface.</li>
+
+  <li><b>Transmit TLVs </b>   
+  - Specifies which optional type length values (TLVs) in the LLDP-MED will be 
+    transmitted in the LLDP PDUs frames for the selected interface. </li>
+  <UL TYPE=square>
+  <li><b>MED Capabilities </b>   
+  - To transmit the capabilities TLV in LLDP frames.</li>
+  <li><b>Network Policy</b>   
+  - To transmit the network policy TLV in LLDP frames.</li>
+  <li><b>Location Identification</b>   
+  - To transmit the location TLV in LLDP frames.</li>
+  <li><b>Extended Power via MDI - PSE</b>   
+  - To transmit the extended PSE TLV in LLDP frames.</li>
+  <li><b>Extended Power via MDI - PD</b>   
+  - To transmit the extended PD TLV in LLDP frames.</li>
+  <li><b>Inventory - </b>   
+  - To transmit the inventory TLV in LLDP frames.</li>
+  </UL>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+ </ul>
+</ul>
+<hr size=4 width="100%" align=center>
+</EMWEB_IF>
+
+</body>
+</html>
+
+

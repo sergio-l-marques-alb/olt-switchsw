@@ -1,0 +1,63 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIM4CandidateRPConfig" title="PIM Candidate RP Configuration" >
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element properties="hidden,write-only" value="IPv4" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddressType" id="1" name="pimBsrCandidateRPAddressType"/>
+            </node>
+            <node id="2">
+                <element properties="filter,iterate,hidden" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddress" id="1" name="RP Address"/>
+            </node>
+            <node id="8">
+                <element control="combo" properties="iterate" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateCandidateRPInterface" id="1" name="RP Interface"/>
+            </node>
+            <node id="3">
+                <element properties="write-only" maxLength="15" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupAddress" id="1" name="Group Address" value=""/>
+            </node>
+            <node id="4">
+                <element properties="write-only" maxLength="15" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupPrefixLength" id="1" name="Group Mask" value="" validation="validate_formatipv4_t" />
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="6">
+                <element properties="filter,iterate,hidden,write-only" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddressType" id="1" value="IPv4"/>
+                <element properties="filter,iterate,hidden" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddress" id="2" name="RP address"/>
+                <element obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateCandidateRPInterfaceConfig" id="6" name="RP Interface"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupAddress" id="3" name="Group Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupPrefixLength" id="4" name="Group Mask"/>
+                <element control="checkbox-neg" properties="edit" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPStatus" id="5" name="Delete">
+               <action type="enum" discard="yes" />  
+               <action type="enum" discard="no" />  
+               <action type="enum" discard="yes" />  
+               <action type="enum" discard="yes" />  
+               <action type="enum" discard="yes" />  
+               <action type="enum" discard="yes" />  
+               <action type="enum" discard="no" />  
+               </element> 
+            </repeat>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="1_6|1_7_2" />
+                </button>
+                <button scope="page" type="buttonSubmit" help="Deletes selected Candidate RP mappings" id="2" name="Delete">
+                  <action type="button" disable="1_3|1_4|1_7_1" />
+                </button>
+            </node>
+        </group>
+         <group level="ReadOnlyUser" id="2" heading=" ">
+            <repeat present="vtable" edit="inline" heading=" " id="2">
+                <element properties="filter,iterate,hidden,write-only" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddressType" id="1" value="IPv4"/>
+                <element properties="filter,iterate,hidden" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPAddress" id="2" name="RP address"/>
+                <element obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateCandidateRPInterfaceConfig" id="6" name="RP Interface"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupAddress" id="3" name="Group Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastpimBsrCandidateRPTable_pimBsrCandidateRPGroupPrefixLength" id="4" name="Prefix Length"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+
+        </webxml>
+</FastPathXML>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPSnoopingPersistentConfig" title="DHCP Snooping Persistent Configuration" java-script="DhcpSnoopingPersistentConfig">
+	<radio-group ids="1_1_1|1_1_2" default="1_1_1"/>
+        <group id="1" level="ReadWriteUser" heading=" ">
+            <node id="1">
+		          <element obj-name="xLibObjects_dummy" control="radio" uienum="persistentConfig_t" id="1" name="Store">
+			          <action type="enum" disable="1_2_1|1_3_1" enable="1_6_1"/>
+			          <action type="enum" discard="yes"/>
+		          </element>	
+				  <element obj-name="xLibObjects_dummy" properties="noname" control="radio" uienum="persistentConfig_t" id="2">
+			          <action type="enum" discard="yes"/>
+			          <action type="enum" enable="1_2_1|1_3_1" disable="1_6_1"/>
+		          </element>	
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingDHCPSnooping_RemoteIPAddress" id="1" name="Remote IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <element arghelp="DHCP_REMOTEFILE_NAME" obj-name="SwitchingDHCPSnooping_RemoteFileName" id="1" name="Remote File Name" maxLength="32"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECONDS" obj-name="SwitchingDHCPSnooping_WriteDelay" id="1" name="Write Delay" maxLength="5"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+            <node id="6">
+                <element obj-name="SwitchingDHCPSnooping_RemoteIPAddress" id="1" properties="write-only,hidden" value="0.0.0.0" name="Remote IP Address"/>
+            </node>
+        </group>
+        <group id="2" level="ReadOnlyUser" heading="  ">
+            <node id="1">
+                <element control="label" obj-name="SwitchingDHCPSnooping_RemoteIPAddress" id="1" name="Remote IP Address"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="SwitchingDHCPSnooping_RemoteFileName" id="1" name="Remote File Name"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="SwitchingDHCPSnooping_WriteDelay" id="1" name="Write Delay(sec)"/>
+            </node>
+        </group>
+   </webxml>
+</FastPathXML>

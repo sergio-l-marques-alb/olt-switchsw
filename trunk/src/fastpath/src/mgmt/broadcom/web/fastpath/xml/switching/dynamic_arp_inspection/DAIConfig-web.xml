@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DAIConfig" title="Dynamic ARP Inspection Global Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingDAI_SRCMACVerify" id="1" name="Validate Source MAC">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="SwitchingDAI_DSTMACVerify" id="1" name="Validate Destination MAC">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingDAI_IPVerify" id="1" name="Validate IP">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_SRCMACVerify" id="1" name="Validate Source MAC">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_DSTMACVerify" id="1" name="Validate Destination MAC">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_IPVerify" id="1" name="Validate IP">
+                   <action type="enum" web_name="Disable" />
+                   <action type="enum" web_name="Enable" />
+                </element>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

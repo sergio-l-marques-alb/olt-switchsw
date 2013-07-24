@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DhcpClientOptions" title="DHCP Client Options Configuration">
+        <group id="1" heading="" level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingDhcpClientVendorGlobalConfig_VendorClassIdMode" id="1" name="DHCP Vendor Class ID Mode"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingDhcpClientVendorGlobalConfig_VendorClassIdString" id="1" name="DHCP Vendor Class ID String" maxLength ="128" arghelp= "HELP_FORMAT_NAME128"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+         <group id="2" heading="" level="ReadOnlyUser">
+            <node id="1">
+                <element control="label" obj-name="SwitchingDhcpClientVendorGlobalConfig_VendorClassIdMode" id="1" name="DHCP Vendor Class ID Mode"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="SwitchingDhcpClientVendorGlobalConfig_VendorClassIdString" id="1" name="DHCP Vendor Class ID String"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

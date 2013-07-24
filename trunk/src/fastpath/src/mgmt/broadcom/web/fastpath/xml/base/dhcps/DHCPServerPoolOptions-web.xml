@@ -1,0 +1,42 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPServerPoolOptions" title="DHCP Server Pool Options">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="textbox" properties="hidden"  obj-name="baseDhcpServerPoolOption_OptionIndex" id="1" name="PoolIndex"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="baseDhcpServerPoolOption_PoolName" id="1" name="PoolName">
+                    <action type="value" value="valMapEmptyString" hide="1_1_1|1_2_1|1_3|1_4_1" show="1_5"/>
+	         	    <action type="default" hide="1_5"/>
+		        </element>
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="3">
+                <element properties="filter,iterate,hidden" obj-name="baseDhcpServerPoolOption_OptionCode" id="1" name="Option Code"/>
+                <element level="ReadWriteUser" control="checkbox-neg" properties="noname" obj-name="baseDhcpServerPoolOption_Status" id="2" name="Delete">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+		            </element>
+                <element control="label" properties="read-only" obj-name="baseDhcpServerPoolOption_OptionCode" id="3" name="Option Code"/>
+                <element control="label" properties="read-only" obj-name="baseDhcpServerPoolOption_AsciiData" id="4" name="ASCII Value"/>
+                <element control="label" properties="read-only" obj-name="baseDhcpServerPoolOption_HexData" id="5" name="Hex Value"/>
+                <element control="label" properties="read-only" obj-name="baseDhcpServerPoolOption_IpAddressData" id="6" name="IP Address Value"/>
+            </repeat>
+            <node id="4">
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Delete"/>
+            </node>
+            <node id="5" clazz="unavailableattributes"> 
+	            <message>No Pool Exists</message>
+	        </node>
+        </group>
+    </webxml>
+</FastPathXML>

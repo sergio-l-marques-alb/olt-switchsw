@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="GARPStatus" title="GARP Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="Switchingdot1dBase_GvrpStatus" id="1" name="Switch GVRP"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="Switchingdot1dBase_GmrpStatus" id="1" name="Switch GMRP"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="3">		     
+		        <element properties="filter,iterate" obj-name="SwitchingVlanPortConfig_Interface" id="3" name="Interface"/>
+                <element cpval="SwitchingVlanPortConfig_Interface" properties="hidden" obj-name="Switchingdot1dGmrpPortConfig_Interface" id="1" name="Interface"/>
+                <element cpval="SwitchingVlanPortConfig_Interface" properties="hidden" obj-name="Switchingdot1dGarpPortTimerConfig_Interface" id="2" name="Interface"/>
+                <element control="label" obj-name="SwitchingVlanPortConfig_GvrpStatus" id="4" name="Port GVRP Mode"/>                
+                <element control="label" obj-name="Switchingdot1dGmrpPortConfig_Status" id="5" name="Port GMRP Mode"/>                
+                <element control="label" obj-name="Switchingdot1dGarpPortTimerConfig_JoinTime" id="6" name="Join Timer (centisecs)"/>
+                <element control="label" obj-name="Switchingdot1dGarpPortTimerConfig_LeaveTime" id="7" name="Leave Timer(centisecs)"/>
+                <element control="label" obj-name="Switchingdot1dGarpPortTimerConfig_LeaveAllTime" id="8" name="Leave All Timer&lt;BR&gt;(centisecs)"/>
+            </repeat>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,108 @@
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>CoS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=cos_trust_mode_cfg></a>Help for Class of Service Trust Mode Configuration</h2>
+
+	<h3>Selection Criteria </h3>
+
+	<ul type=disc>
+		<ul type=circle>
+			<li><b>Interface</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+				
+<EMWEB_IF ID=XUI_IF_MERLION>
+        User can configure interface level trust mode to be the same as  Global level trust mode or as Untrusted.
+<EMWEB_ELSE>
+					These may be overridden on a per-interface basis. 
+</EMWEB_IF>
+				
+			</li>
+		</ul>
+	</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>	
+	<h3>Configurable Data</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+	<ul type=disc>
+		<ul type=circle>
+			<li>
+				<b>Interface Trust Mode</b> - Specifies whether or not to trust a particular packet marking at ingress.
+					<BR>Interface Trust Mode can only be one of the following:
+					<ul type=square>
+						<li><I><B>untrusted</B></I></LI>
+					</UL>
+					<ul type=square>
+						<li><I><B>trust dot1p</B></I></LI>
+					</UL>
+          <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_IPPREC_FEATURE">
+				    <ul type=square>
+						<li><I><B>trust ip-precedence</B></I></LI>
+					</UL>
+          </EMWEB_IF>
+					<ul type=square>
+						<li><I><B>trust ip-dscp</B></I></LI>
+					</UL>
+				Default value is
+				   trust dot1p.
+			</li>
+		</ul>
+	</UL>
+	
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+	<ul type=disc>
+		<ul type=circle>
+			 <li><b>Untrusted Traffic Class</b> - Displays traffic class (i.e. queue) to
+			  which all traffic is directed when in 'untrusted' mode.
+			  Valid Range is (0 to
+			  6). For an Untrusted interface, packets are handled in accordance with the 
+                          user configurable VLAN Priority value of the ingress port. 
+			 </li>
+			 <li><b>Non-IP Traffic Class</b> - Displays traffic class (i.e. queue) to
+			  which all non-IP traffic is directed when in 'trust ip-precedence' or
+			  'trust ip-dscp' mode.
+			  Valid Range is (0 to
+			  6).
+			 </li>
+
+			 <li><b>Current 802.1p Priority Mapping</b>
+				- Displays the current 802.1p priority mapping configuration.</li>
+		</UL>
+	</UL>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	<h3>Command Buttons </h3>
+		<ul type=disc>
+			<ul type=circle>
+				<li> <b>Submit</b> - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >
+				</li>
+				<li><b>Restore Defaults</b> - Restores default settings.</li>
+			</ul>
+		</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+
+
+

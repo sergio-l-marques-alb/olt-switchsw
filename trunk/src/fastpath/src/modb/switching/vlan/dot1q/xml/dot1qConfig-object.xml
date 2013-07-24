@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="dot1qTpFdb" key-method = "individual" >
+<key-combo list="Id,Address"/>
+<object name="Id"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the identity of this Filtering Database."/>
+<ui  name="FDB Id" style="inputLine" />
+</object>
+<object name="Address"  >
+<core  type="string" key="yes" access="read-write" descr="This instance specifies the  unicast MAC address for which the device has forwarding and/or filtering information."/>
+<ui  name="Forwarding Address" style="inputLine" />
+</object>
+<object name="Port" depends="Id,Address" >
+<core  type="uint" access="read-only" descr="This instance Either has the value '0', or the port number of the port on which a frame having a source address equal to the value of the corresponding instance of dot1qTpFdbAddress has been seen. A value of '0' indicates that the port number has not been learned but that the device does have some forwarding/filtering information about this address (e.g. in the dot1qStaticUnicastTable). Implementors are encouraged to assign the port value to this object whenever it is learned even for addresses for which the corresponding value of dot1qTpFdbStatus is not learned(3)."/>
+<ui  name="Source Address Learnt Port " style="plainText" />
+</object>
+<object name="Status" depends="Id,Address" >
+<core  type="uint" access="read-only" descr="This instance specifies the status of this entry. The meanings of the values are: other(1) - none of the following. This may include the case where some other MIB object (not the corresponding instance of dot1qTpFdbPort, nor an entry in the dot1qStaticUnicastTable) is being used to determine if and how frames addressed to the value of the corresponding instance of dot1qTpFdbAddress are being forwarded. invalid(2) - this entry is no longer valid (e.g., it was learned but has since aged out), but has not yet been flushed from the table. learned(3) - the value of the corresponding instance of dot1qTpFdbPort was learned and is being used. self(4) - the value of the corresponding instance of dot1qTpFdbAddress represents one of the device's addresses. The corresponding instance of dot1qTpFdbPort indicates which of the device's ports has this address. mgmt(5) - the value of the corresponding instance of dot1qTpFdbAddress is also the value of an existing instance of dot1qStaticAddress."/>
+<ui  name="Tp FDB  Status" style="plainText" >
+<snmp asn-id="1.3.6.1.2.1.17.7.1.2.2.1.3"/>
+</ui>
+</object>
+</module>
+<module name="dot1qTpGroup" key-method = "individual" >
+<key-combo list="VlanIndex,Address"/>
+<object name="VlanIndex"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the VLAN-ID or other identifier refering to this VLAN."/>
+<ui  name="Tp Group Vlan Index" style="inputLine" />
+</object>
+<object name="Address"  >
+<core  type="string" key="yes" access="read-write" descr="This instance specifies the destination Group MAC address in a frame to which this entry's filtering information applies."/>
+<ui  name="Destination Group MAC Address" style="inputLine" />
+</object>
+<object name="EgressPorts" depends="VlanIndex,Address" >
+<core  type="string" access="read-only" descr="This instance specifies the complete set of ports, in this VLAN, to which frames destined for this Group MAC address are currently being explicitly forwarded. This does not include ports for which this address is only implicitly forwarded, in the dot1qForwardAllPorts list."/>
+<ui  name="Group MAC Address Egress Ports" style="plainText" >
+<snmp asn-id="1.3.6.1.2.1.17.7.1.2.3.1.2"/>
+</ui>
+</object>
+<object name="Learnt" depends="VlanIndex,Address" >
+<core  type="string" access="read-only" descr="This instance specifies the subset of ports in dot1qTpGroupEgressPorts which were learnt by GMRP or some other dynamic mechanism, in this Filtering database."/>
+<ui  name="Ports Learnt" style="plainText" />
+</object>
+</module>
+<module name="Dot1qOperVlan" key-method = "individual" >
+<key-combo list="VlanIndex,Port"/>
+<object name="VlanIndex"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the VLAN-ID or other identifier refering to this VLAN."/>
+<ui  name="Dot1q Operational Vlan Index" style="inputLine" />
+</object>
+<object name="Port"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the physical or logical interface to be configured"/>
+<ui  name="Port" style="inputLine" />
+</object>
+<object name="TaggingMode" depends="VlanIndex,Port" >
+<core  type="uint" access="read-only" descr="This instance gets the tagging configuration for a member port of a dynamic vlan"/>
+<ui  name="Tagging Mode" style="plainText" />
+</object>
+</module>
+<module name="Dot1qPort"  >
+<object name="BasePort"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the port number of the port for which this entry contains bridge management information."/>
+<ui  name="Bridge Mgmt Info Base Port" style="inputLine" />
+</object>
+<object name="AcceptableFrameType" depends="BasePort" >
+<core  type="uint" access="read-only" descr="This instance is used to get the acceptable frame type for a specific port"/>
+<ui  name="Acceptable Frame Type" style="plainText" />
+</object>
+<object name="GvrpStatus" depends="BasePort" >
+<core  type="uint" access="read-only" descr="This instance specifies the state of GVRP operation on this port"/>
+<ui  name="Gvrp Status" style="plainText" />
+</object>
+<object name="IngressFiltering" depends="BasePort" >
+<core  type="uint" access="read-only" descr="This instance is used to get VLAN ingress filtering status per port"/>
+<ui  name="VLAN Ingress Filtering" style="plainText" />
+</object>
+<object name="Pvid" depends="BasePort" >
+<core  type="uint" access="read-only" descr="This instance is used to get the PVID, the VLAN ID assigned to untagged frames or Priority-Tagged frames received on this port"/>
+<ui  name="Pvid" style="plainText" />
+</object>
+</module>
+</objectxml>
+</FastPathXML>

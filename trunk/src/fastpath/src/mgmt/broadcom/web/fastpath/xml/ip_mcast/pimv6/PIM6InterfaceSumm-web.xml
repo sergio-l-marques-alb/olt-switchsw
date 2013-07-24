@@ -1,0 +1,88 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIM6InterfaceSumm" title="PIM Interface Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="write-only,hidden" value="ipv6" obj-name="ipmcastpimInterfaceTable_pimInterfaceIPVersion" id="1" name="pimInterfaceIPVersion"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastpimInterfaceTable_pimInterfaceIfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="3">
+                <element properties="write-only,hidden" value="IPv6" obj-name="ipmcastpimInterfaceTable_pimInterfaceAddressType" id="1" name="Net Mask"/>
+            </node>
+        </group>
+        <group id="2" heading="Interface Parameters">
+                <node id="1">
+                    <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceStatus" id="1" name="Admin Mode"/>
+                </node>
+                <node id="2">
+                    <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceOperStatus" id="1" name="Protocol State"/>
+                </node>
+                <node id="3">
+                    <element obj-name="ipmcastpimInterfaceTable_pimInterfaceAddress" id="1" name="IP Address"/>
+                </node>
+                <node id="4">
+                    <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceHelloInterval" id="1" name="Hello Interval (secs)"/>
+                </node>
+                <node id="5">
+                    <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceJoinPruneInterval" id="1" name="Join/Prune Interval (secs)"/>
+                </node>
+                <node id="6">
+                    <element properties="write-only,hidden" value="IPv6" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPIMFamily" id="1" name="agentMulticastPIMFamily"/>
+                </node>
+                <node id="7">
+                    <element properties="hidden" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastEnabledPimProtocolType" id="1" name="PIM Protocol">
+                        <action type="value" value="PIM-SM" show="2_8|2_9|2_10" enable="2_8|2_9|1_10" hide="2_11|2_12|2_13" disable="2_11|2_12|2_13" />
+                        <action type="value" value="PIM-DM" hide="2_8|2_9|2_10" disable="2_8|2_9|1_10" show="2_11|2_12|2_13" enable="2_11|2_12|2_13" />
+                    </element>
+                </node>
+
+                    <node id="8">
+                        <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceDRPriority" id="1" name="DR Priority"/>
+                    </node>
+                    <node id="9">
+                        <element control="label" properties="read-only" obj-name="ipmcastpimInterfaceTable_pimInterfaceDomainBorder" id="1" name="BSR Border"/>
+                    </node>
+                    <node id="10">
+                        <element obj-name="ipmcastpimInterfaceTable_pimInterfaceDR" id="1" name="Designated Router"/>
+                    </node>
+                    <node id="11">
+                        <element control="label" value="Not supported in PIMDM" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="DR Priority"/>
+                    </node>
+                    <node id="12">
+                        <element control="label" value="Not supported in PIMDM" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="BSR Border"/>
+                    </node>
+                    <node id="13">
+                        <element control="label" value="Not supported in PIMDM" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="Designated Router"/>
+                    </node>
+        </group>
+        <group id="3" heading="Interface Neighbors">
+            <node id="1">
+                <element obj-name="ipmcastpimInterfaceTable_pimInterfaceNeighborCount" id="1" name="Neighbor Count"/>
+            </node>
+            <node id="2">
+                <element properties="hidden" obj-name="xLibObjects_dummy" id="1" name="dummy"/>
+            </node>
+        </group>
+        <group id="4" heading="">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="hidden" value="ipv6" obj-name="ipmcastpimInterfaceTable_pimInterfaceIPVersion" id="6" name="pimInterfaceIPVersion"/>
+                <element properties="hidden" obj-name="ipmcastpimInterfaceTable_pimInterfaceIfIndex" id="7" />
+                <element properties="filter,hidden" obj-name="ipmcastpimNeighborTable_pimNeighborAddressType" cpval="ipmcastpimInterfaceTable_pimInterfaceIPVersion" id="1"/>
+                <element properties="filter,hidden" obj-name="ipmcastpimNeighborTable_pimNeighborIfIndex" cpval="ipmcastpimInterfaceTable_pimInterfaceIfIndex" id="2"/>
+
+                <element properties="filter,iterate" obj-name="ipmcastpimNeighborTable_pimNeighborAddress" id="3" name="Neighbor IP Address"/>
+                <element obj-name="ipmcastpimNeighborTable_pimNeighborUpTime" id="4" name="Up Time(hh:mm:ss)"/>
+                <element obj-name="ipmcastpimNeighborTable_pimNeighborExpiryTime" id="5" name="Expiry Time(hh:mm:ss)"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

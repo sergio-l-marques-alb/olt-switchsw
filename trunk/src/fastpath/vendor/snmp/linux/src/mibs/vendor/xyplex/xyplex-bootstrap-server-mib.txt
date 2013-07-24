@@ -1,0 +1,2320 @@
+            
+            
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                              for Xyplex Bootstrap Servers
+            
+                                     17 October 1991
+            
+                            Xyplex Document Number 420-0538-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+            with SNMP over various transport services, such as UDP or 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            Ethernet.  In particular, it defines objects for managing a 
+            provider of Xyplex boostrap service.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products, using ASN.1 conventions specified 
+            in [10].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            5.  Overview
+            
+            The Bootstrap Server MIB applies to Xyplex systems that 
+            provide the Xyplex bootstrap service for storage and 
+            retrieval of load images, dump images, and permanent 
+            parameters for other systems.
+            
+            The Bootstrap Server MIB is mandatory for all Xyplex systems 
+            that provide the bootstrap service.
+            
+            The Xyplex Bootstrap Server MIB comprises several groups 
+            that correspond in spirit to the groups standard Internet 
+            MIB.  As in the standard MIB, these groups are not 
+            implemented if the system does not have the corresponding 
+            functions.  For example, a system that does not implement 
+            parameter service does not implement the Xyplex Bootstrap 
+            Server Parameter Service group.
+            
+            As a convenience to the reader, the Bootstrap Server groups 
+            are:
+            
+                basic
+                dump
+                load
+                param
+            
+            The basic group contains the following base objects:
+            
+                basicLogLimit
+                basicActiveLimit
+                basicActiveNumber
+                basicClientNumber
+                basicOffersSent
+                basicEventNumber
+                basicEventPurge
+            
+            The objects making up an active table entry are:
+            
+                activeIdentificationType
+                activeIdentification
+                activeFunction
+                activeSoftwareVersionType
+                activeSoftwareVersion
+                activeParameterVersion
+                activeCurrentSequence
+                activeBytesRemaining
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                activeFile
+            
+            The objects making up a client table entry are:
+            
+                clientIdentificationType
+                clientIdentification
+                clientEntryStatus
+                clientName
+                clientLoadFile
+                clientDiagnosticFile
+                clientLoadService
+                clientDumpService
+            
+            The objects making up a name indexed client table entry 
+            are:
+            
+                namedIdentificationType
+                namedIdentification
+                namedEntryStatus
+                namedName
+                namedLoadFile
+                namedDiagnosticFile
+                namedLoadService
+                namedDumpService
+            
+            The objects making up an event table entry are:
+            
+                eventIndex
+                eventText
+            
+            The dump service group contains the following base objects:
+            
+                dumpService
+                dumpDrive
+                dumpMerit
+                dumpSize
+                dumpCompleted
+                dumpActive
+                dumpFileNumber
+            
+            The objects making up a dump file table entry are:
+            
+                dumpFileIdentificationType
+                dumpFileIdentification
+                dumpFileEntryStatus
+                dumpFileCreation
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                dumpFileSize
+            
+            The load service group contains the following base objects:
+            
+                loadService
+                loadMerit
+                loadCompleted
+                loadActive
+                loadFileNumber
+            
+            The objects making up a load file table entry are:
+            
+                loadFileName
+                loadFileCreation
+                loadFileSize
+                loadFileSoftwareVersionType
+                loadFileSoftwareVersion
+            
+            The parameter service group contains the following base 
+            objects:
+            
+                paramService
+                paramDefaultService
+                paramDrive
+                paramStorageActive
+                paramFileNumber
+            
+            The objects making up a parameter file table entry are:
+            
+                paramFileIdentificationType
+                paramFileIdentification
+                paramFileEntryStatus
+                paramFileWrite
+                paramFileSize
+                paramFileParameterVersion
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-BOOT-SERVER-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises, Counter, Gauge
+                                    FROM RFC1155-SMI
+                            DisplayString
+                                    FROM RFC1158-MIB
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB
+                            DateTime
+                                    FROM XYPLEX-SYSTEM-MIB;
+            
+            xyplex          OBJECT IDENTIFIER ::= { enterprises 33 }
+            bootServer      OBJECT IDENTIFIER ::= { xyplex 6 }
+            
+            -- Xyplex Character subgroups
+            
+            basic           OBJECT IDENTIFIER ::= { bootServer 1 }
+            dump            OBJECT IDENTIFIER ::= { bootServer 2 }
+            load            OBJECT IDENTIFIER ::= { bootServer 3 }
+            param           OBJECT IDENTIFIER ::= { bootServer 4 }
+            
+            --  This MIB module uses the extended OBJECT-TYPE macro as
+            --  defined in [9]
+            
+            --  this is the MIB module for providers of Xyplex
+            --  bootstrap service
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- the Bootstrap Server Basic group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that provide the Xyplex bootstrap service
+            
+            basicLogLimit OBJECT-TYPE
+                SYNTAX INTEGER (1..100)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Maximum allowed number of kilobytes for recording 
+                    events.  Corresponds directly to MANAGER LOG FILE 
+                    SIZE and the value labeled 'Log File Size:' in the 
+                    MANAGER CHARACTERISTICS display."
+            ::= { basic 1 }
+            
+            basicActiveLimit OBJECT-TYPE
+                SYNTAX INTEGER (0..32)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Maximum allowed number of simultaneous service 
+                    dialogs.  Corresponds directly to MANAGER 
+                    SIMULTANEOUS and the value labeled 'Maximum 
+                    simultaneous requests:' in the MANAGER 
+                    CHARACTERISTICS display."
+            ::= { basic 2 }
+            
+            basicActiveNumber OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of active service dialogs.  Corresponds 
+                    indirectly to the list of active clients in the 
+                    MANAGER STATUS display."
+            ::= { basic 3 }
+            
+            basicClientNumber OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of defined clients.  Corresponds indirectly 
+                    to the list of defined clients in the MANAGER LOCAL, 
+                    MANAGER GLOBAL, and MANAGER NODE displays."
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            ::= { basic 4 }
+            
+            basicOffersSent OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Total number of service offers sent in response to 
+                    client requests.  Corresponds directly to the value 
+                    labeled 'Total service offers sent:' in the MANAGER 
+                    STATUS display."
+            ::= { basic 5 }
+            
+            basicEventTotal OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Total number of events that have been written to 
+                    the event log since it was last purged.  This may be 
+                    less than the number currently in the log.  
+                    Corresponds directly to the value labeled 'Total 
+                    Messages Logged:' in the MANAGER EVENTS display."
+            ::= { basic 6 }
+            
+            basicEventPurge OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause emptying the event log.  In 
+                    response to a get-request or get-next-request, the 
+                    agent always returns 'ready' for this value.  
+                    Setting the value to 'ready' has no effect.  Setting 
+                    it to 'execute' causes the event log to immediately 
+                    become empty.  Corresponds directly to the PURGE 
+                    MANAGER LOG FILE command."
+            ::= { basic 7 }
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Active table
+            
+            activeTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF ActiveEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of active client dialog entries.  The number 
+                    of entries is given by basicActiveNumber."
+                ::= { basic 8 }
+            
+            activeEntry OBJECT-TYPE
+                SYNTAX ActiveEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for an active client dialog 
+                    entry."
+                INDEX { activeIdentificationType, activeIdentification }
+                ::= { activeTable 1 }
+            
+            ActiveEntry ::=
+                SEQUENCE {
+                    activeIdentificationType
+                        INTEGER,
+                    activeIdentification
+                        OCTET STRING,
+                    activeFunction
+                        INTEGER,
+                    activeSoftwareVersionType
+                        INTEGER,
+                    activeSoftwareVersion
+                        OCTET STRING,
+                    activeParameterVersion
+                        INTEGER,
+                    activeCurrentSequence
+                        INTEGER,
+                    activeBytesRemaining
+                        INTEGER,
+                    activeFile
+                        DisplayString
+                }
+            
+            activeIdentificationType OBJECT-TYPE
+                SYNTAX INTEGER { ethernetAddress(1) }
+                ACCESS read-only
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of identification value in 
+                    activeIdentification.  Corresponds indirectly to the 
+                    value labeled 'EthernetAddress' in the MANAGER 
+                    STATUS display."
+                ::= { activeEntry 1 }
+            
+            activeIdentification OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (1..6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of the active client.  Corresponds 
+                    directly to the value labeled 'EthernetAddress' in 
+                    the MANAGER STATUS display."
+                ::= { activeEntry 2 }
+            
+            activeFunction OBJECT-TYPE
+                SYNTAX INTEGER { parameterStore(1), load(2), dump(3) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The function the server is performing for the 
+                    client.  Corresponds directly to the value labeled 
+                    'Function' in the MANAGER STATUS display."
+                ::= { activeEntry 3 }
+            
+            activeSoftwareVersionType OBJECT-TYPE
+                SYNTAX INTEGER { alpha(1), beta(2),
+                                 production(3), special(4),
+                                 notApplicable(5) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "If activeFunction is 'load', the software version 
+                    being sent to the client, otherwise 'notApplicable'.  
+                    Corresponds to the letter in the software version 
+                    labeled 'Version' in the MANAGER STATUS display.
+            
+                    alpha         'A':   alpha test
+                    beta          'B':   beta test
+                    production    null:  normal, production software
+                    special       'S':   special, custom software
+                    "
+                ::= { activeEntry 4 }
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+            activeSoftwareVersion OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (0..4))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "If activeFunction is 'load', the 4-byte software 
+                    version being sent to the client, otherwise zero 
+                    length.  In order, the octets contain major version, 
+                    minor version, ECO, and pre-release number.  
+                    Corresponds to the numbers in the software version 
+                    labeled 'Version' in the MANAGER STATUS display.
+            
+                    For example, the version display for 
+                    activeSoftwareVersionType 'production' and 
+                    activeSoftwareVersion '2.2.0.0' is 'V2.2'.
+            
+                    The version display for activeSoftwareVersionType 
+                    'beta' and activeSoftwareVersion '3.1.0.4' is 
+                    'V3.1B4'."
+                ::= { activeEntry 5 }
+            
+            activeParameterVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "If activeFunction is 'parameterStore', the 
+                    parameter version being stored by the client, 
+                    otherwise zero.  Corresponds directly to the value 
+                    labeled 'Version' in the MANAGER STATUS display."
+                ::= { activeEntry 6 }
+            
+            activeCurrentSequence OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The current dialog sequence number.  Corresponds 
+                    directly to the value labeled 'Seq' in the MANAGER 
+                    STATUS display."
+                ::= { activeEntry 7 }
+            
+            activeBytesRemaining OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of bytes remaining to be transferred in 
+                    the dialog.  Corresponds directly to the value 
+                    labeled 'Left' in the MANAGER STATUS display."
+                ::= { activeEntry 8 }
+            
+            activeFile OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (1..16))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The name of the file being used in the dialog.  
+                    Corresponds directly to the value labeled 'File' in 
+                    the MANAGER STATUS display."
+                ::= { activeEntry 9 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  15]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Client table
+            
+            clientTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF ClientEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of client data base entries.  The number of 
+                    entries is given by basicClientNumber."
+                ::= { basic 9 }
+            
+            clientEntry OBJECT-TYPE
+                SYNTAX ClientEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a client data base entry."
+                INDEX { clientIdentificationType, clientIdentification }
+                ::= { clientTable 1 }
+            
+            ClientEntry ::=
+                SEQUENCE {
+                    clientIdentificationType
+                        INTEGER,
+                    clientIdentification
+                        OCTET STRING,
+                    clientEntryStatus
+                        INTEGER,
+                    clientName
+                        DisplayString,
+                    clientLoadFile
+                        DisplayString,
+                    clientDiagnosticFile
+                        DisplayString,
+                    clientLoadService
+                        INTEGER,
+                    clientDumpService
+                        INTEGER
+                }
+            
+            clientIdentificationType OBJECT-TYPE
+                SYNTAX INTEGER { ethernetAddress(1), globalHardware(2),
+                                 localHardware(3)}
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+
+            
+            
+                                                               [Page  16]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                    "The type of identification value in 
+                    clientIdentification.  Corresponds directly to 
+                    MANAGER NODE, MANAGER GLOBAL, and MANAGER LOCAL, and  
+                    the value labeled 'Ethernet Address' in the MANAGER 
+                    NODE display or 'Ethernet Address', 'Device', and 
+                    'Global Devices' or 'Local Devices' in the MANAGER 
+                    GLOBAL and LOCAL displays."
+                ::= { clientEntry 1 }
+            
+            clientIdentification OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (1..6))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of the client, either a hardware 
+                    type or an Ethernet address, depending on 
+                    clientIdentificationType.  Corresponds directly to 
+                    MANAGER NODE, MANAGER GLOBAL, and MANAGER LOCAL, and  
+                    the value labeled 'Ethernet Address' in the MANAGER 
+                    NODE display or 'Ethernet Address', 'Device', and 
+                    'Global Devices' or 'Local Devices' in the MANAGER 
+                    GLOBAL and LOCAL displays."
+                ::= { clientEntry 2 }
+            
+            clientEntryStatus OBJECT-TYPE
+                SYNTAX INTEGER { invalid(1), valid(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The status of the entry.  Set to 'invalid' to 
+                    remove the entry, which corresponds directly to the 
+                    PURGE LOCAL, PURGE GLOBAL, and PURGE NODE commands.  
+                    Actual removal of the entry is implementation 
+                    specific."
+                DEFVAL { valid }
+                ::= { clientEntry 3 }
+            
+            clientName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "A name that may be used to identify the client.  
+                    Corresponds directly to the value labeled 'Name' in 
+                    the MANAGER NODE display."
+                DEFVAL { "" }
+
+            
+            
+                                                               [Page  17]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                ::= { clientEntry 4 }
+            
+            clientLoadFile OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The file with the client's load image.  Corresponds 
+                    directly to the value labeled 'Load File' in the 
+                    MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+                    displays."
+                DEFVAL { "" }
+                ::= { clientEntry 5 }
+            
+            clientDiagnosticFile OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The file with the client's diagnostic test image.  
+                    Corresponds directly to the value labeled 'Diag 
+                    File' in the MANAGER LOCAL, MANAGER GLOBAL, and 
+                    MANAGER NODE displays."
+                DEFVAL { "" }
+                ::= { clientEntry 6 }
+            
+            clientLoadService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing load service for the client.  
+                    Corresponds directly to the value labeled 'Load' in 
+                    the MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+                    displays."
+                DEFVAL { enabled }
+                ::= { clientEntry 7 }
+            
+            clientDumpService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing dump service for the client.  
+                    Corresponds directly to the value labeled 'Dump' in 
+                    the MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+
+            
+            
+                                                               [Page  18]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                            displays."
+                DEFVAL { disabled }
+                ::= { clientEntry 8 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  19]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Named Client table
+            
+            -- This table is strict subset the Client table, being
+            -- the same information in the same form with client name
+            -- as the table index instead of client identification.
+            -- It does not contain clients that have no name.
+            
+            namedTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF NamedEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of named client data base entries.  The 
+                    number of entries is given by basicClientNumber."
+                ::= { basic 10 }
+            
+            namedEntry OBJECT-TYPE
+                SYNTAX NamedEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a named client data base 
+                    entry."
+                INDEX { namedName }
+                ::= { namedTable 1 }
+            
+            NamedEntry ::=
+                SEQUENCE {
+                    namedIdentificationType
+                        INTEGER,
+                    namedIdentification
+                        OCTET STRING,
+                    namedEntryStatus
+                        INTEGER,
+                    namedName
+                        DisplayString,
+                    namedLoadFile
+                        DisplayString,
+                    namedDiagnosticFile
+                        DisplayString,
+                    namedLoadService
+                        INTEGER,
+                    namedDumpService
+                        INTEGER
+                }
+            
+
+            
+            
+                                                               [Page  20]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            namedIdentificationType OBJECT-TYPE
+                SYNTAX INTEGER { ethernetAddress(1), globalHardware(2),
+                                 localHardware(3)}
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of identification value in 
+                    namedIdentification.  Corresponds directly to 
+                    MANAGER NODE, MANAGER GLOBAL, and MANAGER LOCAL, and  
+                    the value labeled 'Ethernet Address' in the MANAGER 
+                    NODE display or 'Ethernet Address', 'Device', and 
+                    'Global Devices' or 'Local Devices' in the MANAGER 
+                    GLOBAL and LOCAL displays."
+                ::= { namedEntry 1 }
+            
+            namedIdentification OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (1..6))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of the client, either a hardware 
+                    type or an Ethernet address, depending on 
+                    namedIdentificationType.  Corresponds directly to 
+                    MANAGER NODE, MANAGER GLOBAL, and MANAGER LOCAL, and  
+                    the value labeled 'Ethernet Address' in the MANAGER 
+                    NODE display or 'Ethernet Address', 'Device', and 
+                    'Global Devices' or 'Local Devices' in the MANAGER 
+                    GLOBAL and LOCAL displays."
+                ::= { namedEntry 2 }
+            
+            namedEntryStatus OBJECT-TYPE
+                SYNTAX INTEGER { invalid(1), valid(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The status of the entry.  Set to 'invalid' to 
+                    remove the entry, which corresponds directly to the 
+                    PURGE LOCAL, PURGE GLOBAL, and PURGE NODE commands.  
+                    Actual removal of the entry is implementation 
+                    specific."
+                DEFVAL { valid }
+                ::= { namedEntry 3 }
+            
+            namedName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+
+            
+            
+                                                               [Page  21]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "A name that may be used to identify the client.  
+                    Corresponds directly to the value labeled 'Name' in 
+                    the MANAGER NODE display."
+                DEFVAL { "" }
+                ::= { namedEntry 4 }
+            
+            namedLoadFile OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The file with the client's load image.  Corresponds 
+                    directly to the value labeled 'Load File' in the 
+                    MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+                    displays."
+                DEFVAL { "" }
+                ::= { namedEntry 5 }
+            
+            namedDiagnosticFile OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The file with the client's diagnostic test image.  
+                    Corresponds directly to the value labeled 'Diag 
+                    File' in the MANAGER LOCAL, MANAGER GLOBAL, and 
+                    MANAGER NODE displays."
+                DEFVAL { "" }
+                ::= { namedEntry 6 }
+            
+            namedLoadService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing load service for the client.  
+                    Corresponds directly to the value labeled 'Load' in 
+                    the MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+                    displays."
+                DEFVAL { enabled }
+                ::= { namedEntry 7 }
+            
+            namedDumpService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+
+            
+            
+                                                               [Page  22]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing dump service for the client.  
+                    Corresponds directly to the value labeled 'Dump' in 
+                    the MANAGER LOCAL, MANAGER GLOBAL, and MANAGER NODE 
+                    displays."
+                DEFVAL { disabled }
+                ::= { namedEntry 8 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  23]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Event table
+            
+            eventTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF EventEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of event entries.  The number of entries is 
+                    given by basicEventNumber."
+                ::= { basic 11 }
+            
+            eventEntry OBJECT-TYPE
+                SYNTAX EventEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a event entry."
+                INDEX { eventIndex }
+                ::= { eventTable 1 }
+            
+            EventEntry ::=
+                SEQUENCE {
+                    eventIndex
+                        INTEGER,
+                    eventText
+                        DisplayString
+                }
+            
+            eventIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "In identification number for an event.  The value 1 
+                    indicates the oldest event in the file, with 
+                    subsequent numbers indicating sequential events.  
+                    The event text for a given number may change as a 
+                    circular event log wraps over its beginning.  
+                    Corresponds directly to the relative position of an 
+                    event in the MANAGER EVENTS display."
+                ::= { eventEntry 1 }
+            
+            eventText OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (1..255))
+                ACCESS read-only
+                STATUS mandatory
+
+            
+            
+                                                               [Page  24]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                DESCRIPTION
+                    "The text of the event, including date, time and 
+                    other information.  Corresponds directly to the 
+                    individual event text in the MANAGER EVENTS 
+                    display."
+                ::= { eventEntry 2 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  25]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- the Bootstrap Server Dump group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that provide the Xyplex bootstrap dump service
+            
+            dumpService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing dump service for any client.  
+                    Corresponds directly to DUMP and the value labeled 
+                    'Dump:' in the MANAGER CHARACTERISTICS display."
+            ::= { dump 1 }
+            
+            dumpDrive OBJECT-TYPE
+                SYNTAX INTEGER (SIZE (1..2))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification number of the disk drive where dumps 
+                    are stored.  Corresponds directly to DUMP DRIVE and 
+                    the value labeled 'Dump Drive:' in the MANAGER 
+                    CHARACTERISTICS display."
+            ::= { dump 2 }
+            
+            dumpMerit OBJECT-TYPE
+                SYNTAX INTEGER (SIZE (0..15))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Relative preference for this dump server over 
+                    others.  Corresponds directly to DUMP MERIT and the 
+                    value labeled 'Dump Merit:' in the MANAGER 
+                    CHARACTERISTICS display."
+            ::= { dump 3 }
+            
+            dumpSize OBJECT-TYPE
+                SYNTAX INTEGER { small(1), full(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Type of dump file to keep.  Corresponds directly to 
+                    DUMP SIZE and the value labeled 'Dump Size:' in the 
+                    MANAGER CHARACTERISTICS display."
+            ::= { dump 4 }
+
+            
+            
+                                                               [Page  26]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+            dumpCompleted OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of dumps completed since system 
+                    initialization.  Corresponds directly to the value 
+                    labeled 'Dump Operations Completed:' in the MANAGER 
+                    STATUS display."
+            ::= { dump 5 }
+            
+            dumpActive OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of dumps in progress.  Corresponds 
+                    directly to the value labeled 'Currently Dumping:' 
+                    in the MANAGER STATUS display."
+            ::= { dump 6 }
+            
+            dumpFileNumber OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of dump files currently stored.  
+                    Corresponds directly to the value labeled 'Network 
+                    dump files' and 'files' in the MANAGER FILES 
+                    display."
+            ::= { dump 7 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  27]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Dump File table
+            
+            dumpFileTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF DumpFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of dump file entries.  The number of entries 
+                    is given by dumpFileNumber."
+                ::= { dump 8 }
+            
+            dumpFileEntry OBJECT-TYPE
+                SYNTAX DumpFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a dump file entry."
+                INDEX { dumpFileIdentificationType,
+                        dumpFileIdentification }
+                ::= { dumpFileTable 1 }
+            
+            DumpFileEntry ::=
+                SEQUENCE {
+                    dumpFileIdentificationType
+                        INTEGER,
+                    dumpFileIdentification
+                        OCTET STRING,
+                    dumpFileEntryStatus
+                        INTEGER,
+                    dumpFileCreation
+                        DateTime,
+                    dumpFileSize
+                        INTEGER
+                }
+            
+            dumpFileIdentificationType OBJECT-TYPE
+                SYNTAX INTEGER { ethernetAddress(1) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of identification value in 
+                    dumpFileIdentification.  Corresponds indirectly to a 
+                    file name part in the section labeled 'Network dump 
+                    files' in the MANAGER FILES display."
+                ::= { dumpFileEntry 1 }
+            
+
+            
+            
+                                                               [Page  28]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            dumpFileIdentification OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (1..6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of the dump file, an Ethernet 
+                    address, as indicated by dumpFileIdentificationType.  
+                    Corresponds indirectly to a file name part in the 
+                    section labeled 'Network dump files' in the MANAGER 
+                    FILES display."
+                ::= { dumpFileEntry 2 }
+            
+            dumpFileEntryStatus OBJECT-TYPE
+                SYNTAX INTEGER { invalid(1), valid(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The status of the entry.  Set to 'invalid' to 
+                    remove the entry, which corresponds indirectly to 
+                    the PURGE MANAGER DUMP FILES command.  Actual 
+                    removal of the entry is implementation specific."
+                ::= { dumpFileEntry 3 }
+            
+            dumpFileCreation OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The time the dump file was created.  Corresponds 
+                    directly to a date and time in the section labeled 
+                    'Network dump files' in the MANAGER FILES display."
+                ::= { dumpFileEntry 4 }
+            
+            dumpFileSize OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of bytes stored in the dump file.  
+                    Corresponds directly to the value labeled 'bytes' in 
+                    the section labeled 'Network dump files' in the 
+                    MANAGER FILES display."
+                ::= { dumpFileEntry 5 }
+
+
+
+            
+            
+                                                               [Page  29]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- the Bootstrap Server Load group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that provide the Xyplex bootstrap load service
+            
+            loadService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing load service for any client.  
+                    Corresponds directly to LOAD and the value labeled 
+                    'Load:' in the MANAGER CHARACTERISTICS display."
+            ::= { load 1 }
+            
+            loadMerit OBJECT-TYPE
+                SYNTAX INTEGER (SIZE (0..15))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Relative preference for this load server over 
+                    others.  Corresponds directly to LOAD MERIT and the 
+                    value labeled 'Load Merit:' in the MANAGER 
+                    CHARACTERISTICS display."
+            ::= { load 2 }
+            
+            loadCompleted OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of loads completed since system 
+                    initialization.  Corresponds directly to the value 
+                    labeled 'Load Operations Completed:' in the MANAGER 
+                    STATUS display."
+            ::= { load 3 }
+            
+            loadActive OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of loads in progress.  Corresponds 
+                    directly to the value labeled 'Currently Loading:' 
+                    in the MANAGER STATUS display."
+            ::= { load 4 }
+
+            
+            
+                                                               [Page  30]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+            loadFileNumber OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of load files currently stored.  
+                    Corresponds directly to the value labeled 'Load 
+                    image files' and 'files' in the MANAGER FILES 
+                    display."
+            ::= { load 5 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  31]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Load File table
+            
+            loadFileTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF LoadFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of load file entries.  The number of entries 
+                    is given by loadFileNumber."
+                ::= { load 6 }
+            
+            loadFileEntry OBJECT-TYPE
+                SYNTAX LoadFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a load file entry."
+                INDEX { loadFileName }
+                ::= { loadFileTable 1 }
+            
+            LoadFileEntry ::=
+                SEQUENCE {
+                    loadFileName
+                        DisplayString,
+                    loadFileCreation
+                        DateTime,
+                    loadFileSize
+                        INTEGER,
+                    loadFileSoftwareVersionType
+                        INTEGER,
+                    loadFileSoftwareVersion
+                        OCTET STRING
+                }
+            
+            loadFileName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (1..16))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The name of a load file.  Corresponds directly to a 
+                    file name part in the section labeled 'Load image 
+                    files' in the MANAGER FILES display."
+                ::= { loadFileEntry 1 }
+            
+            loadFileCreation OBJECT-TYPE
+                SYNTAX DateTime
+
+            
+            
+                                                               [Page  32]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The time the load file was created.  Corresponds 
+                    directly to a date and time in the section labeled 
+                    'Load image files' in the MANAGER FILES display."
+                ::= { loadFileEntry 2 }
+            
+            loadFileSize OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of bytes stored in the load file.  
+                    Corresponds directly to the value labeled 'bytes' in 
+                    the section labeled 'Load image files' in the 
+                    MANAGER FILES display."
+                ::= { loadFileEntry 3 }
+            
+            loadFileSoftwareVersionType OBJECT-TYPE
+                SYNTAX INTEGER { alpha(1), beta(2),
+                                 production(3), special(4) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The software version type of the image in the load 
+                    file.  Corresponds directly to a software version in 
+                    the section labeled 'Load image files' in the 
+                    MANAGER FILES display.
+            
+                    alpha         'A':   alpha test
+                    beta          'B':   beta test
+                    production    null:  normal, production software
+                    special       'S':   special, custom software
+                    "
+                ::= { loadFileEntry 4 }
+            
+            loadFileSoftwareVersion OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (0..4))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The software version of the image in the load file.  
+                    Corresponds directly to a software version in the 
+                    section labeled 'Load image files' in the MANAGER 
+                    FILES display.
+
+            
+            
+                                                               [Page  33]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+                    For example, the version display for 
+                    loadFileSoftwareVersionType 'production' and 
+                    loadFileSoftwareVersion '2.2.0.0' is 'V2.2'.
+            
+                    The version display for loadFileSoftwareVersionType 
+                    'beta' and loadFileSoftwareVersion '3.1.0.4' is 
+                    'V3.1B4'."
+                ::= { loadFileEntry 5 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  34]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- the Bootstrap Server Parameter Storage group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that provide the Xyplex bootstrap parameter
+            -- storage service
+            
+            paramService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing parameter storage service for 
+                    any client.  Corresponds directly to PARAMETER 
+                    SERVICE and the value labeled 'Parameter Service:' 
+                    in the MANAGER CHARACTERISTICS display."
+            ::= { param 1 }
+            
+            paramDefaultService OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control for allowing default parameter loading 
+                    service for any client.  Corresponds directly to 
+                    PARAMETER DEFAULT SERVICE and the value labeled 
+                    'Parameter Default Service:' in the MANAGER 
+                    CHARACTERISTICS display."
+            ::= { param 2 }
+            
+            paramDrive OBJECT-TYPE
+                SYNTAX INTEGER (SIZE (1..2))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification number of the disk drive where 
+                    parameters are stored.  Corresponds directly to 
+                    PARAMETER DRIVE and the value labeled 'Parameter 
+                    Drive:' in the MANAGER CHARACTERISTICS display."
+            ::= { param 3 }
+            
+            paramActive OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of params in progress.  Corresponds 
+
+            
+            
+                                                               [Page  35]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                            directly to the value labeled 'Currently Paraming:' 
+                    in the MANAGER STATUS display."
+            ::= { param 4 }
+            
+            paramStorageActive OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of parameter storage operations in 
+                    progress.  Corresponds directly to the value labeled 
+                    'Currently saving parameters:' in the MANAGER STATUS 
+                    display."
+            ::= { param 5 }
+            
+            paramFileNumber OBJECT-TYPE
+                SYNTAX Gauge
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of parameter files currently stored.  
+                    Corresponds directly to the value labeled 'Parameter 
+                    files' and 'files' in the MANAGER FILES display."
+            ::= { param 6 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  36]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            -- The Param File table
+            
+            paramFileTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF ParamFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of param file entries.  The number of 
+                    entries is given by paramFileNumber."
+                ::= { param 7 }
+            
+            paramFileEntry OBJECT-TYPE
+                SYNTAX ParamFileEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a param file entry."
+                INDEX { paramFileIdentificationType,
+                        paramFileIdentification }
+                ::= { paramFileTable 1 }
+            
+            ParamFileEntry ::=
+                SEQUENCE {
+                    paramFileIdentificationType
+                        INTEGER,
+                    paramFileIdentification
+                        OCTET STRING,
+                    paramFileEntryStatus
+                        INTEGER,
+                    paramFileWrite
+                        DateTime,
+                    paramFileSize
+                        INTEGER,
+                    paramFileParameterVersion
+                        INTEGER
+                }
+            
+            paramFileIdentificationType OBJECT-TYPE
+                SYNTAX INTEGER { ethernetAddress(1) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of identification value in 
+                    paramFileIdentification.  Corresponds indirectly to 
+                    a file name part in the section labeled 'Parameter 
+                    files' in the MANAGER FILES display."
+
+            
+            
+                                                               [Page  37]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+                ::= { paramFileEntry 1 }
+            
+            paramFileIdentification OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (1..6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Identification of the param file, an Ethernet 
+                    address, as indicated by 
+                    paramFileIdentificationType.  Corresponds indirectly 
+                    to a file name part in the section labeled 
+                    'Parameter files' in the MANAGER FILES display."
+                ::= { paramFileEntry 2 }
+            
+            paramFileEntryStatus OBJECT-TYPE
+                SYNTAX INTEGER { invalid(1), valid(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The status of the entry.  Set to 'invalid' to 
+                    remove the entry, which corresponds indirectly to 
+                    the PURGE MANAGER PARAMETER FILES command.  Actual 
+                    removal of the entry is implementation specific."
+                ::= { paramFileEntry 3 }
+            
+            paramFileWrite OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The time the parameter file was last written.  
+                    Corresponds directly to a date and time in the 
+                    section labeled 'Parameter files' in the MANAGER 
+                    FILES display."
+                ::= { paramFileEntry 4 }
+            
+            paramFileSize OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of bytes stored in the param file.  
+                    Corresponds directly to the value labeled 'bytes' in 
+                    the section labeled 'Parameter files' in the MANAGER 
+                    FILES display."
+                ::= { paramFileEntry 5 }
+
+            
+            
+                                                               [Page  38]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            
+            paramFileParameterVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The version number of the parameter data in the 
+                    file.  Corresponds directly to the value labeled 
+                    'ver' in the section labeled 'Parameter files' in 
+                    the MANAGER FILES display."
+                ::= { paramFileEntry 6 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  39]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  40]
+
+
+            
+                            XYPLEX BOOTSTRAP SERVER MIB       17 Oct 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Definitions of Managed Objects for Xyplex Systems, 
+            Xyplex document number 420-0545, (August, 1991).
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  41]
+

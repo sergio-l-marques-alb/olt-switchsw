@@ -1,0 +1,122 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=ospfintfstats></a>Help for OSPF Interface Statistics</h2>
+
+This screen displays statistics for the selected interface.  The
+information will be displayed only if OSPF is enabled.
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> -
+      Select the interface for which data is to be displayed.
+     </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>OSPF Area ID</b> - The OSPF area to which the selected router
+        interface belongs.  An OSPF Area ID is a 32 bit integer in dotted decimal format that uniquely
+        identifies the area to which the interface connects. </li>
+  <li><b>Area Border Router Count</b> - The total number of area border routers reachable
+       within this area.  This is initially zero, and is calculated in each SPF Pass. </li>
+  <li><b>AS Border Router Count</b> - The total number of Autonomous  System  border
+       routers  reachable  within  this area.  This is initially zero, and is
+       calculated in  each  SPF Pass. </li>
+  <li><b>Area LSA Count</b> - The total number of link-state  advertisements
+      in  this  area's link-state database, excluding AS External LSAs.</li>
+  <li><b>IP Address</b> - The IP address of the interface. </li>
+  <li><b>Interface Events</b> - The number of times the specified OSPF interface
+      has changed its state, or an error has occurred. </li>
+  <li><b>Virtual Events</b> - The number of state changes or errors that have occurred
+      on this virtual link. </li>
+  <li><b>Neighbor Events</b> - The number of times this neighbor relationship
+      has changed state, or an error has occurred. </li>
+  <li><b>External LSA Count</b> - The number of external (LS type 5)  link-state
+      advertisements in the link-state database. </li>
+  <li><b>Sent packets</b> - The number of OSPF packets transmitted on the interface. </li>
+  <li><b>Received packets</b> - The number of valid OSPF packets received on the interface. </li>
+  <li><b>Discards</b> - The number of received OSPF packets discarded because of an error in the packet 
+         or an error in processing the packet. </li>
+  <li><b>Bad Version</b> - The number of received OSPF packets whose version field in the OSPF header 
+         does not match the version of the OSPF process handling the packet.</li>
+  <li><b>Source Not On Local Subnet</b> - The number of received packets discarded because the 
+         source IP address is not within a subnet configured on a local interface. </li>
+  <li><b>Virtual Link Not Found</b> - The number of received OSPF packets discarded where the ingress interface 
+         is in a non-backbone area and the OSPF header identifies the packet as belonging to the backbone, 
+         but OSPF does not have a virtual link to the packet's sender. </li>
+  <li><b>Area Mismatch</b> - The number of OSPF packets discarded because the area ID in the OSPF header 
+         is not the area ID configured on the ingress interface. </li>
+  <li><b>Invalid Destination Address</b> - The number of OSPF packets discarded because the packet's destination 
+         IP address is not the address of the ingress interface and is not the AllDrRouters or AllSpfRouters 
+         multicast addresses. </li>
+  <li><b>Wrong Authentication Type</b> - The number of packets discarded because the authentication type 
+         specified in the OSPF header does not match the authentication type configured on the ingress 
+         interface. </li>
+  <li><b>Authentication Failure</b> - The number of OSPF packets dropped because the sender is not an 
+         existing neighbor or the sender's IP address does not match the previously recorded IP address 
+         for that neighbor. </li>
+  <li><b>No Neighbor at Source Address</b> - The number of OSPF packets dropped because the sender is not an 
+         existing neighbor or the sender's IP address does not match the previously recorded IP address 
+         for that neighbor. </li>
+  <li><b>Invalid OSPF Packet Type</b> - The number of OSPF packets discarded because the packet type 
+         field in the OSPF header is not a known type.</li>
+  <li><b>Hellos Ignored</b> - The number of received Hello packets that were ignored by this router from the 
+         new neighbors after the limit has been reached for the number of neighbors on an interface or on the
+         system as a whole. </li>
+  <li><b>Hellos Sent</b> - The number of Hello packets sent on this interface by this router. </li>
+  <li><b>Hellos Received</b> - The number of Hello packets received on this interface by this router. </li>
+  <li><b>DD Packets Sent</b> - The number of Database Description packets sent on this interface by this 
+         router. </li>
+  <li><b>DD Packets Received</b> - The number of Database Description packets received on this interface by 
+         this router. </li>
+  <li><b>LS Requests Sent</b> - The number of LS Requests sent on this interface by this router. </li>
+  <li><b>LS Requests Received</b> - The number of LS Requests received on this interface by this router. </li>
+  <li><b>LS Updates Sent</b> - The number of LS updates sent on this interface by this router. </li>
+  <li><b>LS Updates Received</b> - The number of LS updates received on this interface by this router. </li>
+  <li><b>LS Acknowledgements Sent</b> - The number of LS acknowledgements sent on this interface 
+         by this router. </li>
+  <li><b>LS Acknowledgements Received</b> - The number of LS acknowledgements received on this interface 
+         by this router. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+
+

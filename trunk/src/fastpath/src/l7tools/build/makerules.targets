@@ -1,0 +1,106 @@
+##############################################################################
+#
+# makerules.targets
+#
+# Purpose:  
+#      Defines all possible target rules supported by the make system.
+#
+# Note:
+#      The actual set of targets that get invoked is determined by
+#      the build characteristics per the package.cfg file.
+#
+##############################################################################
+
+# Pick up build rules for source code packages.  This provides the 
+# foundation of the makerules.
+#
+# Note: The .srcdist file will overwrite this one in entirety
+#       when a linkable object view is generated.
+#
+include $(FP_ROOT)/src/l7tools/build/makerules.targets.srcdist
+
+
+# Individual package targets.
+#
+# Note: These target rules represent packages distributed in object-only
+#       form.  Do not put any target rules here for packages distributed
+#       as source-only or as a source-object combination (they belong in
+#       the makerules.targets.srcdist file).
+#
+
+bgp clean-bgp debug-bgp::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/bgp/make/Makefile $(make_cmd_common)
+
+ip_mcast clean-ip_mcast debug-ip_mcast::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/ip_mcast/make/Makefile $(make_cmd_common)
+
+ipstack clean-ipstack debug-ipstack::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/ipstack/make/Makefile $(make_cmd_common)
+
+ipv6 clean-ipv6 debug-ipv6::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/routingv6/make/Makefile $(make_cmd_common)
+
+metro clean-metro debug-metro::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/metro/make/Makefile $(make_cmd_common)
+
+openssl clean-openssl debug-openssl::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/vendor/openssl/make/Makefile $(make_cmd_common)
+
+tr069 clean-tr069 debug-tr069::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/vendor/broadcom/tr069c/make/Makefile $(make_cmd_common)
+
+netsnmp clean-netsnmp debug-netsnmp::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/vendor/netsnmp/make/Makefile $(make_cmd_common)
+
+qos clean-qos debug-qos::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/qos/make/Makefile $(make_cmd_common)
+
+routing clean-routing debug-routing::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/routing/make/Makefile $(make_cmd_common)
+
+security clean-security debug-security::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/security/make/Makefile $(make_cmd_common)
+
+stacking clean-stacking debug-stacking::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/system_support/stacking/make/Makefile $(make_cmd_common)
+
+switching clean-switching debug-switching::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/switching/make/Makefile $(make_cmd_common)
+
+wireless clean-wireless debug-wireless::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/wireless/make/Makefile $(make_cmd_common)
+
+# PTin added: ptin module
+ptin	clean-ptin debug-ptin::
+	$(checking_msg)
+	+$(create_dir)
+	+$(FP_MAKE) -f $(FP_BASE)/src/application/ptin/make/Makefile $(make_cmd_common)
+

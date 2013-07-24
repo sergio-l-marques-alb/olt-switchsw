@@ -1,0 +1,22 @@
+<HTML>
+<EMWEB_HEAD C='
+    L7_char8 *usmWebBaseGetNLS(L7_int32 stringID);
+    L7_char8 *usmWebBaseGetOEM(L7_int32 stringID);
+    L7_char8 *usmWebBaseGetPageHdr1(L7_int32 pageTitleID);
+    L7_char8 *usmWebBaseGetPageHdr2(L7_int32 helpLinkID);
+'>
+<EMWEB_STRING ID=USMWEB_BASE_GET_NLS_STRING VALUE="1027" C='
+    return usmWebBaseGetNLS(atoi((L7_char8 *)ewsContextGetValue(ewsContext)));
+'>
+<EMWEB_STRING ID=USMWEB_BASE_OEM_STRING_GET VALUE="1000" C='
+    return usmWebBaseGetOEM(atoi((L7_char8 *)ewsContextGetValue(ewsContext)));
+'>
+<EMWEB_STRING ID=USMWEB_BASE_PAGE_HEADER_1ST_GET VALUE="1000" C='
+    return usmWebBaseGetPageHdr1(atoi((L7_char8 *)ewsContextGetValue(ewsContext)));
+'>
+<EMWEB_STRING ID=USMWEB_BASE_PAGE_HEADER_2ND_GET VALUE="2000" C='
+    return usmWebBaseGetPageHdr2(atoi((L7_char8 *)ewsContextGetValue(ewsContext)));
+'>
+</HTML>
+
+

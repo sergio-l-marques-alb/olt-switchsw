@@ -1,0 +1,1 @@
+send_file.sh cxp12g_matrix.dtb $1 /usr/local/ptin/boot_images/matrix/; send_file.sh kernelImageCXP12G_matrix.z $1 /usr/local/ptin/boot_images/matrix/
