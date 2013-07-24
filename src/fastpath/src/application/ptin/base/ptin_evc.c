@@ -5758,8 +5758,8 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
       LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u has an invalid type (%u)",i,evcConf->intf[i].intf_type);
       return L7_FAILURE;
     }
-    if ( (evcConf->intf[i].intf_type==PTIN_EVC_INTF_PHYSICAL && evcConf->intf[i].intf_id>=PTIN_SYSTEM_N_PORTS) ||
-         (evcConf->intf[i].intf_type==PTIN_EVC_INTF_LOGICAL  && evcConf->intf[i].intf_id>=PTIN_SYSTEM_N_LAGS ) )
+    if ( (evcConf->intf[i].intf_type==PTIN_EVC_INTF_PHYSICAL && evcConf->intf[i].intf_id >= ptin_sys_number_of_ports) ||
+         (evcConf->intf[i].intf_type==PTIN_EVC_INTF_LOGICAL  && evcConf->intf[i].intf_id >= PTIN_SYSTEM_N_LAGS ) )
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u has an invalid id (%u/%u)",i,evcConf->intf[i].intf_type,evcConf->intf[i].intf_id);
       return L7_FAILURE;

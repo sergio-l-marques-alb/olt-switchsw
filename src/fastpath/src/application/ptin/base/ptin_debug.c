@@ -314,7 +314,7 @@ void ptin_intf_dump(void)
   printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   printf("| Slot | Port | IntIfNum | bcm_port | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
   printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
     ptin_intf_port2intIfNum(port, &intIfNum);

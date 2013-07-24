@@ -897,7 +897,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     wc_lane  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcLane;              /* WC lane index */
     speedG   = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcSpeedG;            /* Speed in GB */
 
-    if (speedG == 0)  continue;
+    if (speedG == 0)  break;
 
     invLanes = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_lanes;          /* Invert lanes? */
     invPol   = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_polarities;     /* Invert polarities? */
@@ -954,8 +954,8 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   }
 
   /* Effective number of ports */
-  //dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfSlotMapEntries = port_idx;
-  //dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfPortMapEntries = port_idx;
+  dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfSlotMapEntries = port_idx;
+  dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfPortMapEntries = port_idx;
 
   LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
 

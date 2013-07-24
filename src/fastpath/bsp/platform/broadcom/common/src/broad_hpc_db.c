@@ -298,7 +298,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   L7_int  slot, port;
   L7_uint total_lanes;
   L7_BOOL protection;
+  L7_uint8 version;
 
+  L7_int  ptp_wc_index, ptp_wc_lane;
   L7_int  wc_index, wc_lane, wc_group, speedG;
   L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
   L7_BOOL wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
@@ -313,6 +315,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   }
 
   protection = (cpld_map->reg.slot_id != 0);
+  version = (cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2;
 
   /* Clear temp var */
   memset(&wcMap, 0x00, sizeof(wcMap));
@@ -320,34 +323,22 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   memset(ports_per_segment, 0x00, sizeof(ports_per_segment));
   memset(wclanes_in_use, 0x00, sizeof(wclanes_in_use));
 
-  /* WC1, lane 0 is assigned to PTP */
+  /* PTP port */
   #if 1
-  wc_index = 1;
-  wc_lane  = 0;
-  wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].wcGroup;
-  slot     = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
-
-  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].portNum  = L7_MAX_PHYSICAL_PORTS_PER_UNIT-1;
-  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].slotNum  = slot;
-  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcIdx    = wc_index;
-  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcLane   = wc_lane;
-  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcSpeedG = 1;     /* 1G */
-  LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u",
-            wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].portNum,
-            wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].slotNum,
-            wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcIdx,
-            wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcLane,
-            wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT-1].wcSpeedG);
-
-  /* Lane is now in use */
-  wclanes_in_use[wc_index][wc_lane] = L7_TRUE;
-  /* Update temp variables */
-  ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-  bw_max[wc_group] += 1;
+  switch (version)
+  {
+    case 1:
+      ptp_wc_index = 0; ptp_wc_lane = 0;
+      break;
+    default:
+      ptp_wc_index = 1; ptp_wc_lane = 0;
+  }
+  /* WC Lane is marked as is in use to not be used for other purposes */
+  wclanes_in_use[ptp_wc_index][ptp_wc_lane] = L7_TRUE;
   #endif
 
   /* Run all provided slots */
-  for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT-1; slot++)
+  for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; slot++)
   {
     switch (slot_mode[slot-1])
     {
@@ -458,8 +449,50 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     }
   }
 
+  /* PTP port */
+  #if 1
+  if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+  {
+    slot     = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[ptp_wc_index].slotIdx;
+    wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[ptp_wc_index].wcGroup;
+
+    /* Check if there is available BW to use PTP port */
+    if ((bw_max[wc_group] + 1 /*GB*/) > WC_GROUP_MAX_BW &&
+        (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) > WC_SEGMENT_MAX_PORTS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"No WC found for PTP port (slot=%u, wc=%u, lane=%u)", slot, ptp_wc_index, ptp_wc_lane);
+      return L7_NOT_SUPPORTED;
+    }
+
+    wcMap[port].portNum  = port;
+    wcMap[port].slotNum  = slot;
+    wcMap[port].wcIdx    = ptp_wc_index;
+    wcMap[port].wcLane   = ptp_wc_lane;
+    wcMap[port].wcSpeedG = 1;     /* 1G */
+    LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u (PTP port)",
+              wcMap[port].portNum,
+              wcMap[port].slotNum,
+              wcMap[port].wcIdx,
+              wcMap[port].wcLane,
+              wcMap[port].wcSpeedG);
+
+    /* Update temp variables */
+    ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
+    bw_max[wc_group] += 1;
+
+    port++;   /* Next port */
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Could not allocate PTP port!");
+    return L7_NOT_SUPPORTED;
+  }
+  #endif
+
+  /* Do not use remaining ports */
+  #if 0
   /* Fill remaining ports, with 1G ports */
-  while (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT-1)
+  while (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
   {
     /* Run all WCs searching for free lanes */
     for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
@@ -503,7 +536,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     if (wc_index >= WC_MAX_NUMBER)
     {
       LOG_ERR(LOG_CTX_STARTUP,"No WC lane found for port %u", port);
-      #if 0
+      #if 1
       wcMap[port].portNum  = port;
       wcMap[port].slotNum  = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx;
       wcMap[port].wcIdx    = 0;
@@ -535,6 +568,13 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     }
 
     port++;
+  }
+  #endif
+
+  /* print allocated ports */
+  if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+  {
+    LOG_WARNING(LOG_CTX_STARTUP,"Less than %u allocated ports: %u !",L7_MAX_PHYSICAL_PORTS_PER_UNIT, port);
   }
 
   /* Return port map */
