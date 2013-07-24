@@ -2450,10 +2450,10 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 {
 
-  snoop_cb_t                  *pSnoopCB = L7_NULLPTR;
-  snoop_eb_t                  *pSnoopEB = L7_NULLPTR;
+  snoop_cb_t                  *pSnoopCB ;
+  snoop_eb_t                  *pSnoopEB ;
  
-  snoopPTinL3InfoData_t *       proxyGroupPtr=L7_NULLPTR;
+  snoopPTinL3InfoData_t *       avlTreeEntry;
     
   L7_uchar8                   *dataPtr = L7_NULL;
   L7_uint32                    ipv4Addr, incomingVersion = 0;
@@ -2837,7 +2837,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             }
 
             /*Let us verify if this group is registered by any IGMPv3 Host*/            
-            if ((proxyGroupPtr=snoopPTinL3EntryFind(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))==L7_NULLPTR )
+            if ((avlTreeEntry=snoopPTinL3EntryFind(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))==L7_NULLPTR || 
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)==L7_SUCCESS)
             {
               LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",inetAddrPrint(&mgmdMsg.mgmdGroupAddr,debug_buf));
               return L7_SUCCESS;
@@ -2899,13 +2900,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
     case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
     {
-      groupPtr=snoopPTinGroupSpecifcQueryProcess(proxyGroupPtr, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout);      
+      groupPtr=snoopPTinGroupSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout);      
       ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED;
       break;
     }
     case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
     {
-      groupPtr=snoopPTinGroupSourceSpecifcQueryProcess(proxyGroupPtr, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, mgmdMsg.numSources, &dataPtr, selectedDelay, &sendReport, &timeout);
+      groupPtr=snoopPTinGroupSourceSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, mgmdMsg.numSources, &dataPtr, selectedDelay, &sendReport, &timeout);
       ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED;   
       break;
     }
@@ -2920,7 +2921,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       return L7_FAILURE;
     }
   }
-  else if (groupPtr ==L7_NULLPTR && sendReport!=L7_TRUE)
+  else if (groupPtr ==L7_NULLPTR && sendReport==L7_TRUE)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "sendReport Flag is equal to L7_TRUE, while groupPtr=L7_NULLPTR");      
   }
