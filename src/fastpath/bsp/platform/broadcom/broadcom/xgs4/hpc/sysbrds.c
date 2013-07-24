@@ -953,7 +953,11 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     }
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully!");
+  /* Effective number of ports */
+  //dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfSlotMapEntries = port_idx;
+  //dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfPortMapEntries = port_idx;
+
+  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
 
   return L7_SUCCESS;
 }

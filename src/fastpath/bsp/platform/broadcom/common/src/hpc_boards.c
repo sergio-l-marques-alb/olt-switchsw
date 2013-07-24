@@ -47,6 +47,9 @@ bcm_sys_board_t bcm_sys_boards[] = {
 #include "hpc_boards.h"
 };
 
+/* Ptin added: init */
+#include "logger.h"
+
 /* Default ID function */
 int
 bcm_sys_id_defl(const bcm_sys_board_t *brd)
@@ -238,9 +241,14 @@ L7_RC_t hpcConfigSet()
    */
   if (sal_config_set(spn_SKIP_L2_USER_ENTRY,"1") != 0) LOG_ERROR(33); 
 
+  /* Ptin removed: init */
+  #if 1
+  LOG_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will not be executed here!");
+  #else
   /* setup the xe/hg combo ports */
   hpcXeHgSetup();
   hpcGeHlSetup();
+  #endif
 
 #ifdef L7_STACKING_PACKAGE
   if (sal_config_set(spn_L2XMSG_MODE,"0") != 0) LOG_ERROR(33);
@@ -255,6 +263,14 @@ L7_RC_t hpcConfigSet()
   rc = hpcConfigBoardSet();
   if (rc != L7_SUCCESS)
      LOG_ERROR(33);
+
+  /* Ptin added: init */
+  #if 1
+  LOG_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will be executed now!");
+  /* setup the xe/hg combo ports */
+  hpcXeHgSetup();
+  hpcGeHlSetup();
+  #endif
 
   return(L7_SUCCESS);
 }
