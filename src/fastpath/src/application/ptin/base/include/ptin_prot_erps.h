@@ -298,7 +298,6 @@ typedef struct _erpsStatus_t {
 /// VLANs protected by this ERPS instance
 typedef struct {
   L7_uint8  vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];          ///< VLAN ID
-  L7_uint8  isOwnerVid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   ///< True if this is a UNI VLAN
 } erpsVlanInclusionList_t;
 
 
@@ -350,7 +349,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group);
  * @param conf 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *conf);
+int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *conf);
 
 /**
  * Reinit an ERPS instance
