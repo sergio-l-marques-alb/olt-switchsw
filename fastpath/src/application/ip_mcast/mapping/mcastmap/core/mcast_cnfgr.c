@@ -643,7 +643,8 @@ L7_RC_t mcastCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
      return L7_FAILURE;
   }
 
-  if(cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+  if(cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+     cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)       /* PTin added: XGS5 family supported */
   { 
     if (sdmTemplateSupportsIpv6())
     {
