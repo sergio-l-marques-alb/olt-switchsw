@@ -112,6 +112,7 @@ L7_BOOL cnfgrIsVlanIpSubnetPresent()
     case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
       retVal = L7_TRUE;
       break;
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
@@ -161,7 +162,7 @@ L7_BOOL cnfgrIsVlanMacPresent()
     case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
-
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
       retVal = L7_TRUE;
       break;
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
@@ -310,11 +311,13 @@ cnfgrIsSnoopingFeaturePresent( L7_SNOOPING_FEATURE_IDS_t featureId)
 
     case L7_MLD_SNOOPING_FEATURE_SUPPORTED:
        featureSupported = (L7_FEAT_MLD_SNOOPING && ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3) || 
-                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)));
+                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4) ||
+                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)));  /* PTin added: XGS5 family supported */
        break;
     case L7_MLD_SNOOPING_FEATURE_PER_VLAN:
        featureSupported = (L7_FEAT_MLD_SNOOPING && ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3) || 
-                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)));
+                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4) ||
+                                                    (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)));  /* PTin added: XGS5 family supported */
        break;
     case L7_SNOOPING_FEATURE_VLAN_PRECONFIG:
 #if L7_FEAT_SNOOPING_VLAN_PRECONFIG
@@ -375,6 +378,7 @@ L7_BOOL cnfgrIsCableTestPresent()
   {
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
       compPresent = L7_TRUE;
       break;
 #ifdef L7_PRODUCT_SMB
@@ -477,6 +481,7 @@ L7_BOOL cnfgrIsProtectedPortPresent()
   {
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
     case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
@@ -558,6 +563,7 @@ L7_BOOL cnfgrIsDosControlPresent()
   {
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
     case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
       retVal = L7_TRUE;
@@ -597,6 +603,7 @@ L7_BOOL cnfgrIssFlowPresent()
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
     case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
       retVal = L7_TRUE;
       break;
@@ -967,7 +974,7 @@ static L7_BOOL cnfgrPortMirrorIsFeaturePresent(L7_uint32 featureId)
       break;
     case L7_MIRRORING_DIRECTION_PER_SOURCE_PORT_SUPPORTED_FEATURE_ID:
       if( (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3) || (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO) || 
-          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4))
+          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4) || (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5))   /* PTin added: XGS5 family supported */
       {
         return L7_TRUE;
         break;
@@ -984,7 +991,8 @@ static L7_BOOL cnfgrPortMirrorIsFeaturePresent(L7_uint32 featureId)
       }
     case L7_MIRRORING_LAG_INTF_SOURCE_SUPPORTED_FEATURE_ID:
 	  if(( techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3 ) || 
-         ( techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 )) {
+         ( techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ) ||
+         ( techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5 )) {   /* PTin added: XGS5 family supported */
 		  return L7_TRUE;
       }
     break;
@@ -1357,7 +1365,8 @@ static L7_BOOL cnfgrFilteringIsFeaturePresent(L7_uint32 featureId)
       if ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA) ||
           (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS)    ||
           (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3)   ||
-          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4))
+          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)   ||
+          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5))      /* PTin added: XGS5 family supported */
         return L7_FALSE;
       else
         return L7_TRUE;
@@ -1539,6 +1548,11 @@ static L7_BOOL cnfgrLlpfIsFeaturePresent(L7_uint32 featureId)
       }
       break;
 
+    /* PTin added: XGS5 family supported */
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:
+      rc = L7_TRUE;
+      break;
+
     default:
       rc = L7_TRUE;
       break;
@@ -1585,7 +1599,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
   if (techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3 &&
       techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO &&
       techType != L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER &&
-      techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+      techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 &&
+      techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)      /* PTin added: XGS5 family supported */
   {
      return L7_FALSE;
   }
@@ -1600,7 +1615,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
       if (techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5651x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)      /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1630,7 +1646,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)      /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1645,7 +1662,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)      /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1656,7 +1674,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)      /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1671,7 +1690,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1681,7 +1701,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
       if (techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5651x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1692,7 +1713,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1703,7 +1725,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1714,7 +1737,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1725,7 +1749,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1736,7 +1761,8 @@ static L7_BOOL cnfgrDosControlIsFeaturePresent(L7_uint32 featureId)
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x ||
           techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115 ||
           techType == L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER ||
-          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 ||
+          techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)        /* PTin added: XGS5 family supported */
         return L7_TRUE;
       else
         return L7_FALSE;
@@ -1843,6 +1869,7 @@ static L7_BOOL cnfgrFdbIsFeaturePresent(L7_uint32 featureId)
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:  /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3: /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4: /* fallthrough */
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5: /* fallthrough */     /* PTin added: XGS5 family supported */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO: /* fallthrough */
           return L7_FALSE;
           break;
@@ -1933,7 +1960,8 @@ static L7_BOOL cnfgrMfdbStaticFilteringFeaturePresent(L7_uint32 featureId)
       if ( (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA) ||
            (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS)    ||
            (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3)   ||
-           (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4))
+           (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4)   ||
+           (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5))       /* PTin added: XGS5 family supported */
       {
         if (cnfgrIsComponentPresent(L7_FLEX_QOS_ACL_COMPONENT_ID) == L7_FALSE &&
             cnfgrIsComponentPresent(L7_FLEX_QOS_COS_COMPONENT_ID) == L7_FALSE &&
@@ -1997,12 +2025,13 @@ static L7_BOOL cnfgrDot1pIsFeaturePresent(L7_uint32 featureId)
 
       switch (techType)
       {
-        case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER: /* fallthrough */
+        case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:   /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA: /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
-        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO: /* fallthrough */
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:   /* fallthrough */
           return L7_TRUE;
           break;
 
@@ -2137,6 +2166,12 @@ static L7_BOOL cnfgrDvlantagIsFeaturePresent(L7_uint32 featureId)
           }
         }
         break;
+
+        /* PTin added: XGS5 family supported */
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:
+          retVal = L7_FALSE;
+          break;
+
         default:
           retVal = L7_TRUE;
           break;
@@ -2164,6 +2199,7 @@ static L7_BOOL cnfgrDvlantagIsFeaturePresent(L7_uint32 featureId)
           break;
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
         case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
           retVal = L7_TRUE;
@@ -2183,6 +2219,7 @@ static L7_BOOL cnfgrDvlantagIsFeaturePresent(L7_uint32 featureId)
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA:
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
           retVal = L7_FALSE;
@@ -2199,7 +2236,8 @@ static L7_BOOL cnfgrDvlantagIsFeaturePresent(L7_uint32 featureId)
 
     switch(techType)
     {
-        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+      case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+      case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
         case L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER:
           retVal = L7_TRUE;
           break;
@@ -2251,6 +2289,7 @@ static L7_BOOL cnfgrNimIsFeaturePresent(L7_uint32 featureId)
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:  /* fallthrough */
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3: /* fallthrough */
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4: /* fallthrough */
+      case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5: /* fallthrough */     /* PTin added: XGS5 family supported */
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
         return L7_TRUE;
         break;
@@ -2311,6 +2350,7 @@ static L7_BOOL cnfgrSimIsFeaturePresent(L7_uint32 featureId)
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
+      case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5:   /* PTin added: XGS5 family supported */
       case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO:
         return L7_TRUE;
         break;
@@ -2471,6 +2511,7 @@ static L7_BOOL cnfgrDot3adIsFeaturePresent(L7_uint32 featureId)
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:  /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3: /* fallthrough */
         case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4: /* fallthrough */
+        case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5: /* fallthrough */     /* PTin added: XGS5 family supported */
           return L7_TRUE;
         default:
           return L7_FALSE;
@@ -2483,6 +2524,7 @@ static L7_BOOL cnfgrDot3adIsFeaturePresent(L7_uint32 featureId)
     case L7_DOT3AD_HASHMODE_ENHANCED_FEATURE_ID:
       /* Enhanced hashing mode supported on select XGS3/XGS4 devices */
       if ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4) ||
+          (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5) ||          /* PTin added: XGS5 family supported */
           (techSubType == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_56800))
       {
         return L7_TRUE;
@@ -2790,6 +2832,10 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
     case __BROADCOM_56636_ID:
     case __BROADCOM_56334_ID:
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4;
+      break;
+
+    case __BROADCOM_56643_ID: /* PTin added: new switch BCM56643 */
+      tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5;      /* PTin added: XGS5 family supported */
       break;
 
     case __BROADCOM_53115_ID:
