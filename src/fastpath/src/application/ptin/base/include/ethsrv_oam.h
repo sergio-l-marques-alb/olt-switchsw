@@ -461,6 +461,7 @@ extern int send_eth_pckt(u16 _prt, u8 up1_down0, u8 *buf, u32 length, u64 vid, u
 
 extern void ethsrv_oam_register_connection_loss(u8 *meg_id, u16 mep_id, u16 rmep_id, u16 port, u64 vid);
 extern void ethsrv_oam_register_receiving_RDI(u8 *meg_id, u16 mep_id, u16 rmep_id, u16 port, u64 vid);
+extern void ethsrv_oam_register_RDI_END(u8 *meg_id, u16 mep_id, u16 rmep_id, u16 port, u64 vid);
 extern void ethsrv_oam_register_connection_restored(u8 *meg_id, u16 mep_id, u16 rmep_id, u16 port, u64 vid);
 //extern void ethsrv_oam_register_RMEP_discovery(u8 *meg_id, u16 mep_id, u16 rmep_id, u16 port, u64 vid);
 
