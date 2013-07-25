@@ -1,6 +1,6 @@
 ##############################################
 #                                            #
-# FastPath Makefile for the CXO640G card     #
+# FastPath Makefile for the CXP360G card     #
 #                                            #
 #	Daniel Figueira, 2013                #
 #	daniel-f-figueira@ext.ptinovacao.pt  #
@@ -12,10 +12,9 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-INSTALL_DIR	= ../../../PR1003/builds_olt360/apps/CXO640G-e500mc
-BACKUP_DIR	= ../../../PR1003/builds_olt360/apps_backup/CXO640G-e500mc
+INSTALL_DIR	= ../../../PR1003/builds_olt360/apps/CXO360G-e500mc
+BACKUP_DIR	= ../../../PR1003/builds_olt360/apps_backup/CXO360G-e500mc
 
-#NUM_CPUS	= 2
 NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
@@ -32,7 +31,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
+export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.0.51-e500mc
 
 #CC='${COMPILER}gcc'
 #AS='${COMPILER}as'  
@@ -58,7 +57,7 @@ export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
 
 #export CFGFLAGS
 
-CARD_FOLDER 	= FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO640G
+CARD_FOLDER 	= FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXP360G
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU		= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
@@ -109,7 +108,7 @@ welcome:
 	@echo ""
 	@echo "############################################"
 	@echo "#                                          #"
-	@echo "#  FastPath Makefile for the CXO640G card  #"
+	@echo "#  FastPath Makefile for the CXP360G card  #"
 	@echo "#                                          #"
 	@echo "############################################"
 	@echo ""
