@@ -693,7 +693,6 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
-  /*** TO BE DONE ***/
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_MS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
 
@@ -734,7 +733,8 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   //a) a local Forced Switch or Manual Switch command is in effect (Clear operation a) described in clause 8)
 
   #if 1
-  if ( (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_FS) || (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_MS) ){
+  if ( (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_NR) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_OC) && 
+       (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_FS) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_MS)     ){
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -1083,7 +1083,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 
   #ifdef SM_PTIN_MODS
   // If both ports were in Flushing State and now changing to Blocking, force a Flush FDB
-  if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) ) {
+  if ( (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING) && (portState == ERPS_PORT_BLOCKING) ) {
     ptin_erps_FlushFDB(erps_idx, __LINE__);
   }
   #endif
@@ -1504,7 +1504,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // Operator Command
   if ( tbl_erps[erps_idx].operator_cmd ) {
 
-    if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_OC) ) {
+    if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_OC) ) {
       //10.1.9. Local Priority Logic
       //The Clear command is only valid if:
       //a) a local Forced Switch or Manual Switch command is in effect (Clear operation a) described in clause 8), or
@@ -1521,24 +1521,24 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
     }
 
-    else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_FS) ) {
+    else if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_FS) ) {
       localRequest = LReq_FS;
       reqPort = tbl_erps[erps_idx].operator_cmd_port;
     }
 
-    else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_MS) ) {
+    else if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_MS) ) {
       localRequest = LReq_MS;
       reqPort = tbl_erps[erps_idx].operator_cmd_port;
     }
 
-    else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_LO) ) {
+    else if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_LO) ) {
       //Lockout of protection - This command disables the protection group.
       // Next node state: Freeze
       ptin_erps_FSM_transition(erps_idx,ERPS_STATE_SetLocal(ERPS_STATE_Freeze), __LINE__);
     }
 
-    else if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_ReplaceRPL) ) {
-      //Replace the RPL - This command moves the RPL by blocking a different ring link and unblocking the RPL permanently      
+    else if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_ReplaceRPL) ) {
+      //Replace the RPL - This command moves the RPL by blocking a different ring link and unblocking the RPL permanently
     }    
   }
 
@@ -1808,7 +1808,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
     else if ( (remoteRequest == RReq_NR) && ( (APS_GET_STATUS(apsReqStatusRx) & RReq_STAT_RB) != (APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) & RReq_STAT_RB) ) ) {
 
-      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]), APS_GET_STATUS(apsReqStatusRx));
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]), APS_GET_STATUS(apsReqStatusRx));
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
       else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
@@ -1822,6 +1822,10 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Processing Changes...", erps_idx);
   if (topPriorityRequest>100) {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
+
+    #ifdef SM_PTIN_MODS
+    tbl_erps[erps_idx].remoteRequest = RReq_NONE;
+    #endif
   } else {
     reqPort = apsRxPort;
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
@@ -3403,7 +3407,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   }//switch
 
-  if ( (tbl_erps[erps_idx].operator_cmd & PROT_ERPS_OPCMD_OC) ) {
+  if ( (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_OC) ) {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Operator Command CLEAR", erps_idx);
 
     tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]       = PROT_ERPS_SF_CLEAR;
@@ -3424,7 +3428,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
   }
 
-  // Give some time for have system stability
+  // Give some time to have system stability
   tbl_erps[erps_idx].waitingcicles = PROT_ERPS_WAITING_CICLES_PROC;
 
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ... Changes done!\n\n", erps_idx);
