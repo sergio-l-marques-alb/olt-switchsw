@@ -47,9 +47,6 @@
 /* PTin Add: IGMPv3 */
 #if SNOOP_PTIN_IGMPv3_GLOBAL
 
-#include"rng_api.h"//MMELO
-#include"osapi.h"//MMELO
-
 #if SNOOP_PTIN_IGMPv3_PROXY
 
 #include "snooping_ptin_proxytimer.h"
@@ -136,28 +133,39 @@ static L7_int32  snoopPTinProxy_decode_max_resp_code(L7_uchar8 family, L7_int32 
 *********************************************************************/
 
 
-static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 max_resp_time)
+static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 maxResponseTime)
 {
+#if 0
+  #include"rng_api.h"//MMELO
+  #include"osapi.h"//MMELO
+#endif
   L7_int32 selectedDelay = 0;
+
+#if 0
   extern L7_double64 L7_Random(void);
   L7_double64 randval;
 
- /* Initialize the random number generator */
-
-  srand(time(NULL));
-
-  randInitRNG((L7_long32)(rand()));
+  /* Initialize the random number generator */
+  randInitRNG((L7_long32)osapiTimeMillisecondsGet());
 
   randval =  L7_Random();
+#endif
 
-  selectedDelay= max_resp_time *randval;
+  if (maxResponseTime<1)
+    selectedDelay=1;
+  else /*if (randval<0.5)
+    selectedDelay=1;
+  else if (maxResponseTime *randval>maxResponseTime || maxResponseTime *randval<1)*/
+    selectedDelay =maxResponseTime/2;
+//else
+//  selectedDelay= maxResponseTime *randval;
+
+#if 0
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,
-    "selectedDelay %d  randval %e ",selectedDelay, randval);
-  /* report suppression override*/
-  if (selectedDelay == 0)
-    selectedDelay = 1;
-  
-  return (selectedDelay);
+    "selectedDelay %u  randval %e",selectedDelay, randval);
+#endif
+
+    return (selectedDelay);
 }
 
 /*End PTin Added: MGMD Proxy*/
@@ -2680,9 +2688,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   maxRespTime = snoopPTinProxy_decode_max_resp_code(mcastPacket->cbHandle->family,maxRespCode);
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Response Time=%d",maxRespTime);
   /* Calculate the Selected delay */
-  selectedDelay = snoopPTinProxy_selected_delay_calculate((L7_int32) maxRespTime);
-  if(selectedDelay==1 && maxRespTime>1)
-    selectedDelay =maxRespTime/2;
+  selectedDelay = snoopPTinProxy_selected_delay_calculate((L7_int32) maxRespTime); 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Selected Delay=%d",selectedDelay);
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)/*IPv4*/
@@ -2893,20 +2899,20 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   {
     case SNOOP_PTIN_GENERAL_QUERY:
     {      
-      groupPtr=snoopPTinGeneralQueryProcess(mcastPacket->vlanId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, selectedDelay, &sendReport, &noOfRecords, &timeout);
+      groupPtr=snoopPTinGeneralQueryProcess(mcastPacket->vlanId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, selectedDelay, &sendReport, &noOfRecords, &timeout,mgmdMsg.sQRV);
       ptin_igmp_stat=SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED;
       break;
     }
 
     case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
     {
-      groupPtr=snoopPTinGroupSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout);      
+      groupPtr=snoopPTinGroupSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout,mgmdMsg.sQRV);      
       ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED;
       break;
     }
     case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
     {
-      groupPtr=snoopPTinGroupSourceSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, mgmdMsg.numSources, &dataPtr, selectedDelay, &sendReport, &timeout);
+      groupPtr=snoopPTinGroupSourceSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, mgmdMsg.numSources, &dataPtr, selectedDelay, &sendReport, &timeout,mgmdMsg.sQRV);
       ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED;   
       break;
     }
@@ -3386,6 +3392,29 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 #endif        
       if(recType>0 && recType<MGMD_GROUP_REPORT_TYPE_MAX)        
       {
+        /*Since we add the group record before processing the packet, we need to have some logic to determine the record type*/
+        if (recType==L7_IGMP_MODE_IS_EXCLUDE || 
+            (recType==L7_IGMP_CHANGE_TO_EXCLUDE_MODE /*&& snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].filtermode==PTIN_SNOOP_FILTERMODE_EXCLUDE*/))
+        { 
+#if SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE /*IS_EX{x} or TO_EX{x}->TO_EX{} */         
+          recType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+          noOfSources=0;                        
+          recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+#else
+          recordType=L7_IGMP_BLOCK_OLD_SOURCES;
+#endif
+        }
+        else if (recType==L7_IGMP_MODE_IS_INCLUDE)           
+        {
+          recordType=L7_IGMP_ALLOW_NEW_SOURCES;
+#if SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE /*IS_IN{x} ->Allow{x} */            
+          recType=L7_IGMP_ALLOW_NEW_SOURCES;   
+#endif
+        }
+        else
+          recordType=recType;
+
+
         /*If number of sources per record is higher than PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD we do not processs, instead we consider only the group address and the record-type*/
         if(noOfSources>PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD)/*igmpCfg.host.max_sources_per_record*/
         {
@@ -3463,7 +3492,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 //          noOfRecords=1;
 //        }
 //        else
-            recordType=recType;                 
+                         
         }
 
         if ( (interfacePtr=snoopPTinProxyInterfaceAdd(vlanId)) ==L7_NULLPTR)                     
@@ -3471,8 +3500,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyInterfaceAdd()");
           return L7_FAILURE;
         }            
-        
-        if((groupPtr=snoopPTinGroupRecordAdd(interfacePtr,recType,&snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,&newEntry ))==L7_NULLPTR)
+
+        if((groupPtr=snoopPTinGroupRecordAdd(interfacePtr,recordType,&snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,&newEntry,igmpCfg.host.robustness ))==L7_NULLPTR)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
           return L7_FAILURE;

@@ -4009,7 +4009,7 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(snoopPTinProxyGroup_t* gro
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr, L7_BOOL* newEntry)
+snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr, L7_BOOL* newEntry,L7_uint8 robustnessVariable)
 {
   snoopPTinProxySource_t snoopEntry;
   snoopPTinProxySource_t *pData;
@@ -4045,8 +4045,14 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
 //  memcpy(&snoopEntry.key.groupAddr, &(groupPtr->key.groupAddr), sizeof(L7_inet_addr_t)); 
   memcpy(&snoopEntry.key.sourceAddr, sourceAddr, sizeof(L7_inet_addr_t));
 
-//snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
-  snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
+  if (robustnessVariable==0 || robustnessVariable>9)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Robustness Variable with invalid value %u, using default value %u",robustnessVariable,PTIN_IGMP_DEFAULT_ROBUSTNESS);
+    snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme 
+  }
+  else
+    snoopEntry.robustnessVariable=robustnessVariable;
+  
 //snoopEntry.groupPtr=groupPtr;
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxySourceAvlTree, &snoopEntry);
 
@@ -4224,7 +4230,7 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_BOOL* newEntry )
+snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_BOOL* newEntry,L7_uint8 robustnessVariable)
 {
   snoopPTinProxyGroup_t snoopEntry;
   snoopPTinProxyGroup_t *pData;
@@ -4260,8 +4266,15 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   memcpy(&snoopEntry.key.groupAddr, groupAddr, sizeof(L7_inet_addr_t));  
   memcpy(&snoopEntry.key.recordType, &recordType, sizeof(L7_uint8));   
   snoopEntry.interfacePtr=interfacePtr;
-//snoopEntry.retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
-  snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme
+
+  if (robustnessVariable==0 || robustnessVariable>9)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Robustness Variable with invalid value %u, using default value %u",robustnessVariable,PTIN_IGMP_DEFAULT_ROBUSTNESS);
+    snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme 
+  }
+  else
+    snoopEntry.robustnessVariable=robustnessVariable;
+
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, &snoopEntry);
 
   if (pData == L7_NULL)
