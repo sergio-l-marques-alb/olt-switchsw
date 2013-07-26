@@ -444,7 +444,7 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_inet_addr_t* groupAddr,L7_uint8
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};
 
   /* Argument validation */
-  if (buffer == L7_NULLPTR || length == L7_NULLPTR || groupAddr==L7_NULLPTR || source==L7_NULLPTR)
+  if (buffer == L7_NULLPTR || length == L7_NULLPTR || groupAddr==L7_NULLPTR || (numberOfSources>0 && source==L7_NULLPTR))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
@@ -852,7 +852,7 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   rc = snoopPTinReportFrameV3Build(noOfGroupRecords, groupPtr, igmpFrame,&igmpFrameLength );
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building Membership Report Frame (IGMPv3)");
     return L7_FAILURE;
   }
 
@@ -860,7 +860,7 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   rc = snoopPTinPacketBuild(vlanId, pSnoopCB, &groupPtr->key.groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_REPORT);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building Membership Report Frame (IGMPv3)");
     return L7_FAILURE;
   }
 
@@ -1179,7 +1179,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
    /* Argument validation */
-  if (groupPtr == L7_NULLPTR || (groupPtr->source==L7_NULLPTR && groupPtr->numberOfSources==0) || groupPtr->numberOfSources>=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP)
+  if (groupPtr == L7_NULLPTR || (groupPtr->source==L7_NULLPTR && groupPtr->numberOfSources!=0) || groupPtr->numberOfSources>=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
