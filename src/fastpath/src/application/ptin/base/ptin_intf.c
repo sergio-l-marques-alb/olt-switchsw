@@ -560,14 +560,28 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case PHY_PORT_2500_MBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_2P5FX;
         strcpy(speedstr, "2.5G");
         break;
 
-      case PHY_PORT_10000_MBPS:
+      /* PTin added: Speed 10G */
+      case PHY_PORT_10_GBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
         strcpy(speedstr, "10G");
+        break;
+
+      /* PTin added: Speed 40G */
+      case PHY_PORT_40_GBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+        strcpy(speedstr, "40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case PHY_PORT_100_GBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_100G_BKP;
+        strcpy(speedstr, "100G");
         break;
 
       default:
@@ -696,15 +710,31 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyState->Speed = PHY_PORT_2500_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-        phyState->Speed = PHY_PORT_10000_MBPS;
+        phyState->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
         break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        phyState->Speed = PHY_PORT_40_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        phyState->Speed = PHY_PORT_100_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
+        break;
+
+      /* PTin end */
 
       default:
         phyState->Speed = -1;
@@ -1095,7 +1125,8 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 {
   /* Validate arguments */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
     return L7_FAILURE;
@@ -1134,7 +1165,8 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
   }
 
   /* Validate output */
-  if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF)
+  if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
+      (map_intIfNum2port[intIfNum] >= ptin_sys_number_of_ports && map_intIfNum2port[intIfNum] < PTIN_SYSTEM_N_PORTS))
   {
     //LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum# %u is not assigned!", intIfNum);
     return L7_FAILURE;
@@ -1162,7 +1194,8 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
   ptin_intf_t p_intf;
 
   /* Validate ptin_port */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
@@ -1231,7 +1264,8 @@ inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_por
   }
 
   /* Validate final value */
-  if (p_port>=PTIN_SYSTEM_N_INTERF)
+  if (p_port >= PTIN_SYSTEM_N_INTERF ||
+      (p_port >= ptin_sys_number_of_ports && p_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Port id is out of range: %u", p_port);
     return L7_FAILURE;
@@ -1261,7 +1295,8 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     return rc;
 
   /* Validate ptin_port */
-  if (ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
@@ -3049,15 +3084,31 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyConf->Speed = PHY_PORT_2500_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-        phyConf->Speed = PHY_PORT_10000_MBPS;
+        phyConf->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
         break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        phyConf->Speed = PHY_PORT_40_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        phyConf->Speed = PHY_PORT_100_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
+        break;
+
+      /* PTin end */
 
       default:
         phyConf->Speed = -1;

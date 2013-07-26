@@ -243,6 +243,10 @@ static void monitor_alarms(void)
   /* Run all ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
+    /* Skip not valid ports */
+    if (port >= ptin_sys_number_of_ports && port < PTIN_SYSTEM_N_PORTS)
+      continue;
+
     if (ptin_intf_port2intIfNum(port,&intf)!=L7_SUCCESS ||
         ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS ||
         nimGetIntfAdminState(intf,&adminState)!=L7_SUCCESS)
