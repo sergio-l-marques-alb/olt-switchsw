@@ -457,7 +457,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[ptp_wc_index].wcGroup;
 
     /* Check if there is available BW to use PTP port */
-    if ((bw_max[wc_group] + 1 /*GB*/) > WC_GROUP_MAX_BW &&
+    if ((bw_max[wc_group] + 1 /*GB*/) > WC_GROUP_MAX_BW ||
         (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) > WC_SEGMENT_MAX_PORTS)
     {
       LOG_ERR(LOG_CTX_STARTUP,"No WC found for PTP port (slot=%u, wc=%u, lane=%u)", slot, ptp_wc_index, ptp_wc_lane);
