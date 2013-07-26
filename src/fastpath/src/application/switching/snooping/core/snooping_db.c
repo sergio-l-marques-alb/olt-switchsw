@@ -3755,7 +3755,7 @@ L7_RC_t snoopL3EntryDelete(L7_inet_addr_t *mcastGroupAddr,
 /**
  * @purpose Finds an entry with the given mcastGroupAddr and vlanId
  *
- * @param mcastGroupAddr  Multicast IP Address
+ * @param groupAddr  Multicast IP Address
  * @param vlanId          VLAN ID
  * @param flag            Flag type for search
 *                                L7_MATCH_EXACT   - Exact match
@@ -3764,7 +3764,7 @@ L7_RC_t snoopL3EntryDelete(L7_inet_addr_t *mcastGroupAddr,
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr, L7_uint32 flag)
+snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint32 flag)
 {
   snoopPTinL3InfoData_t *snoopEntry;
   snoopPTinL3InfoDataKey_t key;
@@ -3774,6 +3774,13 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mc
 #endif
   snoop_eb_t *pSnoopEB;
 
+   /* Argument validation */
+  if (groupAddr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_NULLPTR;
+  }
+
   memset((void *) &key, 0x00, sizeof(snoopPTinL3InfoDataKey_t));
 
   pSnoopEB = snoopEBGet();
@@ -3782,7 +3789,7 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mc
   fdbGetTypeOfVL(&fdbType);
 #endif
 
-  memcpy(&key.mcastGroupAddr, mcastGroupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&key.mcastGroupAddr, groupAddr, sizeof(L7_inet_addr_t));
   memcpy(&key.vlanId, &vlanId, sizeof(L7_uint32));  
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &key, flag);
   if (flag == L7_MATCH_GETNEXT)
@@ -3813,12 +3820,12 @@ snoopPTinL3InfoData_t *snoopPTinL3EntryFind(L7_uint32 vlanId, L7_inet_addr_t* mc
 /**
  * @purpose Add a new entry to the PTin L3 AVL Tree
  *
- * @param mcastGroupAddr
+ * @param groupAddr
  * @param vlanId
  *
  * @return  L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
+L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* groupAddr)
 {
   snoopPTinL3InfoData_t snoopEntry;
   snoopPTinL3InfoData_t *pData;
@@ -3829,6 +3836,13 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
   snoop_eb_t *pSnoopEB;
 
   pSnoopEB = snoopEBGet(); 
+
+   /* Argument validation */
+  if (groupAddr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_ERROR;
+  }
 
 #if 0
   fdbGetTypeOfVL(&fdbType);
@@ -3841,14 +3855,14 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
 #endif
 
   memset(&snoopEntry, 0x00, sizeof(snoopPTinL3InfoData_t));  
-  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, mcastGroupAddr, sizeof(L7_inet_addr_t));  
+  memcpy(&snoopEntry.snoopPTinL3InfoDataKey.mcastGroupAddr, groupAddr, sizeof(L7_inet_addr_t));  
   memcpy(&snoopEntry.snoopPTinL3InfoDataKey.vlanId,         &vlanId,         sizeof(L7_uint32));    
   pData = avlInsertEntry(&pSnoopEB->snoopPTinL3AvlTree, &snoopEntry);  
 
   if (pData == L7_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = snoopPTinL3EntryFind(vlanId, mcastGroupAddr, AVL_EXACT)) == L7_NULLPTR)
+    if ((pData = snoopPTinL3EntryFind(vlanId, groupAddr, AVL_EXACT)) == L7_NULLPTR)
     {
       return L7_FAILURE;
     } 
@@ -3868,12 +3882,12 @@ L7_RC_t snoopPTinL3EntryAdd(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
 /**
  * @purpose Remove an existing entry to the PTin L3 AVL Tree
  *
- * @param mcastGroupAddr
+ * @param groupAddr
  * @param vlanId
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
+L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr)
 {
   snoopPTinL3InfoData_t *pData;
   snoopPTinL3InfoData_t *snoopEntry;
@@ -3885,8 +3899,15 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr)
   L7_uint32 freeIdx;
 #endif
 
+   /* Argument validation */
+  if (groupAddr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_ERROR;
+  }
+
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinL3EntryFind(vlanId, mcastGroupAddr, L7_MATCH_EXACT);
+  pData = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -3959,6 +3980,13 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(snoopPTinProxyGroup_t* gro
 #endif
   snoop_eb_t *pSnoopEB;
 
+   /* Argument validation */
+  if (groupPtr == L7_NULLPTR || sourceAddr==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_NULLPTR;
+  }
+
   memset((void *) &key, 0x00, sizeof(snoopPTinProxySourceKey_t));
 
   pSnoopEB = snoopEBGet();
@@ -4020,12 +4048,13 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
 #endif
   snoop_eb_t *pSnoopEB;
 
-  /*Arguments Validation*/
-  if (newEntry == L7_NULLPTR)
+   /* Argument validation */
+  if (groupPtr == L7_NULLPTR || sourceAddr==L7_NULLPTR || newEntry==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
   }
+  
   *newEntry=L7_FALSE; 
 
   pSnoopEB = snoopEBGet();
@@ -4045,7 +4074,7 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
 //  memcpy(&snoopEntry.key.groupAddr, &(groupPtr->key.groupAddr), sizeof(L7_inet_addr_t)); 
   memcpy(&snoopEntry.key.sourceAddr, sourceAddr, sizeof(L7_inet_addr_t));
 
-  if (robustnessVariable==0 || robustnessVariable>9)
+  if (robustnessVariable==0 || robustnessVariable>SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Robustness Variable with invalid value %u, using default value %u",robustnessVariable,PTIN_IGMP_DEFAULT_ROBUSTNESS);
     snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme 
@@ -4110,6 +4139,13 @@ L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet
 #endif /* L7_MCAST_PACKAGE */
   L7_uint32 freeIdx;
 #endif
+
+  /* Argument validation */
+  if (groupPtr == L7_NULLPTR || sourceAddr==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_ERROR;
+  }
 
   pSnoopEB = snoopEBGet();
   pData = snoopPTinProxySourceEntryFind(groupPtr, sourceAddr, L7_MATCH_EXACT);
@@ -4182,6 +4218,13 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
 #endif
   snoop_eb_t *pSnoopEB;
 
+  /* Argument validation */
+  if (groupAddr==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return L7_NULLPTR;
+  }
+
   memset((void *) &key, 0x00, sizeof(snoopPTinProxyGroupKey_t));
 
   pSnoopEB = snoopEBGet();
@@ -4242,7 +4285,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   snoop_eb_t *pSnoopEB;
 
   /*Arguments Validation*/
-  if (newEntry == L7_NULLPTR)
+  if (interfacePtr==L7_NULLPTR || groupAddr==L7_NULLPTR || newEntry == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_NULLPTR;
@@ -4267,7 +4310,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   memcpy(&snoopEntry.key.recordType, &recordType, sizeof(L7_uint8));   
   snoopEntry.interfacePtr=interfacePtr;
 
-  if (robustnessVariable==0 || robustnessVariable>9)
+  if (robustnessVariable==0 || robustnessVariable>SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Robustness Variable with invalid value %u, using default value %u",robustnessVariable,PTIN_IGMP_DEFAULT_ROBUSTNESS);
     snoopEntry.robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS; //MMELO: Fixme 
@@ -4329,6 +4372,13 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, 
 #endif /* L7_MCAST_PACKAGE */
   L7_uint32 freeIdx;
 #endif
+
+   /*Arguments Validation*/
+  if (interfacePtr==L7_NULLPTR || groupAddr==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   pSnoopEB = snoopEBGet();
   pData = snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId, groupAddr,recordType, L7_MATCH_EXACT);
