@@ -776,6 +776,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_100G = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
   char param_name[51], param_value[21];
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
 
   L7_uint32           slot_mode[PTIN_SYS_SLOTS_MAX];
   HAPI_WC_PORT_MAP_t  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
@@ -956,6 +957,17 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   /* Effective number of ports */
   dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfSlotMapEntries = port_idx;
   dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfPortMapEntries = port_idx;
+
+  /* Update maximum number of interfaces */
+  for (i = 0; i < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; i++)
+  {
+    sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(i));
+
+    if (sysapiHpcCardInfoPtr != L7_NULLPTR)
+      sysapiHpcCardInfoPtr->numOfNiPorts = port_idx;
+    else
+      LOG_ERR(LOG_CTX_STARTUP,"Error updating number of ports for slotIndex %u!", i);
+  }
 
   LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
 
