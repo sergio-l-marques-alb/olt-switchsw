@@ -2434,7 +2434,9 @@ L7_RC_t snoopPTinGroupRecordSourceRemoveAll(snoopPTinProxyGroup_t*   groupPtr)
   L7_BOOL flagSourceRemoved=L7_FALSE;
   
   snoopPTinProxySource_t*    sourcePtr,*sourcePtrAux;
+#if 0
   L7_inet_addr_t             groupAddrAux;
+#endif
 
    /* Argument validation */
   if (groupPtr == L7_NULLPTR )
@@ -2443,9 +2445,11 @@ L7_RC_t snoopPTinGroupRecordSourceRemoveAll(snoopPTinProxyGroup_t*   groupPtr)
     return L7_FAILURE;
   }
 
+#if 0
   memset(&groupAddrAux, 0x00, sizeof(L7_inet_addr_t));
   groupAddrAux.family=groupPtr->key.groupAddr.family;
   inetAddressZeroSet(groupAddrAux.family, &groupAddrAux);  
+  #endif
    
   if (groupPtr->source == L7_NULLPTR)
   {

@@ -1198,7 +1198,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with sourcePtr %u<%u",i,groupPtr->numberOfSources);
   }
 
-  if (groupPtr->numberOfSources==noOfSources2Remove)/*We should remove all sources within this group record*/
+  if (groupPtr->numberOfSources>0 || groupPtr->numberOfSources==noOfSources2Remove)/*We should remove all sources within this group record*/
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing All Sources from Group Record  (groupAddr:%s recordType:%u)", inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType);  
     rc=snoopPTinGroupRecordSourceRemoveAll(groupPtr);
