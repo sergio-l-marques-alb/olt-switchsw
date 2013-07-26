@@ -2044,7 +2044,7 @@ xLibRC_t fpObjSet_baseport_PhysicalMode (void *wap, void *bufp)
         {
           owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intIfNum, physMode);
         }
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         else if (physMode == L7_PORTCTRL_PORTSPEED_FULL_2P5FX && (portCapability & L7_PHY_CAP_PORTSPEED_FULL_2500))
         {
           owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intIfNum, physMode);
@@ -2054,6 +2054,17 @@ xLibRC_t fpObjSet_baseport_PhysicalMode (void *wap, void *bufp)
         {
           owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intIfNum, physMode);
         }
+        /* PTin added: Speed 40G */
+        else if (physMode == L7_PORTCTRL_PORTSPEED_FULL_40G_KR4 && (portCapability & L7_PHY_CAP_PORTSPEED_FULL_40G))
+        {
+          owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intIfNum, physMode);
+        }
+        /* PTin added: Speed 100G */
+        else if (physMode == L7_PORTCTRL_PORTSPEED_FULL_100G_BKP && (portCapability & L7_PHY_CAP_PORTSPEED_FULL_100G))
+        {
+          owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intIfNum, physMode);
+        }
+        /* PTin end */
         else
         {
           owa.rc = XLIBRC_FAILURE;
@@ -3215,9 +3226,21 @@ xLibRC_t fpObjGet_baseport_PhysicalInftSpeed (void *wap, void *bufp)
         case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
            objPhysicalInftSpeedValue = L7_SPEED_1000;
            break;
-        /* PTin added (2.5) */
+        /* PTin added: Speed 2.5G */
         case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
            objPhysicalInftSpeedValue = L7_SPEED_2500;
+           break;
+        /* PTin added: Speed 10G */
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+           objPhysicalInftSpeedValue = L7_SPEED_10G;
+           break;
+        /* PTin added: Speed 40G */
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+           objPhysicalInftSpeedValue = L7_SPEED_40G;
+           break;
+        /* PTin added: Speed 100G */
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+           objPhysicalInftSpeedValue = L7_SPEED_100G;
            break;
         /* PTin end */
         case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
@@ -3331,7 +3354,10 @@ xLibRC_t fpObjSet_baseport_PhysicalInftSpeed (void *wap, void *bufp)
            case L7_PORTCTRL_PORTSPEED_FULL_100FX:
            case L7_PORTCTRL_PORTSPEED_FULL_10T:
            case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
-           case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:             /* PTin added (2.5G) */
+           case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:             /* PTin added: Speed 2.5G */
+           case L7_PORTCTRL_PORTSPEED_FULL_10GSX:             /* PTin added: Speed 10G */
+           case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:           /* PTin added: Speed 40G */
+           case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:          /* PTin added: Speed 100G */
                 objPhysicalIntfDuplexValue = L7_DUPLEX_FULL;
                 break;
            case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
@@ -3359,11 +3385,19 @@ xLibRC_t fpObjSet_baseport_PhysicalInftSpeed (void *wap, void *bufp)
    speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_100TX;
   else if((objPhysicalInftSpeedValue == L7_SPEED_1000) && (objPhysicalIntfDuplexValue == L7_DUPLEX_FULL))
    speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_1000SX;
-  /* PTin added (2.5G) */
+  /* PTin added: Speed 2.5G */
   else if((objPhysicalInftSpeedValue == L7_SPEED_2500) && (objPhysicalIntfDuplexValue == L7_DUPLEX_FULL))
    speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_2P5FX;
+  /* PTin added: Speed 10G */
+  else if((objPhysicalInftSpeedValue == L7_SPEED_10G) && (objPhysicalIntfDuplexValue == L7_DUPLEX_FULL))
+   speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
+  /* PTin added: Speed 40G */
+  else if((objPhysicalInftSpeedValue == L7_SPEED_40G) && (objPhysicalIntfDuplexValue == L7_DUPLEX_FULL))
+   speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+  /* PTin added: Speed 100G */
+  else if((objPhysicalInftSpeedValue == L7_SPEED_100G) && (objPhysicalIntfDuplexValue == L7_DUPLEX_FULL))
+   speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_FULL_100G_BKP;
   /* PTin end */
-
   else
    speedAndDuplexValue = L7_PORTCTRL_PORTSPEED_HALF_10T;
 
@@ -3461,7 +3495,10 @@ xLibRC_t fpObjGet_baseport_PhysicalIntfDuplex (void *wap, void *bufp)
         case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         case L7_PORTCTRL_PORTSPEED_FULL_10T:
         case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
-        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:              /* PTin added (2.5G) */
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:              /* PTin added: Speed 2.5G */
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:              /* PTin added: Speed 10G */
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:            /* PTin added: Speed 40G */
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:           /* PTin added: Speed 100G */
              objPhysicalIntfDuplexValue = L7_DUPLEX_FULL;
              break;
         case L7_PORTCTRL_PORTSPEED_AUTO_NEG:

@@ -384,8 +384,10 @@
 #define IS_PORT_TYPE_PHYSICAL(_pDapiPortPtr) (((_pDapiPortPtr)->type == L7_IANA_ETHERNET)         || \
                                               ((_pDapiPortPtr)->type == L7_IANA_FAST_ETHERNET)    || \
                                               ((_pDapiPortPtr)->type == L7_IANA_FAST_ETHERNET_FX) || \
+                                              ((_pDapiPortPtr)->type == L7_IANA_2G5_ETHERNET)     || /* PTin added: Speed 2.5G */ \
                                               ((_pDapiPortPtr)->type == L7_IANA_10G_ETHERNET)     || \
-                                              ((_pDapiPortPtr)->type == L7_IANA_2G5_ETHERNET)     || /* PTin added (2.5G) */ \
+                                              ((_pDapiPortPtr)->type == L7_IANA_40G_ETHERNET)     || /* PTin added: Speed 40G */ \
+                                              ((_pDapiPortPtr)->type == L7_IANA_100G_ETHERNET)    || /* PTin added: Speed 100G */ \
                                               ((_pDapiPortPtr)->type == L7_IANA_GIGABIT_ETHERNET))
 
 #define IS_PORT_TYPE_LOGICAL_LAG(_pDapiPortPtr)       ((_pDapiPortPtr)->type == L7_IANA_LAG_DESC)

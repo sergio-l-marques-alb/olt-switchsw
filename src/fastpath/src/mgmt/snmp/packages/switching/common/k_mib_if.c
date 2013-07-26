@@ -1213,8 +1213,10 @@ static L7_RC_t snmpLocalIfTypeGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_u
     if ((*val == L7_IANA_FAST_ETHERNET)
     || (*val == L7_IANA_FAST_ETHERNET_FX)
     || (*val == L7_IANA_GIGABIT_ETHERNET)
-    || (*val == L7_IANA_2G5_ETHERNET)       /* PTin added (2.5G) */
-    || (*val == L7_IANA_10G_ETHERNET))
+    || (*val == L7_IANA_2G5_ETHERNET)       /* PTin added: Speed 2.5G */
+    || (*val == L7_IANA_10G_ETHERNET)
+    || (*val == L7_IANA_40G_ETHERNET)       /* PTin added: Speed 40G */
+    || (*val == L7_IANA_100G_ETHERNET))     /* PTin added: Speed 100G */
     {
       /* Map to Ethernet type (6). */
       *val = L7_IANA_ETHERNET;

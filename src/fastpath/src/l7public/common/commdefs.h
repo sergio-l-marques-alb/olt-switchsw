@@ -552,25 +552,35 @@ typedef enum
  * src/mgmt/snmp/packages/switching/common/k_mib_fastpathswitching_api.h
  */
 
-/* PTin added (2.5G) */
-  L7_IANA_2G5_ETHERNET = 255,        /* 2.5G Ethernet */
-#define IANA_2G5_ETHERNET_DESC      "2.5G - Level"
+/* PTin added: 2.5G */
+  L7_IANA_2G5_ETHERNET  = 251,        /* 2.5G Ethernet */
+#define IANA_2G5_ETHERNET_DESC        "2.5G - Level"
 /* PTin end */
 
-  L7_IANA_10G_ETHERNET = 198,        /* 10G Ethernet       */
-#define IANA_10G_ETHERNET_DESC      "10G - Level"
+/* PTin added: 40G */
+  L7_IANA_40G_ETHERNET  = 252,        /* 40G Ethernet */
+#define IANA_40G_ETHERNET_DESC        "40G - Level"
+/* PTin end */
 
-  L7_IANA_L2_VLAN          = 135,     /* 802.1Q VLAN        */
-#define IANA_L2_VLAN_DESC            "802.1Q VLAN"
+/* PTin added: 100G */
+  L7_IANA_100G_ETHERNET = 253,        /* 100G Ethernet */
+#define IANA_100G_ETHERNET_DESC       "100G - Level"
+/* PTin end */
 
-  L7_IANA_LAG_DESC         = 161,     /* Link Aggregation   */
-#define IANA_LAG_DESC            "Link Aggregate"
+  L7_IANA_10G_ETHERNET  = 198,        /* 10G Ethernet       */
+#define IANA_10G_ETHERNET_DESC        "10G - Level"
 
-  L7_IANA_LOGICAL_DESC     = 162,      /* need to find out this ??? */
-#define IANA_LOGICAL_PORT_DESC       "Logical Interface"
+  L7_IANA_L2_VLAN       = 135,        /* 802.1Q VLAN        */
+#define IANA_L2_VLAN_DESC             "802.1Q VLAN"
 
-  L7_IANA_CAPWAP_TUNNEL = 245        /* CAPWAP tunnel  value is IANA TBD */
-#define IANA_CAPWAP_TUNNEL_DESC      "CAPWAP tunnel"
+  L7_IANA_LAG_DESC      = 161,        /* Link Aggregation   */
+#define IANA_LAG_DESC                 "Link Aggregate"
+
+  L7_IANA_LOGICAL_DESC  = 162,        /* need to find out this ??? */
+#define IANA_LOGICAL_PORT_DESC        "Logical Interface"
+
+  L7_IANA_CAPWAP_TUNNEL = 245         /* CAPWAP tunnel  value is IANA TBD */
+#define IANA_CAPWAP_TUNNEL_DESC       "CAPWAP tunnel"
 
 }L7_IANA_INTF_TYPE_t;
 
@@ -627,8 +637,10 @@ typedef enum
   L7_PORTCTRL_PORTSPEED_FULL_100FX,
   L7_PORTCTRL_PORTSPEED_FULL_1000SX,
   L7_PORTCTRL_PORTSPEED_FULL_10GSX,
+  L7_PORTCTRL_PORTSPEED_FULL_40G_KR4,     /* PTin added: Speed 40G */
+  L7_PORTCTRL_PORTSPEED_FULL_100G_BKP,    /* PTin added: Speed 100G */
   L7_PORTCTRL_PORTSPEED_AAL5_155,
-  L7_PORTCTRL_PORTSPEED_FULL_2P5FX = 128, /* Speed 2.5G FD, Bit 7th set */
+  L7_PORTCTRL_PORTSPEED_FULL_2P5FX = 128, /* PTin added: Speed 2.5G */
   L7_PORTCTRL_PORTSPEED_LAG,
   L7_PORTCTRL_PORTSPEED_UNKNOWN,
   L7_PORT_CAPABILITY_DUPLEX_HALF = 0x100,
@@ -637,8 +649,10 @@ typedef enum
   L7_PORT_CAPABILITY_SPEED_10    = 0x800,
   L7_PORT_CAPABILITY_SPEED_100   = 0x1000,
   L7_PORT_CAPABILITY_SPEED_1000  = 0x2000,
-  L7_PORT_CAPABILITY_SPEED_2500  = 0x10000, /* PTin added (2.5G) */
+  L7_PORT_CAPABILITY_SPEED_2500  = 0x10000, /* PTin added: Speed 2.5G */
   L7_PORT_CAPABILITY_SPEED_10G   = 0x4000,
+  L7_PORT_CAPABILITY_SPEED_40G   = 0x20000, /* PTin added: Speed 40G */
+  L7_PORT_CAPABILITY_SPEED_100G  = 0x40000, /* PTin added: Speed 100G */
   L7_PORT_CAPABILITY_SPEED_AUTO  = 0x8000,
 } L7_PORT_SPEEDS_t;
 
@@ -653,8 +667,10 @@ typedef enum
   L7_PHY_CAP_PORTSPEED_FULL_100   = 0x10,
   L7_PHY_CAP_PORTSPEED_HALF_1000  = 0x20,
   L7_PHY_CAP_PORTSPEED_FULL_1000  = 0x40,
-  L7_PHY_CAP_PORTSPEED_FULL_2500  = 0x2000, /* PTin added (2.5G) */
+  L7_PHY_CAP_PORTSPEED_FULL_2500  = 0x2000, /* PTin added: Speed 2.5G */
   L7_PHY_CAP_PORTSPEED_FULL_10G   = 0x200,
+  L7_PHY_CAP_PORTSPEED_FULL_40G   = 0x4000, /* PTin added: Speed 40G */
+  L7_PHY_CAP_PORTSPEED_FULL_100G  = 0x8000, /* PTin added: Speed 100G */
   L7_PHY_CAP_PORTSPEED_SFP        = 0x80,
   L7_PHY_CAP_PORTSPEED_SFP_DETECT = 0x400,
   L7_PHY_CAP_POE_PSE              = 0x100,
@@ -670,9 +686,11 @@ typedef enum
   L7_PORT_NEGO_CAPABILITY_HALF_100  = (1 << 2),
   L7_PORT_NEGO_CAPABILITY_FULL_100  = (1 << 3),
   L7_PORT_NEGO_CAPABILITY_FULL_1000 = (1 << 4),
-  L7_PORT_NEGO_CAPABILITY_FULL_2500 = (1 << 5), /* PTin added (2.5G) */
+  L7_PORT_NEGO_CAPABILITY_FULL_2500 = (1 << 5),   /* PTin added: Speed 2.5G */
   L7_PORT_NEGO_CAPABILITY_FULL_10G  = (1 << 6),
-  L7_PORT_NEGO_CAPABILITY_ALL       = (1 << 8)
+  L7_PORT_NEGO_CAPABILITY_FULL_40G  = (1 << 9),   /* PTin added: Speed 40G */
+  L7_PORT_NEGO_CAPABILITY_FULL_100G = (1 << 10),  /* PTin added: Speed 100G */
+  L7_PORT_NEGO_CAPABILITY_ALL       = (1 << 8),
 } L7_PORT_NEGO_CAPABILITIES_t;
 
 typedef enum
@@ -681,7 +699,9 @@ typedef enum
   L7_RJ45,
   L7_MTRJ,
   L7_SCDUP,
-  L7_XAUI
+  L7_XAUI,
+  L7_XLAUI,         /* PTin added: Speed 40G */
+  L7_BACKPLANE_KR   /* PTin added: Speed 10G/40G/100G */
 } L7_CONNECTOR_TYPES_t;
 
 
@@ -693,10 +713,10 @@ typedef enum
 typedef enum
 {
   L7_CABLE_UNTESTED,
-  L7_CABLE_TEST_FAIL,    /* Test failed for unknown reason */
+  L7_CABLE_TEST_FAIL,   /* Test failed for unknown reason */
   L7_CABLE_NORMAL,      /* Cable is OK */
-  L7_CABLE_OPEN,         /* Cable is not connected on one end */
-  L7_CABLE_SHORT,        /* Cable is shorted */
+  L7_CABLE_OPEN,        /* Cable is not connected on one end */
+  L7_CABLE_SHORT,       /* Cable is shorted */
   L7_CABLE_OPENSHORT,
   L7_CABLE_CROSSTALK,
   L7_CABLE_NOCABLE
@@ -707,6 +727,7 @@ typedef enum
 {
   PORT_MEDIUM_COPPER = 1,
   PORT_MEDIUM_FIBER,
+  PORT_MEDIUM_BACKPLANE /* PTin added: Speed 10G/40G/100G */
 } L7_PORT_CABLE_MEDIUM_t;
 
 typedef enum

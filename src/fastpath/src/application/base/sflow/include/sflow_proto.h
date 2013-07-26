@@ -405,8 +405,10 @@ typedef struct SFLOW_if_counters_s
 #define SFLOW_TEN_MBPS               10000000
 #define SFLOW_HUNDRED_MBPS           100000000
 #define SFLOW_THOUSAND_MBPS          1000000000
-#define SFLOW_2P5THOUSAND_MBPS       2500000000UL   /* PTin added (2.5G) */
-#define SFLOW_TENTHOUSAND_MBPS       10000000000
+#define SFLOW_2P5THOUSAND_MBPS       2500000000UL     /* PTin added: Speed 2.5G */
+#define SFLOW_TENTHOUSAND_MBPS       10000000000ULL   /* PTin added: Speed 10G */
+#define SFLOW_40THOUSAND_MBPS        40000000000ULL   /* PTin added: Speed 40G */
+#define SFLOW_100THOUSAND_MBPS       100000000000ULL  /* PTin added: Speed 100G */
 #define SFLOW_IFSPEEDMAX_MBPS        4294967295UL  /* max allowed ifSpeed value */
   L7_uint32 ifDirection;        /* Derived from MAU MIB (RFC 2668)
                                    0 = unknown, 1 = full-duplex,

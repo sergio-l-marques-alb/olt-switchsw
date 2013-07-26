@@ -1067,7 +1067,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
      case DAPI_PORT_SPEED_GE_1GBPS:
          portSpeed = 1000000;
          break;
-     /* PTin added (2.5G) */
+     /* PTin added: Speed 2.5G */
      case DAPI_PORT_SPEED_GE_2G5BPS:
          portSpeed = 2500000;
          break;
@@ -1075,6 +1075,15 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
      case DAPI_PORT_SPEED_GE_10GBPS:
          portSpeed = 10000000;
          break;
+     /* PTin added: Speed 40G */
+     case DAPI_PORT_SPEED_GE_40GBPS:
+         portSpeed = 40000000;
+         break;
+     /* PTin added: Speed 100G */
+     case DAPI_PORT_SPEED_GE_100GBPS:
+         portSpeed = 100000000;
+         break;
+     /* PTin end */
      default:
          portSpeed = 10000;
          break;

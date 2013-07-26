@@ -338,12 +338,24 @@ void ptin_intf_dump(void)
         strcpy(speed, "1G");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         strcpy(speed, "2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         strcpy(speed, "10G");
+        break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        strcpy(speed, "40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        strcpy(speed, "100G");
         break;
 
       default:

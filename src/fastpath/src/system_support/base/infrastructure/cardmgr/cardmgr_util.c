@@ -1916,7 +1916,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
                      IANA_GIGABIT_ETHERNET_DESC);
       break;
 
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case  L7_IANA_2G5_ETHERNET:
       pIntfIdInfo.type = L7_PHYSICAL_INTF;
       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
@@ -1965,6 +1965,58 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
                      (L7_char8 *)(pIntfDescr.ifDescr),
                      IANA_10G_ETHERNET_DESC);
       break;
+
+    /* PTin added: Speed 40G */
+    case  L7_IANA_40G_ETHERNET:
+      pIntfIdInfo.type = L7_PHYSICAL_INTF;
+      if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+                                L7_STACKING_FEATURE_SUPPORTED) == L7_TRUE)
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d %s %d",
+                       "Unit:", unit, "Slot:", slot, "Port:", port);
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d/%d",
+                       unit, slot, port);
+      }
+      else
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                       "Slot:", slot, "Port:", port);
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                       slot, port);
+      }
+      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+                     (L7_char8 *)(pIntfDescr.ifDescr),
+                     IANA_40G_ETHERNET_DESC);
+      break;
+
+    /* PTin added: Speed 100G */
+    case  L7_IANA_100G_ETHERNET:
+      pIntfIdInfo.type = L7_PHYSICAL_INTF;
+      if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+                                L7_STACKING_FEATURE_SUPPORTED) == L7_TRUE)
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d %s %d",
+                       "Unit:", unit, "Slot:", slot, "Port:", port);
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d/%d",
+                       unit, slot, port);
+      }
+      else
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                       "Slot:", slot, "Port:", port);
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                       slot, port);
+      }
+      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+                     (L7_char8 *)(pIntfDescr.ifDescr),
+                     IANA_100G_ETHERNET_DESC);
+      break;
+
+    /* PTin end */
 
     case L7_IANA_L2_VLAN:
       pIntfIdInfo.type = L7_LOGICAL_VLAN_INTF;

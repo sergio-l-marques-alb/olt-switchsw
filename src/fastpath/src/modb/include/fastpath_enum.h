@@ -1441,7 +1441,10 @@ typedef enum
   L7_SPEED_10 = 1,
   L7_SPEED_100,
   L7_SPEED_1000,
-  L7_SPEED_2500,    /* PTin added (2.5) */
+  L7_SPEED_2500,    /* PTin added: Speed 2.5G */
+  L7_SPEED_10G,     /* PTin added: Speed 10G */
+  L7_SPEED_40G,     /* PTin added: Speed 40G */
+  L7_SPEED_100G,    /* PTin added: Speed 100G */
   L7_SPEED_AUTO,
   L7_SPEED_UNKN
 }L7_ONLY_SPEEDS_t;

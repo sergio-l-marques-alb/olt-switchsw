@@ -452,8 +452,10 @@ L7_RC_t nimInterfaceCounters ( L7_uint32 intIfNum , L7_BOOL create)
 
     case L7_IANA_FAST_ETHERNET:
     case L7_IANA_GIGABIT_ETHERNET:
-    case L7_IANA_2G5_ETHERNET:      /* PTin added (2.5G) */
+    case L7_IANA_2G5_ETHERNET:      /* PTin added: Speed 2.5G */
     case L7_IANA_10G_ETHERNET:
+    case L7_IANA_40G_ETHERNET:      /* PTin added: Speed 40G */
+    case L7_IANA_100G_ETHERNET:     /* PTin added: Speed 100G */
     case L7_IANA_CAPWAP_TUNNEL:
 
       baseListSize = sizeof ( statsFastEthernet_base_ctr_list ) / sizeof ( L7_uint32 );
@@ -528,8 +530,10 @@ L7_RC_t nimInterfaceCounters ( L7_uint32 intIfNum , L7_BOOL create)
     case L7_IANA_FAST_ETHERNET:
     case L7_IANA_FAST_ETHERNET_FX:
     case L7_IANA_GIGABIT_ETHERNET:
-    case L7_IANA_2G5_ETHERNET:      /* PTin added (2.5G) */
+    case L7_IANA_2G5_ETHERNET:      /* PTin added: Speed 2.5G */
     case L7_IANA_10G_ETHERNET:
+    case L7_IANA_40G_ETHERNET:      /* PTin added: Speed 40G */
+    case L7_IANA_100G_ETHERNET:     /* PTin added: Speed 100G */
     case L7_IANA_CAPWAP_TUNNEL:
 
       /* create base counters */
@@ -627,8 +631,10 @@ L7_RC_t nimResetInterfaceCounters ( L7_uint32 intIfNum )
 
     case L7_IANA_FAST_ETHERNET_FX:
     case L7_IANA_GIGABIT_ETHERNET:
-    case L7_IANA_2G5_ETHERNET:      /* PTin added (2.5G) */
+    case L7_IANA_2G5_ETHERNET:      /* PTin added: Speed 2.5G */
     case L7_IANA_10G_ETHERNET:
+    case L7_IANA_40G_ETHERNET:      /* PTin added: Speed 40G */
+    case L7_IANA_100G_ETHERNET:     /* PTin added: Speed 100G */
       baseListSize = 0;
       pBaseCounters = L7_NULL;
       break;
@@ -656,8 +662,10 @@ L7_RC_t nimResetInterfaceCounters ( L7_uint32 intIfNum )
     case L7_IANA_FAST_ETHERNET:
     case L7_IANA_FAST_ETHERNET_FX:
     case L7_IANA_GIGABIT_ETHERNET:
-    case L7_IANA_2G5_ETHERNET:      /* PTin added (2.5G) */
+    case L7_IANA_2G5_ETHERNET:      /* PTin added: Speed 2.5G */
     case L7_IANA_10G_ETHERNET:
+    case L7_IANA_40G_ETHERNET:      /* PTin added: Speed 40G */
+    case L7_IANA_100G_ETHERNET:     /* PTin added: Speed 100G */
 
       /* reset base counters */
 
@@ -1841,15 +1849,28 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
            speed = L7_PORT_CAPABILITY_SPEED_1000;
            break;
 
+      /* PTin added: Speed 2.5G */
       case L7_IANA_2G5_ETHERNET:
            speed = L7_PORT_CAPABILITY_SPEED_2500;
            break;
+      /* PTin end */
 
       case L7_IANA_10G_ETHERNET:
            speed = L7_PORT_CAPABILITY_SPEED_10G;
            break;
 
-      default:
+     /* PTin added: Speed 40G */
+     case L7_IANA_40G_ETHERNET:
+          speed = L7_PORT_CAPABILITY_SPEED_40G;
+          break;
+
+     /* PTin added: Speed 100G */
+     case L7_IANA_100G_ETHERNET:
+          speed = L7_PORT_CAPABILITY_SPEED_100G;
+          break;
+     /* PTin end */
+
+     default:
            rc = L7_FAILURE;
            break;
 
@@ -1902,7 +1923,7 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
          }
          break;
 
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case L7_PORT_CAPABILITY_SPEED_2500:
          if (duplex == L7_PORT_CAPABILITY_DUPLEX_FULL && intftype == L7_IANA_2G5_ETHERNET)
          {
@@ -1917,6 +1938,23 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
            *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
          }
          break;
+
+    /* PTin added: Speed 40G */
+    case L7_PORT_CAPABILITY_SPEED_40G:
+         if (duplex == L7_PORT_CAPABILITY_DUPLEX_FULL && intftype == L7_IANA_40G_ETHERNET)
+         {
+           *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+         }
+         break;
+
+    /* PTin added: Speed 100G */
+    case L7_PORT_CAPABILITY_SPEED_100G:
+         if (duplex == L7_PORT_CAPABILITY_DUPLEX_FULL && intftype == L7_IANA_100G_ETHERNET)
+         {
+           *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_100G_BKP;
+         }
+         break;
+    /* PTin end */
 
     default:
          rc = L7_FAILURE;

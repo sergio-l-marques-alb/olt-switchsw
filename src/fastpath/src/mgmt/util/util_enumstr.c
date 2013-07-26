@@ -1284,7 +1284,7 @@ L7_char8 *strUtilPortSpeedGet(L7_PORT_SPEEDS_t val, L7_char8 *def)
     case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
       return pStrInfo_base_Speed1000Full;
       /*pass thru */
-    /* PTin added (2.5) */
+    /* PTin added: Speed 2.5G */
     case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
       return pStrInfo_base_Speed2500Full;
       /*pass thru */
@@ -1292,6 +1292,15 @@ L7_char8 *strUtilPortSpeedGet(L7_PORT_SPEEDS_t val, L7_char8 *def)
     case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
       return pStrInfo_base_Speed10GigFull;
       /*pass thru */
+    /* PTin added: Speed 40G */
+    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      return pStrInfo_base_Speed40GigFull;
+      /*pass thru */
+    /* PTin added: Speed 100G */
+    case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+      return pStrInfo_base_Speed100GigFull;
+      /*pass thru */
+    /* PTin end */
     default:
       break;
   }
