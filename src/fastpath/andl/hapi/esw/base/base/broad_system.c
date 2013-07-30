@@ -4188,7 +4188,7 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_ulong32 index, ccm_index, ccm_index_free;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing\tenable=%d\tvlanId=%u\toam_level=%u", enable, vlanId, oam_level);
 
   /* Initialization */
   if (first_time)
