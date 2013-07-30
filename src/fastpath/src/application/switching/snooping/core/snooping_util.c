@@ -1630,13 +1630,20 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
       switch (igmp_type)
       {
       case L7_IGMP_MEMBERSHIP_QUERY:
-        ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_GENERAL_QUERIES_SENT);
-        //ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_SPECIFIC_QUERIES_SENT);
-        break;      
+          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
+          break;      
+      case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+        ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+        break;
+      case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+        ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
+        break;                 
       case L7_IGMP_V1_MEMBERSHIP_REPORT:
       case L7_IGMP_V2_MEMBERSHIP_REPORT:
-      case L7_IGMP_V3_MEMBERSHIP_REPORT:
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
+        break;
+      case L7_IGMP_V3_MEMBERSHIP_REPORT:
+        ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
         break;
       case L7_IGMP_V2_LEAVE_GROUP:
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_LEAVES_SENT);
@@ -1770,13 +1777,20 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
         switch (igmp_type)
         {
         case L7_IGMP_MEMBERSHIP_QUERY:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_SENT);
-          //ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_SENT);
+          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
           break;      
+        case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+          break;
+        case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
+          break;            
         case L7_IGMP_V1_MEMBERSHIP_REPORT:
         case L7_IGMP_V2_MEMBERSHIP_REPORT:
+          ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
+          break;
         case L7_IGMP_V3_MEMBERSHIP_REPORT:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_JOINS_SENT);
+          ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
           break;
         case L7_IGMP_V2_LEAVE_GROUP:
           ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_LEAVES_SENT);

@@ -54,13 +54,16 @@
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 
-#define SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL 1
-
 #define SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE 10 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0 /*Currently we do not support sending Group and Source Specific Queries*/
 
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 1 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
+
+/*This values are not defined in RFC3376, altought it makes sense to have them in order to easily identify the type of packet to be sent*/
+#define L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY             0x10 
+#define L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY 0x9
+/*End definition*/
 #endif
 
 typedef enum
