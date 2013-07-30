@@ -189,9 +189,9 @@ typedef struct
   L7_uint32 specific_queries_sent;
   L7_uint32 specific_queries_received;
 
-  ptin_IGMP_v3_Statistics_t v3;
-  ptin_IGMPv2_Statistics_t  v2;
-  ptin_Query_Statistics_t   query;
+//ptin_IGMP_v3_Statistics_t v3;
+//ptin_IGMPv2_Statistics_t  v2;
+//ptin_Query_Statistics_t   query;
 } ptin_IGMP_Statistics_t;
 
 /* More debug for IGMP */
