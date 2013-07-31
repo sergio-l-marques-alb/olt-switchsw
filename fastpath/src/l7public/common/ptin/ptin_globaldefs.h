@@ -93,8 +93,6 @@
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_MAX     (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1)
 #endif
 
-(L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)
-
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
@@ -450,6 +448,9 @@ extern volatile st_fpga_map_t *fpga_map;
 /* TA48GE */
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 
+#define IGMPASSOC_MULTI_MC_SUPPORTED
+#define IGMP_QUERIER_IN_UC_EVC
+
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
@@ -468,7 +469,7 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
-# define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_CLIENTS         PTIN_SYSTEM_N_PONS /* 1 client per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -485,16 +486,15 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE 512   /* 512 clients per IGMP instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE PTIN_SYSTEM_N_PONS   /* 1 client per frontal port */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
-
-# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   PTIN_SYSTEM_N_PONS   /* 1 client per DHCP instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  PTIN_SYSTEM_N_PONS   /* 1 client per PPPoE instance */
 
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
 #define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
