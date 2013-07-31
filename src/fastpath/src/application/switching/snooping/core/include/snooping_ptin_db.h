@@ -47,8 +47,8 @@ L7_RC_t snoopPTinInitializeInterface(snoopPTinL3Interface_t *snoopEntry,L7_uint3
 //Remove an interface entry, reseting all its fields and stopping the group and query timers
 L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr,L7_uint16 interfaceIdx);
 
-
-L7_RC_t snoopPTinZeroClients(L7_uint32* clients);
+//verify if this bitmap is already initialized
+L7_RC_t snoopPTinZeroClients(L7_uint32* clients,L7_uint16 numberOfClients);
 
 /************************************************************************************************************/
 /*MGMD Proxy*/

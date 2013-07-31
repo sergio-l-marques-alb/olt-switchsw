@@ -54,7 +54,7 @@
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 
-#define SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE 10 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
+#define SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE 7 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0 /*Currently we do not support sending Group and Source Specific Queries*/
 
@@ -353,6 +353,7 @@ typedef struct
 {
   L7_uint32                clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
   L7_inet_addr_t           sourceAddr;
+//L7_uint32                clientfiltermode[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];//snoop_ptin_filtermode_t
   snoopPTinL3Sourcetimer_t sourceTimer;
   L7_uint8                 status;
   L7_uint16                numberOfClients;
@@ -368,6 +369,7 @@ typedef struct
   L7_uint8                active;
   L7_BOOL                 isStatic;
   L7_uint32               clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
+//L7_uint32               clientfiltermode[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];//snoop_ptin_filtermode_t
   L7_uint16               numberOfClients;
 } snoopPTinL3Interface_t;
 
