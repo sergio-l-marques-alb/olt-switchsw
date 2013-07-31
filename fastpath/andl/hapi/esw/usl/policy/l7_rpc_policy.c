@@ -837,8 +837,13 @@ static void _accumulate_stats(BROAD_POLICY_STATS_t *stats, L7_uchar8 *buffer)
   else
   {
     /* accumulate counter */
+    #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+    memcpy(&tmp32_hi, &buffer[0], sizeof(tmp32_hi));
+    memcpy(&tmp32_lo, &buffer[4], sizeof(tmp32_lo));
+    #else
     memcpy(&tmp32_hi, &buffer[8], sizeof(tmp32_hi));
     memcpy(&tmp32_lo, &buffer[12], sizeof(tmp32_lo));
+    #endif
     RPC_DEBUG_PRINT("%s:%d: temp32_hi = 0x%x, temp32_lo = 0x%x\n", __FUNCTION__, __LINE__, tmp32_hi, tmp32_lo);
     COMPILER_64_SET(tmpVal, tmp32_hi, tmp32_lo);
     COMPILER_64_ADD_64(stats->statMode.counter.count, tmpVal);
