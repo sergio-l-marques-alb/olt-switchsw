@@ -2738,7 +2738,7 @@ L7_RC_t ptin_pppoe_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_u
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
     /* Check if interface exists */
-    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS && ptin_port<PTIN_SYSTEM_N_INTERF)
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS)
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];

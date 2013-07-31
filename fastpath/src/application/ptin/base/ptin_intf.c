@@ -104,7 +104,7 @@ L7_RC_t ptin_intf_init(void)
 
   /* Initialize phy lookup tables */
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Port <=> intIfNum lookup tables init:");
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     /* Get interface ID */
     if (usmDbIntIfNumFromUSPGet(1, 0, i+1, &intIfNum) != L7_SUCCESS)
@@ -133,7 +133,7 @@ L7_RC_t ptin_intf_init(void)
    * L7_FEAT_LAG_PRECREATE must be cleared! (checked on ptin_globaldefs.h) */
 
   /* Initialize phy default TPID and MTU */
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
     ptin_intf.intf_id   = i;
@@ -200,7 +200,7 @@ L7_RC_t ptin_intf_init(void)
   }
 
   /* Initialize phy conf structure (must be run after default configurations!) */
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     phyConf_data[i].Port = i;
     if (ptin_intf_PhyConfig_read(&phyConf_data[i]) != L7_SUCCESS) {
@@ -249,7 +249,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
 
   /* Run all physical interfaces */
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     ptin_intf.intf_id = port;
 
@@ -500,9 +500,9 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   port = phyConf->Port;
 
   /* Validate port range */
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -571,12 +571,14 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case PHY_PORT_2500_MBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_2P5FX;
         strcpy(speedstr, "2.5G");
         break;
 
-      case PHY_PORT_10000_MBPS:
+      /* PTin added: Speed 10G */
+      case PHY_PORT_10_GBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
         strcpy(speedstr, "10G");
         break;
@@ -650,9 +652,9 @@ L7_RC_t ptin_intf_PhyConfig_get(ptin_HWEthPhyConf_t *phyConf)
   L7_uint port = phyConf->Port;
 
   /* Validate port range */
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -681,9 +683,9 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   phyState->Mask = 0;
 
   /* Validate port range */
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -707,15 +709,19 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyState->Speed = PHY_PORT_2500_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-        phyState->Speed = PHY_PORT_10000_MBPS;
+        phyState->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
         break;
+
+      /* PTin end */
 
       default:
         phyState->Speed = -1;
@@ -766,9 +772,9 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   L7_uint port = portStats->Port;
 
   /* Validate port range */
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -786,9 +792,9 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
   /* Validate port range */
-  if (portStats->Port >= PTIN_SYSTEM_N_PORTS)
+  if (portStats->Port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", portStats->Port, PTIN_SYSTEM_N_PORTS-1);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", portStats->Port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -899,7 +905,7 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
 
   /* Check if interface is valid */
   if ( ptin_sys_slotport_to_intf_map[slot][port] < 0 ||
-       ptin_sys_slotport_to_intf_map[slot][port] >= PTIN_SYSTEM_N_PORTS)
+       ptin_sys_slotport_to_intf_map[slot][port] >= ptin_sys_number_of_ports)
   {
     //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is not mapped",slot,port);
     return L7_FAILURE;
@@ -936,7 +942,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   L7_uint slot, port;
 
   /* Validate arguments */
-  if (ptin_port >= PTIN_SYSTEM_N_PORTS)
+  if (ptin_port >= ptin_sys_number_of_ports)
   {
     LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid port id (%u)", ptin_port);
     return L7_FAILURE;
@@ -1043,7 +1049,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   }
 
   /* Validate interface id */
-  if (ptin_intf->intf_id >= PTIN_SYSTEM_N_PORTS)
+  if (ptin_intf->intf_id >= ptin_sys_number_of_ports)
   {
     LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface id (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
@@ -1106,7 +1112,8 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
 {
   /* Validate arguments */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
     return L7_FAILURE;
@@ -1145,7 +1152,8 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
   }
 
   /* Validate output */
-  if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF)
+  if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
+      (map_intIfNum2port[intIfNum] >= ptin_sys_number_of_ports && map_intIfNum2port[intIfNum] < PTIN_SYSTEM_N_PORTS))
   {
     //LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum# %u is not assigned!", intIfNum);
     return L7_FAILURE;
@@ -1173,14 +1181,15 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
   ptin_intf_t p_intf;
 
   /* Validate ptin_port */
-  if (ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
   }
 
   /* Convert ptin_port to type+id format */
-  if (ptin_port<PTIN_SYSTEM_N_PORTS)
+  if (ptin_port < PTIN_SYSTEM_N_PORTS)
   {
     p_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
     p_intf.intf_id   = ptin_port;
@@ -1217,18 +1226,18 @@ inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_por
   }
 
   /* Calculate ptin_port index */
-  if (ptin_intf->intf_type==PTIN_EVC_INTF_PHYSICAL)
+  if (ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL)
   {
-    if (ptin_intf->intf_id>=PTIN_SYSTEM_N_PORTS)
+    if (ptin_intf->intf_id >= ptin_sys_number_of_ports)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Physical port id is out of range: %u", ptin_intf->intf_id);
       return L7_FAILURE;
     }
     p_port = ptin_intf->intf_id;
   }
-  else if (ptin_intf->intf_type==PTIN_EVC_INTF_LOGICAL)
+  else if (ptin_intf->intf_type == PTIN_EVC_INTF_LOGICAL)
   {
-    if (ptin_intf->intf_id>=PTIN_SYSTEM_MAX_N_LAGS)
+    if (ptin_intf->intf_id >= PTIN_SYSTEM_MAX_N_LAGS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Lag id is out of range: %u", ptin_intf->intf_id);
       return L7_FAILURE;
@@ -1242,7 +1251,8 @@ inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_por
   }
 
   /* Validate final value */
-  if (p_port>=PTIN_SYSTEM_N_INTERF)
+  if (p_port >= PTIN_SYSTEM_N_INTERF ||
+      (p_port >= ptin_sys_number_of_ports && p_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Port id is out of range: %u", p_port);
     return L7_FAILURE;
@@ -1272,7 +1282,8 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     return rc;
 
   /* Validate ptin_port */
-  if (ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
@@ -1478,7 +1489,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   ifSpeed      = 0;
   lagEtherType = 0;
   maxFrame     = 0;
-  for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++, members_pbmp>>=1)
+  for (port = PTIN_SYSTEM_N_PONS; port < ptin_sys_number_of_ports; port++, members_pbmp>>=1)
   {
     if (members_pbmp & 1)
     {
@@ -1536,7 +1547,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
   /* Check if members are not being used in any EVC */
   members_pbmp = lagInfo->members_pbmp64;
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++, members_pbmp>>=1)
+  for (i = 0; i < ptin_sys_number_of_ports; i++, members_pbmp>>=1)
   {
     if ((members_pbmp & 1) &&
         (ptin_evc_is_intf_in_use(i)))
@@ -1733,7 +1744,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   rc = L7_SUCCESS;
 
   /* Loop through all the phy ports and check if any is being added or removed */
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++, members_pbmp>>=1)
+  for (port = 0; port < ptin_sys_number_of_ports; port++, members_pbmp>>=1)
   {
     /* If an error occured in a situation that a LAG has just been created, we can abort
      * because the LAG will be deleted anyway */
@@ -2013,7 +2024,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 
   /* Update PortGroups (used on egress translations) */
   ptin_pbmp = lagConf_data[lag_idx].members_pbmp64;
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++, ptin_pbmp >>= 1)
+  for (i=0; i<ptin_sys_number_of_ports; i++, ptin_pbmp >>= 1)
   {
     if (ptin_pbmp & 1)
     {
@@ -2112,7 +2123,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     if ((members_list[i] == 0)
         || (ptin_intf_intIfNum2port(members_list[i], &value))
         || (value <  PTIN_SYSTEM_N_PONS)
-        || (value >= PTIN_SYSTEM_N_PORTS))
+        || (value >= ptin_sys_number_of_ports))
     {
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: invalid active members found (port# %u; intf# %u)", lag_idx, value, members_list[i]);
       continue;
@@ -2140,9 +2151,9 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   port_idx = adminState->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (port_idx > PTIN_SYSTEM_N_PORTS)
+  if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port_idx, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -2211,9 +2222,9 @@ L7_RC_t ptin_intf_LACPAdminState_get(ptin_LACPAdminState_t *adminState)
   port_idx = adminState->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (port_idx > PTIN_SYSTEM_N_PORTS)
+  if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port_idx, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -2249,9 +2260,9 @@ L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats)
   port_idx = lagStats->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (port_idx > PTIN_SYSTEM_N_PORTS)
+  if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port_idx, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -2295,9 +2306,9 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
   port_idx = lagStats->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (port_idx > PTIN_SYSTEM_N_PORTS)
+  if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port_idx, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -2995,9 +3006,9 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   phyConf->Mask = 0;  /* Clear Mask */
 
   /* Validate port range */
-  if (port >= PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u[", port, PTIN_SYSTEM_N_PORTS);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -3060,15 +3071,19 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyConf->Speed = PHY_PORT_2500_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-        phyConf->Speed = PHY_PORT_10000_MBPS;
+        phyConf->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
         break;
+
+      /* PTin end */
 
       default:
         phyConf->Speed = -1;

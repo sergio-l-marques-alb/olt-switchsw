@@ -53,6 +53,8 @@
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
 
+/* Number of physical interfaces */
+extern int ptin_sys_number_of_ports;
 
 /* OLT7-8CH */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
@@ -711,7 +713,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
-#define PTIN_PTP_PORT     63   /* PTP interface port nr (xe56) */ /* 10G port */
+#define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
 
 
 # define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */

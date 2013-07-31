@@ -57,6 +57,7 @@ BROAD_POLICY_t inband_policyId = 0;
  int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
  int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #endif
+int ptin_sys_number_of_ports = PTIN_SYSTEM_N_PORTS;
 
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
@@ -171,7 +172,7 @@ L7_RC_t ptin_hapi_phy_init(void)
   int i, rv;
   L7_uint32 preemphasis;
 
-  for (i=1; i<=PTIN_SYSTEM_N_PORTS; i++)
+  for (i=1; i<=ptin_sys_number_of_ports; i++)
   {
 //  rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_8B10B, 0);
 //
@@ -248,7 +249,7 @@ L7_RC_t hapi_ptin_bcmUnit_get(L7_int *bcm_unit)
  */
 L7_RC_t hapi_ptin_bcmPort_get(L7_int port, L7_int *bcm_port)
 {
-  if (port>=PTIN_SYSTEM_N_PORTS)
+  if (port >= ptin_sys_number_of_ports)
     return L7_FAILURE;
 
   if (bcm_port!=L7_NULLPTR)
@@ -274,10 +275,10 @@ L7_RC_t hapi_ptin_port_get(L7_int bcm_port, L7_int *port)
   L7_int p;
 
   /* Search for the referenced bcm_port */
-  for ( p = 0 ; p < PTIN_SYSTEM_N_PORTS && usp_map[p].port != bcm_port ; p++ );
+  for ( p = 0 ; p < ptin_sys_number_of_ports && usp_map[p].port != bcm_port ; p++ );
 
   /* bcm_port was not found */
-  if ( p >= PTIN_SYSTEM_N_PORTS )
+  if ( p >= ptin_sys_number_of_ports )
     return L7_FAILURE;
 
   /* Return port number */
@@ -303,7 +304,7 @@ void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
 
   /* Interfaces mask (for inports field) */
   BCM_PBMP_CLEAR(*pbmp_mask);
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
   {
     if (hapi_ptin_bcmPort_get(ptin_port,&bcm_port)==L7_SUCCESS)
     {
@@ -756,7 +757,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   L7_uint port, unit;
   L7_uint64 portbmp;
 
-  if (portStats->Port >= PTIN_SYSTEM_N_PORTS)
+  if (portStats->Port >= ptin_sys_number_of_ports)
     return L7_FAILURE;
 
   port = usp_map[portStats->Port].port;
@@ -1037,7 +1038,7 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
   L7_uint port, unit;
   L7_uint64 portbmp;
 
-  if (phyPort >= PTIN_SYSTEM_N_PORTS)
+  if (phyPort >= ptin_sys_number_of_ports)
     return L7_FAILURE;
 
   port = usp_map[phyPort].port;
@@ -1203,7 +1204,7 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
   old_mask = portsActivity->ports_mask;
   portsActivity->ports_mask = 0;
 
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     if (! (old_mask & (1<<port)))
       continue;
@@ -1636,10 +1637,11 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
   memset(ptin_sys_intf_to_port_map, 0xff, sizeof(ptin_sys_intf_to_port_map));
+  ptin_sys_number_of_ports = dapiCardPtr->numOfPortMapEntries;
   #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port mapping:");
-  for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
+  for (i = 0; i < ptin_sys_number_of_ports; i++)
   {
     /* It is assumed that: i = hapiSlotMapPtr[i].portNum
      * (check dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 */
@@ -1669,7 +1671,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   }
 
   #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
-  printf("Slot to intf mapping:");
+  printf("Slot to intf mapping (%u interfaces):", ptin_sys_number_of_ports);
   for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)
   {
     printf("\n Slot %02u: ",slot+1);
@@ -1679,7 +1681,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     }
   }
   printf("\n");
-  LOG_INFO(LOG_CTX_PTIN_HAPI,"Intf to slot/port map:");
+  LOG_INFO(LOG_CTX_PTIN_HAPI,"Intf to slot/port map (%u interfaces):",ptin_sys_number_of_ports);
   for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
   {
     LOG_INFO(LOG_CTX_PTIN_HAPI," Port# %2u => slot=%d/%d", i, ptin_sys_intf_to_slot_map[i], ptin_sys_intf_to_port_map[i]);

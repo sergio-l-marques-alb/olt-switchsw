@@ -489,8 +489,8 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   }
   #endif
 
-  /* Map remaining ports */
-  #if 1
+  /* Do not use remaining ports */
+  #if 0
   /* Fill remaining ports, with 1G ports */
   while (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
   {
