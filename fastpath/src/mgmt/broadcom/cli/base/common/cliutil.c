@@ -3537,7 +3537,7 @@ L7_uint32 cliWebIntfBWGet(L7_uint32 intIfNum, L7_uint32 * bw)
         case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
           *bw = 1000;
           break;
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
           *bw = 2500;
           break;
@@ -3545,6 +3545,15 @@ L7_uint32 cliWebIntfBWGet(L7_uint32 intIfNum, L7_uint32 * bw)
         case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
           *bw = 10000;
           break;
+        /* PTin added: Speed 40G */
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          *bw = 40000;
+          break;
+        /* PTin added: Speed 100G */
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          *bw = 100000;
+          break;
+        /* PTin end */
         default:
           *bw = 0;
           rc = L7_ERROR;

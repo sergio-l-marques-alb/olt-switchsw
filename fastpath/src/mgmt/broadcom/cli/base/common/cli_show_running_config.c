@@ -2869,7 +2869,7 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
           portFactoryDefaultSpeed = FD_NIM_GIG_ENET_SPEED;
           break;
 
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         case L7_IANA_2G5_ETHERNET:
           portFactoryDefaultSpeed = FD_NIM_2G5_ENET_SPEED;
           break;
@@ -2878,6 +2878,17 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
         case L7_IANA_10G_ETHERNET:
           portFactoryDefaultSpeed = FD_NIM_10G_ENET_SPEED;
           break;
+
+        /* PTin added: Speed 40G */
+        case L7_IANA_40G_ETHERNET:
+          portFactoryDefaultSpeed = FD_NIM_40G_ENET_SPEED;
+          break;
+
+        /* PTin added: Speed 100G */
+        case L7_IANA_100G_ETHERNET:
+          portFactoryDefaultSpeed = FD_NIM_100G_ENET_SPEED;
+          break;
+        /* PTin end */
 
         default:
           portFactoryDefaultSpeed = FD_NIM_OTHER_PORT_TYPE_SPEED;
@@ -2894,10 +2905,19 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
           {
             switch ( val )
             {
+              /* PTin added: Speed 100G */
+              case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+                osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_base_Speed100gFullDuplex);
+                break;
+              /* PTin added: Speed 40G  */
+              case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+                osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_base_Speed40gFullDuplex);
+                break;
+              /* PTin end */
               case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
                 osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_base_Speed10gFullDuplex);
                 break;
-              /* PTin added (2.5G) *** Note: 1000SX was also added! */
+              /* PTin added: Speed 2.5G *** Note: 1000SX was also added! */
               case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
                 osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat, sizeof(stat), pStrInfo_base_Speed2500FullDuplex);
                 break;

@@ -2824,7 +2824,7 @@ L7_RC_t dot1sCalcPortPathCost(L7_uint32 intIfNum)
         cost = 20000;
         break;
 
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         cost = 8000;
         break;
@@ -2833,6 +2833,17 @@ L7_RC_t dot1sCalcPortPathCost(L7_uint32 intIfNum)
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         cost = 2000;
         break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        cost = 500;
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        cost = 200;
+        break;
+      /* PTin end */
 
       case L7_PORTCTRL_PORTSPEED_LAG:
         cost = 200;

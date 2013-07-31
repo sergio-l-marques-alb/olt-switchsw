@@ -96,7 +96,7 @@ L7_char8 *pStrInfo_base_Speed100Half = "100 Half";
 L7_char8 *pStrInfo_base_Num1000 = "1000";
 L7_char8 *pStrInfo_base_Speed1000Full = "1000 Full";
 L7_char8 *pStrInfo_base_Speed100FxFull = "100FX Full";
-/* PTin added (2.5G) */
+/* PTin added: Speed 2.5G */
 L7_char8 *pStrInfo_base_Num2500 = "2500";
 L7_char8 *pStrInfo_base_Speed2500Full = "2500 Full";
 L7_char8 *pStrInfo_base_PortSpeed2500 = "2.5Gig Ethernet/802.3 interface(s)";
@@ -104,6 +104,15 @@ L7_char8 *pStrInfo_base_PortSpeed2500 = "2.5Gig Ethernet/802.3 interface(s)";
 L7_char8 *pStrInfo_base_10g = "10G";
 L7_char8 *pStrInfo_base_Speed10GigFull = "10G Full";
 L7_char8 *pStrInfo_base_PortSpeed10Gig = "10Gig Ethernet/802.3 interface(s)";
+/* PTin added: Speed 40G */
+L7_char8 *pStrInfo_base_40g = "40G";
+L7_char8 *pStrInfo_base_Speed40GigFull = "40 Gbps Full";
+L7_char8 *pStrInfo_base_PortSpeed40Gig = "40Gig Ethernet/802.3 interface(s)";
+/* PTin added: Speed 100G */
+L7_char8 *pStrInfo_base_100g = "100G";
+L7_char8 *pStrInfo_base_Speed100GigFull = "100 Gbps Full";
+L7_char8 *pStrInfo_base_PortSpeed100Gig = "100Gig Ethernet/802.3 interface(s)";
+/* PTin end */
 L7_char8 *pStrInfo_base_2 = "2,";
 L7_char8 *pStrInfo_base_2SysDesc3SysCapabilities = "2- System Description, 3- System Capabilities";
 L7_char8 *pStrInfo_base_3 = "3,";
@@ -3543,9 +3552,11 @@ L7_char8 *pStrInfo_base_Speed10FullDuplex = "speed 10 full-duplex";
 L7_char8 *pStrInfo_base_Speed10HalfDuplex = "speed 10 half-duplex";
 L7_char8 *pStrInfo_base_Speed100FullDuplex = "speed 100 full-duplex";
 L7_char8 *pStrInfo_base_Speed100HalfDuplex = "speed 100 half-duplex";
-L7_char8 *pStrInfo_base_Speed1000FullDuplex = "speed 1000 full-duplex"; /* PTin added (2.5G) */
-L7_char8 *pStrInfo_base_Speed2500FullDuplex = "speed 2500 full-duplex"; /* PTin added (2.5G) */
+L7_char8 *pStrInfo_base_Speed1000FullDuplex = "speed 1000 full-duplex";
+L7_char8 *pStrInfo_base_Speed2500FullDuplex = "speed 2500 full-duplex"; /* PTin added: Speed 2.5G */
 L7_char8 *pStrInfo_base_Speed10gFullDuplex = "speed 10G full-duplex";
+L7_char8 *pStrInfo_base_Speed40gFullDuplex = "speed 40G full-duplex";   /* PTin added: Speed 40G */
+L7_char8 *pStrInfo_base_Speed100gFullDuplex = "speed 100G full-duplex"; /* PTin added: Speed 100G */
 L7_char8 *pStrInfo_base_SshkeyDsa = "sshkey-dsa";
 L7_char8 *pStrInfo_base_SshkeyRsa1 = "sshkey-rsa1";
 L7_char8 *pStrInfo_base_SshkeyRsa2 = "sshkey-rsa2";

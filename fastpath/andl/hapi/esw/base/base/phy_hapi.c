@@ -215,17 +215,29 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			bcmSpeed = 1000;
 			break;
 
-    /* PTin added (2.5G) */
-    case DAPI_PORT_SPEED_GE_2G5BPS:
-      bcmSpeed = 2500;
-      break;
-    /* PTin end */
+        /* PTin added: Speed 2.5G */
+        case DAPI_PORT_SPEED_GE_2G5BPS:
+          bcmSpeed = 2500;
+          break;
+        /* PTin end */
 
 		case DAPI_PORT_SPEED_GE_10GBPS:
 			bcmSpeed = 10000;
 			break;
 
-		case DAPI_PORT_AUTO_NEGOTIATE:
+        /* PTin added: Speed 40G */
+        case DAPI_PORT_SPEED_GE_40GBPS:
+          bcmSpeed = 40000;
+          break;
+
+        /* PTin added: Speed 100G */
+        case DAPI_PORT_SPEED_GE_100GBPS:
+          bcmSpeed = 100000;
+          break;
+
+        /* PTin end */
+
+        case DAPI_PORT_AUTO_NEGOTIATE:
 			break;
 		default:
 			return L7_FAILURE;
@@ -622,12 +634,19 @@ L7_RC_t hapiBroadPhyModeGet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t *speed, DAPI_PORT
 	bcmx_port_selective_get(lport, &lportInfo);
 
 	/* update speed */
-	if (lportInfo.speed == 10000)
+    /* PTin added: Speed 100G */
+    if (lportInfo.speed == 100000)
+      *speed = DAPI_PORT_SPEED_GE_100GBPS;
+    /* PTin added: Speed 40G */
+    else if (lportInfo.speed == 40000)
+      *speed = DAPI_PORT_SPEED_GE_40GBPS;
+    /* PTin end */
+	else if (lportInfo.speed == 10000)
 		*speed = DAPI_PORT_SPEED_GE_10GBPS;
-  /* PTin added (2.5G) */
-  else if (lportInfo.speed == 2500)
-    *speed = DAPI_PORT_SPEED_GE_2G5BPS;
-  /* PTin end */
+    /* PTin added: Speed 2.5G */
+    else if (lportInfo.speed == 2500)
+      *speed = DAPI_PORT_SPEED_GE_2G5BPS;
+    /* PTin end */
 	else if (lportInfo.speed == 1000)
 		*speed = DAPI_PORT_SPEED_GE_1GBPS;
 	else if (lportInfo.speed == 100)

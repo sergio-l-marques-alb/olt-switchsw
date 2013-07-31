@@ -273,7 +273,7 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
           }
           break;
 
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         case L7_IANA_2G5_ETHERNET:
           rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
 
@@ -291,6 +291,29 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
             return(L7_FAILURE);
           }
           break;
+
+        /* PTin added: Speed 40G */
+        case L7_IANA_40G_ETHERNET:
+          rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
+
+          if (((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG) &&
+              (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_40G_KR4) && (rc != L7_SUCCESS))
+          {
+            rc = (L7_FAILURE);
+          }
+          break;
+
+        /* PTin added: Speed 100G */
+        case L7_IANA_100G_ETHERNET:
+          rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
+
+          if (((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG) &&
+              (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_100G_BKP) && (rc != L7_SUCCESS))
+          {
+            rc = (L7_FAILURE);
+          }
+          break;
+        /* PTin end */
 
         default:
           rc = (L7_FAILURE);
@@ -414,7 +437,7 @@ L7_RC_t nimSetDefaultIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
           }
           break;
 
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         case L7_IANA_2G5_ETHERNET:
           rc = nimGetIntfPhyCapability(intIfNum, &phyCapability);
 
@@ -432,6 +455,29 @@ L7_RC_t nimSetDefaultIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
             return(L7_FAILURE);
           }
           break;
+
+        /* PTin added: Speed 40G */
+        case L7_IANA_40G_ETHERNET:
+          rc = nimGetIntfPhyCapability(intIfNum, &phyCapability);
+
+          if ((rc != L7_SUCCESS) && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_40G_KR4) &&
+              ((phyCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG))
+          {
+            rc = (L7_FAILURE);
+          }
+          break;
+
+        /* PTin added: Speed 100G */
+        case L7_IANA_100G_ETHERNET:
+          rc = nimGetIntfPhyCapability(intIfNum, &phyCapability);
+
+          if ((rc != L7_SUCCESS) && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_100G_BKP) &&
+              ((phyCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG))
+          {
+            rc = (L7_FAILURE);
+          }
+          break;
+        /* PTin end */
 
         default:
           rc = (L7_FAILURE);
@@ -1215,7 +1261,7 @@ L7_RC_t nimGetIntfSpeedSimplexDataRate(L7_uint32 intIfNum, L7_uint32 *intfSpeed)
             dataRate = 1000;
             break;
 
-          /* PTin added (2.5G) */
+          /* PTin added: Speed 2.5G */
           case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
             dataRate = 2500;
             break;
@@ -1224,6 +1270,17 @@ L7_RC_t nimGetIntfSpeedSimplexDataRate(L7_uint32 intIfNum, L7_uint32 *intfSpeed)
           case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
             dataRate = 10000;
             break;
+
+          /* PTin added: Speed 40G */
+          case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+            dataRate = 40000;
+            break;
+
+          /* PTin added: Speed 100G */
+          case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+            dataRate = 100000;
+            break;
+          /* PTin end */
 
           case L7_PORTCTRL_PORTSPEED_LAG:
             /* rely on dot3ad component to provide data rate of a LAG
@@ -1345,8 +1402,10 @@ L7_BOOL nimIsIntfSpeedFullDuplex(L7_uint32 intIfNum)
       case L7_PORTCTRL_PORTSPEED_FULL_100TX:
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
-      case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:    /* PTin added (2.5G) */
+      case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:    /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:  /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP: /* PTin added: Speed 100G */
         rc = (L7_TRUE);
         break;
 

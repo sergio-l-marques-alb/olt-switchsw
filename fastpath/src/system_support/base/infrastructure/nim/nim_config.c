@@ -498,7 +498,7 @@ L7_RC_t nimConfigDefaultGet(nimIntfDescr_t *intfDescr, nimIntfConfig_t *defaultC
       defaultCfg->ifSpeed = FD_NIM_GIG_ENET_SPEED;
       break;
 
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case L7_IANA_2G5_ETHERNET:
       defaultCfg->ifSpeed = FD_NIM_2G5_ENET_SPEED;
       break;
@@ -507,6 +507,17 @@ L7_RC_t nimConfigDefaultGet(nimIntfDescr_t *intfDescr, nimIntfConfig_t *defaultC
     case L7_IANA_10G_ETHERNET:
       defaultCfg->ifSpeed = FD_NIM_10G_ENET_SPEED;
       break;
+
+    /* PTin added: Speed 40G */
+    case L7_IANA_40G_ETHERNET:
+      defaultCfg->ifSpeed = FD_NIM_40G_ENET_SPEED;
+      break;
+
+    /* PTin added: Speed 100G */
+    case L7_IANA_100G_ETHERNET:
+      defaultCfg->ifSpeed = FD_NIM_100G_ENET_SPEED;
+      break;
+    /* PTin end */
 
     case L7_IANA_LAG_DESC:
       defaultCfg->trapState           = L7_DISABLE;

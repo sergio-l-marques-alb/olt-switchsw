@@ -186,26 +186,37 @@
                                         L7_PHY_CAP_PORTSPEED_FULL_1000),    \
                                        L7_RJ45
 
-/* PTin added (2.5G + 10G-KR) */
-/* Interfaces without Auto-Negotiation and connector */
+/* PTin added: Interfaces without Auto-Negotiation and connector */
 #define L7_PORT_DESC_BCOM_1G_NO_AN     L7_IANA_GIGABIT_ETHERNET,            \
                                        L7_PORTCTRL_PORTSPEED_FULL_1000SX,   \
                                        (L7_PHY_CAP_PORTSPEED_FULL_1000 |    \
                                         L7_PHY_CAP_PORTSPEED_FULL_2500),    \
                                        L7_CONNECTOR_NONE
 
+/* PTin added: Speed 2.5G */
 #define L7_PORT_DESC_BCOM_2G5_NO_AN    L7_IANA_2G5_ETHERNET,                \
                                        L7_PORTCTRL_PORTSPEED_FULL_2P5FX,    \
                                        (L7_PHY_CAP_PORTSPEED_FULL_1000 |    \
                                         L7_PHY_CAP_PORTSPEED_FULL_2500),    \
                                        L7_CONNECTOR_NONE
 
+/* PTin added: Speed 10G */
 #define L7_PORT_DESC_BCOM_10G_KR       L7_IANA_10G_ETHERNET,                \
                                        L7_PORTCTRL_PORTSPEED_FULL_10GSX,    \
                                        (L7_PHY_CAP_PORTSPEED_FULL_10G),     \
                                        L7_CONNECTOR_NONE
 
-/* PTin end */
+/* PTin added: Speed 40G */
+#define L7_PORT_DESC_BCOM_40G_KR4      L7_IANA_40G_ETHERNET,                \
+                                       L7_PORTCTRL_PORTSPEED_FULL_40G_KR4,  \
+                                       (L7_PHY_CAP_PORTSPEED_FULL_40G),     \
+                                       L7_BACKPLANE_KR
+
+/* PTin added: Speed 100G */
+#define L7_PORT_DESC_BCOM_100G_BKP     L7_IANA_100G_ETHERNET,               \
+                                       L7_PORTCTRL_PORTSPEED_FULL_100G_BKP, \
+                                       (L7_PHY_CAP_PORTSPEED_FULL_100G),    \
+                                       L7_BACKPLANE_KR
 
 #define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \
                                          L7_PORTCTRL_PORTSPEED_FULL_10GSX,  \

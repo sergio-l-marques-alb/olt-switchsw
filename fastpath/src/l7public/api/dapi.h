@@ -94,8 +94,10 @@ typedef enum
   DAPI_NEG_100MB_HD  = (1 << 2),
   DAPI_NEG_100MB_FD  = (1 << 3),
   DAPI_NEG_1000MB_FD = (1 << 4),
-  DAPI_NEG_2500MB_FD = (1 << 5),  /* PTin added (2.5) */
-  DAPI_NEG_10GB_FD   = (1 << 6)
+  DAPI_NEG_2500MB_FD = (1 << 5),  /* PTin added: Speed 2.5G */
+  DAPI_NEG_10GB_FD   = (1 << 6),  /* PTin added: Speed 10G */
+  DAPI_NEG_40GB_FD   = (1 << 7),  /* PTin added: Speed 40G */
+  DAPI_NEG_100GB_FD  = (1 << 8)   /* PTin added: Speed 100G */
 
 } DAPI_NEG_ABILITY_t;
 /******************************************************************
@@ -1085,8 +1087,10 @@ typedef enum
   DAPI_PORT_SPEED_FE_10MBPS,
   DAPI_PORT_SPEED_FE_100MBPS,
   DAPI_PORT_SPEED_GE_1GBPS,
-  DAPI_PORT_SPEED_GE_2G5BPS,  /* PTin added (2.5G) */
-  DAPI_PORT_SPEED_GE_10GBPS,
+  DAPI_PORT_SPEED_GE_2G5BPS,    /* PTin added Speed 2.5G */
+  DAPI_PORT_SPEED_GE_10GBPS,    /* PTin added Speed 10G */
+  DAPI_PORT_SPEED_GE_40GBPS,    /* PTin added Speed 40G */
+  DAPI_PORT_SPEED_GE_100GBPS,   /* PTin added Speed 100G */
   DAPI_PORT_AUTO_NEGOTIATE,
   DAPI_PORT_SPEED_UNKNOWN
 

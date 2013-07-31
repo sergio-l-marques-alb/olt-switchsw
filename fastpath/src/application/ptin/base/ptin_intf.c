@@ -583,6 +583,18 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "10G");
         break;
 
+      /* PTin added: Speed 40G */
+      case PHY_PORT_40_GBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+        strcpy(speedstr, "40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case PHY_PORT_100_GBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_100G_BKP;
+        strcpy(speedstr, "100G");
+        break;
+
       default:
         speed_mode = L7_PORTCTRL_PORTSPEED_UNKNOWN;
         strcpy(speedstr, "UNKNOWN");
@@ -719,6 +731,18 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         phyState->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
+        break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        phyState->Speed = PHY_PORT_40_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        phyState->Speed = PHY_PORT_100_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
         break;
 
       /* PTin end */
@@ -3081,6 +3105,18 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         phyConf->Speed = PHY_PORT_10_GBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
+        break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        phyConf->Speed = PHY_PORT_40_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        phyConf->Speed = PHY_PORT_100_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
         break;
 
       /* PTin end */

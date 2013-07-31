@@ -171,8 +171,10 @@ void sFlowCounterValGet(L7_uint32 intIfNum, L7_uint32 counterType,
       if ((uintVal == L7_IANA_FAST_ETHERNET)
       || (uintVal == L7_IANA_FAST_ETHERNET_FX)
       || (uintVal == L7_IANA_GIGABIT_ETHERNET)
-      || (uintVal == L7_IANA_2G5_ETHERNET)      /* PTin added (2.5G) */
-      || (uintVal == L7_IANA_10G_ETHERNET))
+      || (uintVal == L7_IANA_2G5_ETHERNET)      /* PTin added: Speed 2.5G */
+      || (uintVal == L7_IANA_10G_ETHERNET)
+      || (uintVal == L7_IANA_40G_ETHERNET)      /* PTin added: Speed 40G */
+      || (uintVal == L7_IANA_100G_ETHERNET))    /* PTin added: Speed 100G */
       {
         /* Map to Ethernet type (6). */
         *val = L7_IANA_ETHERNET;
@@ -208,7 +210,7 @@ void sFlowCounterValGet(L7_uint32 intIfNum, L7_uint32 counterType,
       /* 1,000,000,000 bps */
       *longval = SFLOW_THOUSAND_MBPS;
       break;
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
       /* 2,500,000,000 bps */
       *longval = SFLOW_2P5THOUSAND_MBPS;
@@ -218,6 +220,17 @@ void sFlowCounterValGet(L7_uint32 intIfNum, L7_uint32 counterType,
       /* 4,294,967,295 bps (see MIB description) */
       *longval = SFLOW_IFSPEEDMAX_MBPS;
       break;
+    /* PTin added: Speed 40G */
+    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      /* 40,000,000,000 bps */
+      *longval = SFLOW_40THOUSAND_MBPS;
+      break;
+    /* PTin added: Speed 100G */
+    case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+      /* 100,000,000,000 bps */
+      *longval = SFLOW_100THOUSAND_MBPS;
+      break;
+    /* PTin end */
     case L7_PORTCTRL_PORTSPEED_LAG:
       /* get data rate from LAG component */
       if (usmDbIfLAGSpeedGet(intIfNum, &uintVal) == L7_SUCCESS)

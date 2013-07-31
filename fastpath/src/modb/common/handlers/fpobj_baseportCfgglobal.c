@@ -348,7 +348,7 @@ xLibRC_t fpObjSet_baseportCfgglobal_GlobalPhysicalMode (void *wap, void *bufp)
                 {
                   owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intfNum, objGlobalPhysicalModeValue);
                 }
-                /* PTin added (2.5G) */
+                /* PTin added: Speed 2.5G */
                 else if (objGlobalPhysicalModeValue == L7_PORTCTRL_PORTSPEED_FULL_2P5FX &&
                          (portCapability & L7_PHY_CAP_PORTSPEED_FULL_2500))
                 {
@@ -360,6 +360,19 @@ xLibRC_t fpObjSet_baseportCfgglobal_GlobalPhysicalMode (void *wap, void *bufp)
                 {
                   owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intfNum, objGlobalPhysicalModeValue);
                 }
+                /* PTin added: Speed 40G */
+                else if (objGlobalPhysicalModeValue == L7_PORTCTRL_PORTSPEED_FULL_40G_KR4 &&
+                         (portCapability & L7_PHY_CAP_PORTSPEED_FULL_40G))
+                {
+                  owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intfNum, objGlobalPhysicalModeValue);
+                }
+                /* PTin added: Speed 100G */
+                else if (objGlobalPhysicalModeValue == L7_PORTCTRL_PORTSPEED_FULL_100G_BKP &&
+                         (portCapability & L7_PHY_CAP_PORTSPEED_FULL_100G))
+                {
+                  owa.l7rc = usmDbIfSpeedSet(L7_UNIT_CURRENT, intfNum, objGlobalPhysicalModeValue);
+                }
+                /* PTin end */
                 else
                 {
                   owa.l7rc = L7_FAILURE;

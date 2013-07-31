@@ -1820,12 +1820,25 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
 
       /* Initialize speed and duplex */
       dapiPortPtr = DAPI_PORT_GET(&usp, dapi_g);
-      if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_FULL_10G)
+      /* PTin added: Speed 100G */
+      if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_FULL_100G)
+      {
+        hapiPortPtr->speed  = DAPI_PORT_SPEED_GE_100GBPS;
+        hapiPortPtr->duplex = DAPI_PORT_DUPLEX_FULL;
+      }
+      /* PTin added: Speed 40G */
+      else if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_FULL_40G)
+      {
+        hapiPortPtr->speed  = DAPI_PORT_SPEED_GE_40GBPS;
+        hapiPortPtr->duplex = DAPI_PORT_DUPLEX_FULL;
+      }
+      /* PTin end */
+      else if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_FULL_10G)
       {
         hapiPortPtr->speed  = DAPI_PORT_SPEED_GE_10GBPS;
         hapiPortPtr->duplex = DAPI_PORT_DUPLEX_FULL;
       }
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       else if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_FULL_2500)
       {
         hapiPortPtr->speed  = DAPI_PORT_SPEED_GE_2G5BPS;

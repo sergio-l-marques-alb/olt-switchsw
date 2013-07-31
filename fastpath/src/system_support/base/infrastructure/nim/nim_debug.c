@@ -44,8 +44,10 @@ static  SYSAPI_HPC_PORT_DESCRIPTOR_t portData =
    L7_PHY_CAP_PORTSPEED_FULL_100  |
    L7_PHY_CAP_PORTSPEED_HALF_1000 |
    L7_PHY_CAP_PORTSPEED_FULL_1000 |
-   L7_PHY_CAP_PORTSPEED_FULL_2500 |   /* PTin added (2.5G) */
-   L7_PHY_CAP_PORTSPEED_FULL_10G),
+   L7_PHY_CAP_PORTSPEED_FULL_2500 |   /* PTin added: Speed 2.5G */
+   L7_PHY_CAP_PORTSPEED_FULL_10G  |
+   L7_PHY_CAP_PORTSPEED_FULL_40G  |   /* PTin added: Speed 40G */
+   L7_PHY_CAP_PORTSPEED_FULL_100G),   /* PTin added: Speed 100G */
   L7_MTRJ
 };
 
@@ -470,7 +472,7 @@ void nimDebugCfgPort(nimCfgPort_t *configPort)
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
         sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_1000SX\n");
         break;
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_2500FX\n");
         break;
@@ -478,6 +480,15 @@ void nimDebugCfgPort(nimCfgPort_t *configPort)
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_10GSX\n");
         break;
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_40G-KR4\n");
+        break;
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_100G-BKP\n");
+        break;
+      /* PTin end */
       case L7_PORTCTRL_PORTSPEED_AAL5_155:
         sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_AAL5_155\n");
         break;
@@ -550,7 +561,7 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
       case L7_IANA_GIGABIT_ETHERNET:
         sysapiPrintf("ifType =  L7_IANA_GIGABIT_ETHERNET\n");
         break;
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       case L7_IANA_2G5_ETHERNET:
         sysapiPrintf("ifType =  L7_IANA_2G5_ETHERNET\n");
         break;
@@ -558,6 +569,15 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
       case L7_IANA_10G_ETHERNET:
         sysapiPrintf("ifType =  L7_IANA_10G_ETHERNET\n");
         break;
+      /* PTin added: Speed 40G */
+      case L7_IANA_40G_ETHERNET:
+        sysapiPrintf("ifType =  L7_IANA_40G_ETHERNET\n");
+        break;
+      /* PTin added: Speed 100G */
+      case L7_IANA_100G_ETHERNET:
+        sysapiPrintf("ifType =  L7_IANA_100G_ETHERNET\n");
+        break;
+      /* PTin end */
       case L7_IANA_L2_VLAN:
         sysapiPrintf("ifType =  L7_IANA_L2_VLAN\n");
         break;
@@ -612,12 +632,19 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
       sysapiPrintf(" L7_PHY_CAP_PORTSPEED_HALF_1000 |\n");
     if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_FULL_1000)
       sysapiPrintf(" L7_PHY_CAP_PORTSPEED_FULL_1000 |\n");
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_FULL_2500)
       sysapiPrintf(" L7_PHY_CAP_PORTSPEED_FULL_2500 |\n");
     /* PTin end */
     if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_FULL_10G)
       sysapiPrintf(" L7_PHY_CAP_PORTSPEED_FULL_10G |\n");
+    /* PTin added: Speed 40G */
+    if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_FULL_40G)
+      sysapiPrintf(" L7_PHY_CAP_PORTSPEED_FULL_40G |\n");
+    /* PTin added: Speed 100G */
+    if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_FULL_100G)
+      sysapiPrintf(" L7_PHY_CAP_PORTSPEED_FULL_100G |\n");
+    /* PTin end */
     if (port->operInfo.phyCapability & L7_PHY_CAP_PORTSPEED_SFP)
       sysapiPrintf(" L7_PHY_CAP_PORTSPEED_SFP \n");
     if (port->operInfo.phyCapability & L7_PHY_CAP_POE_PSE)

@@ -10431,7 +10431,7 @@ const L7_char8 *commandSpeed(EwsContext ewsContext, L7_uint32 argc, const L7_cha
         {
           rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_10T);
         }
-        /* PTin added (2.5G) */
+        /* PTin added: Speed 2.5G */
         else if (strcmp(argv[index+argSpeed], pStrInfo_base_Num2500) == 0 && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex)) == 0  &&
             (portCapability & L7_PHY_CAP_PORTSPEED_FULL_2500))
         {
@@ -10443,6 +10443,19 @@ const L7_char8 *commandSpeed(EwsContext ewsContext, L7_uint32 argc, const L7_cha
         {
           rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_10GSX);
         }
+        /* PTin added: Speed 40G */
+        else if (strcmp(argv[index+argSpeed], pStrInfo_base_40g) == 0 && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex)) == 0  &&
+            (portCapability & L7_PHY_CAP_PORTSPEED_FULL_40G))
+        {
+          rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_40G_KR4);
+        }
+        /* PTin added: Speed 100G */
+        else if (strcmp(argv[index+argSpeed], pStrInfo_base_100g) == 0 && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex)) == 0  &&
+            (portCapability & L7_PHY_CAP_PORTSPEED_FULL_100G))
+        {
+          rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_100G_BKP);
+        }
+        /* PTin end */
         else
         {
           ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, cliDisplayInterfaceHelp(unit, s, p));
@@ -10610,7 +10623,7 @@ const L7_char8 *commandSpeedAll(EwsContext ewsContext, L7_uint32 argc, const L7_
         }
       }
 #endif
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       else if((strcmp(argv[index+argSpeed], pStrInfo_base_Num2500) == 0) && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex) == 0)  &&
           (portCapability & L7_PHY_CAP_PORTSPEED_FULL_2500))
       {
@@ -10630,6 +10643,27 @@ const L7_char8 *commandSpeedAll(EwsContext ewsContext, L7_uint32 argc, const L7_
           rc = usmDbIfSpeedSet(unit, intIfnum, L7_PORTCTRL_PORTSPEED_FULL_10GSX);
         }
       }
+      /* PTin added: Speed 40G */
+      else if((strcmp(argv[index+argSpeed], pStrInfo_base_40g) == 0) &&(strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex) == 0)  &&
+          (portCapability & L7_PHY_CAP_PORTSPEED_FULL_40G))
+      {
+        /*******Check if the Flag is Set for Execution*************/
+        if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
+        {
+          rc = usmDbIfSpeedSet(unit, intIfnum, L7_PORTCTRL_PORTSPEED_FULL_40G_KR4);
+        }
+      }
+      /* PTin added: Speed 100G */
+      else if((strcmp(argv[index+argSpeed], pStrInfo_base_100g) == 0) &&(strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex) == 0)  &&
+          (portCapability & L7_PHY_CAP_PORTSPEED_FULL_100G))
+      {
+        /*******Check if the Flag is Set for Execution*************/
+        if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
+        {
+          rc = usmDbIfSpeedSet(unit, intIfnum, L7_PORTCTRL_PORTSPEED_FULL_100G_BKP);
+        }
+      }
+      /* PTin end */
       else
       {
         /* 10G ports do not support fixed speeds. Do not fail */
