@@ -1641,7 +1641,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     /* Only 10/140/100Gbps ports */
     if ( hapiWCMapPtr[i].wcSpeedG > 1 )
     {
-      slot = hapiWCMapPtr[i].slotNum - 1;
+      slot = hapiWCMapPtr[i].slotNum;
       lane = hapiWCMapPtr[i].wcLane;
 
       /* Update slot/lane to port map */
