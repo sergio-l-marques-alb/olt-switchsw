@@ -1368,6 +1368,8 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
   L7_in6_addr_t    ipv6Addr;
   snoopOperData_t *pSnoopOperEntry  = L7_NULLPTR;
 
+  ptin_IgmpProxyCfg_t igmpCfg;  
+  
   /* Make sure this port has not been enabled for routing, is not the mirror
      dest port, is not a LAG member and is active.
   */
@@ -1383,11 +1385,20 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
     return L7_SUCCESS;
   }
 
-  if ((pSnoopOperEntry = snoopOperEntryGet(vlanId, pSnoopCB, L7_MATCH_EXACT))
-                       == L7_NULLPTR)
+  if ((pSnoopOperEntry = snoopOperEntryGet(vlanId, pSnoopCB, L7_MATCH_EXACT))== L7_NULLPTR)
   {
     return L7_FAILURE;
   }
+
+   /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    
+  }
+  pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
+
   version = pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperVersion;
   if (version == 0)
   { /* Do not send queries if a true querier is not detected

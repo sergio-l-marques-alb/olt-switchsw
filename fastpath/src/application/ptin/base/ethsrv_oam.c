@@ -35,7 +35,9 @@ static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
 //PUBLIC ROUTINES***********************************************************************
 
 static void init_mep(T_MEP *p_mep) {
+u32 i;
     memset(p_mep, 0xff, sizeof(T_MEP));
+    for (i=0; i<N_MAX_MEs_PER_MEP; i++) p_mep->ME[i].RDI=0;
 }//init_mep
 
 
@@ -624,6 +626,10 @@ u32 j, n, meps_procssd_per_function_call;
             if (_p_mep->ME[i].LOC_timer!=0L-1) {
                 ethsrv_oam_register_connection_loss((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
                 LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
+                if (_p_mep->ME[i].RDI) {
+                     ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
+                     _p_mep->ME[i].RDI=0;
+                }
             }
             _p_mep->ME[i].LOC_timer=   0L-1;
             timeout=1;
@@ -1008,6 +1014,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  }
  else
  if (_p_mep->ME[i_rmep].RDI && !flags_TO_RDI(p_ccm->flags)) {
+     ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
      ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
      LOG_TRACE(LOG_CTX_OAM,"MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
  }

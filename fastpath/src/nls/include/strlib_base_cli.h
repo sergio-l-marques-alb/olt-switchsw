@@ -92,7 +92,7 @@ extern L7_char8 *pStrInfo_base_Speed100Half;
 extern L7_char8 *pStrInfo_base_Num1000;
 extern L7_char8 *pStrInfo_base_Speed1000Full;
 extern L7_char8 *pStrInfo_base_Speed100FxFull;
-/* PTin added (2.5G) */
+/* PTin added: Speed 2.5G */
 extern L7_char8 *pStrInfo_base_Num2500;
 extern L7_char8 *pStrInfo_base_Speed2500Full;
 extern L7_char8 *pStrInfo_base_PortSpeed2500;
@@ -100,6 +100,16 @@ extern L7_char8 *pStrInfo_base_PortSpeed2500;
 extern L7_char8 *pStrInfo_base_10g;
 extern L7_char8 *pStrInfo_base_Speed10GigFull;
 extern L7_char8 *pStrInfo_base_PortSpeed10Gig;
+/* PTin added: Speed 40G */
+extern L7_char8 *pStrInfo_base_40g;
+extern L7_char8 *pStrInfo_base_Speed40GigFull;
+extern L7_char8 *pStrInfo_base_PortSpeed40Gig;
+/* PTin end */
+/* PTin added: Speed 100G */
+extern L7_char8 *pStrInfo_base_100g;
+extern L7_char8 *pStrInfo_base_Speed100GigFull;
+extern L7_char8 *pStrInfo_base_PortSpeed100Gig;
+/* PTin end */
 extern L7_char8 *pStrInfo_base_2;
 extern L7_char8 *pStrInfo_base_2SysDesc3SysCapabilities;
 extern L7_char8 *pStrInfo_base_3;
@@ -3496,9 +3506,11 @@ extern L7_char8 *pStrInfo_base_Speed10FullDuplex;
 extern L7_char8 *pStrInfo_base_Speed10HalfDuplex;
 extern L7_char8 *pStrInfo_base_Speed100FullDuplex;
 extern L7_char8 *pStrInfo_base_Speed100HalfDuplex;
-extern L7_char8 *pStrInfo_base_Speed1000FullDuplex; /* PTin added (2.5G) */
-extern L7_char8 *pStrInfo_base_Speed2500FullDuplex; /* PTin added (2.5G) */
+extern L7_char8 *pStrInfo_base_Speed1000FullDuplex;
+extern L7_char8 *pStrInfo_base_Speed2500FullDuplex; /* PTin added: Speed 2.5G */
 extern L7_char8 *pStrInfo_base_Speed10gFullDuplex;
+extern L7_char8 *pStrInfo_base_Speed40gFullDuplex;  /* PTin added: Speed 40G */
+extern L7_char8 *pStrInfo_base_Speed100gFullDuplex; /* PTin added: Speed 100G */
 extern L7_char8 *pStrInfo_base_SshkeyDsa;
 extern L7_char8 *pStrInfo_base_SshkeyRsa1;
 extern L7_char8 *pStrInfo_base_SshkeyRsa2;

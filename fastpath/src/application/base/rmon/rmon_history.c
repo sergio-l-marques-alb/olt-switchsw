@@ -666,7 +666,7 @@ rmonEtherHistoryEntryFill(rmonHistoryControlEntry_t* hce, L7_uint32 bucketNumber
     hb->utilization = hb->utilization / 100;
     break;
 
-  /* PTin added (2.5G) */
+  /* PTin added: Speed 2.5G */
   case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
       hb->utilization = hb->utilization / 250;
       break;
@@ -675,6 +675,17 @@ rmonEtherHistoryEntryFill(rmonHistoryControlEntry_t* hce, L7_uint32 bucketNumber
   case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
       hb->utilization = hb->utilization / 1000;
       break;
+
+  /* PTin added: Speed 40G */
+  case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      hb->utilization = hb->utilization / 4000;
+      break;
+
+  /* PTin added: Speed 100G */
+  case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+      hb->utilization = hb->utilization / 10000;
+      break;
+  /* PTin end */
 
   case L7_PORTCTRL_PORTSPEED_AAL5_155:
     hb->utilization = hb->utilization / 15;

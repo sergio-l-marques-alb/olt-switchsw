@@ -207,7 +207,7 @@ L7_RC_t ptin_xlate_portgroup_get(L7_uint32 intIfNum, L7_uint32 *portgroup)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u", intIfNum);
 
   /* Validate arguments */
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_PORTS)
+  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=ptin_sys_number_of_ports)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid interface");
     return L7_FAILURE;
@@ -282,7 +282,7 @@ L7_RC_t ptin_xlate_portgroup_set(L7_uint32 intIfNum, L7_uint32 portgroup)
   }
   else if (sysIntfType==L7_LAG_INTF)
   {
-    intf_members_n = PTIN_SYSTEM_N_PORTS;
+    intf_members_n = ptin_sys_number_of_ports;
     dot3adMemberListGet(intIfNum, &intf_members_n, intf_members);
   }
   else
@@ -357,7 +357,7 @@ L7_RC_t ptin_xlate_portgroup_reset_all(void)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Resetting class ids...");
 
   /* Run all interfaces */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++ )
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++ )
   {
     /* Default class id */
     xlate_table_portgroup[ptin_port] = 0;
@@ -1346,8 +1346,8 @@ static L7_RC_t xlate_database_portgroup_newVlan_get(ptin_vlanXlate_stage_enum st
   L7_uint32 intIfNum;
 
   /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
-  if (ptin_port>=PTIN_SYSTEM_N_PORTS)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
+  if (ptin_port>=ptin_sys_number_of_ports)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
     return L7_FAILURE;
@@ -1381,8 +1381,8 @@ static L7_RC_t xlate_database_portgroup_oldVlan_get(ptin_vlanXlate_stage_enum st
   L7_uint32 intIfNum;
 
   /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
-  if (ptin_port>=PTIN_SYSTEM_N_PORTS)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
+  if (ptin_port>=ptin_sys_number_of_ports)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
     return L7_FAILURE;
@@ -1417,7 +1417,7 @@ static L7_RC_t xlate_database_portgroup_store(ptin_vlanXlate_stage_enum stage, L
   L7_RC_t rc = L7_SUCCESS;
 
   /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
   {
     /* Only process ports with the specified portgroup */
     if (xlate_table_portgroup[ptin_port]!=portgroup)  continue;
@@ -1460,7 +1460,7 @@ static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L
   L7_RC_t rc = L7_SUCCESS;
 
   /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<PTIN_SYSTEM_N_PORTS; ptin_port++)
+  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
   {
     /* Only process ports with the specified portgroup */
     if (xlate_table_portgroup[ptin_port]!=portgroup)  continue;

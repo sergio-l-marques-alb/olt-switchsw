@@ -1521,7 +1521,7 @@ int ber_init(void)
 
   for (port=0; port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
   {
-    slot = hapiWCMapPtr[port].slotNum - 1;
+    slot = hapiWCMapPtr[port].slotNum;
     lane = hapiWCMapPtr[port].wcLane;
     xe_port = hapiSlotMapPtr[port].bcm_port-1;
 

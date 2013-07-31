@@ -568,11 +568,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   }*/
 
   /* Packet should be CCM type */
-  if ( memcmp(&payload[0], ccmMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
-    if (ptin_oam_packet_debug_enable)
-      LOG_ERR(LOG_CTX_OAM,"Not a CCM Packet");
-    return L7_FAILURE;
-  }
+  //if ( memcmp(&payload[0], ccmMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
+  //  if (ptin_oam_packet_debug_enable)
+  //    LOG_ERR(LOG_CTX_OAM,"Not a CCM Packet");
+  //  return L7_FAILURE;
+  //}
 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
   /*if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {

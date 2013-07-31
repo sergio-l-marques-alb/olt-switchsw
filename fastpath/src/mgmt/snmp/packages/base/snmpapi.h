@@ -30,15 +30,19 @@
 #define SNMP_TEN_MBPS               10000000
 #define SNMP_HUNDRED_MBPS           100000000
 #define SNMP_THOUSAND_MBPS          1000000000
-#define SNMP_2P5THOUSAND_MBPS       2500000000UL  /* PTin added (2.5G) */
-#define SNMP_TENTHOUSAND_MBPS       10000000000
+#define SNMP_2P5THOUSAND_MBPS       2500000000UL      /* PTin added: Speed 2.5G */
+#define SNMP_TENTHOUSAND_MBPS       10000000000ULL    /* PTin added: Speed 10G */
+#define SNMP_40THOUSAND_MBPS        40000000000ULL    /* PTin added: Speed 40G */
+#define SNMP_100THOUSAND_MBPS       100000000000ULL   /* PTin added: Speed 100G */
 #define SNMP_IFSPEEDMAX_MBPS        4294967295UL  /* max allowed ifSpeed value */
 
-#define SNMP_TEN        10
-#define SNMP_HUNDRED    100
-#define SNMP_THOUSAND   1000
-#define SNMP_2P5THOUSAND 2500   /* PTin added (2.5G) */
-#define SNMP_TENTHOUSAND 10000
+#define SNMP_TEN          10
+#define SNMP_HUNDRED      100
+#define SNMP_THOUSAND     1000
+#define SNMP_2P5THOUSAND  2500    /* PTin added: Speed 2.5G */
+#define SNMP_TENTHOUSAND  10000   /* PTin added: Speed 10G */
+#define SNMP_40THOUSAND   40000   /* PTin added: Speed 40G */
+#define SNMP_100THOUSAND  100000  /* PTin added: Speed 100G */
 
 #define SNMP_MINUTES    (60)
 #define SNMP_HOURS      ((60) * (60))

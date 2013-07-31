@@ -293,7 +293,7 @@ L7_int32 timerDataCmp(void *p, void *q, L7_uint32 key)
   qVlanId         = ((snoopPTinL3Grouptimer_t *) q)->groupData->snoopPTinL3InfoDataKey.vlanId;
   qInterfaceIdx   = ((snoopPTinL3Grouptimer_t *) q)->interfaceIdx;
 
-#if 0
+#if 1
   if ( L7_INET_ADDR_COMPARE(&pMcastGroupAddr,&qMcastGroupAddr)==0 && 
        pVlanId         == qVlanId         &&
        pInterfaceIdx   == qInterfaceIdx )
@@ -475,14 +475,13 @@ void timerCallback(void *param)
           } 
           noOfRecords=0;
 #endif
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing root interface");
-          snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing root interface");          
         }
         else
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing leaf interface");
-          snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing leaf interface");          
         }
+        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
       }
     }
     else
@@ -557,8 +556,8 @@ L7_RC_t snoop_ptin_grouptimer_start(snoopPTinL3Grouptimer_t* pTimer, L7_uint32 t
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting grouptimer (group:%s timeout:%u vlan:%u ifIdx:%u)",
-            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),timeout,
-            groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
+            inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),timeout,
+            pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)

@@ -15,16 +15,14 @@
 
 #define PTIN_NONZEROMASK(array, result)                              \
 {                                                                    \
-    L7_uint32 _i_;                                                   \
-                                                                     \
+    L7_uint32 _i_;                                                \
+    result=-1;                                                       \
     for(_i_ = 0; _i_ < sizeof(array)/sizeof(L7_uint32); _i_++)       \
         if(array[_i_] != 0)                                          \
         {                                                            \
-            result = _i_;                                              \
+            result = _i_;                                            \
             break;                                                   \
-        }                                                            \
-        else                                                         \
-            result = -1;                                              \
+        }                                                            \  
 }
 
 #if SNOOP_PTIN_IGMPv3_PROXY

@@ -119,7 +119,7 @@ L7_RC_t dtlIntfSpeedSet(L7_uint32 intIfNum,
         duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_1GBPS;
         break;
 
-      /* PTin added (2.5G) */
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_2G5BPS;
         break;
@@ -128,6 +128,17 @@ L7_RC_t dtlIntfSpeedSet(L7_uint32 intIfNum,
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_10GBPS;
         break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_40GBPS;
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_100GBPS;
+        break;
+      /* PTin end */
 
       case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
         duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_AUTO_NEGOTIATE;
@@ -236,7 +247,7 @@ L7_RC_t dtlIntfSpeedGet(L7_uint32 intIfNum,
             *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_1000SX;
             break;
 
-          /* PTin added (2.5G) */
+          /* PTin added: Speed 2.5G */
           case DAPI_PORT_SPEED_GE_2G5BPS:
             *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_2P5FX;
             break;
@@ -245,6 +256,17 @@ L7_RC_t dtlIntfSpeedGet(L7_uint32 intIfNum,
           case DAPI_PORT_SPEED_GE_10GBPS:
             *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_10GSX;
             break;
+
+          /* PTin added: Speed 40G */
+          case DAPI_PORT_SPEED_GE_40GBPS:
+            *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+            break;
+
+          /* PTin added: Speed 100G */
+          case DAPI_PORT_SPEED_GE_100GBPS:
+            *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_100G_BKP;
+            break;
+          /* PTin end */
 
           case DAPI_PORT_AUTO_NEGOTIATE:
             *intfSpeed = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
@@ -1081,7 +1103,7 @@ L7_RC_t dtlIntfNegotiationCapabilitiesSet(L7_uint32 intIfNum, L7_uint32 negoCapa
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_1000MB_FD;
     }
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     if (phyCapability & L7_PHY_CAP_PORTSPEED_FULL_2500)
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_2500MB_FD;
@@ -1091,6 +1113,17 @@ L7_RC_t dtlIntfNegotiationCapabilitiesSet(L7_uint32 intIfNum, L7_uint32 negoCapa
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_10GB_FD;
     }
+    /* PTin added: Speed 40G */
+    if (phyCapability & L7_PHY_CAP_PORTSPEED_FULL_40G)
+    {
+      dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_40GB_FD;
+    }
+    /* PTin added: Speed 100G */
+    if (phyCapability & L7_PHY_CAP_PORTSPEED_FULL_100G)
+    {
+      dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_100GB_FD;
+    }
+    /* PTin end */
   }
   else 
   {
@@ -1114,7 +1147,7 @@ L7_RC_t dtlIntfNegotiationCapabilitiesSet(L7_uint32 intIfNum, L7_uint32 negoCapa
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_1000MB_FD;
     }
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     if (negoCapabilities & L7_PORT_NEGO_CAPABILITY_FULL_2500)
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_2500MB_FD;
@@ -1124,6 +1157,17 @@ L7_RC_t dtlIntfNegotiationCapabilitiesSet(L7_uint32 intIfNum, L7_uint32 negoCapa
     {
       dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_10GB_FD;
     }
+    /* PTin added: Speed 40G */
+    if (negoCapabilities & L7_PORT_NEGO_CAPABILITY_FULL_40G)
+    {
+      dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_40GB_FD;
+    }
+    /* PTin added: Speed 100G */
+    if (negoCapabilities & L7_PORT_NEGO_CAPABILITY_FULL_100G)
+    {
+      dapiCmd.cmdData.autoNegotiateConfig.abilityMask |= DAPI_NEG_100GB_FD;
+    }
+    /* PTin end */
   }
 
   dapiCmd.cmdData.autoNegotiateConfig.getOrSet = DAPI_CMD_SET;

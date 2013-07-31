@@ -5275,14 +5275,21 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   msg_generic_prefix_t *po;
   L7_uint32 i_mep;
   L7_uint16 r=L7_HARDWARE_ERROR;
+  L7_uint16 prt=-1, vid=-1, level=-1;
 
   pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   i_mep=po[i].index=pi[i].index;
 
+  if (i_mep<N_MEPs) {
+      prt=oam.mep_db[i_mep].prt;
+      vid=oam.mep_db[i_mep].vid;
+      level=oam.mep_db[i_mep].level;
+  }
+
   
   switch (del_mep(i_mep, &oam)) {
   case 0:    r=S_OK;
-             ptin_ccm_packet_trap(pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level, 1);
+             ptin_ccm_packet_trap(prt, vid, level, 0);
              break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
   default:   r=ERROR_CODE_INVALIDPARAM; break;
@@ -5497,7 +5504,7 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
     if (   !EMPTY_T_MEP(p_oam->mep_db[i_mep].ME[i])
            ||  N_MAX_MEs_PER_MEP-1==i) {
       po[n].bd.me=     p_oam->mep_db[i_mep].ME[i];
-      if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
+      //if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
       n++;
     }
 
@@ -5617,7 +5624,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u",                    msgErpsConf->idx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .ringId             = %d",  ptinErpsConf.ringId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing         = %s",  ptinErpsConf.isOpenRing == 0? "False" : "True");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing         = %d",  ptinErpsConf.isOpenRing);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .controlVid         = %d",  ptinErpsConf.controlVid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel           = %d",  ptinErpsConf.megLevel);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.slot         = %d",  ptinErpsConf.port0.slot);
@@ -5630,7 +5637,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role          = %d",  ptinErpsConf.port1Role);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx        = %d",  ptinErpsConf.port0CfmIdx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx        = %d",  ptinErpsConf.port1CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive          = %s",  ptinErpsConf.revertive == 0? "False" : "True");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive          = %d",  ptinErpsConf.revertive);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer         = %d",  ptinErpsConf.guardTimer);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer       = %d",  ptinErpsConf.holdoffTimer);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
@@ -5708,39 +5715,31 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
     return L7_FAILURE;
   }
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u",                     msgErpsConf->idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .mask               = 0x%x", msgErpsConf->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing         = %d",   msgErpsConf->isOpenRing);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx        = %d",   msgErpsConf->port0CfmIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx        = %d",   msgErpsConf->port1CfmIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive          = %d",   msgErpsConf->revertive);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer         = %d",   msgErpsConf->guardTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer       = %d",   msgErpsConf->holdoffTimer);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",   msgErpsConf->waitToRestoreTimer);
 
   /* Copy data to ptin struct */
-  ptinErpsConf.megLevel           = msgErpsConf->megLevel;
-                                  
-  ptinErpsConf.port0Role          = msgErpsConf->port0Role;
-  ptinErpsConf.port1Role          = msgErpsConf->port1Role;
-  ptinErpsConf.port0CfmIdx        = msgErpsConf->port0CfmIdx;
-  ptinErpsConf.port1CfmIdx        = msgErpsConf->port1CfmIdx;
-                                  
-  ptinErpsConf.revertive          = msgErpsConf->revertive;
-  ptinErpsConf.guardTimer         = msgErpsConf->guardTimer;
-  ptinErpsConf.holdoffTimer       = msgErpsConf->holdoffTimer;
-  ptinErpsConf.waitToRestoreTimer = msgErpsConf->waitToRestoreTimer;
 
-  //ptinErpsConf.continualTxInterval;
-  //ptinErpsConf.rapidTxInterval;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_ISOPENRING)    ptinErpsConf.isOpenRing         = msgErpsConf->isOpenRing;
 
-  memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_PORT0CFMIDX)   ptinErpsConf.port0CfmIdx        = msgErpsConf->port0CfmIdx;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_PORT1CFMIDX)   ptinErpsConf.port1CfmIdx        = msgErpsConf->port1CfmIdx;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u",              msgErpsConf->idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel      = %d",  ptinErpsConf.controlVid);
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_REVERTIVE)     ptinErpsConf.revertive          = msgErpsConf->revertive;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_GUARDTIMER)    ptinErpsConf.guardTimer         = msgErpsConf->guardTimer;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_HOLDOFFTIMER)  ptinErpsConf.holdoffTimer       = msgErpsConf->holdoffTimer;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_WAITTORESTORE) ptinErpsConf.waitToRestoreTimer = msgErpsConf->waitToRestoreTimer;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0Role     = %d",  ptinErpsConf.port0Role);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role     = %d",  ptinErpsConf.port1Role);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx   = %d",  ptinErpsConf.port0CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx   = %d",  ptinErpsConf.port1CfmIdx);
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_VIDBMP)        memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive     = %s",  ptinErpsConf.revertive == 0? "False" : "True");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer    = %d",  ptinErpsConf.guardTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer  = %d",  ptinErpsConf.holdoffTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
-
-  if (ptin_erps_conf_entry(msgErpsConf->idx, 0xFFFF, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
+  if (ptin_erps_conf_entry(msgErpsConf->idx, msgErpsConf->mask, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }

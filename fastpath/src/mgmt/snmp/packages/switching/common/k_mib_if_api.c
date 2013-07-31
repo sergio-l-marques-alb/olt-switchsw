@@ -59,7 +59,7 @@ snmpIfSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, SR_UINT32 *val)
     case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
       *val = SNMP_THOUSAND_MBPS; /* 1,000,000,000 bps */
       break;
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
       *val = SNMP_2P5THOUSAND_MBPS; /* 2,500,000,000 bps */
       break;
@@ -67,6 +67,15 @@ snmpIfSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, SR_UINT32 *val)
     case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
       *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
       break;
+    /* PTin added: Speed 40G */
+    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
+      break;
+    /* PTin added: Speed 100G */
+    case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+      *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
+      break;
+    /* PTin end */
 /* lvl7_@p1327 start */
     case L7_PORTCTRL_PORTSPEED_LAG:
       rc = usmDbIfLAGSpeedGet(interface, val);  /* get data rate from LAG component */
@@ -123,14 +132,23 @@ snmpIfHighSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
     case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
       *val = SNMP_THOUSAND; /* 1000 Mbps */
       break;
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
       *val = SNMP_2P5THOUSAND; /* 2500 Mbps */
       break;
     /* PTin end */
     case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-      *val = SNMP_TENTHOUSAND; /* 10000 Mbps */
+      *val = SNMP_TENTHOUSAND;  /* 10000 Mbps */
       break;
+    /* PTin added: Speed 40G */
+    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      *val = SNMP_40THOUSAND;   /* 40.000 Mbps */
+      break;
+    /* PTin added: Speed 100G */
+    case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+      *val = SNMP_100THOUSAND;  /* 100.000 Mbps */
+      break;
+    /* PTin end */
     case L7_PORTCTRL_PORTSPEED_LAG:
       rc = usmDbIfLAGSpeedGet(interface, val);  /* get data rate from LAG component */
       break;

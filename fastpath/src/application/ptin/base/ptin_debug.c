@@ -297,10 +297,12 @@ void ptin_intf_dump(void)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
   L7_uint   port;
+  L7_uint16 slot, sport;
   L7_uint32 intIfNum = -1;
   L7_uint32 speed_mode;
   L7_char8  speed[8];
-  L7_char8  bcm_port[8];
+  L7_char8  bcm_port_str[8];
+  L7_int32  bcm_port;
   L7_uint   admin;
   L7_uint   link;
   ptin_HWEthRFC2819_PortStatistics_t portStats;
@@ -309,10 +311,10 @@ void ptin_intf_dump(void)
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
 
-  printf("+------+------+----------+------+----------+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  printf("| Slot | Port | IntIfNum | Intf | Ena/Dis  | Link | Speed |                 RX                |                 TX                |\r\n");
-  printf("+------+------+----------+------+----------+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("| Slot | Port | IntIfNum | bcm_port | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
+  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
     ptin_intf_port2intIfNum(port, &intIfNum);
@@ -336,12 +338,24 @@ void ptin_intf_dump(void)
         strcpy(speed, "1G");
         break;
 
+      /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         strcpy(speed, "2.5G");
         break;
 
+      /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         strcpy(speed, "10G");
+        break;
+
+      /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        strcpy(speed, "40G");
+        break;
+
+      /* PTin added: Speed 100G */
+      case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+        strcpy(speed, "100G");
         break;
 
       default:
@@ -360,25 +374,34 @@ void ptin_intf_dump(void)
     portStats.Port = port;
     ptin_intf_counters_read(&portStats);
 
-    /* Switch port: ge/xe (indexes changed according to the board) */
+    /* Get slot and port id */
+    slot = sport = 0;
 #if (PTIN_BOARD_IS_MATRIX)
-    sprintf(bcm_port, "xe%u", hapiSlotMapPtr[port].bcm_port - 1);
-#else
-    sprintf(bcm_port, "%2.2s%u",
-            speed_mode == L7_PORTCTRL_PORTSPEED_FULL_10GSX ? "xe" : "ge",
-            (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? hapiSlotMapPtr[port].bcm_port - 26 : hapiSlotMapPtr[port].bcm_port - 30);
+    if (ptin_intf_port2SlotPort(port, &slot, &sport)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get slot and port ids for port# %d", port);
+      continue;
+    }
 #endif
 
-    printf("|  %2u  |  %2u  |    %2u    | %4.4s | %-8.8s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
+    /* bcm_port_t */
+    bcm_port = hapiSlotMapPtr[port].bcm_port;
+
+    /* Switch port: ge/xe (indexes changed according to the board) */
 #if (PTIN_BOARD_IS_MATRIX)
-           port%(PTIN_SYSTEM_N_PORTS/2) + 2,
+    sprintf(bcm_port_str, "xe%u", bcm_port - 1);
 #else
-           0,
+    sprintf(bcm_port_str, "%2.2s%u",
+            speed_mode == L7_PORTCTRL_PORTSPEED_FULL_10GSX ? "xe" : "ge",
+            (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 26 : bcm_port - 30);
 #endif
+
+    printf("| %2u/%u |  %2u  |    %2u    | %2u (%-4.4s)| %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
+           slot, sport,
            port,
            intIfNum,
-           bcm_port,
-           admin ? "Enabled" : "Disabled",
+           bcm_port, bcm_port_str,
+           admin ? "Ena" : "Dis",
            link == L7_UP ? " Up " : "Down",
            speed,
            portStats.Rx.etherStatsOctets,
@@ -386,7 +409,7 @@ void ptin_intf_dump(void)
            portStats.Tx.etherStatsOctets,
            portStats.Tx.Throughput);
   }
-  printf("+------+------+----------+------+----------+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
 
   return;
 }

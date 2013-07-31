@@ -60,7 +60,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
   L7_RC_t rc = L7_SUCCESS;
 
   /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
@@ -1524,7 +1524,7 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
   L7_RC_t rc = L7_SUCCESS;
   
   /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {

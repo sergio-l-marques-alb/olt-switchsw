@@ -1087,7 +1087,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
      case DAPI_PORT_SPEED_GE_1GBPS:
          portSpeed = 1000000;
          break;
-     /* PTin added (2.5G) */
+     /* PTin added: Speed 2.5G */
      case DAPI_PORT_SPEED_GE_2G5BPS:
          portSpeed = 2500000;
          break;
@@ -1095,6 +1095,15 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
      case DAPI_PORT_SPEED_GE_10GBPS:
          portSpeed = 10000000;
          break;
+     /* PTin added: Speed 40G */
+     case DAPI_PORT_SPEED_GE_40GBPS:
+         portSpeed = 40000000;
+         break;
+     /* PTin added: Speed 100G */
+     case DAPI_PORT_SPEED_GE_100GBPS:
+         portSpeed = 100000000;
+         break;
+     /* PTin end */
      default:
          portSpeed = 10000;
          break;
@@ -4206,7 +4215,7 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_ulong32 index, ccm_index, ccm_index_free;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting CCM trapping processing\tenable=%d\tvlanId=%u\toam_level=%u", enable, vlanId, oam_level);
 
   /* Initialization */
   if (first_time)

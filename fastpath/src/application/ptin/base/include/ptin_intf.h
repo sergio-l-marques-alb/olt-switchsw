@@ -14,9 +14,10 @@
 #define PHY_PORT_10_MBPS              1
 #define PHY_PORT_100_MBPS             2
 #define PHY_PORT_1000_MBPS            3
-#define PHY_PORT_2500_MBPS            4
-#define PHY_PORT_10000_MBPS           5
-
+#define PHY_PORT_2500_MBPS            4   /* PTin added: Speed 2.5G */
+#define PHY_PORT_10_GBPS              5   /* PTin added: Speed 10G */
+#define PHY_PORT_40_GBPS              6   /* PTin added: Speed 40G */
+#define PHY_PORT_100_GBPS             7   /* PTin added: Speed 100G */
 
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
@@ -147,6 +148,32 @@ extern L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portA
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id);
+
+/**
+ * Get slot and port location in the system, from the ptin_port
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param ptin_port
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret);
+
+/**
+ * Get slot and port location in the system, from the ptin_port
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param ptin_port
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret);
 
 /**
  * Get slot and port location in the system, from the ptin_intf

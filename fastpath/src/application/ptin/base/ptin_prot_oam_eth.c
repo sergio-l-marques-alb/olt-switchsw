@@ -45,6 +45,7 @@ T_ETH_SRV_OAM oam;
 //ETHERNET SERVICE OAM   ALIASES**********************************************************************
 #define ME_CONNECTION_LOSS  0
 #define ME_RDI              1
+#define ME_RDI_END          9
 #define ME_CONNECTION_UP    2
 //#define UNEXP_MEG_OR_MEP    4
 #define UNEXP_MEP           5
@@ -104,6 +105,9 @@ void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id,
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     ethsrv_oam_register(ME_RDI, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
 }
+void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    ethsrv_oam_register(ME_RDI_END, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+}
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
 }
@@ -111,12 +115,26 @@ void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_
 
 
 
+#define RAW_MODE
+
+#ifdef RAW_MODE
+    #define DUMMY_VID       4095
+    #define DUMMY_VLAN_LEN  4
+#else
+    #define DUMMY_VLAN_LEN  0
+#endif
 int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
                   L7_uint8 *buf, L7_ulong32 length, //ETH client buffer and length
                   L7_uint64 vid, L7_uint8 prior, L7_uint8 CoS, L7_uint8 color, L7_uint16 ETHtype, L7_uint8 *pDMAC) {
     L7_INTF_TYPES_t   sysIntfType;
     L7_uint32         intIfNum;//=port+1;
+#ifdef RAW_MODE
+    L7_netBufHandle   bufHandle;
+    L7_uchar8        *dataStart;
+    DTL_CMD_TX_INFO_t dtlCmd;
+#else
     L7_uint16         vidInternal;
+#endif
     L7_uint8 buff[1600];//={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,};
     //length=70;
 
@@ -128,24 +146,32 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
          (sysIntfType == L7_CPU_INTF) )     return 1;
 
+#ifdef RAW_MODE
+    SYSAPI_NET_MBUF_GET(bufHandle);
+    if (bufHandle == L7_NULL) {
+      LOG_TRACE(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
+      return 2;
+    }
+#endif
+
     if (NULL==pDMAC || NULL==buf) return 3;
 
     memcpy(buff, pDMAC, 6);
     nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, &buff[6]);   //memcpy(buff, pSMAC, 6);
     if (vid<=4095) {
-        buff[12]=0x81;
-        buff[13]=0x00;
-        buff[14]=prior<<5 | vid>>8;
-        buff[15]=vid;
-        buff[16]=ETHtype>>8;
-        buff[17]=ETHtype;
-        memcpy(&buff[18], buf, length);
+        buff[12+DUMMY_VLAN_LEN]=0x81;
+        buff[13+DUMMY_VLAN_LEN]=0x00;
+        buff[14+DUMMY_VLAN_LEN]=prior<<5 | vid>>8;
+        buff[15+DUMMY_VLAN_LEN]=vid;
+        buff[16+DUMMY_VLAN_LEN]=ETHtype>>8;
+        buff[17+DUMMY_VLAN_LEN]=ETHtype;
+        memcpy(&buff[18+DUMMY_VLAN_LEN], buf, length);
         length+=18;   
     }
     else {
-        buff[12]=ETHtype>>8;
-        buff[13]=ETHtype;
-        memcpy(&buff[14], buf, length);
+        buff[12+DUMMY_VLAN_LEN]=ETHtype>>8;
+        buff[13+DUMMY_VLAN_LEN]=ETHtype;
+        memcpy(&buff[14+DUMMY_VLAN_LEN], buf, length);
         length+=14;
     }
 
@@ -154,11 +180,34 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
         length=64;            
     }
 
+#ifndef RAW_MODE
     // Convert to internal VLAN ID
     ptin_xlate_ingress_get( intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal );
 
     ptin_packet_send(intIfNum, vidInternal, vid, buff, length);
+#else
+    buff[12]=0x81;
+    buff[13]=0x00;
+    buff[14]=prior<<5 | DUMMY_VID>>8;
+    buff[15]=(L7_uint8)DUMMY_VID;
+    length+=DUMMY_VLAN_LEN;
 
+    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+    memcpy(dataStart, buff, length);
+    SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, length);
+
+    {
+        //DTL_CMD_TX_INFO_t  dtlCmd;
+
+        memset((L7_uchar8 *)&dtlCmd, 0, sizeof(DTL_CMD_TX_INFO_t));
+
+        dtlCmd.priority            = 1;
+        dtlCmd.typeToSend          = DTL_L2RAW_UNICAST;
+        dtlCmd.intfNum             = intIfNum;
+        dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
+    }
+#endif
+    //printf("send_eth_pckt() port=%u\n\r", port);
     return 0;
 }//send_eth_pckt
 
@@ -171,15 +220,15 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
 void tst_send(void) {
     {
-        L7_uint8 buf[100]={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  
+        L7_uint8 buf[100]={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  00, 32,  
                            16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,};
         //length=70;
-        send_eth_pckt(48, 0, &buf[15], 70, 
-                      -1,
+        send_eth_pckt(10, 0, &buf[15], 70, 
+                      500,
                       0,
                       0,
                       0,
-                      0x8902,
+                      0x8100,
                       (L7_uint8*)OAM_MC_MAC.byte);
     }
 }
@@ -462,6 +511,7 @@ void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint
 void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 
 int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,

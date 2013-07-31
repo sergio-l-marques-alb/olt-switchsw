@@ -440,6 +440,30 @@ L7_RC_t hpcConfigBoardSet()
 
       /* PTin added: new switch BCM56846 */
       case UNIT_BROAD_64_TENGIG_56846_REV_1_ID:
+        #if 0
+        if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
+        #else
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
+        #endif
+
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);
 
         /* Configure to use LCPLL reference clock */
@@ -682,6 +706,8 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
 
   for (port=0; port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
   {
+    if (wcMap[port].wcSpeedG == 0) continue;
+
     /* Slot index */
     slot = wcMap[port].slotNum;
 
@@ -719,6 +745,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
 
     /* Speed in Gbps */
     speedG = wcMap[port].wcSpeedG;
+
     if (speedG!=1 && speedG!=10 && speedG!=40 && speedG!=100)
     {
       LOG_ERR(LOG_CTX_STARTUP,"Invalid speed (%u) for port %u", speedG, port);
@@ -773,6 +800,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
   SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_100G = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
   char param_name[51], param_value[21];
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
 
   L7_uint32           slot_mode[PTIN_SYS_SLOTS_MAX];
   HAPI_WC_PORT_MAP_t  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
@@ -894,6 +922,8 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     wc_lane  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcLane;              /* WC lane index */
     speedG   = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcSpeedG;            /* Speed in GB */
 
+    if (speedG == 0)  break;
+
     invLanes = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_lanes;          /* Invert lanes? */
     invPol   = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_polarities;     /* Invert polarities? */
 
@@ -948,7 +978,22 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     }
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully!");
+  /* Effective number of ports */
+  dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfSlotMapEntries = port_idx;
+  dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1.numOfPortMapEntries = port_idx;
+
+  /* Update maximum number of interfaces */
+  for (i = 0; i < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; i++)
+  {
+    sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(i));
+
+    if (sysapiHpcCardInfoPtr != L7_NULLPTR)
+      sysapiHpcCardInfoPtr->numOfNiPorts = port_idx;
+    else
+      LOG_ERR(LOG_CTX_STARTUP,"Error updating number of ports for slotIndex %u!", i);
+  }
+
+  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
 
   return L7_SUCCESS;
 }

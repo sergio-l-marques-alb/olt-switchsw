@@ -39,6 +39,8 @@
 #include "cnfgr_sid.h"
 #include "nim_exports.h"
 
+#include "logger.h"
+
 static nimCorrelatorData_t  correlatorTable = { 0};
 static NIM_CORRELATOR_t     *correlatorInUse = 0;
 
@@ -180,6 +182,10 @@ void nimDoNotify(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_INFO_t eventInfo)
             sprintf(maskString,"%s 0x%.8x ",maskString,correlatorTable.remainingMask[i]);
           }
         }
+
+        LOG_FATAL(LOG_CTX_MISC,"NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s",
+                      correlatorTable.requestData.event,
+                      correlatorTable.requestData.intIfNum,maskString);
 
         NIM_LOG_ERROR("NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s\n",
                       correlatorTable.requestData.event,
@@ -762,6 +768,8 @@ L7_RC_t nimNotifyUserOfIntfChange(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_
 
             if (trapMgrLinkDownLogTrap(intIfNum) != L7_SUCCESS)
             {
+              LOG_FATAL(LOG_CTX_MISC,"FATAL ERROR: intfIfNum=%u",intIfNum);
+
               L7_LOGF(L7_LOG_SEVERITY_INFO, L7_NIM_COMPONENT_ID,
                       "NIM: failed to send a TRAP message\n");
             }
@@ -1004,6 +1012,9 @@ void nimTask()
         case NIM_MSG:
           if (nimNotifyUserOfIntfChange(nmpdu.data.message.correlator,nmpdu.data.message.eventInfo) != L7_SUCCESS)
           {
+            LOG_FATAL(LOG_CTX_MISC,"NIM: Failed to notify users of interface change: event=%u, intIfNum=%u",
+                      nmpdu.data.message.eventInfo.event, nmpdu.data.message.eventInfo.intIfNum);
+
             NIM_LOG_MSG("NIM: Failed to notify users of interface change\n");
           }
           break;
@@ -2145,7 +2156,7 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L7_uint32 unit, L7_uint32 slot, L7_uint32
 
       break;
 
-    /* PTin added (2.5G) */
+    /* PTin added: Speed 2.5G */
     case  L7_IANA_2G5_ETHERNET:
       pIntfIdInfo.type = L7_PHYSICAL_INTF;
       if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
@@ -2200,6 +2211,64 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L7_uint32 unit, L7_uint32 slot, L7_uint32
 
 
       break;
+
+    /* PTin added: Speed 40G */
+    case  L7_IANA_40G_ETHERNET:
+      pIntfIdInfo.type = L7_PHYSICAL_INTF;
+      if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+                              L7_STACKING_FEATURE_SUPPORTED) == L7_TRUE)
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d %s %d",
+                     "Unit:", unit, "Slot:", slot, "Port:", port);
+
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d/%d",
+                     unit, slot, port);
+      }
+      else
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                       "Slot:", slot, "Port:", port);
+
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                       slot, port);
+      }
+      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+                   (L7_char8 *)(pIntfDescr.ifDescr),
+                   IANA_40G_ETHERNET_DESC);
+
+      break;
+
+    /* PTin added: Speed 100G */
+    case  L7_IANA_100G_ETHERNET:
+      pIntfIdInfo.type = L7_PHYSICAL_INTF;
+      if (cnfgrIsFeaturePresent(L7_FLEX_STACKING_COMPONENT_ID,
+                              L7_STACKING_FEATURE_SUPPORTED) == L7_TRUE)
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d %s %d",
+                     "Unit:", unit, "Slot:", slot, "Port:", port);
+
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d/%d",
+                     unit, slot, port);
+      }
+      else
+      {
+        (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %d %s %d",
+                       "Slot:", slot, "Port:", port);
+
+
+        (void)sprintf (pIntfDescr.ifName, "%d/%d",
+                       slot, port);
+      }
+      (void)sprintf ((L7_char8 *)(pIntfDescr.ifDescr), "%s %s",
+                   (L7_char8 *)(pIntfDescr.ifDescr),
+                   IANA_100G_ETHERNET_DESC);
+
+      break;
+
+    /* PTin end */
 
     case L7_IANA_L2_VLAN:
       pIntfIdInfo.type = L7_LOGICAL_VLAN_INTF;

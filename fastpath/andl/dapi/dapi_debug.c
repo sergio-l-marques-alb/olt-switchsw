@@ -782,8 +782,10 @@ void dapiDebugCommandDecode(DAPI_CMD_t cmd, void *cmdInfo, DAPI_t *dapi_g)
     case DAPI_PORT_SPEED_FE_10MBPS  : str="10 Mbps";  break;
     case DAPI_PORT_SPEED_FE_100MBPS : str="100 Mbps"; break;
     case DAPI_PORT_SPEED_GE_1GBPS   : str="1 Gbps";   break;
-    case DAPI_PORT_SPEED_GE_2G5BPS  : str="2.5 Gbps"; break;    /* PTin added (2.5G) */
+    case DAPI_PORT_SPEED_GE_2G5BPS  : str="2.5 Gbps"; break;    /* PTin added: Speed 2.5G */
     case DAPI_PORT_SPEED_GE_10GBPS  : str="10 Gbps";  break;
+    case DAPI_PORT_SPEED_GE_40GBPS  : str="40 Gbps";  break;    /* PTin added: Speed 40G */
+    case DAPI_PORT_SPEED_GE_100GBPS : str="100 Gbps"; break;    /* PTin added: Speed 100G */
     default                         : str="Unknown";  break;
     }
     (void)osapiStrncpy(buffer, str, sizeof(buffer));
