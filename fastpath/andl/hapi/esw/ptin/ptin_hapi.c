@@ -1568,7 +1568,8 @@ void ptin_ratelimit_dump_debug(void)
     if (rateLimit_list[index].vlanId[POLICY_VLAN_ID]==0)  continue;
 
     /* Also print hw group id and entry id*/
-    if (l7_bcm_policy_hwInfo_get(0, rateLimit_list[index].policyId, rateLimit_list[index].ruleId, &group_id, &entry_id, L7_NULLPTR)==L7_SUCCESS)
+    if (l7_bcm_policy_hwInfo_get(0, rateLimit_list[index].policyId, rateLimit_list[index].ruleId, &group_id, &entry_id,
+                                 L7_NULLPTR, L7_NULLPTR)==L7_SUCCESS)
     {
       printf(" Index#%-3u-> vlanId=%4u/0x%-4x: group=%-2d, entry=%-4d (PolicyId=%-4d RuleId %-4d)\r\n",
              index, rateLimit_list[index].vlanId[POLICY_VLAN_ID], rateLimit_list[index].vlanId[POLICY_VLAN_MASK],
