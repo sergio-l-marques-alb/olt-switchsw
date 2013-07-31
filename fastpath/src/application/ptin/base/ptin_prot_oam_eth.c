@@ -45,6 +45,7 @@ T_ETH_SRV_OAM oam;
 //ETHERNET SERVICE OAM   ALIASES**********************************************************************
 #define ME_CONNECTION_LOSS  0
 #define ME_RDI              1
+#define ME_RDI_END          9
 #define ME_CONNECTION_UP    2
 //#define UNEXP_MEG_OR_MEP    4
 #define UNEXP_MEP           5
@@ -103,6 +104,9 @@ void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id,
 }
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     ethsrv_oam_register(ME_RDI, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+}
+void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    ethsrv_oam_register(ME_RDI_END, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
 }
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
@@ -507,6 +511,7 @@ void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint
 void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
+void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {}
 
 int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
