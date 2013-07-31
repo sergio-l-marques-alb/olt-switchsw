@@ -50,11 +50,17 @@
 #if SNOOP_PTIN_IGMPv3_PROXY
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
-#define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 121 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
+#define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 64 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 
 #define SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL 1
+
+#define SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE 10 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
+
+#define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0 /*Currently we do not support sending Group and Source Specific Queries*/
+
+#define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 1 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
 #endif
 
 typedef enum
@@ -352,7 +358,7 @@ typedef struct
 
 typedef struct
 {
-  L7_uint8                filtermode;
+  L7_uint8                filtermode;//snoop_ptin_filtermode_t
   snoopPTinL3Source_t     sources[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;
@@ -422,7 +428,11 @@ typedef struct snoopPTinProxyTimer_s
 
 typedef struct snoopPTinProxySourceKey_s
 {  
+#if 0
   L7_inet_addr_t                     groupAddr;//IPv4(v6) Multicast Group Address
+#else
+  snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
+#endif
   L7_inet_addr_t                     sourceAddr;
 } snoopPTinProxySourceKey_t;
 
@@ -432,7 +442,7 @@ typedef struct snoopPTinProxySource_s
 {
   
   snoopPTinProxySourceKey_t          key;
-  snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
+//snoopPTinProxyGroup_t*             groupPtr;//Group Record Ptr
 
   L7_uint8                           retransmissions;
   L7_uint8                           robustnessVariable;

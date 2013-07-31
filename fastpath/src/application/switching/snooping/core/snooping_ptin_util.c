@@ -31,17 +31,17 @@
 /*********************************************************************
 * Static Methods
 *********************************************************************/
-static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
+static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 static L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uchar8 *buffer, L7_uint32 *length);
-static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7_uchar8 *buffer, L7_uint32 *length);
-static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType);
+static L7_uchar8* snoopPTinGroupRecordV3Build(L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length);
+static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t* groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType);
 
-void snoopPTinQuerySend(L7_uint32 arg1);
+static void     snoopPTinQuerySend        (L7_uint32 arg1);
 static L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPtr, L7_uint32 noOfGroupRecords);
 
-static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
+static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
 
-static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyGroup_t* groupPtr);
+static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr);
 
 
 
@@ -200,13 +200,13 @@ L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_B
 * @todo     Fix Max Resp Code
 *
 *********************************************************************/
-static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
+static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
 {
   L7_uchar8         *dataPtr, *chksumPtr, byteVal, i;
   L7_ushort16       shortVal;
 
   /* Argument validation */
-  if (buffer == L7_NULLPTR || length == L7_NULLPTR || pSnoopOperEntry == L7_NULLPTR || sources == L7_NULLPTR)
+  if (groupAddr==L7_NULLPTR || buffer == L7_NULLPTR || length == L7_NULLPTR || pSnoopOperEntry == L7_NULLPTR || sources == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
@@ -229,7 +229,7 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFla
 
   
   /* Group Address */
-  SNOOP_PUT_DATA(&groupAddr.addr.ipv4.s_addr, L7_IP_ADDR_LEN, dataPtr);
+  SNOOP_PUT_DATA(&groupAddr->addr.ipv4.s_addr, L7_IP_ADDR_LEN, dataPtr);
 
   /* Resv | S | QRV */
   if(sFlag)
@@ -282,70 +282,52 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t groupAddr, L7_BOOL sFla
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 selectedDelay, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
+L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 timeOut, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t * groupPtr )
 {
   
   L7_uint32 newNoOfRecords=0;
   snoopPTinProxyGroup_t* newgroupPtr=L7_NULLPTR;
 
-  snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;
+  snoopPTinProxyTimer_t *proxyTimer;
   
   /* Argument validation */
-  if (groupPtr == L7_NULLPTR )
+  if (groupAddr==L7_NULLPTR || groupPtr == L7_NULLPTR )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (selectedDelay==0)
+  if (isInterface==L7_TRUE)
+    proxyTimer=&groupPtr->interfacePtr->timer;
+  else
+    proxyTimer=&groupPtr->timer;
+
+  if (timeOut==0)/*We need to send right away this Membership Report Message*/
   {
     snoopPTinReportSend(vlanId,groupPtr,noOfRecords);
 
-    if((newgroupPtr=snoopPTinGroupRecordDecrementRetransmission(noOfRecords,groupPtr,&newNoOfRecords))==L7_NULLPTR && newNoOfRecords>0)
+    if((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecords,groupPtr,&newNoOfRecords))==L7_NULLPTR && newNoOfRecords>0)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordDecrementRetransmission()");
       return L7_FAILURE;
     }
-    if(newNoOfRecords>0)
+    
+    if(newNoOfRecords>0)   
     {
-      if (isInterface==L7_TRUE) 
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Re-Scheduling Membership Report Message with timeout: %u ",SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL);  
+      if (snoop_ptin_proxytimer_start(proxyTimer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,newgroupPtr)!=L7_SUCCESS)
       {
-        interfacePtr=(snoopPTinProxyInterface_t *) groupPtr->interfacePtr;
-        if (snoop_ptin_proxytimer_start(&interfacePtr->timer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,groupPtr)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-          return L7_FAILURE;
-        }    
-      }
-      else
-      {
-        if (snoop_ptin_proxytimer_start(&groupPtr->timer,SNOOP_PTIN_UNSOLICITED_REPORT_INTERVAL,reportType, isInterface,newNoOfRecords,newgroupPtr)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-          return L7_FAILURE;
-        }    
-
-      }
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
+        return L7_FAILURE;
+      }      
     }
   }
-  else
+  else/*Schedule a Membership Report Message*/
   {
-    if (isInterface==L7_TRUE)
+    if (snoop_ptin_proxytimer_start(proxyTimer,timeOut,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
     {
-      interfacePtr=(snoopPTinProxyInterface_t *) groupPtr->interfacePtr;
-      if (snoop_ptin_proxytimer_start(&interfacePtr->timer,selectedDelay,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-        return L7_FAILURE;
-      }
-    }
-    else
-    {
-      if (snoop_ptin_proxytimer_start(&groupPtr->timer,selectedDelay,reportType, isInterface,noOfRecords,groupPtr)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
-        return L7_FAILURE;
-      }
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
+      return L7_FAILURE;
     }
   }
    
@@ -372,11 +354,12 @@ L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_
 *********************************************************************/
 L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uchar8 *buffer, L7_uint32 *length)
 { 
-  L7_uchar8         *dataPtr, *chksumPtr, byteVal;
+  L7_uchar8         *dataPtr,*chksumPtr, byteVal;
   L7_ushort16       shortVal;
   L7_uint32 i;
 
   L7_uint32         groupRecordLength=0,totalGroupRecordLength=0;
+  snoopPTinProxyGroup_t* groupPtrAux;
   
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};
 
@@ -414,18 +397,24 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Number of Group Records :%u",(L7_ushort16) noOfRecords);
-  for(i=0;i<noOfRecords && groupPtr != L7_NULLPTR; i++)
+  groupPtrAux=groupPtr;
+  for(i=0;i<noOfRecords && groupPtrAux != L7_NULLPTR; i++)
   {  
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (groupAddr: %s  recordType: %u)", inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (groupAddr: %s  recordType: %u)", inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->key.recordType);
 
-    if(snoopPTinGroupRecordV3Build(groupPtr,dataPtr, &groupRecordLength)!= L7_SUCCESS)
+    if( (dataPtr=snoopPTinGroupRecordV3Build(&groupPtrAux->key.groupAddr,groupPtrAux->key.recordType,groupPtrAux->numberOfSources,groupPtrAux->source,dataPtr, &groupRecordLength))== L7_NULLPTR)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "snoopPTinGroupRecordV3Build()");
       return L7_FAILURE;
     }
+    if(groupRecordLength==0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "groupRecordLength :%u",groupRecordLength);
+      return L7_FAILURE;
+    }   
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "groupRecordLength :%u",groupRecordLength);
     totalGroupRecordLength=totalGroupRecordLength+groupRecordLength;
-    groupPtr=groupPtr->next;
+    groupPtrAux=groupPtrAux->nextGroupRecord;
   }
 
   if(i!=noOfRecords)
@@ -444,8 +433,7 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
   return L7_SUCCESS;
 }
 
-
-static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7_uchar8 *buffer, L7_uint32 *length)
+static L7_uchar8* snoopPTinGroupRecordV3Build(L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length)
 {
 
   L7_uchar8         *dataPtr, byteVal;
@@ -456,16 +444,22 @@ static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};
 
   /* Argument validation */
-  if (buffer == L7_NULLPTR || length == L7_NULLPTR || groupRecord==L7_NULLPTR)
+  if (buffer == L7_NULLPTR || length == L7_NULLPTR || groupAddr==L7_NULLPTR || (numberOfSources>0 && source==L7_NULLPTR))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
+    return L7_NULLPTR;
+  }
+
+  if (numberOfSources>0 && source==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "He have a null pointer, while having the number of sources different of 0: %u",numberOfSources);
+    return L7_NULLPTR;
   }
 
   dataPtr = buffer;
 
    /* Record Type */
-  byteVal = groupRecord->key.recordType;
+  byteVal = recordType;
   SNOOP_PUT_BYTE(byteVal, dataPtr);
 
    /* Aux Data Len */
@@ -473,28 +467,28 @@ static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7
   SNOOP_PUT_BYTE(byteVal, dataPtr);
 
   /*Number of Sources*/
-  shortVal = groupRecord->numberOfSources;
+  shortVal = numberOfSources;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   /*Multicast Address*/
-  if (groupRecord->key.groupAddr.family!=L7_AF_INET)
+  if (groupAddr->family!=L7_AF_INET)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid IP Family");
-    return L7_FAILURE;
+    return L7_NULLPTR;
   }
 
-  ipv4Addr=groupRecord->key.groupAddr.addr.ipv4.s_addr;
+  ipv4Addr=groupAddr->addr.ipv4.s_addr;
   SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Number of Sources :%u", groupRecord->numberOfSources);
-  sourcePtr=groupRecord->source;  
-  for(i=0;i<groupRecord->numberOfSources && sourcePtr != L7_NULLPTR;i++)
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Number of Sources :%u", numberOfSources);
+  sourcePtr=source;  
+  for(i=0;i<numberOfSources && sourcePtr != L7_NULLPTR;i++)
   {
       /*Source Address*/
-    if (groupRecord->key.groupAddr.family!=L7_AF_INET)
+    if (groupAddr->family!=L7_AF_INET)
     {
       LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid IP Family");
-      return L7_FAILURE;
+      return L7_NULLPTR;
     }
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Source (sourceAddr: %s)", inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
 
@@ -504,15 +498,15 @@ static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7
     sourcePtr=sourcePtr->nextSource;
   }
 
-  if(i!=groupRecord->numberOfSources)
+  if(i!=numberOfSources)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with groupRecord %u<%u",i,groupRecord->numberOfSources);
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with groupRecord %u<%u",i,numberOfSources);
   }
 
   /* Update frame length */
-  *length = SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH + L7_IP_ADDR_LEN * groupRecord->numberOfSources;
-  buffer=dataPtr;
-  return L7_SUCCESS;
+  *length = SNOOP_IGMPV3_RECORD_GROUP_HEADER_MIN_LENGTH + L7_IP_ADDR_LEN * numberOfSources;
+//bufferOut=dataPtr;
+  return dataPtr;
 }
 
 /*********************************************************************
@@ -532,7 +526,7 @@ static L7_RC_t snoopPTinGroupRecordV3Build(snoopPTinProxyGroup_t* groupRecord,L7
  * @returns  L7_FAILURE
  *
  *********************************************************************/
-L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType)
+L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t* groupAddr, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType)
 {
   L7_uchar8           *dataPtr, *macHdrStartPtr, *ipHdrStartPtr, *chksumPtr, baseMac[L7_MAC_ADDR_LEN], destMac[L7_MAC_ADDR_LEN];
   L7_inet_addr_t      querierAddr, destIp;
@@ -542,7 +536,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
   L7_uchar8           byteVal;
 
   /* Argument validation */
-  if (pSnoopCB == L7_NULLPTR || buffer == L7_NULLPTR || length == L7_NULLPTR || igmpFrameBuffer == L7_NULLPTR)
+  if (pSnoopCB == L7_NULLPTR || buffer == L7_NULLPTR || length == L7_NULLPTR || igmpFrameBuffer == L7_NULLPTR || groupAddr==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
@@ -555,7 +549,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
     macHdrStartPtr = dataPtr;
 
     destIp.family = L7_AF_INET;
-    destIp.addr.ipv4.s_addr = (groupAddr.addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr.addr.ipv4.s_addr;
+    destIp.addr.ipv4.s_addr = (groupAddr->addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr->addr.ipv4.s_addr;
 
     /* Validate the group address being reported */
     snoopMulticastMacFromIpAddr(&destIp, destMac);
@@ -647,7 +641,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
     }
     else /*if  (packetType==SNOOP_PTIN_MEMBERSHIP_QUERY)*/
     {
-      ipv4Addr = (groupAddr.addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr.addr.ipv4.s_addr;
+      ipv4Addr = (groupAddr->addr.ipv4.s_addr == 0)? L7_IP_ALL_HOSTS_ADDR : groupAddr->addr.ipv4.s_addr;
     }
     
     SNOOP_PUT_DATA(&ipv4Addr, L7_IP_ADDR_LEN, dataPtr);
@@ -751,7 +745,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   mcastPacket.destAddr.addr.ipv4.s_addr = L7_NULL_IP_ADDR;
 
   /* Build header frame for IGMPv3 Query with no sources */
-  rc = snoopPTinQueryFrameV3Build(queryData->groupAddr, queryData->sFlag, igmpFrame, &igmpFrameLength, pSnoopOperEntry, queryData->sourceList, queryData->sourcesCnt);
+  rc = snoopPTinQueryFrameV3Build(&queryData->groupAddr, queryData->sFlag, igmpFrame, &igmpFrameLength, pSnoopOperEntry, queryData->sourceList, queryData->sourcesCnt);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
@@ -759,7 +753,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
   }
 
   /* Build MAC+IP frames and add the IGMP frame to the same packet */
-  rc = snoopPTinPacketBuild(mcastPacket.vlanId, pSnoopCB, queryData->groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_QUERY);
+  rc = snoopPTinPacketBuild(mcastPacket.vlanId, pSnoopCB, &queryData->groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_QUERY);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
@@ -858,15 +852,15 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   rc = snoopPTinReportFrameV3Build(noOfGroupRecords, groupPtr, igmpFrame,&igmpFrameLength );
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building Membership Report Frame (IGMPv3)");
     return L7_FAILURE;
   }
 
   /* Build MAC+IP frames and add the IGMP frame to the same packet */
-  rc = snoopPTinPacketBuild(vlanId, pSnoopCB, groupPtr->key.groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_REPORT);
+  rc = snoopPTinPacketBuild(vlanId, pSnoopCB, &groupPtr->key.groupAddr, mcastPacket.payLoad, &mcastPacket.length, igmpFrame, igmpFrameLength,SNOOP_PTIN_MEMBERSHIP_REPORT);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building IGMPv3 Query frame");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error building Membership Report Frame (IGMPv3)");
     return L7_FAILURE;
   }
 
@@ -885,122 +879,53 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
   return rc;
 }
 
-/*************************************************************************
- * @purpose Convert an IP address in integer format to string
- *
- * @param   ip      IP address to convert
- * @param   buffer  Buffer in which the converted string will be placed.
- *                  Must have at least 15 bytes.
- *
- * @return  String with IP address
- *
- *************************************************************************/
-char* snoopPTinIPv4AddrPrint(L7_uint32 ip, char* buffer)
-{
-  L7_uchar8 bytes[4];
 
-  if (buffer == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_NULLPTR;
+#if 0
+static int convert_ipaddr2uint64(const char *ipaddr, L7_uint32 *value_uint64)
+{
+  const char *start_ipaddr;
+  L7_uint8  address[4] = { 0, 0, 0, 0};
+  L7_uint8  index;
+  L7_uint32 multiplier;
+
+  // Validate argument
+  if (ipaddr==L7_NULLPTR || *ipaddr=='\0' || value_uint64==L7_NULLPTR)
+    return -1;
+
+  // Search for the next non space/tab character
+  for (; (*ipaddr==' ' || *ipaddr=='\t') && *ipaddr!='\0'; ipaddr++ );
+
+  start_ipaddr = ipaddr;
+
+  // Search for the end of the argument
+  for (; *ipaddr!='\0' && (*ipaddr=='.' || isdigit(*ipaddr)) ; ipaddr++ );
+
+  if (start_ipaddr==ipaddr)
+    return -1;
+
+  // Initialize Decimal multiplier
+  multiplier = 1;
+  // Run all characters starting from the last one
+  for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
+    // If character is a decimal digit...
+    if (isdigit(*ipaddr)) {
+      address[index] += (L7_uint8) (*ipaddr-'0')*multiplier;   // update address array
+      multiplier*=10;                                       // update decimal multiplier for next digit
+    }
+    // Other, is a dot character
+    else
+    {
+      index++;                                              // Increment address array index
+      multiplier=1;                                         // Reinitialize decimal multiplier
+    }
   }
 
-  bytes[0] = ip & 0xFF;
-  bytes[1] = (ip >> 8) & 0xFF;
-  bytes[2] = (ip >> 16) & 0xFF;
-  bytes[3] = (ip >> 24) & 0xFF;
-  sprintf(buffer, "%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
+  // Calculate uint32 value
+  *value_uint64 = ((L7_uint32) address[0]<<0) | ((L7_uint32) address[1]<<8) | ((L7_uint32) address[2]<<16) | ((L7_uint32) address[3]<<24);
 
-  return buffer;
+  return 0;
 }
-
-/*********************************************************************
-*
-* @purpose Given an address and a buffer, fill in the buffer with a
-*          displayable rendition of the address, appropriate to the
-*          address family.
-*
-* @param   L7_uchar8       *buf   (output buffer)
-* @param   L7_uint32        len   (length of buffer)
-* @param   L7_inet_addr_t  *addr  (address)
-*
-* @returns none
-*
-* @notes   Fills in address; returns '<INV_FAM_xx>' where xx is the
-*          hexadecimal value of the family if it's not IPv4 or IPv6.
-*          Assumes valid buf, len, addr are passed in.
-*
-* @end
-*
-*********************************************************************/
-char *snoopPTinIPAddrPrint(const L7_inet_addr_t addr, L7_uchar8 *buf)
-{
-const L7_uchar8 *rp=L7_NULLPTR;
-if (L7_AF_INET == addr.family)
- {
-   /* It's IPv4; parse as IPv4 */
-   inet_ntop(L7_AF_INET, &addr.addr.ipv4, buf, sizeof(buf));
-   return (L7_uchar8 *)rp;
- }
- else if (L7_AF_INET6 == addr.family)
- {
-   /* It's IPv6; parse as IPv6 */
-   inet_ntop(L7_AF_INET6, &addr.addr.ipv6, buf, sizeof(buf));
-   return (L7_uchar8 *)rp;
- }
- else
- {
-   /* It's not covered already; indicate invalid */
-   LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IP Address Family :%d",addr.family);
-   return (L7_uchar8 *) L7_NULL;
- }
-}
-
-//
-//static int convert_ipaddr2uint64(const char *ipaddr, L7_uint32 *value_uint64)
-//{
-//  const char *start_ipaddr;
-//  L7_uint8  address[4] = { 0, 0, 0, 0};
-//  L7_uint8  index;
-//  L7_uint32 multiplier;
-//
-//  // Validate argument
-//  if (ipaddr==L7_NULLPTR || *ipaddr=='\0' || value_uint64==L7_NULLPTR)
-//    return -1;
-//
-//  // Search for the next non space/tab character
-//  for (; (*ipaddr==' ' || *ipaddr=='\t') && *ipaddr!='\0'; ipaddr++ );
-//
-//  start_ipaddr = ipaddr;
-//
-//  // Search for the end of the argument
-//  for (; *ipaddr!='\0' && (*ipaddr=='.' || isdigit(*ipaddr)) ; ipaddr++ );
-//
-//  if (start_ipaddr==ipaddr)
-//    return -1;
-//
-//  // Initialize Decimal multiplier
-//  multiplier = 1;
-//  // Run all characters starting from the last one
-//  for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
-//    // If character is a decimal digit...
-//    if (isdigit(*ipaddr)) {
-//      address[index] += (L7_uint8) (*ipaddr-'0')*multiplier;   // update address array
-//      multiplier*=10;                                       // update decimal multiplier for next digit
-//    }
-//    // Other, is a dot character
-//    else
-//    {
-//      index++;                                              // Increment address array index
-//      multiplier=1;                                         // Reinitialize decimal multiplier
-//    }
-//  }
-//
-//  // Calculate uint32 value
-//  *value_uint64 = ((L7_uint32) address[0]<<0) | ((L7_uint32) address[1]<<8) | ((L7_uint32) address[2]<<16) | ((L7_uint32) address[3]<<24);
-//
-//  return 0;
-//}
+#endif
 
 /*************************************************************************
  * @purpose Debug method that prints stored information for a specific
@@ -1059,15 +984,21 @@ void snoopPTinMcastgroupPrint(L7_uint32 vlanId,L7_uint32 groupAddrText)
         L7_uint32 sourceIdx; 
 
         printf("Interface: %02u |\n", ifIdx);
+        printf("              |Clients: ");
+        L7_int8 clientIdx;
+        for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)          
+        {
+          printf("%08X", snoopEntry->interfaces[ifIdx].clients[clientIdx]);
+        }
+        printf("\n");
         printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
         printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);
-        printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));
+        printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));        
         for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
         {
           if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
-          {
+          {            
             L7_int8 clientIdx;
-
             printf("                       |Source: %s\n", inetAddrPrint(&(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr), debug_buf));
             printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");
             printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
@@ -1151,7 +1082,7 @@ void snoopPTinGroupRecordPrint(L7_uint32 vlanId,L7_uint32 groupAddrText,L7_uint8
 }
 
 
-static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *newNoOfRecords)
+static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uint32 *newNoOfRecords)
 {  
   L7_RC_t rc=L7_SUCCESS;
   L7_uint32 i;
@@ -1168,7 +1099,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
 
 
    /* Argument validation */
-  if (groupPtr == L7_NULLPTR || newNoOfRecords==L7_NULLPTR)
+  if (groupPtr == L7_NULLPTR || newNoOfRecords==L7_NULLPTR || noOfRecords==0)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
@@ -1177,11 +1108,12 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
   groupPtrAux=groupPtr;
   for (i=0;i<noOfRecords&&groupPtrAux!=L7_NULLPTR;i++)
   {
-    rc=snoopPTinGroupRecordSourceDecrementRetransmission(groupPtrAux);
-    if (--groupPtrAux->retransmissions==0)   
-    {
+    rc=snoopPTinGroupRecordSourceIncrementTransmissions(groupPtrAux);
+    if (++groupPtrAux->retransmissions>=groupPtrAux->robustnessVariable)   
+    { 
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing Group Record %s with recorType %u  (retransmissions:%u)", inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->key.recordType,groupPtrAux->retransmissions);      
       groupAddr[noOfGroupRecord2remove]=&groupPtrAux->key.groupAddr;
-      recordType[noOfGroupRecord2remove++]=groupPtrAux->key.recordType;            
+      recordType[noOfGroupRecord2remove++]=groupPtrAux->key.recordType;                  
       if (groupPtrAux==groupPtr /*&& groupPtr->nextGroupRecord!=L7_NULLPTR*/)/*First Group Record*/
       {
         newgroupPtr=groupPtr->nextGroupRecord;
@@ -1199,6 +1131,11 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
     }
 
     groupPtrAux=groupPtrAux->nextGroupRecord;
+  }
+
+  if(i!=noOfRecords)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with groupRecordPtr %u<%u",i,noOfRecords);
   }
 
   
@@ -1232,7 +1169,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordDecrementRetransmission(L7_uin
 }
 
 
-static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyGroup_t* groupPtr)
+static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr)
 {  
   L7_RC_t rc=L7_SUCCESS;  
   snoopPTinProxySource_t* sourcePtrTmp;
@@ -1242,29 +1179,36 @@ static L7_RC_t snoopPTinGroupRecordSourceDecrementRetransmission(snoopPTinProxyG
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
    /* Argument validation */
-  if (groupPtr == L7_NULLPTR )
+  if (groupPtr == L7_NULLPTR || (groupPtr->source==L7_NULLPTR && groupPtr->numberOfSources!=0) || groupPtr->numberOfSources>=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
+  
   sourcePtrTmp=groupPtr->source;
   for (i=0;i<groupPtr->numberOfSources && sourcePtrTmp!=L7_NULLPTR;i++)
   {    
-    if (--sourcePtrTmp->retransmissions==0)
+    if (++sourcePtrTmp->retransmissions>=sourcePtrTmp->robustnessVariable)
     {
-      sourceAddr[noOfSources2Remove++]=&sourcePtrTmp->key.sourceAddr;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing Source Address %s from the group record (retransmissions:%u)", inetAddrPrint(&sourcePtrTmp->key.sourceAddr, debug_buf),sourcePtrTmp->retransmissions); 
+      sourceAddr[noOfSources2Remove++]=&sourcePtrTmp->key.sourceAddr;      
     }
     sourcePtrTmp=sourcePtrTmp->nextSource;
   }
 
-  if (groupPtr->numberOfSources==noOfSources2Remove)/*We should remove all sources within this group record*/
+  if(i!=groupPtr->numberOfSources)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with sourcePtr %u<%u",i,groupPtr->numberOfSources);
+  }
+
+  if ( groupPtr->numberOfSources==noOfSources2Remove)/*We should remove all sources within this group record*/
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing All Sources from Group Record  (groupAddr:%s recordType:%u)", inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType);  
-//  rc=snoopPTinGroupRecordRemoveAllSources(groupPtr);
-//  if(rc!=L7_SUCCESS)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemoveAllSources()");
-//  }
+    rc=snoopPTinGroupRecordSourceRemoveAll(groupPtr);
+    if(rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemoveAllSources()");
+    }
   }
   else
   {
