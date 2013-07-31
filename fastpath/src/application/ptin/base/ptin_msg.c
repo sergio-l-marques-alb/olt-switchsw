@@ -5275,14 +5275,21 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   msg_generic_prefix_t *po;
   L7_uint32 i_mep;
   L7_uint16 r=L7_HARDWARE_ERROR;
+  L7_uint16 prt=-1, vid=-1, level=-1;
 
   pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   i_mep=po[i].index=pi[i].index;
 
+  if (i_mep<N_MEPs) {
+      prt=oam.mep_db[i_mep].prt;
+      vid=oam.mep_db[i_mep].vid;
+      level=oam.mep_db[i_mep].level;
+  }
+
   
   switch (del_mep(i_mep, &oam)) {
   case 0:    r=S_OK;
-             ptin_ccm_packet_trap(pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level, 1);
+             ptin_ccm_packet_trap(prt, vid, level, 0);
              break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
   default:   r=ERROR_CODE_INVALIDPARAM; break;
