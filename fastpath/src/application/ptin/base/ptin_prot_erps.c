@@ -167,7 +167,6 @@ int ptin_erps_vlanList_init_entry(L7_uint8 erps_idx)
   }
 
   memset(tbl_erps_vlanList[erps_idx].vid_bmp, 0, (1<<12)/(sizeof(L7_uint8)*8));
-  memset(tbl_erps_vlanList[erps_idx].isOwnerVid_bmp, 0, (1<<12)/(sizeof(L7_uint8)*8));
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -370,9 +369,10 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
  * 
  * @return int 
  */
-int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *conf)
+int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *conf)
 {
   int ret = erps_idx;
+  //int byte, bit, vid;
 
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
@@ -388,29 +388,39 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint16 mask, erpsProtParam_t *con
     return(ret);
   }
 
-  //bit10
-  if (mask & 0x0400)
-    tbl_erps[erps_idx].protParam.revertive              = conf->revertive;
+  if (mask & ERPS_CONF_MASK_BIT_ISOPENRING)     tbl_erps[erps_idx].protParam.isOpenRing = conf->isOpenRing;
 
-  if (mask & 0x0800)
-    tbl_erps[erps_idx].protParam.guardTimer             = conf->guardTimer;
+  if (mask & ERPS_CONF_MASK_BIT_PORT0CFMIDX)    tbl_erps[erps_idx].protParam.port0CfmIdx = conf->port0CfmIdx;
 
-  if (mask & 0x1000)
-    tbl_erps[erps_idx].protParam.holdoffTimer           = conf->holdoffTimer;
+  if (mask & ERPS_CONF_MASK_BIT_PORT1CFMIDX)    tbl_erps[erps_idx].protParam.port1CfmIdx = conf->port1CfmIdx;
 
-  if (mask & 0x2000)
-    tbl_erps[erps_idx].protParam.waitToRestoreTimer     = conf->waitToRestoreTimer;
+  if (mask & ERPS_CONF_MASK_BIT_REVERTIVE)      tbl_erps[erps_idx].protParam.revertive = conf->revertive;
 
-  if (mask & 0x4000)
-    tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
+  if (mask & ERPS_CONF_MASK_BIT_GUARDTIMER)     tbl_erps[erps_idx].protParam.guardTimer = conf->guardTimer;
 
-  if (mask & 0x8000)
-    tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
+  if (mask & ERPS_CONF_MASK_BIT_HOLDOFFTIMER)   tbl_erps[erps_idx].protParam.holdoffTimer = conf->holdoffTimer;
 
-  // service List
-  if (mask & 0x8000)
+  if (mask & ERPS_CONF_MASK_BIT_WAITTORESTORE)  tbl_erps[erps_idx].protParam.waitToRestoreTimer = conf->waitToRestoreTimer;
+
+  //tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
+  //tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
+
+  if (mask & ERPS_CONF_MASK_BIT_VIDBMP) {
     memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
+    #if 0
+    for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+      for (bit=0; bit<8; bit++) {
+        if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+          vid = (byte*8)+bit;
+          LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d", erps_idx, vid);
+        }
+      }
+    }
+    #endif
+  }
 
+
+  // Values Validation
 
   if (tbl_erps[erps_idx].protParam.holdoffTimer > 100) {   // [0, 10] seconds
     tbl_erps[erps_idx].protParam.holdoffTimer = 100;
@@ -1015,16 +1025,27 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
 int ptin_erps_rd_allentry(void)
 {
   int ret = PROT_ERPS_EXIT_OK;
+  int byte, bit, vid;
 
   L7_uint8 erps_idx;
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+
+    if ( tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) continue;
+
     printf("\n-----------------------------------------");
-    printf("\n ERPS#%d: admin      %d",                      erps_idx, tbl_erps[erps_idx].admin);
-    printf("\n-----------------------------------------");
-    printf("\n ERPS Protection Parameters:");
+    printf("\n ERPS#%d Protection Parameters:",              erps_idx);
     printf("\n ringId              %d",                      tbl_erps[erps_idx].protParam.ringId);
     printf("\n controlVid          %d",                      tbl_erps[erps_idx].protParam.controlVid);
+    printf("\n VLAN ID List       ");
+    for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+      for (bit=0; bit<8; bit++) {
+        if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+          vid = (byte*8)+bit;
+          printf(" %d;", vid);
+        }
+      }
+    }
     printf("\n");
   }
 

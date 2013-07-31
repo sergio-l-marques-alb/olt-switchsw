@@ -1171,6 +1171,8 @@ typedef struct {
 typedef struct {
   unsigned char    slotId;
   unsigned int     idx;
+  unsigned int     mask;
+
   unsigned int     ringId;
   unsigned char    isOpenRing;
   unsigned short   controlVid;
