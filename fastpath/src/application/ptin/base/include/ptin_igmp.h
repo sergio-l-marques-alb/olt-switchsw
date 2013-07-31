@@ -110,6 +110,72 @@ typedef enum  {
   SNOOP_STAT_FIELD_ALL                        
 } ptin_snoop_stat_enum_t;
 
+typedef struct
+{
+  L7_uint32 allow_tx;
+  L7_uint32 allow_total_rx;
+  L7_uint32 allow_valid_rx;
+  L7_uint32 allow_invalid_rx;
+  L7_uint32 allow_dropped_rx;
+  L7_uint32 block_tx;
+  L7_uint32 block_total_rx;
+  L7_uint32 block_valid_rx;
+  L7_uint32 block_invalid_rx;
+  L7_uint32 block_dropped_rx;
+  L7_uint32 is_include_tx;
+  L7_uint32 is_include_total_rx;
+  L7_uint32 is_include_valid_rx;  
+  L7_uint32 is_include_invalid_rx;  
+  L7_uint32 is_include_dropped_rx;  
+  L7_uint32 is_exclude_tx;
+  L7_uint32 is_exclude_total_rx;
+  L7_uint32 is_exclude_global_rx;
+  L7_uint32 is_exclude_valid_rx;
+  L7_uint32 is_exclude_invalid_rx;
+  L7_uint32 is_to_inlude_tx;
+  L7_uint32 is_to_include_total_rx;
+  L7_uint32 is_to_include_valid_rx;
+  L7_uint32 is_to_include_invalid_rx;
+  L7_uint32 is_to_include_dropped_rx;
+  L7_uint32 is_to_exclude_tx;
+  L7_uint32 is_to_exclude_total_rx;
+  L7_uint32 is_to_exclude_valid_rx;
+  L7_uint32 is_to_exclude_invalid_rx;
+  L7_uint32 is_to_exclude_dropped_rx;
+  L7_uint32 record_type_invalid_rx;
+} ptin_Group_Record_Statistics_t;
+
+typedef struct
+{  
+/*Here for historical reasons*/
+  L7_uint32 joins_sent;
+  L7_uint32 joins_received_success;
+  L7_uint32 joins_received_failed;
+  L7_uint32 leaves_sent;
+  L7_uint32 leaves_received;
+
+/*New fields*/
+//L7_uint32 join_tx;
+//L7_uint32 join_total_rx;//total=valid+invalid+dropped
+//L7_uint32 join_valid_rx;
+//L7_uint32 join_invalid_rx;
+//L7_uint32 join_dropped_rx;
+//L7_uint32 leave_tx;
+//L7_uint32 leave_total_rx;
+//L7_uint32 leave_valid_rx;
+//L7_uint32 leave_invalid_rx;
+//L7_uint32 leave_dropped_rx;
+} ptin_IGMPv2_Statistics_t;
+
+typedef struct
+{
+  L7_uint32                       membership_report_tx;
+  L7_uint32                       membership_report_total_rx; //total=valid+invalid+dropped
+  L7_uint32                       membership_report_valid_rx;  //no problems ocurred during the procssing of the packet
+  L7_uint32                       membership_report_invalid_rx; //the packet received is invalid
+  L7_uint32                       membership_report_dropped_rx;//the packet is valid, altought it was dropped due to internal error processing
+  ptin_Group_Record_Statistics_t  group_record;
+} ptin_IGMPv3_Statistics_t;
 
 typedef struct
 {
@@ -120,50 +186,27 @@ typedef struct
   L7_uint32 source_query_tx;
   L7_uint32 source_query_rx;
   L7_uint32 query_drop;  
-  L7_uint32 query_total; /**/
+  L7_uint32 query_total; 
   L7_uint32 query_total_tx; 
 } ptin_Query_Statistics_t;
 
 typedef struct
 {
-  L7_uint32 allow_tx;
-  L7_uint32 allow_rx;
-  L7_uint32 block_tx;
-  L7_uint32 block_rx;
-  L7_uint32 is_include_tx;
-  L7_uint32 is_include_rx;
-  L7_uint32 is_exclude_tx;
-  L7_uint32 is_exclude_rx;
-  L7_uint32 is_to_inlude_tx;
-  L7_uint32 is_to_include_rx;
-  L7_uint32 is_to_exclude_tx;
-  L7_uint32 is_to_exclude_rx;
-} ptin_Group_Record_Statistics_t;
+  /*Here for historical reasons*/
+  L7_uint32 active_groups;
+  L7_uint32 active_clients;
+ 
+  /*Global Counters*/
+  L7_uint32 igmp_total_rx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
+  L7_uint32 igmp_rx_valid;/*This counter is equal to the sum of all valid IGMP packets received*/
+  L7_uint32 igmp_rx_invalid;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
+  L7_uint32 igmp_rx_dropped; /*This counter is equal to the sum of all IGMP packets dropped, due to an internal error processing*/
+  
+  ptin_IGMPv3_Statistics_t v3;/*Variable respecting IGMPv3*/
+  ptin_IGMPv2_Statistics_t  v2;/*Variable respecting IGMPv2*/
+  ptin_Query_Statistics_t   query;/*Variable respecting Query*/
 
-
-typedef struct
-{
-  L7_uint32 join_tx;
-  L7_uint32 join_total_rx;//total=valid+invalid
-  L7_uint32 join_valid_rx;
-  L7_uint32 join_invalid_rx; //invalid=dropped
-  L7_uint32 join_dropped_rx; //invalid=dropped
-  L7_uint32 leave_tx;
-  L7_uint32 leave_total_rx;
-  L7_uint32 leave_valid_rx;
-  L7_uint32 leave_invalid_rx;
-  L7_uint32 leave_dropped_rx;  
-} ptin_IGMPv2_Statistics_t;
-
-typedef struct
-{
-  L7_uint32                       membership_report_tx;
-  L7_uint32                       membership_report_total_rx; //total=valid+invalid+dropped
-  L7_uint32                       membership_report_valid_rx;  //no problems ocurred during the procssing of the packet
-  L7_uint32                       membership_report_invalid_rx; //the packet received is invalid
-  L7_uint32                       membership_report_dropped_rx;//the packet is valid, altought the packet was dropped either to the number of Multicast entries...
-  ptin_Group_Record_Statistics_t  group_record;
-} ptin_IGMP_v3_Statistics_t;
+} ptin_MGMD_Statistics_t;
 
 typedef struct
 {
@@ -188,10 +231,6 @@ typedef struct
   L7_uint32 general_queries_received;
   L7_uint32 specific_queries_sent;
   L7_uint32 specific_queries_received;
-
-//ptin_IGMP_v3_Statistics_t v3;
-//ptin_IGMPv2_Statistics_t  v2;
-//ptin_Query_Statistics_t   query;
 } ptin_IGMP_Statistics_t;
 
 /* More debug for IGMP */
