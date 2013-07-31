@@ -442,7 +442,7 @@ void timerCallback(void *param)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"interfacePtr==L7_NULLPTR");
     return ;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Trigger Membership Report Message");
   if (snoopPTinReportSchedule(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,pTimerData->reportType,0,pTimerData->isInterface,pTimerData->noOfRecords,pTimerData->groupData)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
@@ -513,7 +513,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   else
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
-              inetAddrPrint(&(((snoopPTinProxyGroup_t *) groupData)->key.groupAddr), debug_buf));
+              inetAddrPrint(&pTimer->groupData->key.groupAddr, debug_buf));
   }
 
   /* New timer handle */
