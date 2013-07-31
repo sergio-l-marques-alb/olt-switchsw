@@ -7057,31 +7057,43 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_client!=L7_NULLPTR)  stat_client->leaves_received++;
     break;
 
-  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_V3:
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_RX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->membership_report_v3++;
     if (stat_port  !=L7_NULLPTR)  stat_port->membership_report_v3++;
     if (stat_client!=L7_NULLPTR)  stat_client->membership_report_v3++;
     break;
 
-  case SNOOP_STAT_FIELD_GENERAL_QUERIES_SENT:
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
     if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
     if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
     break;
 
-  case SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED:
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_RX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_received++;
     if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_received++;
     if (stat_client!=L7_NULLPTR)  stat_client->general_queries_received++;
     break;
 
-  case SNOOP_STAT_FIELD_SPECIFIC_QUERIES_SENT:
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_sent++;
     if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_sent++;
     if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_sent++;
     break;
 
-  case SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED:
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_received++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_received++;
+    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_received++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_sent++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_sent++;
+    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_sent++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_RX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_received++;
     if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_received++;
     if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_received++;

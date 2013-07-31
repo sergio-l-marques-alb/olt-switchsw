@@ -766,8 +766,8 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
   }
 
   if (noOfSources > 0)
@@ -937,7 +937,8 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
   }
 
   if(noOfSources>0)
@@ -1141,8 +1142,9 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    igmpCfg.querier.group_membership_interval=PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL;
   }
 
   if (noOfSources > 0)
@@ -1341,9 +1343,10 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
-  }   
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    igmpCfg.querier.group_membership_interval=PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL;
+  }
   
   if(noOfSources > 0)
   {
@@ -1595,9 +1598,10 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;  
   }
+  
  
   if(noOfSources > 0)
   {
@@ -1757,8 +1761,9 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    igmpCfg.querier.group_membership_interval=PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL;
   }
   
   if (noOfSources > 0)
@@ -2804,8 +2809,8 @@ snoopPTinProxyGroup_t* snoopPTinGeneralQueryProcess(L7_uint32 vlanId, L7_uint32 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_NULLPTR;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;  
   }
 
   if((interfacePtr=snoopPTinPendingReport2GeneralQuery(vlanId, &pendingReport, &timeLeft))==L7_NULLPTR)
@@ -2891,8 +2896,8 @@ snoopPTinProxyGroup_t* snoopPTinGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_NULLPTR;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
   }
 
   if((interfacePtr=snoopPTinPendingReport2GeneralQuery(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &pendingReport, &timeLeft))==L7_NULLPTR)
@@ -3001,8 +3006,8 @@ snoopPTinProxyGroup_t* snoopPTinGroupSourceSpecifcQueryProcess(snoopPTinL3InfoDa
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_NULLPTR;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
   }
   
   if((interfacePtr=snoopPTinPendingReport2GeneralQuery(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &pendingReport, &timeLeft))==L7_NULLPTR)
@@ -3366,11 +3371,11 @@ static L7_RC_t snoopPTinAddStaticSource(snoopPTinL3InfoData_t* avlTreeEntry, L7_
     return L7_FAILURE;
   }  
  
-   /* Get proxy configurations */
+  /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;  
   }
 
 
@@ -3481,11 +3486,11 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
     return L7_FAILURE;
   }
 
-   /* Get proxy configurations */
+  /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;  
   }
 
   /* Create new entry in AVL tree for VLAN+IP if necessary */
@@ -3609,9 +3614,9 @@ static L7_RC_t snoopPTinRemoveStaticSource(snoopPTinL3InfoData_t* avlTreeEntry, 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
-  }  
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
+  }
  
   if (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
   {
@@ -3710,8 +3715,8 @@ L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;   
   }
 
   /* Create new entry in AVL tree for VLAN+IP if necessary */

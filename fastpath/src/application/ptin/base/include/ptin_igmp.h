@@ -76,22 +76,94 @@ typedef enum  {
   SNOOP_STAT_FIELD_IGMP_DROPPED,
   SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID,
   SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID,
+/*IGMPv2 & MLDv1 only*/
   SNOOP_STAT_FIELD_JOINS_SENT,
   SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS,
   SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED,
   SNOOP_STAT_FIELD_LEAVES_SENT,
   SNOOP_STAT_FIELD_LEAVES_RECEIVED,
-  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_V3,
-  SNOOP_STAT_FIELD_GENERAL_QUERIES_SENT,
-  SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED,
-  SNOOP_STAT_FIELD_SPECIFIC_QUERIES_SENT,
-  SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED,
-  SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_SENT,
-  SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED,
-  SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_SENT,
-  SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED,
-  SNOOP_STAT_FIELD_ALL                        // This must be the last element
+/*IGMPv3 & MLDv2 only*/
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_RX,  
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX,
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID, /*Membership Report Message Received Invalid*/
+/*Group Records*/
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_RX,
+/*IGMP & MLD Queries */
+  SNOOP_STAT_FIELD_GENERAL_QUERY_TX,
+  SNOOP_STAT_FIELD_GENERAL_QUERY_RX,
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX,
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX,    
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX,
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_RX,  
+/*This must be the last element*/
+  SNOOP_STAT_FIELD_ALL                        
 } ptin_snoop_stat_enum_t;
+
+
+typedef struct
+{
+  L7_uint32 general_query_tx;
+  L7_uint32 general_query_rx;      
+  L7_uint32 group_query_tx;  
+  L7_uint32 group_query_rx;
+  L7_uint32 source_query_tx;
+  L7_uint32 source_query_rx;
+  L7_uint32 query_drop;  
+  L7_uint32 query_total; /**/
+  L7_uint32 query_total_tx; 
+} ptin_Query_Statistics_t;
+
+typedef struct
+{
+  L7_uint32 allow_tx;
+  L7_uint32 allow_rx;
+  L7_uint32 block_tx;
+  L7_uint32 block_rx;
+  L7_uint32 is_include_tx;
+  L7_uint32 is_include_rx;
+  L7_uint32 is_exclude_tx;
+  L7_uint32 is_exclude_rx;
+  L7_uint32 is_to_inlude_tx;
+  L7_uint32 is_to_include_rx;
+  L7_uint32 is_to_exclude_tx;
+  L7_uint32 is_to_exclude_rx;
+} ptin_Group_Record_Statistics_t;
+
+
+typedef struct
+{
+  L7_uint32 join_tx;
+  L7_uint32 join_total_rx;//total=valid+invalid
+  L7_uint32 join_valid_rx;
+  L7_uint32 join_invalid_rx; //invalid=dropped
+  L7_uint32 join_dropped_rx; //invalid=dropped
+  L7_uint32 leave_tx;
+  L7_uint32 leave_total_rx;
+  L7_uint32 leave_valid_rx;
+  L7_uint32 leave_invalid_rx;
+  L7_uint32 leave_dropped_rx;  
+} ptin_IGMPv2_Statistics_t;
+
+typedef struct
+{
+  L7_uint32                       membership_report_tx;
+  L7_uint32                       membership_report_total_rx; //total=valid+invalid+dropped
+  L7_uint32                       membership_report_valid_rx;  //no problems ocurred during the procssing of the packet
+  L7_uint32                       membership_report_invalid_rx; //the packet received is invalid
+  L7_uint32                       membership_report_dropped_rx;//the packet is valid, altought the packet was dropped either to the number of Multicast entries...
+  ptin_Group_Record_Statistics_t  group_record;
+} ptin_IGMP_v3_Statistics_t;
 
 typedef struct
 {
@@ -103,16 +175,23 @@ typedef struct
   L7_uint32 igmp_dropped;
   L7_uint32 igmp_received_valid;
   L7_uint32 igmp_received_invalid;
+/*IGMPv2 & MLDv1 only*/
   L7_uint32 joins_sent;
   L7_uint32 joins_received_success;
   L7_uint32 joins_received_failed;
   L7_uint32 leaves_sent;
   L7_uint32 leaves_received;
+/*IGMPv3 & MLDv2 only*/
   L7_uint32 membership_report_v3;
+/*IGMP & MLD Queries */
   L7_uint32 general_queries_sent;
   L7_uint32 general_queries_received;
   L7_uint32 specific_queries_sent;
   L7_uint32 specific_queries_received;
+
+//ptin_IGMP_v3_Statistics_t v3;
+//ptin_IGMPv2_Statistics_t  v2;
+//ptin_Query_Statistics_t   query;
 } ptin_IGMP_Statistics_t;
 
 /* More debug for IGMP */

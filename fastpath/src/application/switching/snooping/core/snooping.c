@@ -1260,30 +1260,30 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 #endif//End PTin Added
       switch (igmpType)
       {
-      case L7_IGMP_MEMBERSHIP_QUERY:
+        case L7_IGMP_MEMBERSHIP_QUERY:
 #if SNOOP_PTIN_IGMPv3_PROXY 
-        if (igmpCfg.networkVersion!=3)
-        {
+          if (igmpCfg.networkVersion!=3)
+          {
 #endif
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERY: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
-                  mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
-                  mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.destMac[4],mcastPacket.payLoad[5],
-                  mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
-          rc = snoopMgmdMembershipQueryProcess(&mcastPacket);
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERY: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+                    mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
+                    mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.destMac[4],mcastPacket.payLoad[5],
+                    mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
+            rc = snoopMgmdMembershipQueryProcess(&mcastPacket);
 #if SNOOP_PTIN_IGMPv3_PROXY 
+            }
+          else if (igmpCfg.networkVersion==3)
+          {
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+                    mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
+                    mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.destMac[4],mcastPacket.payLoad[5],
+                    mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
+            ptin_timer_start(34,"snoopMgmdSrcSpecificMembershipQueryProcess");
+            rc = snoopMgmdSrcSpecificMembershipQueryProcess(&mcastPacket);
+            ptin_timer_stop(34);
           }
-        else if (igmpCfg.networkVersion==3)
-        {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: intIfNum=%u, oVlan=%u, iVlan=%u, DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
-                  mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.innerVlanId,
-                  mcastPacket.payLoad[0],mcastPacket.payLoad[1],mcastPacket.payLoad[2],mcastPacket.payLoad[3],mcastPacket.destMac[4],mcastPacket.payLoad[5],
-                  mcastPacket.payLoad[6],mcastPacket.payLoad[7],mcastPacket.payLoad[8],mcastPacket.payLoad[9],mcastPacket.payLoad[10],mcastPacket.payLoad[11]);
-          ptin_timer_start(34,"snoopMgmdSrcSpecificMembershipQueryProcess");
-          rc = snoopMgmdSrcSpecificMembershipQueryProcess(&mcastPacket);
-          ptin_timer_stop(34);
-        }
 #endif
-        break;      
+          break;      
         case L7_IGMP_V3_MEMBERSHIP_REPORT:
           
 #if SNOOP_PTIN_IGMPv3_ROUTER
@@ -2308,7 +2308,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         return L7_FAILURE;
       }
       generalQry = L7_TRUE;
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_RX);
     }
     else
     { /* Should be group specific query */
@@ -2325,7 +2325,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX);
     }
   }
   else
@@ -2341,7 +2341,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_RX);
     }
     else
     { /* Should be group specific query */
@@ -2358,7 +2358,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX);
     }
   }
 
@@ -2658,7 +2658,9 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     if (mcastPacket->ip_payload_length > SNOOP_MLDV1_HEADER_LENGTH) /* MIN MLD qry length */
     {
       SNOOP_GET_BYTE(mgmdMsg.sQRV, dataPtr);  /* Robustness Var */
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%d",mgmdMsg.sQRV);
+      mgmdMsg.sQRV = mgmdMsg.sQRV & 0x07;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%u",mgmdMsg.sQRV);
+
       SNOOP_GET_BYTE(mgmdMsg.qqic, dataPtr);  /* QQIC */
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.qqic=%d",mgmdMsg.qqic);
       SNOOP_GET_SHORT(mgmdMsg.numSources, dataPtr);  /* Number of sources */
@@ -2756,7 +2758,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
               return L7_FAILURE;
             }
             LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 General Query Rec'd");
-            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED);
+            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_RX);
           }
           else
           { /* Should be group specific query */
@@ -2778,7 +2780,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
               return L7_FAILURE;
             }
             LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 Group Specific Query Rec'd");
-            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED);
+            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX);
 
           }
           break;
@@ -2804,7 +2806,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
               return L7_FAILURE;
             }
             LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv3 General Query Rec'd" );
-            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED);
+            ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_RX);
             queryType=SNOOP_PTIN_GENERAL_QUERY;
             
           }
@@ -2822,14 +2824,14 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
               if (mgmdMsg.numSources==0)
               {
                 LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv3 Group Specific Query Rec'd");
-                ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED);
+                ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX);
                 queryType=SNOOP_PTIN_GROUP_SPECIFIC_QUERY;
 
               }
               else
               {
                 LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");
-                ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED);
+                ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_RX);
                 queryType=SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY;
               }
 
@@ -2873,7 +2875,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
         return L7_FAILURE;
       }     
       queryType=SNOOP_PTIN_GENERAL_QUERY;
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_RX);
     }
     else
     { /* Should be group specific query */
@@ -2891,7 +2893,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdSrcSpecificMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED);
+      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX);
     }
   }    
   
@@ -2900,20 +2902,20 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     case SNOOP_PTIN_GENERAL_QUERY:
     {      
       groupPtr=snoopPTinGeneralQueryProcess(mcastPacket->vlanId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, selectedDelay, &sendReport, &noOfRecords, &timeout,mgmdMsg.sQRV);
-      ptin_igmp_stat=SNOOP_STAT_FIELD_GENERAL_QUERIES_RECEIVED;
+      ptin_igmp_stat=SNOOP_STAT_FIELD_GENERAL_QUERY_RX;
       break;
     }
 
     case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
     {
       groupPtr=snoopPTinGroupSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout,mgmdMsg.sQRV);      
-      ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_GROUP_QUERIES_RECEIVED;
+      ptin_igmp_stat=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX;
       break;
     }
     case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
     {
       groupPtr=snoopPTinGroupSourceSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, mgmdMsg.numSources, &dataPtr, selectedDelay, &sendReport, &timeout,mgmdMsg.sQRV);
-      ptin_igmp_stat=SNOOP_STAT_FIELD_SPECIFIC_SOURCE_QUERIES_RECEIVED;   
+      ptin_igmp_stat=SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_RX;   
       break;
     }
   }
@@ -3232,11 +3234,11 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   L7_ushort16             noOfGroups, noOfSources,noOfSourcesTmp;
   L7_inet_addr_t          groupAddr,firstGroupAddr;
   L7_BOOL                 fwdFlag = L7_FALSE, floodFlag = L7_TRUE;
-  snoop_cb_t             *pSnoopCB = L7_NULLPTR;
+  snoop_cb_t             *pSnoopCB;
   L7_uchar8               ipBuf[16];
 
-  L7_uchar8     *dataPtrTmp=L7_NULLPTR;
-  snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;  
+  L7_uchar8     *dataPtrTmp;
+  snoopPTinProxyInterface_t* interfacePtr;  
   snoopPTinProxyGroup_t* groupPtr;
   snoopPTinProxyGroup_t *firstGroupPtr=L7_NULLPTR;
   L7_uint32 /*internalVlanId=0,*/i,vlanId=mcastPacket->vlanId/*,previousVlanId=mcastPacket->vlanId*/;
@@ -3252,20 +3254,27 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   ptin_IgmpProxyCfg_t igmpCfg;
   L7_BOOL   firstGroup=L7_FALSE;
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Membership Report Message Rec'd");
+
   /* Set pointer to IGMPv3 Membership Report */
   dataPtr = mcastPacket->ip_payload + MGMD_REPORT_NUM_SOURCES_OFFSET;
   SNOOP_GET_SHORT(noOfGroups, dataPtr);
   /* Data ptr will point to the start if group records */
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Number of Group records, %u",noOfGroups);
 
   /* Get Snoop Control Block */
   pSnoopCB = mcastPacket->cbHandle;
-
+  if (pSnoopCB==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "pSnoopCB==L7_NULLPTR");
+    return L7_FAILURE;
+  }
 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
   }
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)
@@ -3274,7 +3283,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     inetAddressGet(L7_AF_INET, &mcastPacket->destAddr, &ipv4Addr);
     if (ipv4Addr != L7_IP_IGMPV3_REPORT_ADDR)
     {
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "Invalid destination IPv4 address");
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Invalid destination IPv4 address");
       return L7_FAILURE;
     }
 
@@ -3282,13 +3291,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     {
       if (mcastPacket->tosByte != SNOOP_TOS_VALID_VALUE)
       {
-        SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "Invalid Packet");
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,  "Invalid Packet");
         return L7_FAILURE;
       }
 
       if (mcastPacket->routerAlert != L7_TRUE)
       {
-        SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "Invalid Packet");
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Invalid Packet");
         return L7_FAILURE;
       }
     }
@@ -3296,7 +3305,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   else
   {
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"IPv6 currently not supported, packet silently discarded");
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"MLD currently not supported, packet silently discarded");
     return L7_SUCCESS;
 
     L7_uchar8 mldv3ReportAddr[L7_IP6_ADDR_LEN];
@@ -3308,7 +3317,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     inetAddressGet(L7_AF_INET6, &mcastPacket->destAddr, ipBuf);
     if (memcmp(ipBuf, mldv3ReportAddr, L7_IP6_ADDR_LEN) != 0)
     {
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "Invalid destination IPv6 address");
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Invalid destination IPv6 address");
       return L7_FAILURE;
     }
   }
@@ -3318,7 +3327,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   snoopMulticastMacFromIpAddr(&mcastPacket->destAddr, dmac);
   if (memcmp(mcastPacket->destMac, dmac, L7_MAC_ADDR_LEN) != 0)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "Invalid Packet");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Invalid Packet");
     return L7_FAILURE;
   }
 
@@ -3339,9 +3348,9 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   while (noOfGroups > 0)
   {
     /* IGMP Membership records */
-    SNOOP_GET_BYTE(recType, dataPtr); /* Record type */
+    SNOOP_GET_BYTE(recType, dataPtr); /* Record type */    
     SNOOP_GET_BYTE(auxDataLen, dataPtr); /* AuxData Len */
-    SNOOP_GET_SHORT(noOfSources, dataPtr); /* Number of sources */
+    SNOOP_GET_SHORT(noOfSources, dataPtr); /* Number of sources */   
     memset(&groupAddr, 0x00, sizeof(groupAddr));
     if (mcastPacket->cbHandle->family == L7_AF_INET)
     {
@@ -3371,6 +3380,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
     {
       fwdFlag = L7_TRUE;
     }
+
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Group Record Rec'd (recordType=%u, numberOfSources=%u, groupAddr=%s, fwdFlag=%u)",recType,noOfSources,inetAddrPrint(&groupAddr, debug_buf),fwdFlag);
 
     if (fwdFlag == L7_FALSE)
     {    
@@ -3725,7 +3736,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 
   pSnoopCB->counters.controlFramesProcessed++;
 
-  ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_V3);
+  ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_RX);
 
   return rc;
 }
