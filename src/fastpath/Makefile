@@ -13,12 +13,6 @@ SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
 version = "test"
 
-ifeq ($(version),"test")
- version_final = $(version)-r$(SVN_REV)
-else
- version_final = $(version)-r$(SVN_REV)
-endif
-
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
 
@@ -231,11 +225,11 @@ cleanall:	cleanall_cxp360g cleanall_cxo640g cleanall_cxo640g_v1 cleanall_tolt8g 
 
 
 image:		install
-		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_final)
+		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version)
 
 image_olt360:	install_olt360
-		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version_final)
+		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version)
 
 image_olt1t3:	install_olt1t3
-		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_final)
+		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version)
 
