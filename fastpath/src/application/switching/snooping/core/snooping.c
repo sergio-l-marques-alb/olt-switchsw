@@ -2462,7 +2462,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   snoop_eb_t                  *pSnoopEB ;
  
   snoopPTinL3InfoData_t *       avlTreeEntry;
-    
+  ptin_IgmpProxyCfg_t          igmpCfg;      
   L7_uchar8                   *dataPtr = L7_NULL;
   L7_uint32                    ipv4Addr, incomingVersion = 0;
   L7_in6_addr_t                ipv6Addr;
@@ -2483,6 +2483,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Membership Query Message Rec'd");
 
+ 
   /* Interface must be root */
   if (ptin_igmp_rootIntfVlan_validate(mcastPacket->intIfNum, mcastPacket->vlanId)!=L7_SUCCESS)
   {
@@ -2572,13 +2573,9 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     }
 #endif
 
-#if 1
-    SNOOP_GET_BYTE(mgmdMsg.sQRV, dataPtr);  /* Robustness Var */
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%d",mgmdMsg.sQRV);
-#else
-    SNOOP_PTIN_GET_QRV(mgmdMsg.sQRV, dataPtr);          /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%d",mgmdMsg.sQRV);
-#endif
+    SNOOP_GET_BYTE(mgmdMsg.sQRV, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/
+    mgmdMsg.sQRV = mgmdMsg.sQRV & 0x07;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%u",mgmdMsg.sQRV);
     SNOOP_GET_BYTE(mgmdMsg.qqic, dataPtr);  /* QQIC */
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.qqic=%d",mgmdMsg.qqic);
     SNOOP_GET_SHORT(mgmdMsg.numSources, dataPtr);  /* Number of sources */
@@ -2651,16 +2648,12 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     SNOOP_GET_SHORT(mgmdMsg.mgmdChecksum, dataPtr);    /* Checksum */
     SNOOP_GET_SHORT(maxRespCode, dataPtr);  /* Max response time */
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Resp Code=%d",maxRespCode);
-    SNOOP_GET_SHORT(mgmdMsg.mgmdReserved, dataPtr);               /* rserved */
+    SNOOP_GET_SHORT(mgmdMsg.mgmdReserved, dataPtr);/* rserved */
 
     SNOOP_GET_ADDR6(&ipv6Addr, dataPtr); /* Group Address */
     inetAddressSet(L7_AF_INET6, &ipv6Addr, &mgmdMsg.mgmdGroupAddr);
     if (mcastPacket->ip_payload_length > SNOOP_MLDV1_HEADER_LENGTH) /* MIN MLD qry length */
     {
-      SNOOP_GET_BYTE(mgmdMsg.sQRV, dataPtr);  /* Robustness Var */
-      mgmdMsg.sQRV = mgmdMsg.sQRV & 0x07;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.sQRV=%u",mgmdMsg.sQRV);
-
       SNOOP_GET_BYTE(mgmdMsg.qqic, dataPtr);  /* QQIC */
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"mgmdMsg.qqic=%d",mgmdMsg.qqic);
       SNOOP_GET_SHORT(mgmdMsg.numSources, dataPtr);  /* Number of sources */
@@ -2684,6 +2677,21 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     }
   }/* End of MLD Message check */
 #endif
+
+  if(mgmdMsg.sQRV==0 || mgmdMsg.sQRV>SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE)
+  {
+     /* Get proxy configurations */
+    if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+      mgmdMsg.sQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+      
+    }
+    else
+    {
+      mgmdMsg.sQRV=igmpCfg.host.robustness;
+    }
+  }
 
  /* As the packet has the max-respons-time in 1/10 of secs, convert it to seconds
      for further processing */
@@ -2846,7 +2854,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
             /*Let us verify if this group is registered by any IGMPv3 Host*/            
             if ((avlTreeEntry=snoopPTinL3EntryFind(mcastPacket->vlanId,&mgmdMsg.mgmdGroupAddr,L7_MATCH_EXACT))==L7_NULLPTR || 
-       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)==L7_SUCCESS)
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients)==L7_SUCCESS)
             {
               LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",inetAddrPrint(&mgmdMsg.mgmdGroupAddr,debug_buf));
               return L7_SUCCESS;
@@ -3423,16 +3431,30 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
 #endif
         }
         else
-          recordType=recType;
-
+           recordType=recType;
 
         /*If number of sources per record is higher than PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD we do not processs, instead we consider only the group address and the record-type*/
         if(noOfSources>PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD)/*igmpCfg.host.max_sources_per_record*/
         {
-          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record (groupAddr:%s recordType:%u) has more than 64 sources (noofSources: %u)",inetAddrPrint(&groupAddr, debug_buf),recType,noOfSources);
-          noOfSources=0;
-        }                    
+          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record (groupAddr:%s recordType:%u) has more than 64 sources (noofSources: %u)",inetAddrPrint(&groupAddr, debug_buf),recType,noOfSources);          
+        }          
 
+        if (noOfSources>PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD) 
+        {
+          if (recType==L7_IGMP_ALLOW_NEW_SOURCES || recType==L7_IGMP_MODE_IS_INCLUDE || recType==L7_IGMP_CHANGE_TO_INCLUDE_MODE)           
+          {
+            recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+            recType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+          }
+          /*This condition is not tottaly correct for IS_EX & TO_EX, if the filter mode is already on exclude mode for that specific client*/
+          else if(recType==L7_IGMP_BLOCK_OLD_SOURCES || recType==L7_IGMP_MODE_IS_EXCLUDE || recType==L7_IGMP_CHANGE_TO_EXCLUDE_MODE)
+          {
+            recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
+            recType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
+          }
+          noOfSources=0;                        
+        }
+        
         if (mcastPacket->cbHandle->family == L7_AF_INET)
         {
            /* Add new source */

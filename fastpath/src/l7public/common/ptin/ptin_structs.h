@@ -56,6 +56,25 @@ typedef struct
 #define PTIN_PHYCONF_MASK_PORTEN        0x0020
 #define PTIN_PHYCONF_MASK_MAXFRAME      0x0040
 
+typedef enum
+{
+  HW_ETHERNET_STATUS_MASK_SPEED100_BIT   = 0x0001,                                 // aplicavel apenas se nao for SPEED1000
+  HW_ETHERNET_STATUS_MASK_TX_BIT         = 0x0002,                                 //
+  HW_ETHERNET_STATUS_MASK_RX_BIT         = 0x0004,                                 //
+  HW_ETHERNET_STATUS_MASK_COLLISION_BIT  = 0x0008,                                 //
+  HW_ETHERNET_STATUS_MASK_LINK_BIT       = 0x0010,                                 // obtido via (64/66b)
+  HW_ETHERNET_STATUS_MASK_AUTONEG_BIT    = 0x0020,                                 //
+  HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT = 0x0040,                                 //
+  HW_ETHERNET_STATUS_MASK_SPEED1000_BIT  = 0x0080,                                 //
+  HW_ETHERNET_STATUS_MASK_MEDIAX_BIT     = 0x0100,                                 //
+  HW_ETHERNET_STATUS_MASK_HIGH_BER_BIT   = 0x0200,                                 // obtido via (64/66b)
+  HW_ETHERNET_STATUS_MASK_SPEED10G_BIT   = 0x0400,                                 // 
+  HW_ETHERNET_STATUS_MASK_LOS            = 0x8000,                                 // 
+
+  HW_ETHERNET_STATUS_MASK_PWRDWN_LOOP    = (1<<31),
+} HW_ETHERNET_STATUS_MASK;
+
+
 typedef struct {
   L7_uint8   Port;              // 0-7:Pon; 8-15:1/2.5G Eth; 16-17:10G Eth
   L7_uint16  Mask;

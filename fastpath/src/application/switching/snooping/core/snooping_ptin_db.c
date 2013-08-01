@@ -314,7 +314,7 @@ L7_RC_t snoopPTinZeroInterfaceClients(snoopPTinL3InfoData_t* avlTreeEntry)
 
   for(interfaceIdx=1;interfaceIdx<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP;interfaceIdx++)
   {
-    if(avlTreeEntry->interfaces[interfaceIdx].active==L7_TRUE && snoopPTinZeroClients(avlTreeEntry->interfaces[interfaceIdx].clients)==L7_ALREADY_CONFIGURED)
+    if(avlTreeEntry->interfaces[interfaceIdx].active==L7_TRUE && snoopPTinZeroClients(avlTreeEntry->interfaces[interfaceIdx].clients,avlTreeEntry->interfaces[interfaceIdx].numberOfClients)==L7_ALREADY_CONFIGURED)
     {
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Existing Clients interfaceIdx:%u",interfaceIdx);
       return L7_ALREADY_CONFIGURED;  
@@ -337,27 +337,29 @@ L7_RC_t snoopPTinZeroInterfaceClients(snoopPTinL3InfoData_t* avlTreeEntry)
  * @todo Remove client from L2
  *
  *************************************************************************/
-L7_RC_t snoopPTinZeroClients(L7_uint32* clients)
-{
-  L7_int64 clientIdx;
-  /* Argument validation */
-  if (clients == L7_NULLPTR)
+L7_RC_t snoopPTinZeroClients(L7_uint32* clients,L7_uint16 numberOfClients)
+{  
+  L7_uint32* clientsPtr;
+
+  if (numberOfClients>PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "numberOfClients:%u>PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE:%u",numberOfClients,PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
     return L7_ERROR;
   }
 
-  PTIN_NONZEROMASK(clients, clientIdx);
-  if(clientIdx==-1)
+  clientsPtr=clients;
+  while(clientsPtr!=L7_NULLPTR)
   {
-     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Bitmap without Clients");
-     return L7_SUCCESS;
-  }
-  else
-  {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Existing Clients clientIdx:%d",clientIdx);
-    return L7_ALREADY_CONFIGURED;  
-  }
+    if (*clientsPtr!=0x0)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Bitmap with clients");
+      return L7_ALREADY_CONFIGURED; 
+    }      
+    clientsPtr++; 
+  }  
+  
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Bitmap without Clients");
+  return L7_SUCCESS;  
 }
 
 /*************************************************************************
@@ -868,7 +870,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
         return L7_FAILURE;
       }
       /*Add group Record */
-      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
       {      
         if (noOfRecords>0)
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
@@ -972,7 +974,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u",clientIdx);
           return L7_FAILURE;
         }          
-        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
         {
           if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
           {
@@ -1064,7 +1066,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
   else
   {
    /*Add group Record */
-    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
     {      
       noOfRecords=1;
       groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
@@ -1192,7 +1194,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
          return L7_FAILURE;
       }
 
-      if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+      if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
       {
         if (L7_SUCCESS != snoopPTinGroupRecordSourcedAdd(groupPtr,sourceAddr,igmpCfg.host.robustness))
         {
@@ -1253,7 +1255,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
         return L7_FAILURE;
       }
       /*Add group Record */
-      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
       {      
         if (noOfRecords>0)
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
@@ -1395,7 +1397,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u",clientIdx);
           return L7_FAILURE;
         }          
-        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
         {
           if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
           {
@@ -1508,7 +1510,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
   else
   {
    /*Add group Record */
-    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
     {      
       noOfRecords=1;   
     }
@@ -1522,7 +1524,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
     }       
   }
   
-  if (L7_SUCCESS ==snoopPTinClientNoSourcesSubscribed(&avlTreeEntry->interfaces[intIfNum], clientIdx) && (L7_ALREADY_CONFIGURED==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+  if (L7_SUCCESS ==snoopPTinClientNoSourcesSubscribed(&avlTreeEntry->interfaces[intIfNum], clientIdx) && (L7_ALREADY_CONFIGURED==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
   {
     if (avlTreeEntry->interfaces[intIfNum].filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
     {
@@ -1637,7 +1639,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
       else
       {
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(sourceAddr, debug_buf), sourceIdx);          
-        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+        if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
         {
           if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
           {
@@ -1685,7 +1687,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
         return L7_FAILURE;
       }
       /*Add group Record */
-      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+      if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
       {      
         if (noOfRecords>0)
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
@@ -1791,7 +1793,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
             }
           }
                       
-          if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+          if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
           {
             if (L7_SUCCESS != snoopPTinGroupRecordSourcedAdd(groupPtr,sourceAddr,igmpCfg.host.robustness))
             {
@@ -1843,7 +1845,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u",clientIdx);
             return L7_FAILURE;
           }          
-          if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients))
+          if (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
           {
             if(intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
             {
@@ -1897,7 +1899,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
         }
       }
 
-      if (L7_ALREADY_CONFIGURED==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients))
+      if (L7_ALREADY_CONFIGURED==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].numberOfClients))
       {
         if (avlTreeEntry->interfaces[intIfNum].filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
         {
@@ -1948,7 +1950,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
   else
   {
    /*Add group Record */
-    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients)))
+    if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
     {      
       noOfRecords=1;
       groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
@@ -3055,39 +3057,42 @@ pending report and the selected delay.*/
     }
   }
 
-  while (noOfSources > 0)
-  {      
-    SNOOP_GET_ADDR(&ipv4Addr, *sourceList);
-    inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr);
-
-    /* Search for this source in the current source list */    
-    if ((L7_SUCCESS != snoopPTinSourceFind(avlTreeEntry->interfaces[rootIntIdx].sources, &sourceAddr, &sourceIdx) && sourceIdx!=-1) || 
-        snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].clients)==L7_SUCCESS)
+//if(avlTreeEntry->interfaces[rootIntIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE)
+//{
+    while (noOfSources > 0)
     {      
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Inexisting Source %s on idx %u", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
-    }
-    else if (sourceIdx==-1)
-    {
-      return L7_NULLPTR;
-    }
-    else
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
-      if (*sendReport==L7_FALSE)
-        *sendReport=L7_TRUE;
-        
-      if (snoopPTinGroupRecordSourcedAdd(groupPtr,&sourceAddr,robustnessVariable)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed snoopPTinGroupRecordSourcedAdd()");
-        return L7_NULLPTR;        
+      SNOOP_GET_ADDR(&ipv4Addr, *sourceList);
+      inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr);
+
+      /* Search for this source in the current source list */    
+      if ((L7_SUCCESS != snoopPTinSourceFind(avlTreeEntry->interfaces[rootIntIdx].sources, &sourceAddr, &sourceIdx) && sourceIdx!=-1) || 
+          snoopPTinZeroClients(avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].clients,avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].numberOfClients)==L7_SUCCESS)
+      {      
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Inexisting Source %s on idx %u", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
       }
-//    else
-//    {
-//      sourcePtr->retransmissions=sourcePtr->robustnessVariable;
-//    }
+      else if (sourceIdx==-1)
+      {
+        return L7_NULLPTR;
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
+        if (*sendReport==L7_FALSE)
+          *sendReport=L7_TRUE;
+          
+        if (snoopPTinGroupRecordSourcedAdd(groupPtr,&sourceAddr,robustnessVariable)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed snoopPTinGroupRecordSourcedAdd()");
+          return L7_NULLPTR;        
+        }
+  //    else
+  //    {
+  //      sourcePtr->retransmissions=sourcePtr->robustnessVariable;
+  //    }
+      }
+      --noOfSources;
     }
-    --noOfSources;
-  }
+//}
   
   if (*sendReport==L7_FALSE)
   {
@@ -3260,7 +3265,7 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
   snoopPTinProxyGroup_t*     groupPtr;
   snoopPTinProxyGroup_t*     firstGroupPtr=L7_NULLPTR;
 
-  L7_uint32 i,j=0,noOfRecords=0;
+  L7_uint32 sourceIdx,groupIdx=0,noOfRecords=0;
   L7_uint8 recordType/*=L7_IGMP_MODE_IS_EXCLUDE*/;  
 
   snoop_eb_t         *pSnoopEB;
@@ -3291,9 +3296,9 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
 
     if(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId==interfacePtr->key.vlanId && 
        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_TRUE && 
-       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)!=L7_SUCCESS)
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients)==L7_ALREADY_CONFIGURED)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Element Number %u",++j);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Address Number %u",groupIdx++);
       if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE)
       {
         recordType=L7_IGMP_MODE_IS_INCLUDE;        
@@ -3316,12 +3321,12 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
         firstGroupPtr=groupPtr;
       }
 
-      for(i=0;i<avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfSources;i++)
+      for(sourceIdx=0;sourceIdx<avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfSources;sourceIdx++)
       {
-        if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[i].status==PTIN_SNOOP_SOURCESTATE_ACTIVE &&
-            snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[i].clients)!=L7_SUCCESS)
+        if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE &&
+            snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].numberOfClients)==L7_ALREADY_CONFIGURED)
         {                 
-          if (L7_SUCCESS != snoopPTinGroupRecordSourcedAdd(groupPtr,&avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[i].sourceAddr,robustnessVariable))
+          if (L7_SUCCESS != snoopPTinGroupRecordSourcedAdd(groupPtr,&avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].sourceAddr,robustnessVariable))
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
             return L7_NULLPTR;

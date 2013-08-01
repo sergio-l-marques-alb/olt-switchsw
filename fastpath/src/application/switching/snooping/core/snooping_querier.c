@@ -1394,10 +1394,14 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
-    igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
     
   }
-  pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
+  else
+  {    
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+  }
 
   version = pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperVersion;
   if (version == 0)
@@ -2069,10 +2073,25 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
   L7_inet_addr_t   destIp, groupAddr;
   L7_in6_addr_t    ipv6Addr;
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
+  ptin_IgmpProxyCfg_t igmpCfg; 
   /* PTin added: IGMP snooping */
   #if 1
   mgmdSnoopControlPkt_t mcastPacket;
   #endif
+
+
+  /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+    
+  }
+  else
+  {    
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+  }
 
   pSnoopCB = pSnoopOperEntry->cbHandle;
   vlanId   = pSnoopOperEntry->vlanId;

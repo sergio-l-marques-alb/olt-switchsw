@@ -512,6 +512,68 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      * PHY CONFIG Processing
      **************************************************************************/
 
+    case CCMSG_ETH_PHY_STATUS_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", CCMSG_ETH_PHY_STATUS_GET);
+
+      CHECK_INFO_SIZE(msg_HwGenReq_t);
+
+      L7_uint i;
+      msg_HwGenReq_t       *request = (msg_HwGenReq_t *) inbuffer->info;
+      msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
+      msg_HWEthPhyStatus_t  pin[1];
+
+      /* Reference structure */
+      memset(pin,0x00,sizeof(msg_HWEthPhyStatus_t));
+      pin->SlotId = request->slot_id;
+      pin->Port   = request->generic_id;
+
+      /* Single port ? */
+      if (pin->Port < PTIN_SYSTEM_N_PORTS)
+      {
+        memcpy(pout, pin, sizeof(msg_HWEthPhyStatus_t));
+
+        if (ptin_msg_PhyStatus_get(pout) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port status (port# %u)", pin->Port);
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t);
+      }
+      /* Swipe all ports */
+      else
+      {
+        for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
+        {
+          memcpy(&pout[i], pin, sizeof(msg_HWEthPhyStatus_t));
+          pout[i].Port = i;
+
+          if (ptin_msg_PhyStatus_get(&pout[i]) != L7_SUCCESS)
+            break;
+        }
+
+        /* Error? */
+        if (i != PTIN_SYSTEM_N_PORTS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t) * i;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_PHY_STATUS_GET */
+    }
+
     /* CCMSG_ETH_PHY_CONFIG_SET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_SET:
     {
