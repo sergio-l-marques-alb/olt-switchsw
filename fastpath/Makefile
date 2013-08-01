@@ -13,12 +13,6 @@ SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
 version = "test"
 
-ifeq ($(version),"test")
- version_final = $(version)-r$(SVN_REV)
-else
- version_final = $(version)-r$(SVN_REV)
-endif
-
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
 
@@ -74,7 +68,7 @@ clean:		clean_olt360 clean_olt640
 cleanall:	cleanall_olt360 cleanall_olt640
 
 image:		install
-		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version_final)
+		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version)
 
 olt360:
 	@$(MAKE) -f olt360.make all
