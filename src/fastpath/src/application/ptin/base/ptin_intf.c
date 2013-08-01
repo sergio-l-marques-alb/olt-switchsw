@@ -119,7 +119,7 @@ L7_RC_t ptin_intf_init(void)
   }
 
   LOG_INFO(LOG_CTX_PTIN_INTF, "Waiting for interfaces to be attached...");
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
     {
