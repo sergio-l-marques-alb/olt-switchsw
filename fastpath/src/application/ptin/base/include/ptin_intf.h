@@ -16,8 +16,9 @@
 #define PHY_PORT_1000_MBPS            3
 #define PHY_PORT_2500_MBPS            4   /* PTin added: Speed 2.5G */
 #define PHY_PORT_10_GBPS              5   /* PTin added: Speed 10G */
-#define PHY_PORT_40_GBPS              6   /* PTin added: Speed 40G */
-#define PHY_PORT_100_GBPS             7   /* PTin added: Speed 100G */
+#define PHY_PORT_1000AN_GBPS          6   /* PTin added: Speed 1G with/ Autoneg */
+#define PHY_PORT_40_GBPS              7   /* PTin added: Speed 40G */
+#define PHY_PORT_100_GBPS             8   /* PTin added: Speed 100G */
 
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
