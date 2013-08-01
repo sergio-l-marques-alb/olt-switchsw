@@ -493,7 +493,7 @@ extern L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client,
-                                         L7_uint16 channel_index, L7_uint16 *number_of_channels, L7_in_addr_t *channel_list,
+                                         L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpClientInfo_t *channel_list,
                                          L7_uint16 *total_channels);
 
 /**

@@ -1276,17 +1276,17 @@ L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_uint16 channelList_size=0;
-static L7_inet_addr_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES];
+static L7_uint16             channelList_size=0;
+static ptin_igmpClientInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
 
 L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client,
-                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, L7_in_addr_t *channel_list,
+                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpClientInfo_t *channel_list,
                                   L7_uint16 *total_channels)
 {
-  L7_uint16 McastRootVlan;
-  L7_uint igmp_idx, client_idx;
+  L7_uint16                i, max_channels, n_channels;
+  L7_uint                  igmp_idx, client_idx;
+  L7_uint16                McastRootVlan;
   ptinIgmpClientInfoData_t *clientInfo;
-  L7_uint16 i, max_channels, n_channels;
 
   /* Validate arguments */
   if (channel_list==L7_NULLPTR || number_of_channels==L7_NULLPTR)
@@ -1348,7 +1348,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     memset(channelList,0x00,sizeof(channelList));
     channelList_size = 0;
 
-    n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES;
+    n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
     if (ptin_snoop_activeChannels_get(McastRootVlan,client_idx,channelList,&n_channels)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting channels list");
@@ -1371,9 +1371,10 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
   n_channels=0;
   for (i=0; i<max_channels; i++)
   {
-    if (channelList[channel_index+i].family==L7_AF_INET)
+    if (channelList[channel_index+i].groupAddr.family==L7_AF_INET)
     {
-      channel_list[i].s_addr = channelList[channel_index+i].addr.ipv4.s_addr;
+      inetCopy(&channel_list[i].groupAddr, &channelList[channel_index+i].groupAddr);
+      inetCopy(&channel_list[i].sourceAddr, &channelList[channel_index+i].sourceAddr);
       n_channels++;
     }
   }

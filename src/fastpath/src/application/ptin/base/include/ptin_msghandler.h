@@ -1024,9 +1024,10 @@ typedef struct _msg_MCStaticChannel_t
 #define MSG_MCACTIVECHANNELS_CHANNELS_MAX       1024
 typedef struct
 {
-   L7_uint8     SlotId;                                                  
-   L7_uint16    evc_id;                                                  
-   L7_uint16    entryId;
+   L7_uint8          SlotId;                                                  
+   L7_uint16         evc_id; 
+   msg_client_info_t client;       // Client information                                                
+   L7_uint16         entryId;
 } __attribute__((packed)) msg_MCActiveChannelsRequest_t;
 
 typedef struct

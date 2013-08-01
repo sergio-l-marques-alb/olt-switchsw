@@ -4822,10 +4822,10 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
  */
 L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels)
 {
-  L7_in_addr_t clist[MSG_MCACTIVECHANNELS_CHANNELS_MAX];
-  L7_uint16 i, number_of_channels, total_channels;
-  ptin_client_id_t client;
-  L7_RC_t rc;
+  ptin_igmpClientInfo_t  clist[*numberOfChannels];
+  L7_uint16              i, number_of_channels, total_channels;
+  ptin_client_id_t       client;
+  L7_RC_t                rc;
 
   if(numberOfChannels == L7_NULLPTR)
   {
@@ -4834,12 +4834,32 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of channels");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId =%u",inputPtr->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",inputPtr->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel_idx=%u",inputPtr->entryId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",             inputPtr->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  = %u",             inputPtr->evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.Mask  = 0x%02x",   inputPtr->client.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.OVlan = %u",       inputPtr->client.outer_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.IVlan = %u",       inputPtr->client.inner_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.Intf  = %u/%u",    inputPtr->client.intf.intf_type,inputPtr->client.intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx=%u",            inputPtr->entryId);
 
   /* Client info */
   memset(&client,0x00,sizeof(ptin_client_id_t));
+  if (inputPtr->client.mask & MSG_CLIENT_INTF_MASK)
+  {
+    client.ptin_intf.intf_type = inputPtr->client.intf.intf_type;
+    client.ptin_intf.intf_id   = inputPtr->client.intf.intf_id;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+  if (inputPtr->client.mask & MSG_CLIENT_IVLAN_MASK)
+  {
+    client.innerVlan = inputPtr->client.inner_vlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+  }
+  if (inputPtr->client.mask & MSG_CLIENT_OVLAN_MASK)
+  {
+    client.outerVlan = inputPtr->client.outer_vlan;
+    client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+  }
 
   /* Clear is_static list */
   for(i=0; i<(*numberOfChannels); i++)
@@ -4850,20 +4870,19 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   /* Get list of channels */
   number_of_channels = *numberOfChannels;
-
   rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, inputPtr->entryId, &number_of_channels, clist, &total_channels);
-  LOG_ERR(LOG_CTX_PTIN_MSG,"nc %u tc %u", number_of_channels, total_channels);
 
   if (rc==L7_SUCCESS)
   {
     *numberOfChannels = number_of_channels;
     
     /* Copy channels to message */
-    for (i=0; i<MSG_MCACTIVECHANNELS_CHANNELS_MAX && i<number_of_channels; i++)
+    for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"%04X", clist[i].s_addr);
-      outputPtr[i].chIP = clist[i].s_addr;
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
       outputPtr[i].entryId = i;
+      outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
+      outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
     }
   }
   else if (rc==L7_NOT_EXIST)
@@ -4889,7 +4908,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
  */
 L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
 {
-  L7_in_addr_t channel;
+  L7_in_addr_t channelIp;
   ptin_client_id_t clist[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX];
   L7_uint16 i, number_of_clients, total_clients;
   L7_RC_t rc;
@@ -4898,14 +4917,13 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId     =%u",client_list->SlotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId      =%u",client_list->evc_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," IPv4Channel=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
-
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Page_idx=%u",client_list->page_index);
 
   /* Get list of channels */
-  channel.s_addr = client_list->channelIp.s_addr;
-  number_of_clients = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
+  channelIp.s_addr    = client_list->channelIp.s_addr;
+  number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
-  rc = ptin_igmp_clientList_get(client_list->evc_id, &channel, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, &total_clients);
+  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, &total_clients);
 
   if (rc==L7_SUCCESS)
   {

@@ -4483,10 +4483,10 @@ static L7_RC_t igmp_packet_respond(mgmdSnoopControlPkt_t *mcastPacket)
 
 static L7_RC_t igmp_packet_general_query_respond(mgmdSnoopControlPkt_t *mcastPacket, L7_inet_addr_t *groupIP)
 {
-  L7_uint16 channel;
-  L7_uint16 number_of_channels;
-  L7_inet_addr_t channel_list[1024];
-  L7_uint intf, vlanId, client_vlan;
+  L7_uint16             channel;
+  L7_uint16             number_of_channels;
+  ptin_igmpClientInfo_t channel_list[1024];
+  L7_uint               intf, vlanId, client_vlan;
 
   intf        = mcastPacket->intIfNum;
   vlanId      = mcastPacket->vlanId;
@@ -4524,7 +4524,7 @@ static L7_RC_t igmp_packet_general_query_respond(mgmdSnoopControlPkt_t *mcastPac
   /* Send channels reports */
   for (channel=0; channel<number_of_channels; channel++) {
     /* Prepare packet */
-    if (igmp_rebuild_packet(mcastPacket, &channel_list[channel], L7_IGMP_V2_MEMBERSHIP_REPORT) == L7_SUCCESS) {
+    if (igmp_rebuild_packet(mcastPacket, &channel_list[channel].groupAddr, L7_IGMP_V2_MEMBERSHIP_REPORT) == L7_SUCCESS) {
       /* Send packet to all mrouter ports */
       snoopPacketRtrIntfsForward(mcastPacket, L7_IGMP_V2_MEMBERSHIP_REPORT);
     }

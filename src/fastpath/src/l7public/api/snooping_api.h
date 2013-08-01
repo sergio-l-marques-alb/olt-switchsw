@@ -28,9 +28,11 @@
 #include "default_cnfgr.h"
 #include "snooping_exports.h"
 #include "ping_api.h"
+#include "ptin_structs.h"
 
 /* PTin added: IGMP snooping */
 #if 1
+
 /**
  * Get a list of channels consumed by a particular vlan and 
  * client index 
@@ -40,9 +42,9 @@
  * @param channels     : Channels array
  * @param nChannels    : number of channels
  * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
  */
-L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, L7_inet_addr_t *channels, L7_uint16 *nChannels);
+L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, ptin_igmpClientInfo_t *channels, L7_uint16 *nChannels);
 
 /**
  * Get a list of clients (client indexes) watching a particular 
