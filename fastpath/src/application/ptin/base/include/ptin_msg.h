@@ -95,6 +95,13 @@ extern L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf);
 extern L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState);
 
 /**
+ * Get physical port activity
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct);
+
+/**
  * Get physical port state
  * 
  * @param msgPhyState Structure to save port state (Port 

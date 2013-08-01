@@ -38,6 +38,8 @@
 #define CCMSG_ETH_PORT_MAC_SET              0x9017  // struct msg_HWPortMac_t
 #define CCMSG_ETH_PORT_MAC_GET              0x9018  // struct msg_HWPortMac_t
 
+#define CCMSG_ETH_PHY_ACTIVITY_GET          0x9019  // struct msg_HWEthPhyActivity_t
+
 #define CCMSG_ETH_LACP_LAG_GET              0x9020  // struct msg_LACPLagInfo_t
 #define CCMSG_ETH_LACP_LAG_ADD              0x9021  // struct msg_LACPLagInfo_t
 #define CCMSG_ETH_LACP_LAG_REMOVE           0x9022  // struct msg_LACPLagInfo_t
@@ -318,6 +320,19 @@ typedef struct {
   L7_uint8  MTU_mismatch;       // 0x0800   0 - MTU suported; 1 - MTU not suported
   L7_uint16 Supported_MaxFrame; // 0x1000  1518 to 9600
 } __attribute__((packed)) msg_HWEthPhyState_t;
+
+/* Switch Port PHY state */
+// Message CCMSG_ETH_PHY_ACTIVITY_GET
+typedef struct {
+  L7_uint8  SlotId;
+  struct {
+    L7_uint8  slot;
+    L7_uint8  port;
+  } __attribute__((packed)) intf;
+  L7_uint8  Mask;
+  L7_uint32 RxActivity;         // 0x0008   0 - Sem;      1 - Com
+  L7_uint32 TxActivity;         // 0x0010   0 - Sem;      1 - Com
+} __attribute__((packed)) msg_HWEthPhyActivity_t;
 
 /* Switch Port Counters structures */
 // Message CCMSG_ETH_PHY_COUNTERS_GET and CCMSG_ETH_PHY_COUNTERS_CLEAR

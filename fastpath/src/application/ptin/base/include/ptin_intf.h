@@ -164,17 +164,16 @@ extern L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id);
 extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret);
 
 /**
- * Get slot and port location in the system, from the ptin_port
+ * Get the ptin_port from the slot and port location in the 
+ * system. 
  * 
- * @author mruas (3/14/2013)
- * 
- * @param ptin_port
- * @param slot_ret (output)
- * @param intf_ret (output)
+ * @param slot_ret 
+ * @param intf_ret 
+ * @param ptin_port (output)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret);
+extern L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_port);
 
 /**
  * Get slot and port location in the system, from the ptin_intf
