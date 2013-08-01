@@ -23,7 +23,7 @@ LDFLAGS		= -Wl,-Bdynamic
 #LDFLAGS=-L/usr/local/pq2-linux-4.0.2/powerpc-e300c3-linux/lib
 
 RM=rm -f
-TARGET=bin/fastpath.cli
+TARGET=bin/fp.cli
 
 #PONJACKET_DIR=../SW-BL3458PONJacket_1_6_1413
 CROSS_DIR=/usr/local/pq2-linux-4.0.2
