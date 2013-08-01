@@ -26,6 +26,7 @@
 #define CCMSG_DEFAULTS_RESET                0x9003  // No struct
 #define CCMSG_APPLICATION_RESOURCES         0x9004  // struct msg_ptin_policy_resources
 
+#define CCMSG_ETH_PHY_STATUS_GET            0x9009  // struct msg_HWEthPhyState_t
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_STATE_GET             0x9012  // struct msg_HWEthPhyState_t
@@ -248,6 +249,35 @@ typedef struct  {
 /***************************************************** 
  * PORT CONFIGURATIONS
  ****************************************************/
+
+/* Switch Port PHY status */
+// Message CCMSG_ETH_PHY_STATUS_GET
+typedef struct {
+
+  unsigned char       SlotId;                                                     // Indice do slot
+  unsigned char       BoardType;                                                  // Tipo de Carta
+  unsigned char       Port;                                                       // Indice do interface
+
+  struct
+  {
+    unsigned long     alarmes_mask;                                               //
+    unsigned long     alarmes;                                                    //
+    unsigned char     mac[HW_ETHERNET_MAC_SIZE];                                  //
+  } __attribute__ ((packed)) phy;
+  struct
+  {
+    unsigned char     mask;                                                       //
+    unsigned char     module_type;                                                // 0 - OFF, 1 - 1000BaseSX, 2 - 1000BaseLX
+    unsigned char     als_status;                                                 // Estado do ALS
+    unsigned char     laser_status;                                               // Estado laser (on/off)
+    float             PotenciaOpticaTx;                                           // Potencia Optica Tx (dBm)
+    float             PotenciaOpticaRx;                                           // Potencia Optica Rx (dBm)
+    float             CorrentePolarizacao;                                        // Corrente de polarizacao
+    int               temperatura;                                                // Temperatura (ºC)
+    unsigned char     moduleID[64];                                               // SFF Base Id
+  } __attribute__ ((packed)) opt;
+
+} __attribute__((packed)) msg_HWEthPhyStatus_t;
 
 /* Switch Port PHY configuration */
 // Messages CCMSG_ETH_PHY_CONFIG_SET and CCMSG_ETH_PHY_CONFIG_GET

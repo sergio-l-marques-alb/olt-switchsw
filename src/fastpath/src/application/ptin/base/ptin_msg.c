@@ -410,6 +410,115 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
 }
 
 
+/**
+ * Get physical port state
+ * 
+ * @param msgPhyState Structure to save port state (Port 
+ * field MUST be set; Outut mask bits reflect the updated fields)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
+{
+  L7_uint port;
+  ptin_HWEthPhyConf_t                 phyConf;
+  ptin_HWEthPhyState_t                phyState;
+  ptin_HWEthRFC2819_PortStatistics_t  portStats;
+
+  port = msgPhyStatus->Port;
+
+  /* Clear structure */
+  memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
+  msgPhyStatus->Port = port;
+
+  /* Read some configurations: MaxFrame & Media */
+  phyConf.Port = port;
+  phyConf.Mask = 0xFFFF;
+  if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting configurations of port# %u", phyConf.Port);
+    memset(msgPhyStatus, 0x00, sizeof(ptin_HWEthPhyStatus_t));
+
+    return L7_FAILURE;
+  }
+
+  /* Read statistics */
+  portStats.Port = port;
+  portStats.Mask = 0xFF;
+  portStats.RxMask = 0xFFFFFFFF;
+  portStats.TxMask = 0xFFFFFFFF;
+  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+    memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
+
+    return L7_FAILURE;
+  }
+
+  /* Read some state parameters: Link-Up and AutoNeg-Complete */
+  phyState.Port = port;
+  phyState.Mask = 0xFFFF;
+  if (ptin_intf_PhyState_read(&phyState))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting state of port# %u", phyState.Port);
+    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
+
+    return L7_FAILURE;
+  }
+
+  /* Compose message with all the gathered data */
+  msgPhyStatus->phy.alarmes = 0;
+
+  if (phyState.Speed == PHY_PORT_100_MBPS)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED100_BIT;
+  }
+  if (portStats.Tx.Throughput > 0)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_TX_BIT;
+  }
+  if (portStats.Rx.Throughput > 0)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_RX_BIT;
+  }
+  if (portStats.Tx.etherStatsCollisions > 0)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_COLLISION_BIT;
+  }
+  if (!phyState.LinkUp)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_LINK_BIT;
+  }
+  if (phyState.AutoNegComplete)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_AUTONEG_BIT;
+  }
+  if (phyState.Duplex)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT;
+  }
+  if (phyState.Speed == PHY_PORT_1000_MBPS)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED1000_BIT;
+  }
+  if (phyConf.Media == PHY_PORT_MEDIA_OPTICAL)
+  {
+    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
+  }
+
+  msgPhyStatus->phy.alarmes_mask =  HW_ETHERNET_STATUS_MASK_SPEED100_BIT | HW_ETHERNET_STATUS_MASK_TX_BIT | HW_ETHERNET_STATUS_MASK_RX_BIT | 
+                                    HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | HW_ETHERNET_STATUS_MASK_AUTONEG_BIT |
+                                    HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
+
+  /* Output info read */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",                   msgPhyStatus->Port);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " alarmes          = 0x%04X",  msgPhyStatus->phy.alarmes );
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus->phy.alarmes_mask );
+
+  return L7_SUCCESS;
+}
+
+
 /* Phy Counters Functions *****************************************************/
 /**
  * Read PHY counters
