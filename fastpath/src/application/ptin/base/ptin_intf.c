@@ -3157,12 +3157,12 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* NOTE: it is assumed that the PON ports are mapped from port 0 to L7_SYSTEM_PON_PORTS-1 */
   phyConf->Mask |= 0x0002;
   if ( port < PTIN_SYSTEM_N_PONS ) {
-    phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
-  }
-  else {
     phyConf->Media = PHY_PORT_MEDIA_OPTICAL;
     LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
+  }
+  else {
+    phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
+    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
   }
 
   return L7_SUCCESS;
