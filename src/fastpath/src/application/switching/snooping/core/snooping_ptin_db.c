@@ -3057,39 +3057,42 @@ pending report and the selected delay.*/
     }
   }
 
-  while (noOfSources > 0)
-  {      
-    SNOOP_GET_ADDR(&ipv4Addr, *sourceList);
-    inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr);
-
-    /* Search for this source in the current source list */    
-    if ((L7_SUCCESS != snoopPTinSourceFind(avlTreeEntry->interfaces[rootIntIdx].sources, &sourceAddr, &sourceIdx) && sourceIdx!=-1) || 
-        snoopPTinZeroClients(avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].clients,avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].numberOfClients)==L7_SUCCESS)
+//if(avlTreeEntry->interfaces[rootIntIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE)
+//{
+    while (noOfSources > 0)
     {      
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Inexisting Source %s on idx %u", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
-    }
-    else if (sourceIdx==-1)
-    {
-      return L7_NULLPTR;
-    }
-    else
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
-      if (*sendReport==L7_FALSE)
-        *sendReport=L7_TRUE;
-        
-      if (snoopPTinGroupRecordSourcedAdd(groupPtr,&sourceAddr,robustnessVariable)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed snoopPTinGroupRecordSourcedAdd()");
-        return L7_NULLPTR;        
+      SNOOP_GET_ADDR(&ipv4Addr, *sourceList);
+      inetAddressSet(L7_AF_INET, &ipv4Addr, &sourceAddr);
+
+      /* Search for this source in the current source list */    
+      if ((L7_SUCCESS != snoopPTinSourceFind(avlTreeEntry->interfaces[rootIntIdx].sources, &sourceAddr, &sourceIdx) && sourceIdx!=-1) || 
+          snoopPTinZeroClients(avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].clients,avlTreeEntry->interfaces[rootIntIdx].sources[sourceIdx].numberOfClients)==L7_SUCCESS)
+      {      
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Inexisting Source %s on idx %u", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
       }
-//    else
-//    {
-//      sourcePtr->retransmissions=sourcePtr->robustnessVariable;
-//    }
+      else if (sourceIdx==-1)
+      {
+        return L7_NULLPTR;
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Existing source %s on idx %d", inetAddrPrint(&sourceAddr, debug_buf), sourceIdx);           
+        if (*sendReport==L7_FALSE)
+          *sendReport=L7_TRUE;
+          
+        if (snoopPTinGroupRecordSourcedAdd(groupPtr,&sourceAddr,robustnessVariable)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed snoopPTinGroupRecordSourcedAdd()");
+          return L7_NULLPTR;        
+        }
+  //    else
+  //    {
+  //      sourcePtr->retransmissions=sourcePtr->robustnessVariable;
+  //    }
+      }
+      --noOfSources;
     }
-    --noOfSources;
-  }
+//}
   
   if (*sendReport==L7_FALSE)
   {
