@@ -519,9 +519,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
 
+      msg_HWEthPhyStatus_t *pin     = (msg_HWEthPhyStatus_t *) inbuffer->info;
+
+      #if (PTIN_SYSTEM_N_PONS > 0)
       L7_uint i;
       msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
-      msg_HWEthPhyStatus_t *pin     = (msg_HWEthPhyStatus_t *) inbuffer->info;
 
       /* Output info read */
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Requesting...");
@@ -567,6 +569,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t) * i;
       }
+      #else
+      LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+      res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+      SetIPCNACK(outbuffer, res);
+      break;
+      #endif
 
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
