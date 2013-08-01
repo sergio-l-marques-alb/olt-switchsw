@@ -410,6 +410,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
 }
 
 
+
 /**
  * Get physical port state
  * 

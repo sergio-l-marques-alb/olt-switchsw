@@ -517,17 +517,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", CCMSG_ETH_PHY_STATUS_GET);
 
-      CHECK_INFO_SIZE(msg_HwGenReq_t);
+      CHECK_INFO_SIZE(msg_HWEthPhyStatus_t);
 
       L7_uint i;
-      msg_HwGenReq_t       *request = (msg_HwGenReq_t *) inbuffer->info;
       msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
-      msg_HWEthPhyStatus_t  pin[1];
-
-      /* Reference structure */
-      memset(pin,0x00,sizeof(msg_HWEthPhyStatus_t));
-      pin->SlotId = request->slot_id;
-      pin->Port   = request->generic_id;
+      msg_HWEthPhyStatus_t *pin     = (msg_HWEthPhyStatus_t *) inbuffer->info;
 
       /* Single port ? */
       if (pin->Port < PTIN_SYSTEM_N_PORTS)
