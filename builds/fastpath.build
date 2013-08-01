@@ -15,7 +15,7 @@ DST_PATH=/home/olt/fastpath_builds/fastpath
 
 n_args=$#
 
-svn_rev=`svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+svn_rev=`svnversion ../trunk`
 version=$1-r$svn_rev
 
 image_tgz=$MODULE.image-v$version.tgz
