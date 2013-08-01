@@ -68,6 +68,7 @@
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
 typedef enum  {
+/*Global Counters*/
   SNOOP_STAT_FIELD_ACTIVE_GROUPS=0,
   SNOOP_STAT_FIELD_ACTIVE_CLIENTS,
   SNOOP_STAT_FIELD_IGMP_SENT,
@@ -76,6 +77,29 @@ typedef enum  {
   SNOOP_STAT_FIELD_IGMP_DROPPED,
   SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID,
   SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID,
+
+  /*IGMP & MLD Queries */
+  SNOOP_STAT_FIELD_GENERIC_QUERY_TX,  
+  SNOOP_STAT_FIELD_GENERIC_QUERY_TOTAL_RX,
+  SNOOP_STAT_FIELD_GENERIC_QUERY_VALID_RX,
+  SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX,
+  SNOOP_STAT_FIELD_GENERIC_QUERY_DROPPED_RX,
+
+  SNOOP_STAT_FIELD_GENERAL_QUERY_TX,  
+  SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX,
+  SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX,
+  SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX,
+
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX,
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX,    
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX,    
+  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX,    
+
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX,
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX,    
+  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX,
+
 /*IGMPv2 & MLDv1 only*/
   SNOOP_STAT_FIELD_JOINS_SENT,
   SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS,
@@ -83,112 +107,168 @@ typedef enum  {
   SNOOP_STAT_FIELD_LEAVES_SENT,
   SNOOP_STAT_FIELD_LEAVES_RECEIVED,
 /*IGMPv3 & MLDv2 only*/
-  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_RX,  
   SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX,
-  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID, /*Membership Report Message Received Invalid*/
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX,  
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX,  
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX, 
+  SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX,    
+  
 /*Group Records*/
   SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX,
+
   SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX,
+
   SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX,
+
   SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX,
+
   SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX,
+
   SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX,
-  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_RX,
-/*IGMP & MLD Queries */
-  SNOOP_STAT_FIELD_GENERAL_QUERY_TX,
-  SNOOP_STAT_FIELD_GENERAL_QUERY_RX,
-  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX,
-  SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_RX,    
-  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX,
-  SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_RX,  
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX,
+  SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX,
 /*This must be the last element*/
   SNOOP_STAT_FIELD_ALL                        
 } ptin_snoop_stat_enum_t;
 
+
+
+/*Definitions of the IGMP & MLD statictics 
+rx - received packet 
+tx - transmited packet 
+valid - no problems ocurred during the procssing of the packet 
+invalid - the packet received is invalid (e.g. invalid message type) 
+dropped - the packet is valid, altought it was dropped due to internal error processing (e.g. maximum number of multicast groups exceed)
+total - is equal to the sum of valid+invalid+dropped
+*/
+
 typedef struct
 {
+//Since we have three different types of queries using the same message type=0x11,
+// we need to have an extra field if the packets are invalid i.e. query.  
+
+//Generic Query
+  L7_uint32 generic_query_tx; //query_tx=general_query_tx+group_query_tx+source_query_tx
+  L7_uint32 generic_query_total_rx; //query_total_rx=query_valid_rx+query_invalid_rx+query_dropped_rx
+  L7_uint32 generic_query_valid_rx; //general_query_valid_rx=general_query_valid_rx+group_query_valid_rx+source_query_valid_rx
+  L7_uint32 generic_query_invalid_rx; 
+  L7_uint32 generic_query_dropped_rx; //query_dropped_rx=general_query_dropped_rx+group_query_dropped_rx+source_query_dropped_rx
+
+//General Query
+  L7_uint32 general_query_tx;
+  L7_uint32 general_query_total_rx; //total_rx=valid_rx+dropped_rx
+  L7_uint32 general_query_valid_rx;
+  L7_uint32 general_query_dropped_rx;
+//Group Specific Query
+  L7_uint32 group_query_tx;  
+  L7_uint32 group_query_total_rx;//total_rx=valid_rx+dropped_rx
+  L7_uint32 group_query_valid_rx;
+  L7_uint32 group_query_dropped_rx;
+//Group and Source Specific Query
+  L7_uint32 source_query_tx;
+  L7_uint32 source_query_total_rx;//total_rx=valid_rx+dropped_rx
+  L7_uint32 source_query_valid_rx;
+  L7_uint32 source_query_dropped_rx;
+
+} ptin_Query_Statistics_t;
+
+typedef struct
+{  
+/*New fields*/
+  L7_uint32 join_tx;
+  L7_uint32 join_total_rx;//total=valid+invalid+dropped
+  L7_uint32 join_valid_rx;
+  L7_uint32 join_invalid_rx;
+  L7_uint32 join_dropped_rx;
+
+  L7_uint32 leave_tx;
+  L7_uint32 leave_total_rx;
+  L7_uint32 leave_valid_rx;
+  L7_uint32 leave_invalid_rx;
+  L7_uint32 leave_dropped_rx;
+
+  /*Here for historical reasons*/
+//L7_uint32 joins_sent;
+//L7_uint32 joins_received_success;
+//L7_uint32 joins_received_failed;
+//L7_uint32 leaves_sent;
+//L7_uint32 leaves_received;
+} ptin_IGMPv2_Statistics_t;
+
+typedef struct
+{
+//IGMPv3
+//Group Record
   L7_uint32 allow_tx;
   L7_uint32 allow_total_rx;
   L7_uint32 allow_valid_rx;
   L7_uint32 allow_invalid_rx;
   L7_uint32 allow_dropped_rx;
+
   L7_uint32 block_tx;
   L7_uint32 block_total_rx;
   L7_uint32 block_valid_rx;
   L7_uint32 block_invalid_rx;
   L7_uint32 block_dropped_rx;
+
   L7_uint32 is_include_tx;
   L7_uint32 is_include_total_rx;
   L7_uint32 is_include_valid_rx;  
   L7_uint32 is_include_invalid_rx;  
   L7_uint32 is_include_dropped_rx;  
+
   L7_uint32 is_exclude_tx;
-  L7_uint32 is_exclude_total_rx;
-  L7_uint32 is_exclude_global_rx;
+  L7_uint32 is_exclude_total_rx;  
   L7_uint32 is_exclude_valid_rx;
   L7_uint32 is_exclude_invalid_rx;
-  L7_uint32 is_to_inlude_tx;
-  L7_uint32 is_to_include_total_rx;
-  L7_uint32 is_to_include_valid_rx;
-  L7_uint32 is_to_include_invalid_rx;
-  L7_uint32 is_to_include_dropped_rx;
-  L7_uint32 is_to_exclude_tx;
-  L7_uint32 is_to_exclude_total_rx;
-  L7_uint32 is_to_exclude_valid_rx;
-  L7_uint32 is_to_exclude_invalid_rx;
-  L7_uint32 is_to_exclude_dropped_rx;
-  L7_uint32 record_type_invalid_rx;
+  L7_uint32 is_exclude_dropped_rx;
+
+  L7_uint32 to_include_tx;
+  L7_uint32 to_include_total_rx;
+  L7_uint32 to_include_valid_rx;
+  L7_uint32 to_include_invalid_rx;
+  L7_uint32 to_include_dropped_rx;
+
+  L7_uint32 to_exclude_tx;
+  L7_uint32 to_exclude_total_rx;
+  L7_uint32 to_exclude_valid_rx;
+  L7_uint32 to_exclude_invalid_rx;
+  L7_uint32 to_exclude_dropped_rx;
+
 } ptin_Group_Record_Statistics_t;
-
-typedef struct
-{  
-/*Here for historical reasons*/
-  L7_uint32 joins_sent;
-  L7_uint32 joins_received_success;
-  L7_uint32 joins_received_failed;
-  L7_uint32 leaves_sent;
-  L7_uint32 leaves_received;
-
-/*New fields*/
-//L7_uint32 join_tx;
-//L7_uint32 join_total_rx;//total=valid+invalid+dropped
-//L7_uint32 join_valid_rx;
-//L7_uint32 join_invalid_rx;
-//L7_uint32 join_dropped_rx;
-//L7_uint32 leave_tx;
-//L7_uint32 leave_total_rx;
-//L7_uint32 leave_valid_rx;
-//L7_uint32 leave_invalid_rx;
-//L7_uint32 leave_dropped_rx;
-} ptin_IGMPv2_Statistics_t;
 
 typedef struct
 {
   L7_uint32                       membership_report_tx;
-  L7_uint32                       membership_report_total_rx; //total=valid+invalid+dropped
-  L7_uint32                       membership_report_valid_rx;  //no problems ocurred during the procssing of the packet
-  L7_uint32                       membership_report_invalid_rx; //the packet received is invalid
-  L7_uint32                       membership_report_dropped_rx;//the packet is valid, altought it was dropped due to internal error processing
+  L7_uint32                       membership_report_total_rx; 
+  L7_uint32                       membership_report_valid_rx;  
+  L7_uint32                       membership_report_invalid_rx; 
+  L7_uint32                       membership_report_dropped_rx;
+
   ptin_Group_Record_Statistics_t  group_record;
 } ptin_IGMPv3_Statistics_t;
-
-typedef struct
-{
-  L7_uint32 general_query_tx;
-  L7_uint32 general_query_rx;      
-  L7_uint32 group_query_tx;  
-  L7_uint32 group_query_rx;
-  L7_uint32 source_query_tx;
-  L7_uint32 source_query_rx;
-  L7_uint32 query_drop;  
-  L7_uint32 query_total; 
-  L7_uint32 query_total_tx; 
-} ptin_Query_Statistics_t;
 
 typedef struct
 {
@@ -197,16 +277,28 @@ typedef struct
   L7_uint32 active_clients;
  
   /*Global Counters*/
+  L7_uint32 igmp_total_tx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
   L7_uint32 igmp_total_rx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
-  L7_uint32 igmp_rx_valid;/*This counter is equal to the sum of all valid IGMP packets received*/
-  L7_uint32 igmp_rx_invalid;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
-  L7_uint32 igmp_rx_dropped; /*This counter is equal to the sum of all IGMP packets dropped, due to an internal error processing*/
+  L7_uint32 igmp_valid_rx;/*This counter is equal to the sum of all valid IGMP packets received*/
+  L7_uint32 igmp_invalid_rx;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
+  L7_uint32 igmp_dropped_rx; /*This counter is equal to the sum of all IGMP packets dropped, due to an internal error processing*/
   
-  ptin_IGMPv3_Statistics_t v3;/*Variable respecting IGMPv3*/
-  ptin_IGMPv2_Statistics_t  v2;/*Variable respecting IGMPv2*/
-  ptin_Query_Statistics_t   query;/*Variable respecting Query*/
+  ptin_IGMPv2_Statistics_t  igmpv2;/*Variable respecting IGMPv2*/
+  ptin_IGMPv3_Statistics_t  igmpv3;/*Variable respecting IGMPv3*/  
+
+  ptin_Query_Statistics_t   igmpquery;/*Variable respecting Query*/
+
+////MLD Suppport
+//L7_uint32 mld_total_rx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/
+//L7_uint32 mld_rx_valid;/*This counter is equal to the sum of all valid IGMP packets received*/
+//L7_uint32 mld_rx_invalid;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
+//L7_uint32 mld_rx_dropped; /*This counter is equal to the sum of all IGMP packets dropped, due to an internal error processing*/
+//ptin_MLDv1_Statistics_t   mldv1;
+//ptin_MLDv2_Statistics_t   mldv2;
+//ptin_Query_Statistics_t   mldquery;/*Variable respecting Query*/  
 
 } ptin_MGMD_Statistics_t;
+
 
 typedef struct
 {
@@ -218,20 +310,24 @@ typedef struct
   L7_uint32 igmp_dropped;
   L7_uint32 igmp_received_valid;
   L7_uint32 igmp_received_invalid;
-/*IGMPv2 & MLDv1 only*/
+/*IGMPv2 only*/
   L7_uint32 joins_sent;
   L7_uint32 joins_received_success;
   L7_uint32 joins_received_failed;
   L7_uint32 leaves_sent;
   L7_uint32 leaves_received;
-/*IGMPv3 & MLDv2 only*/
+/*IGMPv3 only*/
   L7_uint32 membership_report_v3;
-/*IGMP & MLD Queries */
+
+/*To be removed in a short future*/
+  ptin_IGMPv3_Statistics_t  igmpv3;/*Variable respecting IGMPv3*/  
+
+/*IGMPv2 Queries */
   L7_uint32 general_queries_sent;
   L7_uint32 general_queries_received;
   L7_uint32 specific_queries_sent;
   L7_uint32 specific_queries_received;
-} ptin_IGMP_Statistics_t;
+} ptin_IGMP_Statistics_t;/*To be replaced with ptin_MGMD_Statistics_t in a short future
 
 /* More debug for IGMP */
 extern L7_BOOL ptin_debug_igmp_snooping;
