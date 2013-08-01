@@ -30,6 +30,7 @@
 #include <ptin_prot_oam_eth.h>
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
+#include "ptin_intf.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -409,6 +410,52 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Get physical port activity
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
+{
+  #if (PTIN_BOARD_IS_MATRIX)
+  L7_uint ptin_port;
+  ptin_HWEthRFC2819_PortStatistics_t  portStats;
+
+  /* Get ptin port */
+  if (ptin_intf_slotPort2port(msgPhyAct->intf.slot, msgPhyAct->intf.port, &ptin_port) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
+    return L7_FAILURE;
+  }
+
+  /* Read statistics */
+  portStats.Port = ptin_port;
+  portStats.Mask = 0xFF;
+  portStats.RxMask = 0xFFFFFFFF;
+  portStats.TxMask = 0xFFFFFFFF;
+  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+    return L7_FAILURE;
+  }
+
+  /* Compose message with all the gathered data */
+  msgPhyAct->Mask = 0xff;
+  msgPhyAct->RxActivity = (L7_uint32) portStats.Rx.Throughput;
+  msgPhyAct->TxActivity = (L7_uint32) portStats.Tx.Throughput;
+
+  /* Output info read */
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Slot/Port # %u/%u",           msgPhyAct->intf.slot, msgPhyAct->intf.port);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " Mask             = 0x%02x",  msgPhyAct->Mask );
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " RX Activity      = %u",      msgPhyAct->RxActivity );
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
+
+  return L7_SUCCESS;
+  #else
+  return L7_NOT_SUPPORTED;
+  #endif
+}
 
 
 /**

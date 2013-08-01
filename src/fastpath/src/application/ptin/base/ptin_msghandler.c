@@ -756,6 +756,35 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
+    /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
+    case CCMSG_ETH_PHY_ACTIVITY_GET:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
+
+      CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
+
+      msg_HWEthPhyActivity_t *pin  = (msg_HWEthPhyActivity_t *) inbuffer->info;
+      msg_HWEthPhyActivity_t *pout = (msg_HWEthPhyActivity_t *) outbuffer->info;
+
+      /* Reference structure */
+      memcpy(pout, pin, sizeof(msg_HWEthPhyActivity_t));
+
+      if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
+
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_PHY_STATE_GET */
+    }
 
     /************************************************************************** 
      * PHY COUNTERS Processing
