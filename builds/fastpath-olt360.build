@@ -3,6 +3,6 @@
 export MODULE=fastpath-olt360
 export PLATFORMS="CXO360G-MX TOLT8G"
 
-export APPLICATION=fastpath
+export APPLICATION=fp
 
 . ./fastpath.build $1
