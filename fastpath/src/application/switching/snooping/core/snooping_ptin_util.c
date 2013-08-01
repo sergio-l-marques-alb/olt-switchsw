@@ -807,7 +807,7 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
 {
   L7_uchar8             igmpFrame[L7_MAX_FRAME_SIZE]={0};
   L7_uint32             igmpFrameLength=0;
-  snoopOperData_t       *pSnoopOperEntry;
+//snoopOperData_t       *pSnoopOperEntry;
   L7_RC_t               rc = L7_SUCCESS;
   mgmdSnoopControlPkt_t mcastPacket;  
   snoop_cb_t            *pSnoopCB;
@@ -835,24 +835,46 @@ L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPt
     return L7_FAILURE;
   }
 
-  pSnoopOperEntry = snoopOperEntryGet(vlanId, pSnoopCB, L7_MATCH_EXACT);
+  /* Initialize mcastPacket structure */
+  memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
+ 
+//pSnoopOperEntry = snoopOperEntryGet(vlanId, pSnoopCB, L7_MATCH_EXACT);
 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, using default values!");
+    pSnoopCB->snoopCfgData->snoopAdminIGMPPrio=PTIN_IGMP_DEFAULT_COS;
+    mcastPacket.srcAddr.family = L7_AF_INET;
+    mcastPacket.srcAddr.addr.ipv4.s_addr = L7_NULL_IP_ADDR;    
   }
-
-  /* Initialize mcastPacket structure */
-  memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
+  else
+  {
+    if(igmpCfg.igmp_cos==0x0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Using default value for igmp_cos, %u",PTIN_IGMP_DEFAULT_COS);  
+      pSnoopCB->snoopCfgData->snoopAdminIGMPPrio=PTIN_IGMP_DEFAULT_COS;
+    }
+    else
+    {    
+      pSnoopCB->snoopCfgData->snoopAdminIGMPPrio=igmpCfg.igmp_cos;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "igmp_cos=%u",pSnoopCB->snoopCfgData->snoopAdminIGMPPrio);  
+    }
+  }
+  
   mcastPacket.cbHandle = snoopCBGet(L7_AF_INET);
   mcastPacket.vlanId = vlanId;
   mcastPacket.innerVlanId = 0;
   mcastPacket.client_idx = (L7_uint32) -1;
   mcastPacket.msgType = IP_PROT_IGMP;
+
+#if 1
+  mcastPacket.srcAddr.family = L7_AF_INET;
+  mcastPacket.srcAddr.addr.ipv4=igmpCfg.ipv4_addr;
+#else
   mcastPacket.srcAddr.family = L7_AF_INET;
   mcastPacket.srcAddr.addr.ipv4.s_addr = L7_NULL_IP_ADDR;
+#endif
   mcastPacket.destAddr.family = L7_AF_INET;
   mcastPacket.destAddr.addr.ipv4.s_addr = L7_IP_IGMPV3_REPORT_ADDR;
 

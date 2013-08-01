@@ -119,7 +119,7 @@ L7_RC_t ptin_intf_init(void)
   }
 
   LOG_INFO(LOG_CTX_PTIN_INTF, "Waiting for interfaces to be attached...");
-  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
     {
@@ -571,6 +571,11 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "1000Mbps");
         break;
 
+      case PHY_PORT_1000AN_GBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
+        strcpy(speedstr, "1000Mbps-AN");
+        break;
+
       /* PTin added: Speed 2.5G */
       case PHY_PORT_2500_MBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_2P5FX;
@@ -689,7 +694,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   L7_uint   port;
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
-  L7_uint32 speed_mode;
+  L7_uint32 speed_mode, autoneg;
 
   port = phyState->Port;
   phyState->Mask = 0;
@@ -717,7 +722,16 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
     switch (speed_mode)
     {
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
-        phyState->Speed = PHY_PORT_1000_MBPS;
+        if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
+        {
+          phyState->Speed = PHY_PORT_1000_MBPS;
+          phyState->AutoNegComplete = L7_FALSE;
+        }
+        else
+        {
+          phyState->Speed = PHY_PORT_1000AN_GBPS;
+          phyState->AutoNegComplete = autoneg;
+        }
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
@@ -3024,7 +3038,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 port;
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
-  L7_uint32 speed_mode;
+  L7_uint32 speed_mode, autoneg;
 
   port = phyConf->Port;
   phyConf->Mask = 0;  /* Clear Mask */
@@ -3091,6 +3105,14 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
     switch (speed_mode)
     {
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+        if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
+        {
+          phyConf->Speed = PHY_PORT_1000_MBPS;
+        }
+        else
+        {
+          phyConf->Speed = PHY_PORT_1000AN_GBPS;
+        }
         phyConf->Speed = PHY_PORT_1000_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
@@ -3135,12 +3157,12 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* NOTE: it is assumed that the PON ports are mapped from port 0 to L7_SYSTEM_PON_PORTS-1 */
   phyConf->Mask |= 0x0002;
   if ( port < PTIN_SYSTEM_N_PONS ) {
-    phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
-  }
-  else {
     phyConf->Media = PHY_PORT_MEDIA_OPTICAL;
     LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
+  }
+  else {
+    phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
+    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
   }
 
   return L7_SUCCESS;

@@ -777,25 +777,6 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
             result = 0;                                              \
 }
 
-
-#define PTIN_PROXY_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint8)*8)] >> ((idx)%(sizeof(L7_uint8)*8))) & 1)
-#define PTIN_PROXY_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint8) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
-#define PTIN_PROXY_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint8) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
-
-#define PTIN_PROXY_NONZEROMASK(array, result)                              \
-{                                                                    \
-    L7_uint8 _i_;                                                   \
-                                                                     \
-    for(_i_ = 0; _i_ < sizeof(array)/sizeof(L7_uint8); _i_++)       \
-        if(array[_i_] != 0)                                          \
-        {                                                            \
-            result = 1;                                              \
-            break;                                                   \
-        }                                                            \
-        else                                                         \
-            result = 0;                                              \
-}
-
 #define PTIN_INCREMENT_COUNTER(counter,val)   { counter+=val; }
 #define PTIN_DECREMENT_COUNTER(counter,val)   { ((counter)>=(val)) ? (counter-=val) : (counter=0); }
 

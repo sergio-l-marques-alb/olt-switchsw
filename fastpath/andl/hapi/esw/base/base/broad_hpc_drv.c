@@ -2564,8 +2564,12 @@ L7_RC_t hpcXeHgSetup(void)
         /* Add each 10G XAUI interface to the bitmap, so they will default to 10G */
         /* Ethernet, if configured for stacking, it will be reconfigured to HiGIG */
 
-        if ((sysapiHpcCardInfoPtr->portInfo[portNo].type == L7_IANA_10G_ETHERNET) &&
-            (sysapiHpcCardInfoPtr->portInfo[portNo].connectorType == L7_XAUI))
+        if ((sysapiHpcCardInfoPtr->portInfo[portNo].type == L7_IANA_10G_ETHERNET ||
+             sysapiHpcCardInfoPtr->portInfo[portNo].type == L7_IANA_40G_ETHERNET ||
+             sysapiHpcCardInfoPtr->portInfo[portNo].type == L7_IANA_100G_ETHERNET) &&
+            (sysapiHpcCardInfoPtr->portInfo[portNo].connectorType == L7_XAUI ||
+             sysapiHpcCardInfoPtr->portInfo[portNo].connectorType == L7_XLAUI ||
+             sysapiHpcCardInfoPtr->portInfo[portNo].connectorType == L7_BACKPLANE_KR))
         {
 
           /* default to 10G and later remove the entries that are not needed */

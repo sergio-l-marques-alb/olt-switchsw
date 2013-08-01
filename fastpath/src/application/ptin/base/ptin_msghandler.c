@@ -512,6 +512,76 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      * PHY CONFIG Processing
      **************************************************************************/
 
+    case CCMSG_ETH_PHY_STATUS_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", CCMSG_ETH_PHY_STATUS_GET);
+
+      CHECK_INFO_SIZE_ATLEAST(L7_uint32);
+
+      msg_HWEthPhyStatus_t *pin     = (msg_HWEthPhyStatus_t *) inbuffer->info;
+
+      #if (PTIN_SYSTEM_N_PONS > 0)
+      L7_uint i;
+      msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
+
+      /* Output info read */
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Requesting...");
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, " SlotId    = %u", pin->SlotId);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, " BoardType = %u", pin->BoardType );
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, " PortId    = %u", pin->Port );
+
+      /* Single port ? */
+      if (pin->Port < PTIN_SYSTEM_N_PONS)
+      {
+        memcpy(pout, pin, sizeof(msg_HWEthPhyStatus_t));
+
+        if (ptin_msg_PhyStatus_get(pout) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port status (port# %u)", pin->Port);
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t);
+      }
+      /* Swipe all ports */
+      else
+      {
+        for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
+        {
+          memcpy(&pout[i], pin, sizeof(msg_HWEthPhyStatus_t));
+          pout[i].Port = i;
+
+          if (ptin_msg_PhyStatus_get(&pout[i]) != L7_SUCCESS)
+            break;
+        }
+
+        /* Error? */
+        if (i < PTIN_SYSTEM_N_PONS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t) * i;
+      }
+      #else
+      LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+      res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+      SetIPCNACK(outbuffer, res);
+      break;
+      #endif
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_PHY_STATUS_GET */
+    }
+
     /* CCMSG_ETH_PHY_CONFIG_SET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_SET:
     {
@@ -686,6 +756,35 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
+    /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
+    case CCMSG_ETH_PHY_ACTIVITY_GET:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
+
+      CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
+
+      msg_HWEthPhyActivity_t *pin  = (msg_HWEthPhyActivity_t *) inbuffer->info;
+      msg_HWEthPhyActivity_t *pout = (msg_HWEthPhyActivity_t *) outbuffer->info;
+
+      /* Reference structure */
+      memcpy(pout, pin, sizeof(msg_HWEthPhyActivity_t));
+
+      if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
+
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_PHY_STATE_GET */
+    }
 
     /************************************************************************** 
      * PHY COUNTERS Processing
