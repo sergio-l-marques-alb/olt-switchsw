@@ -14,7 +14,9 @@ DST_IPADDR=10.112.15.243
 DST_PATH=/home/olt/fastpath_builds/fastpath
 
 n_args=$#
-version=$1
+
+svn_rev=`svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+version=$1-r$svn_rev
 
 image_tgz=$MODULE.image-v$version.tgz
 backup_tgz=$MODULE.backup-v$version.tgz

@@ -19,7 +19,7 @@ Version 2.4.4-r723
  - Fix OLTSWITCH-143: G.8032/ERPS State Machine transitions with 3 NEs.
  - Tsk OLTSWITCH-152: Improved 'Flexible number of interfaces' feature.
  - Tsk OLTSWITCH-154: Added support for 40G interface mode type.
-Version 2.4.5-r780
+Version 2.4.5-r781
  [ TA48GE platform included on build ]
  - Fix OLTTS-1959/OLTSWITCH-144: Ethernet OAM / IEEE 802.1ag: MEG/MAID Level configuration not allowed.
  - Fix OLTTS-2238/OLTSWITCH-156: CFM Probes not going into the up state.
