@@ -22,7 +22,7 @@ LDFLAGS		= -Wl,-Bdynamic,-L$(LIB)
 #LDFLAGS=-L/usr/local/pq2-linux-4.0.2/powerpc-e300c3-linux/lib
 
 RM=rm -f
-TARGET=bin/fastpath.shell
+TARGET=bin/fp.shell
 
 HDRS=-I. -Iutils -Iipc -Imain \
 #-I$(CROSS_DIR)/powerpc-e300c3-linux/include
