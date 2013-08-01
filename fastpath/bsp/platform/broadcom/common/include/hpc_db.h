@@ -210,13 +210,13 @@
 #define L7_PORT_DESC_BCOM_40G_KR4      L7_IANA_40G_ETHERNET,                \
                                        L7_PORTCTRL_PORTSPEED_FULL_40G_KR4,  \
                                        (L7_PHY_CAP_PORTSPEED_FULL_40G),     \
-                                       L7_BACKPLANE_KR
+                                       L7_XLAUI
 
 /* PTin added: Speed 100G */
 #define L7_PORT_DESC_BCOM_100G_BKP     L7_IANA_100G_ETHERNET,               \
                                        L7_PORTCTRL_PORTSPEED_FULL_100G_BKP, \
                                        (L7_PHY_CAP_PORTSPEED_FULL_100G),    \
-                                       L7_BACKPLANE_KR
+                                       L7_XLAUI
 
 #define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \
                                          L7_PORTCTRL_PORTSPEED_FULL_10GSX,  \

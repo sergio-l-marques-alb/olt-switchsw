@@ -413,7 +413,7 @@ xLibRC_t fpObjGet_baseinterfaceListing_fiberInterface (void *wap, void *bufp)
        }
          else if (( usmDbIntfConnectorTypeGet(nextObjfiberInterfaceValue, &connType) == L7_SUCCESS ) )
          {
-           if (L7_XAUI == connType)
+           if (L7_XAUI == connType || L7_XLAUI == connType || L7_BACKPLANE_KR == connType)
            {
              break;
            }
