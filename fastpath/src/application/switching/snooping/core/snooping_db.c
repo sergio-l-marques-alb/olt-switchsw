@@ -29,6 +29,7 @@
 #include "snooping_util.h"
 #include "snooping_ctrl.h"
 #include "snooping_defs.h"
+#include "snooping_ptin_sourcetimer.h"
 
 #ifdef L7_NSF_PACKAGE
 #include "snooping_ckpt.h"
@@ -787,12 +788,16 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry);
 #endif
 static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
                                       L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_uint16 client);
-static void snoopChannelsListGet_recursive(avlTreeTables_t *cell_ptr,
-                                           L7_uint16 vlanId,
-                                           L7_uint16 client_index,
-                                           L7_inet_addr_t *channel_list,
-                                           L7_uint16 *num_channels,
-                                           L7_uint16 max_num_channels);
+static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
+                                              L7_uint16 vlanId,
+                                              L7_uint16 client_index,
+                                              ptin_igmpClientInfo_t *channel_list,
+                                              L7_uint16 *num_channels,
+                                              L7_uint16 max_num_channels);
+static void snoopChannelsGet(L7_uint16 vlanId,
+                             L7_uint16 client_index,
+                             ptin_igmpClientInfo_t *channel_list,
+                             L7_uint16 *num_channels); //Supports IGMPv3
 
 /***************************************************************************
 * @purpose  Check if a particular channel group have no interfaces attached
@@ -2619,15 +2624,39 @@ L7_BOOL snoopChannelExist4VlanId(L7_uint16 vlanId, L7_inet_addr_t *channel, snoo
  */
 void snoopChannelsListGet(L7_uint16 vlanId,
                           L7_uint16 client_index,
-                          L7_inet_addr_t *channel_list,
+                          ptin_igmpClientInfo_t *channel_list,
                           L7_uint16 *num_channels)
 {
-  L7_uint16 max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES;
+  L7_uint16             max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES;
+  ptin_IgmpProxyCfg_t   igmpCfg;
 
-  if (num_channels!=L7_NULLPTR && *num_channels<L7_MAX_GROUP_REGISTRATION_ENTRIES)
-    max_num_channels = *num_channels;
+  if (num_channels==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return;
+  }
 
-  snoopChannelsListGet_recursive(L7_NULLPTR, vlanId, client_index, channel_list, num_channels, max_num_channels);
+  /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    return;
+  }
+
+  //TODO: In the future, this MUST retrieve all channels from the IGMPv3 structures. However, that is postponed until compatibility mode in IGMPv3 is supported.
+  if(igmpCfg.clientVersion == 2)
+  {
+    snoopChannelsListGet_v2_recursive(L7_NULLPTR, vlanId, client_index, channel_list, num_channels, max_num_channels);
+  }
+  else if(igmpCfg.clientVersion == 3)
+  {
+    snoopChannelsGet(vlanId, client_index, channel_list, num_channels);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
+    return;
+  }
 }
 
 /**
@@ -2734,12 +2763,12 @@ static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
  * @param num_channels      Number of channels (output) 
  * @param max_num_channels  Maximum number of channels
  */
-static void snoopChannelsListGet_recursive(avlTreeTables_t *cell_ptr,
-                                           L7_uint16 vlanId,
-                                           L7_uint16 client_index,
-                                           L7_inet_addr_t *channel_list,
-                                           L7_uint16 *num_channels,
-                                           L7_uint16 max_num_channels)
+static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
+                                              L7_uint16 vlanId,
+                                              L7_uint16 client_index,
+                                              ptin_igmpClientInfo_t *channel_list,
+                                              L7_uint16 *num_channels,
+                                              L7_uint16 max_num_channels)
 {
   snoopInfoData_t *entry;
   L7_uint direction;
@@ -2784,18 +2813,110 @@ static void snoopChannelsListGet_recursive(avlTreeTables_t *cell_ptr,
             if (client_index<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
                 !PTIN_IS_MASKBITSET(entry->channel_list[channel_index].clients_list,client_index))
               continue;
-            channel_list[*num_channels].family = L7_AF_INET;
-            channel_list[*num_channels].addr.ipv4.s_addr = entry->channel_list[channel_index].ipAddr;
+            channel_list[*num_channels].groupAddr.family            = L7_AF_INET;
+            channel_list[*num_channels].groupAddr.addr.ipv4.s_addr  = entry->channel_list[channel_index].ipAddr;
+            inetAddressReset(&channel_list[*num_channels].sourceAddr);
             (*num_channels)++;
           }
         }
       }
 
       /* Recursive to the left */
-      snoopChannelsListGet_recursive(cell_ptr, vlanId, client_index, channel_list, num_channels, max_num_channels);
+      snoopChannelsListGet_v2_recursive(cell_ptr, vlanId, client_index, channel_list, num_channels, max_num_channels);
 
       if (cell_ptr_prev==L7_NULLPTR)
         break;
+    }
+  }
+}
+
+/**
+ * Get IGMP Channels list based either on UNI VLAN or 
+ * Client VLAN. 
+ * 
+ * @param cell_ptr          Pointer to the AVL Tree element
+ * @param vlanId            UNI VLAN
+ * @param client_index      Client index
+ * @param channel_list      Channels list (output)
+ * @param num_channels      Number of channels (output) 
+ * @param max_num_channels  Maximum number of channels
+ */
+static void snoopChannelsGet(L7_uint16 vlanId,
+                             L7_uint16 client_index,
+                             ptin_igmpClientInfo_t *channel_list,
+                             L7_uint16 *num_channels)
+{
+  snoopPTinL3InfoDataKey_t avl_key;
+  snoopPTinL3InfoData_t    *avl_info;
+  snoop_eb_t               *p_snoop_eb;
+  L7_uint32                max_num_channels;
+
+  if(channel_list != L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return;
+  }
+
+  max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
+  *num_channels    = 0;
+  p_snoop_eb       = snoopEBGet();
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting IGMP channel search");
+
+  memset(&avl_key, 0x00, sizeof(snoopPTinL3InfoDataKey_t));
+  while((avl_info = (snoopPTinL3InfoData_t *)avlSearchLVL7(&p_snoop_eb->snoopPTinL3AvlTree, (void *)&avl_key, AVL_NEXT)) != L7_NULLPTR)
+  {
+    /* If maximum number of channels was reached, break */
+    if(*num_channels >= max_num_channels)
+      break;
+
+    memcpy(&avl_key, &avl_info->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoData_t));
+
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Found group 0x%08X", avl_key.mcastGroupAddr.addr.ipv4.s_addr);
+
+    //Copy group/source if vlans match
+    if(vlanId == avl_key.vlanId)
+    {
+      snoopPTinL3Interface_t  *interface_ptr;
+      L7_uint8                source_idx;
+
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"\tInterface:%u Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM);
+
+      //Add an entry for clients that have requested this group but with no source in particular.
+      interface_ptr = &avl_info->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM];
+      if(interface_ptr->numberOfClients != 0)
+      {
+        //Filter by client (if requested)
+        if((client_index == (L7_uint16)-1) || (PTIN_IS_MASKBITSET(interface_ptr->clients, client_index)))
+        {
+           LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource: ANY_SOURCE");
+           inetCopy(&channel_list[*num_channels].groupAddr, &avl_key.mcastGroupAddr);
+           inetAddressReset(&channel_list[*num_channels].sourceAddr);
+           ++(*num_channels);
+        }
+      }
+
+      for(source_idx=0; source_idx <= PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++source_idx)
+      {
+        snoopPTinL3Source_t *source_ptr;
+
+        source_ptr = &interface_ptr->sources[source_idx];
+
+        //Only consider sources for which traffic forwarding is enabled
+        if(snoop_ptin_sourcetimer_isRunning(&source_ptr->sourceTimer) == L7_FALSE)
+        {
+          continue;
+        }
+
+        //Filter by client (if requested)
+        if((client_index == (L7_uint16)-1) || (PTIN_IS_MASKBITSET(interface_ptr->clients, client_index)))
+        {
+           LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource:0x%08X Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, source_ptr->sourceAddr);
+           inetCopy(&channel_list[*num_channels].groupAddr, &avl_key.mcastGroupAddr);
+           inetCopy(&channel_list[*num_channels].sourceAddr, &source_ptr->sourceAddr);
+           ++(*num_channels);
+        }
+      }
     }
   }
 }

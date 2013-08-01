@@ -24,6 +24,7 @@
 #define SNOOPING_DB_H
 
 #include "snooping.h"
+#include "ptin_structs.h"
 
 /******************************************************************************
   SNOOP Entry Processing Routines
@@ -113,7 +114,7 @@ L7_BOOL snoopChannelExist4VlanId(L7_uint16 vlanId, L7_inet_addr_t *channel, snoo
 /// Get IGMP Channels list based either on VLAN and Client index
 void snoopChannelsListGet(L7_uint16 vlanId,
                           L7_uint16 client_index,
-                          L7_inet_addr_t *channel_list,
+                          ptin_igmpClientInfo_t *channel_list,
                           L7_uint16 *num_channels);
 
 /**

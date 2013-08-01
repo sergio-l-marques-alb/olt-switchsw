@@ -712,6 +712,12 @@ typedef struct {
 
 } ptin_IgmpProxyCfg_t;
 
+typedef struct
+{
+   L7_inet_addr_t groupAddr;
+   L7_inet_addr_t sourceAddr;
+} ptin_igmpClientInfo_t;
+
 /* QoS mapping */ 
 #define PTIN_QOS_INTF_TRUSTMODE_MASK        0x01
 #define PTIN_QOS_INTF_BANDWIDTHUNIT_MASK    0x02
