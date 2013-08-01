@@ -410,6 +410,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
 }
 
 
+
 /**
  * Get physical port state
  * 
@@ -437,7 +438,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting configurations of port# %u", phyConf.Port);
-    memset(msgPhyStatus, 0x00, sizeof(ptin_HWEthPhyStatus_t));
+    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
 
     return L7_FAILURE;
   }
@@ -450,7 +451,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
-    memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
+    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
 
     return L7_FAILURE;
   }

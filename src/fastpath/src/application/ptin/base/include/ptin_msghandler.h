@@ -262,7 +262,7 @@ typedef struct {
   {
     unsigned long     alarmes_mask;                                               //
     unsigned long     alarmes;                                                    //
-    unsigned char     mac[HW_ETHERNET_MAC_SIZE];                                  //
+    unsigned char     mac[L7_MAC_ADDR_LEN];                                       //
   } __attribute__ ((packed)) phy;
   struct
   {

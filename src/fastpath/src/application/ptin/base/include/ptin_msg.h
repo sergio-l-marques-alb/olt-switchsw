@@ -94,6 +94,15 @@ extern L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf);
  */
 extern L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState);
 
+/**
+ * Get physical port state
+ * 
+ * @param msgPhyState Structure to save port state (Port 
+ * field MUST be set; Outut mask bits reflect the updated fields)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus);
 
 /* Counters Manipulation Functions ********************************************/ 
 /**
