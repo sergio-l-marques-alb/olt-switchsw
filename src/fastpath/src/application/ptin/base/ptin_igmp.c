@@ -7081,6 +7081,486 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
+L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
+{
+  L7_uint32 ptin_port;
+  st_IgmpInstCfg_t *igmpInst;
+  ptinIgmpClientInfoData_t *client;
+
+  ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_client = L7_NULLPTR;
+
+  L7_uint32 statPortG=0;
+  L7_uint32 statPort=0;
+  L7_uint32 statClient=0;
+
+  /* Validate field */
+  if (field>=SNOOP_STAT_FIELD_ALL)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Get IGMP instance */
+  igmpInst = L7_NULLPTR;
+  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+  {
+    if (ptin_igmp_inst_get_fromIntVlan(vlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
+    {
+      igmpInst = L7_NULLPTR;
+    }
+  }
+
+  /* If interface is valid... */
+  if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
+  {
+    /* Check if interface exists */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS && ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      /* Global interface statistics at interface level */
+      stat_port_g = &global_stats_intf[ptin_port];
+
+      if (igmpInst!=L7_NULLPTR)
+      {
+        /* interface statistics at igmp instance and interface level */
+        stat_port = &igmpInst->stats_intf[ptin_port];
+      }
+    }
+  }
+
+  /* If client index is valid... */
+  if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
+    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    if (client!=L7_NULLPTR)
+    {
+      /* Statistics at client level */
+      stat_client = &client->stats_client;
+    }
+  }
+
+  switch (field) {
+  case SNOOP_STAT_FIELD_ACTIVE_GROUPS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_groups;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_groups;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_groups;
+    break;
+
+  case SNOOP_STAT_FIELD_ACTIVE_CLIENTS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_clients;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_clients;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_clients;
+    break;
+
+/*Global Counters*/
+  case SNOOP_STAT_FIELD_IGMP_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_TX_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_tx_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_tx_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_tx_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_INTERCEPTED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_intercepted;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_intercepted;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_intercepted;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_dropped;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_dropped;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_dropped;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_valid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_valid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_valid;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_invalid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_invalid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_invalid;
+    break;
+/*End Global Counters*/
+
+/*Query Counters*/
+/*Generic Query*/
+  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->general_queries_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->general_queries_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->general_queries_sent;
+    break;
+/*End Generic Query*/
+
+/*General Query*/
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_dropped_rx;
+    break;
+/*End General Query*/
+
+/*Group Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_dropped_rx;
+    break;
+/*End Group Specifc Query*/
+
+/*Group & Source Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_valid_rx;
+    break;
+
+   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_dropped_rx;
+    break;
+/*End Group & Source Specifc Query*/    
+/*End Query Counters*/
+
+/*To be replaced with the new structure*/
+/*IGMP v2 Counters*/
+  case SNOOP_STAT_FIELD_JOINS_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_success;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_success;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_success;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received;
+    break;
+/*End IGMPv2 Counters*/
+  
+/*IGMPv3 Counters*/
+/*Mmbership Report Message*/
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
+   if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_tx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_tx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_tx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_total_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_total_rx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_total_rx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_valid_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_dropped_rx;
+    break;
+
+    /*GROUP RECORD*/
+    /*Allow*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_dropped_rx;
+    break;
+    /*End Allow*/   
+
+  /*Block*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_dropped_rx;
+    break;
+    /*End Block*/   
+
+    /*To_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_dropped_rx;
+    break;
+    /*End To_In*/   
+
+     /*To_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_dropped_rx;
+    break;
+    /*End To_Ex*/   
+
+     /*Is_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_dropped_rx;
+    break;
+    /*End Is_In*/   
+
+     /*Is_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_dropped_rx;
+    break;
+    /*End Is_Ex*/   
+/*END GROUP RECORD*/
+/*End Membership Report Message*/
+/*End IGMPv3 Counters*/
+ 
+  default:
+    break;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"statistics Field:%u",field);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"statPortG:%u",statPortG);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"statPort:%u",statPort);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"statClient:%u",statClient);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Increment IGMP statistics
+ * 
+ * @param intIfNum   : interface where the packet entered
+ * @param vlan       : packet's interval vlan
+ * @param client_idx : client index
+ * @param field      : field to increment
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port;
@@ -7373,8 +7853,8 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.membership_report_dropped_rx++;
     if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.membership_report_dropped_rx++;
     if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.membership_report_dropped_rx++;
+    break;
 
-#if 0
 /*GROUP RECORD*/
     /*Allow*/
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
@@ -7407,8 +7887,169 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_dropped_rx++;
     break;
     /*End Allow*/   
+
+
+  /*Block*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_dropped_rx++;
+    break;
+    /*End Block*/   
+
+
+    /*To_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_dropped_rx++;
+    break;
+    /*End To_In*/   
+
+     /*To_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_dropped_rx++;
+    break;
+    /*End To_Ex*/   
+
+     /*Is_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_dropped_rx++;
+    break;
+    /*End Is_In*/   
+
+     /*Is_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_dropped_rx++;
+    break;
+    /*End Is_Ex*/   
 /*END GROUP RECORD*/
-#endif
 /*End Membership Report Message*/
 /*End IGMPv3 Counters*/
  

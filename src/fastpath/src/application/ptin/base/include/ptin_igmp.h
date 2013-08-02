@@ -278,6 +278,16 @@ typedef struct
 
 } ptin_Group_Record_Statistics_t;
 
+typedef enum
+{
+  SNOOP_STAT_FIELD_TX=0,
+  SNOOP_STAT_FIELD_TOTAL_RX,
+  SNOOP_STAT_FIELD_VALID_RX,
+  SNOOP_STAT_FIELD_INVALID_RX,
+  SNOOP_STAT_FIELD_DROPPED_RX,
+  SNOOP_STAT_FIELD_TYPE_ALL
+} ptin_snoop_statistics_t;
+
 typedef struct
 {
   L7_uint32                       membership_report_tx;
@@ -979,6 +989,19 @@ extern L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+
+
+/**
+ * Get IGMP statistics
+ * 
+ * @param intIfNum   : interface where the packet entered
+ * @param vlan       : packet's interval vlan
+ * @param client_idx : client index
+ * @param field      : field to get
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 #endif
 
