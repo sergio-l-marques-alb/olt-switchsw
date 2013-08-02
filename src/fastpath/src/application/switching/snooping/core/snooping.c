@@ -674,7 +674,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Insufficient buffers");
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
+    //ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
     return L7_FAILURE;
   }
 
@@ -729,7 +729,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                 "If any error, packet will be dropped");
 #endif
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
+    //ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
   }
 
   return rc;
@@ -1174,7 +1174,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
     bufferPoolFree(msg->snoopBufferPoolId, msg->snoopBuffer);
     snoopDebugPacketRxTrace(&mcastPacket, SNOOP_PKT_DROP_NOT_READY);
     ptin_igmp_stat_increment_field(mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
+    //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
     return L7_SUCCESS;
   }
 
@@ -1186,7 +1186,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
     bufferPoolFree(msg->snoopBufferPoolId, msg->snoopBuffer);
     snoopDebugPacketRxTrace(&mcastPacket, SNOOP_PKT_DROP_BAD_VLAN);
     ptin_igmp_stat_increment_field(mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
+    //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
     return L7_SUCCESS;
   }
 
@@ -1200,7 +1200,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
     /* Free the buffer */
     bufferPoolFree(msg->snoopBufferPoolId, msg->snoopBuffer);
     ptin_igmp_stat_increment_field(mcastPacket.intIfNum, mcastPacket.vlanId, mcastPacket.client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
+    //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
     return L7_SUCCESS;
   }
   /* Free the buffer */
@@ -1443,7 +1443,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
   }
 
   /* If client is dynamic, and no channels are associated, flush it */
-  ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
+  //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
 
   return rc;
 }

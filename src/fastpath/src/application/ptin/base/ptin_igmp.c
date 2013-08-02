@@ -99,18 +99,12 @@ typedef struct {
     ptinIgmpClientInfoData_t  *igmpClientsDataHeap;
 } ptinIgmpClientsAvlTree_t;
 
-/* IGMP AVL Tree data */
-typedef struct {
-  L7_uint16 number_of_clients;                                  /* Number of clients for one IGMP instance */
-  L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
-  /* List of clients associated to this IGMP instance */
-  ptinIgmpClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
-} ptinIgmpClients_t;
-
 /* Unified list for all IGMP clients */
 typedef struct
 {
-  L7_uint16 number_of_clients;             /* Total number of clients */
+  L7_uint16 number_of_clients;                                  /* Total number of clients */
+  L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
+  ptinIgmpClientInfoData_t  *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
 
   ptinIgmpClientsAvlTree_t  avlTree;
   L7_APP_TMR_CTRL_BLK_t     timerCB;       /* Entry App Timer Control Block */
@@ -184,7 +178,6 @@ typedef struct {
   L7_BOOL   inUse;
   L7_uint16 McastEvcId;
   L7_uint16 UcastEvcId;
-  ptinIgmpClients_t igmpClients;
   ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
 } st_IgmpInstCfg_t;
 
@@ -234,7 +227,7 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
     return -1;
 
   /* Search for the first free client index */
-  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpInstances[igmp_idx].igmpClients.clients_in_use[i]!=L7_NULLPTR; i++);
+  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpClients_unified.clients_in_use[i]!=L7_NULLPTR; i++);
 
   if (i>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return -1;
@@ -243,71 +236,59 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
 
 inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
 {
-  ptinIgmpClients_t *clients;
-
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return L7_FALSE;
 
-  clients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Return client existence status */
-  return (clients->clients_in_use[client_idx]!=L7_NULLPTR);
+  return (igmpClients_unified.clients_in_use[client_idx]!=L7_NULLPTR);
 }
 
 inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port, ptinIgmpClientInfoData_t *infoData)
 {
-  ptinIgmpClients_t *clients;
-
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return;
 
-  clients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Update number of clients */
-  if (clients->clients_in_use[client_idx]==L7_NULLPTR)
+  if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)
   {
-    if (clients->number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
-      clients->number_of_clients++;
+    if (igmpClients_unified.number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+      igmpClients_unified.number_of_clients++;
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
-      if (clients->number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
-        clients->number_of_clients_per_intf[ptin_port]++;
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+        igmpClients_unified.number_of_clients_per_intf[ptin_port]++;
     }
   }
 
-  clients->clients_in_use[client_idx] = infoData;
+  igmpClients_unified.clients_in_use[client_idx] = infoData;
 }
 
 inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port)
 {
-  ptinIgmpClients_t *clients;
-
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     return;
   }
 
-  clients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Update number of clients */
-  if (clients->clients_in_use[client_idx]!=L7_NULLPTR)
+  if (igmpClients_unified.clients_in_use[client_idx]!=L7_NULLPTR)
   {
-    if (clients->number_of_clients>0)
+    if (igmpClients_unified.number_of_clients>0)
     {
-      clients->number_of_clients--;
+      igmpClients_unified.number_of_clients--;
     }
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
-      if (clients->number_of_clients_per_intf[ptin_port] > 0 )
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] > 0 )
       {
-        clients->number_of_clients_per_intf[ptin_port]--;
+        igmpClients_unified.number_of_clients_per_intf[ptin_port]--;
       }
     }
   }
 
-  clients->clients_in_use[client_idx] = L7_NULLPTR;
+  igmpClients_unified.clients_in_use[client_idx] = L7_NULLPTR;
 }
 
 inline void igmp_clientIndex_clearAll(L7_uint8 igmp_idx)
@@ -315,8 +296,10 @@ inline void igmp_clientIndex_clearAll(L7_uint8 igmp_idx)
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
     return;
 
-  memset(igmpInstances[igmp_idx].igmpClients.clients_in_use,0x00,sizeof(igmpInstances[igmp_idx].igmpClients.clients_in_use));
-  igmpInstances[igmp_idx].igmpClients.number_of_clients = 0;
+  memset(igmpClients_unified.clients_in_use,0x00,sizeof(igmpClients_unified.clients_in_use));
+  memset(igmpClients_unified.number_of_clients_per_intf,0x00,sizeof(igmpClients_unified.number_of_clients_per_intf));
+
+  igmpClients_unified.number_of_clients = 0;
 }
 
 /* Semaphores */
@@ -2005,15 +1988,15 @@ L7_RC_t ptin_igmp_stat_clearAll(void)
 
     /* Clear instance statistics */
     memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
+  }
 
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-    {
-      if (igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
+  /* Run all clients */
+  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
+  {
+    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
 
-      /* Clear client statistics */
-      memset(&igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-    }
+    /* Clear client statistics */
+    memset(&igmpClients_unified.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
   }
 
   /* Clear global statistics */
@@ -2034,7 +2017,7 @@ L7_RC_t ptin_igmp_stat_clearAll(void)
 L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId)
 {
   L7_uint igmp_idx;
-  L7_uint client_idx;
+  //L7_uint client_idx;
 
   /* Get Igmp instance */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
@@ -2048,14 +2031,17 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId)
   /* Clear instance statistics */
   memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
 
+  /* Do not touch client stats */
+  #if 0
   /* Run all clients */
   for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
   {
-    if (igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
+    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
 
     /* Clear client statistics */
-    memset(&igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
+    memset(&igmpClients_unified.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
   }
+  #endif
 
   osapiSemaGive(ptin_igmp_stats_sem);
 
@@ -2072,10 +2058,10 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId)
 L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
 {
   L7_uint igmp_idx;
-  L7_uint client_idx;
+  //L7_uint client_idx;
   L7_uint32 ptin_port;
   st_IgmpInstCfg_t *igmpInst;
-  ptinIgmpClientInfoData_t *clientInfo;
+  //ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -2104,18 +2090,21 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
     memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
 
     #if (MC_CLIENT_INTERF_SUPPORTED)
+    /* Do not touch client stats */
+    #if 0
     /* Run all clients */
     for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
     {
-      if (igmpInst->igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
+      if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
 
       /* Clear client statistics (if port matches) */
-      clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+      clientInfo = igmpClients_unified.clients_in_use[client_idx];
       if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
       {
         memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
       }
     }
+    #endif
     #endif
   }
 
@@ -2138,10 +2127,10 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
 L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf)
 {
   L7_uint igmp_idx;
-  L7_uint client_idx;
+  //L7_uint client_idx;
   L7_uint32 ptin_port;
   st_IgmpInstCfg_t *igmpInst;
-  ptinIgmpClientInfoData_t *clientInfo;
+  //ptinIgmpClientInfoData_t *clientInfo;
   ptin_evc_intfCfg_t intfCfg;
 
   /* Validate arguments */
@@ -2186,18 +2175,21 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *pti
   memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
 
   #if (MC_CLIENT_INTERF_SUPPORTED)
+  /* Do not touch client stats */
+  #if 0
   /* Run all clients */
   for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
   {
-    if (igmpInst->igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
+    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
 
     /* Clear client statistics (if port matches) */
-    clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+    clientInfo = igmpClients_unified.clients_in_use[client_idx];
     if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
     {
       memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
     }
   }
+  #endif
   #endif
 
   osapiSemaGive(ptin_igmp_stats_sem);
@@ -2409,7 +2401,7 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
                               L7_uint client_idx,
                               L7_BOOL *isDynamic)
 {
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -2420,6 +2412,7 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
     return L7_FAILURE;
   }
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2427,9 +2420,10 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -2643,7 +2637,7 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
                                  ptin_client_id_t *client)
 {
   ptin_intf_t ptin_intf;
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -2654,6 +2648,7 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
     return L7_FAILURE;
   }
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2661,9 +2656,10 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -3868,7 +3864,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
 void igmp_timer_expiry(void *param)
 {
   L7_uint32 timerHandle = (L7_uint32) param;
-  L7_uint igmp_idx, client_idx;
+  L7_uint /*igmp_idx,*/ client_idx;
 
   igmpTimerData_t *pTimerData;
 
@@ -3920,23 +3916,16 @@ void igmp_timer_expiry(void *param)
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removing client (client_idx=%u)",client_idx);
 
-  /* Remove this client for all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  /* Remove client (only if it is dynamic. For static ones, only is removed from snooping entries) */
+  if (ptin_igmp_rm_clientIdx(0 /*igmp_idx*/, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
   {
-    if (!igmpInstances[igmp_idx].inUse || igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]==L7_NULLPTR)
-      continue;
-
-    /* Remove client (only if it is dynamic. For static ones, only is removed from snooping entries) */
-    if (ptin_igmp_rm_clientIdx(igmp_idx, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed removing client (igmp_idx=%u, client_idx=%u)!",igmp_idx,client_idx);
-    }
-    else
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
-    }
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed removing client (client_idx=%u)!",client_idx);
+  }
+  else
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed (client_idx=%u)",client_idx);
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
@@ -5852,7 +5841,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
   igmpInst = &igmpInstances[igmp_idx];
 
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -7063,9 +7052,9 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   }
 
   /* If client index is valid... */
-  if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
@@ -7545,7 +7534,7 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   /* If client index is valid... */
   if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
@@ -8051,7 +8040,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   /* If client index is valid... */
   if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
