@@ -752,7 +752,14 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
       && igmpProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
   {
-    if(igmpProxyCfg.networkVersion==3 && igmpProxy->querier.query_interval>=128)
+    if (igmpProxy->querier.query_interval<PTIN_IGMP_MIN_QUERYINTERVAL ||
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_interval>PTIN_IGMPv2_MAX_QUERYINTERVAL) || 
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>PTIN_IGMPv3_MAX_QUERYINTERVAL)) 
+    {       
+      igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Interval:%u, going to use default value:%u",igmpProxy->querier.query_interval,igmpProxyCfg.querier.query_interval);           
+    }
+    else if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>=128)
     {
       snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval, &igmpProxyCfg.querier.query_interval );
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxy->querier.query_interval);
@@ -768,7 +775,24 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI
       && igmpProxyCfg.querier.query_response_interval != igmpProxy->querier.query_response_interval)
   {
-    if(igmpProxy->querier.query_response_interval>=igmpProxy->querier.query_interval*10)
+    if (igmpProxy->querier.query_response_interval<PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL ||
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_response_interval>PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL) || 
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL)) 
+    { 
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Response Interval:%u",igmpProxy->querier.query_response_interval);           
+      if (igmpProxy->querier.query_interval*10-10>=10)
+      {
+        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval*10-10, &igmpProxyCfg.querier.query_response_interval );
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_interval*10-10);
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to use default values for QQIC & QRI");
+        igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+        igmpProxyCfg.querier.query_response_interval=PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
+      }      
+    }
+    else if(igmpProxy->querier.query_response_interval>=igmpProxy->querier.query_interval*10)
     {
       LOG_WARNING(LOG_CTX_PTIN_IGMP, "Query Response Interval>=Query Interval (%u,%u)", igmpProxy->querier.query_response_interval,igmpProxy->querier.query_interval);
       if (igmpProxy->querier.query_interval*10-10>=10)
@@ -785,7 +809,7 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     }
     else
     {
-      if(igmpProxyCfg.networkVersion==3 && igmpProxy->querier.query_response_interval>=128)
+      if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>=128)
       {
         snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_response_interval, &igmpProxyCfg.querier.query_response_interval );
         LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_response_interval);
@@ -900,13 +924,15 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
       && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
   {
     if (igmpProxy->host.robustness<1 || igmpProxy->host.robustness>7)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Robustness Variable value (%u), going to use defaults value: 2",igmpProxy->host.robustness);
+    {      
       igmpProxyCfg.host.robustness = PTIN_IGMP_DEFAULT_ROBUSTNESS;
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Robustness Variable value:%u, going to use defaults value:%u",igmpProxy->host.robustness,igmpProxyCfg.host.robustness);
     }
     else
+    {
       igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+    }    
   }
 
   /* Unsolicited Report Interval */
@@ -914,14 +940,15 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
       && igmpProxyCfg.host.unsolicited_report_interval != igmpProxy->host.unsolicited_report_interval)
   {
     if (igmpProxy->host.unsolicited_report_interval<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL || igmpProxy->host.unsolicited_report_interval>PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Unsolicited Report Interval configured (%u), going to use default value 1s",igmpProxy->host.unsolicited_report_interval);
+    {      
       igmpProxyCfg.host.unsolicited_report_interval=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
-
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Unsolicited Report Interval configured: %u, going to use default value :%u",igmpProxy->host.unsolicited_report_interval,igmpProxyCfg.host.unsolicited_report_interval);
     }
     else
+    {
       igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
+    }    
   }
 
   /* Older Querier Present Timeout */
