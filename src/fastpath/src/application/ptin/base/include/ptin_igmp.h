@@ -55,6 +55,12 @@
 
 #define PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL     1   /* (1s for IGMPv3, 10s for IGMPv2) */
 
+#define PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL         0.5
+
+#define PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL         5
+
+
+
 #define PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT    PTIN_IGMP_AUTO_OQPT(PTIN_IGMP_DEFAULT_ROBUSTNESS,\
                                                                             PTIN_IGMP_DEFAULT_QUERYINTERVAL,\
                                                                             PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL) /* (260 s) */
