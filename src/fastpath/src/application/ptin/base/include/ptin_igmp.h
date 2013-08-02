@@ -319,8 +319,10 @@ typedef struct
 /*IGMPv3 only*/
   L7_uint32 membership_report_v3;
 
-/*To be removed in a short future*/
+/*New Fields*/
   ptin_IGMPv3_Statistics_t  igmpv3;/*Variable respecting IGMPv3*/  
+  ptin_Query_Statistics_t   igmpquery;/*Variable respecting Query*/
+/*End New Fields*/
 
 /*IGMPv2 Queries */
   L7_uint32 general_queries_sent;
