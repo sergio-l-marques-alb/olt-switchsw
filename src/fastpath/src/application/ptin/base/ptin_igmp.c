@@ -223,9 +223,6 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
 {
   L7_uint i;
 
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-    return -1;
-
   /* Search for the first free client index */
   for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpClients_unified.clients_in_use[i]!=L7_NULLPTR; i++);
 
@@ -236,7 +233,7 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
 
 inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
 {
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return L7_FALSE;
 
   /* Return client existence status */
@@ -245,7 +242,7 @@ inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
 
 inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port, ptinIgmpClientInfoData_t *infoData)
 {
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return;
 
   /* Update number of clients */
@@ -266,7 +263,7 @@ inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint
 
 inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port)
 {
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     return;
   }
@@ -293,9 +290,6 @@ inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_ui
 
 inline void igmp_clientIndex_clearAll(L7_uint8 igmp_idx)
 {
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-    return;
-
   memset(igmpClients_unified.clients_in_use,0x00,sizeof(igmpClients_unified.clients_in_use));
   memset(igmpClients_unified.number_of_clients_per_intf,0x00,sizeof(igmpClients_unified.number_of_clients_per_intf));
 
@@ -357,7 +351,10 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
 #endif
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
+/* Not used */
+#if 0
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx);
+#endif
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx);
 //static L7_RC_t ptin_igmp_inst_validate(ptin_IgmpInstCfg_t *igmpInst, L7_uint *idx);
 static L7_RC_t ptin_igmp_instance_find_free(L7_uint *idx);
@@ -1182,12 +1179,15 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
     return L7_SUCCESS;
   }
 
+  /* Do not touch the clients */
+  #if 0
   /* Remove all clients attached to this instance */
   if (ptin_igmp_instance_deleteAll_clients(igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all clients from igmp_idx %u (McastEvcId=%u,UcastEvcId=%u)",igmp_idx,McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Deconfigure querier for this instance */
   if (ptin_igmp_querier_configure(igmp_idx,L7_DISABLE)!=L7_SUCCESS)
@@ -4959,9 +4959,10 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   ptinIgmpClientInfoData_t *avl_infoData;
   L7_uint32 ptin_port;
   #if (MC_CLIENT_INTERF_SUPPORTED)
-  ptin_evc_intfCfg_t intfCfg;
+  //ptin_evc_intfCfg_t intfCfg;
   #endif
 
+  #if 0
   /* Validate igmp index */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -4975,6 +4976,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u is not in use",igmp_idx);
     return L7_FAILURE;
   }
+  #endif
 
   /* Validate client */
   if (client==L7_NULLPTR)
@@ -5005,6 +5007,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   #if (MC_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
+    #if 0
     /* Get interface configuration in the MC EVC */
     if (ptin_evc_intfCfg_get(igmpInstances[igmp_idx].McastEvcId, &client->ptin_intf, &intfCfg)!=L7_SUCCESS)
     {
@@ -5019,6 +5022,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
               client->ptin_intf.intf_type,client->ptin_intf.intf_id,igmpInstances[igmp_idx].McastEvcId);
       return L7_FAILURE;
     }
+    #endif
     /* Convert to ptin_port format */
     if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
@@ -5028,14 +5032,6 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
     }
   }
   #endif
-
-  /* Get new client index */
-  if ((client_idx=igmp_clientIndex_get_new(igmp_idx))<0)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index for igmp_idx=%u (mcEvc=%u)",
-            igmp_idx,igmpInstances[igmp_idx].McastEvcId);
-    return L7_FAILURE;
-  }
 
   /* Check if this key already exists */
   avl_tree = &igmpClients_unified.avlTree;
@@ -5077,30 +5073,169 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} will be added to igmp_idx=%u",
+                                "} will be added"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
   }
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Check if this key already exists */
-  if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) != L7_NULLPTR)
+  if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
+    /* Get new client index */
+    if ((client_idx=igmp_clientIndex_get_new(igmp_idx))<0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index");
+      return L7_FAILURE;
+    }
+
+    /* Insert entry in AVL tree */
+    if (avlInsertEntry(&(avl_tree->igmpClientsAvlTree), (void *)&avl_key)!=L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting key {"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+                                "port=%u,"
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                "svlan=%u,"
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                "cvlan=%u,"
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                "ipAddr=%u.%u.%u.%u,"
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+              #endif
+                                "}"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+              ,avl_key.ptin_port
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              ,avl_key.outerVlan
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              ,avl_key.innerVlan
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+              #endif
+             );
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+
+    /* Find the inserted entry */
+    if ((avl_infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),(void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot find key {"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+                                "port=%u,"
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                "svlan=%u,"
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                "cvlan=%u,"
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                "ipAddr=%u.%u.%u.%u,"
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+              #endif
+                                "}"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+              ,avl_key.ptin_port
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              ,avl_key.outerVlan
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              ,avl_key.innerVlan
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+              #endif
+             );
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+
+    if (ptin_debug_igmp_snooping)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success inserting Key {"
+                #if (MC_CLIENT_INTERF_SUPPORTED)
+                                  "port=%u,"
+                #endif
+                #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                  "svlan=%u,"
+                #endif
+                #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                  "cvlan=%u,"
+                #endif
+                #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                  "ipAddr=%u.%u.%u.%u,"
+                #endif
+                #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                  "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+                #endif
+                                  "} (entry is %s)"
+                #if (MC_CLIENT_INTERF_SUPPORTED)
+                ,avl_key.ptin_port
+                #endif
+                #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                ,avl_key.outerVlan
+                #endif
+                #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                ,avl_key.innerVlan
+                #endif
+                #if (MC_CLIENT_IPADDR_SUPPORTED)
+                ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+                #endif
+                #if (MC_CLIENT_MACADDR_SUPPORTED)
+                ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+                #endif
+                ,((isDynamic) ? "dynamic" : "static"));
+    }
+
+    /* Update client index in data cell */
+    avl_infoData->client_index = client_idx;
+
+    /* Dynamic entry? */
+    avl_infoData->isDynamic = isDynamic & 1;
+
+    /* Clear igmp statistics */
+    osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
+    memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+  else
+  {
+    client_idx = avl_infoData->client_index;
+
     if (ptin_debug_igmp_snooping)
     {
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"This key {"
@@ -5119,24 +5254,23 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} already exists in igmp_idx=%u (client_idx=%u)",
+                                    "} already exists (client_idx=%u)"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx,
-                  avl_infoData->client_index);
+                  ,avl_infoData->client_index);
     }
 
     /* If new type is static, always change to it */
@@ -5146,148 +5280,12 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
       if (ptin_debug_igmp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Entry is static!");
     }
-      /* Output client index */
-    if (client_idx_ret!=L7_NULLPTR)
-    {
-      *client_idx_ret = avl_infoData->client_index;
-    }
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_SUCCESS;
   }
-
-  /* Insert entry in AVL tree */
-  if (avlInsertEntry(&(avl_tree->igmpClientsAvlTree), (void *)&avl_key)!=L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting key {"
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                              "svlan=%u,"
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                              "cvlan=%u,"
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-                              "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-                              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
-                              "} in igmp_idx=%u",
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-            avl_key.ptin_port,
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            avl_key.outerVlan,
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            avl_key.innerVlan,
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
-            igmp_idx);
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_FAILURE;
-  }
-
-  /* Find the inserted entry */
-  if ((avl_infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),(void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot find key {"
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                              "svlan=%u,"
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                              "cvlan=%u,"
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-                              "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-                              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
-                              "} in igmp_idx=%u",
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-            avl_key.ptin_port,
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            avl_key.outerVlan,
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            avl_key.innerVlan,
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
-            igmp_idx);
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_FAILURE;
-  }
-
-  /* Update client index in data cell */
-  avl_infoData->client_index = client_idx;
-
-  /* Dynamic entry? */
-  avl_infoData->isDynamic = isDynamic & 1;
 
   /* Mark one more client for AVL tree */
   igmp_clientIndex_mark(igmp_idx, client_idx, ptin_port, avl_infoData);
 
-  /* Clear igmp statistics */
-  osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
-  memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
-  osapiSemaGive(ptin_igmp_stats_sem);
-
   osapiSemaGive(ptin_igmp_clients_sem);
-
-  if (ptin_debug_igmp_snooping)
-  {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success inserting Key {"
-              #if (MC_CLIENT_INTERF_SUPPORTED)
-                                "port=%u,"
-              #endif
-              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                                "svlan=%u,"
-              #endif
-              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                                "cvlan=%u,"
-              #endif
-              #if (MC_CLIENT_IPADDR_SUPPORTED)
-                                "ipAddr=%u.%u.%u.%u,"
-              #endif
-              #if (MC_CLIENT_MACADDR_SUPPORTED)
-                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-              #endif
-                                "} in igmp_idx=%u (entry is %s)",
-              #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
-              #endif
-              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
-              #endif
-              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
-              #endif
-              #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-              #endif
-              #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-              #endif
-              igmp_idx,
-              ((isDynamic) ? "dynamic" : "static"));
-  }
 
   /* Output client index */
   if (client_idx_ret!=L7_NULLPTR)
@@ -5308,7 +5306,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
  */
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static)
 {
-  L7_uint16 McastRootVlan;
+  //L7_uint16 McastRootVlan;
   L7_uint32 intIfNum;
   L7_uint   client_idx;
   ptinIgmpClientDataKey_t   avl_key;
@@ -5316,6 +5314,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   ptinIgmpClientInfoData_t *avl_infoData;
   L7_uint32 ptin_port;
 
+  #if 0
   /* Validate igmp index */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -5329,6 +5328,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u is not in use",igmp_idx);
     return L7_FAILURE;
   }
+  #endif
 
   /* Validate client */
   if (client==L7_NULLPTR)
@@ -5354,12 +5354,14 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   }
   #endif
 
+  #if 0
   /* Get Multicast root vlan */
   if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Convert interface to ptin_port format */
   intIfNum = 0;
@@ -5421,23 +5423,23 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} in igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
   }
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
@@ -5463,23 +5465,23 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} does not exist in igmp_idx=%u",
+                                    "} does not exist"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
     }
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_NOT_EXIST;
@@ -5492,7 +5494,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   /* Stop timers related to this client */
   if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
     //osapiSemaGive(ptin_igmp_clients_sem);
     //return L7_FAILURE;
   }
@@ -5520,23 +5522,23 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} from igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_FAILURE;
     }
@@ -5564,28 +5566,28 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                 #if (MC_CLIENT_MACADDR_SUPPORTED)
                                   "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                 #endif
-                                  "} from igmp_idx=%u",
+                                  "}"
                 #if (MC_CLIENT_INTERF_SUPPORTED)
-                avl_key.ptin_port,
+                ,avl_key.ptin_port
                 #endif
                 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                avl_key.outerVlan,
+                ,avl_key.outerVlan
                 #endif
                 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                avl_key.innerVlan,
+                ,avl_key.innerVlan
                 #endif
                 #if (MC_CLIENT_IPADDR_SUPPORTED)
-                (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                 #endif
                 #if (MC_CLIENT_MACADDR_SUPPORTED)
-                avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                 #endif
-                igmp_idx);
+               );
     }
   }
 
   /* Remove client from all snooping entries */
-  if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+  if (ptin_snoop_client_remove(0 /*All vlans*/, client_idx, intIfNum)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
     //return L7_FAILURE;
@@ -5610,7 +5612,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
  */
 static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_BOOL only_wo_channels)
 {
-  L7_uint16 McastRootVlan;
+  //L7_uint16 McastRootVlan;
   L7_uint   client_idx;
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
@@ -5619,6 +5621,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
   L7_uint32 intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
+  #if 0
   /* Validate igmp index */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -5639,6 +5642,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -5679,7 +5683,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
     /* Stop timers */
     if (ptin_igmp_timer_stop(igmp_idx,client_idx)!=L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
       //rc = L7_FAILURE;
     }
   #endif
@@ -5703,23 +5707,23 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} from igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
         rc = L7_FAILURE;
     }
     else
@@ -5745,29 +5749,29 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} from igmp_idx=%u",
+                                    "}"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
       }
 
       if (!only_wo_channels)
       {
         /* Remove client from all snooping entries */
-        if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+        if (ptin_snoop_client_remove(0 /*All vlans*/, client_idx, intIfNum) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
         }
@@ -5810,13 +5814,14 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 {
   L7_uint ptin_port;
   L7_uint32 intIfNum;
-  L7_uint16 McastRootVlan;
-  st_IgmpInstCfg_t         *igmpInst;
+  //L7_uint16 McastRootVlan;
+  //st_IgmpInstCfg_t         *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
   ptinIgmpClientDataKey_t  *avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   L7_RC_t rc;
 
+  #if 0
   /* Validate arguments */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -5830,6 +5835,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
       LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP index %u not in use",igmp_idx);
     return L7_FAILURE;
   }
+  #endif
   if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
   {
     //if (ptin_debug_igmp_snooping)
@@ -5838,7 +5844,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
   }
 
   /* IGMP instance */
-  igmpInst = &igmpInstances[igmp_idx];
+  //igmpInst = &igmpInstances[igmp_idx];
 
   /* Get pointer to client structure in AVL tree */
   clientInfo = igmpClients_unified.clients_in_use[client_idx];
@@ -5876,7 +5882,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
     if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client_idx=%u)", client_idx);
       //return L7_FAILURE;
     }
   #endif
@@ -5909,28 +5915,28 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} from igmp_idx=%u",
+                                    "}"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key->ptin_port,
+                  ,avl_key->ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key->outerVlan,
+                  ,avl_key->outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key->innerVlan,
+                  ,avl_key->innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key->ipv4_addr>>24) & 0xff, (avl_key->ipv4_addr>>16) & 0xff, (avl_key->ipv4_addr>>8) & 0xff, avl_key->ipv4_addr & 0xff,
+                  ,(avl_key->ipv4_addr>>24) & 0xff, (avl_key->ipv4_addr>>16) & 0xff, (avl_key->ipv4_addr>>8) & 0xff, avl_key->ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key->macAddr[0],avl_key->macAddr[1],avl_key->macAddr[2],avl_key->macAddr[3],avl_key->macAddr[4],avl_key->macAddr[5],
+                  ,avl_key->macAddr[0],avl_key->macAddr[1],avl_key->macAddr[2],avl_key->macAddr[3],avl_key->macAddr[4],avl_key->macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
         return L7_FAILURE;
       }
 
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark igmp_idx=%u client_idx=%u",igmp_idx,client_idx);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark client_idx=%u", client_idx);
 
       /* Remove client for AVL tree */
       igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
@@ -5945,6 +5951,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 
     rc = L7_SUCCESS;
 
+    #if 0
     /* Get Multicast root vlan */
     if ( (ptin_evc_get_intRootVlan(igmpInst->McastEvcId, &McastRootVlan))!=L7_SUCCESS )
     {
@@ -5952,15 +5959,16 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Error getting root vlan of MC EVC id (%u)",igmpInst->McastEvcId);
       rc = L7_FAILURE;
     }
+    #endif
 
     if ( rc == L7_SUCCESS )
     {
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: McastVlan=%u (evcId=%u), intIfNum=%u (port=%u)",
-                  McastRootVlan,igmpInst->McastEvcId,intIfNum, ptin_port);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: client_idx=%u, intIfNum=%u (port=%u)",
+                  client_idx, intIfNum, ptin_port);
 
       /* Remove client from all snooping entries */
-      if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+      if (ptin_snoop_client_remove(0 /*All vlans*/,client_idx,intIfNum)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
       }
@@ -5978,7 +5986,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success flushing client (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success flushing client (client_idx=%u)", client_idx);
 
   return L7_SUCCESS;
 }
@@ -6497,6 +6505,8 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   return L7_SUCCESS;
 }
 
+/* Not used */
+#if 0
 /**
  * Remove all Multicast client
  * 
@@ -6506,9 +6516,10 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
  */
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
 {
-  L7_uint16 McastRootVlan;
+  //L7_uint16 McastRootVlan;
   ptinIgmpClientsAvlTree_t *avl_tree;
 
+  #if 0
   /* Validate argument */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -6528,6 +6539,7 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -6541,10 +6553,10 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success removing all clients from igmp_idx=%u",igmp_idx);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success removing all clients");
 
   /* Remove all channels from snooping entries */
-  if (ptin_snoop_channel_removeAll(McastRootVlan)!=L7_SUCCESS)
+  if (ptin_snoop_channel_removeAll(0 /*All vlans*/)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all channels/clients from snooping entries");
     //return L7_FAILURE;
@@ -6556,6 +6568,7 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Validate IGMP instance configure message 
@@ -6882,6 +6895,7 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
   L7_uint32 ptin_port;
   #endif
 
+  #if 0
   /* Validate arguments */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_ref==L7_NULLPTR)
   {
@@ -6897,6 +6911,7 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
       LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not in use",igmp_idx);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get ptin_port value */
   #if (MC_CLIENT_INTERF_SUPPORTED)
