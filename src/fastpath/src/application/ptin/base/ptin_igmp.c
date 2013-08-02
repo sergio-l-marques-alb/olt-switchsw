@@ -310,7 +310,8 @@ void     *clientsMngmt_queue  = L7_NULLPTR;
 
 typedef struct ptinIgmpTimerParams_s
 {
-  L7_uint32          igmp_idx;
+  //L7_uint32          igmp_idx;
+  L7_uint32          dummy;
 } ptinIgmpTimerParams_t;
 #define PTIN_IGMP_TIMER_MSG_SIZE  sizeof(ptinIgmpTimerParams_t)
 
@@ -434,11 +435,8 @@ L7_RC_t ptin_igmp_proxy_init(void)
   /* No clients */
   igmpClients_unified.number_of_clients = 0;
 
-  /* Initialize list of clients for all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    igmp_clientIndex_clearAll(igmp_idx);
-  }
+  /* Initialize list of clients */
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
   /* IGMP associaations */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
@@ -511,11 +509,8 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   ptin_igmp_timersMng_deinit();
 #endif
 
-  /* Clean list of clients for all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    igmp_clientIndex_clearAll(igmp_idx);
-  }
+  /* Clean list of clients */
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
   /* AVL tree of unified list of clients */
   avlTree = &igmpClients_unified.avlTree;
@@ -5098,7 +5093,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
     /* Get new client index */
-    if ((client_idx=igmp_clientIndex_get_new(igmp_idx))<0)
+    if ((client_idx=igmp_clientIndex_get_new(0 /*Not used*/))<0)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index");
       return L7_FAILURE;
@@ -5283,7 +5278,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   }
 
   /* Mark one more client for AVL tree */
-  igmp_clientIndex_mark(igmp_idx, client_idx, ptin_port, avl_infoData);
+  igmp_clientIndex_mark(0 /*Not used*/, client_idx, ptin_port, avl_infoData);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -5544,7 +5539,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
     }
 
     /* Remove client for AVL tree */
-    igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+    igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
 
     osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -5729,7 +5724,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
     else
     {
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+      igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
 
       if (ptin_debug_igmp_snooping)
       {
@@ -5939,7 +5934,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark client_idx=%u", client_idx);
 
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+      igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
     }
   }
 
@@ -7501,18 +7496,14 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
  */
 L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  L7_uint32 ptin_port;
+  L7_uint32 ptin_port = (L7_uint32)-1;
   st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
-#if 1
+
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_client = L7_NULLPTR;
-#else
-  ptin_MGMD_Statistics_t *stat_port_g = L7_NULLPTR;
-  ptin_MGMD_Statistics_t *stat_port   = L7_NULLPTR;
-  ptin_MGMD_Statistics_t *stat_client = L7_NULLPTR;
-#endif
+
   /* Validate field */
   if (field>=SNOOP_STAT_FIELD_ALL)
   {
@@ -7550,7 +7541,7 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
-    if (client!=L7_NULLPTR)
+    if (client!=L7_NULLPTR && ptin_port<PTIN_SYSTEM_N_PONS)
     {
       /* Statistics at client level */
       stat_client = &client->stats_client;
@@ -8012,7 +8003,7 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
  */
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  L7_uint32 ptin_port;
+  L7_uint32 ptin_port = (L7_uint32)-1;
   st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -8056,7 +8047,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
-    if (client!=L7_NULLPTR)
+    if (client!=L7_NULLPTR && ptin_port<PTIN_SYSTEM_N_PONS)
     {
       /* Statistics at client level */
       stat_client = &client->stats_client;
@@ -8115,9 +8106,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
  */
 void ptin_igmp_dump(void)
 {
-  L7_uint i, i_client;
-  ptinIgmpClientDataKey_t avl_key;
-  ptinIgmpClientInfoData_t *avl_info;
+  L7_uint i;
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -8131,72 +8120,9 @@ void ptin_igmp_dump(void)
     printf("IGMP instance %02u\n", i);
     printf("   MC evc_idx = %u\r\n",igmpInstances[i].McastEvcId);
     printf("   UC evc_idx = %u\r\n",igmpInstances[i].UcastEvcId);
-
-    i_client = 0;
-
-    /* Run all cells in AVL tree */
-    memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
-    while ( ( avl_info = (ptinIgmpClientInfoData_t *)
-                          avlSearchLVL7(&igmpClients_unified.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-            ) != L7_NULLPTR )
-    {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
-
-      /* Verify if this client belongs to this IGMP instance */
-      if (!igmp_clientIndex_is_marked(i, avl_info->client_index))
-      {
-        continue;
-      }
-
-      printf("      Client#%u: "
-             #if (MC_CLIENT_INTERF_SUPPORTED)
-             "ptin_port=%-2u "
-             #endif
-             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-             "svlan=%-4u "
-             #endif
-             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-             "cvlan=%-4u "
-             #endif
-             #if (MC_CLIENT_IPADDR_SUPPORTED)
-             "IP=%03u.%03u.%03u.%03u "
-             #endif
-             #if (MC_CLIENT_MACADDR_SUPPORTED)
-             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-             #endif
-             ": index=%-3u [%s] #channels=%u\r\n",
-             i_client,
-             #if (MC_CLIENT_INTERF_SUPPORTED)
-             avl_info->igmpClientDataKey.ptin_port,
-             #endif
-             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-             avl_info->igmpClientDataKey.outerVlan,
-             #endif
-             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-             avl_info->igmpClientDataKey.innerVlan,
-             #endif
-             #if (MC_CLIENT_IPADDR_SUPPORTED)
-             (avl_info->igmpClientDataKey.ipv4_addr>>24) & 0xff,
-              (avl_info->igmpClientDataKey.ipv4_addr>>16) & 0xff,
-               (avl_info->igmpClientDataKey.ipv4_addr>>8) & 0xff,
-                avl_info->igmpClientDataKey.ipv4_addr & 0xff,
-             #endif
-             #if (MC_CLIENT_MACADDR_SUPPORTED)
-             avl_info->igmpClientDataKey.macAddr[0],
-              avl_info->igmpClientDataKey.macAddr[1],
-               avl_info->igmpClientDataKey.macAddr[2],
-                avl_info->igmpClientDataKey.macAddr[3],
-                 avl_info->igmpClientDataKey.macAddr[4],
-                  avl_info->igmpClientDataKey.macAddr[5],
-             #endif
-             avl_info->client_index,
-             ((avl_info->isDynamic) ? "dynamic" : "static "),
-             avl_info->stats_client.active_groups);
-
-      i_client++;
-    }
   }
+
+  printf("\r\nClients are not associated to IGMP instances any more!!!\r\n");
 
   osapiSemaGive(ptin_igmp_clients_sem);
 }
