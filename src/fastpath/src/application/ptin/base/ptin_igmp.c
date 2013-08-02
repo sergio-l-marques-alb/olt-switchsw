@@ -375,7 +375,6 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
  */
 L7_RC_t ptin_igmp_proxy_init(void)
 {
-  L7_uint igmp_idx;
   ptinIgmpClientsAvlTree_t *avlTree;
 
   /* Reset instances array */
@@ -501,7 +500,6 @@ L7_RC_t ptin_igmp_proxy_init(void)
  */
 L7_RC_t ptin_igmp_proxy_deinit(void)
 {
-  L7_uint igmp_idx;
   ptinIgmpClientsAvlTree_t *avlTree;
 
 #ifdef CLIENT_TIMERS_SUPPORTED
@@ -3988,7 +3986,7 @@ void igmp_timerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
 
   //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Received a timer event");
 
-  msg.igmp_idx = 0; /*igmp_idx;*/
+  msg.dummy = 0;
 
   //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sending timer event to queue");
 
