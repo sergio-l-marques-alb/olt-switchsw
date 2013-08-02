@@ -1751,12 +1751,7 @@ L7_RC_t snoopIGMPFrameBuild(L7_uint32        intIfNum,
     }
     else
     {
-#if 0
       byteVal = pSnoopOperEntry->snoopQuerierInfo.maxResponseCode;
-#else
-      
-      snoop_fp_encode(L7_AF_INET, val, &byteVal);
-#endif
     }
   }
   else
@@ -2085,12 +2080,17 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
-    
+    pSnoopOperEntry->snoopQuerierInfo.qqic=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+    pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;    
   }
   else
   {    
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+    pSnoopOperEntry->snoopQuerierInfo.qqic=igmpCfg.querier.query_interval;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code%u",pSnoopOperEntry->snoopQuerierInfo.qqic);    
+    pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=igmpCfg.querier.query_response_interval;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code%u",pSnoopOperEntry->snoopQuerierInfo.maxResponseCode);    
   }
 
   pSnoopCB = pSnoopOperEntry->cbHandle;
