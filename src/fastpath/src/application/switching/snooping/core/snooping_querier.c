@@ -2085,13 +2085,13 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
   }
   else
   {    
-    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
-    pSnoopOperEntry->snoopQuerierInfo.qqic=igmpCfg.querier.query_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code%u",pSnoopOperEntry->snoopQuerierInfo.qqic);    
-    pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=igmpCfg.querier.query_response_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code%u",pSnoopOperEntry->snoopQuerierInfo.maxResponseCode);    
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;    
+    pSnoopOperEntry->snoopQuerierInfo.qqic=igmpCfg.querier.query_interval;    
+    pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=igmpCfg.querier.query_response_interval;    
   }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable:%u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code:%u",pSnoopOperEntry->snoopQuerierInfo.qqic);    
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Max Response Code:%u",pSnoopOperEntry->snoopQuerierInfo.maxResponseCode);    
 
   pSnoopCB = pSnoopOperEntry->cbHandle;
   vlanId   = pSnoopOperEntry->vlanId;
