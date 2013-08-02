@@ -14,6 +14,10 @@
 #include "ptin_include.h"
 #include "l3_addrdefs.h"
 
+#define PTIN_IGMP_VERSION_1 1
+#define PTIN_IGMP_VERSION_2 2
+#define PTIN_IGMP_VERSION_3 3
+
 /* Macros to get RFC3376 timer values */
 #define PTIN_IGMP_AUTO_GMI(rv, qi, qri)                 (((rv) * (qi)) + ((qri)/10))
 #define PTIN_IGMP_AUTO_OQPI(rv, qi, qri)                (((rv) * (qi)) + ((qri)/10/2))
@@ -35,7 +39,16 @@
 
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
 
-#define PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL         100 /* (1/10s - 10s) */
+#define PTIN_IGMP_MIN_QUERYINTERVAL                     10 /* (s) */
+#define PTIN_IGMPv2_MAX_QUERYINTERVAL                   255 /* (s) */
+#define PTIN_IGMPv3_MAX_QUERYINTERVAL                   31744 /* (s) */
+
+#define PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL         100 /* (1/10s - 10s) (ds)*/
+
+#define PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL             10 /* (ds) */
+#define PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL           255 /* (ds) */
+#define PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL           31744 /* (ds) */
+
 
 #define PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL       PTIN_IGMP_AUTO_GMI(PTIN_IGMP_DEFAULT_ROBUSTNESS,\
                                                                            PTIN_IGMP_DEFAULT_QUERYINTERVAL,\
