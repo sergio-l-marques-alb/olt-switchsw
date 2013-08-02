@@ -1345,22 +1345,24 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
  */
 L7_RC_t ptin_igmp_client_add(L7_uint16 McastEvcId, ptin_client_id_t *client)
 {
-  L7_uint igmp_idx;
+  //L7_uint igmp_idx;
   L7_RC_t rc;
 
+  #if 0
   /* Get IGMP instance index */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Create new static client */
-  rc = ptin_igmp_new_client(igmp_idx,client,L7_FALSE,L7_NULLPTR);
+  rc = ptin_igmp_new_client(0 /*Not used*/, client, L7_FALSE, L7_NULLPTR);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error creating static client for igmp_idx=%u (mcEVC=%u)",igmp_idx,McastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error creating static client");
     return L7_FAILURE;
   }
 
@@ -1377,22 +1379,24 @@ L7_RC_t ptin_igmp_client_add(L7_uint16 McastEvcId, ptin_client_id_t *client)
  */
 L7_RC_t ptin_igmp_client_delete(L7_uint16 McastEvcId, ptin_client_id_t *client)
 {
-  L7_uint igmp_idx;
+  //L7_uint igmp_idx;
   L7_RC_t rc;
 
+  #if 0
   /* Get IGMP instance index */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
     return L7_NOT_EXIST;
   }
+  #endif
 
   /* Remove client */
-  rc = ptin_igmp_rm_client(igmp_idx,client, L7_TRUE);
+  rc = ptin_igmp_rm_client(0 /*Not used*/, client, L7_TRUE);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error deleting static client for igmp_idx=%u (mcEVC=%u)",igmp_idx,McastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error deleting static client");
   }
 
   return rc;
@@ -1406,20 +1410,22 @@ L7_RC_t ptin_igmp_client_delete(L7_uint16 McastEvcId, ptin_client_id_t *client)
  */
 L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId)
 {
-  L7_uint igmp_idx;
+  //L7_uint igmp_idx;
 
+  #if 0
   /* Get IGMP instance index */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
     return L7_NOT_EXIST;
   }
+  #endif
 
   /* Remove all clients */
-  if ( ptin_igmp_rm_all_clients(igmp_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
-       ptin_igmp_rm_all_clients(igmp_idx, L7_TRUE,  L7_TRUE)!=L7_SUCCESS)
+  if ( ptin_igmp_rm_all_clients(0 /*Not used*/, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
+       ptin_igmp_rm_all_clients(0 /*Not used*/, L7_TRUE,  L7_TRUE)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all clients for MCEvcId=%u (igmp_idx=%u)",McastEvcId,igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all clients");
     return L7_FAILURE;
   }
 
@@ -1478,7 +1484,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
   if (MC_CLIENT_MASK_UPDATE(client->mask)!=0x00)
   {
     /* Find client */
-    if (ptin_igmp_client_find(igmp_idx,client,&clientInfo)!=L7_SUCCESS)
+    if (ptin_igmp_client_find(0 /*Not used*/,client,&clientInfo)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,
               "Error searching for client {mask=0x%02x,"
@@ -1486,15 +1492,13 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
               "svlan=%u,"
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
-              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-              "in igmp_idx=%u",
+              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
               client->mask,
               client->ptin_intf.intf_type, client->ptin_intf.intf_id,
               client->outerVlan,
               client->innerVlan,
               (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-              igmp_idx);
+              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
       return L7_FAILURE;
     }
     /* Extract client index */
@@ -1913,7 +1917,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 McastEvcId, ptin_intf_t *ptin_
  */
 L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client)
 {
-  L7_uint32 igmp_idx;
+  //L7_uint32 igmp_idx;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -1923,15 +1927,17 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     return L7_FAILURE;
   }
 
+  #if 0
   /* Get Igmp instance */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get client */
-  if (ptin_igmp_client_find(igmp_idx, client, &clientInfo)!=L7_SUCCESS)
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
@@ -1939,15 +1945,13 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-            "in igmp_idx=%u",
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
             client->mask,
             client->ptin_intf.intf_type, client->ptin_intf.intf_id,
             client->outerVlan,
             client->innerVlan,
             (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-            igmp_idx);
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
     return L7_FAILURE;
   }
 
@@ -2201,7 +2205,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *pti
  */
 L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *client)
 {
-  L7_uint igmp_idx;
+  //L7_uint igmp_idx;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -2211,15 +2215,17 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *clie
     return L7_FAILURE;
   }
 
+  #if 0
   /* Get Igmp instance */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Find client */
-  if (ptin_igmp_client_find(igmp_idx,client,&clientInfo)!=L7_SUCCESS)
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
@@ -2227,15 +2233,13 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *clie
             "svlan=%u,"
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-            "in igmp_idx=%u",
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
             client->mask,
             client->ptin_intf.intf_type, client->ptin_intf.intf_id,
             client->outerVlan,
             client->innerVlan,
             (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-            igmp_idx);
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
     return L7_FAILURE;
   }
 
@@ -2267,7 +2271,7 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
                                   ptin_client_id_t *client,
                                   L7_uint *client_index)
 {
-  L7_uint     igmp_idx;
+  //L7_uint     igmp_idx;
   ptin_intf_t ptin_intf;
   L7_uint     client_idx;
   ptinIgmpClientInfoData_t *clientInfo;
@@ -2280,6 +2284,7 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
     return L7_FAILURE;
   }
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&igmp_idx)!=L7_SUCCESS)
   {
@@ -2287,6 +2292,7 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get ptin_port format for the interface number */
   #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -2310,7 +2316,7 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   #endif
 
   /* Get client */
-  if (ptin_igmp_client_find(igmp_idx, client, &clientInfo)!=L7_SUCCESS)
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
     {
@@ -2320,15 +2326,13 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
               "svlan=%u,"
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
-              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-              "in igmp_idx=%u",
+              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
               client->mask,
               client->ptin_intf.intf_type, client->ptin_intf.intf_id,
               client->outerVlan,
               client->innerVlan,
               (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-              igmp_idx);
+              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
     }
     return L7_FAILURE;
   }
@@ -2445,9 +2449,10 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
 L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan, L7_uint32 client_idx)
 {
 #ifdef CLIENT_TIMERS_SUPPORTED
-  L7_uint     igmp_idx;
+  //L7_uint     igmp_idx;
   L7_RC_t     rc;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
   {
@@ -2455,19 +2460,19 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan, L7_uint32 client_idx)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Add client */
-  rc = ptin_igmp_timer_start(igmp_idx, client_idx);
+  rc = ptin_igmp_timer_start(0 /*Not used*/, client_idx);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
   if (rc!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (re)starting timer for this client (intVlan=%u, igmp_idx=%u, client_idx=%u)",
-              intVlan, igmp_idx, client_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (re)starting timer for this client (client_idx=%u)", client_idx);
   }
 
   return rc;
@@ -2488,10 +2493,11 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan, L7_uint32 client_idx)
  */
 L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_idx_ret)
 {
-  L7_uint     igmp_idx;
+  //L7_uint     igmp_idx;
   ptin_intf_t ptin_intf;
   L7_RC_t     rc;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
   {
@@ -2499,6 +2505,7 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get ptin_port format for the interface number */
   #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -2522,7 +2529,7 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin
   #endif
 
   /* Add client */
-  rc = ptin_igmp_new_client(igmp_idx,client,L7_TRUE,client_idx_ret);
+  rc = ptin_igmp_new_client(0 /*Not used*/, client, L7_TRUE, client_idx_ret);
 
   if (rc!=L7_SUCCESS)
   {
@@ -2543,7 +2550,7 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin
  */
 L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
 {
-  L7_uint                   igmp_idx;
+  //L7_uint igmp_idx;
 
   /* Validate arguments */
   if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
@@ -2553,6 +2560,7 @@ L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
     return L7_FAILURE;
   }
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
   {
@@ -2560,13 +2568,14 @@ L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
-  if (ptin_igmp_rm_clientIdx(igmp_idx, client_idx, L7_FALSE, L7_FALSE)!=L7_SUCCESS)
+  if (ptin_igmp_rm_clientIdx(0 /*Not used*/, client_idx, L7_FALSE, L7_FALSE)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error flushing dynamic client (intVlan=%u, igmp_idx=%u, client_idx=%u)",intVlan,igmp_idx,client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error flushing dynamic client (client_idx=%u)",client_idx);
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_FAILURE;
   }
@@ -2588,9 +2597,10 @@ L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
  */
 L7_RC_t ptin_igmp_dynamic_all_clients_flush(L7_uint16 intVlan)
 {
-  L7_uint igmp_idx;
+  //L7_uint igmp_idx;
   L7_RC_t rc;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
   {
@@ -2598,19 +2608,20 @@ L7_RC_t ptin_igmp_dynamic_all_clients_flush(L7_uint16 intVlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Remove all dynamic clients (only with channels) */
-  rc = ptin_igmp_rm_all_clients(igmp_idx, L7_TRUE,  L7_TRUE);
+  rc = ptin_igmp_rm_all_clients(0 /*Not used*/, L7_TRUE,  L7_TRUE);
 
   if ( rc!=L7_SUCCESS )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all dynamic clients for intVlan=%u (igmp_idx=%u)",intVlan,igmp_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all dynamic clients");
     return L7_FAILURE;
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Clients flushed for intVlan %u!",intVlan);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Clients flushed!");
 
   return L7_SUCCESS;
 }
@@ -5485,7 +5496,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
 
 #ifdef CLIENT_TIMERS_SUPPORTED
   /* Stop timers related to this client */
-  if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
+  if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
   {
     LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
     //osapiSemaGive(ptin_igmp_clients_sem);
@@ -5674,7 +5685,7 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
 
   #ifdef CLIENT_TIMERS_SUPPORTED
     /* Stop timers */
-    if (ptin_igmp_timer_stop(igmp_idx,client_idx)!=L7_SUCCESS)
+    if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
       //rc = L7_FAILURE;
@@ -5872,7 +5883,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 
   #ifdef CLIENT_TIMERS_SUPPORTED
     /* Stop timers related to this client */
-    if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
+    if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client_idx=%u)", client_idx);
@@ -6542,7 +6553,7 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
   avlPurgeAvlTree(&(avl_tree->igmpClientsAvlTree), PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
 
   /* Remove all clients for AVL tree */
-  igmp_clientIndex_clearAll(igmp_idx);
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -8001,7 +8012,7 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
  */
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  L7_uint32 ptin_port = (L7_uint32)-1;
+  L7_uint32 ptin_port;
   st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -8045,7 +8056,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
-    if (client!=L7_NULLPTR && ptin_port<PTIN_SYSTEM_N_PONS)
+    if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
       stat_client = &client->stats_client;
