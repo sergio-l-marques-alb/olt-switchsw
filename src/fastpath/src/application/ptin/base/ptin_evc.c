@@ -4991,28 +4991,28 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
   /* Check if this evc is valid */
   if (evc_idx >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
   if (!evcs[evc_idx].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "intIfNum %u is invalid", intIfNum);
+    //LOG_ERR(LOG_CTX_PTIN_EVC, "intIfNum %u is invalid", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface, must be in use */
   if (!evcs[evc_idx].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_idx);
     return L7_FAILURE;
   }
 
