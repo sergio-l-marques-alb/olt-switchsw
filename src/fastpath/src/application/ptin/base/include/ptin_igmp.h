@@ -68,9 +68,9 @@
 
 #define PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL     1   /* (1s for IGMPv3, 10s for IGMPv2) */
 
-#define PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL         0.5
+#define PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL         0.5 /*(s)*/
 
-#define PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL         5
+#define PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL         5 /*(s)*/
 
 
 
@@ -83,6 +83,11 @@
 
 #define PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD        64
 
+#define PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT              128
+
+#define PTIN_IGMP_MAX_RECORDS_PER_REPORT                      128
+
+#define PTIN_IGMP_MIN_RECORDS_PER_REPORT                      1
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
@@ -1002,6 +1007,20 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
+
+
+/**
+ * Reset IGMP statistics
+ * 
+ * @param intIfNum   : interface where the packet entered
+ * @param vlan       : packet's interval vlan
+ * @param client_idx : client index
+ * @param field      : field to get
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+
+L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
 #endif
 

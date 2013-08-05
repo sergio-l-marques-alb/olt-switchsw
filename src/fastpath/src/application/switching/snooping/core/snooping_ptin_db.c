@@ -797,7 +797,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s)", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s)", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
           if (noOfRecords==0)
             noOfRecords=1;   
           /*Signal Source Added Flag*/
@@ -837,7 +837,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
           if (noOfRecords==0)
           {
              noOfRecords=1;             
@@ -876,7 +876,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
         else
           noOfRecords=1;
-        groupPtr->key.recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
+        groupPtr->recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Change group record type to ToIn{}");
       }
     }        
@@ -983,7 +983,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
               return L7_FAILURE;
             }
-            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
             if (noOfRecords==0)
             {
               noOfRecords=1;              
@@ -1069,7 +1069,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
     if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
     {      
       noOfRecords=1;
-      groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+      groupPtr->recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Change group record type to ToEx{}");
     }
 
@@ -1181,7 +1181,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
           if (noOfRecords==0)
             noOfRecords=1;                                 
         }     
@@ -1201,7 +1201,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
           return L7_FAILURE;
         }
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
         if (noOfRecords==0)                    
           noOfRecords=1;
       }            
@@ -1261,7 +1261,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
         else
           noOfRecords=1;
-//      groupPtr->key.recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
+//      groupPtr->recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
       }
     }        
   }
@@ -1406,7 +1406,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
               return L7_FAILURE;
             }
-            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
             if (noOfRecords==0)                    
               noOfRecords=1;
           }
@@ -1626,7 +1626,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
           if (noOfRecords==0)
                noOfRecords=1;                     
         }
@@ -1648,7 +1648,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
               return L7_FAILURE;
             }
-            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
             if (noOfRecords==0)                    
               noOfRecords=1;
           }
@@ -1693,7 +1693,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
           snoopPTinGroupRecordSourceRemoveAll(groupPtr);
         else
           noOfRecords=1;
-        groupPtr->key.recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
+        groupPtr->recordType=L7_IGMP_CHANGE_TO_INCLUDE_MODE;
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Change group record type to ToIn{}");
       }
     }        
@@ -1800,7 +1800,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
               return L7_FAILURE;
             }
-            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
             if (noOfRecords==0)                    
               noOfRecords=1;
           }            
@@ -1854,7 +1854,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
                 LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
                 return L7_FAILURE;
               }
-              LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,inetAddrPrint(sourceAddr, debug_buf2));   
+              LOG_TRACE(LOG_CTX_PTIN_IGMP, "Source Added to Group Record (vlanId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.vlanId,inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,inetAddrPrint(sourceAddr, debug_buf2));   
               if (noOfRecords==0)                    
                 noOfRecords=1;
             }            
@@ -1920,7 +1920,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
               {
                 noOfRecords=1;                  
               }
-              groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+              groupPtr->recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
               LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Changing group record type to ToEx{}");
            }          
         }   
@@ -1941,7 +1941,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
         {
           noOfRecords=1;                  
         }
-        groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+        groupPtr->recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Change group record type to ToEx{}");
       }
 #endif
@@ -1953,7 +1953,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
     if((SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum) && (L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients,avlTreeEntry->interfaces[intIfNum].numberOfClients)))
     {      
       noOfRecords=1;
-      groupPtr->key.recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+      groupPtr->recordType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Change group record type to ToEx{}");
     }
 
@@ -2069,7 +2069,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     groupPtr->retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS;    
     groupPtr->robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS;
     groupPtr->interfacePtr=interfacePtr;
-    groupPtr->key.recordType=recordType;
+    groupPtr->recordType=recordType;
 
     if(groupPtr->nextGroupRecord!=L7_NULLPTR || groupPtr->previousGroupRecord!=L7_NULLPTR)
     {
@@ -2100,7 +2100,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
       {
         if (groupPtrAux!=groupPtr)
         {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "There are %u group records in this interface (previous groupAddr:%s recordType:%u)",i+1,  inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->key.recordType);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "There are %u group records in this interface (previous groupAddr:%s recordType:%u)",i+1,  inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
           groupPtr->previousGroupRecord=groupPtrAux;
           groupPtrAux->nextGroupRecord=groupPtr;
           interfacePtr->numberOfGroupRecords++; 
@@ -2113,7 +2113,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
 
   *newEntryFlag=newEntry;
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->key.recordType,  interfacePtr->numberOfGroupRecords);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType,  interfacePtr->numberOfGroupRecords);
   return groupPtr;
 }
 
@@ -2241,7 +2241,7 @@ L7_RC_t snoopPTinGroupRecordSourcedAdd(snoopPTinProxyGroup_t* groupPtr,L7_inet_a
     }
   } 
   
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u, sourceAddr: %s noOfSources: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&sourcePtr->key.groupPtr->key.groupAddr, debug_buf), groupPtr->key.recordType,  inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf2),groupPtr->numberOfSources);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u, sourceAddr: %s noOfSources: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&sourcePtr->key.groupPtr->key.groupAddr, debug_buf), groupPtr->recordType,  inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf2),groupPtr->numberOfSources);
 
   return L7_SUCCESS;
 }
@@ -2516,7 +2516,7 @@ L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_i
 #else //Instead we change the record type to MGMD_GROUP_REPORT_TYPE_MAX
   if(snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId,groupAddr,MGMD_GROUP_REPORT_TYPE_MAX,L7_MATCH_EXACT)==L7_NULLPTR)
   {    
-    groupPtr->key.recordType=MGMD_GROUP_REPORT_TYPE_MAX;  
+    groupPtr->recordType=MGMD_GROUP_REPORT_TYPE_MAX;  
 //Should we change also the VLAN ID to MAX VLANs?
 //  groupPtr->key.vlanId=L7_MAX_VLANS;
     LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record Saved (groupAddr:%s recordType:%u) from interface (vlanId:%u)",inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,groupPtr->key.vlanId);
@@ -2713,7 +2713,7 @@ L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_i
 
   if(sourcePtrTmp==L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unable to find Source Address within Group Record (vlanId: %u groupAddr:%s recordType:%u, sourceAddr:%s)",groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,  inetAddrPrint(sourceAddr, debug_buf2));
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unable to find Source Address within Group Record (vlanId: %u groupAddr:%s recordType:%u, sourceAddr:%s)",groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->recordType,  inetAddrPrint(sourceAddr, debug_buf2));
     return L7_SUCCESS;
   }
   

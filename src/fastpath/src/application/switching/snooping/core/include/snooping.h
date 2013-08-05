@@ -48,6 +48,7 @@
 #if SNOOP_PTIN_IGMPv3_GLOBAL
 
 #if SNOOP_PTIN_IGMPv3_PROXY
+
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 
 #define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT 64 //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
@@ -61,7 +62,7 @@
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 1 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
 
 /*This values are not defined in RFC3376, altought it makes sense to have them in order to easily identify the type of packet to be sent*/
-#define L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY             0x10 
+#define L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY             0x10
 #define L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY 0x9
 /*End definition*/
 #endif
@@ -481,6 +482,8 @@ typedef struct snoopPTinProxyGroup_s
   snoopPTinProxySource_t                 *source;//List Containing the Sources of this Group  
   snoopPTinProxyInterface_t              *interfacePtr;//Interface 
 
+  L7_uint8                                recordType;//MGMD_GROUP_REPORT_TYPE_t  
+
   snoopPTinProxyTimer_t                  timer;   
   
   snoopPTinProxyGroup_t            *nextGroupRecord;
@@ -845,6 +848,8 @@ snoop_eb_t *snoopEBGet(void);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t igmp_generate_packet_and_send(L7_uint32 vlan, L7_uint8 type, L7_inet_addr_t *channel);
+
+L7_uint8 snoopRecordType2IGMPStatField(L7_uint8 recordType,L7_uint8 fieldType);
 #endif
 
 #endif /* SNOOPING_H */
