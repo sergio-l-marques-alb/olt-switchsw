@@ -4471,72 +4471,68 @@ int main (int argc, char *argv[])
             printf( "   Active Clients = %lu\r\n",po->stats.active_clients);
 
             printf( "  ___________________________________________________________________________________________________ \r\n");
-            printf( " | IGMP packets sent        : " );
-            ((tmp=po->stats.igmp_sent                )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets tx failed   : " );
-            ((tmp=po->stats.igmp_tx_failed           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets sent        : "                );
+            ((tmp=po->stats.igmp_tx                                 )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets tx failed   : %20c |\r\n",'-'  );
+            printf( " |_________________________________________________|_________________________________________________|\r\n");
+
+            printf( " | IGMP packets intercepted : "                );
+            ((tmp=po->stats.igmp_total_rx                           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets dropped     : "                );
+            ((tmp=po->stats.igmp_dropped_rx                         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP packets intercepted : " );
-            ((tmp=po->stats.igmp_intercepted         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets dropped     : " );
-            ((tmp=po->stats.igmp_dropped             )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets rx valid    : "                );
+            ((tmp=po->stats.igmp_valid_rx                           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets rx invalid  : "                );
+            ((tmp=po->stats.igmp_invalid_rx                         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP packets rx valid    : " );
-            ((tmp=po->stats.igmp_received_valid      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets rx invalid  : " );
-            ((tmp=po->stats.igmp_received_invalid    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
-            printf( " |_________________________________________________|_________________________________________________|\r\n");
-
-            printf( " | IGMP Joins tx            : " );
-            ((tmp=po->stats.joins_sent               )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
+            printf( " | IGMP Joins tx            : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_tx              )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " |\r\n"                                        );
             printf( " |_________________________________________________|_________________________________________________ \r\n");
 
-            printf( " | IGMP Joins rx success    : " );
-            ((tmp=po->stats.joins_received_success   )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP Joins rx failed     : " );
-            ((tmp=po->stats.joins_received_failed    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Joins rx success    : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_valid_rx        )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Joins rx failed     : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_invalid_rx      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP Leaves tx           : " );
-            ((tmp=po->stats.leaves_sent              )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Leaves tx           : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.leave_tx             )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP Leaves rx           : " );
-            ((tmp=po->stats.leaves_received          )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Leaves rx           : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.leave_valid_rx       )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP GeneralQueries tx   : " );
-            ((tmp=po->stats.general_queries_sent     )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP GeneralQueries tx   : "                );
+            ((tmp=po->stats.HWQueryStatistics.general_query_tx      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP GeneralQueries rx   : " );
-            ((tmp=po->stats.general_queries_received )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP GeneralQueries rx   : "                );
+            ((tmp=po->stats.HWQueryStatistics.general_query_valid_rx)==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
             printf( " | IGMP SpecificQueries tx  : " );
-            ((tmp=po->stats.specific_queries_sent    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            ((tmp=po->stats.HWQueryStatistics.group_query_tx        )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
             printf( " | IGMP SpecificQueries rx  : ");
-            ((tmp=po->stats.specific_queries_received)==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            ((tmp=po->stats.HWQueryStatistics.group_query_valid_rx  )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP MembershipReportV3  : ");
-            ((tmp=po->stats.membership_report_v3     )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
+            printf( " | IGMP MembershipReportV3  : %20c |\r\n",'-');
             printf( " |_________________________________________________|\r\n");
 
             printf( "Done!\r\n");

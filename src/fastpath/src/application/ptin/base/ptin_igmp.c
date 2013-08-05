@@ -4656,14 +4656,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   avl_infoData->igmp_idx  = node->igmp_idx;
   avl_infoData->is_static = node->is_static & 1;
 
-  printf("Printing key:");
-  for (i=0; i<sizeof(ptinIgmpPairDataKey_t); i++)
-  {
-    if (i%16==0)  printf("\r\n0x%04x:",i);
-    printf(" %02x",*(((L7_uchar8 *) &avl_infoData->igmpPairDataKey)+i) );
-  }
-  printf("\r\ndone!\r\n");
-
   return L7_SUCCESS;
 }
 
@@ -5778,8 +5770,8 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
 
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
+//  if (ptin_debug_igmp_snooping)
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
     return L7_FAILURE;
   }
 
