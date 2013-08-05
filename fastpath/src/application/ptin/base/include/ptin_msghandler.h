@@ -953,6 +953,8 @@ typedef struct {
 /* IGMP Client Statistics struct */
 // Messages CCMSG_ETH_IGMP_CLIENT_STATS_GET, CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR,
 //          CCMSG_ETH_IGMP_INTF_STATS_GET and CCMSG_ETH_IGMP_INTF_STATS_CLEAR
+#if 0
+
 typedef struct _st_IGMP_Statistics_t
 {
   uint32 active_groups;
@@ -974,6 +976,73 @@ typedef struct _st_IGMP_Statistics_t
   uint32 specific_queries_sent;
   uint32 specific_queries_received;
 } __attribute__((packed)) msg_IGMP_Statistics_t;
+
+#else
+//New IGMP statictics Structure
+typedef struct _st_IGMP_Statistics_t
+{
+  uint32 active_groups;
+  uint32 active_clients;
+
+  uint32 igmp_tx;  
+  uint32 igmp_total_rx;  
+  uint32 igmp_valid_rx;
+  uint32 igmp_invalid_rx;
+  uint32 igmp_dropped_rx;
+
+  struct
+  {  
+  uint32 join_tx;
+  uint32 join_valid_rx;
+  uint32 join_invalid_rx;
+
+  uint32 leave_tx;
+  uint32 leave_valid_rx;
+  } __attribute__((packed)) HWIgmpv2Statistics;
+
+  struct
+  {
+    uint32 membership_report_tx;
+    uint32 membership_report_valid_rx;  
+    uint32 membership_report_invalid_rx; 
+    
+    struct
+    {
+      uint32 allow_tx;
+      uint32 allow_valid_rx;
+      uint32 allow_invalid_rx;
+      uint32 block_tx;
+      uint32 block_valid_rx;
+      uint32 block_invalid_rx;
+      uint32 is_include_tx;
+      uint32 is_include_valid_rx;  
+      uint32 is_include_invalid_rx;  
+      uint32 is_exclude_tx;
+      uint32 is_exclude_valid_rx;
+      uint32 is_exclude_invalid_rx;
+      uint32 to_include_tx;
+      uint32 to_include_valid_rx;
+      uint32 to_include_invalid_rx;
+      uint32 to_exclude_tx;
+      uint32 to_exclude_valid_rx;
+      uint32 to_exclude_invalid_rx;
+    } __attribute__((packed)) HWGroupRecordStatistics;
+  } __attribute__((packed)) HWIgmpv3Statistics;
+
+  struct
+  {
+    uint32 general_query_tx;
+    uint32 general_query_valid_rx;
+
+    uint32 group_query_tx;  
+    uint32 group_query_valid_rx;
+
+    uint32 source_query_tx;
+    uint32 source_query_valid_rx;
+  } __attribute__((packed)) HWQueryStatistics;
+
+} __attribute__((packed)) msg_IGMP_Statistics_t;
+#endif
 
 typedef struct _st_ClientIgmpStatistics
 {

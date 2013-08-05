@@ -1772,7 +1772,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
                         mcastPacket->payLoad,
                         mcastPacket->length, mcastPacket->cbHandle->family);
 
-        #if (!defined IGMP_QUERIER_IN_UC_EVC)
+        //#if (!defined IGMP_QUERIER_IN_UC_EVC)
         /* Update statistics: only for MC queriers */
         switch (igmp_type)
         {
@@ -1797,7 +1797,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           break;
         }
         ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_SENT);
-        #endif
+        //#endif
 
         if (ptin_debug_igmp_snooping)
         {

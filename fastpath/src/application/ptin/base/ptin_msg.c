@@ -3756,7 +3756,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinIgmpProxy.host.robustness                        = msgIgmpProxy->host.robustness;
   ptinIgmpProxy.host.unsolicited_report_interval       = msgIgmpProxy->host.unsolicited_report_interval;
   ptinIgmpProxy.host.older_querier_present_timeout     = msgIgmpProxy->host.older_querier_present_timeout;
-  ptinIgmpProxy.host.max_sources_per_record            = msgIgmpProxy->host.max_records_per_report;
+  ptinIgmpProxy.host.max_records_per_report            = msgIgmpProxy->host.max_records_per_report;
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
@@ -3784,7 +3784,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinIgmpProxy.host.older_querier_present_timeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Sources per Group Record   = %u", ptinIgmpProxy.host.max_sources_per_record);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Sources per Group Record   = %u", ptinIgmpProxy.host.max_records_per_report);
 
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);
@@ -4142,6 +4142,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting client statistics");
   }
 
+#if 0
   /* Return data */
   igmp_stats->stats.active_groups             = stats.active_groups;            
   igmp_stats->stats.active_clients            = stats.active_clients;           
@@ -4161,6 +4162,61 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.general_queries_received  = stats.general_queries_received; 
   igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
   igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
+#else
+ /* Return data */
+  igmp_stats->stats.active_groups                                                       = stats.active_groups;            
+  igmp_stats->stats.active_clients                                                      = stats.active_clients;           
+
+  igmp_stats->stats.igmp_tx                                                             = stats.igmp_sent;                  
+  igmp_stats->stats.igmp_total_rx                                                       = stats.igmp_intercepted;                     
+  igmp_stats->stats.igmp_valid_rx                                                       = stats.igmp_received_valid;      
+  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+  igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
+
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                                  = stats.joins_received_failed;    
+
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
+  
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
+  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx                 =stats.igmpv3.group_record.block_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx           =stats.igmpv3.group_record.block_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx         =stats.igmpv3.group_record.block_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx            =stats.igmpv3.group_record.is_include_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx      =stats.igmpv3.group_record.is_include_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx    =stats.igmpv3.group_record.is_include_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx            =stats.igmpv3.group_record.is_exclude_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx      =stats.igmpv3.group_record.is_exclude_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx    =stats.igmpv3.group_record.is_exclude_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx            =stats.igmpv3.group_record.to_include_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx      =stats.igmpv3.group_record.to_include_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx    =stats.igmpv3.group_record.to_include_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx            =stats.igmpv3.group_record.to_exclude_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx      =stats.igmpv3.group_record.to_exclude_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx    =stats.igmpv3.group_record.to_exclude_invalid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                                  =stats.igmpquery.general_query_tx;
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                            =stats.igmpquery.general_query_valid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                    =stats.igmpquery.group_query_tx;   
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.group_query_valid_rx;  
+#endif
 
   return L7_SUCCESS;
 }
@@ -4292,7 +4348,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   }
   else
   {
-    rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId,&ptin_intf,&stats);
+    rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId, &ptin_intf, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -4305,6 +4361,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     }
   }
 
+#if 0
   /* Return data */
   igmp_stats->stats.active_groups             = stats.active_groups;            
   igmp_stats->stats.active_clients            = stats.active_clients;           
@@ -4324,7 +4381,64 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.general_queries_received  = stats.general_queries_received; 
   igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
   igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
+#else
+  /* Return data */
+  igmp_stats->stats.active_groups                                                       = stats.active_groups;            
+  igmp_stats->stats.active_clients                                                      = stats.active_clients;           
 
+  igmp_stats->stats.igmp_tx                                                             = stats.igmp_sent;                  
+  igmp_stats->stats.igmp_total_rx                                                       = stats.igmp_intercepted;                     
+  igmp_stats->stats.igmp_valid_rx                                                       = stats.igmp_received_valid;      
+  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+  igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
+
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                                  = stats.joins_received_failed;    
+
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
+  
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
+  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx                 =stats.igmpv3.group_record.block_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx           =stats.igmpv3.group_record.block_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx         =stats.igmpv3.group_record.block_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx            =stats.igmpv3.group_record.is_include_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx      =stats.igmpv3.group_record.is_include_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx    =stats.igmpv3.group_record.is_include_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx            =stats.igmpv3.group_record.is_exclude_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx      =stats.igmpv3.group_record.is_exclude_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx    =stats.igmpv3.group_record.is_exclude_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx            =stats.igmpv3.group_record.to_include_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx      =stats.igmpv3.group_record.to_include_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx    =stats.igmpv3.group_record.to_include_invalid_rx;
+
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx            =stats.igmpv3.group_record.to_exclude_tx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx      =stats.igmpv3.group_record.to_exclude_valid_rx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx    =stats.igmpv3.group_record.to_exclude_invalid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                                  =stats.igmpquery.general_query_tx;
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                            =stats.igmpquery.general_query_valid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                    =stats.igmpquery.group_query_tx;   
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
+
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.group_query_valid_rx;  
+#endif
+
+
+  
   return L7_SUCCESS;
 }
 
@@ -4418,7 +4532,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     else
     {
       /* Clear stats of one igmp instance and one interface */
-      rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId,&ptin_intf);
+      rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId, &ptin_intf);
 
       if (rc!=L7_SUCCESS)
       {

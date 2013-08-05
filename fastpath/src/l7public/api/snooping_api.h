@@ -63,7 +63,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *channelIP, L7_uint16 sVlan, L
  * Remove a client from all channels allocated in a particular 
  * interface of a channel group 
  * 
- * @param vlanId       : Service vlan
+ * @param vlanId       : Service vlan (0 to not be considered)
  * @param client_index : client index
  * @param intIfNum     : interface
  * 
@@ -94,7 +94,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel);
 /**
  * Remove all channels associated to a particualr vlan
  * 
- * @param vlanId    : Service vlan
+ * @param vlanId    : Service vlan (0 to not be considered)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */

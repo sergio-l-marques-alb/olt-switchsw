@@ -129,7 +129,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *channelIP, L7_uint16 sVlan, L
  * Remove a client from all channels allocated in a particular 
  * interface of a channel group 
  * 
- * @param vlanId       : Service vlan
+ * @param vlanId       : Service vlan (0 to not be considered)
  * @param client_index : client index
  * @param intIfNum     : interface
  * 
@@ -144,7 +144,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX ||
+  if ((sVlanId!=0 && (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX)) ||
       client_index>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
       intIfNum>=L7_MAX_INTERFACE_COUNT)
   {
@@ -163,7 +163,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
     memcpy(macAddr,&snoopEntry->snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN],sizeof(L7_uchar8)*L7_FDB_MAC_ADDR_LEN);
 
     /* If vlan does not match, skip to the next one */
-    if ( vlanId != sVlanId )  continue;
+    if ( sVlanId!=0 && sVlanId!=vlanId )  continue;
     
     /* Run all active channels */
     for (channel_index=0; channel_index<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel_index++)
@@ -277,7 +277,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
 /**
  * Remove all channels associated to a particualr vlan
  * 
- * @param vlanId    : Service vlan
+ * @param vlanId    : Service vlan (0 to not be considered)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -290,7 +290,7 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX)
+  if (sVlanId!=0 && (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_FAILURE;
@@ -307,7 +307,7 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
     memcpy(macAddr,&snoopEntry->snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN],sizeof(L7_uchar8)*L7_FDB_MAC_ADDR_LEN);
 
     /* If vlan does not match, skip to the next one */
-    if ( vlanId != sVlanId )  continue;
+    if ( sVlanId!=0 && sVlanId!=vlanId )  continue;
 
     /* Run all channels */
     for (channel_idx=0; channel_idx<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel_idx++)

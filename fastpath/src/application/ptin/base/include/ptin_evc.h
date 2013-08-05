@@ -12,6 +12,7 @@
 #define _PTIN_EVC_H
 
 #include "ptin_include.h"
+#include "ptin_igmp.h"
 
 /**
  * Initializes EVCs data structures
@@ -307,6 +308,49 @@ extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
+
+/**
+ * Get a pointer to IGMP stats
+ * 
+ * @param intVlan      : internal vlan
+ * @param intIfNum     : interface
+ * @param stats_intf   : pointer to stats
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
+ */
+extern L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNum, ptin_IGMP_Statistics_t **stats_intf);
+
+/**
+ * Get a pointer to IGMP stats
+ * 
+ * @param evc_idx      : EVC index 
+ * @param ptin_intf    : interface
+ * @param stats_intf   : Stats
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
+ */
+extern L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf);
+
+/**
+ * Clear IGMP stats of one interface
+ * 
+ * @param evc_idx      : EVC index 
+ * @param ptin_intf    : interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
+ */
+extern L7_RC_t ptin_evc_igmp_stats_clear(L7_uint evc_idx, ptin_intf_t *ptin_intf);
+
+/**
+ * Clear IGMP stats of all interfaces
+ * 
+ * @param evc_idx      : EVC index 
+ * @param ptin_intf    : interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
+ */
+extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint evc_idx);
+
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
