@@ -53,7 +53,7 @@ static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
 BROAD_POLICY_t inband_policyId = 0;
 
 #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
- int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+ int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
  int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
  int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #endif
@@ -1645,12 +1645,12 @@ static L7_RC_t hapi_ptin_portMap_init(void)
       lane = hapiWCMapPtr[i].wcLane;
 
       /* Update slot/lane to port map */
-      if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+      if (slot<=PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
       {
         ptin_sys_slotport_to_intf_map[slot][lane] = i;
+        ptin_sys_intf_to_slot_map[i] = slot;
+        ptin_sys_intf_to_port_map[i] = lane;
       }
-      ptin_sys_intf_to_slot_map[i] = slot+1;
-      ptin_sys_intf_to_port_map[i] = lane;
     }
     #endif
 
@@ -1659,9 +1659,9 @@ static L7_RC_t hapi_ptin_portMap_init(void)
 
   #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
   printf("Slot to intf mapping (%u interfaces):", ptin_sys_number_of_ports);
-  for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)
+  for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
   {
-    printf("\n Slot %02u: ",slot+1);
+    printf("\n Slot %02u: ",slot);
     for (lane=0; lane<PTIN_SYS_INTFS_PER_SLOT_MAX; lane++)
     {
       printf(" %2d",ptin_sys_slotport_to_intf_map[slot][lane]);

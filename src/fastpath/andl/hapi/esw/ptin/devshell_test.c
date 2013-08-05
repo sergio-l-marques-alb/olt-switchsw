@@ -682,7 +682,7 @@ extern int  send_data       (int canal_id,
 #define N_GROUPS_MAX  7
 #define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-int xe_slot_map[2][PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+int xe_slot_map[2][PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
 
 /* To save BER results */
 struct ber_t {
@@ -1528,15 +1528,15 @@ int ber_init(void)
     /* Update xe port map (only 10/40/100Gbps) */
     if ( hapiWCMapPtr[port].wcSpeedG > 1 )
     {
-      if (slot<PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+      if (slot<=PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
         xe_slot_map[mx][slot][lane] = xe_port;
     }
   }
 
   printf("xe_slot_map:");
-  for (slot=0; slot<PTIN_SYS_SLOTS_MAX; slot++)
+  for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
   {
-    printf("\n Slot %02u: ",slot+1);
+    printf("\n Slot %02u: ",slot);
     for (lane=0; lane<PTIN_SYS_INTFS_PER_SLOT_MAX; lane++)
     {
       if (xe_slot_map[mx][slot][lane] >= 0)
