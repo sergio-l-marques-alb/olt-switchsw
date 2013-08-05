@@ -4348,7 +4348,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   }
   else
   {
-    rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId,&ptin_intf,&stats);
+    rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId, &ptin_intf, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -4532,7 +4532,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     else
     {
       /* Clear stats of one igmp instance and one interface */
-      rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId,&ptin_intf);
+      rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId, &ptin_intf);
 
       if (rc!=L7_SUCCESS)
       {

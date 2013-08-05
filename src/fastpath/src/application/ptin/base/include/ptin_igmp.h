@@ -669,86 +669,6 @@ extern L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
 extern L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc );
 #endif
 
-/**
- * Get global IGMP statistics
- * 
- * @param intIfNum    : interface
- * @param stat_port_g : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g);
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * interface 
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port);
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client);
-
-/**
- * Clear all IGMP statistics
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_clearAll(void);
-
-/**
- * Clear all statistics of one IGMP instance
- * 
- * @param McastEvcId : Multicast EVC id
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId);
-
-/**
- * Clear interface IGMP statistics
- * 
- * @param intIfNum    : interface 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf);
-
-/**
- * Clear statistics of a particular IGMP instance and interface
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf);
-
-/**
- * Clear IGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *client);
-
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
  ********************************************************/
@@ -970,6 +890,91 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
  */
 extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
 #endif
+
+
+/**************************** 
+ * IGMP statistics
+ ****************************/
+
+/**
+ * Get global IGMP statistics
+ * 
+ * @param intIfNum    : interface
+ * @param stat_port_g : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g);
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * interface 
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * @param stat_port   : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port);
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param client      : client reference
+ * @param stat_port   : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_client_get(L7_uint16 evc_idx, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client);
+
+/**
+ * Clear all IGMP statistics
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_clearAll(void);
+
+/**
+ * Clear all statistics of one IGMP instance
+ * 
+ * @param evc_idx : Multicast EVC id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 evc_idx);
+
+/**
+ * Clear interface IGMP statistics
+ * 
+ * @param intIfNum    : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf);
+
+/**
+ * Clear statistics of a particular IGMP instance and interface
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 evc_idx, ptin_intf_t *ptin_intf);
+
+/**
+ * Clear IGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param client      : client reference
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 evc_idx, ptin_client_id_t *client);
 
 /**
  * Increment IGMP statistics

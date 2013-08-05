@@ -1785,430 +1785,6 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   return L7_SUCCESS;
 }
 
-/**
- * Get global IGMP statistics
- * 
- * @param intIfNum    : interface
- * @param stat_port_g : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g)
-{
-  L7_uint32 ptin_port;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_port_g!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_port_g, &global_stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * interface 
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port)
-{
-  L7_uint32 ptin_port;
-  L7_uint32 igmp_idx;
-  ptin_evc_intfCfg_t intfCfg;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(McastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-  if (!intfCfg.in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_port!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_port, &igmpInstances[igmp_idx].stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client)
-{
-  ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Get client */
-  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_client!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_client, &clientInfo->stats_client, sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear all IGMP statistics
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_clearAll(void)
-{
-  L7_uint igmp_idx;
-  L7_uint client_idx;
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Run all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if (!igmpInstances[igmp_idx].inUse)  continue;
-
-    /* Clear instance statistics */
-    memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
-  }
-
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-  {
-    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics */
-    memset(&igmpClients_unified.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-  }
-
-  /* Clear global statistics */
-  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear all statistics of one IGMP instance
- * 
- * @param McastEvcId : Multicast EVC id
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId)
-{
-  L7_uint igmp_idx;
-  //L7_uint client_idx;
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear instance statistics */
-  memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
-
-  /* Do not touch client stats */
-  #if 0
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-  {
-    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics */
-    memset(&igmpClients_unified.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-  }
-  #endif
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear interface IGMP statistics
- * 
- * @param intIfNum    : interface 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
-{
-  L7_uint igmp_idx;
-  //L7_uint client_idx;
-  L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
-  //ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Run all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if (!igmpInstances[igmp_idx].inUse)  continue;
-
-    igmpInst = &igmpInstances[igmp_idx];
-
-    /* Clear instance statistics */
-    memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-    #if (MC_CLIENT_INTERF_SUPPORTED)
-    /* Do not touch client stats */
-    #if 0
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-    {
-      if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics (if port matches) */
-      clientInfo = igmpClients_unified.clients_in_use[client_idx];
-      if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
-      {
-        memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-      }
-    }
-    #endif
-    #endif
-  }
-
-  /* Clear global statistics */
-  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear statistics of a particular IGMP instance and interface
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf)
-{
-  L7_uint igmp_idx;
-  //L7_uint client_idx;
-  L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
-  //ptinIgmpClientInfoData_t *clientInfo;
-  ptin_evc_intfCfg_t intfCfg;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(McastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-  if (!intfCfg.in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Pointer to igmp instance */
-  igmpInst = &igmpInstances[igmp_idx];
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear instance statistics */
-  memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  /* Do not touch client stats */
-  #if 0
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-  {
-    if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics (if port matches) */
-    clientInfo = igmpClients_unified.clients_in_use[client_idx];
-    if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
-    {
-      memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-    }
-  }
-  #endif
-  #endif
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear IGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *client)
-{
-  ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Find client */
-  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear client statistics (if port matches) */
-  memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
@@ -6624,6 +6200,295 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
   return L7_SUCCESS;
 }
 
+
+
+/**************************** 
+ * IGMP statistics
+ ****************************/
+
+/**
+ * Get global IGMP statistics
+ * 
+ * @param intIfNum    : interface
+ * @param stat_port_g : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g)
+{
+  L7_uint32 ptin_port;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Return pointer to stat structure */
+  if (stat_port_g!=L7_NULLPTR)
+  {
+    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+    memcpy(stat_port_g, &global_stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * interface 
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * @param stat_port   : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port)
+{
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get stats */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_get(evc_idx, ptin_intf, stat_port);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx   : Multicast EVC id
+ * @param client    : client reference
+ * @param stat_port : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_client_get(L7_uint16 evc_idx, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client)
+{
+  ptinIgmpClientInfoData_t *clientInfo;
+
+  /* Validate arguments */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get client */
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,
+            "Error searching for client {mask=0x%02x,"
+            "port=%u/%u,"
+            "svlan=%u,"
+            "cvlan=%u,"
+            "ipAddr=%u.%u.%u.%u,"
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+            client->mask,
+            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
+            client->outerVlan,
+            client->innerVlan,
+            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+    return L7_FAILURE;
+  }
+
+  /* Return pointer to stat structure */
+  if (stat_client!=L7_NULLPTR)
+  {
+    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+    memcpy(stat_client, &clientInfo->stats_client, sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear interface IGMP statistics
+ * 
+ * @param intIfNum    : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
+{
+  L7_uint32 ptin_port;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Convert interface to ptin_port */
+  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear global statistics */
+  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear statistics of a particular IGMP instance and interface
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 evc_idx, ptin_intf_t *ptin_intf)
+{
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get stats pointer */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_clear(evc_idx, ptin_intf);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear all statistics of one IGMP instance
+ * 
+ * @param evc_idx : Multicast EVC id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 evc_idx)
+{
+  L7_RC_t rc;
+
+  /* Clear all stats of this EVC */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_clear_all(evc_idx);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear all IGMP statistics
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_clearAll(void)
+{
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear global statistics */
+  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Clear IGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param client      : client reference
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 evc_idx, ptin_client_id_t *client)
+{
+  ptinIgmpClientInfoData_t *clientInfo;
+
+  /* Validate arguments */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Find client */
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,
+            "Error searching for client {mask=0x%02x,"
+            "port=%u/%u,"
+            "svlan=%u,"
+            "cvlan=%u,"
+            "ipAddr=%u.%u.%u.%u,"
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+            client->mask,
+            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
+            client->outerVlan,
+            client->innerVlan,
+            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear client statistics (if port matches) */
+  memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
 /**
  * Get IGMP statistics
  * 
@@ -6637,7 +6502,6 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
 
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -6654,16 +6518,6 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
     return L7_FAILURE;
   }
 
-  /* Get IGMP instance */
-  igmpInst = L7_NULLPTR;
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    if (ptin_igmp_inst_get_fromIntVlan(vlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-    {
-      igmpInst = L7_NULLPTR;
-    }
-  }
-
   /* If interface is valid... */
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
@@ -6672,14 +6526,11 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];
-
-      if (igmpInst!=L7_NULLPTR)
-      {
-        /* interface statistics at igmp instance and interface level */
-        stat_port = &igmpInst->stats_intf[ptin_port];
-      }
     }
   }
+
+  /* Pointer to EVC stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
 
   /* If client index is valid... */
   if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
@@ -7597,7 +7448,6 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
 L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port = (L7_uint32)-1;
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
 
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
@@ -7610,16 +7460,6 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     return L7_FAILURE;
   }
 
-  /* Get IGMP instance */
-  igmpInst = L7_NULLPTR;
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    if (ptin_igmp_inst_get_fromIntVlan(vlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-    {
-      igmpInst = L7_NULLPTR;
-    }
-  }
-
   /* If interface is valid... */
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
@@ -7628,14 +7468,11 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];
-
-      if (igmpInst!=L7_NULLPTR)
-      {
-        /* interface statistics at igmp instance and interface level */
-        stat_port = &igmpInst->stats_intf[ptin_port];
-      }
     }
   }
+
+  /* Pointer to IGMP stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
 
   /* If client index is valid... */
   if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
@@ -8104,7 +7941,6 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
@@ -8116,16 +7952,6 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     return L7_FAILURE;
   }
 
-  /* Get IGMP instance */
-  igmpInst = L7_NULLPTR;
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    if (ptin_igmp_inst_get_fromIntVlan(vlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-    {
-      igmpInst = L7_NULLPTR;
-    }
-  }
-
   /* If interface is valid... */
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
@@ -8134,14 +7960,11 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];
-
-      if (igmpInst!=L7_NULLPTR)
-      {
-        /* interface statistics at igmp instance and interface level */
-        stat_port = &igmpInst->stats_intf[ptin_port];
-      }
     }
   }
+
+  /* Pointer to IGMP stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
 
   /* If client index is valid... */
   if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
