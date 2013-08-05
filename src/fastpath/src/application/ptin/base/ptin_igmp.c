@@ -4606,7 +4606,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
 {
   ptinIgmpPairDataKey_t  avl_key;
   ptinIgmpPairInfoData_t *avl_infoData;
-  L7_uint16 i;
 
   /* Prepare key */
   memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
