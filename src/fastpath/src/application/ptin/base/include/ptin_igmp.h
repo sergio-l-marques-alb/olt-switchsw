@@ -488,24 +488,24 @@ extern L7_RC_t ptin_igmp_instance_destroy(L7_uint16 evcId);
 /**
  * Add a new Multicast client
  * 
- * @param McastEvcId  : Multicast evc id
+ * @param evc_idx     : evc id
  * @param client      : client identification parameters 
  * @param isDynamic   : client type 
  * @param client_idx_ret : client index (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint16 McastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_client_add(L7_uint16 evc_idx, ptin_client_id_t *client);
 
 /**
  * Remove a Multicast client
  * 
- * @param McastEvcId  : Multicast evc id
- * @param client      : client identification parameters
+ * @param evc_idx : evc id
+ * @param client  : client identification parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_delete(L7_uint16 McastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_client_delete(L7_uint16 evc_idx, ptin_client_id_t *client);
 
 /**
  * Remove all Multicast clients 
