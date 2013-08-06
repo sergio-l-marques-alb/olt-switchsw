@@ -337,7 +337,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_INTF_TYPES_t  sysIntfType;
   L7_RC_t          rc;
   snoop_cb_t      *pSnoopCB = L7_NULLPTR;
-  L7_uint32        client_idx;              /* PTin added: IGMP snooping */
+  L7_uint32        client_idx = (L7_uint32) -1;              /* PTin added: IGMP snooping */
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 #if SNOOP_PTIN_IGMPv3_PROXY
@@ -518,6 +518,47 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }
 
+  /* Search for client index */
+  /* Validate client information */
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  L7_BOOL   unstacked_service = L7_FALSE;
+
+  #ifndef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Check if MC service is unstacked. If it is, clients will be dynamic */
+  if (ptin_igmp_vlan_UC_is_unstacked(pduInfo->vlanId, &unstacked_service)!=L7_SUCCESS)
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
+  if ( (ptin_igmp_clientIntfVlan_validate( pduInfo->intIfNum, pduInfo->vlanId) == L7_SUCCESS) &&
+       (!unstacked_service) && (pduInfo->innerVlanId != 0) )
+  {
+    if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+                                  pduInfo->vlanId, pduInfo->innerVlanId,
+                                  L7_NULLPTR,
+                                  &client_idx) != L7_SUCCESS)
+    {
+      client_idx = (L7_uint) -1;
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: ptin_igmp_clientIndex_get failed");
+    }
+  }
+
+  /* Validate client index */
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
+    client_idx = (L7_uint) -1;
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client not provided!");
+  }
+  else
+  {
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client index is %u",client_idx);
+  }
+  #endif
   
   /* Get multicast root vlan */
   if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
@@ -543,8 +584,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                 "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=0x%08x srcAddr=0x%08x)",
                 pduInfo->vlanId, grpAddr.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr);
 #endif
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
   #else
@@ -556,81 +597,47 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   else
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Can't get McastRootVlan for vlan=%u",pduInfo->vlanId);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
   #endif
 
-  /* Increment intercepted packets, if vlans differ */
-  if (pduInfo->vlanId != McastRootVlan)
-  {
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-  }
-  /* Update Vlan ID of the MC service */
-  pduInfo->vlanId = McastRootVlan;
-
-  /* Validate interface and vlan */
-  if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum,pduInfo->vlanId)!=L7_SUCCESS)
+  /* Validate interface and Multicast root vlan */
+  if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, McastRootVlan)!=L7_SUCCESS)
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u accepted",pduInfo->intIfNum,pduInfo->vlanId);
+  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u accepted",pduInfo->intIfNum, McastRootVlan);
 
-  client_idx = (L7_uint32) -1;
-
-  /* Validate client information */
-  #if ( !PTIN_BOARD_IS_MATRIX )
-  L7_BOOL   unstacked_service = L7_FALSE;
-
-  #ifndef IGMPASSOC_MULTI_MC_SUPPORTED
-  /* Check if MC service is unstacked. If it is, clients will be dynamic */
-  if (ptin_igmp_vlan_UC_is_unstacked(pduInfo->vlanId, &unstacked_service)!=L7_SUCCESS)
+  /* For leaf interfaces */
+  if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId)==L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    return L7_FAILURE;
-  }
-  #endif
+    /* If board is matrix, client will be added as dynamic type */
+    #if (PTIN_BOARD_IS_MATRIX)
+    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to add dynamically a client");
 
-  /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
-  if ( (ptin_igmp_clientIntfVlan_validate( pduInfo->intIfNum, pduInfo->vlanId) == L7_SUCCESS) &&
-       (!unstacked_service) && (pduInfo->innerVlanId != 0) )
-  {
-    ptin_client_id_t client;
-    L7_uchar8 *smac = &data[L7_MAC_ADDR_LEN];
-
-    /* Search for the static client */
-    /* Client information */
-    client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-    client.outerVlan = pduInfo->vlanId;
-    client.innerVlan = pduInfo->innerVlanId;
-    client.ipv4_addr = 0;
-    memcpy(client.macAddr,smac,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-    client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
-    if (ptin_igmp_clientIndex_get(pduInfo->intIfNum, pduInfo->vlanId, &client, &client_idx)!=L7_SUCCESS)
+    /* If the client does not exist, it will be created in dynamic mode */
+    if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                     L7_NULL, L7_NULL,
+                                     &data[L7_MAC_ADDR_LEN],
+                                     &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: ptin_igmp_clientIndex_get failed");
+      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
     }
+    #else
+    /* Increment intercepted packets for the UC service */
+    /* Do not consider the client. It will be updated later */
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    #endif
   }
-  #endif
 
-  /* Validate client index */
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
-  {
-    client_idx = (L7_uint) -1;
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client not provided!");
-  }
-  else
-  {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client index is %u",client_idx);
-  }
+  /* Update Vlan ID of the root MC service vlan */
+  pduInfo->vlanId = McastRootVlan;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
@@ -1118,28 +1125,20 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 
   L7_int16  snoopStatIgmpField=-1;
 
-#if 1
+  #if 0
   if (msg->client_idx == (L7_uint32) -1)
   {
     /* Apenas se a interface e LEAF */
     if (ptin_igmp_clientIntfVlan_validate(msg->intIfNum,msg->vlanId)==L7_SUCCESS)
     {
 #if ( PTIN_BOARD_IS_MATRIX )
-      ptin_client_id_t  client;
-
       SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: Going to add dynamically a client");
 
-      /* Search for the dynamic client */
-        /* Client information */
-      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-      client.outerVlan = msg->vlanId;
-      client.innerVlan = msg->innerVlanId;
-      client.ipv4_addr = 0;
-      memcpy(client.macAddr,&msg->snoopBuffer[L7_MAC_ADDR_LEN],sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-      client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_MACADDR;
-
       /* If the client does not exist, it will be created in dynamic mode */
-      if (ptin_igmp_dynamic_client_add(msg->intIfNum, msg->vlanId, &client, &msg->client_idx)!=L7_SUCCESS)
+      if (ptin_igmp_dynamic_client_add(msg->intIfNum,
+                                       msg->vlanId, msg->innerVlanId,
+                                       &msg->snoopBuffer[L7_MAC_ADDR_LEN],
+                                       &msg->client_idx) != L7_SUCCESS)
       {
         msg->client_idx = (L7_uint) -1;
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, msg->cbHandle->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",msg->intIfNum,msg->vlanId);
@@ -1151,6 +1150,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 #endif
     }
   }
+  #endif
 
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
@@ -1158,7 +1158,6 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
     return L7_FAILURE;
   }
-#endif
 
   memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
   mcastPacket.cbHandle = msg->cbHandle;

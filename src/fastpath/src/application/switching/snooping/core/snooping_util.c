@@ -1719,20 +1719,14 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
         /* if success, use next cvlan */
         if ( rc == L7_SUCCESS && inner_vlan_next != 0)
         {
-          ptin_client_id_t client;
-
           /* Use this inner vlan */
           inner_vlan = inner_vlan_next;
 
-          /* Search for the static client */
-          /* Client information */
-          memset(&client, 0x00, sizeof(ptin_client_id_t));
-          client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-          client.innerVlan = inner_vlan;
-          client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
           /* Get related client index */
-          if (ptin_igmp_clientIndex_get(intf, mcastPacket->vlanId, &client, &client_idx)!=L7_SUCCESS)
+          if (ptin_igmp_clientIndex_get(intf,
+                                        mcastPacket->vlanId, inner_vlan,
+                                        L7_NULLPTR,
+                                        &client_idx)!=L7_SUCCESS)
           {
             client_idx = (L7_uint) -1;
           }
