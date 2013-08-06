@@ -37,7 +37,7 @@ void ptin_debug_igmp_enable(L7_BOOL enable)
 
 /* Parameters to identify the client */
 #define MC_CLIENT_INTERF_SUPPORTED    1
-#define MC_CLIENT_OUTERVLAN_SUPPORTED 0
+#define MC_CLIENT_OUTERVLAN_SUPPORTED 1
 #define MC_CLIENT_INNERVLAN_SUPPORTED 1
 #define MC_CLIENT_IPADDR_SUPPORTED    0
 #define MC_CLIENT_MACADDR_SUPPORTED   1
