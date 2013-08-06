@@ -247,6 +247,21 @@ extern L7_RC_t ptin_evc_get_intRootVlan(L7_uint16 evc_id, L7_uint16 *intRootVlan
 extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Get internal vlans, from external vlans and the interface
+ * 
+ * @author mruas (8/6/2013)
+ * 
+ * @param intIfNum : Interface
+ * @param extOVlan : external outer vlan
+ * @param extIVlan : external inner vlan
+ * @param intOVlan : internal outer vlan
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_evc_intVlan_get(ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 extIVlan,
+                             L7_uint16 *intOVlan);
+
+/**
  * Get the list of interfaces associated to a internal vlan
  * 
  * @param intVlan  : Internal vlan 

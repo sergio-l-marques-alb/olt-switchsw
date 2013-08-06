@@ -678,13 +678,14 @@ extern L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc );
  * 
  * @param intIfNum      : interface number
  * @param intVlan       : internal vlan
- * @param client        : Client information parameters
+ * @param innerVlan     : inner vlan
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
-                                         ptin_client_id_t *client,
+extern L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
+                                         L7_uint16 intVlan, L7_uint16 innerVlan,
+                                         L7_uchar8 *smac,
                                          L7_uint *client_index);
 
 /**
@@ -714,16 +715,17 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan,
 
 /**
  * Add a dynamic client
- * 
+ *  
+ * @param intIfNum    : interface number  
  * @param intVlan     : Internal vlan
- * @param client      : client identification parameters 
+ * @param innerVlan   : Inner vlan
  * @param client_idx_ret : client index (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
-                                            L7_uint16 intVlan,
-                                            ptin_client_id_t *client,
+                                            L7_uint16 intVlan, L7_uint16 innerVlan,
+                                            L7_uchar8 *smac,
                                             L7_uint *client_idx_ret);
 
 /**
