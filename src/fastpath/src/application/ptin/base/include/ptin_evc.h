@@ -222,6 +222,17 @@ extern L7_RC_t ptin_evc_intfCfg_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, pti
 extern L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10Evc_t *evcConf);
 
 /**
+ * Gets the internal vlan for a particular evc and interface
+ * 
+ * @param evc_id    : EVC id 
+ * @param ptin_intf : interface
+ * @param intVlan   : Internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan);
+
+/**
  * Gets the root vlan (internal) for a particular evc
  * 
  * @param evc_id      : EVC id 

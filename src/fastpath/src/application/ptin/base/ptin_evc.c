@@ -597,6 +597,74 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id)
 }
 
 /**
+ * Gets the internal vlan for a particular evc and interface
+ * 
+ * @param evc_id    : EVC id 
+ * @param ptin_intf : interface
+ * @param intVlan   : Internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan)
+{
+  L7_uint32 ptin_port;
+  L7_uint16 internal_vlan;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid argument");
+    return L7_FAILURE;
+  }
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid evc %u",evc_id);
+    return L7_FAILURE;
+  }
+
+  /* EVC must be in use */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u is not in use",evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Obtain ptin_port */
+  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Cannot convert ptin_intf %u/%u to ptin_port format",
+            ptin_intf->intf_type,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Interface must be active */
+  if (!evcs[evc_id].intf[ptin_port].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Port %u (ptin_intf=%u/%u) not active in Evc %u",
+            ptin_port, ptin_intf->intf_type,ptin_intf->intf_id, evc_id);
+    return L7_FAILURE;
+  }
+
+  internal_vlan = evcs[evc_id].intf[ptin_port].int_vlan;
+
+  /* Validate interval vlan */
+  if (internal_vlan<PTIN_VLAN_MIN || internal_vlan>PTIN_VLAN_MIN)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u, port %u, has an invalid int vlan (%u)",
+            evc_id, ptin_port, internal_vlan);
+    return L7_FAILURE;
+  }
+
+  /* Return internal vlan */
+  if (intVlan!=L7_NULLPTR)
+  {
+    *intVlan = internal_vlan;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Gets the root vlan (internal) for a particular evc
  * 
  * @param evc_id      : EVC id 
