@@ -6357,7 +6357,7 @@ static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *c
       if (ptin_evc_extVlan_validate(evc_idx, &client->ptin_intf, client->outerVlan, innerVlan)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"extOVlan=%u is not correct for EVC %u, ptin_intf=%u/%u, innerVlan=%u",
-                client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id, innerVlan);
+                client->outerVlan, evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id, innerVlan);
         return L7_FAILURE;
       }
     }
