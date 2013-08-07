@@ -258,6 +258,19 @@ extern L7_RC_t ptin_evc_get_intRootVlan(L7_uint16 evc_id, L7_uint16 *intRootVlan
 extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Validate outer vlan
+ * 
+ * @param intIfNum : Interface
+ * @param extOVlan : external outer vlan
+ * @param innerVlan: external inner vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS if extOVlan is valid 
+ *                   L7_NOT_EXIST if extOVlan does not exist
+ *                   L7_FAILURE if other error
+ */
+extern L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan);
+
+/**
  * Get internal vlans, from external vlans and the interface
  * 
  * @author mruas (8/6/2013)

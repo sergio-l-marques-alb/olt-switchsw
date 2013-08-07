@@ -6343,22 +6343,21 @@ static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *c
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
       client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
   {
-    /* Validate outer vlan */
-    if (client->outerVlan < PTIN_VLAN_MIN || client->outerVlan > PTIN_VLAN_MAX)
+    /* Obtain intVlan */
+    if (ptin_evc_get_intVlan(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
     {
-      if (ptin_evc_get_intVlan(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for evcId=%u, ptin_intf=%u/%u",
-                evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-        return L7_FAILURE;
-      }
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for evcId=%u, ptin_intf=%u/%u",
+              evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+      return L7_FAILURE;
     }
-    else
+
+    /* Validate outer vlan, only if provided */
+    if (client->outerVlan != 0)
     {
-      if (ptin_evc_intVlan_get(&client->ptin_intf, client->outerVlan, innerVlan, &intVlan)!=L7_SUCCESS)
+      if (ptin_evc_extVlan_validate(evc_idx, &client->ptin_intf, client->outerVlan, innerVlan)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for extOVlan=%u, innerVlan=%u, ptin_intf=%u/%u",
-                client->outerVlan, innerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"extOVlan=%u is not correct for EVC %u, ptin_intf=%u/%u, innerVlan=%u",
+                client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id, innerVlan);
         return L7_FAILURE;
       }
     }

@@ -787,6 +787,98 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 i
 }
 
 /**
+ * Validate outer vlan
+ * 
+ * @param intIfNum : Interface
+ * @param extOVlan : external outer vlan
+ * @param innerVlan: external inner vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS if extOVlan is valid 
+ *                   L7_NOT_EXIST if extOVlan does not exist
+ *                   L7_FAILURE if other error
+ */
+L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan)
+{
+  L7_uint32 ptin_port;
+  struct ptin_evc_client_s *pclient;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Null pointer ptin_intf");
+    return L7_FAILURE;
+  }
+  if (extOVlan<PTIN_VLAN_MIN || extOVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid external outer vlan %u",extOVlan);
+    return L7_FAILURE;
+  }
+  /* Validate evc index */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+  /* EVC must be active */
+  if (!evcs[evc_idx].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port */
+  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Cannot convert ptin_intf %u/%u to ptin_port format",ptin_intf->intf_type,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  /* Interface must be active */
+  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_intf=%u/%u (ptin_port=%u) is not used in EVC=%u", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port, evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* If EVC is stacked, and interface is a leaf, search for its clients */
+  if (IS_EVC_STACKED(evc_idx) && IS_EVC_INTF_LEAF(evc_idx,ptin_port))
+  {
+    /* Validate inner vlan */
+    if (innerVlan==0 || innerVlan>=4096)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid inner vlan %u",innerVlan);
+      return L7_FAILURE;
+    }
+
+    /* Check if client entry already exists */
+    ptin_evc_find_client(innerVlan, &evcs[evc_idx].intf[ptin_port].clients, (dl_queue_elem_t**) &pclient);
+
+    /* Client not found */
+    if (pclient == L7_NULLPTR)
+    {
+      return L7_NOT_EXIST;
+    }
+
+    /* Compare outer vlan: if found, leave cycle */
+    if (pclient->out_vlan != extOVlan)
+    {
+      return L7_NOT_EXIST;
+    }
+  }
+  /* If EVC unstacked, or interface is root, compare the interface outer vlan */
+  else
+  {
+    /* Compare outer vlan: if found, leave cycle */
+    if (evcs[evc_idx].intf[ptin_port].out_vlan != extOVlan)
+    {
+      return L7_NOT_EXIST;
+    }
+  }
+    
+  /* If we get here, it's because outer vlan is valid */
+  return L7_SUCCESS;
+}
+
+/**
  * Get internal vlans, from external vlans and the interface
  * 
  * @author mruas (8/6/2013)
