@@ -1387,9 +1387,9 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
   if (traffType & PACKET_RATE_LIMIT_BROADCAST)
   {
     meterInfo.cir       = RATE_LIMIT_BCAST;
-    meterInfo.cbs       = 128;
+    meterInfo.cbs       = 256;
     meterInfo.pir       = RATE_LIMIT_BCAST;
-    meterInfo.pbs       = 128;
+    meterInfo.pbs       = 256;
     meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
   }
   else
@@ -1880,7 +1880,7 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "tRAP Policy created");
 
   /* Create rule */
-  rc = hapiBroadPolicyRuleAdd(&ruleId /*, BROAD_POLICY_RULE_PRIORITY_HIGHEST*/);
+  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding rule");
