@@ -4419,6 +4419,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   }
   else
     snoopEntry.robustnessVariable=robustnessVariable;
+  snoopEntry.recordType=recordType;//We may need to modify the recordType value during the packet processing, since we use it as a key we need to have a way to change it without affecting the key.
 
   pData = avlInsertEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, &snoopEntry);
 

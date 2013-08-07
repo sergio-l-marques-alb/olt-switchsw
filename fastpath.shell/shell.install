@@ -7,7 +7,7 @@ BASE=../../builds
 APPS_FOLDER=$BASE/apps
 
 BIN_PATH=./bin
-BIN_FILE=fastpath.shell
+BIN_FILE=fp.shell
 
 # Base folder, where install scripts are, should exist
 if [ ! -e $BASE ]; then

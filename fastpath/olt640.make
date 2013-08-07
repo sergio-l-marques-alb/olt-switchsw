@@ -13,12 +13,6 @@ SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
 version = "test"
 
-ifeq ($(version),"test")
- version_final = $(version)-r$(SVN_REV)
-else
- version_final = $(version)-r$(SVN_REV)
-endif
-
 FP_CLI_DIR	= ../fastpath.cli
 FP_CLI_BIN	= fastpath.cli
 
@@ -143,5 +137,5 @@ clean:		clean_cxo640g clean_ta48ge clean_tg16g clean_cli clean_shell
 cleanall:	cleanall_cxo640g cleanall_ta48ge cleanall_tg16g cleanall_cli cleanall_shell
 
 image:		install
-		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version_final)
+		cd $(IMAGE_DIR) && ./fastpath-olt1t3.build $(version)
 

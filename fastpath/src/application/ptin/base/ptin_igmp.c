@@ -37,7 +37,7 @@ void ptin_debug_igmp_enable(L7_BOOL enable)
 
 /* Parameters to identify the client */
 #define MC_CLIENT_INTERF_SUPPORTED    1
-#define MC_CLIENT_OUTERVLAN_SUPPORTED 0
+#define MC_CLIENT_OUTERVLAN_SUPPORTED 1
 #define MC_CLIENT_INNERVLAN_SUPPORTED 1
 #define MC_CLIENT_IPADDR_SUPPORTED    0
 #define MC_CLIENT_MACADDR_SUPPORTED   1
@@ -87,10 +87,9 @@ typedef struct
 {
   ptinIgmpClientDataKey_t   igmpClientDataKey;
   L7_uint16                 client_index;
-  ptin_IGMP_Statistics_t    stats_client;  /* Client statistics */
+  ptin_IGMP_Statistics_t    stats_client;           /* Client statistics */
   L7_BOOL                   isDynamic;
-  //L7_APP_TMR_HNDL_t         timer;
-  //L7_uint32                 timerHandle;
+  L7_uint16                 number_of_mc_services;  /* A client may be part of several MC services: this will benused for AVL tree management */
   void *next;
 } ptinIgmpClientInfoData_t;
 
@@ -100,11 +99,13 @@ typedef struct {
     ptinIgmpClientInfoData_t  *igmpClientsDataHeap;
 } ptinIgmpClientsAvlTree_t;
 
-/* IGMP AVL Tree data */
-typedef struct {
-  L7_uint16 number_of_clients;
-  L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];
-  ptinIgmpClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
+/* Unified list for all IGMP clients */
+typedef struct
+{
+  L7_uint16 number_of_clients;                                  /* Total number of clients */
+  L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
+  ptinIgmpClientInfoData_t  *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
+
   ptinIgmpClientsAvlTree_t  avlTree;
   L7_APP_TMR_CTRL_BLK_t     timerCB;       /* Entry App Timer Control Block */
 
@@ -113,7 +114,10 @@ typedef struct {
   L7_uint32                 appTimerBufferPoolId;
   handle_list_t            *appTimer_handle_list;
   void                     *appTimer_handleListMemHndl;
-} ptinIgmpClients_t;
+} ptinIgmpClients_unified_t;
+
+/* Unified list with all clients */
+ptinIgmpClients_unified_t igmpClients_unified;
 
 /** Service association AVL Tree */
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
@@ -174,7 +178,6 @@ typedef struct {
   L7_BOOL   inUse;
   L7_uint16 McastEvcId;
   L7_uint16 UcastEvcId;
-  ptinIgmpClients_t igmpClients;
   ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
 } st_IgmpInstCfg_t;
 
@@ -220,80 +223,77 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
 {
   L7_uint i;
 
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-    return -1;
-
   /* Search for the first free client index */
-  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpInstances[igmp_idx].igmpClients.clients_in_use[i]!=L7_NULLPTR; i++);
+  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpClients_unified.clients_in_use[i]!=L7_NULLPTR; i++);
 
   if (i>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return -1;
   return i;
 }
 
+inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
+{
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+    return L7_FALSE;
+
+  /* Return client existence status */
+  return (igmpClients_unified.clients_in_use[client_idx]!=L7_NULLPTR);
+}
+
 inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port, ptinIgmpClientInfoData_t *infoData)
 {
-  ptinIgmpClients_t *clients;
-
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     return;
 
-  clients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Update number of clients */
-  if (clients->clients_in_use[client_idx]==L7_NULLPTR)
+  if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)
   {
-    if (clients->number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
-      clients->number_of_clients++;
+    if (igmpClients_unified.number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+      igmpClients_unified.number_of_clients++;
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
-      if (clients->number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
-        clients->number_of_clients_per_intf[ptin_port]++;
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+        igmpClients_unified.number_of_clients_per_intf[ptin_port]++;
     }
   }
 
-  clients->clients_in_use[client_idx] = infoData;
+  igmpClients_unified.clients_in_use[client_idx] = infoData;
 }
 
 inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port)
 {
-  ptinIgmpClients_t *clients;
-
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     return;
   }
 
-  clients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Update number of clients */
-  if (clients->clients_in_use[client_idx]!=L7_NULLPTR)
+  if (igmpClients_unified.clients_in_use[client_idx]!=L7_NULLPTR)
   {
-    if (clients->number_of_clients>0)
+    if (igmpClients_unified.number_of_clients>0)
     {
-      clients->number_of_clients--;
+      igmpClients_unified.number_of_clients--;
     }
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
-      if (clients->number_of_clients_per_intf[ptin_port] > 0 )
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] > 0 )
       {
-        clients->number_of_clients_per_intf[ptin_port]--;
+        igmpClients_unified.number_of_clients_per_intf[ptin_port]--;
       }
     }
   }
 
-  clients->clients_in_use[client_idx] = L7_NULLPTR;
+  igmpClients_unified.clients_in_use[client_idx] = L7_NULLPTR;
 }
 
 inline void igmp_clientIndex_clearAll(L7_uint8 igmp_idx)
 {
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-    return;
+  memset(igmpClients_unified.clients_in_use,0x00,sizeof(igmpClients_unified.clients_in_use));
+  memset(igmpClients_unified.number_of_clients_per_intf,0x00,sizeof(igmpClients_unified.number_of_clients_per_intf));
 
-  memset(igmpInstances[igmp_idx].igmpClients.clients_in_use,0x00,sizeof(igmpInstances[igmp_idx].igmpClients.clients_in_use));
-  igmpInstances[igmp_idx].igmpClients.number_of_clients = 0;
+  igmpClients_unified.number_of_clients = 0;
 }
 
 /* Semaphores */
@@ -310,14 +310,15 @@ void     *clientsMngmt_queue  = L7_NULLPTR;
 
 typedef struct ptinIgmpTimerParams_s
 {
-  L7_uint32          igmp_idx;
+  //L7_uint32          igmp_idx;
+  L7_uint32          dummy;
 } ptinIgmpTimerParams_t;
 #define PTIN_IGMP_TIMER_MSG_SIZE  sizeof(ptinIgmpTimerParams_t)
 
 typedef struct igmpTimerData_s
 {
   L7_sll_member_t   *next;
-  L7_uint32         igmp_idx;
+  //L7_uint32         igmp_idx;
   L7_uint32         client_idx;
 
   L7_uchar8         timerType;
@@ -351,7 +352,10 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
 #endif
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
+/* Not used */
+#if 0
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx);
+#endif
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx);
 //static L7_RC_t ptin_igmp_inst_validate(ptin_IgmpInstCfg_t *igmpInst, L7_uint *idx);
 static L7_RC_t ptin_igmp_instance_find_free(L7_uint *idx);
@@ -364,6 +368,9 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 //static L7_RC_t ptin_igmp_router_intf_config(L7_uint router_intf, L7_uint16 router_vlan, L7_uint admin);
 //static L7_RC_t ptin_igmp_clients_intf_config(L7_uint client_intf, L7_uint admin);
 
+static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *client);
+static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
+
 /**
  * Initializes IGMP module
  * 
@@ -371,7 +378,6 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
  */
 L7_RC_t ptin_igmp_proxy_init(void)
 {
-  L7_uint igmp_idx;
   ptinIgmpClientsAvlTree_t *avlTree;
 
   /* Reset instances array */
@@ -398,37 +404,41 @@ L7_RC_t ptin_igmp_proxy_init(void)
     return L7_FAILURE;
   }
 
-  /* Initialize AVL trees */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  /* Reset unified list of clients */
+  memset(&igmpClients_unified, 0x00, sizeof(igmpClients_unified));
+
+  /* AVL tree pointer to unified list of clients */
+  avlTree = &igmpClients_unified.avlTree;
+
+  avlTree->igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(avlTreeTables_t)); 
+  avlTree->igmpClientsDataHeap = (ptinIgmpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(ptinIgmpClientInfoData_t)); 
+
+  if ((avlTree->igmpClientsTreeHeap == L7_NULLPTR) ||
+      (avlTree->igmpClientsDataHeap == L7_NULLPTR))
   {
-    avlTree = &igmpInstances[igmp_idx].igmpClients.avlTree;
-
-    igmp_clientIndex_clearAll(igmp_idx);
-
-    avlTree->igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(avlTreeTables_t)); 
-    avlTree->igmpClientsDataHeap = (ptinIgmpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(ptinIgmpClientInfoData_t)); 
-
-    if ((avlTree->igmpClientsTreeHeap == L7_NULLPTR) ||
-        (avlTree->igmpClientsDataHeap == L7_NULLPTR))
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error allocating data for IGMP AVL Trees\n");
-      return L7_FAILURE;
-    }
-
-    /* Initialize the storage for all the AVL trees */
-    memset (&avlTree->igmpClientsAvlTree, 0x00, sizeof(avlTree_t));
-    memset (avlTree->igmpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
-    memset (avlTree->igmpClientsDataHeap, 0x00, sizeof(ptinIgmpClientInfoData_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
-
-    // AVL Tree creations - snoopIpAvlTree
-    avlCreateAvlTree(&(avlTree->igmpClientsAvlTree),
-                     avlTree->igmpClientsTreeHeap,
-                     avlTree->igmpClientsDataHeap,
-                     PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE, 
-                     sizeof(ptinIgmpClientInfoData_t),
-                     0x10,
-                     sizeof(ptinIgmpClientDataKey_t));
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error allocating data for IGMP AVL Trees\n");
+    return L7_FAILURE;
   }
+
+  /* Initialize the storage for all the AVL trees */
+  memset (&avlTree->igmpClientsAvlTree, 0x00, sizeof(avlTree_t));
+  memset (avlTree->igmpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
+  memset (avlTree->igmpClientsDataHeap, 0x00, sizeof(ptinIgmpClientInfoData_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
+
+  // AVL Tree creations - snoopIpAvlTree
+  avlCreateAvlTree(&(avlTree->igmpClientsAvlTree),
+                   avlTree->igmpClientsTreeHeap,
+                   avlTree->igmpClientsDataHeap,
+                   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE, 
+                   sizeof(ptinIgmpClientInfoData_t),
+                   0x10,
+                   sizeof(ptinIgmpClientDataKey_t));
+
+  /* No clients */
+  igmpClients_unified.number_of_clients = 0;
+
+  /* Initialize list of clients */
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
   /* IGMP associaations */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
@@ -493,7 +503,6 @@ L7_RC_t ptin_igmp_proxy_init(void)
  */
 L7_RC_t ptin_igmp_proxy_deinit(void)
 {
-  L7_uint igmp_idx;
   ptinIgmpClientsAvlTree_t *avlTree;
 
 #ifdef CLIENT_TIMERS_SUPPORTED
@@ -501,21 +510,20 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   ptin_igmp_timersMng_deinit();
 #endif
 
-  /* Initialize AVL trees */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    avlTree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  /* Clean list of clients */
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
-    igmp_clientIndex_clearAll(igmp_idx);
+  /* AVL tree of unified list of clients */
+  avlTree = &igmpClients_unified.avlTree;
 
-    // AVL Tree creations - snoopIpAvlTree
-    avlPurgeAvlTree(&(avlTree->igmpClientsAvlTree),PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
+  // AVL Tree creations - snoopIpAvlTree
+  avlPurgeAvlTree(&(avlTree->igmpClientsAvlTree),PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
 
-    osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsTreeHeap); 
-    osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsDataHeap); 
-    avlTree->igmpClientsTreeHeap = L7_NULLPTR;
-    avlTree->igmpClientsDataHeap = L7_NULLPTR;
-  }
+  osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsTreeHeap); 
+  osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsDataHeap); 
+
+  /* Reset structure of unified list of clients */
+  memset(&igmpClients_unified, 0x00, sizeof(igmpClients_unified));
 
   osapiSemaDelete(ptin_igmp_stats_sem);
   ptin_igmp_stats_sem = L7_NULLPTR;
@@ -564,7 +572,7 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
   igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
-  igmpProxy.host.max_sources_per_record            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD;
+  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD;
 
   /* Apply default config */
   rc = ptin_igmp_proxy_config_set(&igmpProxy);
@@ -577,6 +585,89 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
   LOG_INFO(LOG_CTX_PTIN_IGMP, "IGMP default config loaded OK");
 
   return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  This function is used exclusively for encoding the floating
+*           point representation as described in RFC 3376 section 4.1.1
+*           (Max Resp Code) and section 4.1.7 (Querier's * Query Interval Code).
+*           An out of range parameter causes the output parm "code" to
+*           be set to 0.
+*
+* @param    num   @b{ (input) }    Number to be encoded
+* @param    code  @b{ (output) }   Coded value
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
+{
+  L7_int32 exp, mant;
+  L7_uchar8 *codev4;
+  L7_ushort16 *codev6;
+
+  if (family == L7_AF_INET)
+  {
+    codev4 = (L7_uchar8 *)code;
+    if (num < 128)
+    {
+      *codev4 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev4 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
+    }
+  }
+  else if (family == L7_AF_INET6)
+  {
+    codev6 = (L7_ushort16 *)code;
+    if (num < 32768)
+    {
+      *codev6 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev6 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
+    }
+  }
 }
 
 /**
@@ -669,16 +760,74 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
       && igmpProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
   {
-    igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
+    if (igmpProxy->querier.query_interval<PTIN_IGMP_MIN_QUERYINTERVAL ||
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_interval>PTIN_IGMPv2_MAX_QUERYINTERVAL) || 
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>PTIN_IGMPv3_MAX_QUERYINTERVAL)) 
+    {       
+      igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Interval:%u, going to use default value:%u",igmpProxy->querier.query_interval,igmpProxyCfg.querier.query_interval);           
+    }
+    else if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>=128)
+    {
+      snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval, &igmpProxyCfg.querier.query_interval );
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxy->querier.query_interval);
+    }
+    else
+    {
+      igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
+    }
   }
 
   /* Query Response Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI
       && igmpProxyCfg.querier.query_response_interval != igmpProxy->querier.query_response_interval)
   {
-    igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
+    if (igmpProxy->querier.query_response_interval<PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL ||
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_response_interval>PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL) || 
+        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL)) 
+    { 
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Response Interval:%u",igmpProxy->querier.query_response_interval);           
+      if (igmpProxy->querier.query_interval*10-10>=10)
+      {
+        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval*10-10, &igmpProxyCfg.querier.query_response_interval );
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_interval*10-10);
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to use default values for QQIC & QRI");
+        igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+        igmpProxyCfg.querier.query_response_interval=PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
+      }      
+    }
+    else if(igmpProxy->querier.query_response_interval>=igmpProxy->querier.query_interval*10)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Query Response Interval>=Query Interval (%u,%u)", igmpProxy->querier.query_response_interval,igmpProxy->querier.query_interval);
+      if (igmpProxy->querier.query_interval*10-10>=10)
+      {
+        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval*10-10, &igmpProxyCfg.querier.query_response_interval );
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_interval*10-10);
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to use default values for QQIC & QRI");
+        snoop_fp_encode(L7_AF_INET, PTIN_IGMP_DEFAULT_QUERYINTERVAL, &igmpProxyCfg.querier.query_interval );
+        snoop_fp_encode(L7_AF_INET, PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL, &igmpProxyCfg.querier.query_response_interval );
+      }
+    }
+    else
+    {
+      if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>=128)
+      {
+        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_response_interval, &igmpProxyCfg.querier.query_response_interval );
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_response_interval);
+      }
+      else
+      {
+        igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
+      }    
+    }
   }
 
   /* Group Membership Interval */
@@ -782,16 +931,32 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
       && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
   {
-    igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+    if (igmpProxy->host.robustness<1 || igmpProxy->host.robustness>7)
+    {      
+      igmpProxyCfg.host.robustness = PTIN_IGMP_DEFAULT_ROBUSTNESS;
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Robustness Variable value:%u, going to use defaults value:%u",igmpProxy->host.robustness,igmpProxyCfg.host.robustness);
+    }
+    else
+    {
+      igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+    }    
   }
 
   /* Unsolicited Report Interval */
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_URI
       && igmpProxyCfg.host.unsolicited_report_interval != igmpProxy->host.unsolicited_report_interval)
   {
-    igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
+    if (igmpProxy->host.unsolicited_report_interval<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL || igmpProxy->host.unsolicited_report_interval>PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL)
+    {      
+      igmpProxyCfg.host.unsolicited_report_interval=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Unsolicited Report Interval configured: %u, going to use default value :%u",igmpProxy->host.unsolicited_report_interval,igmpProxyCfg.host.unsolicited_report_interval);
+    }
+    else
+    {
+      igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
+    }    
   }
 
   /* Older Querier Present Timeout */
@@ -810,10 +975,18 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   }
 
   /* Max Records per Report */
-  if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_MRPR)
+  if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_MRPR && igmpProxyCfg.host.max_records_per_report != igmpProxy->host.max_records_per_report )
   {
-    igmpProxyCfg.host.max_sources_per_record = igmpProxy->host.max_sources_per_record;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_sources_per_record);
+    if(igmpProxy->host.max_records_per_report<PTIN_IGMP_MIN_RECORDS_PER_REPORT || igmpProxy->host.max_records_per_report>PTIN_IGMP_MAX_RECORDS_PER_REPORT)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Max Records per Report Value: %u, going to use default value :%u",igmpProxy->host.max_records_per_report,PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT);
+      igmpProxyCfg.host.max_records_per_report =PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
+    }
+    else
+    {
+      igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
+    }    
   }
 
   /* Update AUTO flags */
@@ -1010,12 +1183,15 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
     return L7_SUCCESS;
   }
 
+  /* Do not touch the clients */
+  #if 0
   /* Remove all clients attached to this instance */
   if (ptin_igmp_instance_deleteAll_clients(igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all clients from igmp_idx %u (McastEvcId=%u,UcastEvcId=%u)",igmp_idx,McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   /* Deconfigure querier for this instance */
   if (ptin_igmp_querier_configure(igmp_idx,L7_DISABLE)!=L7_SUCCESS)
@@ -1171,31 +1347,30 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
 /**
  * Add a new Multicast client
  * 
- * @param McastEvcId  : Multicast evc id
+ * @param evc_idx     : evc id
  * @param client      : client identification parameters 
  * @param isDynamic   : client type 
  * @param client_idx_ret : client index (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_add(L7_uint16 McastEvcId, ptin_client_id_t *client)
+L7_RC_t ptin_igmp_client_add(L7_uint16 evc_idx, ptin_client_id_t *client)
 {
-  L7_uint igmp_idx;
   L7_RC_t rc;
 
-  /* Get IGMP instance index */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
+  /* Validate, and rearrange, client info */
+  if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Create new static client */
-  rc = ptin_igmp_new_client(igmp_idx,client,L7_FALSE,L7_NULLPTR);
+  rc = ptin_igmp_new_client(0 /*Not used*/, client, L7_FALSE, L7_NULLPTR);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error creating static client for igmp_idx=%u (mcEVC=%u)",igmp_idx,McastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error creating static client");
     return L7_FAILURE;
   }
 
@@ -1205,29 +1380,28 @@ L7_RC_t ptin_igmp_client_add(L7_uint16 McastEvcId, ptin_client_id_t *client)
 /**
  * Remove a Multicast client
  * 
- * @param McastEvcId  : Multicast evc id
- * @param client      : client identification parameters
+ * @param evc_idx : evc id
+ * @param client  : client identification parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_delete(L7_uint16 McastEvcId, ptin_client_id_t *client)
+L7_RC_t ptin_igmp_client_delete(L7_uint16 evc_idx, ptin_client_id_t *client)
 {
-  L7_uint igmp_idx;
   L7_RC_t rc;
 
-  /* Get IGMP instance index */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
+  /* Validate, and rearrange, client info */
+  if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
-    return L7_NOT_EXIST;
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+    return L7_FAILURE;
   }
 
   /* Remove client */
-  rc = ptin_igmp_rm_client(igmp_idx,client, L7_TRUE);
+  rc = ptin_igmp_rm_client(0 /*Not used*/, client, L7_TRUE);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error deleting static client for igmp_idx=%u (mcEVC=%u)",igmp_idx,McastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error deleting static client");
   }
 
   return rc;
@@ -1241,20 +1415,11 @@ L7_RC_t ptin_igmp_client_delete(L7_uint16 McastEvcId, ptin_client_id_t *client)
  */
 L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId)
 {
-  L7_uint igmp_idx;
-
-  /* Get IGMP instance index */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
-    return L7_NOT_EXIST;
-  }
-
   /* Remove all clients */
-  if ( ptin_igmp_rm_all_clients(igmp_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
-       ptin_igmp_rm_all_clients(igmp_idx, L7_TRUE,  L7_TRUE)!=L7_SUCCESS)
+  if ( ptin_igmp_rm_all_clients(0 /*Not used*/, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
+       ptin_igmp_rm_all_clients(0 /*Not used*/, L7_TRUE,  L7_TRUE)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all clients for MCEvcId=%u (igmp_idx=%u)",McastEvcId,igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all clients");
     return L7_FAILURE;
   }
 
@@ -1295,6 +1460,13 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     return L7_FAILURE;
   }
 
+  /* Validate and rearrange clientId info */
+  if (ptin_igmp_clientId_convert(McastEvcId, client)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+    return L7_FAILURE;
+  }
+
   /* Get IGMP instance index */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
   {
@@ -1313,7 +1485,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
   if (MC_CLIENT_MASK_UPDATE(client->mask)!=0x00)
   {
     /* Find client */
-    if (ptin_igmp_client_find(igmp_idx,client,&clientInfo)!=L7_SUCCESS)
+    if (ptin_igmp_client_find(0 /*Not used*/,client,&clientInfo)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,
               "Error searching for client {mask=0x%02x,"
@@ -1321,15 +1493,13 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
               "svlan=%u,"
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
-              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-              "in igmp_idx=%u",
+              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
               client->mask,
               client->ptin_intf.intf_type, client->ptin_intf.intf_id,
               client->outerVlan,
               client->innerVlan,
               (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-              igmp_idx);
+              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
       return L7_FAILURE;
     }
     /* Extract client index */
@@ -1414,8 +1584,8 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   L7_inet_addr_t  channel;
   L7_uint16       n_clients, max_clients;
   L7_uint32       clientIdx_bmp_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/UINT32_BITSIZE];
-  avlTree_t               *avl_tree;
-  ptinIgmpClientDataKey_t key;
+  ptinIgmpClientsAvlTree_t *avl_tree;
+  ptinIgmpClientDataKey_t   key;
   ptinIgmpClientInfoData_t *infoData;
 
   /* Validate arguments */
@@ -1468,12 +1638,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
 
     osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
-    avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree.igmpClientsAvlTree;
+    avl_tree = &igmpClients_unified.avlTree;
 
     n_clients=0;
     memset(&key,0x00,sizeof(ptinIgmpClientDataKey_t));
     while (n_clients<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
-           (infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(avl_tree,&key,L7_MATCH_GETNEXT))!=L7_NULLPTR)
+           (infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),&key,L7_MATCH_GETNEXT))!=L7_NULLPTR)
     {
       /* Update key */
       key = infoData->igmpClientDataKey;
@@ -1508,6 +1678,13 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
       memcpy(clientList[n_clients].macAddr, infoData->igmpClientDataKey.macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
       #endif
+
+      /* Restore client id structure */
+      if (ptin_igmp_clientId_restore(&clientList[n_clients])!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error restoring client id structure");
+        return L7_FAILURE;
+      }
 
       /* One more client */
       n_clients++;
@@ -1639,504 +1816,121 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   return L7_SUCCESS;
 }
 
-/**
- * Get global IGMP statistics
- * 
- * @param intIfNum    : interface
- * @param stat_port_g : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g)
-{
-  L7_uint32 ptin_port;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_port_g!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_port_g, &global_stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * interface 
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port)
-{
-  L7_uint32 ptin_port;
-  L7_uint32 igmp_idx;
-  ptin_evc_intfCfg_t intfCfg;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(McastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-  if (!intfCfg.in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_port!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_port, &igmpInstances[igmp_idx].stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * GetIGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * @param stat_port   : statistics (output)
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_client_get(L7_uint16 McastEvcId, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client)
-{
-  L7_uint32 igmp_idx;
-  ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get client */
-  if (ptin_igmp_client_find(igmp_idx, client, &clientInfo)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-            "in igmp_idx=%u",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-            igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Return pointer to stat structure */
-  if (stat_client!=L7_NULLPTR)
-  {
-    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-    memcpy(stat_client, &clientInfo->stats_client, sizeof(ptin_IGMP_Statistics_t));
-    osapiSemaGive(ptin_igmp_stats_sem);
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear all IGMP statistics
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_clearAll(void)
-{
-  L7_uint igmp_idx;
-  L7_uint client_idx;
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Run all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if (!igmpInstances[igmp_idx].inUse)  continue;
-
-    /* Clear instance statistics */
-    memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
-
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-    {
-      if (igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics */
-      memset(&igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-    }
-  }
-
-  /* Clear global statistics */
-  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear all statistics of one IGMP instance
- * 
- * @param McastEvcId : Multicast EVC id
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 McastEvcId)
-{
-  L7_uint igmp_idx;
-  L7_uint client_idx;
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear instance statistics */
-  memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
-
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-  {
-    if (igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics */
-    memset(&igmpInstances[igmp_idx].igmpClients.clients_in_use[client_idx]->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-  }
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear interface IGMP statistics
- * 
- * @param intIfNum    : interface 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
-{
-  L7_uint igmp_idx;
-  L7_uint client_idx;
-  L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
-  ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Run all IGMP instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if (!igmpInstances[igmp_idx].inUse)  continue;
-
-    igmpInst = &igmpInstances[igmp_idx];
-
-    /* Clear instance statistics */
-    memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-    #if (MC_CLIENT_INTERF_SUPPORTED)
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-    {
-      if (igmpInst->igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics (if port matches) */
-      clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
-      if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
-      {
-        memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-      }
-    }
-    #endif
-  }
-
-  /* Clear global statistics */
-  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear statistics of a particular IGMP instance and interface
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param intIfNum    : interface
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 McastEvcId, ptin_intf_t *ptin_intf)
-{
-  L7_uint igmp_idx;
-  L7_uint client_idx;
-  L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
-  ptinIgmpClientInfoData_t *clientInfo;
-  ptin_evc_intfCfg_t intfCfg;
-
-  /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
-  /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(McastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-  if (!intfCfg.in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Pointer to igmp instance */
-  igmpInst = &igmpInstances[igmp_idx];
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear instance statistics */
-  memset(&igmpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client_idx++)
-  {
-    if (igmpInst->igmpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics (if port matches) */
-    clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
-    if (clientInfo->igmpClientDataKey.ptin_port==ptin_port)
-    {
-      memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-    }
-  }
-  #endif
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
-
-/**
- * Clear IGMP statistics of a particular IGMP instance and 
- * client
- * 
- * @param McastEvcId  : Multicast EVC id
- * @param client      : client reference
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 McastEvcId, ptin_client_id_t *client)
-{
-  L7_uint igmp_idx;
-  ptinIgmpClientInfoData_t *clientInfo;
-
-  /* Validate arguments */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Get Igmp instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId,&igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC %u is not part of an IGMP instance",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Find client */
-  if (ptin_igmp_client_find(igmp_idx,client,&clientInfo)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-            "in igmp_idx=%u",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-            igmp_idx);
-    return L7_FAILURE;
-  }
-
-  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
-
-  /* Clear client statistics (if port matches) */
-  memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
-
-  osapiSemaGive(ptin_igmp_stats_sem);
-
-  return L7_SUCCESS;
-}
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
  ********************************************************/
 
 /**
+ * Build client id structure
+ * 
+ * @param intIfNum  : interface
+ * @param intVlan   : internal outer vlan
+ * @param innerVlan : inner vlan
+ * @param smac      : source MAC address
+ * @param client    : client id pointer (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_igmp_clientId_build(L7_uint32 intIfNum,
+                                 L7_uint16 intVlan, L7_uint16 innerVlan,
+                                 L7_uchar8 *smac,
+                                 ptin_client_id_t *client)
+{
+  ptin_intf_t ptin_intf;
+
+  /* Validate clientid */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client pointer");
+    return L7_FAILURE;
+  }
+
+  /* Clear client structure */
+  memset(client, 0x00, sizeof(ptin_client_id_t));
+
+  /* Interface reference */
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+  /* Validate intIfNum */
+  if (intIfNum>0 && intIfNum<L7_ALL_INTERFACES)
+  {
+    if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error converting intIfNum %u to ptin_intf format",intIfNum);
+      return L7_FAILURE;
+    }
+    client->ptin_intf.intf_type = ptin_intf.intf_type;
+    client->ptin_intf.intf_id   = ptin_intf.intf_id;
+    client->mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  }
+  #endif
+
+  /* Outer vlan reference */
+  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Validate outer vlan */
+  if (intVlan>=PTIN_VLAN_MIN && intVlan<=PTIN_VLAN_MAX)
+  {
+    client->outerVlan = intVlan;
+    client->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+  }
+  #endif
+
+  /* Inner vlan reference */
+  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+  /* Validate outer vlan */
+  if (innerVlan>0 && innerVlan<=4095)
+  {
+    client->innerVlan = innerVlan;
+    client->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+  }
+  #endif
+
+  /* MAC reference */
+  #if (MC_CLIENT_IPADDR_SUPPORTED)
+  #error "IP address to identify clients, not supported!"
+  #endif
+
+  /* MAC reference */
+  #if (MC_CLIENT_MACADDR_SUPPORTED)
+  if (smac!=L7_NULLPTR)
+  {
+    memcpy(client->macAddr, smac, sizeof(client->macAddr));
+    client->mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get the client index associated to a Multicast client 
  * 
  * @param intIfNum      : interface number
  * @param intVlan       : internal vlan
- * @param client        : Client information parameters
+ * @param innerVlan     : inner vlan
  * @param client_index  : Client index to be returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
-                                  ptin_client_id_t *client,
+L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
+                                  L7_uint16 intVlan, L7_uint16 innerVlan,
+                                  L7_uchar8 *smac,
                                   L7_uint *client_index)
 {
-  L7_uint     igmp_idx;
-  ptin_intf_t ptin_intf;
   L7_uint     client_idx;
+  ptin_client_id_t client;
   ptinIgmpClientInfoData_t *clientInfo;
 
-  /* Validate arguments */
-  if ( client==L7_NULLPTR || MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  /* Build client structure */
+  if (ptin_igmp_clientId_build(intIfNum, intVlan, innerVlan, smac, &client)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&igmp_idx)!=L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-
-  /* Get ptin_port format for the interface number */
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
-  {
-    if (intIfNum!=0 && intIfNum!=L7_ALL_INTERFACES)
-    {
-      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)==L7_SUCCESS)
-      {
-        client->ptin_intf.intf_type = ptin_intf.intf_type;
-        client->ptin_intf.intf_id   = ptin_intf.intf_id;
-      }
-      else
-      {
-        if (ptin_debug_igmp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
-        return L7_FAILURE;
-      }
-    }
-  }
-  #endif
-
   /* Get client */
-  if (ptin_igmp_client_find(igmp_idx, client, &clientInfo)!=L7_SUCCESS)
+  if (ptin_igmp_client_find(0 /*Not used*/, &client, &clientInfo)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
     {
@@ -2146,15 +1940,13 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
               "svlan=%u,"
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
-              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
-              "in igmp_idx=%u",
-              client->mask,
-              client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-              client->outerVlan,
-              client->innerVlan,
-              (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
-              igmp_idx);
+              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+              client.mask,
+              client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+              client.outerVlan,
+              client.innerVlan,
+              (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+              client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     }
     return L7_FAILURE;
   }
@@ -2220,7 +2012,6 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
                               L7_uint client_idx,
                               L7_BOOL *isDynamic)
 {
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -2231,16 +2022,8 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
     return L7_FAILURE;
   }
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -2269,29 +2052,19 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
 L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan, L7_uint32 client_idx)
 {
 #ifdef CLIENT_TIMERS_SUPPORTED
-  L7_uint     igmp_idx;
   L7_RC_t     rc;
-
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Add client */
-  rc = ptin_igmp_timer_start(igmp_idx, client_idx);
+  rc = ptin_igmp_timer_start(0 /*Not used*/, client_idx);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
   if (rc!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (re)starting timer for this client (intVlan=%u, igmp_idx=%u, client_idx=%u)",
-              intVlan, igmp_idx, client_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (re)starting timer for this client (client_idx=%u)", client_idx);
   }
 
   return rc;
@@ -2305,48 +2078,29 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan, L7_uint32 client_idx)
  *  
  * @param intIfNum    : interface number  
  * @param intVlan     : Internal vlan
- * @param client      : client identification parameters 
+ * @param innerVlan   : Inner vlan
  * @param client_idx_ret : client index (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin_client_id_t *client, L7_uint *client_idx_ret)
+L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
+                                     L7_uint16 intVlan, L7_uint16 innerVlan,
+                                     L7_uchar8 *smac,
+                                     L7_uint *client_idx_ret)
 {
-  L7_uint     igmp_idx;
-  ptin_intf_t ptin_intf;
+  ptin_client_id_t client;
   L7_RC_t     rc;
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
+  /* Build client structure */
+  if (ptin_igmp_clientId_build(intIfNum, intVlan, innerVlan, smac, &client)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  /* Get ptin_port format for the interface number */
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
-  {
-    if (intIfNum!=0 && intIfNum!=L7_ALL_INTERFACES)
-    {
-      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)==L7_SUCCESS)
-      {
-        client->ptin_intf.intf_type = ptin_intf.intf_type;
-        client->ptin_intf.intf_id   = ptin_intf.intf_id;
-      }
-      else
-      {
-        if (ptin_debug_igmp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
-        return L7_FAILURE;
-      }
-    }
-  }
-  #endif
-
   /* Add client */
-  rc = ptin_igmp_new_client(igmp_idx,client,L7_TRUE,client_idx_ret);
+  rc = ptin_igmp_new_client(0 /*Not used*/, &client, L7_TRUE, client_idx_ret);
 
   if (rc!=L7_SUCCESS)
   {
@@ -2367,8 +2121,6 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum, L7_uint16 intVlan, ptin
  */
 L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
 {
-  L7_uint                   igmp_idx;
-
   /* Validate arguments */
   if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
   {
@@ -2377,20 +2129,12 @@ L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
     return L7_FAILURE;
   }
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
-  if (ptin_igmp_rm_clientIdx(igmp_idx, client_idx, L7_FALSE, L7_FALSE)!=L7_SUCCESS)
+  if (ptin_igmp_rm_clientIdx(0 /*Not used*/, client_idx, L7_FALSE, L7_FALSE)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error flushing dynamic client (intVlan=%u, igmp_idx=%u, client_idx=%u)",intVlan,igmp_idx,client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error flushing dynamic client (client_idx=%u)",client_idx);
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_FAILURE;
   }
@@ -2412,29 +2156,20 @@ L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
  */
 L7_RC_t ptin_igmp_dynamic_all_clients_flush(L7_uint16 intVlan)
 {
-  L7_uint igmp_idx;
   L7_RC_t rc;
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &igmp_idx) != L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-
   /* Remove all dynamic clients (only with channels) */
-  rc = ptin_igmp_rm_all_clients(igmp_idx, L7_TRUE,  L7_TRUE);
+  rc = ptin_igmp_rm_all_clients(0 /*Not used*/, L7_TRUE,  L7_TRUE);
 
   if ( rc!=L7_SUCCESS )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all dynamic clients for intVlan=%u (igmp_idx=%u)",intVlan,igmp_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error flushing all dynamic clients");
     return L7_FAILURE;
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Clients flushed for intVlan %u!",intVlan);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Clients flushed!");
 
   return L7_SUCCESS;
 }
@@ -2454,7 +2189,6 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
                                  ptin_client_id_t *client)
 {
   ptin_intf_t ptin_intf;
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -2465,16 +2199,8 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
     return L7_FAILURE;
   }
 
-  /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
-    return L7_FAILURE;
-  }
-
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -2526,13 +2252,15 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
  */
 L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
+  L7_uint16   evc_uc, evc_mc;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t mc_intf_cfg;
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   ptin_evc_intfCfg_t uc_intf_cfg;
   #endif
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2540,6 +2268,18 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  evc_mc = igmpInst->McastEvcId;
+  evc_uc = igmpInst->UcastEvcId;
+  #else
+  /* Get EVC id */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_mc)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+  evc_uc = evc_mc;
+  #endif
 
   /* Get ptin_intf format for the interface number */
   if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
@@ -2550,15 +2290,15 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(igmpInst->McastEvcId,&ptin_intf,&mc_intf_cfg)!=L7_SUCCESS
+  if (ptin_evc_intfCfg_get(evc_mc, &ptin_intf,&mc_intf_cfg)!=L7_SUCCESS
       #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-      || ptin_evc_intfCfg_get(igmpInst->UcastEvcId,&ptin_intf,&uc_intf_cfg)!=L7_SUCCESS
+      || ptin_evc_intfCfg_get(evc_uc, &ptin_intf,&uc_intf_cfg)!=L7_SUCCESS
       #endif
      )
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), mcEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_mc, intVlan);
     return L7_FAILURE;
   }
 
@@ -2571,7 +2311,7 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for mcEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_mc, intVlan);
     return L7_FAILURE;
   }
 
@@ -2590,7 +2330,7 @@ L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan)
 {
   /* Querier will use this routine */
-  #if (!defined IGMP_QUERIER_IN_UC_EVC)
+  #if (0 /*!defined IGMP_QUERIER_IN_UC_EVC*/)
   st_IgmpInstCfg_t *igmpInst;
 
   /* IGMP instance, from internal vlan */
@@ -2635,9 +2375,11 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 {
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
 
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
+  L7_uint16 evc_id;
   ptin_HwEthMef10Evc_t evcConf;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2645,15 +2387,24 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  evc_id = igmpInst->UcastEvcId;
+  #else
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_id)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC id associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+  #endif
 
   /* Get EVC configuration for the UC EVC */
   memset(&evcConf,0x00,sizeof(ptin_HwEthMef10Evc_t));
-  evcConf.index = igmpInst->UcastEvcId;
+  evcConf.index = evc_id;
   if (ptin_evc_get(&evcConf)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting EVC configuration for ucEvcId=%u (intVlan=%u)",
-              igmpInst->UcastEvcId,intVlan);
+              evc_id, intVlan);
     return L7_FAILURE;
   }
 
@@ -2714,10 +2465,12 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
  */
 L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
+  L7_uint16   evc_id;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t mc_intf_cfg;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2725,6 +2478,15 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  evc_id = igmpInst->McastEvcId;
+  #else
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_id)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC id associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+  #endif
 
   /* Get ptin_intf format for the interface number */
   if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
@@ -2735,11 +2497,11 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(igmpInst->McastEvcId,&ptin_intf,&mc_intf_cfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(evc_id, &ptin_intf,&mc_intf_cfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), mcEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_id, intVlan);
     return L7_FAILURE;
   }
 
@@ -2748,7 +2510,7 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for mcEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_id, intVlan);
     return L7_FAILURE;
   }
 
@@ -2757,7 +2519,7 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not root for mcEvcId=%u (intVlan=%u)",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,igmpInst->McastEvcId,intVlan);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_id, intVlan);
     return L7_FAILURE;
   }
 
@@ -2781,11 +2543,12 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  */
 L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
-  st_IgmpInstCfg_t *igmpInst;
+  //st_IgmpInstCfg_t *igmpInst;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t intf_cfg;
   L7_uint16 evc_id;
 
+  #if 0
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2793,6 +2556,7 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get ptin_intf format for the interface number */
   if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
@@ -2802,10 +2566,19 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
     return L7_FAILURE;
   }
 
+  #if 0
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   evc_id = igmpInst->UcastEvcId;
   #else
   evc_id = igmpInst->McastEvcId;
+  #endif
+  #else
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_id)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC id associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
   #endif
 
   /* Get interface configuration */
@@ -3191,7 +2964,6 @@ L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
 *********************************************************************/
 L7_RC_t ptin_igmp_timersMng_init(void)
 {
-  L7_int igmp_idx;
   L7_uint32 bufferPoolId;
   void *handleListMemHndl;
   handle_list_t *handle_list;
@@ -3234,77 +3006,75 @@ L7_RC_t ptin_igmp_timersMng_init(void)
   }
   LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Task clientsMngmt_task initialized");
 
-  /* Create timer buffer bools, and timer control blocks for each IGMP instance */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  /* Create timer buffer bools, and timer control blocks */
+
+  bufferPoolId = 0;
+  /* Timer Initializations */
+
+  /* Control block buffer pool */
+  if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+                    sizeof(timerNode_t) /*L7_APP_TMR_NODE_SIZE*/,
+                    "PTin_IGMP_CtrlBlk_Timer_Bufs",
+                    &bufferPoolId) != L7_SUCCESS)
   {
-    bufferPoolId = 0;
-    /* Timer Initializations */
-
-    /* Control block buffer pool */
-    if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
-                      sizeof(timerNode_t) /*L7_APP_TMR_NODE_SIZE*/,
-                      "PTin_IGMP_CtrlBlk_Timer_Bufs",
-                      &bufferPoolId) != L7_SUCCESS)
-    {
-        LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
-        return L7_FAILURE;
-    }
-    igmpInstances[igmp_idx].igmpClients.ctrlBlkBufferPoolId = bufferPoolId;
-
-    /* Timers buffer pool */
-    if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
-                      sizeof(igmpTimerData_t),
-                      "PTin_IGMP_Timer_Bufs",
-                      &bufferPoolId) != L7_SUCCESS)
-    {
-        LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to allocate memory for IGMP client timer buffers");
-        return L7_FAILURE;
-    }
-    igmpInstances[igmp_idx].igmpClients.appTimerBufferPoolId = bufferPoolId;
-    LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Allocated buffer pools for igmp_idx %u",igmp_idx);
-
-    /* Create SLL list for each IGMP instance */
-    if (SLLCreate(L7_PTIN_COMPONENT_ID, L7_SLL_NO_ORDER,
-                 sizeof(L7_uint32)*2, igmp_timer_dataCmp, igmp_timer_dataDestroy,
-                 &(igmpInstances[igmp_idx].igmpClients.ll_timerList)) != L7_SUCCESS)
-    {
-      LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Failed to create timer linked list");
+      LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
       return L7_FAILURE;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_CNFGR,"SLL list created for igmp_idx %u",igmp_idx);
-
-    /* Create timer handles */
-    /* Allocate memory for the Handle List */
-    handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE*sizeof(handle_member_t));
-    if (handleListMemHndl == L7_NULLPTR)
-    {
-      LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Error allocating Handle List Buffers");
-      return L7_FAILURE;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Allocated memory for handle list in igmp_idx %u",igmp_idx);
-    /* Create timers handle list for this IGMP instance  */
-    if(handleListInit(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
-                      &handle_list, handleListMemHndl) != L7_SUCCESS)
-    {
-      LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to create timer handle list");
-      return L7_FAILURE;
-    }
-    igmpInstances[igmp_idx].igmpClients.appTimer_handleListMemHndl = handleListMemHndl;
-    igmpInstances[igmp_idx].igmpClients.appTimer_handle_list = handle_list;
-    LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Handle list created for igmp_idx %u",igmp_idx);
-
-    /* Initialize timer control blocks */
-    timerCB = appTimerInit(L7_PTIN_COMPONENT_ID, igmp_timerExpiryHdlr,
-                           (void *) (igmp_idx), L7_APP_TMR_1SEC,
-                           igmpInstances[igmp_idx].igmpClients.ctrlBlkBufferPoolId);
-    if (timerCB  == L7_NULLPTR)
-    {
-      LOG_FATAL(LOG_CTX_PTIN_CNFGR,"snoopEntry App Timer[%d] Initialization Failed.\n",igmp_idx);
-      return L7_FAILURE;
-    }
-    igmpInstances[igmp_idx].igmpClients.timerCB = timerCB;
-    LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Timer initialized for igmp_idx %u",igmp_idx);
   }
+  igmpClients_unified.ctrlBlkBufferPoolId = bufferPoolId;
+
+  /* Timers buffer pool */
+  if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+                    sizeof(igmpTimerData_t),
+                    "PTin_IGMP_Timer_Bufs",
+                    &bufferPoolId) != L7_SUCCESS)
+  {
+      LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to allocate memory for IGMP client timer buffers");
+      return L7_FAILURE;
+  }
+  igmpClients_unified.appTimerBufferPoolId = bufferPoolId;
+  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Allocated buffer pools");
+
+  /* Create SLL list for each IGMP instance */
+  if (SLLCreate(L7_PTIN_COMPONENT_ID, L7_SLL_NO_ORDER,
+               sizeof(L7_uint32)*2, igmp_timer_dataCmp, igmp_timer_dataDestroy,
+               &(igmpClients_unified.ll_timerList)) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Failed to create timer linked list");
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"SLL list created");
+
+  /* Create timer handles */
+  /* Allocate memory for the Handle List */
+  handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE*sizeof(handle_member_t));
+  if (handleListMemHndl == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Error allocating Handle List Buffers");
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Allocated memory for handle list");
+  /* Create timers handle list for this IGMP instance  */
+  if(handleListInit(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+                    &handle_list, handleListMemHndl) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to create timer handle list");
+    return L7_FAILURE;
+  }
+  igmpClients_unified.appTimer_handleListMemHndl = handleListMemHndl;
+  igmpClients_unified.appTimer_handle_list = handle_list;
+  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Handle list created");
+
+  /* Initialize timer control blocks */
+  timerCB = appTimerInit(L7_PTIN_COMPONENT_ID, igmp_timerExpiryHdlr,
+                         (void *) 0, L7_APP_TMR_1SEC,
+                         igmpClients_unified.ctrlBlkBufferPoolId);
+  if (timerCB  == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"snoopEntry App Timer Initialization Failed.");
+    return L7_FAILURE;
+  }
+  igmpClients_unified.timerCB = timerCB;
+  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Timer initialized");
 
   LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Initializations for IGMP timers finished");
 
@@ -3325,42 +3095,36 @@ L7_RC_t ptin_igmp_timersMng_init(void)
 *********************************************************************/
 L7_RC_t ptin_igmp_timersMng_deinit(void)
 {
-  L7_int igmp_idx;
-
-  /* Create timer buffer bools, and timer control blocks for each IGMP instance */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  /* Deinitialize timer control blocks */
+  if (igmpClients_unified.timerCB != (L7_APP_TMR_CTRL_BLK_t) NULL)
   {
-    /* Deinitialize timer control blocks */
-    if (igmpInstances[igmp_idx].igmpClients.timerCB != (L7_APP_TMR_CTRL_BLK_t) NULL)
-    {
-      appTimerDeInit(igmpInstances[igmp_idx].igmpClients.timerCB);
-      igmpInstances[igmp_idx].igmpClients.timerCB = (L7_APP_TMR_CTRL_BLK_t) NULL;
-    }
+    appTimerDeInit(igmpClients_unified.timerCB);
+    igmpClients_unified.timerCB = (L7_APP_TMR_CTRL_BLK_t) NULL;
+  }
 
-    /* Remove timers handle list for this IGMP instance  */
-    handleListDeinit(L7_PTIN_COMPONENT_ID, igmpInstances[igmp_idx].igmpClients.appTimer_handle_list);
+  /* Remove timers handle list for this IGMP instance  */
+  handleListDeinit(L7_PTIN_COMPONENT_ID, igmpClients_unified.appTimer_handle_list);
 
-    /* Free memory for the Handle List */
-    if (igmpInstances[igmp_idx].igmpClients.appTimer_handleListMemHndl != L7_NULLPTR)
-    {
-      osapiFree(L7_PTIN_COMPONENT_ID, igmpInstances[igmp_idx].igmpClients.appTimer_handleListMemHndl);
-      igmpInstances[igmp_idx].igmpClients.appTimer_handleListMemHndl = L7_NULLPTR;
-    }
+  /* Free memory for the Handle List */
+  if (igmpClients_unified.appTimer_handleListMemHndl != L7_NULLPTR)
+  {
+    osapiFree(L7_PTIN_COMPONENT_ID, igmpClients_unified.appTimer_handleListMemHndl);
+    igmpClients_unified.appTimer_handleListMemHndl = L7_NULLPTR;
+  }
 
-    /* Destroy SLL list for each IGMP instance */
-    SLLDestroy(L7_PTIN_COMPONENT_ID, &igmpInstances[igmp_idx].igmpClients.ll_timerList);
+  /* Destroy SLL list for each IGMP instance */
+  SLLDestroy(L7_PTIN_COMPONENT_ID, &igmpClients_unified.ll_timerList);
 
-    /* Buffer pool termination */
-    if (igmpInstances[igmp_idx].igmpClients.appTimerBufferPoolId != 0)
-    {
-      bufferPoolTerminate(igmpInstances[igmp_idx].igmpClients.appTimerBufferPoolId);
-      igmpInstances[igmp_idx].igmpClients.appTimerBufferPoolId = 0;
-    }
-    if (igmpInstances[igmp_idx].igmpClients.ctrlBlkBufferPoolId != 0)
-    {
-      bufferPoolTerminate(igmpInstances[igmp_idx].igmpClients.ctrlBlkBufferPoolId);
-      igmpInstances[igmp_idx].igmpClients.ctrlBlkBufferPoolId = 0;
-    }
+  /* Buffer pool termination */
+  if (igmpClients_unified.appTimerBufferPoolId != 0)
+  {
+    bufferPoolTerminate(igmpClients_unified.appTimerBufferPoolId);
+    igmpClients_unified.appTimerBufferPoolId = 0;
+  }
+  if (igmpClients_unified.ctrlBlkBufferPoolId != 0)
+  {
+    bufferPoolTerminate(igmpClients_unified.ctrlBlkBufferPoolId);
+    igmpClients_unified.ctrlBlkBufferPoolId = 0;
   }
 
   /* Delete task for clients management */
@@ -3397,42 +3161,26 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
 {
   L7_BOOL timer_exists = L7_FALSE;
   igmpTimerData_t *pTimerData, timerData;
-  ptinIgmpClients_t *igmpClients;
   L7_uint16 timeout;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to start timer for igmp_idx %u, client_idx=%u",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to start timer for client_idx=%u",client_idx);
 
-  /* Validate argument */
+  /* Validate arguments */
   if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index (%u)",client_idx);
-    return L7_FAILURE;
-  }
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
   }
 
   osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
 
-  /* IGMP instance must be in use */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  igmpClients = &igmpInstances[igmp_idx].igmpClients;
-
   /* Check if this timer already exists */
   memset(&timerData, 0x00, sizeof(igmpTimerData_t));
-  timerData.igmp_idx  = igmp_idx;
+  //timerData.igmp_idx  = igmp_idx;
   timerData.client_idx = client_idx;
 
-  if ( (pTimerData = (igmpTimerData_t *)SLLFind(&igmpClients->ll_timerList, (void *)&timerData)) != L7_NULLPTR )
+  if ( (pTimerData = (igmpTimerData_t *)SLLFind(&igmpClients_unified.ll_timerList, (void *)&timerData)) != L7_NULLPTR )
   {
     timer_exists = L7_TRUE;
   }
@@ -3440,12 +3188,12 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
   if ( timer_exists )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Already exists a timer running for igmp_idx %u, client_idx=%u",igmp_idx,client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Already exists a timer running for client_idx=%u",client_idx);
 
     #if 1
     if (pTimerData->timer != L7_NULL)
     {
-      if (appTimerDelete(igmpClients->timerCB, (void *) pTimerData->timer) != L7_SUCCESS)
+      if (appTimerDelete(igmpClients_unified.timerCB, (void *) pTimerData->timer) != L7_SUCCESS)
       {
         osapiSemaGive(ptin_igmp_timers_sem);
         if (ptin_debug_igmp_snooping)
@@ -3457,16 +3205,16 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer removed!");
 
       /* Remove timer handle */
-      handleListNodeDelete(igmpClients->appTimer_handle_list, &pTimerData->timerHandle);
+      handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
       pTimerData->timerHandle = 0;
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed node from handle list (igmp_idx %u, client_idx=%u)",igmp_idx,client_idx);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed node from handle list (client_idx=%u)",client_idx);
     }
     #else
     if (pTimerData->timer != L7_NULL)
     {
       /* If exists, only update it */
-      if (appTimerUpdate(igmpClients->timerCB, pTimerData->timer,
+      if (appTimerUpdate(igmpClients_unified.timerCB, pTimerData->timer,
                          (void *) igmp_timer_expiry, (void *) pTimerData->timerHandle, 30,
                          "PTIN_TIMER") != L7_SUCCESS)
       {
@@ -3475,20 +3223,21 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
         return L7_FAILURE;
       }
       osapiSemaGive(ptin_igmp_timers_sem);
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer updated for igmp_idx %u, client_idx=%u",igmp_idx,client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer updated for client_idx=%u",client_idx);
       return L7_SUCCESS;
     }
     else
     {
-      //handleListNodeDelete(igmpClients->appTimer_handle_list, &pTimerData->timerHandle);
+      //handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
       //pTimerData->timerHandle = 0;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Handle node removed for igmp_idx %u, client_idx=%u",igmp_idx,client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Handle node removed for client_idx=%u",client_idx);
     }
     #endif
   }
   else
   {
-    if (igmpClients->number_of_clients >= PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+    /* Check if there is room for one more timer */
+    if (igmpClients_unified.number_of_clients >= PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
     {
       osapiSemaGive(ptin_igmp_timers_sem);
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not start timer. There is no room for more timers!");
@@ -3496,66 +3245,66 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
     }
 
     /* Buffer pool allocation for pTimerData*/
-    if (bufferPoolAllocate(igmpClients->appTimerBufferPoolId, (L7_uchar8 **) &pTimerData) != L7_SUCCESS)
+    if (bufferPoolAllocate(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 **) &pTimerData) != L7_SUCCESS)
     {
       osapiSemaGive(ptin_igmp_timers_sem);
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not start timer. Insufficient memory.");
       return L7_FAILURE;
     }
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Allocated one Buffer node (igmp_idx %u, client_idx=%u)",igmp_idx,client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Allocated one Buffer node (client_idx=%u)",client_idx);
 
     /* Timer description */
-    pTimerData->igmp_idx = igmp_idx;
+    //pTimerData->igmp_idx = igmp_idx;
     pTimerData->client_idx = client_idx;
   }
 
   /* New timer handle */
-  if ((pTimerData->timerHandle = handleListNodeStore(igmpClients->appTimer_handle_list, pTimerData)) == 0)
+  if ((pTimerData->timerHandle = handleListNodeStore(igmpClients_unified.appTimer_handle_list, pTimerData)) == 0)
   {
     /* Free the previously allocated bufferpool */
-    bufferPoolFree(igmpClients->appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+    bufferPoolFree(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
     osapiSemaGive(ptin_igmp_timers_sem);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not get the handle node to store the timer data.");
     return L7_FAILURE;
   }
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stored node in handle list (igmp_idx %u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stored node in handle list (client_idx=%u)",client_idx);
 
   timeout = (igmpProxyCfg.querier.group_membership_interval*3)/2;
 
   /* Add a new timer */
-  pTimerData->timer = appTimerAdd( igmpClients->timerCB, igmp_timer_expiry,
+  pTimerData->timer = appTimerAdd( igmpClients_unified.timerCB, igmp_timer_expiry,
                                   (void *) pTimerData->timerHandle, timeout,
                                   "PTIN_TIMER");
   if (pTimerData->timer == NULL)
   {
     /* Free the previously allocated bufferpool */
-    handleListNodeDelete(igmpClients->appTimer_handle_list, &pTimerData->timerHandle);
+    handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
     pTimerData->timerHandle = 0;
-    bufferPoolFree(igmpClients->appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+    bufferPoolFree(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
     osapiSemaGive(ptin_igmp_timers_sem);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not Start the Group timer.");
     return L7_FAILURE;
   }
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer added (igmp_idx %u, client_idx=%u) with timeout=%u",igmp_idx,client_idx,timeout);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer added (client_idx=%u) with timeout=%u",client_idx,timeout);
 
   if ( !timer_exists )
   {
     /* Add timer to SLL */
-    if (SLLAdd(&igmpClients->ll_timerList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
+    if (SLLAdd(&igmpClients_unified.ll_timerList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
     {
       /* Free the previously allocated bufferpool */
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not add new timer data node");
-      if (appTimerDelete( igmpClients->timerCB, pTimerData->timer) != L7_SUCCESS)
+      if (appTimerDelete( igmpClients_unified.timerCB, pTimerData->timer) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to delete timer");
       }
       pTimerData->timer = L7_NULLPTR;
-      handleListNodeDelete(igmpClients->appTimer_handle_list, &pTimerData->timerHandle);
+      handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
       pTimerData->timerHandle = 0;
-      bufferPoolFree(igmpClients->appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+      bufferPoolFree(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
       osapiSemaGive(ptin_igmp_timers_sem);
       return L7_FAILURE;
     }
@@ -3564,7 +3313,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer started successfully for igmp_idx %u, client_idx=%u",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer started successfully for client_idx=%u",client_idx);
 
   return L7_SUCCESS;
 }
@@ -3580,45 +3329,29 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
 L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx)
 {
   igmpTimerData_t timerData, *pTimerData;
-  ptinIgmpClients_t *igmpClients;
   L7_uint16 timeout;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to update an existent timer (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to update an existent timer (client_idx=%u)",client_idx);
 
-  /* Validate argument */
+  /* Validate arguments */
   if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index (%u)",client_idx);
-    return L7_FAILURE;
-  }
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
   }
 
   osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
 
-  /* IGMP instance must be in use */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  igmpClients = &igmpInstances[igmp_idx].igmpClients;
-
   memset(&timerData, 0x00, sizeof(igmpTimerData_t));
-  timerData.igmp_idx = igmp_idx;
+  //timerData.igmp_idx = igmp_idx;
   timerData.client_idx = client_idx;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Searching for an SLL node (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Searching for an SLL node (client_idx=%u)",client_idx);
 
   /* Searching for the client timer */
-  if ((pTimerData = (igmpTimerData_t *)SLLFind(&igmpClients->ll_timerList, (void *)&timerData)) == L7_NULLPTR)
+  if ((pTimerData = (igmpTimerData_t *)SLLFind(&igmpClients_unified.ll_timerList, (void *)&timerData)) == L7_NULLPTR)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
@@ -3635,11 +3368,11 @@ L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx)
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Updating timer (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Updating timer (client_idx=%u)",client_idx);
 
   timeout = (igmpProxyCfg.querier.group_membership_interval*3)/2;
 
-  if (appTimerUpdate(igmpClients->timerCB, pTimerData->timer,
+  if (appTimerUpdate(igmpClients_unified.timerCB, pTimerData->timer,
                      (void *) igmp_timer_expiry, (void *) pTimerData->timerHandle, timeout,
                      "PTIN_TIMER") != L7_SUCCESS)
   {
@@ -3651,7 +3384,7 @@ L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx)
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer updated successfully for igmp_idx=%u, client_idx=%u (timeout=%u)",igmp_idx,client_idx,timeout);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer updated successfully for client_idx=%u (timeout=%u)",client_idx,timeout);
 
   return L7_SUCCESS;
 }
@@ -3667,44 +3400,28 @@ L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx)
 L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
 {
   igmpTimerData_t timerData;
-  ptinIgmpClients_t *igmpClients;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to stop a timer (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to stop a timer (client_idx=%u)",client_idx);
 
-  /* Validate argument */
+  /* Validate arguments */
   if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index (%u)",client_idx);
-    return L7_FAILURE;
-  }
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
   }
 
   osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
 
-  /* IGMP instance must be in use */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  igmpClients = &igmpInstances[igmp_idx].igmpClients;
-
   memset(&timerData, 0x00, sizeof(igmpTimerData_t));
-  timerData.igmp_idx = igmp_idx;
+  //timerData.igmp_idx = igmp_idx;
   timerData.client_idx = client_idx;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Deleting SLL node (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Deleting SLL node (client_idx=%u)",client_idx);
 
   /* Remove node for SLL list */
-  if (SLLDelete(&igmpClients->ll_timerList, (L7_sll_member_t *)&timerData) != L7_SUCCESS)
+  if (SLLDelete(&igmpClients_unified.ll_timerList, (L7_sll_member_t *)&timerData) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
@@ -3715,7 +3432,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer stopped successfully for igmp_idx=%u, client_idx=%u",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer stopped successfully for client_idx=%u",client_idx);
 
   return L7_SUCCESS;
 }
@@ -3735,7 +3452,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
 void igmp_timer_expiry(void *param)
 {
   L7_uint32 timerHandle = (L7_uint32) param;
-  L7_uint             igmp_idx, client_idx;
+  L7_uint /*igmp_idx,*/ client_idx;
 
   igmpTimerData_t *pTimerData;
 
@@ -3762,50 +3479,41 @@ void igmp_timer_expiry(void *param)
   }
 
   /* Save client information */
-  igmp_idx = pTimerData->igmp_idx;
+  //igmp_idx = pTimerData->igmp_idx;
   client_idx = pTimerData->client_idx;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for igmp_idx=%u, client_idx=%u",igmp_idx,client_idx);
-
-  /* Delete the apptimer */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP index is invalid! (%u)",igmp_idx);
-    osapiSemaGive(ptin_igmp_timers_sem);
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return;
-  }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for client_idx=%u",client_idx);
 
   /* Delete timer */
-  if (appTimerDelete(igmpInstances[igmp_idx].igmpClients.timerCB, pTimerData->timer)!=L7_SUCCESS)
+  if (appTimerDelete(igmpClients_unified.timerCB, pTimerData->timer)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot delete timer (igmp_idx %u, client_idx=%u)",pTimerData->igmp_idx,pTimerData->client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot delete timer (client_idx=%u)",pTimerData->client_idx);
   }
   pTimerData->timer = (L7_APP_TMR_HNDL_t) NULL;
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer deleted for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer deleted for client_idx=%u",pTimerData->client_idx);
 
   /* Delete the handle we had created */
-  handleListNodeDelete(igmpInstances[igmp_idx].igmpClients.appTimer_handle_list, &pTimerData->timerHandle);
+  handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
   pTimerData->timerHandle = 0;
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removing client (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removing client (client_idx=%u)",client_idx);
 
   /* Remove client (only if it is dynamic. For static ones, only is removed from snooping entries) */
-  if (ptin_igmp_rm_clientIdx(igmp_idx, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
+  if (ptin_igmp_rm_clientIdx(0 /*igmp_idx*/, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed removing client!");
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed removing client (client_idx=%u)!",client_idx);
   }
   else
   {
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed (client_idx=%u)",client_idx);
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
@@ -3846,15 +3554,7 @@ void igmp_timersMng_task(void)
     {
       //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer event for igmp_idx %u received",msg.igmp_idx);
 
-      if (msg.igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES /*&& igmpInstances[msg.igmp_idx].inUse*/)
-      {
-        //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Processing timer events for igmp_idx %u",msg.igmp_idx);
-        appTimerProcess( igmpInstances[msg.igmp_idx].igmpClients.timerCB );
-      }
-      else
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Bad igmp index %u",msg.igmp_idx);
-      }
+      appTimerProcess( igmpClients_unified.timerCB );
     }
     else
     {
@@ -3877,22 +3577,13 @@ void igmp_timersMng_task(void)
 void igmp_timerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
 {
   L7_RC_t rc;
-  L7_uint32 igmp_idx;
   ptinIgmpTimerParams_t msg;
 
-  igmp_idx = (L7_uint32) ptrData;
+  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Received a timer event");
 
-  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Received a timer event (igmp_idx %u)",igmp_idx);
+  msg.dummy = 0;
 
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES /*&& igmpInstances[igmp_idx].inUse*/)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP index (%u)",igmp_idx);
-    return;
-  }
-
-  msg.igmp_idx    = igmp_idx;
-
-  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sending timer event to queue (igmp_idx %u)",igmp_idx);
+  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sending timer event to queue");
 
   rc = osapiMessageSend(clientsMngmt_queue, &msg, PTIN_IGMP_TIMER_MSG_SIZE, L7_NO_WAIT,L7_MSG_PRIORITY_NORM);
 
@@ -3902,7 +3593,7 @@ void igmp_timerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
     return;
   }
 
-  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer event sent to queue (igmp_idx %u)",igmp_idx);
+  //LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer event sent to queue");
 }
 
 
@@ -3921,7 +3612,6 @@ void igmp_timerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
 L7_RC_t igmp_timer_dataDestroy (L7_sll_member_t *ll_member)
 {
   igmpTimerData_t *pTimerData;
-  ptinIgmpClients_t *igmpClients;
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to destroy timer");
@@ -3935,58 +3625,42 @@ L7_RC_t igmp_timer_dataDestroy (L7_sll_member_t *ll_member)
 
   pTimerData = (igmpTimerData_t *)ll_member;
 
-  /* Validate igmp index */
-  if (pTimerData->igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",pTimerData->igmp_idx);
-    return L7_FAILURE;
-  }
-  /* IGMP instance must be in use */
-  if (!igmpInstances[pTimerData->igmp_idx].inUse)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",pTimerData->igmp_idx);
-    return L7_FAILURE;
-  }
-
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ready to destroy timer for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
-
-  igmpClients = &igmpInstances[pTimerData->igmp_idx].igmpClients;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ready to destroy timer for client_idx=%u",pTimerData->client_idx);
 
   /* Destroy timer */
   if (pTimerData->timer != L7_NULL)
   {
     /* Delete the apptimer node */
-    if (appTimerDelete(igmpClients->timerCB, pTimerData->timer)!=L7_SUCCESS)
+    if (appTimerDelete(igmpClients_unified.timerCB, pTimerData->timer)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot delete timer (igmp_idx %u, client_idx=%u)",pTimerData->igmp_idx,pTimerData->client_idx);
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot delete timer (client_idx=%u)",pTimerData->client_idx);
     }
     pTimerData->timer = (L7_APP_TMR_HNDL_t) NULL;
 
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer deleted for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer deleted for client_idx=%u",pTimerData->client_idx);
 
     /* Delete the handle we had created */
-    handleListNodeDelete(igmpClients->appTimer_handle_list, &pTimerData->timerHandle);
+    handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
     pTimerData->timerHandle = 0;
 
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer handle removed for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer handle removed for client_idx=%u",pTimerData->client_idx);
   }
   else
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Timer not running for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Timer not running for client_idx=%u",pTimerData->client_idx);
   }
 
-  bufferPoolFree(igmpClients->appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
+  bufferPoolFree(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Buffer node removed for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Buffer node removed for client_idx=%u",pTimerData->client_idx);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer destroyed successfully for igmp_idx %u, client_idx=%u",pTimerData->igmp_idx,pTimerData->client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer destroyed successfully for client_idx=%u",pTimerData->client_idx);
 
   return L7_SUCCESS;
 }
@@ -4009,14 +3683,8 @@ L7_RC_t igmp_timer_dataDestroy (L7_sll_member_t *ll_member)
 *************************************************************************/
 L7_int32 igmp_timer_dataCmp(void *p, void *q, L7_uint32 key)
 {
-  if ( ((igmpTimerData_t *) p)->igmp_idx == ((igmpTimerData_t *) q)->igmp_idx &&
-       ((igmpTimerData_t *) p)->client_idx == ((igmpTimerData_t *) q)->client_idx )
+  if ( ((igmpTimerData_t *) p)->client_idx == ((igmpTimerData_t *) q)->client_idx )
     return 0;
-
-  if ( ((igmpTimerData_t *) p)->igmp_idx < ((igmpTimerData_t *) q)->igmp_idx )
-    return -1;
-  if ( ((igmpTimerData_t *) p)->igmp_idx > ((igmpTimerData_t *) q)->igmp_idx )
-    return 1;
 
   if ( ((igmpTimerData_t *) p)->client_idx < ((igmpTimerData_t *) q)->client_idx )
     return -1;
@@ -4651,7 +4319,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
 {
   ptinIgmpPairDataKey_t  avl_key;
   ptinIgmpPairInfoData_t *avl_infoData;
-  L7_uint16 i;
 
   /* Prepare key */
   memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
@@ -4700,14 +4367,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   #endif
   avl_infoData->igmp_idx  = node->igmp_idx;
   avl_infoData->is_static = node->is_static & 1;
-
-  printf("Printing key:");
-  for (i=0; i<sizeof(ptinIgmpPairDataKey_t); i++)
-  {
-    if (i%16==0)  printf("\r\n0x%04x:",i);
-    printf(" %02x",*(((L7_uchar8 *) &avl_infoData->igmpPairDataKey)+i) );
-  }
-  printf("\r\ndone!\r\n");
 
   return L7_SUCCESS;
 }
@@ -4878,67 +4537,12 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *avl_infoData;
   L7_uint32 ptin_port;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  ptin_evc_intfCfg_t intfCfg;
-  #endif
-
-  /* Validate igmp index */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP index",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if this instance is in use, and if evc_ids are valid */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Validate client */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments or no parameters provided");
-    return L7_FAILURE;
-  }
-
-  /* Check mask */
-  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
-    return L7_SUCCESS;
-  }
-
-  #if MC_CLIENT_INNERVLAN_SUPPORTED
-  /* Do not process null cvlans */
-  if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
-      (client->innerVlan==0 || client->innerVlan>4095))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_FAILURE;
-  }
-  #endif
 
   /* Get ptin_port value */
   ptin_port = 0;
   #if (MC_CLIENT_INTERF_SUPPORTED)
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
-    /* Get interface configuration in the MC EVC */
-    if (ptin_evc_intfCfg_get(igmpInstances[igmp_idx].McastEvcId, &client->ptin_intf, &intfCfg)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring intf configuration for intf %u/%u, evc=%u",
-              client->ptin_intf.intf_type,client->ptin_intf.intf_id,igmpInstances[igmp_idx].McastEvcId);
-      return L7_FAILURE;
-    }
-    /* Validate interface configuration in EVC: must be in use, and be a leaf/client */
-    if (!intfCfg.in_use || intfCfg.type!=PTIN_EVC_INTF_LEAF)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"intf %u/%u is not in use or is not a leaf in evc %u",
-              client->ptin_intf.intf_type,client->ptin_intf.intf_id,igmpInstances[igmp_idx].McastEvcId);
-      return L7_FAILURE;
-    }
     /* Convert to ptin_port format */
     if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
@@ -4949,16 +4553,8 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
   }
   #endif
 
-  /* Get new client index */
-  if ((client_idx=igmp_clientIndex_get_new(igmp_idx))<0)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index for igmp_idx=%u (mcEvc=%u)",
-            igmp_idx,igmpInstances[igmp_idx].McastEvcId);
-    return L7_FAILURE;
-  }
-
   /* Check if this key already exists */
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  avl_tree = &igmpClients_unified.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
   #if (MC_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
@@ -4997,30 +4593,169 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} will be added to igmp_idx=%u",
+                                "} will be added"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
   }
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Check if this key already exists */
-  if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) != L7_NULLPTR)
+  if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
+    /* Get new client index */
+    if ((client_idx=igmp_clientIndex_get_new(0 /*Not used*/))<0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index");
+      return L7_FAILURE;
+    }
+
+    /* Insert entry in AVL tree */
+    if (avlInsertEntry(&(avl_tree->igmpClientsAvlTree), (void *)&avl_key)!=L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting key {"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+                                "port=%u,"
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                "svlan=%u,"
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                "cvlan=%u,"
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                "ipAddr=%u.%u.%u.%u,"
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+              #endif
+                                "}"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+              ,avl_key.ptin_port
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              ,avl_key.outerVlan
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              ,avl_key.innerVlan
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+              #endif
+             );
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+
+    /* Find the inserted entry */
+    if ((avl_infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),(void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot find key {"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+                                "port=%u,"
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                "svlan=%u,"
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                "cvlan=%u,"
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                "ipAddr=%u.%u.%u.%u,"
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+              #endif
+                                "}"
+              #if (MC_CLIENT_INTERF_SUPPORTED)
+              ,avl_key.ptin_port
+              #endif
+              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              ,avl_key.outerVlan
+              #endif
+              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              ,avl_key.innerVlan
+              #endif
+              #if (MC_CLIENT_IPADDR_SUPPORTED)
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+              #endif
+              #if (MC_CLIENT_MACADDR_SUPPORTED)
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+              #endif
+             );
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+
+    if (ptin_debug_igmp_snooping)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success inserting Key {"
+                #if (MC_CLIENT_INTERF_SUPPORTED)
+                                  "port=%u,"
+                #endif
+                #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                                  "svlan=%u,"
+                #endif
+                #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                                  "cvlan=%u,"
+                #endif
+                #if (MC_CLIENT_IPADDR_SUPPORTED)
+                                  "ipAddr=%u.%u.%u.%u,"
+                #endif
+                #if (MC_CLIENT_MACADDR_SUPPORTED)
+                                  "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+                #endif
+                                  "} (entry is %s)"
+                #if (MC_CLIENT_INTERF_SUPPORTED)
+                ,avl_key.ptin_port
+                #endif
+                #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+                ,avl_key.outerVlan
+                #endif
+                #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+                ,avl_key.innerVlan
+                #endif
+                #if (MC_CLIENT_IPADDR_SUPPORTED)
+                ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+                #endif
+                #if (MC_CLIENT_MACADDR_SUPPORTED)
+                ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+                #endif
+                ,((isDynamic) ? "dynamic" : "static"));
+    }
+
+    /* Update client index in data cell */
+    avl_infoData->client_index = client_idx;
+
+    /* Dynamic entry? */
+    avl_infoData->isDynamic = isDynamic & 1;
+
+    /* Clear igmp statistics */
+    osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
+    memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+  else
+  {
+    client_idx = avl_infoData->client_index;
+
     if (ptin_debug_igmp_snooping)
     {
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"This key {"
@@ -5039,24 +4774,23 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} already exists in igmp_idx=%u (client_idx=%u)",
+                                    "} already exists (client_idx=%u)"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx,
-                  avl_infoData->client_index);
+                  ,avl_infoData->client_index);
     }
 
     /* If new type is static, always change to it */
@@ -5066,148 +4800,12 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
       if (ptin_debug_igmp_snooping)
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Entry is static!");
     }
-      /* Output client index */
-    if (client_idx_ret!=L7_NULLPTR)
-    {
-      *client_idx_ret = avl_infoData->client_index;
-    }
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_SUCCESS;
   }
-
-  /* Insert entry in AVL tree */
-  if (avlInsertEntry(&(avl_tree->igmpClientsAvlTree), (void *)&avl_key)!=L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting key {"
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                              "svlan=%u,"
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                              "cvlan=%u,"
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-                              "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-                              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
-                              "} in igmp_idx=%u",
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-            avl_key.ptin_port,
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            avl_key.outerVlan,
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            avl_key.innerVlan,
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
-            igmp_idx);
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_FAILURE;
-  }
-
-  /* Find the inserted entry */
-  if ((avl_infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),(void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot find key {"
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-                              "port=%u,"
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                              "svlan=%u,"
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                              "cvlan=%u,"
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-                              "ipAddr=%u.%u.%u.%u,"
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-                              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-            #endif
-                              "} in igmp_idx=%u",
-            #if (MC_CLIENT_INTERF_SUPPORTED)
-            avl_key.ptin_port,
-            #endif
-            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            avl_key.outerVlan,
-            #endif
-            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            avl_key.innerVlan,
-            #endif
-            #if (MC_CLIENT_IPADDR_SUPPORTED)
-            (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-            #endif
-            #if (MC_CLIENT_MACADDR_SUPPORTED)
-            avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-            #endif
-            igmp_idx);
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_FAILURE;
-  }
-
-  /* Update client index in data cell */
-  avl_infoData->client_index = client_idx;
-
-  /* Dynamic entry? */
-  avl_infoData->isDynamic = isDynamic & 1;
 
   /* Mark one more client for AVL tree */
-  igmp_clientIndex_mark(igmp_idx, client_idx, ptin_port, avl_infoData);
-
-  /* Clear igmp statistics */
-  osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
-  memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
-  osapiSemaGive(ptin_igmp_stats_sem);
+  igmp_clientIndex_mark(0 /*Not used*/, client_idx, ptin_port, avl_infoData);
 
   osapiSemaGive(ptin_igmp_clients_sem);
-
-  if (ptin_debug_igmp_snooping)
-  {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success inserting Key {"
-              #if (MC_CLIENT_INTERF_SUPPORTED)
-                                "port=%u,"
-              #endif
-              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                                "svlan=%u,"
-              #endif
-              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                                "cvlan=%u,"
-              #endif
-              #if (MC_CLIENT_IPADDR_SUPPORTED)
-                                "ipAddr=%u.%u.%u.%u,"
-              #endif
-              #if (MC_CLIENT_MACADDR_SUPPORTED)
-                                "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
-              #endif
-                                "} in igmp_idx=%u (entry is %s)",
-              #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
-              #endif
-              #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
-              #endif
-              #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
-              #endif
-              #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
-              #endif
-              #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
-              #endif
-              igmp_idx,
-              ((isDynamic) ? "dynamic" : "static"));
-  }
 
   /* Output client index */
   if (client_idx_ret!=L7_NULLPTR)
@@ -5228,58 +4826,12 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client, 
  */
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static)
 {
-  L7_uint16 McastRootVlan;
   L7_uint32 intIfNum;
   L7_uint   client_idx;
   ptinIgmpClientDataKey_t   avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientInfoData_t *avl_infoData;
   L7_uint32 ptin_port;
-
-  /* Validate igmp index */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP index",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if this instance is in use, and if evc_ids are valid */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Validate client */
-  if (client==L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments or no parameters provided");
-    return L7_FAILURE;
-  }
-
-  /* Check mask */
-  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
-    return L7_SUCCESS;
-  }
-
-  #if MC_CLIENT_INNERVLAN_SUPPORTED
-  /* Do not process null cvlans */
-  if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
-      (client->innerVlan==0 || client->innerVlan>4095))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_SUCCESS;
-  }
-  #endif
-
-  /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
-    return L7_FAILURE;
-  }
 
   /* Convert interface to ptin_port format */
   intIfNum = 0;
@@ -5302,7 +4854,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
 
   /* Check if this key does not exists */
 
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  avl_tree = &igmpClients_unified.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
   #if (MC_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
@@ -5341,23 +4893,23 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} in igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
   }
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
@@ -5383,23 +4935,23 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} does not exist in igmp_idx=%u",
+                                    "} does not exist"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
     }
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_NOT_EXIST;
@@ -5410,9 +4962,9 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
 
 #ifdef CLIENT_TIMERS_SUPPORTED
   /* Stop timers related to this client */
-  if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
+  if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
     //osapiSemaGive(ptin_igmp_clients_sem);
     //return L7_FAILURE;
   }
@@ -5440,29 +4992,29 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} from igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_FAILURE;
     }
 
     /* Remove client for AVL tree */
-    igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+    igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
 
     osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -5484,28 +5036,28 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                 #if (MC_CLIENT_MACADDR_SUPPORTED)
                                   "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                 #endif
-                                  "} from igmp_idx=%u",
+                                  "}"
                 #if (MC_CLIENT_INTERF_SUPPORTED)
-                avl_key.ptin_port,
+                ,avl_key.ptin_port
                 #endif
                 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                avl_key.outerVlan,
+                ,avl_key.outerVlan
                 #endif
                 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                avl_key.innerVlan,
+                ,avl_key.innerVlan
                 #endif
                 #if (MC_CLIENT_IPADDR_SUPPORTED)
-                (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                 #endif
                 #if (MC_CLIENT_MACADDR_SUPPORTED)
-                avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                 #endif
-                igmp_idx);
+               );
     }
   }
 
   /* Remove client from all snooping entries */
-  if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+  if (ptin_snoop_client_remove(0 /*All vlans*/, client_idx, intIfNum)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
     //return L7_FAILURE;
@@ -5530,7 +5082,6 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
  */
 static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_BOOL only_wo_channels)
 {
-  L7_uint16 McastRootVlan;
   L7_uint   client_idx;
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
@@ -5539,31 +5090,10 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
   L7_uint32 intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
-  /* Validate igmp index */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP index",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if this instance is in use, and if evc_ids are valid */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Inconsistency: IGMP index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
-    return L7_FAILURE;
-  }
-
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* AVL tree refrence */
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  avl_tree = &igmpClients_unified.avlTree;
 
   /* Get all clients */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
@@ -5597,9 +5127,9 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
 
   #ifdef CLIENT_TIMERS_SUPPORTED
     /* Stop timers */
-    if (ptin_igmp_timer_stop(igmp_idx,client_idx)!=L7_SUCCESS)
+    if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
       //rc = L7_FAILURE;
     }
   #endif
@@ -5623,29 +5153,29 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} from igmp_idx=%u",
+                                "}"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
         rc = L7_FAILURE;
     }
     else
     {
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+      igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
 
       if (ptin_debug_igmp_snooping)
       {
@@ -5665,29 +5195,29 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_uint igmp_idx, L7_BOOL isDynamic, L7_
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} from igmp_idx=%u",
+                                    "}"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key.ptin_port,
+                  ,avl_key.ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key.outerVlan,
+                  ,avl_key.outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key.innerVlan,
+                  ,avl_key.innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+                  ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+                  ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
       }
 
       if (!only_wo_channels)
       {
         /* Remove client from all snooping entries */
-        if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+        if (ptin_snoop_client_remove(0 /*All vlans*/, client_idx, intIfNum) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
         }
@@ -5730,26 +5260,11 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 {
   L7_uint ptin_port;
   L7_uint32 intIfNum;
-  L7_uint16 McastRootVlan;
-  st_IgmpInstCfg_t         *igmpInst;
   ptinIgmpClientInfoData_t *clientInfo;
   ptinIgmpClientDataKey_t  *avl_key;
   ptinIgmpClientsAvlTree_t *avl_tree;
   L7_RC_t rc;
 
-  /* Validate arguments */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance (%u)",igmp_idx);
-    return L7_FAILURE;
-  }
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP index %u not in use",igmp_idx);
-    return L7_FAILURE;
-  }
   if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
   {
     //if (ptin_debug_igmp_snooping)
@@ -5757,11 +5272,8 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
     return L7_FAILURE;
   }
 
-  /* IGMP instance */
-  igmpInst = &igmpInstances[igmp_idx];
-
   /* Get pointer to client structure in AVL tree */
-  clientInfo = igmpInst->igmpClients.clients_in_use[client_idx];
+  clientInfo = igmpClients_unified.clients_in_use[client_idx];
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -5793,10 +5305,10 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 
   #ifdef CLIENT_TIMERS_SUPPORTED
     /* Stop timers related to this client */
-    if (ptin_igmp_timer_stop(igmp_idx, client_idx)!=L7_SUCCESS)
+    if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client in igmp_idx=%u and client_idx=%u)",igmp_idx,client_idx);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot stop timer for client_idx=%u)", client_idx);
       //return L7_FAILURE;
     }
   #endif
@@ -5806,8 +5318,8 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
     {
       /* Do not insert clients semaphore control here... calling functions already do that! */
 
-      avl_key  = (ptinIgmpClientDataKey_t *) clientInfo;
-      avl_tree = &igmpInst->igmpClients.avlTree;
+      avl_key  = (ptinIgmpClientDataKey_t *) &clientInfo->igmpClientDataKey;
+      avl_tree = &igmpClients_unified.avlTree;
 
       /* Remove this client */
       if (avlDeleteEntry(&(avl_tree->igmpClientsAvlTree), (void *) avl_key)==L7_NULLPTR)
@@ -5829,31 +5341,31 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
                                     "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                   #endif
-                                    "} from igmp_idx=%u",
+                                    "}"
                   #if (MC_CLIENT_INTERF_SUPPORTED)
-                  avl_key->ptin_port,
+                  ,avl_key->ptin_port
                   #endif
                   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  avl_key->outerVlan,
+                  ,avl_key->outerVlan
                   #endif
                   #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  avl_key->innerVlan,
+                  ,avl_key->innerVlan
                   #endif
                   #if (MC_CLIENT_IPADDR_SUPPORTED)
-                  (avl_key->ipv4_addr>>24) & 0xff, (avl_key->ipv4_addr>>16) & 0xff, (avl_key->ipv4_addr>>8) & 0xff, avl_key->ipv4_addr & 0xff,
+                  ,(avl_key->ipv4_addr>>24) & 0xff, (avl_key->ipv4_addr>>16) & 0xff, (avl_key->ipv4_addr>>8) & 0xff, avl_key->ipv4_addr & 0xff
                   #endif
                   #if (MC_CLIENT_MACADDR_SUPPORTED)
-                  avl_key->macAddr[0],avl_key->macAddr[1],avl_key->macAddr[2],avl_key->macAddr[3],avl_key->macAddr[4],avl_key->macAddr[5],
+                  ,avl_key->macAddr[0],avl_key->macAddr[1],avl_key->macAddr[2],avl_key->macAddr[3],avl_key->macAddr[4],avl_key->macAddr[5]
                   #endif
-                  igmp_idx);
+                 );
         return L7_FAILURE;
       }
 
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark igmp_idx=%u client_idx=%u",igmp_idx,client_idx);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark client_idx=%u", client_idx);
 
       /* Remove client for AVL tree */
-      igmp_clientIndex_unmark(igmp_idx, client_idx, ptin_port);
+      igmp_clientIndex_unmark(0 /*Not used*/, client_idx, ptin_port);
     }
   }
 
@@ -5865,22 +5377,14 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 
     rc = L7_SUCCESS;
 
-    /* Get Multicast root vlan */
-    if ( (ptin_evc_get_intRootVlan(igmpInst->McastEvcId, &McastRootVlan))!=L7_SUCCESS )
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Error getting root vlan of MC EVC id (%u)",igmpInst->McastEvcId);
-      rc = L7_FAILURE;
-    }
-
     if ( rc == L7_SUCCESS )
     {
       if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: McastVlan=%u (evcId=%u), intIfNum=%u (port=%u)",
-                  McastRootVlan,igmpInst->McastEvcId,intIfNum, ptin_port);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: client_idx=%u, intIfNum=%u (port=%u)",
+                  client_idx, intIfNum, ptin_port);
 
       /* Remove client from all snooping entries */
-      if (ptin_snoop_client_remove(McastRootVlan,client_idx,intIfNum)!=L7_SUCCESS)
+      if (ptin_snoop_client_remove(0 /*All vlans*/,client_idx,intIfNum)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
       }
@@ -5898,7 +5402,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success flushing client (igmp_idx=%u, client_idx=%u)",igmp_idx,client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success flushing client (client_idx=%u)", client_idx);
 
   return L7_SUCCESS;
 }
@@ -5930,8 +5434,8 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
 
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
+//  if (ptin_debug_igmp_snooping)
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
     return L7_FAILURE;
   }
 
@@ -6417,6 +5921,8 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   return L7_SUCCESS;
 }
 
+/* Not used */
+#if 0
 /**
  * Remove all Multicast client
  * 
@@ -6426,9 +5932,10 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
  */
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
 {
-  L7_uint16 McastRootVlan;
+  //L7_uint16 McastRootVlan;
   ptinIgmpClientsAvlTree_t *avl_tree;
 
+  #if 0
   /* Validate argument */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -6448,23 +5955,24 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",igmpInstances[igmp_idx].McastEvcId);
     return L7_FAILURE;
   }
+  #endif
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  avl_tree = &igmpClients_unified.avlTree;
 
   /* Remove all entries from AVL tree */
   avlPurgeAvlTree(&(avl_tree->igmpClientsAvlTree), PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
 
   /* Remove all clients for AVL tree */
-  igmp_clientIndex_clearAll(igmp_idx);
+  igmp_clientIndex_clearAll(0 /*Not used*/);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success removing all clients from igmp_idx=%u",igmp_idx);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success removing all clients");
 
   /* Remove all channels from snooping entries */
-  if (ptin_snoop_channel_removeAll(McastRootVlan)!=L7_SUCCESS)
+  if (ptin_snoop_channel_removeAll(0 /*All vlans*/)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all channels/clients from snooping entries");
     //return L7_FAILURE;
@@ -6476,6 +5984,7 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx)
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Validate IGMP instance configure message 
@@ -6656,132 +6165,6 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint16 McastEvcId, L7_uint16 U
   return L7_FALSE;
 }
 
-#if 0
-/**
- * Get next client belonging to an IGMP instance
- * 
- * @param igmp_idx    : IGMP instance
- * @param client_ref  : Client id used as reference to search
- * @param client_next : Next client id after client_ref
- * 
- * @return L7_RC_t : L7_SUCCESS when a next client was found 
- *                   L7_NOT_EXIST when there is no more clients
- *                   L7_FAILURE in case of error
- */
-static L7_RC_t ptin_igmp_client_getNext(L7_uint igmp_idx, ptin_client_id_t *client_ref, ptin_client_id_t *client_next)
-{
-  ptinIgmpClientDataKey_t avl_key;
-  ptinIgmpClientsAvlTree_t *avl_tree;
-  ptinIgmpClientInfoData_t *clientInfo;
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  L7_uint32 ptin_port;
-  #endif
-
-  /* Validate arguments */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_ref==L7_NULLPTR)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate igmp instance */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
-  /* Get ptin_port value */
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  ptin_port = 0;
-  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INTF)
-  {
-    /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
-  }
-  #endif
-
-  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
-
-  /* Key to search for */
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
-  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
-  #if (MC_CLIENT_INTERF_SUPPORTED)
-  avl_key.ptin_port = ptin_port;
-  #endif
-  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-  avl_key.outerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client_ref->outerVlan : 0;
-  #endif
-  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-  avl_key.innerVlan = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client_ref->innerVlan : 0;
-  #endif
-  #if (MC_CLIENT_IPADDR_SUPPORTED)
-  avl_key.ipv4_addr = (client_ref->mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client_ref->ipv4_addr : 0;
-  #endif
-  #if (MC_CLIENT_MACADDR_SUPPORTED)
-  if (client_ref->mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
-    memcpy(avl_key.macAddr,client_ref->macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-  else
-    memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-  #endif
-
-  /* Search for this client */
-  clientInfo = avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_NEXT);
-
-  /* Check if this key already exists */
-  if (clientInfo==L7_NULLPTR)
-  {
-    osapiSemaGive(ptin_igmp_clients_sem);
-    return L7_NOT_EXIST;
-  }
-
-  /* Return client information */
-  if ( client_next != L7_NULLPTR )
-  {
-    memset(client_next, 0x00, sizeof(ptin_client_id_t) );
-
-    #if (MC_CLIENT_INTERF_SUPPORTED)
-    /* Convert to ptin_port format */
-    if (ptin_intf_port2ptintf(clientInfo->igmpClientDataKey.ptin_port, &client_next->ptin_intf)!=L7_SUCCESS)
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert ptin_port %u to client_next ptin_intf format", clientInfo->igmpClientDataKey.ptin_port);
-      osapiSemaGive(ptin_igmp_clients_sem);
-      return L7_FAILURE;
-    }
-    client_next->mask | PTIN_CLIENT_MASK_FIELD_INTF;
-    #endif
-    #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-    client_next->outerVlan = clientInfo->igmpClientDataKey.outerVlan;
-    client_next->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-    #endif
-    #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-    client_next->innerVlan = clientInfo->igmpClientDataKey.innerVlan;
-    client_next->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    #endif
-    #if (MC_CLIENT_IPADDR_SUPPORTED)
-    client_next->ipv4_addr = clientInfo->igmpClientDataKey.ipv4_addr;
-    client_next->mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
-    #endif
-    #if (MC_CLIENT_MACADDR_SUPPORTED)
-    memcpy(client_next->macAddr, clientInfo->igmpClientDataKey.macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-    client_next->mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
-    #endif
-  }
-
-  osapiSemaGive(ptin_igmp_clients_sem);
-
-  return L7_SUCCESS;
-}
-#endif
-
 /**
  * Find client information in a particulat IGMP instance
  * 
@@ -6802,22 +6185,6 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
   L7_uint32 ptin_port;
   #endif
 
-  /* Validate arguments */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES || client_ref==L7_NULLPTR)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Validate igmp instance */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
   /* Get ptin_port value */
   #if (MC_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
@@ -6836,7 +6203,7 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Key to search for */
-  avl_tree = &igmpInstances[igmp_idx].igmpClients.avlTree;
+  avl_tree = &igmpClients_unified.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
   #if (MC_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
@@ -6881,23 +6248,23 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
               #if (MC_CLIENT_MACADDR_SUPPORTED)
                                 ",MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
               #endif
-                                "} does not exist in igmp_idx=%u",
+                                "} does not exist"
               #if (MC_CLIENT_INTERF_SUPPORTED)
-              avl_key.ptin_port,
+              ,avl_key.ptin_port
               #endif
               #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              avl_key.outerVlan,
+              ,avl_key.outerVlan
               #endif
               #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              avl_key.innerVlan,
+              ,avl_key.innerVlan
               #endif
               #if (MC_CLIENT_IPADDR_SUPPORTED)
-              (avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff,
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
               #endif
               #if (MC_CLIENT_MACADDR_SUPPORTED)
-              avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
               #endif
-              igmp_idx);
+             );
     }
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_NOT_EXIST;
@@ -6915,7 +6282,457 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 }
 
 /**
- * Increment IGMP statistics
+ * Validate and rearrange client id info. 
+ * This should only be applied for client infos coming from 
+ * manager. 
+ * 
+ * @author mruas (8/6/2013)
+ * 
+ * @param client : client info
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *client)
+{
+  L7_uint16 intVlan, innerVlan;
+
+  /* Validate evc index  */
+  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC id: evcId=%u",evc_idx);
+    return L7_FAILURE;
+  }
+  /* This evc must be active */
+  if (!ptin_evc_is_in_use(evc_idx))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC id is not active: evcId=%u",evc_idx);
+    return L7_FAILURE;
+  }
+  /* Validate client */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client pointer");
+    return L7_FAILURE;
+  }
+
+  /* Check mask */
+  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
+    return L7_FAILURE;
+  }
+
+  innerVlan = 0;
+  /* Validate inner vlan */
+  #if MC_CLIENT_INNERVLAN_SUPPORTED
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+  {
+    /* Validate inner vlan */
+    if (client->innerVlan>4095)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+      return L7_FAILURE;
+    }
+    innerVlan = client->innerVlan;
+  }
+  #endif
+
+  /* Update outer vlan */
+  #if defined(MC_CLIENT_INTERF_SUPPORTED) && defined(MC_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
+      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+  {
+    /* Obtain intVlan */
+    if (ptin_evc_get_intVlan(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for evcId=%u, ptin_intf=%u/%u",
+              evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* Validate outer vlan, only if provided */
+    if (client->outerVlan != 0)
+    {
+      if (ptin_evc_extVlan_validate(evc_idx, &client->ptin_intf, client->outerVlan, innerVlan)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"extOVlan=%u is not correct for EVC %u, ptin_intf=%u/%u, innerVlan=%u",
+                client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id, innerVlan);
+        return L7_FAILURE;
+      }
+    }
+    /* Replace outer vlan with the internal one */
+    client->outerVlan = intVlan;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Restore client id structure to values which manager 
+ * understands.
+ * 
+ * @param client : client id
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
+{
+  L7_uint32 intIfNum;
+  L7_uint16 extVlan, innerVlan;
+
+  /* Validate client */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments or no parameters provided");
+    return L7_FAILURE;
+  }
+
+  /* Check mask */
+  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
+    return L7_FAILURE;
+  }
+
+  innerVlan = 0;
+  #if MC_CLIENT_INNERVLAN_SUPPORTED
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+  {
+    /* Validate inner vlan */
+    if (client->innerVlan>4095)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+      return L7_FAILURE;
+    }
+    innerVlan = client->innerVlan;
+  }
+  #endif
+
+  #if defined(MC_CLIENT_INTERF_SUPPORTED) && defined(MC_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
+      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+  {
+    /* Convert to intIfNum format */
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+              client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* Validate outer vlan */
+    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
+      return L7_FAILURE;
+    }
+    /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
+              client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+    /* Replace outer vlan with the internal one */
+    client->outerVlan = extVlan;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**************************** 
+ * IGMP statistics
+ ****************************/
+
+/**
+ * Get global IGMP statistics
+ * 
+ * @param intIfNum    : interface
+ * @param stat_port_g : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g)
+{
+  L7_uint32 ptin_port;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Return pointer to stat structure */
+  if (stat_port_g!=L7_NULLPTR)
+  {
+    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+    memcpy(stat_port_g, &global_stats_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * interface 
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * @param stat_port   : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port)
+{
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get stats */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_get(evc_idx, ptin_intf, stat_port);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * GetIGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx   : Multicast EVC id
+ * @param client    : client reference
+ * @param stat_port : statistics (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_client_get(L7_uint16 evc_idx, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client)
+{
+  ptinIgmpClientInfoData_t *clientInfo;
+
+  /* Validate and rearrange clientId info */
+  if (ptin_igmp_clientId_convert(evc_idx,client)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+    return L7_FAILURE;
+  }
+
+  /* Get client */
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,
+            "Error searching for client {mask=0x%02x,"
+            "port=%u/%u,"
+            "svlan=%u,"
+            "cvlan=%u,"
+            "ipAddr=%u.%u.%u.%u,"
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+            client->mask,
+            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
+            client->outerVlan,
+            client->innerVlan,
+            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+    return L7_FAILURE;
+  }
+
+  /* Return pointer to stat structure */
+  if (stat_client!=L7_NULLPTR)
+  {
+    osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+    memcpy(stat_client, &clientInfo->stats_client, sizeof(ptin_IGMP_Statistics_t));
+    osapiSemaGive(ptin_igmp_stats_sem);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear interface IGMP statistics
+ * 
+ * @param intIfNum    : interface 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
+{
+  L7_uint32 ptin_port;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Convert interface to ptin_port */
+  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear global statistics */
+  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear statistics of a particular IGMP instance and interface
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param intIfNum    : interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint16 evc_idx, ptin_intf_t *ptin_intf)
+{
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (ptin_intf==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get stats pointer */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_clear(evc_idx, ptin_intf);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear all statistics of one IGMP instance
+ * 
+ * @param evc_idx : Multicast EVC id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_instance_clear(L7_uint16 evc_idx)
+{
+  L7_RC_t rc;
+
+  /* Clear all stats of this EVC */
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+  rc = ptin_evc_igmp_stats_clear_all(evc_idx);
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting IGMP stats for EVC %u",evc_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Clear all IGMP statistics
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_clearAll(void)
+{
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear global statistics */
+  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Clear IGMP statistics of a particular IGMP instance and 
+ * client
+ * 
+ * @param evc_idx  : Multicast EVC id
+ * @param client      : client reference
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_client_clear(L7_uint16 evc_idx, ptin_client_id_t *client)
+{
+  ptinIgmpClientInfoData_t *clientInfo;
+
+  /* Validate and rearrange clientId info */
+  if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+    return L7_FAILURE;
+  }
+
+  /* Find client */
+  if (ptin_igmp_client_find(0 /*Not used*/, client, &clientInfo)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,
+            "Error searching for client {mask=0x%02x,"
+            "port=%u/%u,"
+            "svlan=%u,"
+            "cvlan=%u,"
+            "ipAddr=%u.%u.%u.%u,"
+            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+            client->mask,
+            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
+            client->outerVlan,
+            client->innerVlan,
+            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
+            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
+
+  /* Clear client statistics (if port matches) */
+  memset(&clientInfo->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
+
+  osapiSemaGive(ptin_igmp_stats_sem);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get IGMP statistics
  * 
  * @param intIfNum   : interface where the packet entered
  * @param vlan       : packet's interval vlan
@@ -6924,20 +6741,486 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
+L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
+{
+  L7_uint32 ptin_port;
+  ptinIgmpClientInfoData_t *client;
+
+  ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_client = L7_NULLPTR;
+
+  L7_uint32 statPortG=0;
+  L7_uint32 statPort=0;
+  L7_uint32 statClient=0;
+
+  /* Validate field */
+  if (field>=SNOOP_STAT_FIELD_ALL)
+  {
+    return L7_FAILURE;
+  }
+
+  /* If interface is valid... */
+  if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
+  {
+    /* Check if interface exists */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS && ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      /* Global interface statistics at interface level */
+      stat_port_g = &global_stats_intf[ptin_port];
+    }
+  }
+
+  /* Pointer to EVC stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
+
+  /* If client index is valid... */
+  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
+    client = igmpClients_unified.clients_in_use[client_idx];
+    if (client!=L7_NULLPTR)
+    {
+      /* Statistics at client level */
+      stat_client = &client->stats_client;
+    }
+  }
+
+  switch (field) {
+  case SNOOP_STAT_FIELD_ACTIVE_GROUPS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_groups;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_groups;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_groups;
+    break;
+
+  case SNOOP_STAT_FIELD_ACTIVE_CLIENTS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_clients;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_clients;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_clients;
+    break;
+
+/*Global Counters*/
+  case SNOOP_STAT_FIELD_IGMP_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_TX_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_tx_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_tx_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_tx_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_INTERCEPTED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_intercepted;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_intercepted;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_intercepted;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_dropped;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_dropped;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_dropped;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_valid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_valid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_valid;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_invalid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_invalid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_invalid;
+    break;
+/*End Global Counters*/
+
+/*Query Counters*/
+/*Generic Query*/
+  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->general_queries_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->general_queries_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->general_queries_sent;
+    break;
+/*End Generic Query*/
+
+/*General Query*/
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_dropped_rx;
+    break;
+/*End General Query*/
+
+/*Group Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_dropped_rx;
+    break;
+/*End Group Specifc Query*/
+
+/*Group & Source Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_valid_rx;
+    break;
+
+   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_dropped_rx;
+    break;
+/*End Group & Source Specifc Query*/    
+/*End Query Counters*/
+
+/*To be replaced with the new structure*/
+/*IGMP v2 Counters*/
+  case SNOOP_STAT_FIELD_JOINS_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_success;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_success;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_success;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received;
+    break;
+/*End IGMPv2 Counters*/
+  
+/*IGMPv3 Counters*/
+/*Mmbership Report Message*/
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
+   if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_tx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_tx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_tx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_total_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_total_rx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_total_rx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_valid_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_dropped_rx;
+    break;
+
+    /*GROUP RECORD*/
+    /*Allow*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_dropped_rx;
+    break;
+    /*End Allow*/   
+
+  /*Block*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_dropped_rx;
+    break;
+    /*End Block*/   
+
+    /*To_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_dropped_rx;
+    break;
+    /*End To_In*/   
+
+     /*To_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_dropped_rx;
+    break;
+    /*End To_Ex*/   
+
+     /*Is_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_dropped_rx;
+    break;
+    /*End Is_In*/   
+
+     /*Is_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_dropped_rx;
+    break;
+    /*End Is_Ex*/   
+/*END GROUP RECORD*/
+/*End Membership Report Message*/
+/*End IGMPv3 Counters*/
+ 
+  default:
+    break;
+  }
+
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statistics Field:%u",field);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPortG:%u",statPortG);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPort:%u",statPort);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statClient:%u",statClient);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Reset IGMP statistics
+ * 
+ * @param intIfNum   : interface where the packet entered
+ * @param vlan       : packet's interval vlan
+ * @param client_idx : client index
+ * @param field      : field to increment
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port;
   st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
-#if 1
+
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_client = L7_NULLPTR;
-#else
-  ptin_MGMD_Statistics_t *stat_port_g = L7_NULLPTR;
-  ptin_MGMD_Statistics_t *stat_port   = L7_NULLPTR;
-  ptin_MGMD_Statistics_t *stat_client = L7_NULLPTR;
-#endif
+
+  L7_uint32 statPortG=0;
+  L7_uint32 statPort=0;
+  L7_uint32 statClient=0;
+
   /* Validate field */
   if (field>=SNOOP_STAT_FIELD_ALL)
   {
@@ -6972,10 +7255,472 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   }
 
   /* If client index is valid... */
-  if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
+    {
+      /* Statistics at client level */
+      stat_client = &client->stats_client;
+    }
+  }
+
+  switch (field) {
+  case SNOOP_STAT_FIELD_ACTIVE_GROUPS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_groups;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_groups;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_groups;
+    break;
+
+  case SNOOP_STAT_FIELD_ACTIVE_CLIENTS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->active_clients;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->active_clients;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->active_clients;
+    break;
+
+/*Global Counters*/
+  case SNOOP_STAT_FIELD_IGMP_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_TX_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_tx_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_tx_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_tx_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_INTERCEPTED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_intercepted;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_intercepted;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_intercepted;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_dropped;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_dropped;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_dropped;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_valid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_valid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_valid;
+    break;
+
+  case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmp_received_invalid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmp_received_invalid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmp_received_invalid;
+    break;
+/*End Global Counters*/
+
+/*Query Counters*/
+/*Generic Query*/
+  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->general_queries_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->general_queries_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->general_queries_sent;
+    break;
+/*End Generic Query*/
+
+/*General Query*/
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.general_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.general_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.general_query_dropped_rx;
+    break;
+/*End General Query*/
+
+/*Group Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.group_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.group_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.group_query_dropped_rx;
+    break;
+/*End Group Specifc Query*/
+
+/*Group & Source Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_valid_rx;
+    break;
+
+   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.source_query_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.source_query_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.source_query_dropped_rx;
+    break;
+/*End Group & Source Specifc Query*/    
+/*End Query Counters*/
+
+/*To be replaced with the new structure*/
+/*IGMP v2 Counters*/
+  case SNOOP_STAT_FIELD_JOINS_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_success;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_success;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_success;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_failed;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_failed;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_failed;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_SENT:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_sent;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_sent;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_sent;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received;
+    break;
+/*End IGMPv2 Counters*/
+  
+/*IGMPv3 Counters*/
+/*Mmbership Report Message*/
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
+   if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_tx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_tx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_tx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_total_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_total_rx;    
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_total_rx;    
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_valid_rx;    
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.membership_report_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.membership_report_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_dropped_rx;
+    break;
+
+    /*GROUP RECORD*/
+    /*Allow*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.allow_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.allow_dropped_rx;
+    break;
+    /*End Allow*/   
+
+  /*Block*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.block_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.block_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.block_dropped_rx;
+    break;
+    /*End Block*/   
+
+    /*To_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_include_dropped_rx;
+    break;
+    /*End To_In*/   
+
+     /*To_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.to_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.to_exclude_dropped_rx;
+    break;
+    /*End To_Ex*/   
+
+     /*Is_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_include_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_include_dropped_rx;
+    break;
+    /*End Is_In*/   
+
+     /*Is_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_tx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_tx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_tx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_total_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_total_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_valid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_valid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_invalid_rx;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpv3.group_record.is_exclude_dropped_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.group_record.is_exclude_dropped_rx;
+    break;
+    /*End Is_Ex*/   
+/*END GROUP RECORD*/
+/*End Membership Report Message*/
+/*End IGMPv3 Counters*/
+ 
+  default:
+    break;
+  }
+
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statistics Field:%u",field);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPortG:%u",statPortG);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPort:%u",statPort);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statClient:%u",statClient);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Increment IGMP statistics
+ * 
+ * @param intIfNum   : interface where the packet entered
+ * @param vlan       : packet's interval vlan
+ * @param client_idx : client index
+ * @param field      : field to increment
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
+{
+  L7_uint32 ptin_port = (L7_uint32)-1;
+  ptinIgmpClientInfoData_t *client;
+
+  ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
+  ptin_IGMP_Statistics_t *stat_client = L7_NULLPTR;
+
+  /* Validate field */
+  if (field>=SNOOP_STAT_FIELD_ALL)
+  {
+    return L7_FAILURE;
+  }
+
+  /* If interface is valid... */
+  if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
+  {
+    /* Check if interface exists */
+    if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)==L7_SUCCESS && ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      /* Global interface statistics at interface level */
+      stat_port_g = &global_stats_intf[ptin_port];
+    }
+  }
+
+  /* Pointer to IGMP stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
+
+  /* If client index is valid... */
+  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  {
+    client = igmpClients_unified.clients_in_use[client_idx];
+    if (client!=L7_NULLPTR && ptin_port<PTIN_SYSTEM_N_PONS)
     {
       /* Statistics at client level */
       stat_client = &client->stats_client;
@@ -6984,7 +7729,6 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
 
   osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
 
-#if 1
   switch (field) {
   case SNOOP_STAT_FIELD_ACTIVE_GROUPS:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->active_groups++;
@@ -6998,6 +7742,7 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_client!=L7_NULLPTR)  stat_client->active_clients++;
     break;
 
+/*Global Counters*/
   case SNOOP_STAT_FIELD_IGMP_SENT:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmp_sent++;
     if (stat_port  !=L7_NULLPTR)  stat_port->igmp_sent++;
@@ -7033,7 +7778,128 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_port  !=L7_NULLPTR)  stat_port->igmp_received_invalid++;
     if (stat_client!=L7_NULLPTR)  stat_client->igmp_received_invalid++;
     break;
+/*End Global Counters*/
 
+/*Query Counters*/
+
+/*To be removed*/
+ /*Old Counters*/
+#if 0
+case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
+    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_received++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_received++;
+    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_received++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_sent++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_sent++;
+    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_sent++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_received++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_received++;
+    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_received++;
+    break;
+#endif
+/*End Old Counters*/
+
+/*Generic Query*/
+  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
+    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
+    break;
+/*End Generic Query*/
+
+/*General Query*/
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_dropped_rx++;
+    break;
+/*End General Query*/
+
+/*Group Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_dropped_rx++;
+    break;
+/*End Group Specifc Query*/
+
+/*Group & Source Specifc Query*/
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_valid_rx++;
+    break;
+
+   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_dropped_rx++;
+    break;
+/*End Group & Source Specifc Query*/    
+/*End Query Counters*/
+
+/*To be replaced with the new structure*/
+/*IGMP v2 Counters*/
   case SNOOP_STAT_FIELD_JOINS_SENT:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_sent++;
     if (stat_port  !=L7_NULLPTR)  stat_port->joins_sent++;
@@ -7063,39 +7929,10 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received++;
     if (stat_client!=L7_NULLPTR)  stat_client->leaves_received++;
     break;
-
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
-    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
-    break;
-
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_received++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_received++;
-    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_received++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_sent++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_sent++;
-    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_sent++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->specific_queries_received++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->specific_queries_received++;
-    if (stat_client!=L7_NULLPTR)  stat_client->specific_queries_received++;
-    break;
-
-  case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->membership_report_v3++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->membership_report_v3++;
-    if (stat_client!=L7_NULLPTR)  stat_client->membership_report_v3++;
-    break;
-#else
-
-/*MEMBERSHIP REPORT MESSAGE*/
+/*End IGMPv2 Counters*/
+  
+/*IGMPv3 Counters*/
+/*Mmbership Report Message*/
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.membership_report_tx++;    
     if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.membership_report_tx++;    
@@ -7157,129 +7994,172 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_dropped_rx++;
     if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_dropped_rx++;
     break;
-    /*End Allow*/
+    /*End Allow*/   
 
-     /*Block*/
-  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.allow_tx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_tx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_tx++;
+
+  /*Block*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_tx++;
     break;
 
-  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.allow_total_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_total_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_total_rx++;
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_total_rx++;
     break;
 
-  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.allow_valid_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_valid_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_valid_rx++;
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_valid_rx++;
     break;
 
-  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.allow_invalid_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_invalid_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_invalid_rx++;
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_invalid_rx++;
     break;
 
-  case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.allow_dropped_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.allow_dropped_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.allow_dropped_rx++;
+  case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.block_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.block_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.block_dropped_rx++;
     break;
-    /*End Block*/
+    /*End Block*/   
+
+
+    /*To_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_include_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_include_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_include_dropped_rx++;
+    break;
+    /*End To_In*/   
+
+     /*To_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.to_exclude_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.to_exclude_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.to_exclude_dropped_rx++;
+    break;
+    /*End To_Ex*/   
+
+     /*Is_In*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_include_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_include_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_include_dropped_rx++;
+    break;
+    /*End Is_In*/   
+
+     /*Is_Ex*/
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_tx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_tx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_tx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_total_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_total_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_total_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_valid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_valid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_valid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_invalid_rx++;
+    break;
+
+  case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpv3.group_record.is_exclude_dropped_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpv3.group_record.is_exclude_dropped_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpv3.group_record.is_exclude_dropped_rx++;
+    break;
+    /*End Is_Ex*/   
 /*END GROUP RECORD*/
-
-/*END MEMBERSHIP REPORT MESSAGE*/
-
-/*GENERIC QUERY*/
-  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
-    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
-    break;
-/*END GENERIC QUERY*/
-
-/*GENERAL QUERY*/
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_tx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_tx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_tx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_total_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_total_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_total_rx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_valid_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_valid_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_valid_rx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.general_query_dropped_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.general_query_dropped_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.general_query_dropped_rx++;
-    break;
-/*END GENERAL QUERY*/
-
-/*GROUP SPECIFIC QUERY*/
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_tx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_tx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_tx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_total_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_total_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_total_rx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_valid_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_valid_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_valid_rx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.group_query_dropped_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.group_query_dropped_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.group_query_dropped_rx++;
-    break;
-/*END GROUP SPECIFIC QUERY*/
-
-/*GROUP AND SOURCE SPECIFIC QUERY*/
-  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_tx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_tx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_tx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_total_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_total_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_total_rx++;
-    break;
-
-  case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_valid_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_valid_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_valid_rx++;
-    break;
-
-   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.source_query_dropped_rx++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.source_query_dropped_rx++;
-    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.source_query_dropped_rx++;
-    break;
-/*END GROUP AND SOURCE SPECIFIC QUERY*/
-#endif
+/*End Membership Report Message*/
+/*End IGMPv3 Counters*/
  
   default:
     break;
@@ -7303,7 +8183,6 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
   L7_uint32 ptin_port;
-  st_IgmpInstCfg_t *igmpInst;
   ptinIgmpClientInfoData_t *client;
   ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
   ptin_IGMP_Statistics_t *stat_port   = L7_NULLPTR;
@@ -7315,16 +8194,6 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     return L7_FAILURE;
   }
 
-  /* Get IGMP instance */
-  igmpInst = L7_NULLPTR;
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    if (ptin_igmp_inst_get_fromIntVlan(vlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
-    {
-      igmpInst = L7_NULLPTR;
-    }
-  }
-
   /* If interface is valid... */
   if (intIfNum>0 && intIfNum<L7_MAX_INTERFACE_COUNT)
   {
@@ -7333,19 +8202,16 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     {
       /* Global interface statistics at interface level */
       stat_port_g = &global_stats_intf[ptin_port];
-
-      if (igmpInst!=L7_NULLPTR)
-      {
-        /* interface statistics at igmp instance and interface level */
-        stat_port = &igmpInst->stats_intf[ptin_port];
-      }
     }
   }
 
+  /* Pointer to IGMP stats */
+  (void) ptin_evc_igmp_stats_get_fromIntVlan(vlan, intIfNum, &stat_port);
+
   /* If client index is valid... */
-  if (igmpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    client = igmpInst->igmpClients.clients_in_use[client_idx];
+    client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
@@ -7405,9 +8271,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
  */
 void ptin_igmp_dump(void)
 {
-  L7_uint i, i_client;
-  ptinIgmpClientDataKey_t avl_key;
-  ptinIgmpClientInfoData_t *avl_info;
+  L7_uint i;
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -7421,66 +8285,89 @@ void ptin_igmp_dump(void)
     printf("IGMP instance %02u\n", i);
     printf("   MC evc_idx = %u\r\n",igmpInstances[i].McastEvcId);
     printf("   UC evc_idx = %u\r\n",igmpInstances[i].UcastEvcId);
-
-    i_client = 0;
-
-    /* Run all cells in AVL tree */
-    memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
-    while ( ( avl_info = (ptinIgmpClientInfoData_t *)
-                          avlSearchLVL7(&igmpInstances[i].igmpClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-            ) != L7_NULLPTR )
-    {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
-
-      printf("      Client#%u: "
-             #if (MC_CLIENT_INTERF_SUPPORTED)
-             "ptin_port=%-2u "
-             #endif
-             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-             "svlan=%-4u "
-             #endif
-             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-             "cvlan=%-4u "
-             #endif
-             #if (MC_CLIENT_IPADDR_SUPPORTED)
-             "IP=%03u.%03u.%03u.%03u "
-             #endif
-             #if (MC_CLIENT_MACADDR_SUPPORTED)
-             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-             #endif
-             ": index=%-3u [%s] #channels=%u\r\n",
-             i_client,
-             #if (MC_CLIENT_INTERF_SUPPORTED)
-             avl_info->igmpClientDataKey.ptin_port,
-             #endif
-             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-             avl_info->igmpClientDataKey.outerVlan,
-             #endif
-             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-             avl_info->igmpClientDataKey.innerVlan,
-             #endif
-             #if (MC_CLIENT_IPADDR_SUPPORTED)
-             (avl_info->igmpClientDataKey.ipv4_addr>>24) & 0xff,
-              (avl_info->igmpClientDataKey.ipv4_addr>>16) & 0xff,
-               (avl_info->igmpClientDataKey.ipv4_addr>>8) & 0xff,
-                avl_info->igmpClientDataKey.ipv4_addr & 0xff,
-             #endif
-             #if (MC_CLIENT_MACADDR_SUPPORTED)
-             avl_info->igmpClientDataKey.macAddr[0],
-              avl_info->igmpClientDataKey.macAddr[1],
-               avl_info->igmpClientDataKey.macAddr[2],
-                avl_info->igmpClientDataKey.macAddr[3],
-                 avl_info->igmpClientDataKey.macAddr[4],
-                  avl_info->igmpClientDataKey.macAddr[5],
-             #endif
-             avl_info->client_index,
-             ((avl_info->isDynamic) ? "dynamic" : "static "),
-             avl_info->stats_client.active_groups);
-
-      i_client++;
-    }
   }
+
+  printf("\r\nClients are not associated to IGMP instances any more!!!\r\n");
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+}
+
+/**
+ * Dumps EVC detailed info 
+ * If evc_idx is invalid, all EVCs are dumped 
+ * 
+ * @param evc_idx 
+ */
+void ptin_igmp_clients_dump(void)
+{
+  L7_uint i_client;
+  ptinIgmpClientDataKey_t avl_key;
+  ptinIgmpClientInfoData_t *avl_info;
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
+  printf("List of clients (%u clients):\n",igmpClients_unified.number_of_clients);
+
+  i_client = 0;
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  while ( ( avl_info = (ptinIgmpClientInfoData_t *)
+                        avlSearchLVL7(&igmpClients_unified.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+
+    printf("      Client#%u: "
+           #if (MC_CLIENT_INTERF_SUPPORTED)
+           "ptin_port=%-2u "
+           #endif
+           #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+           "svlan=%-4u "
+           #endif
+           #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+           "cvlan=%-4u "
+           #endif
+           #if (MC_CLIENT_IPADDR_SUPPORTED)
+           "IP=%03u.%03u.%03u.%03u "
+           #endif
+           #if (MC_CLIENT_MACADDR_SUPPORTED)
+           "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+           #endif
+           ": index=%-3u [%s] #channels=%u\r\n",
+           i_client,
+           #if (MC_CLIENT_INTERF_SUPPORTED)
+           avl_info->igmpClientDataKey.ptin_port,
+           #endif
+           #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+           avl_info->igmpClientDataKey.outerVlan,
+           #endif
+           #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+           avl_info->igmpClientDataKey.innerVlan,
+           #endif
+           #if (MC_CLIENT_IPADDR_SUPPORTED)
+           (avl_info->igmpClientDataKey.ipv4_addr>>24) & 0xff,
+            (avl_info->igmpClientDataKey.ipv4_addr>>16) & 0xff,
+             (avl_info->igmpClientDataKey.ipv4_addr>>8) & 0xff,
+              avl_info->igmpClientDataKey.ipv4_addr & 0xff,
+           #endif
+           #if (MC_CLIENT_MACADDR_SUPPORTED)
+           avl_info->igmpClientDataKey.macAddr[0],
+            avl_info->igmpClientDataKey.macAddr[1],
+             avl_info->igmpClientDataKey.macAddr[2],
+              avl_info->igmpClientDataKey.macAddr[3],
+               avl_info->igmpClientDataKey.macAddr[4],
+                avl_info->igmpClientDataKey.macAddr[5],
+           #endif
+           avl_info->client_index,
+           ((avl_info->isDynamic) ? "dynamic" : "static "),
+           avl_info->stats_client.active_groups);
+
+    i_client++;
+  }
+
+  printf("Done!\n");
 
   osapiSemaGive(ptin_igmp_clients_sem);
 }
@@ -7602,7 +8489,7 @@ void ptin_igmp_proxy_dump(void)
   printf(" Robustness                     = %u\r\n",     igmpProxyCfg.host.robustness);
   printf(" Unsolicited Report Interval    = %u\r\n",     igmpProxyCfg.host.unsolicited_report_interval);
   printf(" Older Querier Present Timeout  = %u\r\n",     igmpProxyCfg.host.older_querier_present_timeout);
-  printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_sources_per_record);
+  printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_records_per_report);
 
   printf("Done!\r\n");
 }

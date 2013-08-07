@@ -68,8 +68,8 @@ void help_oltBuga(void)
         "m 1222 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Remove a DHCPop82 profile\n\r"
         "m 1240 <page> - Read DHCP binding table (start reading from page 0)\r\n"
         "m 1242 macAddr[xxxxxxxxxxxxh] - Remove a MAC address from DHCP Binding table\r\n"
-        "m 1310 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
-        "m 1312 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Clear IGMP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1310 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (ovid[0-4095] cvid[1-4095]) - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1312 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (ovid[0-4095] cvid[1-4095]) - Clear IGMP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
         "m 1320 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Show DHCP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
         "m 1322 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Clear DHCP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
         "m 1400 [admin=<0/1>] [ipaddr=x.x.x.x] [cos=0..7] [gmi=<group_membership_interval>] [qi=<querier_interval>] - Configure igmp snooping + querier\r\n"
@@ -78,8 +78,8 @@ void help_oltBuga(void)
         "m 1403 MC_evcId start_index[0-...] - Get list of IGMP channel-associations\r\n"
         "m 1404 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Add IGMP channel-associations\r\n"
         "m 1405 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Remove IGMP channel-associations\r\n"
-        "m 1406 MC_flow_id[1-127] cvid[0-4095] [0-Phy,1-Lag]/[intf#] - Add MC client to IGMP instance\r\n"
-        "m 1407 MC_flow_id[1-127] cvid[0-4095] [0-Phy,1-Lag]/[intf#] - Remove MC client to IGMP instance\r\n"
+        "m 1406 MC_flow_id[1-127] [0-Phy,1-Lag]/[intf#] ovid[0-4095] cvid[0-4095] - Add MC client to IGMP instance\r\n"
+        "m 1407 MC_flow_id[1-127] [0-Phy,1-Lag]/[intf#] ovid[0-4095] cvid[0-4095] - Remove MC client to IGMP instance\r\n"
       /*"m 1400 snooping_admin[0/1] querier_admin[0/1] querier_ipaddr[ddd.ddd.ddd.ddd] querier_inerval[1-1800] cos[0-7] - IGMP snooping admin mode\r\n"
         "m 1402 port1[0-15] type1[0=client,1=router] port2 type2 ... - IGMP snooping: add client interfaces\r\n"
         "m 1403 port1[0-15] port2 ...   - IGMP snooping: remove interfaces\r\n"
@@ -1677,16 +1677,33 @@ int main (int argc, char *argv[])
           // Client vlan
           if (argc>=3+3)
           {
+            /* Also inner vlan should be provided */
+            if (argc<3+4)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+
+            /* Interface */
+            ptr->client.intf.intf_type = ptr->intf.intf_type;
+            ptr->client.intf.intf_id   = ptr->intf.intf_id;
+            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+
+            /* Outer vlan */
             if (StrToLongLong(argv[3+2],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->client.outer_vlan = (uint16) valued;
+            ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+
+            /* Inner vlan */
+            if (StrToLongLong(argv[3+3],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
             ptr->client.inner_vlan = (uint16) valued;
             ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
-
-            ptr->client.intf.intf_type = ptr->intf.intf_type;
-            ptr->client.intf.intf_id   = ptr->intf.intf_id;
-            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
 
             ptr->mask = MSG_CLIENT_MASK;
             comando.msgId = CCMSG_ETH_IGMP_CLIENT_STATS_GET;
@@ -1745,16 +1762,32 @@ int main (int argc, char *argv[])
           // Client vlan
           if (argc>=3+3)
           {
+            /* Also inner vlan should be provided */
+            if (argc<3+4)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+
+            /* Interface */
+            ptr->client.intf.intf_type = ptr->intf.intf_type;
+            ptr->client.intf.intf_id   = ptr->intf.intf_id;
+            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+
+            /* Outer vlan */
             if (StrToLongLong(argv[3+2],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->client.outer_vlan = (uint16) valued;
+            ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+
+            if (StrToLongLong(argv[3+3],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
             ptr->client.inner_vlan = (uint16) valued;
             ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
-
-            ptr->client.intf.intf_type = ptr->intf.intf_type;
-            ptr->client.intf.intf_id   = ptr->intf.intf_id;
-            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
 
             ptr->mask = MSG_CLIENT_MASK;
             comando.msgId = CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR;
@@ -2167,7 +2200,7 @@ int main (int argc, char *argv[])
         int type, intf;
 
         // Validate number of arguments
-        if (argc<3+2)  {
+        if (argc<3+4)  {
           help_oltBuga();
           exit(0);
         }
@@ -2183,16 +2216,8 @@ int main (int argc, char *argv[])
         }
         ptr->mcEvcId = (uint16) valued;
 
-        // Client vlan
-        if (StrToLongLong(argv[3+1],&valued)<0)  {
-          help_oltBuga();
-          exit(0);
-        }
-        ptr->client.inner_vlan = (uint16) valued;
-        ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
-
         // port
-        if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
+        if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
         {
           help_oltBuga();
           exit(0);
@@ -2200,6 +2225,22 @@ int main (int argc, char *argv[])
         ptr->client.intf.intf_type = (uint8) type;
         ptr->client.intf.intf_id   = (uint8) intf;
         ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+
+        // Outer vlan
+        if (StrToLongLong(argv[3+2],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->client.outer_vlan = (uint16) valued;
+        ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+
+        // Client vlan
+        if (StrToLongLong(argv[3+3],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->client.inner_vlan = (uint16) valued;
+        ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
 
         if (msg==1406)
           comando.msgId = CCMSG_ETH_IGMP_CLIENT_ADD;
@@ -4471,72 +4512,68 @@ int main (int argc, char *argv[])
             printf( "   Active Clients = %lu\r\n",po->stats.active_clients);
 
             printf( "  ___________________________________________________________________________________________________ \r\n");
-            printf( " | IGMP packets sent        : " );
-            ((tmp=po->stats.igmp_sent                )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets tx failed   : " );
-            ((tmp=po->stats.igmp_tx_failed           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets sent        : "                );
+            ((tmp=po->stats.igmp_tx                                 )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets tx failed   : %20c |\r\n",'-'  );
+            printf( " |_________________________________________________|_________________________________________________|\r\n");
+
+            printf( " | IGMP packets intercepted : "                );
+            ((tmp=po->stats.igmp_total_rx                           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets dropped     : "                );
+            ((tmp=po->stats.igmp_dropped_rx                         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP packets intercepted : " );
-            ((tmp=po->stats.igmp_intercepted         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets dropped     : " );
-            ((tmp=po->stats.igmp_dropped             )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets rx valid    : "                );
+            ((tmp=po->stats.igmp_valid_rx                           )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP packets rx invalid  : "                );
+            ((tmp=po->stats.igmp_invalid_rx                         )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP packets rx valid    : " );
-            ((tmp=po->stats.igmp_received_valid      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP packets rx invalid  : " );
-            ((tmp=po->stats.igmp_received_invalid    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
-            printf( " |_________________________________________________|_________________________________________________|\r\n");
-
-            printf( " | IGMP Joins tx            : " );
-            ((tmp=po->stats.joins_sent               )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
+            printf( " | IGMP Joins tx            : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_tx              )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " |\r\n"                                        );
             printf( " |_________________________________________________|_________________________________________________ \r\n");
 
-            printf( " | IGMP Joins rx success    : " );
-            ((tmp=po->stats.joins_received_success   )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " | IGMP Joins rx failed     : " );
-            ((tmp=po->stats.joins_received_failed    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Joins rx success    : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_valid_rx        )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Joins rx failed     : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.join_invalid_rx      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|_________________________________________________|\r\n");
 
-            printf( " | IGMP Leaves tx           : " );
-            ((tmp=po->stats.leaves_sent              )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Leaves tx           : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.leave_tx             )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP Leaves rx           : " );
-            ((tmp=po->stats.leaves_received          )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP Leaves rx           : "                );
+            ((tmp=po->stats.HWIgmpv2Statistics.leave_valid_rx       )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP GeneralQueries tx   : " );
-            ((tmp=po->stats.general_queries_sent     )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP GeneralQueries tx   : "                );
+            ((tmp=po->stats.HWQueryStatistics.general_query_tx      )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP GeneralQueries rx   : " );
-            ((tmp=po->stats.general_queries_received )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            printf( " | IGMP GeneralQueries rx   : "                );
+            ((tmp=po->stats.HWQueryStatistics.general_query_valid_rx)==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
             printf( " | IGMP SpecificQueries tx  : " );
-            ((tmp=po->stats.specific_queries_sent    )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            ((tmp=po->stats.HWQueryStatistics.group_query_tx        )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
             printf( " | IGMP SpecificQueries rx  : ");
-            ((tmp=po->stats.specific_queries_received)==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
+            ((tmp=po->stats.HWQueryStatistics.group_query_valid_rx  )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
             printf( " |\r\n" );
             printf( " |_________________________________________________|\r\n");
 
-            printf( " | IGMP MembershipReportV3  : ");
-            ((tmp=po->stats.membership_report_v3     )==0)  ? printf("%20c",'-') : printf( "%20lu",tmp );
-            printf( " |\r\n" );
+            printf( " | IGMP MembershipReportV3  : %20c |\r\n",'-');
             printf( " |_________________________________________________|\r\n");
 
             printf( "Done!\r\n");

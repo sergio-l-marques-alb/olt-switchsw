@@ -821,7 +821,7 @@ typedef union
 extern volatile st_fpga_map_t *fpga_map;
 
 /* Slot/port map: only for matrix board */
-extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
 extern int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
 extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 
