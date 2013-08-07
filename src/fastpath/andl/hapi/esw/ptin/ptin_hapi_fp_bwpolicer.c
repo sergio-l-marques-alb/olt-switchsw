@@ -576,7 +576,7 @@ void ptin_bwpolicer_dump_debug(void)
   ptin_bw_policy_t *ptr;
   BROAD_GROUP_t group_id;
   BROAD_ENTRY_t entry_id;
-  L7_int policer_id;
+  L7_int policer_id, counter_id;  /* PTin added: SDK 6.3.0 */
 
   printf("Listing bandwidth policer list...\r\n");
 
@@ -597,9 +597,10 @@ void ptin_bwpolicer_dump_debug(void)
     printf("  meter: cir=%u eir=%u cbs=%u ebs=%u\r\n",ptr->meter.cir,ptr->meter.eir,ptr->meter.cbs,ptr->meter.ebs);
     printf("  policy_id = %u\r\n",ptr->policy_id);
     /* Also print hw group id and entry id*/
-    if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id,0,&group_id,&entry_id,&policer_id)==L7_SUCCESS)
+    /* PTin modified: SDK 6.3.0 */
+    if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id,0,&group_id,&entry_id,&policer_id,&counter_id)==L7_SUCCESS)
     {
-      printf("  group=%d, entry=%d, policer_id=%d\r\n",group_id,entry_id,policer_id);
+      printf("  group=%d, entry=%d, policer_id, counter_id=%d=%d\r\n",group_id,entry_id,policer_id,counter_id);
     }
   }
 }

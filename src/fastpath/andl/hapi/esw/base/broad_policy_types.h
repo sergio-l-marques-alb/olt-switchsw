@@ -614,26 +614,37 @@ typedef struct BROAD_POLICY_RULE_ENTRY_s
     BROAD_ACTION_ENTRY_t          actionInfo;
 
     /* Counters and meters are mutually exclusive. */
+    /* PTin removed: SDK 6.3.0 */
+    #if 0
     union
     {
       struct
       {
         BROAD_METER_ENTRY_t           meterInfo;
       } meter;
-
-      /* PTin added: support for bcm_policer apis */
-      struct
-      {
-        BROAD_METER_ENTRY_t           policerInfo;
-        L7_int                        policer_id;
-      } policer;
-
       struct
       {
         BROAD_COUNTER_ENTRY_t         counterInfo;
       } counter;
     } u;
+    #else
+    /* PTin added: SDK 6.3.0 (support for bcm_policer apis) */
+    struct
+    {
+      BROAD_METER_ENTRY_t           policerInfo;
+      L7_int                        policer_id;
+    } policer;
+    struct
+    {
+      BROAD_COUNTER_ENTRY_t         counterInfo;
+      L7_int                        counter_id;   /* PTin added: SDK 6.3.0 (support for bcm_field_stat apis) */
+    } counter;
+    #endif
+
     L7_uint32                     meterSrcEntry;  /* src rule number for shared meters/counters */
+
+    L7_int                        src_policerId;    /* PTin added: SDK 6.3.0 (support for bcm_policer apis) */
+    L7_int                        src_counterId;    /* PTin added: SDK 6.3.0 (support for bcm_field_stat apis) */
 
     struct BROAD_POLICY_RULE_ENTRY_s *next;
 }

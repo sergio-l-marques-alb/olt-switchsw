@@ -54,7 +54,13 @@
 #include "bcmx/cosq.h"
 #include "bcmx/l2.h"
 #include "bcmx/l3.h"
+/* PTin removed: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/bcmx_int.h"
 
 #ifdef L7_MCAST_PACKAGE

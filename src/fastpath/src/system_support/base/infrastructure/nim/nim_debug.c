@@ -669,6 +669,12 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
       case L7_XAUI:
         sysapiPrintf("connectorType = L7_XAUI\n");
         break;
+      case L7_XLAUI:
+        sysapiPrintf("connectorType = L7_XLAUI\n");
+        break;
+      case L7_BACKPLANE_KR:
+        sysapiPrintf("connectorType = L7_BACKPLANE_KR\n");
+        break;
       default:
         sysapiPrintf("connectorType = UNKNOWN\n");
         break;

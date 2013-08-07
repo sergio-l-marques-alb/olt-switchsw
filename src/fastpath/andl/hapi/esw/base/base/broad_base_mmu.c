@@ -857,7 +857,9 @@ hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
         break;
       case 7:
         /* PTin updated: platform */
-        if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit)) {
+        if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
+            SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+        {
             soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval1, PRI7_GRPf, cosmap[i].pg);
         } else {
             soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI7_GRPf, cosmap[i].pg);
@@ -1399,7 +1401,8 @@ int hapiBroadMmuTriumphPauseSet(int unit, int pause)
     cell_rval = 0;
     pkt_rval = 0;
     /* PTin updated: platform */
-    if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit)) 
+    if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
+        SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
     { /* Everything in service pool 0 */
         soc_reg_field_set(unit, BUFFER_CELL_LIMIT_SPr, &cell_rval, LIMITf,
                           total_cells - in_reserved_cells - out_reserved_cells - num_ports);
@@ -1537,7 +1540,8 @@ L7_RC_t hapiBroadTrVlMmuModify(L7_uint32 unit)
     hapiBroadMmuCellLimits(unit, &total_cells, &total_pkts, &in_reserved_cells, 
                            &in_reserved_pkts, &out_reserved_cells, &out_reserved_pkts);
     /* PTin updated: platform */
-    triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit);
+    triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
+                      SOC_IS_TRIUMPH3(unit);        /* PTin added: new switch BCM56643 */
 
     /* Ports with 8PG (1PG for other ports) */
     SOC_PBMP_CLEAR(pbmp_2pg);
@@ -4317,11 +4321,11 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   }
 #endif /* SCORPION */
 #ifdef BCM_TRIUMPH_SUPPORT
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit))  /* PTin modified */
+  else if (SOC_IS_TR_VL(unit) && !SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
   { 
     rc = hapiBroadTrVlMmuModify(unit);
   }
-  else if (SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit))  /* PTin modified */
+  else if (SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
   {
     rc = hapiBroadEnduroMmuModify(unit);
   }
@@ -4330,6 +4334,12 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   {
     // TODO
     LOG_WARNING(LOG_CTX_MISC, "hapiBroadTridentMmuModify() is NOT IMPLEMENTED!");
+    //rc = hapiBroadTridentMmuModify(unit);
+  }
+  else if (SOC_IS_TRIUMPH3(unit))
+  {
+    // TODO
+    LOG_WARNING(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
     //rc = hapiBroadTridentMmuModify(unit);
   }
   /* PTin end */
@@ -4406,7 +4416,7 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   {
     rc=  hapiBroadMmuEnduroPauseSet(unit, mode);
   }
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_TRIDENT(unit)) /* PTin modified: new switch BCM56843 */
+  else if (SOC_IS_TR_VL(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit)) /* PTin modified: new switch BCM56843 */
   {
     rc = hapiBroadMmuTriumphPauseSet(unit, mode);
   }
@@ -4414,6 +4424,10 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   else if (SOC_IS_TRIDENT(unit))
   {
     LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
+  }
+  else if (SOC_IS_TRIUMPH3(unit))
+  {
+    LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTriumph3PauseSet() is not implemented!");
   }
   /* PTin end */
 #endif

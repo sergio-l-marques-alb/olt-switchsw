@@ -36,16 +36,21 @@ int policy_cfp_group_create(int                   unit,
                         BROAD_GROUP_t        *group);
 
 int policy_cfp_group_add_rule(int                        unit,
-                          BROAD_POLICY_STAGE_t       policyStage,
-                          BROAD_GROUP_t              group,
-                          BROAD_POLICY_RULE_ENTRY_t *ruleInfo,
-                          bcm_pbmp_t                 pbm,
-                          BROAD_ENTRY_t             *entry);
+                              BROAD_POLICY_STAGE_t       policyStage,
+                              BROAD_GROUP_t              group,
+                              BROAD_POLICY_RULE_ENTRY_t *ruleInfo,
+                              bcm_pbmp_t                 pbm,
+                              BROAD_ENTRY_t             *entry,
+                              int                       *policer_id,      /* PTin added: SDK 6.3.0 */
+                              int                       *counter_id);
 
 int policy_cfp_group_delete_rule(int                  unit,
-                             BROAD_POLICY_STAGE_t policyStage,
-                             BROAD_GROUP_t        group,
-                             BROAD_ENTRY_t        entry);
+                                 BROAD_POLICY_STAGE_t policyStage,
+                                 BROAD_GROUP_t        group,
+                                 BROAD_ENTRY_t        entry,
+                                 int                  policer_id,   /* PTin added: SDK 6.3.0 */
+                                 int                  counter_id);
+
 
 int policy_cfp_group_rule_priority_set(int                          unit,
                                    BROAD_POLICY_STAGE_t         policyStage,

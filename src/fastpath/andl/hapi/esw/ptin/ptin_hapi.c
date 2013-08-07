@@ -774,9 +774,15 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     {
       // Rx counters
       soc_counter_get(unit, port, GRMTUEr, 0, &mtuePkts);                             /* Packets > MTU bytes (good and bad) */
+      /* PTin modified: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
+      rx->etherStatsDropEvents = tmp1 + mtuePkts;                                     /* Drop Events */
+      #else
       soc_counter_get(unit, port, GRDROPr          , 0, &tmp1);
       soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-      rx->etherStatsDropEvents = tmp1 + tmp2 + mtuePkts;                       /* Drop Events */
+      rx->etherStatsDropEvents = tmp1 + tmp2 + mtuePkts;                              /* Drop Events */
+      #endif
       soc_counter_get(unit, port, GRBYTr , 0, &tmp1);
       soc_counter_get(unit, port, RRBYTr , 0, &tmp2);
       rx->etherStatsOctets = tmp1 + tmp2;                                             /* Octets */
@@ -855,9 +861,15 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       soc_counter_get(unit, port, IRMEGr , 0, &tmp1);
       soc_counter_get(unit, port, IRMEBr , 0, &tmp2);
       mtuePkts = tmp1 + tmp2;                                                         /* Packets > MTU bytes (good and bad) */
+      /* PTin modified: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
+      tmp = tmp1;
+      #else
       soc_counter_get(unit, port, IRDROPr          , 0, &tmp1);
       soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
       tmp = tmp1 + tmp2 + tmp3;
+      #endif
       ( tmp >= mtuePkts ) ? ( tmp -= mtuePkts ) : ( tmp = 0 );
       rx->etherStatsDropEvents = tmp + mtuePkts;                                      /* Drop Events */
       soc_counter_get(unit, port, IRBYTr , 0, &rx->etherStatsOctets);                 /* Octets */                   
@@ -1557,7 +1569,8 @@ void ptin_ratelimit_dump_debug(void)
     if (rateLimit_list[index].vlanId[POLICY_VLAN_ID]==0)  continue;
 
     /* Also print hw group id and entry id*/
-    if (l7_bcm_policy_hwInfo_get(0, rateLimit_list[index].policyId, rateLimit_list[index].ruleId, &group_id, &entry_id, L7_NULLPTR)==L7_SUCCESS)
+    if (l7_bcm_policy_hwInfo_get(0, rateLimit_list[index].policyId, rateLimit_list[index].ruleId, &group_id, &entry_id,
+                                 L7_NULLPTR, L7_NULLPTR)==L7_SUCCESS)
     {
       printf(" Index#%-3u-> vlanId=%4u/0x%-4x: group=%-2d, entry=%-4d (PolicyId=%-4d RuleId %-4d)\r\n",
              index, rateLimit_list[index].vlanId[POLICY_VLAN_ID], rateLimit_list[index].vlanId[POLICY_VLAN_MASK],

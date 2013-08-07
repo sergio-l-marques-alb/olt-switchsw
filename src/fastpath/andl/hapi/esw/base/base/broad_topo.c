@@ -35,6 +35,12 @@
 #include <dapi_trace.h>
 #include <sal/appl/config.h>
 
+/* PTin added: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#include "bcm_int/common/trunk.h"
+#endif
+
 /* Trunk-id for the internal trunk used on dual xgs3 design. SDK stack trunk
  * handling code will avoid destroying this trunk-id when creating stack trunks
  */
@@ -111,7 +117,14 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
     int src_unit,dst_unit;
     cpudb_entry_t *l_entry;
     int iter;
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    L7_uint32          number_of_members;
+    bcm_trunk_info_t   trunk_info;
+    bcm_trunk_member_t member_array[BCM_TRUNK_MAX_PORTCNT];
+    #else
     bcm_trunk_add_info_t        trunk;
+    #endif
     bcm_trunk_chip_info_t       ti;
     bcm_port_config_t   config;
     const bcm_sys_board_t       *board_info;
@@ -127,6 +140,38 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
 
     /* setup the modids and trunks for the interconnect */
     for (src_unit = 0; src_unit < l_entry->base.num_units; src_unit++) {
+      /* PTin modified: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      memset(&trunk_info,0,sizeof(trunk_info));
+      memset(member_array,0,sizeof(member_array));
+      number_of_members = 0;
+
+      trunk_info.psc        = BCM_TRUNK_PSC_SRCDSTMAC;
+      trunk_info.dlf_index  = -1;
+      trunk_info.mc_index   = -1;
+      trunk_info.ipmc_index = -1;
+
+      for (dst_unit = 0; dst_unit < l_entry->base.num_units; dst_unit++) {
+        for (iter = 0; iter < board_info->num_interconnects;iter++) {
+          if ((src_unit == board_info->interconnect_list[iter].from_unit) &&
+              (dst_unit == board_info->interconnect_list[iter].to_unit))
+          {
+              /* add to trunk */
+              member_array[number_of_members].flags = 0;
+              BCM_GPORT_LOCAL_SET(member_array[number_of_members].gport,
+                                  board_info->interconnect_list[iter].from_port);
+          }
+        }
+      }
+
+      if (number_of_members > 0) {
+        BCM_IF_ERROR_RETURN(bcm_trunk_chip_info_get(src_unit, &ti));
+        bcm_trunk_destroy(src_unit, ti.trunk_fabric_id_max);
+        lvl7_internal_hg_trunkid = ti.trunk_fabric_id_max;
+        BCM_IF_ERROR_RETURN(bcm_trunk_create(src_unit, BCM_TRUNK_FLAG_WITH_ID, &ti.trunk_fabric_id_max));
+        BCM_IF_ERROR_RETURN(bcm_trunk_set(src_unit, ti.trunk_fabric_id_max, &trunk_info, number_of_members, member_array));
+      }
+      #else
       memset(&trunk,0,sizeof(trunk));
       trunk.psc        = BCM_TRUNK_PSC_SRCDSTMAC;
       trunk.dlf_index  = -1;
@@ -149,6 +194,7 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
         BCM_IF_ERROR_RETURN(bcm_trunk_create_id(src_unit, ti.trunk_fabric_id_max));
         BCM_IF_ERROR_RETURN(bcm_trunk_set(src_unit, ti.trunk_fabric_id_max, &trunk));
       }
+      #endif
       BCM_IF_ERROR_RETURN(bcm_stk_my_modid_set(src_unit, l_entry->mod_ids[src_unit]));
     }
 

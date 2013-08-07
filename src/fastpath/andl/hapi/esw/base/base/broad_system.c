@@ -41,7 +41,13 @@
 #include "bcm/l2.h"
 #include "bcm/rate.h"
 #include "bcm/mirror.h"
+/* PTin modified: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm/filter.h"
+#endif
 #include "soc/cmic.h"
 #include "soc/drv.h"
 #include "soc/macipadr.h"
@@ -54,10 +60,20 @@
 #include "bcmx/lport.h"
 #include "bcmx/mirror.h"
 #include "bcmx/rate.h"
+/* PTin removed: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcmx/filter.h"
+#endif
 #include "bcmx/switch.h"
 #include "bcmx/bcmx_int.h"
+/* TODO: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+//#include "soc/ea/tk371x/igmp.h"
+#else
 #include "bcmx/igmp.h"
+#endif
 #include "bcmx/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"
@@ -70,9 +86,8 @@
 #include "platform_config.h"
 #include "l7_usl_port_db.h"
 
-/* PTin added: IGMP snooping */
+/* PTin added: includes */
 #if 1
-#include "ptin_globaldefs.h"
 #include "logger.h"
 #endif
 
@@ -266,7 +281,12 @@ void hapiBroadMirrorEnable (void)
        LOG_ERROR (rv);
     }
 
+    /* TODO: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    rv = BCM_E_NONE;    /* Always enabled */
+    #else
     rv = bcmx_mirror_pfmt_set(1);
+    #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       LOG_ERROR (rv);
@@ -309,7 +329,7 @@ static void hapiBroadMirrorDisable (void)
 *********************************************************************/
 L7_BOOL hapiBroadSystemTrueEgrMirroring(void)
 {
-#ifdef BCM_TRIUMPH2_SUPPORT
+#if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
   L7_short16 bcm_unit;
    
   for (bcm_unit=0; bcm_unit < soc_ndev; bcm_unit++)
@@ -2317,6 +2337,7 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
 
   switch (board_info->npd_id)
   {
+    /* PTin updated: new platform */
     case __BROADCOM_56214_ID:
     case __BROADCOM_56218_ID:
     case __BROADCOM_56224_ID:
@@ -2339,7 +2360,8 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56636_ID:
-    case __BROADCOM_56685_ID:  /* PTin added: new switch */
+    case __BROADCOM_56685_ID:   /* PTin added: new switch */
+    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
       *board_family = BCM_FAMILY_TRIUMPH2;
       break;
     case __BROADCOM_56820_ID:
@@ -3237,7 +3259,12 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
   if (hapiBroadRoboCheck() == L7_TRUE)
   {
+    /* TODO: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    /* Nothing to be done */
+    #else
     bcmx_igmp_snooping_enable_set(enableFilter);
+    #endif
   }
 
   /* If vlan value is valid, Find igmp index */
@@ -5803,7 +5830,12 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     if (numElems == maxElems) 
     {
       *(L7_uint32 *)&msg[0] = numElems;
+      /* PTin modified: SDK 6.3.0 */
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+      #else
       rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+      #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result = L7_FAILURE;
@@ -5822,7 +5854,12 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
   if (numElems > 0) 
   {
     *(L7_uint32 *)&msg[0] = numElems;
+    /* PTin modified: SDK 6.3.0 */
+    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+    #else
     rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+    #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;

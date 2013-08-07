@@ -47,7 +47,13 @@
 #include "soc/mem.h"
 #include "soc/hash.h"
 #include "soc/l2x.h"
+/* PTin removed: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm_int/esw/draco.h"
+#endif
 #include "bcm_int/control.h"
 #include "appl/diag/diag.h"
 #include "appl/diag/system.h"
@@ -374,8 +380,10 @@ void hapiBroadDebugHelp()
 
 void hapiBroadDebugSpecial(L7_ushort16 unit)
 {
-  // PTin added: new switch => SOC_IS_VALKYRIE2
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit)) {
+  /* PTin updated: platform */
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
+      SOC_IS_TRIUMPH3(unit))      /* PTin added: new switch BCM56643 */
+  {
       uint64 egr_val_64;
       uint32 bitmap;
       int rv;
@@ -1169,6 +1177,10 @@ L7_RC_t hapiBroadDebugUCMemDump(L7_int32 ingress_port)
 /* The following functions are useful for XGS since table entries are hashed */
 int hapiBroadDebugHash(L7_uint32 unit, L7_uint32 keyType, L7_uint32 key63_32, L7_uint32 key31_0)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  return L7_SUCCESS;
+  #else
   hashinput_entry_t   hent;
   uint32              key[2];
   uint32              result = -1;
@@ -1186,6 +1198,7 @@ int hapiBroadDebugHash(L7_uint32 unit, L7_uint32 keyType, L7_uint32 key63_32, L7
   SOC_IF_ERROR_RETURN(READ_HASH_OUTPUTr(unit, &result));
 
   return(int)result;
+  #endif
 }
 
 int hapiBroadDebugFindL2(L7_uint32 unit, L7_uint32 vidMacHi, L7_uint32 macLo)
@@ -1208,6 +1221,10 @@ int hapiBroadDebugFindL2(L7_uint32 unit, L7_uint32 vidMacHi, L7_uint32 macLo)
 
 int hapiBroadDebugFindL3(L7_uint32 unit, L7_uint32 ipAddr)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   int rc;
 
   rc = hapiBroadDebugHash(unit, XGS_HASH_KEY_TYPE_L3UC, 0, ipAddr);
@@ -1220,7 +1237,7 @@ int hapiBroadDebugFindL3(L7_uint32 unit, L7_uint32 ipAddr)
   {
     printf("Entry not found\n");
   }
-
+  #endif
   return 0;
 }
 #endif
@@ -1782,6 +1799,10 @@ L7_RC_t hapiBroadDebugMmuSet(int unit,
                              int ibpcellset,
                              int ibpdiscardset)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   soc_port_t            port;
   uint32                cos, val;
 
@@ -1854,6 +1875,7 @@ L7_RC_t hapiBroadDebugMmuSet(int unit,
                       DISCARDSETLIMITf, ibpdiscardset);
     SOC_IF_ERROR_RETURN(WRITE_IBPDISCARDSETLIMITr(unit, port, val));
   }
+  #endif
   return L7_SUCCESS;
 }
 
@@ -2105,6 +2127,10 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
 */
 int hapiBroadDebugFltInst1 (void)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   bcm_filterid_t test_flt;
   int rv;
   int unit;
@@ -2140,7 +2166,7 @@ int hapiBroadDebugFltInst1 (void)
   {
     LOG_ERROR (rv);
   }
-
+  #endif
   return 0;
 }
 
@@ -2148,6 +2174,10 @@ int hapiBroadDebugFltInst1 (void)
 */
 int hapiBroadDebugFltReInst1 (void)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done */
+  #else
   bcm_filterid_t test_flt;
   int rv;
   int unit;
@@ -2194,7 +2224,7 @@ int hapiBroadDebugFltReInst1 (void)
   {
     LOG_ERROR (rv);
   }
-
+  #endif
   return 0;
 }
 

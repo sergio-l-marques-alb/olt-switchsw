@@ -18,7 +18,13 @@
 #include <string.h>
 
 #include "broad_qos.h"
+/* PTin removed: SDK 6.3.0 */
+#include "ptin_globaldefs.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+/* No include */
+#else
 #include "bcm/diffserv.h"
+#endif
 #include "soc/debug.h"
 #include "soc/cm.h"
 #include "soc/mcm/allenum.h"
@@ -60,6 +66,10 @@ void hapiBroadQosDebugInit(void)
 
 L7_RC_t debugDsStats(L7_uint32 dpid, L7_uint32 cfid)
 {
+  /* PTin removed: SDK 6.3.0 */
+  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  /* Nothing done! */
+  #else
     L7_uint32                 unit;
     bcm_ds_counters_t         ds_counter;
     L7_uint32                 rv;
@@ -78,7 +88,7 @@ L7_RC_t debugDsStats(L7_uint32 dpid, L7_uint32 cfid)
     hapiBroadStatsConvert(&stats_out_profile, ds_counter.outp_pkt_cntr);
     printf("\nIn-profile packets = %u %u\n", stats_in_profile.high, stats_in_profile.low);
     printf("Out-profile packets = %u %u\n", stats_out_profile.high, stats_out_profile.low);
-
+  #endif
     return L7_SUCCESS;
 }
 
