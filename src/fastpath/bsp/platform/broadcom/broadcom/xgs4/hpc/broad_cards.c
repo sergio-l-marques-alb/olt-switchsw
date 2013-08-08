@@ -935,7 +935,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[]
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /* 56846 in CXO640G (OLT1T3) */
-HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
+HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK[] =
 /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
  * --------- --------- ---------  -------  -------*/
 {{        0,        0,        1,       0,       6 },
@@ -956,6 +956,28 @@ HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 {        15,        3,        1,       0,      17 },
 {        16,        3,        0,       0,      14 },  /* Lanes inverted for WC 16: slot 14 */ 
 {        17,        3,        0,       0,      15 }}; /* Lanes inverted for WC 17: slot 15 */
+
+HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT[] =
+/*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
+ * --------- --------- ---------  -------  -------*/
+{{        0,        0,        1,       0,      15 },
+{         1,        0,        1,       0,      14 },
+{         2,        0,        1,       0,      17 },
+{         3,        0,        1,       0,      16 },
+{         4,        0,        1,       0,      19 },
+{         5,        1,        1,       0,      18 },
+{         6,        1,        1,       0,      13 },
+{         7,        1,        1,       0,      12 },
+{         8,        1,        1,       0,      11 },
+{         9,        2,        1,       0,      10 },
+{        10,        2,        1,       0,       9 },
+{        11,        2,        1,       0,       8 },
+{        12,        2,        1,       3,       7 },  /* RX and TX polarities inverted for WC 12: slot 18 */
+{        13,        2,        1,       0,       4 },  
+{        14,        3,        1,       0,       5 },
+{        15,        3,        1,       0,       3 },
+{        16,        3,        0,       0,       2 },  /* Lanes inverted for WC 16: slot 14 */ 
+{        17,        3,        0,       0,       6 }}; /* Lanes inverted for WC 17: slot 15 */
 
 L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[]=
 /*  Port mode / slot  *

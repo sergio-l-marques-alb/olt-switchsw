@@ -693,12 +693,19 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
   L7_uint32 speedG, number_of_ports;
   L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
 
+  /* Pointer to WC map */
+  HAPI_WC_SLOT_MAP_t *WCSlotMap;
+
   /* Validate arguments */
   if (wcMap==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_STARTUP,"Invalid arguments");
     return L7_FAILURE;
   }
+
+  /* Select WC map */
+  WCSlotMap = is_matrix_protection() ? dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT :
+                                       dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK;
 
   memset(bw_max, 0x00, sizeof(bw_max));
   memset(ports_per_segment, 0x00, sizeof(ports_per_segment));
@@ -729,14 +736,14 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
       LOG_ERR(LOG_CTX_STARTUP,"Invalid WC index (%u)", wc_index);
       return L7_FAILURE;
     }
-    if (dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].slotIdx != slot)
+    if (WCSlotMap[wc_index].slotIdx != slot)
     {
       LOG_ERR(LOG_CTX_STARTUP,"Inconsistence with slot references (port=%u, WC=%u)", port, wc_index);
       return L7_FAILURE;
     }
 
     /* Get WC group */
-    wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_index].wcGroup;
+    wc_group = WCSlotMap[wc_index].wcGroup;
     if (wc_group>=WC_MAX_GROUPS)
     {
       LOG_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) or WC index (%u)", wc_group, wc_index);
@@ -787,7 +794,6 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
  */
 L7_RC_t hpcBoardWCinit_bcm56846(void)
 {
-  L7_uint8   protection, version;
   L7_uint16  i;
   L7_uint16  port_idx, slot_idx;
   L7_uint16  wc_idx, wc_lane;
@@ -805,35 +811,41 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   L7_uint32           slot_mode[PTIN_SYS_SLOTS_MAX];
   HAPI_WC_PORT_MAP_t  wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
 
+  HAPI_WC_SLOT_MAP_t *WCSlotMap;
+
   memset(slot_mode, 0x00, sizeof(slot_mode));
   memset(wcMap, 0x00, sizeof(wcMap));
 
-  protection = (cpld_map->reg.slot_id!=0);
-  version = (cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2;
-
-  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (protection ? "Protection" : "Working"));
+  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (is_matrix_protection() ? "Protection" : "Working"));
 
   LOG_DEBUG(LOG_CTX_STARTUP,"Initializing WC map:");
 
   /* Different WC base maps */
-  switch (version)
+
+  /* Copy base WC map to Working WC map */
+  switch (matrix_board_version())
   {
   case 1:
-    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1,
+    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK,        /* Copy to working */
            dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1,
-           sizeof(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1));
+           sizeof(HAPI_WC_SLOT_MAP_t)*WC_MAX_NUMBER);
     break;
   default:
-    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1,
+    memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK,        /* Copy to working */
            dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2,
-           sizeof(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2));
+           sizeof(HAPI_WC_SLOT_MAP_t)*WC_MAX_NUMBER);
     break;
   }
 
-  /* If we are in protection side, we have to invert WCs */
+  /* Copy to protection WC map */
+  memcpy(dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT,
+         dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK,
+         sizeof(HAPI_WC_SLOT_MAP_t)*WC_MAX_NUMBER);
+
+  /* Invert WCs for the protection matrix */
   for (wc_idx=0; wc_idx<WC_MAX_NUMBER; wc_idx++)
   {
-    ptr = &dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx];
+    ptr = &dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT[wc_idx];
 
     /* Skip not used WCs */
     if (ptr->slotIdx < 0)
@@ -855,6 +867,10 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     LOG_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
               ptr->wcIndex, ptr->wcGroup, ptr->slotIdx, ptr->invert_lanes, ptr->invert_polarities);
   }
+
+  /* Select WC map */
+  WCSlotMap = is_matrix_protection() ? dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT :
+                                       dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK;
 
   LOG_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
 
@@ -924,8 +940,8 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 
     if (speedG == 0)  break;
 
-    invLanes = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_lanes;          /* Invert lanes? */
-    invPol   = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[wc_idx].invert_polarities;     /* Invert polarities? */
+    invLanes = WCSlotMap[wc_idx].invert_lanes;          /* Invert lanes? */
+    invPol   = WCSlotMap[wc_idx].invert_polarities;     /* Invert polarities? */
 
     bcm_port = dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].bcm_port;          /* bcm_port value */
 

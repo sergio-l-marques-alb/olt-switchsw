@@ -17,6 +17,9 @@
 #if PTIN_BOARD_IS_MATRIX
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
+
+  #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
+  #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
 #endif  // PTIN_BOARD_IS_MATRIX
 
 /* ************************** */
