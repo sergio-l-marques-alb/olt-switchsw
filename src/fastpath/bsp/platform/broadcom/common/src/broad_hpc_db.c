@@ -333,8 +333,14 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     default:
       ptp_wc_index = 1; ptp_wc_lane = 0;
   }
+
+  /* Which WC group is being used? */
+  wc_group = dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[ptp_wc_index].wcGroup;
+
   /* WC Lane is marked as is in use to not be used for other purposes */
   wclanes_in_use[ptp_wc_index][ptp_wc_lane] = L7_TRUE;
+  /* Update bandwidth */
+  bw_max[wc_group] += 1;    /* 1 Gb */
   #endif
 
   /* Run all provided slots */
