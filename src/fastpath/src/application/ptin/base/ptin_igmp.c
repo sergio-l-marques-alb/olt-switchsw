@@ -4964,7 +4964,8 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   /* Stop timers related to this client */
   if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
     //osapiSemaGive(ptin_igmp_clients_sem);
     //return L7_FAILURE;
   }

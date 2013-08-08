@@ -25,6 +25,7 @@
 #include "usmdb_filter_api.h"
 #include "usmdb_mib_vlan_api.h"
 
+#include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
 #define PTIN_FLOOD_VLANS_MAX  8
@@ -648,7 +649,7 @@ L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16
   internal_vlan = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Validate interval vlan */
-  if (internal_vlan<PTIN_VLAN_MIN || internal_vlan>PTIN_VLAN_MIN)
+  if (internal_vlan<PTIN_VLAN_MIN || internal_vlan>PTIN_VLAN_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u, port %u, has an invalid int vlan (%u)",
             evc_id, ptin_port, internal_vlan);
@@ -2423,7 +2424,8 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   /* Validate arguments */
   if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    if (ptin_packet_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -2431,21 +2433,24 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   evc_idx = evcId_from_internalVlan[intVlan];
   if (evc_idx>=PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
+    if (ptin_packet_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
   }
 
   /* EVC should be active */
   if (!evcs[evc_idx].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    if (ptin_packet_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
     return L7_FAILURE;
   }
 
   /* Check if the EVC is stacked */
   if (!IS_EVC_STACKED(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+    if (ptin_packet_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
     return L7_FAILURE;
   }
 
@@ -2455,24 +2460,28 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
     /* Convert intIfNum to ptin_port format */
     if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: intIfNum %u is invalid", evc_idx, intIfNum);
+      if (ptin_packet_debug_enable)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: intIfNum %u is invalid", evc_idx, intIfNum);
       return L7_FAILURE;
     }
     /* Validate ptin_port */
     if ( ptin_port >= PTIN_SYSTEM_N_INTERF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: invalid ptin_port %u associated to inIfNum %u", evc_idx, ptin_port, intIfNum);
+      if (ptin_packet_debug_enable)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: invalid ptin_port %u associated to inIfNum %u", evc_idx, ptin_port, intIfNum);
       return L7_FAILURE;
     }
     /* Check if port is in use */
     if ( !evcs[evc_idx].intf[ptin_port].in_use )
     {
-      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not active in this EVC", evc_idx, ptin_port);
+      if (ptin_packet_debug_enable)
+        LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not active in this EVC", evc_idx, ptin_port);
       return L7_NOT_EXIST;
     }
     if ( evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not a leaf interface", evc_idx, ptin_port);
+      if (ptin_packet_debug_enable)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not a leaf interface", evc_idx, ptin_port);
       return L7_FAILURE;
     }
   }
@@ -2555,7 +2564,8 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
     *number_of_vlans = index;
   }
 
-  //LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: List of vlans read from client_vlan %u (%u vlans)", evc_idx, client_vlan, index);
+  if (ptin_packet_debug_enable)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: List of vlans read from client_vlan %u (%u vlans)", evc_idx, client_vlan, index);
 
   return L7_SUCCESS;
 }
