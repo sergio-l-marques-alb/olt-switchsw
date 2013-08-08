@@ -230,7 +230,7 @@ extern L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10E
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan);
+extern L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan);
 
 /**
  * Gets the root vlan (internal) for a particular evc
@@ -240,7 +240,7 @@ extern L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_get_intRootVlan(L7_uint16 evc_id, L7_uint16 *intRootVlan);
+extern L7_RC_t ptin_evc_intRootVlan_get(L7_uint16 evc_id, L7_uint16 *intRootVlan);
 
 /**
  * Get the outer+inner external vlan for a specific 
@@ -282,8 +282,8 @@ extern L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_in
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_evc_intVlan_get(ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 extIVlan,
-                             L7_uint16 *intOVlan);
+extern L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 extIVlan,
+                                              L7_uint16 *intOVlan);
 
 /**
  * Get the list of interfaces associated to a internal vlan

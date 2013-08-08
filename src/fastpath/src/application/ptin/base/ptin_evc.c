@@ -606,7 +606,7 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan)
+L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan)
 {
   L7_uint32 ptin_port;
   L7_uint16 internal_vlan;
@@ -673,7 +673,7 @@ L7_RC_t ptin_evc_get_intVlan(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_get_intRootVlan(L7_uint16 evc_id, L7_uint16 *intRootVlan)
+L7_RC_t ptin_evc_intRootVlan_get(L7_uint16 evc_id, L7_uint16 *intRootVlan)
 {
   /* Validate arguments */
   if (evc_id>=PTIN_SYSTEM_N_EVCS)
@@ -891,7 +891,7 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_evc_intVlan_get(ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 extIVlan,
+L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 extIVlan,
                              L7_uint16 *intOVlan)
 {
   L7_uint16 internal_vlan;

@@ -289,7 +289,7 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
     }
 
     /* Get root vlan */
-    if (ptin_evc_get_intRootVlan(entry->evcId,&vlanId)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(entry->evcId,&vlanId)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_L2,"Can't get root vlan for evcId %u",entry->evcId);
       return L7_FAILURE;
@@ -382,7 +382,7 @@ L7_RC_t ptin_l2_mac_table_entry_add( ptin_switch_mac_entry *entry )
     }
 
     /* Get root vlan */
-    if (ptin_evc_get_intRootVlan(entry->evcId,&vlanId)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(entry->evcId,&vlanId)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_L2,"Can't get root vlan for evcId %u",entry->evcId);
       return L7_FAILURE;

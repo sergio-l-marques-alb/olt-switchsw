@@ -4993,7 +4993,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     /* Copy channels to message */
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
       outputPtr[i].entryId = i;
       outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;

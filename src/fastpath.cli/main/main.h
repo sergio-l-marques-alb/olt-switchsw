@@ -934,18 +934,21 @@ typedef struct _msg_MCStaticChannel_t
 /* To List all channels */
 // Message CCMSG_ETH_IGMP_GROUPS_GET
 #define MSG_MCACTIVECHANNELS_CHANNELS_MAX       1024
-typedef struct _st_MCActiveChannels
+typedef struct
 {
-  L7_uint8  SlotId;                    // slot
-  L7_uint16 evc_id;                    // index: EVCid
-  msg_client_info_t client;       // Client information
-  L7_uint16 page_index;                // Indice da mensagem
-  L7_uint16 n_pages_total;             // Numero de mensagens para transportar todos os canais
-  L7_uint16 n_channels_total;          // Numero total de canais
-  L7_uint16 n_channels_msg;            // Numero de canais presentes na mensagem
-  msg_in_addr_t channels_list[MSG_MCACTIVECHANNELS_CHANNELS_MAX];   // List da canais (apenas usados os primeiros n_channels_msg canais)
-  L7_uint8      is_static_bmp[MSG_MCACTIVECHANNELS_CHANNELS_MAX];
-} __attribute__((packed)) msg_MCActiveChannels_t;
+   L7_uint8          SlotId;                                                  
+   L7_uint16         evc_id; 
+   msg_client_info_t client;       // Client information                                                
+   L7_uint16         entryId;
+} __attribute__((packed)) msg_MCActiveChannelsRequest_t;
+
+typedef struct
+{
+   L7_uint16    entryId;
+   L7_uint8     chType;
+   L7_uint32    srcIP;
+   L7_uint32    chIP;
+} __attribute__((packed)) msg_MCActiveChannelsReply_t;
 
 /* To list all clients of a channel */
 // Message CCMSG_ETH_IGMP_CLIENT_GROUPS_GET
@@ -955,6 +958,7 @@ typedef struct _st_MCActiveChannelClients
   uint8  SlotId;                       // slot
   uint16 evc_id;                       // index: EVCid
   msg_in_addr_t channelIp;             // IP do canal a consultar
+  msg_in_addr_t sourceIp;              // IP source
   L7_uint16 page_index;                // Indice da mensagem
   L7_uint16 n_pages_total;             // Numero de mensagens para transportar todos os canais
   L7_uint16 n_clients_total;           // Numero total de canais
