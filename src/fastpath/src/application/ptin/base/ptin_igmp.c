@@ -4036,10 +4036,9 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
   /* Validate number of channels */
   if ( n_groups > IGMPASSOC_CHANNELS_MAX ||
        n_sources > IGMPASSOC_CHANNELS_MAX ||
-       n_groups*n_sources > IGMPASSOC_CHANNELS_MAX
-     )
+       (igmpPairDB.number_of_entries + n_groups*n_sources) > IGMPASSOC_CHANNELS_MAX )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels", IGMPASSOC_CHANNELS_MAX);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels (already present: %u)", IGMPASSOC_CHANNELS_MAX, igmpPairDB.number_of_entries);
     return L7_FAILURE;
   }
 
@@ -8675,29 +8674,39 @@ void ptin_igmp_querier_dump(L7_int evcId)
     }
 
     /* Get vlan configurations and states */
-    if (snoopQuerierVlanModeGet(vlanId, &mode, L7_AF_INET)==L7_SUCCESS &&
-        snoopQuerierVlanAddressGet(vlanId, &address, L7_AF_INET)==L7_SUCCESS &&
-        snoopQuerierOperVersionGet(vlanId, &version, L7_AF_INET)==L7_SUCCESS &&
-        snoopQuerierVlanElectionModeGet(vlanId, &participate, L7_AF_INET)==L7_SUCCESS &&
-        snoopQuerierOperStateGet(vlanId, &operState, L7_AF_INET)==L7_SUCCESS &&
-        snoopQuerierOperMaxRespTimeGet(vlanId, &maxRespTime, L7_AF_INET)==L7_SUCCESS)
-    {
-      printf("Querier definitions for EVC %u / internal vlan %u:\r\n",evc_idx,vlanId);
+    printf("Querier definitions for EVC %u / internal vlan %u:\r\n",evc_idx,vlanId);
+    if (snoopQuerierVlanModeGet(vlanId, &mode, L7_AF_INET)==L7_SUCCESS)
       printf(" Admin   : %u\r\n", mode);
+    else
+      printf(" Admin   : error\r\n");
+
+    if (snoopQuerierVlanAddressGet(vlanId, &address, L7_AF_INET)==L7_SUCCESS)
+    {
       printf(" Address : %03u.%03u.%03u.%03u\r\n",
              (address.addr.ipv4.s_addr>>24) & 0xff,
              (address.addr.ipv4.s_addr>>16) & 0xff,
              (address.addr.ipv4.s_addr>> 8) & 0xff,
              (address.addr.ipv4.s_addr) & 0xff );
+    }
+    if (snoopQuerierVlanElectionModeGet(vlanId, &participate, L7_AF_INET)==L7_SUCCESS)
       printf(" Election mode: %u\r\n", participate );
-      printf(" Version      : %u\r\n", version);
-      printf(" OperState    : %u\r\n", operState);
-      printf(" MaxRespTime  : %u\r\n", maxRespTime);
-    }
     else
-    {
-      printf(" Error getting querier definitions for EVC %u / internal vlan %u\r\n", evc_idx, vlanId);
-    }
+      printf(" Election mode: error\r\n");
+
+    if (snoopQuerierOperVersionGet(vlanId, &version, L7_AF_INET)==L7_SUCCESS)
+      printf(" Version      : %u\r\n", version);
+    else
+      printf(" Version      : error\r\n");
+
+    if (snoopQuerierOperStateGet(vlanId, &operState, L7_AF_INET)==L7_SUCCESS)
+      printf(" OperState    : %u\r\n", operState);
+    else
+      printf(" OperState    : error\r\n");
+
+    if (snoopQuerierOperMaxRespTimeGet(vlanId, &maxRespTime, L7_AF_INET)==L7_SUCCESS)
+      printf(" MaxRespTime  : %u\r\n", maxRespTime);
+    else
+      printf(" MaxRespTime  : error\r\n");
   }
 
   printf("Done!\r\n");
