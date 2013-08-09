@@ -2821,5 +2821,3 @@ L7_uchar8 snoopGetEndianess(void)
     else
     return SNOOP_BIG_ENDIAN;
 }
-
-
