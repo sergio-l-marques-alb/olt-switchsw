@@ -570,7 +570,7 @@ extern L7_RC_t ptin_igmp_static_channel_add(L7_uint16 McastEvcId, L7_in_addr_t *
 extern L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channel);
 
 
-#define IGMPASSOC_CHANNELS_MAX  L7_MAX_GROUP_REGISTRATION_ENTRIES
+#define IGMPASSOC_CHANNELS_MAX    4096
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 

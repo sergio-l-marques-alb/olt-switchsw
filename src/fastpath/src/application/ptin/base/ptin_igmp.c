@@ -3312,7 +3312,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
     if (SLLAdd(&igmpClients_unified.ll_timerList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
     {
       /* Free the previously allocated bufferpool */
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not add new timer data node");
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not add new timer data node");
       if (appTimerDelete( igmpClients_unified.timerCB, pTimerData->timer) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to delete timer");
