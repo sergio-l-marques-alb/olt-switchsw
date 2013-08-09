@@ -150,6 +150,8 @@ typedef struct
 } ptinIgmpPairInfoData_t;
 
 typedef struct {
+    L7_uint16 number_of_entries;
+
     avlTree_t               igmpPairAvlTree;
     avlTreeTables_t         *igmpPairTreeHeap;
     ptinIgmpPairInfoData_t  *igmpPairDataHeap;
@@ -442,6 +444,10 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   /* IGMP associaations */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+  memset(&igmpPairDB, 0x00, sizeof(igmpPairDB));
+
+  igmpPairDB.number_of_entries = 0;
 
   igmpPairDB.igmpPairTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, IGMPASSOC_CHANNELS_MAX * sizeof(avlTreeTables_t)); 
   igmpPairDB.igmpPairDataHeap = (ptinIgmpPairInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, IGMPASSOC_CHANNELS_MAX * sizeof(ptinIgmpPairInfoData_t)); 
@@ -3971,8 +3977,8 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
 {
   L7_uint         igmpInst_idx;
   L7_inet_addr_t  group, source;
-  L7_uint32       i, n_groups=1;
-  L7_uint32       j, n_sources=1;
+  L7_int32        i, n_groups=1;
+  L7_int32        j, n_sources=1;
   ptinIgmpPairInfoData_t avl_node;
   L7_RC_t rc;
 
@@ -4039,8 +4045,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be added: %u", n_groups*n_sources);
 
-  rc = L7_SUCCESS;
-
   memset( &avl_node, 0x00, sizeof(ptinIgmpPairInfoData_t));
   avl_node.evc_uc     = evc_uc;
   avl_node.evc_mc     = evc_mc;
@@ -4048,9 +4052,14 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
   avl_node.is_static  = is_static & 1;
 
   /* Add channels */
-  for (i=0; i<n_groups; i++)
+  i = j = 0;
+  rc = L7_SUCCESS;
+
+  /* Run all group addresses */
+  while ((rc==L7_SUCCESS && i<n_groups) || (rc!=L7_SUCCESS && i>=0))
   {
-    for (j=0; j<n_sources; j++)
+    /* Run all source addresses */
+    while ((rc==L7_SUCCESS && j<n_sources) || (rc!=L7_SUCCESS && j>=0))
     {
       /* Prepare key */
       #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
@@ -4063,25 +4072,61 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
       memcpy(&avl_node.igmpPairDataKey.channel_source, &source, sizeof(L7_inet_addr_t));
       #endif
 
-      /* Add node into avl tree */
-      if (igmp_assoc_avlTree_insert( &avl_node ) != L7_SUCCESS)
+      /* In case of success, continue adding nodes into avl tree */
+      if (rc == L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting group channel 0x%08x, source=0x%08x for UC_EVC=%u",
-                group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
-        rc = L7_FAILURE;
+        if (igmp_assoc_avlTree_insert( &avl_node ) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting group channel 0x%08x, source=0x%08x for UC_EVC=%u",
+                  group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
+          rc = L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Added group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, source.addr.ipv4.s_addr);
+        }
       }
-
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Added group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, source.addr.ipv4.s_addr);
+      /* If one error ocurred, remove previously added nodes */
+      else
+      {
+        if (igmp_assoc_avlTree_remove( &avl_node.igmpPairDataKey ) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
+                  group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, source.addr.ipv4.s_addr);
+        }
+      }
 
       /* Next source ip address */
       if (source.family != L7_AF_INET6)
-        source.addr.ipv4.s_addr++;
+      {
+        if (rc==L7_SUCCESS)
+        {
+          source.addr.ipv4.s_addr++;  j++;
+        }
+        else
+        {
+          source.addr.ipv4.s_addr--;  j--;
+        }
+      }
       else
         break;
     }
     /* Next group address */
     if (group.family != L7_AF_INET6)
-      group.addr.ipv4.s_addr++; 
+    {
+      if (rc==L7_SUCCESS)
+      {
+        group.addr.ipv4.s_addr++;   i++;
+      }
+      else
+      {
+        group.addr.ipv4.s_addr--;   i--;
+      }
+    }
     else
       break;
   }
@@ -4330,6 +4375,13 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   ptinIgmpPairDataKey_t  avl_key;
   ptinIgmpPairInfoData_t *avl_infoData;
 
+  /* Check if there is enough room for one more channels */
+  if (igmpPairDB.number_of_entries >= IGMPASSOC_CHANNELS_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free entries!");
+    return L7_FAILURE;
+  }
+
   /* Prepare key */
   memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
 
@@ -4367,6 +4419,9 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
 
     return L7_FAILURE;
   }
+
+  /* One more entry */
+  igmpPairDB.number_of_entries++;
 
   /* Fill with remaining data */
   avl_infoData->evc_mc    = node->evc_mc;
@@ -4417,6 +4472,10 @@ static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
     return L7_FAILURE;
   }
 
+  /* One less entry */
+  if (igmpPairDB.number_of_entries>0)
+    igmpPairDB.number_of_entries--;
+
   return L7_SUCCESS;
 }
 
@@ -4461,6 +4520,9 @@ static L7_RC_t igmp_assoc_avlTree_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
       }
       else
       {
+        if (igmpPairDB.number_of_entries>0)
+          igmpPairDB.number_of_entries--;
+
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group channel 0x%08x to EVC_MC=%u, EVC=UC=%u",
                   avl_key.channel_group.addr.ipv4.s_addr, evc_mc, evc_uc);
       }
@@ -4479,6 +4541,9 @@ static L7_RC_t igmp_assoc_avlTree_purge( void )
 {
   /* Purge all AVL tree, but the root node */
   avlPurgeAvlTree( &igmpPairDB.igmpPairAvlTree, IGMPASSOC_CHANNELS_MAX );
+
+  /* No entries */
+  igmpPairDB.number_of_entries = 0;
 
   return L7_SUCCESS;
 }
@@ -8411,7 +8476,7 @@ void ptin_igmpPair_dump(L7_int evc_mc, L7_int evc_uc)
   /* Hello */
   if ( evc_mc <= 0 )
   {
-    printf("Printing all IGMP association entries:\r\n");
+    printf("Printing all IGMP association entries (%u total):\r\n",igmpPairDB.number_of_entries);
   }
   else
   {
