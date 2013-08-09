@@ -59,7 +59,7 @@
 
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0 /*Currently we do not support sending Group and Source Specific Queries*/
 
-#define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 1 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
+#define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 0 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
 
 /*This values are not defined in RFC3376, altought it makes sense to have them in order to easily identify the type of packet to be sent*/
 #define L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY             0x10
@@ -416,11 +416,17 @@ typedef struct snoopPTinProxyTimer_s
 {
   L7_sll_member_t                   *next;
 
-  snoopPTinProxyGroup_t             *groupData;//Memory Address of Record
+  void                              *groupData;//It will be either a interfacePtr or a groupPtr
+
   L7_uint32                          noOfRecords;
 
+  L7_uint8                           robustnessVariable;
+
   L7_uint8                           reportType;
+  
 //L7_uint32                          selectedDelay;
+
+  L7_BOOL                            isFirstTransmission;
 
   L7_BOOL                            isRunning;
 

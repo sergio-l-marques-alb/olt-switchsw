@@ -33,10 +33,10 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
 L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_inet_addr_t* sourceList,L7_uint32 *noOfRecords, snoopPTinProxyGroup_t* groupPtr);
 
 //Search a specific source in a given source list
-L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t* sourceAddr, L7_int8* foundIdx);
+L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t* sourceAddr, L7_uint16* foundIdx);
 
 //Adds a new source to the given source list in the first free index
-L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t* interfacePtr, L7_inet_addr_t* sourceAddr, L7_uint8* newSourceIdx);
+L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t* interfacePtr, L7_inet_addr_t* sourceAddr, L7_uint16* newSourceIdx);
 
 //Remove a source entry, reseting all its fields and stopping the associated timer
 L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t *interfacePtr, snoopPTinL3Source_t *sourceList);
@@ -60,7 +60,7 @@ L7_RC_t snoopPTinProxySourceAdd(snoopPTinL3InfoData_t* avlPtr,L7_uint32 interfac
 L7_RC_t snoopPTinProxySourceRemove(snoopPTinL3InfoData_t* avlPtr,L7_uint32 clientIdx, L7_inet_addr_t* sourceAddr);
 
 //Process General Query Message
-snoopPTinProxyGroup_t* snoopPTinGeneralQueryProcess(L7_uint32 vlanId, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, L7_uint32 *noOfRecords, L7_uint32 *timeout,L7_uint8 robustnessVariable);
+snoopPTinProxyInterface_t* snoopPTinGeneralQueryProcess(L7_uint32 vlanId, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, L7_uint32 *timeout,L7_uint8 robustnessVariable);
 
 //Process Group Specific Query Message
 snoopPTinProxyGroup_t* snoopPTinGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 rootIntIdx,L7_uint32 selectedDelay, L7_BOOL *sendReport, L7_uint32 *timeout,L7_uint8 robustnessVariable);

@@ -23,10 +23,10 @@ L7_BOOL snoopPTinIsTimerRunning(osapiTimerDescr_t *timerPtr);
 L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 
 //Schedule LMQC Group or Group/Source Specific Query transmissions
-L7_RC_t snoopPTinReportSchedule(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 timeOut, L7_BOOL isInterface,L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr );
+L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 timeOut, L7_BOOL isInterface,L7_uint32 noOfRecords, void* ptr, L7_uint8 robustnessVariable);
 
 //Debug method that prints stored information for a specific multicast group
-void snoopPTinMcastgroupPrint(L7_uint32 vlanId,L7_uint32 groupAddrText);
+void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText);
 
 //Debug method that prints stored information for a specific group record
 void snoopPTinGroupRecordPrint(L7_uint32 vlanId,L7_uint32 groupAddrText,L7_uint8 recordType);

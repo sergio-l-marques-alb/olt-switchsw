@@ -858,11 +858,8 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
       return L7_FAILURE;
     }
 
-    /* If we are in protection side, we have to invert WCs */
-    if (cpld_map->reg.slot_id!=0)
-    {
-      ptr->slotIdx = PTIN_SYS_SLOTS_MAX - ptr->slotIdx + 1;
-    }
+    /* Invert WCs */
+    ptr->slotIdx = PTIN_SYS_SLOTS_MAX - ptr->slotIdx + 1;
 
     LOG_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
               ptr->wcIndex, ptr->wcGroup, ptr->slotIdx, ptr->invert_lanes, ptr->invert_polarities);
