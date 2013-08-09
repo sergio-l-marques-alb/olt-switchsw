@@ -1947,7 +1947,7 @@ L7_RC_t ptin_pppoe_rootVlan_get(L7_uint16 intVlan, L7_uint16 *rootVlan)
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(pppoeInst->UcastEvcId, &intRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(pppoeInst->UcastEvcId, &intRootVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting rootVlan for EvcId=%u (intVlan=%u)",pppoeInst->UcastEvcId, intVlan);
@@ -3195,7 +3195,7 @@ static L7_RC_t ptin_pppoe_trap_configure(L7_uint pppoe_idx, L7_BOOL enable)
   if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
-    if (ptin_evc_get_intRootVlan(uc_evcId,&vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Can't get UC root vlan for evc id %u",uc_evcId);
       return L7_FAILURE;

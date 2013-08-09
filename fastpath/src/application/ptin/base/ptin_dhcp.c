@@ -3155,7 +3155,7 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
   if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
-    if (ptin_evc_get_intRootVlan(uc_evcId,&vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",uc_evcId);
       return L7_FAILURE;

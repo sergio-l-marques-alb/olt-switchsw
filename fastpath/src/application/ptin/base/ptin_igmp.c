@@ -1460,11 +1460,21 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     return L7_FAILURE;
   }
 
-  /* Validate and rearrange clientId info */
-  if (ptin_igmp_clientId_convert(McastEvcId, client)!=L7_SUCCESS)
+  /* Validate client */
+  if (client==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client pointer");
     return L7_FAILURE;
+  }
+
+  /* Validate and rearrange clientId info */
+  if (client->mask != 0)
+  {
+    if (ptin_igmp_clientId_convert(McastEvcId, client)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
+      return L7_FAILURE;
+    }
   }
 
   /* Get IGMP instance index */
@@ -1475,9 +1485,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(igmpInstances[igmp_idx].McastEvcId, &McastRootVlan)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",McastEvcId,McastRootVlan);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",McastEvcId, McastRootVlan);
     return L7_FAILURE;
   }
 
@@ -1609,7 +1619,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
     if (ipv4_channel!=L7_NULLPTR && ipv4_channel->s_addr!=0)
     {
       /* Get Multicast root vlan */
-      if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
+      if (ptin_evc_intRootVlan_get(igmpInstances[igmp_idx].McastEvcId, &McastRootVlan)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",McastEvcId,McastRootVlan);
         return L7_FAILURE;
@@ -1747,7 +1757,7 @@ L7_RC_t ptin_igmp_static_channel_add(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_ch
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",McastEvcId);
     return L7_FAILURE;
@@ -1796,7 +1806,7 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(igmpInstances[igmp_idx].McastEvcId,&McastRootVlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u",McastEvcId);
     return L7_FAILURE;
@@ -2662,7 +2672,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(evcId_mc, &intRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evcId_mc, &intRootVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",igmpInst->McastEvcId,intVlan);
@@ -2697,7 +2707,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
   }
 
   /* Get Multicast root vlan */
-  if (ptin_evc_get_intRootVlan(igmpInst->McastEvcId,&intRootVlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(igmpInst->McastEvcId,&intRootVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",igmpInst->McastEvcId,intVlan);
@@ -3841,7 +3851,7 @@ L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
   }
 
   /* Return the root vlan associated to the MC service */
-  if ( ptin_evc_get_intRootVlan( evc_mc, vlan_mc ) != L7_SUCCESS )
+  if ( ptin_evc_intRootVlan_get( evc_mc, vlan_mc ) != L7_SUCCESS )
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining MC vlan of MC evc %u (associated to evc_uc %u, group=0x%08x)",
@@ -4964,7 +4974,8 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
   /* Stop timers related to this client */
   if (ptin_igmp_timer_stop(0 /*Not used*/, client_idx)!=L7_SUCCESS)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Error stoping timer for client_idx=%u)",client_idx);
     //osapiSemaGive(ptin_igmp_clients_sem);
     //return L7_FAILURE;
   }
@@ -5568,7 +5579,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   mc_evcId = igmpInstances[igmp_idx].McastEvcId;
 
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_get_intRootVlan(mc_evcId,&vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(mc_evcId,&vlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",mc_evcId);
     return L7_FAILURE;
@@ -5596,7 +5607,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   if (evcCfg.flags & PTIN_EVC_MASK_P2P)
 #endif
   {
-    if (ptin_evc_get_intRootVlan(uc_evcId,&vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",uc_evcId);
       return L7_FAILURE;
@@ -5745,7 +5756,7 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
   if ( direction == PTIN_DIR_UPLINK || direction == PTIN_DIR_BOTH )
   {
     /* Configure root vlan (stacked and unstacked services) */
-    if (ptin_evc_get_intRootVlan(evc_idx, &vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(evc_idx, &vlan)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get root vlan for evc id %u",evc_idx);
       return L7_FAILURE;
@@ -5878,7 +5889,7 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   enable &= 1;
 
   /* Get root vlan for MC evc */
-  if (ptin_evc_get_intRootVlan(evc_idx, &vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx, &vlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get root vlan for evc_idx %u",evc_idx);
     return L7_FAILURE;
@@ -6343,21 +6354,24 @@ static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *c
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
       client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
   {
-    /* Obtain intVlan */
-    if (ptin_evc_get_intVlan(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for evcId=%u, ptin_intf=%u/%u",
-              evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
-
     /* Validate outer vlan, only if provided */
-    if (client->outerVlan != 0)
+    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
     {
-      if (ptin_evc_extVlan_validate(evc_idx, &client->ptin_intf, client->outerVlan, innerVlan)!=L7_SUCCESS)
+      /* Obtain intVlan */
+      if (ptin_evc_intVlan_get(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"extOVlan=%u is not correct for EVC %u, ptin_intf=%u/%u, innerVlan=%u",
-                client->outerVlan, evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id, innerVlan);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for evcId=%u, ptin_intf=%u/%u",
+                evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      /* Obtain intVlan from the outer vlan */
+      if (ptin_evc_intVlan_get_fromOVlan(&client->ptin_intf, client->outerVlan, innerVlan, &intVlan)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error obtaining internal vlan for OVid=%u, IVid=%u, ptin_intf=%u/%u",
+                client->outerVlan, innerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
         return L7_FAILURE;
       }
     }
@@ -8301,6 +8315,8 @@ void ptin_igmp_dump(void)
 void ptin_igmp_clients_dump(void)
 {
   L7_uint i_client;
+  L7_uint32 intIfNum;
+  L7_uint16 extVlan, innerVlan;
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientInfoData_t *avl_info;
 
@@ -8319,12 +8335,22 @@ void ptin_igmp_clients_dump(void)
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
 
+    extVlan = 0;
+    innerVlan = 0;
+    #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+    innerVlan = avl_info->igmpClientDataKey.innerVlan;
+    #endif
+    if (ptin_intf_port2intIfNum(avl_info->igmpClientDataKey.ptin_port, &intIfNum)==L7_SUCCESS)
+    {
+      ptin_evc_extVlans_get_fromIntVlan(intIfNum, avl_info->igmpClientDataKey.outerVlan, innerVlan, &extVlan, L7_NULLPTR);
+    }
+    
     printf("      Client#%u: "
            #if (MC_CLIENT_INTERF_SUPPORTED)
            "ptin_port=%-2u "
            #endif
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-           "svlan=%-4u "
+           "svlan=%-4u (intVlan=%-4u) "
            #endif
            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
            "cvlan=%-4u "
@@ -8341,7 +8367,7 @@ void ptin_igmp_clients_dump(void)
            avl_info->igmpClientDataKey.ptin_port,
            #endif
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-           avl_info->igmpClientDataKey.outerVlan,
+           extVlan, avl_info->igmpClientDataKey.outerVlan,
            #endif
            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
            avl_info->igmpClientDataKey.innerVlan,
@@ -8570,7 +8596,7 @@ void ptin_igmp_querier_dump(L7_int evcId)
     }
 
     /* Extract root vlan */
-    if (ptin_evc_get_intRootVlan(evc_idx, &vlanId)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(evc_idx, &vlanId)!=L7_SUCCESS)
     {
       printf("Error getting EVC %u internal root vlan!\r\n",evc_idx);
       continue;

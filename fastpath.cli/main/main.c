@@ -88,9 +88,9 @@ void help_oltBuga(void)
         "m 1408 port[0-15] vlan1[2-4093] vlan2 ...     - IGMP snooping: add mrouter vlans for the given port\r\n"
         "m 1409 port[0-15] vlan1[2-4093] vlan2 ...     - IGMP snooping: remove mrouter vlans for the given port\r\n"
         "m 1411 vlan1[2-4093] ipaddr1[ddd.ddd.ddd.ddd] vlan2 ipaddr2 ... - IGMP snooping querier: Add vlan and its ip address\r\n"
-        "m 1412 vlan1[2-4093] vlan2 ... - IGMP snooping querier: remove vlans\r\n"*/
-        "m 1420 evc_id[1-127] page_idx[0..] client_vlanId[1-4095/0] client_intf[0-Phy,1-Lag]/[intf#] - List active channels for a particular EVC and client\r\n"
-        "m 1421 evc_id[1-127] page_idx[0..]ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
+//      "m 1412 vlan1[2-4093] vlan2 ... - IGMP snooping querier: remove vlans\r\n"*/
+        "m 1420 evc_id[1-127] page_idx[0..] intf[0-Phy,1-Lag]/[intf#] svid[1-4095] cvid[1-4095/0]  - List active channels for a particular EVC and client\r\n"
+        "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
         "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
         "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
         "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
@@ -2660,7 +2660,7 @@ int main (int argc, char *argv[])
 */
       case 1420:
         {
-          msg_MCActiveChannels_t *ptr;
+          msg_MCActiveChannelsRequest_t *ptr;
           int type, intf;
 
           // Validate number of arguments
@@ -2670,8 +2670,8 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_MCActiveChannels_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_MCActiveChannels_t));
+          ptr = (msg_MCActiveChannelsRequest_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_MCActiveChannelsRequest_t));
 
           ptr->SlotId = (uint8)-1;
 
@@ -2687,23 +2687,12 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->page_index = (uint16) valued;
-
-          // Client vlan
-          if (argc>=3+3)
-          {
-            if (StrToLongLong(argv[3+2],&valued)<0)  {
-              help_oltBuga();
-              exit(0);
-            }
-            ptr->client.inner_vlan = (uint16) valued;
-            ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
-          }
+          ptr->entryId = (uint16) valued;
 
           // port
-          if (argc>=3+4)
+          if (argc>=3+3)
           {
-            if (sscanf(argv[3+3],"%d/%d",&type,&intf)!=2)
+            if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
             {
               help_oltBuga();
               exit(0);
@@ -2713,8 +2702,30 @@ int main (int argc, char *argv[])
             ptr->client.mask |= MSG_CLIENT_INTF_MASK;
           }
 
+          // Outer vlan
+          if (argc>=3+4)
+          {
+            if (StrToLongLong(argv[3+3],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->client.outer_vlan = (uint16) valued;
+            ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+          }
+
+          // Client vlan
+          if (argc>=3+5)
+          {
+            if (StrToLongLong(argv[3+4],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->client.inner_vlan = (uint16) valued;
+            ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+          }
+
           comando.msgId = CCMSG_ETH_IGMP_GROUPS_GET;
-          comando.infoDim = sizeof(msg_MCActiveChannels_t);
+          comando.infoDim = sizeof(msg_MCActiveChannelsRequest_t);
         }
         break;
 
@@ -4788,23 +4799,30 @@ int main (int argc, char *argv[])
 
       case 1420:
         {
-          msg_MCActiveChannels_t *po=(msg_MCActiveChannels_t *) &resposta.info[0];
-          uint16 index;
+          msg_MCActiveChannelsReply_t *po=(msg_MCActiveChannelsReply_t *) &resposta.info[0];
+          uint16 index, n;
 
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
-            if (resposta.infoDim!=sizeof(msg_MCActiveChannels_t)) {
+            if (resposta.infoDim==0 || resposta.infoDim%sizeof(msg_MCActiveChannelsReply_t) != 0) {
               printf(" Switch: Invalid structure size\r\n");
               break;
             }
-            printf( " MC channels for Slot=%u, EVC=%u and C-Vid=%u+intf=%u/%u (total=%u)\n\r",po->SlotId,po->evc_id,
-                    po->client.inner_vlan, po->client.intf.intf_type, po->client.intf.intf_id,
-                    po->n_channels_total);
-            printf("Page %u of %u:\r\n",po->page_index,po->n_pages_total);
-            for (index=0; index<po->n_channels_msg; index++) {
-              printf("  Channel %03lu.%03lu.%03lu.%03lu\r\n",(po->channels_list[index].s_addr>>24) & 0xFF,
-                     (po->channels_list[index].s_addr>>16) & 0xFF,
-                     (po->channels_list[index].s_addr>> 8) & 0xFF,
-                      po->channels_list[index].s_addr & 0xFF);
+            n = resposta.infoDim/sizeof(msg_MCActiveChannelsReply_t);
+
+            printf( " MC channels (total=%u)\n\r", n);
+
+            for (index=0; index<n; index++) {
+              printf("#%-3u: GrpAddr %03lu.%03lu.%03lu.%03lu   SrcAddr=%03lu.%03lu.%03lu.%03lu   (type=%u)\r\n",
+                     po[index].entryId,
+                     (po[index].chIP>>24) & 0xFF,
+                      (po[index].chIP>>16) & 0xFF,
+                       (po[index].chIP>> 8) & 0xFF,
+                         po[index].chIP & 0xFF,
+                     (po[index].srcIP>>24) & 0xFF,
+                      (po[index].srcIP>>16) & 0xFF,
+                       (po[index].srcIP>> 8) & 0xFF,
+                         po[index].srcIP & 0xFF,
+                     po[index].chType);
             }
             printf( "Done!\r\n");
           }

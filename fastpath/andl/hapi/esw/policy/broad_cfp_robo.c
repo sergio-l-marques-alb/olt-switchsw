@@ -2774,6 +2774,12 @@ int policy_cfp_group_rule_priority_set(int                          unit,
     {
     case BROAD_POLICY_RULE_PRIORITY_LOWEST:   prio = BCM_FIELD_ENTRY_PRIO_LOWEST;
                                               break;
+    case BROAD_POLICY_RULE_PRIORITY_DEFAULT:  prio = ((BCM_FIELD_ENTRY_PRIO_HIGHEST - BCM_FIELD_ENTRY_PRIO_LOWEST)/4)+BCM_FIELD_ENTRY_PRIO_LOWEST;
+                                              break;
+    case BROAD_POLICY_RULE_PRIORITY_HIGH:     prio = ((BCM_FIELD_ENTRY_PRIO_HIGHEST - BCM_FIELD_ENTRY_PRIO_LOWEST)/3)+BCM_FIELD_ENTRY_PRIO_LOWEST;
+                                              break;
+    case BROAD_POLICY_RULE_PRIORITY_HIGH2:    prio = ((BCM_FIELD_ENTRY_PRIO_HIGHEST - BCM_FIELD_ENTRY_PRIO_LOWEST)/2)+BCM_FIELD_ENTRY_PRIO_LOWEST;
+                                              break;
     case BROAD_POLICY_RULE_PRIORITY_HIGHEST:  prio = BCM_FIELD_ENTRY_PRIO_HIGHEST;
                                               break;
     default:                                  prio = BCM_FIELD_ENTRY_PRIO_DONT_CARE;

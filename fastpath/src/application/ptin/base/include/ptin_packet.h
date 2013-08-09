@@ -14,6 +14,8 @@
 #include "ptin_include.h"
 #include "sysnet_api.h"
 
+extern L7_BOOL ptin_packet_debug_enable;
+
 /**
  * Initialize ptin_packet module
  * 

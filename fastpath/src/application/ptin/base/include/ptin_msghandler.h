@@ -119,7 +119,7 @@
 
 #define CCMSG_ETH_IGMP_STATIC_GROUP_ADD     0x907B  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE  0x907C  // struct msg_MCStaticChannel_t
-#define CCMSG_ETH_IGMP_GROUPS_GET           0x907D  // struct msg_MCActiveChannels_t
+#define CCMSG_ETH_IGMP_GROUPS_GET           0x907D  // struct msg_MCActiveChannelsRequest_t
 #define CCMSG_ETH_IGMP_CLIENT_GROUPS_GET    0x907E  // struct msg_MCActiveChannelClients_t
 
 #define CCMSG_ETH_IGMP_PROXY_GET            0x9070  // struct msg_IgmpProxyCfg_t
@@ -1115,6 +1115,7 @@ typedef struct _st_MCActiveChannelClients
   uint8  SlotId;                       // slot
   uint16 evc_id;                       // index: EVCid
   msg_in_addr_t channelIp;             // IP do canal a consultar
+  msg_in_addr_t sourceIp;              // IP do source Address
   L7_uint16 page_index;                // Indice da mensagem
   L7_uint16 n_pages_total;             // Numero de mensagens para transportar todos os canais
   L7_uint16 n_clients_total;           // Numero total de canais

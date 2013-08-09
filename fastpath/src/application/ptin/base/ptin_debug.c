@@ -116,6 +116,7 @@ void ptin_debug(void)
   printf("  ptin_fpcounters_dump_debug          - Dump configured EVC/client counters (at request)\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");
+  printf("  ssm_debug_dump                      - prints info about SSM operation\r\n");
   printf("  ptin_dhcp_dump                      - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
