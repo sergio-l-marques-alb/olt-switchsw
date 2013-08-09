@@ -8404,10 +8404,12 @@ void ptin_igmp_clients_dump(void)
     #if (MC_CLIENT_INNERVLAN_SUPPORTED)
     innerVlan = avl_info->igmpClientDataKey.innerVlan;
     #endif
+    #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
     if (ptin_intf_port2intIfNum(avl_info->igmpClientDataKey.ptin_port, &intIfNum)==L7_SUCCESS)
     {
       ptin_evc_extVlans_get_fromIntVlan(intIfNum, avl_info->igmpClientDataKey.outerVlan, innerVlan, &extVlan, L7_NULLPTR);
     }
+    #endif
     
     printf("      Client#%u: "
            #if (MC_CLIENT_INTERF_SUPPORTED)
