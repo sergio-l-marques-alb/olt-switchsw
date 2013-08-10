@@ -2514,7 +2514,7 @@ int policy_cfp_group_add_rule(int                        unit,
     /* Ptin added: SDK 6.3.0 */
     #if 1
     if (policer_id!=L7_NULLPTR)   *policer_id = rulePtr->policer.policer_id;
-    if (counter_id!=L7_NULLPTR)   *policer_id = rulePtr->counter.counter_id;
+    if (counter_id!=L7_NULLPTR)   *counter_id = rulePtr->counter.counter_id;
     #endif
 
     /* Only install to HW if we expect any ports to match this rule. This is mostly because

@@ -688,7 +688,7 @@ L7_RC_t hapi_ptin_fpCounters_delete(ptin_evcStats_policy_t *counter)
     {
       if (hapiBroadPolicyDelete(counter->policy_id[stage])!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error destroying policy");
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error destroying policy (counterId=%u)",counter->policy_id[stage]);
         return L7_FAILURE;
       }
     }

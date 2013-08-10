@@ -4319,7 +4319,7 @@ int policy_group_add_rule(int                        unit,
       /* Ptin added: SDK 6.3.0 */
       #if 1
       if (policer_id!=L7_NULLPTR)   *policer_id = rulePtr->policer.policer_id;
-      if (counter_id!=L7_NULLPTR)   *policer_id = rulePtr->counter.counter_id;
+      if (counter_id!=L7_NULLPTR)   *counter_id = rulePtr->counter.counter_id;
       #endif
     }
 
@@ -4741,21 +4741,26 @@ int policy_group_delete_rule(int                  unit,
     #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     if (policer_id>0)
     {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removing policer id %u...",policer_id);
       rv = bcm_field_entry_policer_detach(unit, eid, 0);
       if (BCM_E_NONE != rv)
           return rv;
       rv = bcm_policer_destroy(unit, policer_id);
       if (BCM_E_NONE != rv)
           return rv;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed policer id %u!",policer_id);
     }
+
     if (counter_id>0)
     {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removing counter id %u...",counter_id);
       rv = bcm_field_entry_stat_detach(unit, eid, counter_id);
       if (BCM_E_NONE != rv)
           return rv;
       rv = bcm_field_stat_destroy(unit, counter_id);
       if (BCM_E_NONE != rv)
           return rv;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed counter id %u!",counter_id);
     }
     #endif
 
