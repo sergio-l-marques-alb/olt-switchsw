@@ -1711,6 +1711,8 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   snoopInfoData_t *snoopEntry;
   L7_BOOL fwdFlag = L7_FALSE;
   L7_uint32 igmp_network_version;
+  L7_uint32 intIfNum;
+  L7_INTF_MASK_t mcastClientAttached;
 
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
@@ -1729,6 +1731,17 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 
   /* Get igmp network version */
   igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
+
+  /*Get list of clients */
+  if (staticChannel)
+  {
+    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached)!=L7_SUCCESS)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      return L7_FAILURE;
+    }
+  }
 
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
   if ((snoopEntry=snoopEntryFind(dmac, vlanId, L7_AF_INET, L7_MATCH_EXACT)) == L7_NULLPTR)
@@ -1753,6 +1766,23 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
     }
     if (ptin_debug_igmp_snooping)
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoop entry exists now");
+
+    /* Add interfaces for static snoopEntry */
+    if (staticChannel)
+    {
+      /* Forward frame to all interfaces in this VLAN with multicast routers attached */
+      for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+      {
+        if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intIfNum)) )
+        {
+          if (snoopIntfAdd(dmac, vlanId, intIfNum, SNOOP_GROUP_MEMBERSHIP, snoopCBGet(L7_AF_INET))!=L7_SUCCESS)
+          {
+            if (ptin_debug_igmp_snooping)
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Error adding intIfNum %u to vlanId %u",intIfNum,vlanId);
+          }
+        }
+      }
+    }
   }
   else
   {
@@ -1815,9 +1845,33 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
         LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelCreate failed");
       return L7_FAILURE;
     }
-    if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Message will be sent to network");
-    fwdFlag = L7_TRUE;
+
+    /* Add interfaces for static channel */
+    if (staticChannel)
+    {
+      /* Forward frame to all interfaces in this VLAN with multicast routers attached */
+      for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+      {
+        if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intIfNum)) )
+        {
+          if (snoopChannelIntfAdd(snoopEntry, intIfNum, mgmdGroupAddr)!=L7_SUCCESS)
+          {
+            if (ptin_debug_igmp_snooping)
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Error adding intIfNum %u to channel 0x%08x",intIfNum,mgmdGroupAddr);
+          }
+        }
+      }
+    }
+
+    /* Only send joins if in matrix or standalone */
+    #if (PTIN_BOARD_IS_LINECARD)
+    if (!staticChannel)
+    #endif
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Message will be sent to network");
+      fwdFlag = L7_TRUE;
+    }
   }
   else
   {
@@ -1860,6 +1914,7 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
 {
   snoopInfoData_t *snoopEntry;
   L7_uint          igmp_network_version;
+  L7_BOOL          static_group;
 
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
@@ -1881,6 +1936,9 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopEntryFind failed!");
     return L7_SUCCESS;
   }
+
+  /* Static group */
+  static_group = snoopEntry->staticGroup;
 
   /* Verify if this channel exists */
   if (!snoopChannelExist(snoopEntry,mgmdGroupAddr))
@@ -1923,15 +1981,21 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
   }
 
-  /* Send two leave messages */
-  if (igmp_network_version <= 2)
+  /* Only send leaves upstream if standalone or matrix */
+  #if (PTIN_BOARD_IS_LINECARD)
+  if (!static_group)
+  #endif
   {
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
-        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+    /* Send two leave messages */
+    if (igmp_network_version <= 2)
     {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
-      return L7_FAILURE;
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+      {
+        if (ptin_debug_igmp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
+        return L7_FAILURE;
+      }
     }
   }
 
@@ -2177,19 +2241,20 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   {
     if (ptin_debug_igmp_snooping)
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"No clients for this channel and interface");
-    /* Remove interface from this channel */
-    if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfRemove failed");
-      return L7_FAILURE;
-    }
-    if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Interface removed for this interface");
 
-    /* For static channels, the channel won't be removed */
+    /* For static channels, the channel/intf won't be removed */
     if (!snoopEntry->staticGroup)
     {
+      /* Remove interface from this channel */
+      if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+      {
+        if (ptin_debug_igmp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfRemove failed");
+        return L7_FAILURE;
+      }
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Interface removed for this interface");
+
       /* If channel was removed, send LEAVE to network */
       if (!snoopChannelExist(snoopEntry,mgmdGroupAddr))
       {
@@ -2197,21 +2262,21 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"Message will be forward to network");
         fwdFlag = L7_TRUE;
       }
-    }
 
-    /* If there is no channels for this interface, remove interface from group */
-    if (snoopChannelsIntfNone(snoopEntry,intIfNum))
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"No channels for this interface");
-      if (snoopIntfRemove(dmac,vlanId,intIfNum,SNOOP_GROUP_MEMBERSHIP,snoopCBGet(L7_AF_INET))!= L7_SUCCESS)
+      /* If there is no channels for this interface, remove interface from group */
+      if (snoopChannelsIntfNone(snoopEntry,intIfNum))
       {
         if (ptin_debug_igmp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to remove group membership");
-        return L7_FAILURE;
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"No channels for this interface");
+        if (snoopIntfRemove(dmac,vlanId,intIfNum,SNOOP_GROUP_MEMBERSHIP,snoopCBGet(L7_AF_INET))!= L7_SUCCESS)
+        {
+          if (ptin_debug_igmp_snooping)
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to remove group membership");
+          return L7_FAILURE;
+        }
+        if (ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
       }
-      if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
     }
   }
 
