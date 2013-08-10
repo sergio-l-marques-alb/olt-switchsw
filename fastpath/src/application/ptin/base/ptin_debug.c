@@ -119,6 +119,8 @@ void ptin_debug(void)
   printf("  ssm_debug_dump                      - prints info about SSM operation\r\n");
   printf("  ptin_dhcp_dump                      - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
+  printf("  ptin_igmp_clients_dump              - prints info about IMGP clients\r\n");
+  printf("  ptin_igmp_assoc_dump                - prints info about MC service associations\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
   printf("  ptin_igmp_snoop_dump <id>           - prints IGMP snooping entries (use -1 to display all)\r\n");
   printf("  ptin_igmp_proxy_dump                - prints IGMP proxy configuration\r\n");

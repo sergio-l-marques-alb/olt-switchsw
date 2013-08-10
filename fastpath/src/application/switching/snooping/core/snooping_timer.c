@@ -95,7 +95,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t key;
 
   /* PTin added: IGMP snooping */
-  #if 0
+  #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
     return;
@@ -270,7 +270,7 @@ void snoopTimerStop(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t  key;
 
   /* PTin added: IGMP snooping */
-  #if 0
+  #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
     return;
@@ -360,7 +360,7 @@ L7_RC_t snoopTimerStart(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t key;
 
   /* PTin added: IGMP snooping */
-  #if 0
+  #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
     return L7_SUCCESS;
@@ -585,7 +585,7 @@ void snoopGroupMembershipExpiry(void *param)
   }
 
   /* PTin added: IGMP snooping */
-  #if 0
+  #if 1
   if (pTimerData->snoopEntry->staticGroup)
   {
     return;
@@ -626,7 +626,7 @@ void snoopGroupMembershipExpiry(void *param)
   /* PTin added: IGMP */
   #if 1
   /* Dynamic clients upadate */
-  ptin_igmp_dynamic_all_clients_flush(shortVid);
+  //ptin_igmp_dynamic_all_clients_flush(shortVid);
   #endif
 }
 

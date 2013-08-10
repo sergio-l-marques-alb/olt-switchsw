@@ -1396,10 +1396,11 @@ L7_RC_t ptin_igmp_client_delete(L7_uint16 evc_idx, ptin_client_id_t *client)
   L7_RC_t rc;
 
   /* Validate, and rearrange, client info */
+  /* If error, client does not exist: return success */
   if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Remove client */
@@ -4057,8 +4058,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
   /* Run all group addresses */
   while ((rc==L7_SUCCESS && i<n_groups) || (rc!=L7_SUCCESS && i>=0))
   {
+    #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
     /* Run all source addresses */
     while ((rc==L7_SUCCESS && j<n_sources) || (rc!=L7_SUCCESS && j>=0))
+    #endif
     {
       /* Prepare key */
       #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
@@ -4099,6 +4102,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
         }
       }
 
+      #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
       /* Next source ip address */
       if (source.family != L7_AF_INET6)
       {
@@ -4113,6 +4117,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
       }
       else
         break;
+      #endif
     }
     /* Next group address */
     if (group.family != L7_AF_INET6)
@@ -8467,7 +8472,7 @@ void ptin_igmp_clients_dump(void)
 /**
  * Dumps all IGMP associations 
  */
-void ptin_igmpPair_dump(L7_int evc_mc, L7_int evc_uc)
+void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   ptinIgmpPairDataKey_t avl_key;
