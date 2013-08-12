@@ -2499,7 +2499,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   snoopPTinL3InfoData_t *      avlTreeEntry=L7_NULLPTR;
 //ptin_IgmpProxyCfg_t          igmpCfg;
   L7_uchar8                   *dataPtr = L7_NULL;
-  L7_uint32                    ipv4Addr, incomingVersion = 0,noOfRecords=0,timeout=0;
+  L7_uint32                    ipv4Addr, incomingVersion = 0,timeout=0;
 //L7_in6_addr_t                ipv6Addr;
 //L7_mgmdQueryMsg_t            mgmdMsg;
   L7_uchar8                    byteVal,robustnessVariable;
@@ -2902,7 +2902,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             /*Let us verify if this group is registered by any IGMPv3 Host*/            
             if ((avlTreeEntry=snoopPTinL3EntryFind(mcastPacket->vlanId,&groupAddr,L7_MATCH_EXACT))==L7_NULLPTR || 
                 avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
-       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients)!=L7_ALREADY_CONFIGURED)
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)!=L7_ALREADY_CONFIGURED)
             {
               LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",inetAddrPrint(&groupAddr,debug_buf));
               return L7_SUCCESS;
@@ -3020,7 +3020,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   {     
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Scheduling Membership Report Message with timeout: %u ",timeout); 
     
-    if (snoopPTinScheduleReportMessage(mcastPacket->vlanId,&groupAddr,queryType,selectedDelay,isInterface,noOfRecords, ptr,robustnessVariable)!=L7_SUCCESS)
+    if (snoopPTinScheduleReportMessage(mcastPacket->vlanId,&groupAddr,queryType,selectedDelay,isInterface,1, ptr,robustnessVariable)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_FAILURE;
