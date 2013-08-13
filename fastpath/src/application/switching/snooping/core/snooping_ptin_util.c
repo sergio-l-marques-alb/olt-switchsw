@@ -1,10 +1,11 @@
-/*
+/**
  * snooping_ptin_util.c
  *
  *  Created on: 2 de Ago de 2012
  *      Author: Daniel Figueira
- *  Modified on: 14 of April 2013
- *	Author: Márcio Melo
+ *  Modified on 2013/04/14
+ *      Author: Márcio Melo (marcio-d-melo@ptinovacao.pt) 
+ * Notes:
  */
 
 
@@ -378,7 +379,7 @@ L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAd
           /*Let us verify if this group still has any clients*/
           if((avlTreeEntry=snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT))==L7_NULLPTR || 
              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE || 
-       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients)==L7_SUCCESS)
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)==L7_SUCCESS)
           {            
             LOG_TRACE(LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
             return L7_SUCCESS;          
@@ -400,7 +401,7 @@ L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAd
                 LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinSourceFind()");
                 return L7_FAILURE;
               }
-              else if (rc==L7_SUCCESS && snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[foundIdx].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[foundIdx].numberOfClients)==L7_SUCCESS)
+              else if (rc==L7_SUCCESS && snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[foundIdx].clients)==L7_SUCCESS)
               {             
                  if(snoopPTinGroupRecordSourceRemove(groupPtr,&sourcePtr->key.sourceAddr)!=L7_SUCCESS)
                  {
@@ -1450,7 +1451,7 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
 
     if(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId==interfacePtr->key.vlanId && 
        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_TRUE && 
-       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients,avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients)==L7_ALREADY_CONFIGURED)
+       snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)==L7_ALREADY_CONFIGURED)
     {
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Address Number %u",++groupIdx);
       if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE)
@@ -1471,16 +1472,15 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
       }
       if (firstGroupPtr==L7_NULLPTR)
       {
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "First Group Ptr Found");
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "First Group Ptr Added");
         firstGroupPtr=groupPtr;
       }
 
-      for(sourceIdx=0;sourceIdx<avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfSources;sourceIdx++)
+      for(sourceIdx=0;sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;sourceIdx++)
       {
         if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE &&  
             avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].sourceTimer.isRunning==L7_TRUE &&
-            snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].clients,
-                                 avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].numberOfClients)==L7_ALREADY_CONFIGURED)
+            snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].clients)==L7_ALREADY_CONFIGURED)
         {                 
           if (L7_SUCCESS != snoopPTinGroupRecordSourcedAdd(groupPtr,&avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].sourceAddr,robustnessVariable))
           {

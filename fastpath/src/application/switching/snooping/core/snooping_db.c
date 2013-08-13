@@ -4457,7 +4457,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_NULLPTR;
   }
-  *newEntry=L7_FALSE; 
+  *newEntry=L7_FALSE;
   pSnoopEB = snoopEBGet();
 
 #if 0

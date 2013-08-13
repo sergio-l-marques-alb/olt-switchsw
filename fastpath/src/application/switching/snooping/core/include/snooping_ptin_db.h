@@ -48,7 +48,7 @@ L7_RC_t snoopPTinInitializeInterface(snoopPTinL3Interface_t *snoopEntry,L7_uint3
 L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 vlanId, L7_inet_addr_t* mcastGroupAddr,L7_uint16 interfaceIdx);
 
 //verify if this bitmap is already initialized
-L7_RC_t snoopPTinZeroClients(L7_uint32* clients,L7_uint16 numberOfClients);
+L7_RC_t snoopPTinZeroClients(L7_uint32* clients);
 
 /************************************************************************************************************/
 /*MGMD Proxy*/

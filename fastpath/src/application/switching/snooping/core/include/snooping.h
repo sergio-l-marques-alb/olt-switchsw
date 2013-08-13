@@ -15,7 +15,12 @@
 * @create 08-Dec-2006
 *
 * @author drajendra
+*   
 * @end
+* 
+* Modified on 2013/04/14
+*      Author: Márcio Melo (marcio-d-melo@ptinovacao.pt) 
+*  Notes:
 *
 **********************************************************************/
 #ifndef SNOOPING_H
