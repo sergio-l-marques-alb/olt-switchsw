@@ -1857,6 +1857,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       }
       #endif
 
+      /* PTin removed: With KR4 ports, link goes down! Is this procedure necessary? */
+      #if 0
       /* Disable auto-negotiation */
       if (usmDbIfAutoNegoStatusCapabilitiesSet(intIfNum, L7_DISABLE) != L7_SUCCESS)
       {
@@ -1864,6 +1866,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         //rc = L7_FAILURE;
         //continue;
       }
+      #endif
 
       /* Add member */
       if (usmDbDot3adMemberAddSet(1, lag_intf, intIfNum) != L7_SUCCESS)

@@ -163,6 +163,64 @@ L7_RC_t hapiBroadPortPhyInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
 	return result;
 
 }
+
+#if 0
+/* Given a maximum speed, return the mask of bcm_port_ability_t speeds
+ * while are less than or equal to the given speed. */
+bcm_port_abil_t
+static port_speed_max_mask(bcm_port_abil_t max_speed)
+{
+    bcm_port_abil_t speed_mask = 0;
+    /* This is a giant fall through switch */
+    switch (max_speed) {
+        
+    case 42000:
+        speed_mask |= BCM_PORT_ABILITY_42GB;
+    case 40000:
+        speed_mask |= BCM_PORT_ABILITY_40GB;
+    case 30000:
+        speed_mask |= BCM_PORT_ABILITY_30GB;
+    case 25000:
+        speed_mask |= BCM_PORT_ABILITY_25GB;
+    case 24000:
+        speed_mask |= BCM_PORT_ABILITY_24GB;
+    case 21000:
+        speed_mask |= BCM_PORT_ABILITY_21GB;
+    case 20000:
+        speed_mask |= BCM_PORT_ABILITY_20GB;
+    case 16000:
+        speed_mask |= BCM_PORT_ABILITY_16GB;
+    case 15000:
+        speed_mask |= BCM_PORT_ABILITY_15GB;
+    case 13000:
+        speed_mask |= BCM_PORT_ABILITY_13GB;
+    case 12500:
+        speed_mask |= BCM_PORT_ABILITY_12P5GB;
+    case 12000:
+        speed_mask |= BCM_PORT_ABILITY_12GB;
+    case 10000:
+        speed_mask |= BCM_PORT_ABILITY_10GB;
+    case 6000:
+        speed_mask |= BCM_PORT_ABILITY_6000MB;
+    case 5000:
+        speed_mask |= BCM_PORT_ABILITY_5000MB;
+    case 3000:
+        speed_mask |= BCM_PORT_ABILITY_3000MB;
+    case 2500:
+        speed_mask |= BCM_PORT_ABILITY_2500MB;
+    case 1000:
+        speed_mask |= BCM_PORT_ABILITY_1000MB;
+    case 100:
+        speed_mask |= BCM_PORT_ABILITY_100MB;
+    case 10:
+        speed_mask |= BCM_PORT_ABILITY_10MB;
+    default:
+        break;
+    }
+    return speed_mask;
+}
+#endif
+
 /*********************************************************************
  *
  * @purpose This routine set the speed and duplex for a phy
@@ -185,12 +243,13 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 	L7_RC_t				result = L7_SUCCESS;
 	DAPI_PORT_t 		*dapiPortPtr;
 	BROAD_PORT_t		*hapiPortPtr;
-	L7_int32			bcmSpeed=0;
+	L7_int32			bcmSpeed=0, local_advert=0;
 	L7_int32			rc=0;
 	bcm_phy_config_t	fiber_config;
 	bcm_phy_config_t	copper_config;
 	L7_int32 			bcmDuplex=0, mac_pause_tx = 0, mac_pause_rx = 0;
 	bcm_port_abil_t		local_ability_mask;
+    //bcm_port_ability_t  port_local_ability, local_ability;
 	int					jam = L7_FALSE;
 
 	hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -205,19 +264,23 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 	{
 		case DAPI_PORT_SPEED_FE_10MBPS:
 			bcmSpeed = 10;
+            local_advert = BCM_PORT_ABIL_10MB_FD;       /* PTin added: autoneg */
 			break;
 
 		case DAPI_PORT_SPEED_FE_100MBPS:
 			bcmSpeed = 100;
+            local_advert = BCM_PORT_ABIL_100MB_FD;      /* PTin added: autoneg */
 			break;
 
 		case DAPI_PORT_SPEED_GE_1GBPS:
 			bcmSpeed = 1000;
+            local_advert = BCM_PORT_ABIL_1000MB_FD;     /* PTin added: autoneg */
 			break;
 
         /* PTin added: Speed 2.5G */
         case DAPI_PORT_SPEED_GE_2G5BPS:
           bcmSpeed = 2500;
+          local_advert = BCM_PORT_ABIL_2500MB_FD;       /* PTin added: autoneg */
           break;
         /* PTin end */
 
@@ -228,6 +291,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
         /* PTin added: Speed 40G */
         case DAPI_PORT_SPEED_GE_40GBPS:
           bcmSpeed = 40000;
+          local_advert = BCM_PORT_ABIL_1000MB_FD;     /* PTin added: autoneg */
           break;
 
         /* PTin added: Speed 100G */
@@ -440,6 +504,11 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				jam = L7_FALSE;
 			}
 
+            /* PTin added: autoneg */
+            #if 1
+            if (local_ability_mask==0)   local_ability_mask |= local_advert;
+            #endif
+
 			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				LOG_ERROR(rc);
@@ -536,6 +605,25 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				LOG_ERROR(rc);
+
+            /* PTin added: autoneg */
+            #if 0
+            /* get the ability of the port */
+            rc = bcmx_port_ability_local_get(hapiPortPtr->bcmx_lport, &port_local_ability);
+            if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+                LOG_ERROR(rc);
+
+            memset(&local_ability,0x00,sizeof(local_ability));
+
+            local_ability.speed_full_duplex  = port_local_ability.speed_full_duplex;
+            local_ability.speed_full_duplex &= port_speed_max_mask(speed);
+            local_ability.speed_half_duplex  = port_local_ability.speed_half_duplex;
+            local_ability.speed_half_duplex &= port_speed_max_mask(speed);
+
+            rc = bcmx_port_ability_advert_set(hapiPortPtr->bcmx_lport, &local_ability);
+            if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+                LOG_ERROR(rc);
+            #endif
 
 			/*When autonegotiation is enabled MAC pause and jam setting will be done after
 			* link comes UP*/
