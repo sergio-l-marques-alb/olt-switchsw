@@ -4,9 +4,9 @@
 #include "l7_platformspecs.h"
 
 /* SDK version */
-#define SDK_MAJOR_VERSION   5
-#define SDK_MINOR_VERSION   10
-#define SDK_REVISION_ID     4
+#define SDK_MAJOR_VERSION   6
+#define SDK_MINOR_VERSION   3
+#define SDK_REVISION_ID     0
 #define SDK_PATCH_ID        0
 #define SDK_VERSION_IS      ( ((SDK_MAJOR_VERSION)<<24) | ((SDK_MINOR_VERSION)<<16) | ((SDK_REVISION_ID)<<8) | ((SDK_PATCH_ID)) )
 #define SDK_VERSION(major,minor,revis,patch)   ( (((major) & 0xff)<<24) | (((minor) & 0xff)<<16) | (((revis) & 0xff)<<8) | (((patch) & 0xff)) )
