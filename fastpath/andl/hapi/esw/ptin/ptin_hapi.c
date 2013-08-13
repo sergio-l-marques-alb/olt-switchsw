@@ -69,6 +69,8 @@ int ptin_sys_number_of_ports = PTIN_SYSTEM_N_PORTS;
 
 static L7_RC_t hapi_ptin_portMap_init(void);
 
+L7_RC_t ptin_hapi_kr4_set(L7_int port);
+
 /**
  * Apply global switch configurations
  * 
@@ -172,38 +174,19 @@ L7_RC_t ptin_hapi_phy_init(void)
   int i, rv;
   L7_uint32 preemphasis;
 
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+
+  /* Get WC port map */
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
+
   for (i=1; i<=ptin_sys_number_of_ports; i++)
   {
-//  rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_8B10B, 0);
-//
-//  if (!SOC_SUCCESS(rv))
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling 8b10b on port %u", i);
-//    rc = L7_FAILURE;
-//    break;
-//  }
-
-    #if 0
-    /* Define preemphasis value according to port */
-    /* Nearest slots, will use main=52, post=11 */
-    if ( i <= 16 )
-    {
-      preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
-    }
-    /* Farthest slots, will use main=44, post=19 */
-    else if ( i > 40 )
-    {
-      preemphasis = PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS;
-    }
-    /* Middle slots, will use default main=48, post=15*/
-    else
-    {
-      preemphasis = PTIN_PHY_PREEMPHASIS_DEFAULT;
-    }
-    #else
     /* Use these settings for all slots */
     preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
-    #endif
     
     rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
 
@@ -213,6 +196,31 @@ L7_RC_t ptin_hapi_phy_init(void)
       rc = L7_FAILURE;
       break;
     }
+
+    /* Init 40G ports at KR4 mode */
+    if (hapiWCMapPtr[i].wcSpeedG == 40)
+    {
+      if (ptin_hapi_kr4_set(i)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u in KR4", i);
+        rc = L7_FAILURE;
+        continue;
+      }
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
+    }
+  }
+  #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  int i;
+  for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    if (ptin_hapi_kr4_set(i)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u in KR4", i);
+      rc = L7_FAILURE;
+      continue;
+    }
+
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
   }
   #endif
 
@@ -1716,44 +1724,172 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   return L7_SUCCESS;
 }
 
-///**
-// * Apply global switch configurations
-// *
-// * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
-// */
-//static L7_RC_t ptin_hapi_switch_init(void)
-//{
-//  L7_int port;
-//  bcm_port_t bcm_port;
-//  L7_BOOL error=FALSE;
-//
-//  for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
-//  {
-//    /* Get bcm port */
-//    if (hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)  continue;
-//
-//    /* Apply tpid values */
-//    if (bcm_port_tpid_set(0, bcm_port, PTIN_TPID_OUTER_DEFAULT) != BCM_E_NONE)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying Outer TPID (0x8100) in port %u",port);
-//      error = TRUE;
-//    }
-//    if (bcm_port_inner_tpid_set(0, bcm_port, PTIN_TPID_INNER_DEFAULT) != BCM_E_NONE)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying Inner TPID (0x8100) in port %u",port);
-//      error = TRUE;
-//    }
-//  }
-//
-//  if (error)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying TPID values");
-//    return L7_FAILURE;
-//  }
-//
-//  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Success applying TPID values");
-//  return L7_SUCCESS;
-//}
+/* Given a maximum speed, return the mask of bcm_port_ability_t speeds
+ * while are less than or equal to the given speed. */
+bcm_port_abil_t
+static port_speed_max_mask(bcm_port_abil_t max_speed)
+{
+    bcm_port_abil_t speed_mask = 0;
+    /* This is a giant fall through switch */
+    switch (max_speed) {
+        
+    case 42000:
+        speed_mask |= BCM_PORT_ABILITY_42GB;
+    case 40000:
+        speed_mask |= BCM_PORT_ABILITY_40GB;
+    case 30000:
+        speed_mask |= BCM_PORT_ABILITY_30GB;
+    case 25000:
+        speed_mask |= BCM_PORT_ABILITY_25GB;
+    case 24000:
+        speed_mask |= BCM_PORT_ABILITY_24GB;
+    case 21000:
+        speed_mask |= BCM_PORT_ABILITY_21GB;
+    case 20000:
+        speed_mask |= BCM_PORT_ABILITY_20GB;
+    case 16000:
+        speed_mask |= BCM_PORT_ABILITY_16GB;
+    case 15000:
+        speed_mask |= BCM_PORT_ABILITY_15GB;
+    case 13000:
+        speed_mask |= BCM_PORT_ABILITY_13GB;
+    case 12500:
+        speed_mask |= BCM_PORT_ABILITY_12P5GB;
+    case 12000:
+        speed_mask |= BCM_PORT_ABILITY_12GB;
+    case 10000:
+        speed_mask |= BCM_PORT_ABILITY_10GB;
+    case 6000:
+        speed_mask |= BCM_PORT_ABILITY_6000MB;
+    case 5000:
+        speed_mask |= BCM_PORT_ABILITY_5000MB;
+    case 3000:
+        speed_mask |= BCM_PORT_ABILITY_3000MB;
+    case 2500:
+        speed_mask |= BCM_PORT_ABILITY_2500MB;
+    case 1000:
+        speed_mask |= BCM_PORT_ABILITY_1000MB;
+    case 100:
+        speed_mask |= BCM_PORT_ABILITY_100MB;
+    case 10:
+        speed_mask |= BCM_PORT_ABILITY_10MB;
+    default:
+        break;
+    }
+    return speed_mask;
+}
+
+#if 0
+void teste(L7_int port)
+{
+  bcm_port_t bcm_port;
+  bcm_error_t rc = BCM_E_NONE;
+  bcm_port_ability_t port_ability;
+  bcm_port_info_t info;
+
+  if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE)
+    return;
+
+  rc = bcm_port_ability_local_get(0, bcm_port, &port_ability);
+  if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+      LOG_ERROR(rc);
+
+  printf("Local Ability=%u %u %u %u %u %u %u %u %u %u\r\n",
+         port_ability.eee, port_ability.encap, port_ability.fcmap, port_ability.flags, port_ability.interface,
+         port_ability.loopback, port_ability.medium, port_ability.pause, port_ability.speed_full_duplex, port_ability.speed_half_duplex);
+
+  bcm_port_info_t_init(&info);
+
+  info.action_mask  = BCM_PORT_ATTR_AUTONEG_MASK | BCM_PORT_ATTR_LINKSTAT_MASK |
+                      BCM_PORT_ATTR_REMOTE_ADVERT_MASK | BCM_PORT_ATTR_LOCAL_ADVERT_MASK;
+  info.action_mask2 = BCM_PORT_ATTR2_PORT_ABILITY;
+
+  if (bcm_port_selective_get(0, bcm_port, &info)!=BCM_E_NONE)
+    return;
+
+  printf("Local Ability=%u %u %u %u %u %u %u %u %u %u\r\n",
+         info.local_ability.eee, info.local_ability.encap, info.local_ability.fcmap, info.local_ability.flags, info.local_ability.interface, info.local_ability.loopback,
+         info.local_ability.medium, info.local_ability.pause, info.local_ability.speed_full_duplex, info.local_ability.speed_half_duplex);
+
+  info.local_ability.speed_full_duplex  = port_ability.speed_full_duplex;
+  info.local_ability.speed_full_duplex &= port_speed_max_mask(40000);
+
+  info.local_ability.speed_half_duplex  = port_ability.speed_half_duplex;
+  info.local_ability.speed_half_duplex &= port_speed_max_mask(40000);
+
+  printf("Port Ability=%u %u %u %u %u %u %u %u %u %u\r\n",
+         info.port_ability.eee,info.port_ability.encap,info.port_ability.fcmap,info.port_ability.flags,info.port_ability.interface,
+         info.port_ability.loopback,info.port_ability.medium,info.port_ability.pause,info.port_ability.speed_full_duplex,info.port_ability.speed_half_duplex);
+  printf("Local Ability=%u %u %u %u %u %u %u %u %u %u\r\n",
+         info.local_ability.eee, info.local_ability.encap, info.local_ability.fcmap, info.local_ability.flags, info.local_ability.interface, info.local_ability.loopback,
+         info.local_ability.medium, info.local_ability.pause, info.local_ability.speed_full_duplex, info.local_ability.speed_half_duplex);
+
+  info.action_mask  = BCM_PORT_ATTR_AUTONEG_MASK | BCM_PORT_ATTR_LINKSTAT_MASK |
+                      BCM_PORT_ATTR_REMOTE_ADVERT_MASK | BCM_PORT_ATTR_LOCAL_ADVERT_MASK;
+  info.action_mask2 = BCM_PORT_ATTR2_PORT_ABILITY;
+
+  if (bcm_port_selective_set(0, bcm_port, &info)!=BCM_E_NONE)
+    return;
+
+  printf("done!\r\n");
+}
+#endif
+
+/**
+ * Change a port interface type to KR4
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_kr4_set(L7_int port)
+{
+  bcm_port_t bcm_port;
+  bcm_error_t rc = BCM_E_NONE;
+  bcm_port_ability_t port_ability, local_ability;
+
+  /* Get bcm_port format */
+  if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE)
+    return L7_FAILURE;
+
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+    return L7_FAILURE;
+
+  /* Start of 'special' code: without this, we never get KR4 links! */
+  rc = bcm_port_ability_local_get(0, bcm_port, &port_ability);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+
+  memset(&local_ability,0x00,sizeof(local_ability));
+
+  local_ability.speed_full_duplex  = port_ability.speed_full_duplex;
+  local_ability.speed_full_duplex &= port_speed_max_mask(40000);
+
+  local_ability.speed_half_duplex  = port_ability.speed_half_duplex;
+  local_ability.speed_half_duplex &= port_speed_max_mask(40000);
+
+  rc = bcm_port_ability_advert_set(0, bcm_port, &local_ability);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+  /* End of 'special' code */
+
+  rc = bcm_port_autoneg_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_KR4);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+
+  rc = bcm_port_enable_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+
+  return L7_SUCCESS;
+}
+
+
 
 BROAD_POLICY_t policyId_trap = BROAD_POLICY_INVALID;
 L7_int    trap_port = -1;
