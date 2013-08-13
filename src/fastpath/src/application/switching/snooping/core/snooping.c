@@ -3634,7 +3634,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
           noOfSources=0;         
           recType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;                                         
 #else
-          recType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;                                         
+          recType=L7_IGMP_CHANGE_TO_EXCLUDE_MODE;
+          noOfSources=0;                                          
 #endif          
         }
         else if (recType==L7_IGMP_MODE_IS_INCLUDE)           
@@ -3949,7 +3950,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
           }
 #endif
         }
-        else if (newEntry==L7_FALSE)
+        else if (newEntry==L7_TRUE)
         {
           if(snoopPTinGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,recType)!=L7_SUCCESS)
           {

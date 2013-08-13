@@ -171,7 +171,7 @@ L7_RC_t snoopPTinClientInterfaceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uin
   if (interfacePtr == L7_NULLPTR )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
+    return L7_ERROR;
   }
 
   /* Add the client to this interface*/
@@ -180,13 +180,13 @@ L7_RC_t snoopPTinClientInterfaceAdd(snoopPTinL3Interface_t *interfacePtr, L7_uin
      PTIN_SET_MASKBIT(interfacePtr->clients, clientIdx);
      ++interfacePtr->numberOfClients;     
      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "ClientIdx:%u added to this Interface, number of Clients: %u",clientIdx,interfacePtr->numberOfClients);
+     return L7_SUCCESS;
   }
   else
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Existing ClientIdx:%u in this Interface, number of Clients: %u",clientIdx,interfacePtr->numberOfClients);
-  }
-
-  return L7_SUCCESS;
+    return L7_ALREADY_CONFIGURED;
+  }   
 }
 
 /*************************************************************************
@@ -266,7 +266,7 @@ L7_RC_t snoopPTinClientInterfaceRemove(snoopPTinL3Interface_t *interfacePtr, L7_
   if (interfacePtr == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return L7_FAILURE;
+    return L7_ERROR;
   }
 
   /* Remove the client from this interface */
@@ -940,7 +940,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
     if(L7_SUCCESS ==snoopPTinClientNoSourcesSubscribed(&avlTreeEntry->interfaces[intIfNum], clientIdx))    
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove ClientIdx %u from this interface :%u", clientIdx,intIfNum );
-      if (L7_SUCCESS != snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx))
+      if (L7_ERROR == snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx))
       {
         LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
         return L7_FAILURE;
@@ -961,7 +961,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
   {   
     /* Add client to the interface bitmap if it does not exist */       
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-    if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+    if (L7_ERROR == snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
       return L7_FAILURE;
@@ -1153,7 +1153,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
 
     /* Add client to the interface bitmap if it does not exist */       
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-    if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+    if (L7_ERROR == snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
       return L7_FAILURE;
@@ -1307,7 +1307,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
 
     /* Add client to the interface bitmap if it does not exist */       
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-    if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+    if (L7_ERROR == snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
       return L7_FAILURE;
@@ -1361,7 +1361,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
       }
       
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove ClientIdx %u from this interface :%u", clientIdx,intIfNum );
-      if (L7_SUCCESS != (rc=snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx)))
+      if ( L7_ERROR== (rc=snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx)))
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
         return L7_FAILURE;
@@ -1376,7 +1376,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
          L7_SUCCESS==snoopPTinZeroClients(avlTreeEntry->interfaces[intIfNum].clients))
       {      
         if(SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum)
-          noOfRecords=1;    
+          *noOfRecordsPtr=1;  
         else
         {
           LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to close this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",intIfNum,avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
@@ -1460,12 +1460,10 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
          avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
        }
     }
-        
-    /* Add new sources */
-    sourceAddr=sourceList;
-
     if (avlTreeEntry->interfaces[intIfNum].filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
     {
+      /* Add new sources */
+      sourceAddr=sourceList;
       while (noOfSources > 0 && sourceAddr !=L7_NULLPTR)
       {
         /* Search for this source in the current source list */    
@@ -1543,13 +1541,14 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
         --noOfSources;
         sourceAddr++;
       }
-
     }
     else if (avlTreeEntry->interfaces[intIfNum].filtermode == PTIN_SNOOP_FILTERMODE_EXCLUDE)
     {
       /* Save GT. */                  
       group_timer = snoop_ptin_grouptimer_timeleft(&avlTreeEntry->interfaces[intIfNum].groupTimer);
 
+      /* Add new sources */
+      sourceAddr=sourceList;
       while (noOfSources > 0 && sourceAddr !=L7_NULLPTR)
       {
         /* Search for this source in the current source list */    
@@ -1645,13 +1644,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
     }
   }
   else /*To_Ex{}=IGMPv2 Join*/
-  {
-   /*Add group Record */
-    if(SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM==intIfNum)
-    {      
-      noOfRecords=1;   
-    }
-    
+  { 
     for (sourceIdx = 0; sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {
       if (avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
@@ -1667,11 +1660,16 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
 
   /* Add client to the interface bitmap if it does not exist */       
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-  if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+  if (L7_ERROR == (rc=snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx)))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
     return L7_FAILURE;
-  }       
+  }
+  else if (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM && rc==L7_SUCCESS)
+  {    
+    if (noOfRecords==0)
+         noOfRecords=1;     
+  }
 
   /* Set group-timer to GMI */
   if (L7_SUCCESS != snoop_ptin_grouptimer_start(&avlTreeEntry->interfaces[intIfNum].groupTimer, igmpCfg.querier.group_membership_interval, avlTreeEntry, intIfNum))
@@ -1811,7 +1809,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
 
   /* Add client to the interface bitmap if it does not exist */       
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-  if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+  if (L7_ERROR == snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
     return L7_FAILURE;
@@ -1941,7 +1939,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
       {
 #endif
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove ClientIdx %u from this interface :%u", clientIdx,intIfNum );
-        if (L7_SUCCESS != snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx))
+        if (L7_ERROR == snoopPTinClientInterfaceRemove(&avlTreeEntry->interfaces[intIfNum], clientIdx))
         {
           LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
           return L7_FAILURE;
@@ -2018,7 +2016,7 @@ L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntr
     } 
     /* Add client to the interface bitmap if it does not exist */       
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to add clientIdx %u to this interface :%u", clientIdx,intIfNum );
-    if (L7_SUCCESS != snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
+    if (L7_ERROR == snoopPTinClientInterfaceAdd(&avlTreeEntry->interfaces[intIfNum],clientIdx))
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface bitmap is full");
       return L7_FAILURE;
@@ -2091,7 +2089,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
   snoopPTinProxyGroup_t*  groupPtr,*groupPtrAux;
   L7_uint32 i;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};  
-  L7_BOOL             newEntry=L7_FALSE;
+//L7_BOOL             newEntry=L7_FALSE;
 
 
    /* Argument validation */
@@ -2100,7 +2098,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
   }
-  *newEntryFlag=newEntry;
+//*newEntryFlag=newEntry;
 
 #if 0
   /*Let us check if this group record was already created*/
@@ -2138,17 +2136,17 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     }
   }  
 #endif
-  /*else*/ if((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,&newEntry, robustnessVariable))==L7_NULLPTR)
+  /*else*/ if((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,newEntryFlag, robustnessVariable))==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryAdd()");
     return L7_NULLPTR;
   }     
-  if(newEntry==L7_TRUE)           
-    *newEntryFlag=newEntry;
-  else
-  {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "newEntry=FALSE"); 
-  }
+//if(newEntry==L7_TRUE)
+//  *newEntryFlag=newEntry;
+//else
+//{
+//  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "newEntry=FALSE");
+//}
 #if 0
   if ((groupPtrAux=interfacePtr->groupRecord)==L7_NULLPTR)
   {
