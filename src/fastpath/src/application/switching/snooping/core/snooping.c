@@ -3451,7 +3451,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
   L7_uint32 noOfRecords=0, dummy=0,totalRecords=0;
-  L7_BOOL newEntry;
+  L7_BOOL newEntry=L7_FALSE;
 
   L7_inet_addr_t      sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]={};  
 
@@ -3957,6 +3957,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
             return L7_ERROR;
           }
         }
+
 #if 0
         //We need to check if this group as the same vlanId as the previous group. If not we schedule a new Report
         if(previousVlanId!=vlanId)

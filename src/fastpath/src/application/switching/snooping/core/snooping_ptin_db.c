@@ -1,8 +1,11 @@
-/*
+/**
  * snooping_ptin_db.c
  *
  *  Created on: 23 de Jul de 2012
  *      Author: Daniel Figueira
+ *  Modified on 2013/04/14
+ *      Author: Márcio Melo (marcio-d-melo@ptinovacao.pt) 
+ * Notes:
  */
 
 #include "snooping_ptin_db.h"
@@ -2088,7 +2091,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
   snoopPTinProxyGroup_t*  groupPtr,*groupPtrAux;
   L7_uint32 i;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};  
-  L7_BOOL newEntry;
+  L7_BOOL             newEntry=L7_FALSE;
 
 
    /* Argument validation */
@@ -2097,6 +2100,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
   }
+  *newEntryFlag=newEntry;
 
 #if 0
   /*Let us check if this group record was already created*/
@@ -2134,13 +2138,18 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     }
   }  
 #endif
-  /*else*/ if((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,&newEntry,robustnessVariable))==L7_NULLPTR)
+  /*else*/ if((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,&newEntry, robustnessVariable))==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryAdd()");
     return L7_NULLPTR;
-  }            
-  
-
+  }     
+  if(newEntry==L7_TRUE)           
+    *newEntryFlag=newEntry;
+  else
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "newEntry=FALSE"); 
+  }
+#if 0
   if ((groupPtrAux=interfacePtr->groupRecord)==L7_NULLPTR)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This is the first group record added to this interface");
@@ -2165,10 +2174,33 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
       groupPtrAux=groupPtrAux->nextGroupRecord;
     }
   }
+#else
+  i=0;
+  groupPtrAux=groupPtr;
+  while (groupPtrAux!=L7_NULLPTR)
+  {
+    if(groupPtrAux->nextGroupRecord==L7_NULLPTR)
+    {
+      if (groupPtrAux!=groupPtr)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "There are %u group records in this interface (previous groupAddr:%s recordType:%u)",i+1,  inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
+        groupPtr->previousGroupRecord=groupPtrAux;
+        groupPtrAux->nextGroupRecord=groupPtr;
+        interfacePtr->numberOfGroupRecords++; 
+      }
+      break;        
+    }
+    groupPtrAux=groupPtrAux->nextGroupRecord;
+    i++;
+  }
+#endif
 
-  *newEntryFlag=newEntry;
-
+//*newEntryFlag=newEntry;
+#if 0
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType,  interfacePtr->numberOfGroupRecords);
+#else
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType,  i);
+#endif
   return groupPtr;
 }
 
@@ -2491,10 +2523,10 @@ L7_RC_t snoopPTinProxyInterfaceRemove(snoopPTinProxyInterface_t* interfacePtr)
 L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {  
   snoopPTinProxyGroup_t*    groupPtr;
-  snoopPTinProxyGroup_t*    groupPtrAux;
+//snoopPTinProxyGroup_t*    groupPtrAux;
   L7_BOOL                   isRunning=L7_FALSE;
 
-  char                      debug_buf[IPV6_DISP_ADDR_LEN]={};
+//char                      debug_buf[IPV6_DISP_ADDR_LEN]={};
 
    /* Argument validation */
   if (interfacePtr == L7_NULLPTR || groupAddr==L7_NULLPTR)
@@ -2525,6 +2557,7 @@ L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_i
      }
   }
 
+#if 0
   groupPtrAux=interfacePtr->groupRecord;
   while (groupPtrAux !=L7_NULLPTR)
   {
@@ -2558,7 +2591,24 @@ L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_i
   groupPtr->previousGroupRecord=L7_NULLPTR;
   groupPtr->retransmissions=0;
   groupPtr->interfacePtr=L7_NULLPTR;
+#else
+  if(groupPtr->previousGroupRecord!=L7_NULLPTR && groupPtr->nextGroupRecord!=L7_NULLPTR)
+  {
+    groupPtr->previousGroupRecord->nextGroupRecord=groupPtr->nextGroupRecord;
+    groupPtr->nextGroupRecord->previousGroupRecord=groupPtr->previousGroupRecord->nextGroupRecord;
+  }
+  else if(groupPtr->previousGroupRecord==L7_NULLPTR && groupPtr->nextGroupRecord!=L7_NULLPTR)
+  {    
+    groupPtr->nextGroupRecord->previousGroupRecord=L7_NULLPTR;
 
+  }
+  else if(groupPtr->previousGroupRecord!=L7_NULLPTR && groupPtr->nextGroupRecord==L7_NULLPTR)
+  {
+    groupPtr->previousGroupRecord->nextGroupRecord=L7_NULLPTR;
+  }
+
+
+#endif
   
 #if 1 //We do not remove the Group Entry
   if(snoopPTinProxyGroupEntryDelete(interfacePtr,groupAddr,recordType)!=L7_SUCCESS)
