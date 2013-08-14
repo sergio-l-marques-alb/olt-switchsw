@@ -68,7 +68,7 @@ kernel_ta48ge:
 kernel_tg16g:
 	@$(MAKE) -f tg16g.make kernel
 
-all:	cxo640g tg16g cli shell
+all:	cxo640g ta48ge tg16g cli shell
 
 cxo640g:
 	@$(MAKE) -f cxo640g.make
@@ -130,7 +130,7 @@ install_cli:
 install_shell:
 	@$(MAKE) install -C $(FP_SHELL_DIR)
 
-install:	install_cxo640g install_tg16g install_cli install_shell
+install:	install_cxo640g install_ta48ge install_tg16g install_cli install_shell
 
 clean:		clean_cxo640g clean_ta48ge clean_tg16g clean_cli clean_shell
 
