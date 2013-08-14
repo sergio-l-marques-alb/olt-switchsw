@@ -1348,7 +1348,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
     {
       for(sourceIdx=0;sourceIdx<avlTreeEntry->interfaces[intIfNum].numberOfSources;sourceIdx++)
       {
-        if((rc=snoopPTinClientRemove(&avlTreeEntry->interfaces[intIfNum].sources[sourceIdx], clientIdx))!=L7_SUCCESS)
+        if((rc=snoopPTinClientRemove(&avlTreeEntry->interfaces[intIfNum].sources[sourceIdx], clientIdx))==L7_ERROR)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinClientRemove()");
           return L7_FAILURE;
