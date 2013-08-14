@@ -1255,7 +1255,7 @@ diff -rpN --unified=5 esw_original/policy/broad_cfp_robo.c esw/policy/broad_cfp_
            if ((BCM_E_NONE == rv) && ((*((bcm_vlan_t*)value) != 0) || (*((bcm_vlan_t*)mask) != 0)))
 +            /* PTin modified: SDK 6.3.0 */
 +            #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-+            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
++            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_OUTER_TAGGED | BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
 +            #else
              rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
 +            #endif
@@ -2913,7 +2913,7 @@ diff -rpN --unified=5 esw_original/policy/broad_group_xgs3.c esw/policy/broad_gr
            {
 +            /* PTin modified: SDK 6.3.0 */
 +            #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-+            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
++            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_OUTER_TAGGED | BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
 +            #else
              rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
 +            #endif
