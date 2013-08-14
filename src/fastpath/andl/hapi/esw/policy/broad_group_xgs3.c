@@ -2661,7 +2661,7 @@ static int _policy_group_add_std_field(int                   unit,
           {
             /* PTin modified: SDK 6.3.0 */
             #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
+            rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_VLAN_FORMAT_OUTER_TAGGED | BCM_FIELD_VLAN_FORMAT_INNER_TAGGED, 0xff);
             #else
             rv = bcm_field_qualify_VlanFormat(unit, eid, BCM_FIELD_PKT_FMT_INNER_TAGGED, BCM_FIELD_PKT_FMT_INNER_TAGGED);
             #endif
