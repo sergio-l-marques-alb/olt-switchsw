@@ -506,9 +506,9 @@ extern volatile st_fpga_map_t *fpga_map;
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-//# define MAP_FPGA
+# define MAP_FPGA
 # define MAP_CPLD
-# define FPGA_BASE_ADDR                0xFF200000
+# define FPGA_BASE_ADDR                0xF8000000
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */
@@ -551,7 +551,7 @@ typedef union
 extern volatile st_cpld_map_t *cpld_map;
 
 /* FPGA map registers */
-# define FPGA_ID                       0x1256
+# define FPGA_ID                       0x1295
 # define FPGA_ID0_REG                  0x0000
 # define FPGA_ID1_REG                  0x0001
 # define FPGA_VER_REG                  0x0002
@@ -566,11 +566,29 @@ typedef union
     L7_uint8  id0;                  /* 0x0000 (1 bytes) */
     L7_uint8  id1;                  /* 0x0001 (1 bytes) */
     L7_uint8  ver;                  /* 0x0002 (1 byte)  */
-    L7_uint8  empty1[0xF061 - 0x0003];
-    L7_uint8  tx_disable;           /* 0xF061 (1 byte)  */
-    L7_uint8  empty2[0xF080 - 0xF062];
+    L7_uint8  empty1[0x2000-0x0003];
+    L7_uint8  led_blink_pairports[0x20];   /* 0x2000..0x201F */
+    L7_uint8  led_color_pairports[0x20];   /* 0x2020..0x203F */
+    L7_uint8  empty2[0x2100-0x2040];
+    L7_uint8  led_blink_oddports[0x20];  /* 0x2100..0x211F */
+    L7_uint8  led_color_oddports[0x20];  /* 0x2120..0x213F */
+    L7_uint8  empty3[0xF080 - 0x2140];
     L7_uint8  extPhy_reset;         /* 0xF080 (1 byte)  */
-    L7_uint8  empty3[PTIN_FPGA_MAP_SIZE - 0xF081];
+    L7_uint8  empty4[0xF140 - 0xF081];
+    L7_uint8  sfp_los_port_0to7;        /* 0xF140 */
+    L7_uint8  empty5[0xF140 - 0xF081];
+    L7_uint8  sfp_los_port_8to15;       /* 0xF150 */
+    L7_uint8  empty6[0xF160 - 0xF151];
+    L7_uint8  sfp_los_port_16to23;      /* 0xF160 */
+    L7_uint8  empty7[0xF170 - 0xF161];
+    L7_uint8  sfp_los_port_24to31;      /* 0xF170 */
+    L7_uint8  empty8[0xF180 - 0xF171];
+    L7_uint8  sfp_los_port_32to39;      /* 0xF180 */
+    L7_uint8  empty9[0xF190 - 0xF181];
+    L7_uint8  sfp_los_port_40to47;      /* 0xF190 */
+    L7_uint8  empty10[0xF1D0 - 0xF191];
+    L7_uint8  sfp_txdisable[6];     /* 0xF1D0..0xF1D5 */
+    L7_uint8  empty11[PTIN_FPGA_MAP_SIZE - 0xF1D6];
   } reg;
 } st_fpga_map_t;
 

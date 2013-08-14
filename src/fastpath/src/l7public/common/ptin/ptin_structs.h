@@ -210,8 +210,8 @@ typedef struct {
 
 typedef struct
 {
-  L7_uint32 ports_mask;     /* Indicates which array indexes are valid */
-  L7_uint32 activity_mask;  /* Masks bitmap contents:
+  L7_uint64 ports_mask;     /* Indicates which array indexes are valid */
+  L7_uint64 activity_mask;  /* Masks bitmap contents:
                              *   0x0001: Rx activity
                              *   0x0002: Tx activity 
                              *   0x0004: Tx Collisions 

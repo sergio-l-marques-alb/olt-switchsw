@@ -1203,78 +1203,198 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
 {
   L7_uint port;
   L7_uint port_remap, unit;
-  L7_uint32 old_mask;
+  L7_uint64 old_mask;
   L7_uint64 rate;
 
   old_mask = portsActivity->ports_mask;
   portsActivity->ports_mask = 0;
 
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  for (port=0; port<ptin_sys_number_of_ports && port<PTIN_SYSTEM_N_PORTS; port++)
   {
-    if (! (old_mask & (1<<port)))
+    if (! (old_mask & ((L7_uint64) 1<<port)))
       continue;
 
     port_remap = usp_map[port].port;
     unit       = usp_map[port].unit;
-    portsActivity->ports_mask |= 1 << port;
+    portsActivity->ports_mask |= (L7_uint64) 1 << port;
     portsActivity->activity_bmap[port] = 0;
 
     /* The process used to read counters activity is to read its rate. This
      * may eventually fail to provide an accurate result in cases where rate
        it too low and return 0 */
 
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-      soc_counter_get_rate(unit, port_remap, GRBYTr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-      soc_counter_get_rate(unit, port_remap, GTBYTr, 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-      soc_counter_get_rate(unit, port_remap, GTXCLr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-      soc_counter_get_rate(unit, port_remap, GRFCSr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-      soc_counter_get_rate(unit, port_remap, GRJBRr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-      soc_counter_get_rate(unit, port_remap, GRFRGr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-      soc_counter_get_rate(unit, port_remap, GROVRr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-      soc_counter_get_rate(unit, port_remap, GRUNDr , 0, &rate);
-      if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-    }
-
-    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS) {
       soc_counter_get_rate(unit, port_remap, DROP_PKT_CNTr , 0, &rate);
       if (rate > 0)
-        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS;
+    }
+
+    if (SOC_IS_VALKYRIE2(unit))
+    {
+      /* 1G or 2.5G Ethernet port ? */
+      if (PTIN_IS_PORT_PON(port) || PTIN_IS_PORT_ETH(port))
+      {
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+          soc_counter_get_rate(unit, port_remap, GRBYTr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+          soc_counter_get_rate(unit, port_remap, GTBYTr, 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+          soc_counter_get_rate(unit, port_remap, GTXCLr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+          soc_counter_get_rate(unit, port_remap, GRFCSr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+          soc_counter_get_rate(unit, port_remap, GRJBRr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+          soc_counter_get_rate(unit, port_remap, GRFRGr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+          soc_counter_get_rate(unit, port_remap, GROVRr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+          soc_counter_get_rate(unit, port_remap, GRUNDr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+        }
+      }
+      /* 10G Ethernet port ? */
+      else if (PTIN_IS_PORT_10G(port))
+      {
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+          soc_counter_get_rate(unit, port_remap, IRBYTr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+          soc_counter_get_rate(unit, port_remap, ITBYTr, 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+          #if 0
+          soc_counter_get_rate(unit, port_remap, ITXCLr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+          #endif
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+          soc_counter_get_rate(unit, port_remap, IRFCSr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+          soc_counter_get_rate(unit, port_remap, IRJBRr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+          soc_counter_get_rate(unit, port_remap, IRFRGr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+          soc_counter_get_rate(unit, port_remap, IROVRr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+        }
+
+        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+          soc_counter_get_rate(unit, port_remap, IRUNDr , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+        }
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "PTin port# %u is neither GbE or 10G interface", port);
+        return L7_FAILURE;
+      }
+    }
+    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
+    {
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+        soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+        soc_counter_get_rate(unit, port_remap, TBYTr, 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+        soc_counter_get_rate(unit, port_remap, TXCLr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+        soc_counter_get_rate(unit, port_remap, RFCSr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+        soc_counter_get_rate(unit, port_remap, RJBRr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+        soc_counter_get_rate(unit, port_remap, RFRGr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+        soc_counter_get_rate(unit, port_remap, ROVRr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+      }
+
+      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+        soc_counter_get_rate(unit, port_remap, RUNDr , 0, &rate);
+        if (rate > 0)
+          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
+      }
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Switch family not defined");
+      return L7_FAILURE;
     }
   }
 

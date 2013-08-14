@@ -215,6 +215,32 @@ static void monitor_throughput(void)
   #endif
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+#define LED_COLOR_OFF     0
+#define LED_COLOR_GREEN   1
+#define LED_COLOR_RED     2
+#define LED_COLOR_YELLOW  3
+
+void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink)
+{
+  #ifdef MAP_FPGA
+  if (port >= PTIN_SYSTEM_N_PONS || port >= 64)
+    return;
+
+  if (port%2==0)  /* Pair ports */
+  {
+    fpga_map->reg.led_color_pairports[port/2] = color;
+    fpga_map->reg.led_blink_pairports[port/2] = blink;
+  }
+  else
+  {
+    fpga_map->reg.led_color_oddports[(port-1)/2] = color;
+    fpga_map->reg.led_blink_oddports[(port-1)/2] = blink;
+  }
+  #endif
+}
+#endif
+
 /**
  * Monitor alarms
  */
@@ -226,6 +252,8 @@ static void monitor_alarms(void)
   L7_uint32 adminState, linkState, link;
   L7_BOOL   interface_is_valid;
   L7_BOOL   isMember, isActiveMember;
+  L7_uint32 portActivity_valid = L7_FALSE;
+  ptin_HWEth_PortsActivity_t portActivity;
 
   static L7_BOOL   first_time=L7_TRUE;
 
@@ -238,6 +266,20 @@ static void monitor_alarms(void)
     memset(lagIdList,0xff,sizeof(lagIdList));
 
     first_time = L7_FALSE;
+  }
+
+  /* Get RX activity for all ports */
+  memset(&portActivity, 0x00, sizeof(portActivity));
+  portActivity.ports_mask    = PTIN_SYSTEM_ETH_PORTS_MASK;          /* Only ETH ports */
+  portActivity.activity_mask = PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;  /* Get only rx activity */
+  if (ptin_intf_counters_activity_get(&portActivity)==L7_SUCCESS)
+  {
+    portActivity_valid = L7_TRUE;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL,"Stat Activity get failed!");
+    portActivity_valid = L7_FALSE;
   }
 
   /* Run all ports */
@@ -353,6 +395,49 @@ static void monitor_alarms(void)
         lagActiveMembers[port]=isActiveMember;
         LOG_INFO(LOG_CTX_PTIN_CONTROL,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
       }
+
+      /* Led control */
+      #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+      /* (only to physical and valid interfaces) */
+      if (port<PTIN_SYSTEM_N_PONS && interface_is_valid)
+      {
+        if (adminState)
+        {
+          /* Port is enabled */
+          if (link)
+          {
+            /* Link is up */
+            //LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Interface %u have link up",port);
+
+            /* Blink led */
+            if ((portActivity_valid) && ((portActivity.ports_mask>>port) & 1) &&
+                (portActivity.activity_bmap[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY))
+            {
+              //LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Activity on interface %u",port);
+
+              /* Port throughput values are valid, and we have positive throughput */
+              ptin_ta48ge_led_control(port, LED_COLOR_GREEN, 0xAA);
+            }
+            else
+            {
+              //LOG_TRACE(LOG_CTX_PTIN_CONTROL,"NO activity on interface %u",port);
+              /* No activity, but link is up */
+              ptin_ta48ge_led_control(port, LED_COLOR_GREEN, 0xff);
+            }
+          }
+          else
+          {
+            /* No link, but port is enabled */
+            ptin_ta48ge_led_control(port, LED_COLOR_RED, 0xff);
+          }
+        }
+        else
+        {
+          /* Port is disabled */
+          ptin_ta48ge_led_control(port, LED_COLOR_OFF, 0xff);
+        }
+      }
+      #endif
     }
   }
 }
