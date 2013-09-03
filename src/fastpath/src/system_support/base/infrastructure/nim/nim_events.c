@@ -183,9 +183,10 @@ void nimDoNotify(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_INFO_t eventInfo)
           }
         }
 
-        LOG_FATAL(LOG_CTX_MISC,"NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s",
+        LOG_FATAL(LOG_CTX_MISC,"NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s (rc=%d)",
                       correlatorTable.requestData.event,
-                      correlatorTable.requestData.intIfNum,maskString);
+                      correlatorTable.requestData.intIfNum,maskString,
+                      rc);
 
         NIM_LOG_ERROR("NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s\n",
                       correlatorTable.requestData.event,

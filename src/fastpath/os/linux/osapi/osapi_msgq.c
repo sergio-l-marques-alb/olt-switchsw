@@ -34,6 +34,9 @@
 
   #include "osapi_priv.h"
 
+/* PTin added: Debug */
+#include "logger.h"
+
 typedef struct osapi_msg_s
 {
   struct osapi_msg_s *next;
@@ -526,13 +529,18 @@ L7_RC_t osapiMessageReceive(void *queue_ptr, void *Message,
     if (osapiMsgQ->send_wait.count == 0)
       osapiMsgQ->flags &= ~MSGQ_RECV_PEND;
 
-    if (rc != L7_SUCCESS) break;
+    if (rc != L7_SUCCESS)
+    {
+      LOG_CRITICAL(LOG_CTX_MISC,"rc=%d (osapiMsgQ->send_wait.count=%u)", rc, osapiMsgQ->send_wait.count);    /* PTin added: Debug */
+      break;
+    }
   }
 
   if ((osapiMsgQ->flags & MSGQ_DELETED) != 0)
   {
-
-    rc = L7_ERROR;
+    /* PTin modified: Just to help detecting the problem */
+    rc = L7_NOT_EXIST; // L7_ERROR;
+    LOG_CRITICAL(LOG_CTX_MISC,"rc=%d",rc);      /* PTin added: Debug */
 
   }
   else if (rc == L7_SUCCESS)

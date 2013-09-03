@@ -34,6 +34,9 @@
 #include <l7_common.h>
 #include "osapi_priv.h"
 
+/* PTin added: Debug */
+#include "logger.h"
+
 static pthread_mutex_t queue_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 static osapi_waitq_t *queue_list_head = NULL;
 
@@ -221,6 +224,7 @@ L7_RC_t osapi_waitq_enqueue(osapi_waitq_t *queue,
 					     queue->lock, &timeout);
 	    if (wait_rc != 0) {
                rc = L7_ERROR;
+               LOG_CRITICAL(LOG_CTX_MISC,"rc=%d, wait_rc=%d",rc,wait_rc);     /* PTin added: Debug */
                break;
             }
 
@@ -307,6 +311,7 @@ L7_RC_t osapi_waitq_enqueue(osapi_waitq_t *queue,
 					      &timeout); 
 	     if (wait_rc != 0) {
                 rc = L7_ERROR;
+                LOG_CRITICAL(LOG_CTX_MISC,"rc=%d, wait_rc=%d",rc,wait_rc);      /* PTin added: Debug */
                 break;
              }
 
