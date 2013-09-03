@@ -65,7 +65,7 @@
 
 #include <stdio.h>        /* PTin added: WC40 */
 
-#define PTIN_PRBS_ALWAYS_CL49 0
+#define PTIN_PRBS_ALWAYS_CL49 1
 
 #if defined(INCLUDE_XGXS_WC40)
 #include "phyconfig.h"     /* Must include before other phy related includes */
