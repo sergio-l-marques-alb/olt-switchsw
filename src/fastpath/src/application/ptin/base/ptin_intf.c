@@ -566,6 +566,11 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     char speedstr[20];
     switch (phyConf->Speed)
     {
+      case PHY_PORT_100_MBPS:
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_100FX;
+        strcpy(speedstr, "100Mbps");
+        break;
+
       case PHY_PORT_1000_MBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_1000SX;
         strcpy(speedstr, "1000Mbps");
@@ -721,6 +726,11 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
 
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+        phyState->Speed = PHY_PORT_100_MBPS;
+        phyState->AutoNegComplete = L7_FALSE;
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
         if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
         {
@@ -3107,6 +3117,11 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
 
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+        phyConf->Speed = PHY_PORT_100_MBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       100Mbps");
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
         if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
         {
