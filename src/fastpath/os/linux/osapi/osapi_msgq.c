@@ -531,7 +531,7 @@ L7_RC_t osapiMessageReceive(void *queue_ptr, void *Message,
 
     if (rc != L7_SUCCESS)
     {
-      LOG_CRITICAL(LOG_CTX_MISC,"rc=%d (osapiMsgQ->send_wait.count=%u)", rc, osapiMsgQ->send_wait.count);    /* PTin added: Debug */
+      //LOG_CRITICAL(LOG_CTX_MISC,"rc=%d (osapiMsgQ->send_wait.count=%u)", rc, osapiMsgQ->send_wait.count);    /* PTin added: Debug */
       break;
     }
   }
