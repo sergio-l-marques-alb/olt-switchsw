@@ -577,7 +577,8 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         break;
 
       case PHY_PORT_1000AN_GBPS:
-        speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
+        /* AN should be always disabled: bug to be solved! */
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_1000SX; // L7_PORTCTRL_PORTSPEED_AUTO_NEG;  /* PTin modified: solve AN bug */
         strcpy(speedstr, "1000Mbps-AN");
         break;
 
@@ -699,7 +700,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   L7_uint   port;
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
-  L7_uint32 speed_mode, autoneg;
+  L7_uint32 speed_mode;
 
   port = phyState->Port;
   phyState->Mask = 0;
@@ -732,16 +733,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
-        if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
-        {
-          phyState->Speed = PHY_PORT_1000_MBPS;
-          phyState->AutoNegComplete = L7_FALSE;
-        }
-        else
-        {
-          phyState->Speed = PHY_PORT_1000AN_GBPS;
-          phyState->AutoNegComplete = autoneg;
-        }
+        phyState->Speed = PHY_PORT_1000_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;
 
@@ -794,10 +786,14 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
     LOG_TRACE(LOG_CTX_PTIN_INTF, " Link State:  %s", phyState->LinkUp ? "Up":"Down");
   }
 
-  /* Auto-negotiation complete */
-  phyState->Mask |= PTIN_PHYSTATE_MASK_AUTONEG;
-  phyState->AutoNegComplete = 1;
-  LOG_TRACE(LOG_CTX_PTIN_INTF, " AutoNeg End: %s", phyState->AutoNegComplete?"Yes":"No");
+  /* Auto-negotiation complete? */
+  if (phyConf_data[port].Speed == PHY_PORT_1000AN_GBPS)
+  {
+    /* AN should be always disabled: bug to be solved! */
+    phyState->Mask |= PTIN_PHYSTATE_MASK_AUTONEG;
+    phyState->AutoNegComplete = (phyState->LinkUp) ? 1 : 0;
+    LOG_TRACE(LOG_CTX_PTIN_INTF, " AutoNeg End: %s", phyState->AutoNegComplete?"Yes":"No");
+  }
 
   return L7_SUCCESS;
 }
