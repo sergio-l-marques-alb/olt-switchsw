@@ -152,6 +152,18 @@ void ptin_msg_defaults_reset(void)
 }
 
 /**
+ * Reset Multicast Machine
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
+{
+  return ptin_igmp_proxy_reset();
+}
+
+/**
  * Reset alarms state
  *  
  */

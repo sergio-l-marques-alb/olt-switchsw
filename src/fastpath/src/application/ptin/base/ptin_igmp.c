@@ -1041,6 +1041,49 @@ L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy)
 }
 
 /**
+ * Reset Proxy machine
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_igmp_proxy_reset(void)
+{
+  L7_uint32 admin;
+
+  /* Read querier admin status */
+  if (usmDbSnoopQuerierAdminModeGet(&admin, L7_AF_INET)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error reading Querier Admin status");
+    return L7_FAILURE;
+  }
+  /* If disabled, there is nothing to be done */
+  if (!admin)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast querier is disabled... nothing to be done!");
+    return L7_SUCCESS;
+  }
+
+  /* Disable, and reenable querier mechanism for all vlans */
+  if (usmDbSnoopQuerierAdminModeSet(L7_DISABLE, L7_AF_INET)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Failed Querier disable operation");
+    return L7_FAILURE;
+  }
+
+  /* Wait a while */
+  osapiSleepMSec(100);
+
+  if (usmDbSnoopQuerierAdminModeSet(L7_ENABLE, L7_AF_INET)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Failed Querier reenable operation");
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast queriers reenabled!");
+
+  return L7_SUCCESS;
+}
+
+/**
  * Check if a EVC is being used in an IGMP instance
  * 
  * @param evcId : evc id

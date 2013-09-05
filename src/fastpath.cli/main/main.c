@@ -101,6 +101,7 @@ void help_oltBuga(void)
         "m 1505 port_index[0..17/-1] - Get LACP Admin State\r\n"
         "m 1510 port[0..17/-1] - Show LACP statistics for port <port>\n\r"
         "m 1511 port[0..17/-1] - Clear LACP statistics for port <port>\n\r"
+        "m 1997 - Reset Multicast machine\r\n"
         "m 1998 - Reset alarms\r\n"
         "m 1999 - Reset defaults, except for lag InBand\r\n"
         "m 2000 [10-1000000] - Set MAC Learning table aging time\r\n"
@@ -299,7 +300,28 @@ int main (int argc, char *argv[])
       }
       break;
 
-        // Reset Alarms
+      // Reset Multicast machine
+      case 1997:
+        {
+          msg_HwGenReq_t *ptr;
+
+          // Validate number of arguments
+          if (argc!=3+0)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // integer value to be sent
+          ptr = (msg_HwGenReq_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HwGenReq_t));
+          ptr->slot_id = (uint8)-1;
+
+          comando.msgId = CCMSG_MULTICAST_MACHINE_RESET;
+          comando.infoDim = sizeof(msg_HwGenReq_t);
+        }
+        break;
+
+      // Reset Alarms
       case 1998:
         {
           int *ptr;
@@ -319,7 +341,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-        // Reset defaults
+      // Reset defaults
       case 1999:
         {
           msg_HwGenReq_t *ptr;

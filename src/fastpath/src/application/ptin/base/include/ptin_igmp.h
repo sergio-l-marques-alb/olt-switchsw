@@ -441,6 +441,13 @@ extern L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_d
 extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
+ * Reset Proxy machine
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_proxy_reset(void);
+
+/**
  * Check if a EVC is being used in an IGMP instance
  * 
  * @param evcId : evc id

@@ -49,6 +49,15 @@ extern L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo);
 extern void ptin_msg_defaults_reset(void);
 
 /**
+ * Reset Multicast Machine
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg);
+
+/**
  * Reset alarms state
  *  
  */
