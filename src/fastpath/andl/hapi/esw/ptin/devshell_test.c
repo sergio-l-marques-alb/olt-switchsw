@@ -605,6 +605,132 @@ int ptin_vlan_policer_policer_set(int port, bcm_vlan_t vlanId, uint32 cir, uint3
   return error;
 }
 
+int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_nni,
+                         L7_uint16 vid_uni0, L7_uint16 vid_uni1, L7_uint16 vid_uni2, L7_uint16 vid_uni3, L7_uint16 vid_uni4, L7_uint16 vid_uni5, L7_uint16 vid_uni6, L7_uint16 vid_uni7)
+{
+  bcm_vlan_t def_vlan, vlan_uni;
+  bcm_pbmp_t pbmp, upbmp;
+  bcm_port_t bcm_port_nni, bcm_port_uni;
+  bcm_gport_t group, gport_uni;
+  bcm_subport_config_t port_config;
+  bcm_subport_group_config_t group_config;
+  int pri;
+  bcm_error_t error;
+
+  // Get bcm_port_t values
+  if (port_nni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_nni, &bcm_port_nni)!=L7_SUCCESS)
+  {
+    printf("Port %u is invalid\r\n", port_nni);
+    return -1;
+  }
+  if (port_uni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_uni, &bcm_port_uni)!=L7_SUCCESS)
+  {
+    printf("Port %u is invalid\r\n", port_uni);
+    return -1;
+  }
+
+  /* Initialize gport values */
+  if (bcm_port_gport_get(0, bcm_port_uni, &gport_uni) != BCM_E_NONE)
+  {
+    printf("bcm_port %u is invalid\r\n", bcm_port_uni);
+    return -1;
+  }
+
+  // Create vlan     
+  if (bcm_vlan_create(0, vid_nni) != BCM_E_NONE)
+  {
+    printf("%s(%d) ERROR!\r\n", __FUNCTION__,__LINE__);
+    //return -1;
+  }
+
+  // Add ports to vid    
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_PORT_ADD(pbmp, bcm_port_nni);
+  BCM_PBMP_PORT_ADD(pbmp, bcm_port_uni);
+  BCM_PBMP_CLEAR(upbmp);
+  if (bcm_vlan_port_add (0, vid_nni, pbmp, upbmp) != BCM_E_NONE)
+  {
+    printf("%s(%d) ERROR!\r\n", __FUNCTION__,__LINE__);
+    //return -1;
+  }
+
+  // Remove both ports from default vlan    
+  bcm_vlan_default_get (0, &def_vlan);
+  bcm_vlan_port_remove (0, def_vlan, pbmp);
+
+
+  // Set CUST port's vlan translation KEY type    
+  bcm_vlan_control_port_set(0, bcm_port_nni, bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortOuterTag);
+  bcm_vlan_control_port_set(0, bcm_port_uni, bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortOuterTag);
+
+  // Disable ipmc packet modifications for the ports     
+  bcm_port_ipmc_modify_set(0, bcm_port_nni, BCM_PORT_IPMC_MODIFY_NO_TTL | BCM_PORT_IPMC_MODIFY_NO_SRCMAC);
+  bcm_port_ipmc_modify_set(0, bcm_port_uni, BCM_PORT_IPMC_MODIFY_NO_TTL | BCM_PORT_IPMC_MODIFY_NO_SRCMAC);
+
+  // Enable vlan translation    
+  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateIngressEnable, 0);    
+  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateEgressEnable, 0);
+
+  bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateIngressEnable, 1);    
+  bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateEgressEnable, 1);
+
+  // Create a subport group    
+  bcm_subport_group_config_t_init(&group_config);
+  group_config.port = gport_uni;
+  group_config.vlan = vid_nni;
+  if ((error=bcm_subport_group_create (0, &group_config, &group))!=BCM_E_NONE)
+  {
+    printf("%s(%d) ERROR (\"%s\")!\r\n", __FUNCTION__,__LINE__,bcm_errmsg(error));
+    return -1;
+  }
+
+  // Add subport ports to the subport group
+
+  for( pri=0; pri<8; ++pri )
+  {
+    if (pri==0)
+      vlan_uni = vid_uni0;
+    else if (pri==1)
+      vlan_uni = vid_uni1;
+    else if (pri==2)
+      vlan_uni = vid_uni2;
+    else if (pri==3)
+      vlan_uni = vid_uni3;
+    else if (pri==4)
+      vlan_uni = vid_uni4;
+    else if (pri==5)
+      vlan_uni = vid_uni5;
+    else if (pri==6)
+      vlan_uni = vid_uni6;
+    else if (pri==7)
+      vlan_uni = vid_uni7;
+    else
+      break;
+
+    /* Validate vlan */
+    if (vlan_uni<1 || vlan_uni>4095)
+    {
+      break;
+    }
+
+    printf("%s(%d) pri=%u: Adding subport port with vlan %u\r\n", __FUNCTION__,__LINE__, pri, vlan_uni);
+
+    bcm_subport_config_t_init(&port_config);
+    port_config.group = group;
+    port_config.pkt_vlan = vlan_uni;
+    port_config.int_pri = pri;
+    if ((error=bcm_subport_port_add(0, &port_config, &gport_uni)) != BCM_E_NONE)
+    {
+     printf("%s(%d) ERROR (pri=%u:\"%s\")!\r\n", __FUNCTION__,__LINE__,pri,bcm_errmsg(error));
+     return -1;
+    }
+  }
+
+  printf("DONE!\r\n");
+
+  return 0;
+}
+
 #include <soc/xaui.h>
 //#include <soc/phyctrl.h>
 //#include <soc/phyreg.h>
