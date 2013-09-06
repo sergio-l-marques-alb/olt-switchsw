@@ -1070,7 +1070,7 @@ L7_RC_t ptin_igmp_proxy_reset(void)
   }
 
   /* Wait a while */
-  osapiSleepMSec(100);
+  //osapiSleepMSec(100);
 
   if (usmDbSnoopQuerierAdminModeSet(L7_ENABLE, L7_AF_INET)!=L7_SUCCESS)
   {
