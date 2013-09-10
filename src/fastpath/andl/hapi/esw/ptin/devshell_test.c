@@ -611,11 +611,12 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   bcm_vlan_t def_vlan, vlan_uni;
   bcm_pbmp_t pbmp, upbmp;
   bcm_port_t bcm_port_nni, bcm_port_uni;
-  bcm_gport_t group, gport_uni;
+  bcm_gport_t gport_uni;
   bcm_subport_config_t port_config;
   bcm_subport_group_config_t group_config;
   int pri;
   bcm_error_t error;
+  static bcm_gport_t group = -1;
 
   // Get bcm_port_t values
   if (port_nni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_nni, &bcm_port_nni)!=L7_SUCCESS)
@@ -668,23 +669,42 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   bcm_port_ipmc_modify_set(0, bcm_port_uni, BCM_PORT_IPMC_MODIFY_NO_TTL | BCM_PORT_IPMC_MODIFY_NO_SRCMAC);
 
   // Enable vlan translation    
-  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateIngressEnable, 0);    
+  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateIngressEnable, 0);
   bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateEgressEnable, 0);
+  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateIngressMissDrop, 0);
+  bcm_vlan_control_port_set (0, bcm_port_nni, bcmVlanTranslateEgressMissDrop, 0);
 
   bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateIngressEnable, 1);    
   bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateEgressEnable, 1);
+  bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateIngressMissDrop, 1);
+  bcm_vlan_control_port_set (0, bcm_port_uni, bcmVlanTranslateEgressMissDrop, 1);
 
   // Create a subport group    
   bcm_subport_group_config_t_init(&group_config);
-  group_config.port = gport_uni;
-  group_config.vlan = vid_nni;
+  group_config.port  = gport_uni;
+  group_config.vlan  = vid_nni;
+
+  if (group>=0)
+  {
+    bcm_subport_port_delete(0, gport_uni);
+    printf("%s(%d) Destroying group %d...\r\n", __FUNCTION__,__LINE__,group);
+    if ((error=bcm_subport_group_destroy(0, group))!=BCM_E_NONE)
+    {
+      printf("%s(%d) ERROR (\"%s\")!\r\n", __FUNCTION__,__LINE__,bcm_errmsg(error));
+      return -1;
+    }
+    group = -1;
+  }
+
   if ((error=bcm_subport_group_create (0, &group_config, &group))!=BCM_E_NONE)
   {
     printf("%s(%d) ERROR (\"%s\")!\r\n", __FUNCTION__,__LINE__,bcm_errmsg(error));
+    group = -1;
     return -1;
   }
 
   // Add subport ports to the subport group
+  printf("%s(%d) Created group %d!\r\n", __FUNCTION__,__LINE__,group);
 
   for( pri=0; pri<8; ++pri )
   {
