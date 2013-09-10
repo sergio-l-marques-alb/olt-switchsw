@@ -68,7 +68,7 @@ kernel_ta48ge:
 kernel_tg16g:
 	@$(MAKE) -f tg16g.make kernel
 
-all:	cxo640g ta48ge tg16g cli shell
+all:	cxo640g tg16g cli shell ta48ge
 
 cxo640g:
 	@$(MAKE) -f cxo640g.make
