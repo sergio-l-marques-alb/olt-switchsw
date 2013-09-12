@@ -160,7 +160,9 @@ void ptin_msg_defaults_reset(void)
  */
 L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 {
-  return ptin_igmp_proxy_reset();
+  schedule_matrix_query_send();
+
+  return L7_SUCCESS;
 }
 
 /**

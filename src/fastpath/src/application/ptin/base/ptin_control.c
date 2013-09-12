@@ -442,6 +442,19 @@ static void monitor_alarms(void)
   }
 }
 
+/* Number of seconds to wait before send queries */
+#define SCHEDULE_MATRIX_SEND_QUERY_WAIT 1
+
+/* Control variable, which will case a query send */
+static L7_BOOL matrix_send_queries = L7_FALSE;
+
+/**
+ * Schedule Multicast machine reset
+ */
+void schedule_matrix_query_send(void)
+{
+  matrix_send_queries = L7_TRUE;
+}
 
 /**
  * Matrix Commutation process 
@@ -504,6 +517,24 @@ static void monitor_matrix_commutation(void)
   if (rc==L7_SUCCESS)
   {
     ptin_igmp_instances_reactivate();
+  }
+#endif
+
+#if PTIN_BOARD_IS_MATRIX
+  static L7_uint16 schedule_query_tx = 0;   /* Number of seconds to wait before send queries */
+
+  /* Send queries */
+  if (schedule_query_tx>0 && (--schedule_query_tx)==0)
+  {
+    /* Reset Multicast machine */
+    ptin_igmp_proxy_reset();
+  }
+
+  /* Check if Multicast reset should be executed next time */
+  if (matrix_send_queries)
+  {
+    schedule_query_tx = SCHEDULE_MATRIX_SEND_QUERY_WAIT;
+    matrix_send_queries = L7_FALSE;
   }
 #endif
 }

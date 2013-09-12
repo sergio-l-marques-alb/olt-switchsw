@@ -11,7 +11,6 @@
 
 #include "ptin_include.h"
 
-
 /**
  * Task that runs part of the PTin initialization and further periodic 
  * processing (alarms check) 
@@ -26,5 +25,10 @@ extern void ptinTask(L7_uint32 numArgs, void *unit);
  * 
  */
 extern void ptin_alarms_init(void);
+
+/**
+ * Schedule Multicast machine reset
+ */
+extern void schedule_matrix_query_send(void);
 
 #endif /* _PTIN_CONTROL_H */
