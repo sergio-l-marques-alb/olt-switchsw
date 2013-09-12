@@ -4548,7 +4548,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   }
 
   /*entry already exists*/
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record previouly added to the AVL Tree(vlanId:%u groupAddr:%s recordtype:%u)",pData->key.vlanId,inetAddrPrint(&pData->key.groupAddr, debug_buf),pData->key.recordType);
+  LOG_WARNING(LOG_CTX_PTIN_IGMP, "Group Record previouly added to the AVL Tree(vlanId:%u groupAddr:%s recordtype:%u)",pData->key.vlanId,inetAddrPrint(&pData->key.groupAddr, debug_buf),pData->key.recordType);    
 
   if (pData->interfacePtr != interfacePtr)
   {

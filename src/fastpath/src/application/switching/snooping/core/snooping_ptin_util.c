@@ -1230,6 +1230,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
   L7_uint8                recordType[SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT];
   L7_uint32               noOfGroupRecord2remove=0;
   L7_BOOL                 flagFirstGroupRecordRemoved=L7_FALSE,flagPendingGroupRecord=L7_FALSE;
+  snoopPTinProxyInterface_t* interfacePtr=L7_NULLPTR;
   
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
@@ -1237,7 +1238,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
   L7_uint8 intIfList[L7_MAX_INTERFACE_COUNT];
 
    /* Argument validation */
-  if (groupPtr == L7_NULLPTR || newNoOfRecords==L7_NULLPTR || noOfRecords==0)
+  if (groupPtr == L7_NULLPTR || newNoOfRecords==L7_NULLPTR || noOfRecords==0 || (interfacePtr=groupPtr->interfacePtr)==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
@@ -1320,7 +1321,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
   for(i=0;i<noOfGroupRecord2remove;i++)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Removing  Group Record:  GroupAdd=%s, RecordType=%u", inetAddrPrint(groupAddr[i], debug_buf),recordType[i]);     
-    if((rc=snoopPTinGroupRecordRemove(groupPtr->interfacePtr, groupAddr[i], recordType[i]))!=L7_SUCCESS)
+    if((rc=snoopPTinGroupRecordRemove(interfacePtr, groupAddr[i], recordType[i]))!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDelete()");        
     }
