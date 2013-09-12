@@ -462,9 +462,8 @@ void schedule_matrix_query_send(void)
  */
 static void monitor_matrix_commutation(void)
 {
-#if ( PTIN_BOARD==PTIN_BOARD_TOLT8G )
+#if ( PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TA48GE )
 
-  L7_uint             port, port_border;
   L7_int              cx_work_slot;
   ptin_HWEthPhyConf_t phyConf;
   L7_RC_t             rc = L7_SUCCESS;
@@ -480,6 +479,9 @@ static void monitor_matrix_commutation(void)
   {
     return;
   }
+
+  #if ( PTIN_BOARD == PTIN_BOARD_TOLT8G )
+  L7_uint             port, port_border;
 
   /* port that delimits working and protection ports */
   port_border = (PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_PORTS)/2;
@@ -500,6 +502,26 @@ static void monitor_matrix_commutation(void)
       rc = L7_FAILURE;
     }
   }
+  #elif ( 0 /*PTIN_BOARD == PTIN_BOARD_TA48GE*/ )
+  L7_uint             port;
+
+  /* Run all internal ports to change its admin state */
+  for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++)
+  {
+    /* Set port enable */
+    if (cx_work_slot)
+      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_PONS+1)) ? L7_TRUE : L7_FALSE;  /* Only port 1 will be active */
+    else
+      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_PONS+0)) ? L7_TRUE : L7_FALSE;  /* Only port 0 will be active */
+
+    phyConf.Port = port;
+    if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Error setting port %u to enable=%u",port,phyConf.PortEnable);
+      rc = L7_FAILURE;
+    }
+  }
+  #endif
 
   /* Any error? */
   if (rc!=L7_SUCCESS)
