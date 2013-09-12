@@ -57,6 +57,26 @@ L7_RC_t cnfgrDebugInitialize(void)
 *********************************************************************/
 void cnfgrDebugFini(void)
 {
+  L7_RC_t rc;
+  L7_CNFGR_CMD_DATA_t cmdData,
+           *pCmdData = &cmdData;
+
+  cnfgrApiSystemStartupReasonSet(L7_STARTUP_AUTO_COLD);
+
+  /* Initiate the unconfiguration cycle.
+  */
+  pCmdData->cbHandle         = L7_CNFGR_NO_HANDLE;
+  pCmdData->command          = L7_CNFGR_CMD_TERMINATE;
+  pCmdData->correlator       = L7_NULL;
+  pCmdData->type             = L7_CNFGR_EVNT;
+  pCmdData->u.evntData.event = L7_CNFGR_EVNT_T_START;
+  pCmdData->u.evntData.data  = L7_LAST_COMPONENT_ID;
+
+  rc = cnfgrApiCommand(pCmdData);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERROR (rc);
+  }
 }
 
 /*********************************************************************

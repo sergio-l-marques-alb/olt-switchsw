@@ -1049,6 +1049,8 @@ L7_RC_t ptin_igmp_proxy_reset(void)
 {
   L7_uint32 admin;
 
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"Multicast queriers reset:");
+
   /* Read querier admin status */
   if (usmDbSnoopQuerierAdminModeGet(&admin, L7_AF_INET)!=L7_SUCCESS)
   {
@@ -1058,9 +1060,11 @@ L7_RC_t ptin_igmp_proxy_reset(void)
   /* If disabled, there is nothing to be done */
   if (!admin)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast querier is disabled... nothing to be done!");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Multicast querier is disabled... nothing to be done!");
     return L7_SUCCESS;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"Going to reset Multicast queriers...");
 
   /* Disable, and reenable querier mechanism for all vlans */
   if (usmDbSnoopQuerierAdminModeSet(L7_DISABLE, L7_AF_INET)!=L7_SUCCESS)
@@ -1074,11 +1078,11 @@ L7_RC_t ptin_igmp_proxy_reset(void)
 
   if (usmDbSnoopQuerierAdminModeSet(L7_ENABLE, L7_AF_INET)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Failed Querier reenable operation");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed Querier reenable operation");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast queriers reenabled!");
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"Multicast queriers reenabled!");
 
   return L7_SUCCESS;
 }
