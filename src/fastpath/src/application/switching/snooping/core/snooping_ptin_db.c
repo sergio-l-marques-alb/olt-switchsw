@@ -764,6 +764,14 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 
       return L7_FAILURE;
     }
   }
+  else
+  {
+    if(snoopPTinL3EntryDelete(vlanId,groupAddr)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to snoopPTinL3EntryDelete()");
+      return L7_FAILURE;
+    }
+  }
 #if 0
   else
   {
@@ -3258,7 +3266,7 @@ static snoopPTinProxyInterface_t* snoopPTinPendingReport2GeneralQuery(L7_uint32 
 
 /*************************************************************************
  * @purpose Verifies if  a Membership Report to a Group Specific Query
- * exists
+ * exists, if not creates a newEntry
  *
  * @param   snoopEntry  AVL tree entry for the requested multicast group
  * @param   intIfNum    Number of the interface through which the report

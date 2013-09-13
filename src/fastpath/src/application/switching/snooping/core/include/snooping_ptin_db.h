@@ -96,7 +96,6 @@ L7_RC_t snoopPTinGroupRecordSourceRemove(snoopPTinProxyGroup_t*   groupPtr, L7_i
 
 L7_RC_t snoopPTinGroupRecordSourceRemoveAll(snoopPTinProxyGroup_t*   groupPtr);
 
-
 #endif
 /*End MGMD Proxy*/
 /************************************************************************************************************/

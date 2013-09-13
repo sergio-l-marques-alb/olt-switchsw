@@ -361,6 +361,9 @@ void timerCallback(void *param)
   char                    debug_buf[46];
   snoopPTinL3Interface_t  *interfacePtr;
   L7_uint32               intIfNum;
+//L7_uint32               vlanId;
+//L7_inet_addr_t          mcastGroupAddr;
+
   L7_uint32               timerHandle;
   snoopPTinL3Grouptimer_t *pTimerData;
   snoopPTinL3Source_t     *sourcePtr;
@@ -399,6 +402,8 @@ void timerCallback(void *param)
   //Save grouptimer's internal data
   groupData    = pTimerData->groupData;
   intIfNum = pTimerData->interfaceIdx;
+//mcastGroupAddr=groupData->snoopPTinL3InfoDataKey.mcastGroupAddr;
+//vlanId=groupData->snoopPTinL3InfoDataKey.vlanId;
 
 /* Remove node for SLL list */
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
@@ -457,6 +462,7 @@ void timerCallback(void *param)
     {
       if (interfacePtr->isStatic==L7_FALSE)
       {        
+        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
 
         if (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
         {
@@ -475,13 +481,13 @@ void timerCallback(void *param)
           } 
           noOfRecords=0;
 #endif
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing root interface");          
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removed root interface");          
+          
         }
         else
         {
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing leaf interface");          
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removed leaf interface");          
         }
-        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
       }
     }
     else

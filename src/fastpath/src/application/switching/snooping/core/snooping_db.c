@@ -4098,6 +4098,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr)
   snoopPTinL3InfoData_t *pData;
   snoopPTinL3InfoData_t *snoopEntry;
   snoop_eb_t *pSnoopEB;
+  char       debug_buf[IPV6_DISP_ADDR_LEN]={};
 #if 0
 #ifdef L7_MCAST_PACKAGE
   L7_INTF_MASK_t zeroMask;
@@ -4128,6 +4129,7 @@ L7_RC_t snoopPTinL3EntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr)
 #endif /* L7_MCAST_PACKAGE */
 #endif
 
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Multicast Group Address from the AVL Tree (vlanId:%u groupAddr:%s )",vlanId, inetAddrPrint(groupAddr, debug_buf));
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinL3AvlTree, pData);
 
   if (pData == L7_NULL)
