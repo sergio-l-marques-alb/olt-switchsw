@@ -462,6 +462,7 @@ void schedule_matrix_query_send(void)
  */
 static void monitor_matrix_commutation(void)
 {
+#ifdef MAP_CPLD
 #if ( PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TA48GE )
 
   L7_int              cx_work_slot;
@@ -502,11 +503,11 @@ static void monitor_matrix_commutation(void)
       rc = L7_FAILURE;
     }
   }
-  #elif ( 0 /*PTIN_BOARD == PTIN_BOARD_TA48GE*/ )
+  #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
-  for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++)
+  for (port = PTIN_SYSTEM_N_PONS; port < PTIN_SYSTEM_N_PORTS; port++)
   {
     /* Set port enable */
     if (cx_work_slot)
@@ -540,6 +541,7 @@ static void monitor_matrix_commutation(void)
   {
     ptin_igmp_instances_reactivate();
   }
+#endif
 #endif
 
 #if PTIN_BOARD_IS_MATRIX

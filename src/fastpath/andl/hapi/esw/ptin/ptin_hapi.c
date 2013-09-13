@@ -1972,9 +1972,20 @@ L7_RC_t ptin_hapi_kr4_set(L7_int port)
   if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE)
     return L7_FAILURE;
 
+  /* Disable port */
   rc = bcm_port_enable_set(0, bcm_port, 0);
   if (L7_BCMX_OK(rc) != L7_TRUE)
     return L7_FAILURE;
+
+  /* Set 40G speed */
+  rc = bcm_port_speed_set(0, bcm_port, 40000);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
+
+  /* Set Full duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+      return L7_FAILURE;
 
   /* Start of 'special' code: without this, we never get KR4 links! */
   rc = bcm_port_ability_local_get(0, bcm_port, &port_ability);

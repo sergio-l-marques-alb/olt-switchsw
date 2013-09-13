@@ -337,6 +337,10 @@ void ptin_intf_dump(void)
     }
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+        strcpy(speed, "100M");
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
         strcpy(speed, "1G");
         break;
@@ -393,6 +397,10 @@ void ptin_intf_dump(void)
     /* Switch port: ge/xe (indexes changed according to the board) */
 #if (PTIN_BOARD_IS_MATRIX)
     sprintf(bcm_port_str, "xe%u", bcm_port - 1);
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+    sprintf(bcm_port_str, "%2.2s%u",
+            (speed_mode==L7_PORTCTRL_PORTSPEED_FULL_10GSX || speed_mode==L7_PORTCTRL_PORTSPEED_FULL_40G_KR4) ? "xe" : "ge",
+            (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 54 : bcm_port - 1);
 #else
     sprintf(bcm_port_str, "%2.2s%u",
             speed_mode == L7_PORTCTRL_PORTSPEED_FULL_10GSX ? "xe" : "ge",
