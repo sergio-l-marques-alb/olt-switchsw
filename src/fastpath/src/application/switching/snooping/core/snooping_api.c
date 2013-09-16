@@ -47,7 +47,7 @@
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, ptin_igmpClientInfo_t *channels, L7_uint16 *nChannels)
+L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels)
 {
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channels==L7_NULLPTR || nChannels==L7_NULLPTR)
     return L7_FAILURE;

@@ -1496,10 +1496,10 @@ L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId)
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 static L7_uint16             channelList_size=0;
-static ptin_igmpClientInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+static ptin_igmpChannelInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
 
 L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client,
-                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpClientInfo_t *channel_list,
+                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
                                   L7_uint16 *total_channels)
 {
   L7_uint16                i, max_channels, n_channels;
@@ -1583,7 +1583,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     channelList_size = 0;
 
     n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
-    if (ptin_snoop_activeChannels_get(McastRootVlan,client_idx,channelList,&n_channels)!=L7_SUCCESS)
+    if (ptin_snoop_activeChannels_get(McastRootVlan, client_idx, channelList, &n_channels) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting channels list");
       return L7_FAILURE;
@@ -1609,6 +1609,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     {
       inetCopy(&channel_list[i].groupAddr, &channelList[channel_index+i].groupAddr);
       inetCopy(&channel_list[i].sourceAddr, &channelList[channel_index+i].sourceAddr);
+      channel_list[i].static_type = channelList[channel_index+i].static_type;
       n_channels++;
     }
   }

@@ -792,12 +792,12 @@ static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
 static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
                                               L7_uint16 vlanId,
                                               L7_uint16 client_index,
-                                              ptin_igmpClientInfo_t *channel_list,
+                                              ptin_igmpChannelInfo_t *channel_list,
                                               L7_uint16 *num_channels,
                                               L7_uint16 max_num_channels);
 static void snoopChannelsGet(L7_uint16 vlanId,
                              L7_uint16 client_index,
-                             ptin_igmpClientInfo_t *channel_list,
+                             ptin_igmpChannelInfo_t *channel_list,
                              L7_uint16 *num_channels); //Supports IGMPv3
 
 /***************************************************************************
@@ -2690,7 +2690,7 @@ L7_BOOL snoopChannelExist4VlanId(L7_uint16 vlanId, L7_inet_addr_t *channel, snoo
  */
 void snoopChannelsListGet(L7_uint16 vlanId,
                           L7_uint16 client_index,
-                          ptin_igmpClientInfo_t *channel_list,
+                          ptin_igmpChannelInfo_t *channel_list,
                           L7_uint16 *num_channels)
 {
   L7_uint16             max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES;
@@ -2833,7 +2833,7 @@ static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
 static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
                                               L7_uint16 vlanId,
                                               L7_uint16 client_index,
-                                              ptin_igmpClientInfo_t *channel_list,
+                                              ptin_igmpChannelInfo_t *channel_list,
                                               L7_uint16 *num_channels,
                                               L7_uint16 max_num_channels)
 {
@@ -2882,6 +2882,7 @@ static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
               continue;
             channel_list[*num_channels].groupAddr.family            = L7_AF_INET;
             channel_list[*num_channels].groupAddr.addr.ipv4.s_addr  = entry->channel_list[channel_index].ipAddr;
+            channel_list[*num_channels].static_type                 = entry->staticGroup;
             inetAddressReset(&channel_list[*num_channels].sourceAddr);
             (*num_channels)++;
           }
@@ -2910,7 +2911,7 @@ static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
  */
 static void snoopChannelsGet(L7_uint16 vlanId,
                              L7_uint16 client_index,
-                             ptin_igmpClientInfo_t *channel_list,
+                             ptin_igmpChannelInfo_t *channel_list,
                              L7_uint16 *num_channels)
 {
   snoopPTinL3InfoDataKey_t avlTreeKey;
@@ -3003,6 +3004,15 @@ static void snoopChannelsGet(L7_uint16 vlanId,
              LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource:0x%08X Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, source_ptr->sourceAddr);
              inetCopy(&channel_list[*num_channels].groupAddr, &avlTreeKey.mcastGroupAddr);
              inetCopy(&channel_list[*num_channels].sourceAddr, &source_ptr->sourceAddr);
+             /* If group address is static, get static information to source channel */
+             if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].isStatic)
+             {
+               channel_list[*num_channels].static_type = source_ptr->isStatic;
+             }
+             else
+             {
+               channel_list[*num_channels].static_type = L7_FALSE;
+             }
              ++(*num_channels);
              channelAdded=L7_TRUE;
           }
@@ -3017,6 +3027,7 @@ static void snoopChannelsGet(L7_uint16 vlanId,
            LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource: ANY_SOURCE");
            inetCopy(&channel_list[*num_channels].groupAddr, &avlTreeKey.mcastGroupAddr);
            inetAddressReset(&channel_list[*num_channels].sourceAddr);
+           channel_list[*num_channels].static_type = avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].isStatic;
            ++(*num_channels);
            channelAdded=L7_FALSE;
         }

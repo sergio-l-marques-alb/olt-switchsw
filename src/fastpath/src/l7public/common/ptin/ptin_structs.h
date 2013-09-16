@@ -716,7 +716,8 @@ typedef struct
 {
    L7_inet_addr_t groupAddr;
    L7_inet_addr_t sourceAddr;
-} ptin_igmpClientInfo_t;
+   L7_uint8 static_type;      // 0: Dynamic; 1: Static
+} ptin_igmpChannelInfo_t;
 
 /* QoS mapping */ 
 #define PTIN_QOS_INTF_TRUSTMODE_MASK        0x01

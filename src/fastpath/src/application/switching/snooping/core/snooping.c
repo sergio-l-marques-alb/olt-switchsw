@@ -4680,7 +4680,7 @@ static L7_RC_t igmp_packet_general_query_respond(mgmdSnoopControlPkt_t *mcastPac
 {
   L7_uint16             channel;
   L7_uint16             number_of_channels;
-  ptin_igmpClientInfo_t channel_list[1024];
+  ptin_igmpChannelInfo_t channel_list[1024];
   L7_uint               intf, vlanId, client_vlan;
 
   intf        = mcastPacket->intIfNum;

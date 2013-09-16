@@ -4951,7 +4951,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
  */
 L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels)
 {
-  ptin_igmpClientInfo_t  clist[*numberOfChannels];
+  ptin_igmpChannelInfo_t clist[*numberOfChannels];
   L7_uint16              i, number_of_channels, total_channels;
   ptin_client_id_t       client;
   L7_RC_t                rc;
@@ -4990,13 +4990,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
 
-  /* Clear is_static list */
-  for(i=0; i<(*numberOfChannels); i++)
-  {
-     memset(&outputPtr[i], 0x00, sizeof(msg_MCActiveChannelsReply_t));
-     outputPtr[i].chType = 0xFF;
-  }
-
   /* Get list of channels */
   number_of_channels = *numberOfChannels;
   rc = ptin_igmp_channelList_get(inputPtr->evc_id, &client, inputPtr->entryId, &number_of_channels, clist, &total_channels);
@@ -5012,6 +5005,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       outputPtr[i].entryId = i;
       outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
+      outputPtr[i].chType  = clist[i].static_type;
     }
   }
   else if (rc==L7_NOT_EXIST)
