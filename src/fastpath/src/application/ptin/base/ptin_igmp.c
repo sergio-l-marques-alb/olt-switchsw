@@ -2926,7 +2926,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       #if PTIN_BOARD_IS_MATRIX
       /* No validation */
       #elif (!defined IGMP_QUERIER_IN_UC_EVC)
-      if (igmpInst->igmpClients.number_of_clients_per_intf[ptin_port] > 0)
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] > 0)
       #else
       if (!(evcCfg.flags & PTIN_EVC_MASK_STACKED) || evcCfg.n_clients > 0)
       #endif
