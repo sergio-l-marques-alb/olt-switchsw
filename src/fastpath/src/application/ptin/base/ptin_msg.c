@@ -3799,7 +3799,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinIgmpProxy.host.older_querier_present_timeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Sources per Group Record   = %u", ptinIgmpProxy.host.max_records_per_report);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Group Records per Packet   = %u", ptinIgmpProxy.host.max_records_per_report);
 
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);
