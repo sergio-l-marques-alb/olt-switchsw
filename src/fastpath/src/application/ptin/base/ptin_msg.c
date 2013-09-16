@@ -735,6 +735,7 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
 {
   L7_uint i, slot, mode;
   L7_uint32 slot_list[PTIN_SYS_SLOTS_MAX];
+  L7_RC_t rc = L7_SUCCESS;
 
   memset(slot_list, 0x00, sizeof(slot_list));
 
@@ -765,10 +766,10 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
   }
 
   /* Validate list of slot modes */
-  if ( ptin_intf_slotMode_validate(slot_list)!=L7_SUCCESS)
+  if ((rc=ptin_intf_slotMode_validate(slot_list)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Slot mode list is not valid!");
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Slot mode list is not valid! (rc=%d)",rc);
+    return rc;
   }
   LOG_INFO(LOG_CTX_PTIN_MSG, "Slot mode list is valid!");
 
