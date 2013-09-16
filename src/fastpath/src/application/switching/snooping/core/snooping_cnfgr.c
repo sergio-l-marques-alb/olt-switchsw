@@ -37,6 +37,8 @@
 #include "snooping_ctrl.h"
 #include "snooping_proto.h"
 
+#include "logger.h"
+
 /* PTin Add: IGMPv3 */
 #if SNOOP_PTIN_IGMPv3_GLOBAL
 
@@ -52,10 +54,6 @@
 
 #if SNOOP_PTIN_IGMPv3_PROXY
 #include "snooping_ptin_proxytimer.h"
-
-
-
-
 #endif
 #endif
 

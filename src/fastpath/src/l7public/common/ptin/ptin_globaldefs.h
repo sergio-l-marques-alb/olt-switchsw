@@ -108,6 +108,11 @@ extern int ptin_sys_number_of_ports;
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
 # define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  512
+
+#define SNOOP_PTIN_IGMPv3_GLOBAL  1   //Change to 0 if you want to globally disable IGMPv3 Module
+#define SNOOP_PTIN_IGMPv3_ROUTER  1   //Change to 0 if you want to disable  IGMPv3 Router SubModule
+#define SNOOP_PTIN_IGMPv3_PROXY   1   //Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
 # define MAP_FPGA
