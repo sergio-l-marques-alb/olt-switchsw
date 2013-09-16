@@ -257,10 +257,12 @@
 #endif
 
 /* xWeb definitions */
+/* PTin removed
 #ifndef _INCLUDE_XWEB_COMPONENT_API_
 #define _INCLUDE_XWEB_COMPONENT_API_
 #define L7_XWEB_PACKAGE 1
-#endif
+#endif 
+*/ 
 
 /* Routing definitions */
 #ifndef _INCLUDE_ROUTING_COMPONENT_API_
