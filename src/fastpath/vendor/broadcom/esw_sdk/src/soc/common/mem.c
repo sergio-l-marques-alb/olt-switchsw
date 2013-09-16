@@ -3285,9 +3285,9 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index, int copyno,
 
     if (rv < 0) {
         if (rv != SOC_E_TIMEOUT) {
-            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK)\n",
+            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK) rv=%d\n",
                          __FUNCTION__, SOC_MEM_UFNAME(unit, mem),
-                         SOC_BLOCK_NAME(unit, copyno));
+                         SOC_BLOCK_NAME(unit, copyno),rv);
 #ifdef BCM_TRIUMPH2_SUPPORT
             if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || 
                 SOC_IS_VALKYRIE2(unit)) {

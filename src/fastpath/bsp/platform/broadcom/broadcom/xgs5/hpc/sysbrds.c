@@ -208,6 +208,29 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set("l2_table_size", "0x3fff") != 0)
           return(L7_FAILURE);
 #endif
+        #if 0
+        if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
+        #else
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
+        #endif
         break;
 
       case UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID:   /* PTin added: new platform */
