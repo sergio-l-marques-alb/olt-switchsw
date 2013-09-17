@@ -371,6 +371,7 @@ void timerCallback(void *param)
   snoopPTinL3Sourcetimer_t *pTimerData;
   snoopPTinL3Source_t      *sourcePtr;
   snoopPTinL3InfoData_t*   groupData;
+
     
 #if 0
   L7_uint8            recordType=L7_IGMP_BLOCK_OLD_SOURCES;
@@ -391,24 +392,26 @@ void timerCallback(void *param)
     return;
   }
   
-  /* Check if our handle is OK*/
-  if (timerHandle != pTimerData->timerHandle)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
-    osapiSemaGive(timerSem);
-    return;
-  }
+ 
 
   //Save grouptimer's internal data
   groupData    = pTimerData->groupData;
-  intIfNum = pTimerData->interfaceIdx;
+  intIfNum     = pTimerData->interfaceIdx;
   sourceIdx    = pTimerData->sourceIdx;
   interfacePtr = &groupData->interfaces[intIfNum];
   sourcePtr    = &groupData->interfaces[intIfNum].sources[sourceIdx];
-  osapiSemaGive(timerSem);
+
+   osapiSemaGive(timerSem);
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr)", 
             inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, intIfNum, inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
+
+   /* Check if our handle is OK*/
+  if (timerHandle != pTimerData->timerHandle)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"timerHandle and pTimerData->timerHandle do not match!");    
+    return;
+  }
 
   if (interfacePtr->filtermode == PTIN_SNOOP_FILTERMODE_INCLUDE)
   {
@@ -438,17 +441,16 @@ void timerCallback(void *param)
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourcedAdd()");       
           return ;
         }        
-#endif
-        /* Remove source */
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Root Interface - Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));
-        snoopPTinSourceRemove(interfacePtr, sourcePtr);
+#endif        
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Root Interface - Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));        
       }
       else
       {
-          /* Remove source */
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Leaf Interface - Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));
-        snoopPTinSourceRemove(interfacePtr, sourcePtr);
-      }        
+          
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Leaf Interface - Removing source %s", inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));        
+      }
+      /* Remove source */
+      snoopPTinSourceRemove(interfacePtr, sourcePtr);        
     }
     /* If no more sources remain, remove group */
     if (interfacePtr->numberOfSources == 0 && interfacePtr->isStatic==L7_FALSE)
@@ -472,7 +474,7 @@ void timerCallback(void *param)
       }
 #endif
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group has no more sources, thus it is being removed.");
-      snoopPTinInterfaceRemove(interfacePtr,groupData->snoopPTinL3InfoDataKey.vlanId,&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+      snoopPTinInterfaceRemove(interfacePtr,groupData->snoopPTinL3InfoDataKey.vlanId,&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),intIfNum);
     }
   }
 #if 0    

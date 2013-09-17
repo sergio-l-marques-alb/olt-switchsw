@@ -396,6 +396,7 @@ void timerCallback(void *param)
   if (timerHandle != pTimerData->timerHandle)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
+    osapiSemaGive(timerSem);
     return;
   }
 
@@ -462,7 +463,7 @@ void timerCallback(void *param)
     {
       if (interfacePtr->isStatic==L7_FALSE)
       {        
-        snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
+        snoopPTinInterfaceRemove(interfacePtr,groupData->snoopPTinL3InfoDataKey.vlanId,&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),intIfNum);
 
         if (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM)
         {

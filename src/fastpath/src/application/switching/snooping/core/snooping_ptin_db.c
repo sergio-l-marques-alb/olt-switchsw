@@ -744,7 +744,7 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 
   }
 
   /* Remove every source whose timer has expired */
-  for (i = 0; i < sizeof(interfacePtr->sources); ++i)
+  for (i = 0; interfacePtr->numberOfSources>0 && i < sizeof(interfacePtr->sources); ++i)
   {
     sourcePtr = &interfacePtr->sources[i];
     if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE))
