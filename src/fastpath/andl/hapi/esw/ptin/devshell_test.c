@@ -14,6 +14,8 @@
 
 #include "hpc_db.h"
 #include "dapi_db.h"
+#include "bcmx/vlan.h"
+#include "logger.h"
 
 // Ingress Translations (single tagged packets)
 
@@ -605,6 +607,219 @@ int ptin_vlan_policer_policer_set(int port, bcm_vlan_t vlanId, uint32 cir, uint3
   return error;
 }
 
+
+int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_int c_vid)
+{
+  int unit = 0;
+  bcm_gport_t network_gport;
+  int gemid[] = {101, 102, 103};
+  int cvid[]  = {25, 35, 45};
+  int i;
+  bcm_error_t error;
+
+  /* enable L3 egress mode... needed for the virtual port APIs to work */
+  if ((error=bcm_switch_control_set(unit, bcmSwitchL3EgressMode, 1)) != BCM_E_NONE)
+  {
+    printf("Error setting on bcmSwitchL3EgressModecreating policer: error=%d (\"%s\")\r\n",error,bcm_errmsg(error));
+    return error;
+  }
+
+  /* create the virtual ports */
+  bcm_vlan_port_t vlan_port[3];
+  bcm_vlan_port_t_init(&vlan_port[0]);
+  bcm_vlan_port_t_init(&vlan_port[1]);
+  bcm_vlan_port_t_init(&vlan_port[2]);
+
+  /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
+  for (i = 0; i < 3; i++) {
+      vlan_port[i].flags = BCM_VLAN_PORT_INNER_VLAN_ADD | BCM_VLAN_PORT_INNER_VLAN_REPLACE;
+      vlan_port[i].match_vlan = gemid[i];
+      vlan_port[i].match_inner_vlan = cvid[i];
+      vlan_port[i].criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+      vlan_port[i].egress_vlan = s_vid;
+      vlan_port[i].egress_inner_vlan = c_vid;
+      BCM_GPORT_LOCAL_SET(vlan_port[i].port, pon_port);
+
+      if ((error=bcm_vlan_port_create(unit, &vlan_port[i]))!=BCM_E_NONE)
+      {
+        printf("Error with bcm_vlan_port_create: error=%d (\"%s\")\r\n", error, bcm_errmsg(error));
+        return error;
+      }
+
+      printf("Vlan idx %d created!\r\n",i);
+  }
+
+  /* create egress translation entries for virtual ports to do VLAN tag manipulation 
+   * i.e. client -> gem_id + some_c_vlan */
+  bcm_vlan_action_set_t action;
+  for (i = 0; i < 3; i++) {
+      bcm_vlan_action_set_t_init(&action);
+      
+      /* for outer tagged packet => outer tag replaced with gem_id */
+      action.ot_outer = bcmVlanActionReplace;
+      action.dt_outer = bcmVlanActionReplace;
+      action.new_outer_vlan = gemid[i];
+      
+      /* for outer tagged packet => inner tag added with cvid */
+      action.ot_inner = bcmVlanActionAdd;
+      action.dt_inner = bcmVlanActionReplace;
+      action.new_inner_vlan = cvid[i];
+      
+      if ((error=bcm_vlan_translate_egress_action_add(unit, vlan_port[i].vlan_port_id, s_vid, 0, &action))!=BCM_E_NONE)
+      {
+        printf("Error with bcm_vlan_translate_egress_action_add(%d, %d, %d, %d, &action): error=%d (\"%s\")\r\n",
+               unit, vlan_port[i].vlan_port_id, s_vid, 0, error, bcm_errmsg(error));
+        return error;
+      }
+  }
+
+  /* create multicast group, and add virtual ports to it */
+  bcm_multicast_t mcast_group;
+  bcm_multicast_t encap_id;
+
+  if ((error=bcm_multicast_create(unit, BCM_MULTICAST_TYPE_VLAN, &mcast_group))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_multicast_create(%d, %d, &mcast_group): error=%d (\"%s\")\r\n",
+           unit, BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+    return error;
+  }
+  for (i = 0; i < 3; i++) {
+      if ((error=bcm_multicast_vlan_encap_get(unit, mcast_group, vlan_port[i].port, vlan_port[i].vlan_port_id, &encap_id))!=BCM_E_NONE)
+      {
+        printf("Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+        return error;
+      }
+      if ((error=bcm_multicast_egress_add(unit, mcast_group, vlan_port[i].port, encap_id))!=BCM_E_NONE)
+      {
+        printf("Error with bcm_multicast_egress_add: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+        return error;
+      }
+  }
+
+  /* add network port to multicast group as L2 member */
+  BCM_GPORT_LOCAL_SET(network_gport, network_port);
+  if ((error=bcm_multicast_l2_encap_get(unit, mcast_group, network_gport, -1, &encap_id))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  if ((error=bcm_multicast_egress_add(unit, mcast_group, network_gport, encap_id))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_multicast_egress_add: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  /* configure vlan membership */
+  bcm_pbmp_t pbmp, ubmp;
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_CLEAR(ubmp);
+  BCM_PBMP_PORT_ADD(pbmp, network_port);
+  BCM_PBMP_PORT_ADD(pbmp, pon_port);
+
+  printf("pon_port=%d, network_port=%d\r\n",pon_port, network_port);
+  for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
+  {
+    printf("0x%08x ",pbmp.pbits[i]);
+  }
+  printf("\r\n");
+
+  if ((error=bcm_vlan_create(unit, s_vid))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_create: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  if ((error=bcm_vlan_port_add(unit, s_vid, pbmp, ubmp))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_port_add: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  /* configure the VLAN to enable flooding towards virtual ports, this overrides the regular VLAN flooding */
+  bcm_vlan_control_vlan_t vlan_control;
+  if ((error=bcm_vlan_control_vlan_get(unit, s_vid, &vlan_control))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_vlan_get: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  vlan_control.broadcast_group = mcast_group;
+  vlan_control.unknown_multicast_group = mcast_group;
+  vlan_control.unknown_unicast_group = mcast_group;
+
+  /* if using SVL, configure fid_id */
+  vlan_control.forwarding_vlan = s_vid;
+  if ((error=bcm_vlan_control_vlan_set(unit, s_vid, vlan_control))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_vlan_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  /* enable VLAN translation & configure ingress VLAN translation key for GPON port */
+  if ((error=bcm_vlan_control_set(unit, bcmVlanTranslate, 1))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  /* device will do 2 lookups in VLAN_XLATE, configure the keys here */
+  if ((error=bcm_vlan_control_port_set(unit, pon_port, bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_port_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  if ((error=bcm_vlan_control_port_set(unit, pon_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_port_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  /* if you need stacked VLAN for network port, you need to use the 
+   * bcm_vlan_translate_action_add() API and 
+   * bcm_vlan_translate_egress_action_add() API and 
+   * for instance, translate stacked VLANs S=500/C=501 -> 4000 for network port
+   */
+  #if 0
+  bcm_vlan_t s_vlan = 500;
+  bcm_vlan_t c_vlan = 501;
+  bcm_vlan_action_set_t network_ing_action;
+  bcm_vlan_action_set_t network_egr_action;
+
+  bcm_vlan_action_set_t_init(&network_ing_action);
+  /* for double tagged packets => replace outer tag & delete inner tag */
+  network_ing_action.dt_outer = bcmVlanActionReplace;
+  network_ing_action.new_outer_vlan = s_vid;
+  network_ing_action.dt_inner = bcmVlanActionDelete;
+  if ((error=bcm_vlan_translate_action_add(unit, network_gport, bcmVlanTranslateKeyPortDouble, s_vlan, c_vlan, &network_ing_action))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_translate_action_add: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  if ((error=bcm_vlan_control_port_set(unit, network_gport, bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_port_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  if ((error=bcm_vlan_control_port_set(unit, network_gport, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_control_port_set: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+
+  bcm_vlan_action_set_t_init(&network_egr_action);
+  /* for single tagged packets (client 4000) => replace outer tag & add inner tag */
+  network_egr_action.ot_outer = bcmVlanActionReplace;
+  network_egr_action.new_outer_vlan = s_vlan;
+  network_egr_action.ot_inner = bcmVlanActionAdd;
+  network_egr_action.new_inner_vlan = c_vlan;
+  if ((error=bcm_vlan_translate_egress_action_add(unit, network_gport, s_vid, 0, &network_egr_action))!=BCM_E_NONE)
+  {
+    printf("Error with bcm_vlan_translate_egress_action_add: error=%d (\"%s\")\r\n",error, bcm_errmsg(error));
+    return error;
+  }
+  #endif
+
+  return BCM_E_NONE;
+}
+
 int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_nni,
                          L7_uint16 vid_uni0, L7_uint16 vid_uni1, L7_uint16 vid_uni2, L7_uint16 vid_uni3, L7_uint16 vid_uni4, L7_uint16 vid_uni5, L7_uint16 vid_uni6, L7_uint16 vid_uni7)
 {
@@ -617,6 +832,7 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   int pri;
   bcm_error_t error;
   static bcm_gport_t group = -1;
+  bcm_vlan_control_vlan_t control;
 
   // Get bcm_port_t values
   if (port_nni>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port_nni, &bcm_port_nni)!=L7_SUCCESS)
@@ -642,6 +858,24 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   {
     printf("%s(%d) ERROR!\r\n", __FUNCTION__,__LINE__);
     //return -1;
+  }
+
+  /* Get current control definitions for this vlan */
+  bcm_vlan_control_vlan_t_init(&control);
+  if ((error = bcmx_vlan_control_vlan_get(vid_nni, &control))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  control.forwarding_vlan = vid_nni;
+  control.flags &= ~((uint32) BCM_VLAN_LEARN_DISABLE);
+  control.forwarding_mode = bcmVlanForwardBridging;
+
+  /* Apply new control definitions to this vlan */
+  if ( (error = bcmx_vlan_control_vlan_set(vid_nni, control)) != BCM_E_NONE )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    return L7_FAILURE;
   }
 
   // Add ports to vid    

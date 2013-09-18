@@ -40,7 +40,7 @@ char default_shell[] = DRIV_SHELL;
 int main (int argc, char *argv[])
 {  
   //int id;
-  char         request[102], *shell=default_shell;
+  char         request[1002], *shell=default_shell;
   pc_type      comando, resposta;
   int          valued, i, cmdIndex=0;
 
@@ -93,10 +93,10 @@ int main (int argc, char *argv[])
     // If no command is given, request it
     if ( cmdIndex==0 )
     {
-      scanf("%100[^\n]",request);
+      scanf("%1000[^\n]",request);
       scanf("%*[^\n]");
       scanf("%*c");
-      request[100]='\0';
+      request[1000]='\0';
 
       if ( strcmp(request,"quit")==0 || strcmp(request,"QUIT")==0 || 
            strcmp(request,"exit")==0 || strcmp(request,"EXIT")==0 ||
@@ -109,7 +109,7 @@ int main (int argc, char *argv[])
     else  {
       for ( i=cmdIndex; i<argc; i++ )
       {
-        if ( strlen(request)+strlen(argv[i])+1>100 )  break;
+        if ( strlen(request)+strlen(argv[i])+1>1000 )  break;
         if ( i>cmdIndex )  strcat(request," ");
         strcat( request , argv[i] );
       }

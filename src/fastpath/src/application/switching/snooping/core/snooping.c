@@ -632,7 +632,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #else
     /* Increment intercepted packets for the UC service */
     /* Do not consider the client. It will be updated later */
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
 #endif
   }
 

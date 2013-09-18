@@ -160,6 +160,119 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage);
 static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgroup);
 
 
+/**
+ * Add ingress translation entry
+ * 
+ * @param intIfNum : interface reference
+ * @param outerVlanId : lookup outer vlan 
+ * @param innerVlanId : lookup inner vlan  
+ * @param newOuterVlanId : new vlan id 
+ * @param newInnerVlanId : new inner vlan to be added (0 to not 
+ *                       be added)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 newOuterVlanId )
+{
+  ptin_vlanXlate_t xlate;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId, newOuterVlanId);
+
+  /* Validate arguments */
+  if (outerVlanId>4095 || innerVlanId>4095 || newOuterVlanId>4095)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Define structure */
+  xlate.oper          = DAPI_CMD_SET;
+  xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
+  xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
+  xlate.outerVlan     = outerVlanId;
+  xlate.innerVlan     = innerVlanId;
+  xlate.outerVlan_new = newOuterVlanId;
+  xlate.innerVlan_new = 0;
+  xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
+  xlate.innerAction   = PTIN_XLATE_ACTION_DELETE;
+
+  /* DTL call */
+  rc = dtlPtinVlanTranslate(intIfNum, &xlate);
+
+  /* If addition went well... */
+  if (rc == L7_SUCCESS)
+  {
+    /* single-vlan translation: store this entry in a local database for quick access */
+    rc = xlate_database_store(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId, newOuterVlanId);
+  }
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
+
+  return rc;
+}
+
+L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
+{
+  L7_uint32 portgroup;
+  ptin_vlanXlate_t xlate;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, newOuterVlanId=%u newInnerVlanId=%u",
+              intIfNum, outerVlanId, newOuterVlanId, newInnerVlanId);
+
+  /* Get class id */
+  if (xlate_portgroup_from_intf(intIfNum, &portgroup)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR getting class id");
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, outerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              portgroup, outerVlanId, newOuterVlanId, newInnerVlanId);
+
+  /* Validate arguments */
+  if (portgroup==0 || 
+      outerVlanId>4095 || 
+      newOuterVlanId>4095 || (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095))
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Define structure */
+  xlate.oper          = DAPI_CMD_SET;
+  xlate.portgroup     = portgroup;
+  xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
+  xlate.outerVlan     = outerVlanId;
+  xlate.innerVlan     = 0;
+  xlate.outerVlan_new = newOuterVlanId;
+  xlate.innerVlan_new = newInnerVlanId;
+  xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
+  xlate.innerAction   = PTIN_XLATE_ACTION_ADD;
+
+  /* DTL call */
+  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
+
+  /* If addition went well... */
+  if (rc == L7_SUCCESS)
+  {
+    rc = xlate_database_portgroup_store(PTIN_XLATE_STAGE_EGRESS, portgroup, outerVlanId, newOuterVlanId);
+  }
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
+
+  return rc;
+}
+
+
+
 /***************************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  *****************************************************************/

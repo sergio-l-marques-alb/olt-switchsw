@@ -6110,7 +6110,7 @@ static L7_RC_t switching_vlan_delete(L7_uint16 vid)
   if (rc != L7_SUCCESS)
   {
     LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Error deleting VLAN %u (rc=%d)", vid, rc);
-    return L7_FAILURE;
+    //return L7_FAILURE;
   }
 
   /* Wait until all requests are attended */
