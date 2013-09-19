@@ -1,6 +1,7 @@
 #include <bcm/error.h>
 #include <bcmx/vlan.h>
 #include <bcmx/switch.h>
+#include <bcmx/multicast.h>
 
 #include "ptin_hapi_xconnect.h"
 #include "logger.h"
@@ -79,7 +80,7 @@ L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects)
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL mac_learning_apply)
+L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL mac_learning_apply, L7_int mc_group)
 {
   int error;
   bcm_vlan_control_vlan_t control;
@@ -110,6 +111,14 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7
 
   /* Non unicast packets will be droped */
   //control.flags |= BCM_VLAN_NON_UCAST_DROP;
+
+  /* Associate a MC group */
+  if (mc_group > 0)
+  {
+    control.broadcast_group = mc_group;
+    control.unknown_multicast_group = mc_group;
+    control.unknown_unicast_group = mc_group;
+  }
 
   /* Forwarding mode */
   control.forwarding_mode = (cross_connects_apply) ?  bcmVlanForwardDoubleCrossConnect : bcmVlanForwardBridging;
@@ -458,6 +467,507 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished successfully");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Create Virtual port
+ * 
+ * @param dapiPort    : PON port
+ * @param match_ovid  : GEM id (outer vlan)
+ * @param match_ivid  : inner vlan after GEM id
+ * @param egress_ovid : outer vlan inside switch
+ * @param egress_ivid : inner vlan inside switch
+ * @param mcast_group : mc group (-1 to create)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
+                            L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                            L7_int *mcast_group)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_multicast_t mc_group;
+  bcm_error_t error;
+  bcm_multicast_t encap_id;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u => oVlanId=%u iVlanId=%u",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
+            match_ovid, match_ivid, egress_ovid, egress_ivid);
+
+  /* Validate interface */
+  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* create the virtual ports */
+  bcmx_vlan_port_t vlan_port;
+  bcmx_vlan_port_t_init(&vlan_port);
+
+  /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
+  if (egress_ivid > 0 && egress_ivid < 4096)
+  {
+    vlan_port.flags = BCM_VLAN_PORT_INNER_VLAN_ADD | BCM_VLAN_PORT_INNER_VLAN_REPLACE;
+  }
+  vlan_port.match_vlan = match_ovid;
+  vlan_port.match_inner_vlan = match_ivid;
+  vlan_port.criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+  vlan_port.egress_vlan = egress_ovid;
+  vlan_port.egress_inner_vlan = egress_ivid;
+  BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
+
+  if ((error=bcmx_vlan_port_create(&vlan_port)) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_port_create: error=%d (\"%s\")", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* create egress translation entries for virtual ports to do VLAN tag manipulation 
+   * i.e. client -> gem_id + some_c_vlan */
+  bcm_vlan_action_set_t action;
+  bcm_vlan_action_set_t_init(&action);
+  
+  /* for outer tagged packet => outer tag replaced with gem_id */
+  action.ot_outer = bcmVlanActionReplace;
+  action.dt_outer = bcmVlanActionReplace;
+  action.new_outer_vlan = match_ovid;
+  
+  /* for outer tagged packet => inner tag added with cvid */
+  action.ot_inner = bcmVlanActionAdd;
+  action.dt_inner = bcmVlanActionReplace;
+  action.new_inner_vlan = match_ivid;
+  
+  if ((error=bcmx_vlan_translate_egress_action_add(vlan_port.vlan_port_id, egress_ovid, 0, &action))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_vlan_translate_egress_action_add(%d, %d, %d, &action): error=%d (\"%s\")",
+           vlan_port.vlan_port_id, egress_ovid, 0, error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* Create a multicast group, if given multicast group is not valid */
+  if ( mc_group <= 0 )
+  {
+    if ((error=bcmx_multicast_create(BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
+              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    *mcast_group = mc_group;
+  }
+
+  /* Add virtual port to multicast group */
+  if ((error=bcmx_multicast_vlan_encap_get(mc_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  if ((error=bcmx_multicast_egress_add(mc_group, vlan_port.port, encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove virtual port
+ * 
+ * @param dapiPort    : PON port
+ * @param match_ovid  : GEM id (outer vlan)
+ * @param match_ivid  : inner vlan after GEM id
+ * @param mcast_group : multicast group
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
+                            L7_uint16 match_ovid, L7_uint16 match_ivid,
+                            L7_int mcast_group)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_multicast_t encap_id;
+  bcm_error_t error;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
+            match_ovid, match_ivid);
+
+  /* Validate interface */
+  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group <= 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    return L7_FAILURE;
+  }
+
+  /* create the virtual ports */
+  bcmx_vlan_port_t vlan_port;
+  bcmx_vlan_port_t_init(&vlan_port);
+
+  /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
+  vlan_port.flags = BCM_VLAN_PORT_INNER_VLAN_ADD | BCM_VLAN_PORT_INNER_VLAN_REPLACE;
+  vlan_port.match_vlan = match_ovid;
+  vlan_port.match_inner_vlan = match_ivid;
+  vlan_port.criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+  BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
+
+  if ((error=bcmx_vlan_port_find(&vlan_port)) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_vlan_port_find: error=%d (\"%s\")", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* Remove egress translation entries */
+  if ((error=bcmx_vlan_translate_egress_action_delete(vlan_port.vlan_port_id, vlan_port.egress_vlan, 0))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_vlan_translate_egress_action_delete(%d, %d, %d, &action): error=%d (\"%s\")",
+            vlan_port.vlan_port_id, vlan_port.egress_vlan, 0, error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* Remove virtual port from multicast group */
+  if ((error=bcmx_multicast_vlan_encap_get(mcast_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  if ((error=bcmx_multicast_egress_delete(mcast_group, vlan_port.port, encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Add port to egress multicast group
+ * 
+ * @param mcast_group : MC group id (-1 to create)
+ * @param dapiPort    : Port to be added 
+ *  
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_t *dapiPort)
+{
+  bcm_multicast_t mc_group;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_multicast_t encap_id;
+  bcm_error_t error;
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group");
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, mcast_group=%d",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, mcast_group);
+
+  /* Validate interface */
+  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Get given MC group id */
+  mc_group = *mcast_group;
+
+  /* Create a multicast group, if given multicast group is not valid */
+  if ( mc_group <= 0 )
+  {
+    if ((error=bcmx_multicast_create(BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
+              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    *mcast_group = mc_group;
+  }
+
+  /* add network port to multicast group as L2 member */
+  if ((error=bcmx_multicast_l2_encap_get(mc_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  if ((error=bcmx_multicast_egress_add(mc_group, hapiPortPtr->bcmx_lport, encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_multicast_port_add returned success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove port from egress multicast group
+ * 
+ * @param mcast_group : MC group id (must be valid) 
+ * @param dapiPort    : Port to be removed
+ *  
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_dapi_port_t *dapiPort)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_multicast_t encap_id;
+  bcm_error_t error;
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group <= 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, mcast_group=%d",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, mcast_group);
+
+  /* Validate interface */
+  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* add network port to multicast group as L2 member */
+  if ((error=bcmx_multicast_l2_encap_get(mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  if ((error=bcmx_multicast_egress_delete(mcast_group, hapiPortPtr->bcmx_lport, encap_id))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_multicast_port_add returned success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove all entries associated to a MC group
+ * 
+ * @param mcast_group     : MC group id (must be valid) 
+ * @param destroy_mcgroup : Destroy MC group
+ *  
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcgroup)
+{
+  bcm_error_t error;
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group <= 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "mcast_group=%d", mcast_group);
+
+  if ((error=bcmx_multicast_egress_delete_all(mcast_group))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_multicast_egress_delete_all: error=%d (\"%s\")",error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* Destroy MC group */
+  if (destroy_mcgroup)
+  {
+    if ((error=bcmx_multicast_destroy(mcast_group)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
+              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcmx_multicast_egress_delete_all returned success");
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Define MC group for a specific vlan for bridging 
+ * 
+ * @param vlanId      : vlan to be configured
+ * @param mcast_group : MC group id (-1 to create)
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group)
+{
+  int error;
+  bcm_multicast_t mc_group;
+  bcm_vlan_control_vlan_t control;
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group");
+    return L7_FAILURE;
+  }
+
+  /* Get given MC group id */
+  mc_group = *mcast_group;
+
+  /* Create a multicast group, if given multicast group is not valid */
+  if ( mc_group <= 0 )
+  {
+    if ((error=bcmx_multicast_create(BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
+              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    *mcast_group = mc_group;
+  }
+
+  /* Get current control definitions for this vlan */
+  bcm_vlan_control_vlan_t_init(&control);
+  if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  
+  /* Associate a MC group */
+  control.broadcast_group = mc_group;
+  control.unknown_multicast_group = mc_group;
+  control.unknown_unicast_group = mc_group;
+
+  /* Apply new control definitions to this vlan */
+  if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Rempove MC group for a specific vlan for bridging 
+ * 
+ * @param vlanId          : vlan to be configured
+ * @param mcast_group     : MC group id 
+ * @param destroy_mcgroup : Destroy MC group
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_BOOL destroy_mcgroup)
+{
+  int error;
+  bcm_vlan_control_vlan_t control;
+
+  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
+  if ( mcast_group <= 0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    return L7_FAILURE;
+  }
+
+  /* Get current control definitions for this vlan */
+  bcm_vlan_control_vlan_t_init(&control);
+  if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  
+  /* Associate a MC group */
+  control.broadcast_group         = -1;
+  control.unknown_multicast_group = -1;
+  control.unknown_unicast_group   = -1;
+
+  /* Apply new control definitions to this vlan */
+  if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
+  /* Destroy MC group */
+  if (destroy_mcgroup)
+  {
+    if ((error=bcmx_multicast_destroy(mcast_group)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
+              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
 
   return L7_SUCCESS;
 }

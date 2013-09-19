@@ -1584,6 +1584,62 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
     }
 
+    /* CCMSG_ETH_EVC_FLOW_ADD ***********************************************/
+    case CCMSG_ETH_EVC_FLOW_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_BRIDGE_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
+
+      CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
+
+      msg_HwEthEvcFlow_t *evcFlow;
+      evcFlow = (msg_HwEthEvcFlow_t *) inbuffer->info;
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EVCFlow_add(evcFlow))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcFlow->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOW_ADD */
+    }
+
+    /* CCMSG_ETH_EVC_FLOW_REMOVE ********************************************/
+    case CCMSG_ETH_EVC_FLOW_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_BRIDGE_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
+
+      CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
+
+      msg_HwEthEvcFlow_t *evcFlow;
+      evcFlow = (msg_HwEthEvcFlow_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_EVCFlow_remove(evcFlow);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcFlow->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
+    }
+
     /* Add vlan to be flooded */
     case CCMSG_ETH_EVC_FLOOD_VLAN_ADD:
     {

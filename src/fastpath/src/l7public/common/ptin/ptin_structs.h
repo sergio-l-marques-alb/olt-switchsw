@@ -306,7 +306,29 @@ typedef struct
   L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x08)
     #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN   0x10
   L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
+  L7_int    multicast_group;        // Associate a multicast group
 } ptin_bridge_vlan_mode_t;
+
+/* Multicast management with vlans and ports */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t oper;    /* Operation */
+  L7_int  vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
+  L7_int  multicast_group;    /* Multicast group id (-1 to be created) */
+  L7_BOOL destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
+} ptin_bridge_vlan_multicast_t;
+
+/* Virtual ports management */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t oper;
+  L7_int ext_ovid;
+  L7_int ext_ivid;
+  L7_int int_ovid;
+  L7_int int_ivid;
+  L7_int multicast_group;
+} ptin_vport_t;
 
 /* Struct used to manipulate cross connects via DTL */
 typedef struct
@@ -396,6 +418,16 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   ptin_HwEthMef10Intf_t intf; // VID represents the new outer VLAN (Vs')
 } ptin_HwEthEvcBridge_t;
+
+/* EVC stacked bridge */
+typedef struct {
+  L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+
+  /* Client interface (root is already known by the EVC) */
+  ptin_intf_t ptin_intf;  // PON interface
+  L7_uint16   outer_vid;  // GEM id
+  L7_uint16   inner_vid;  // UNI cvlan
+} ptin_HwEthEvcFlow_t;
 
 /* Client identification */
 

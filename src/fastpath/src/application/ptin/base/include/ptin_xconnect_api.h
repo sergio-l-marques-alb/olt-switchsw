@@ -13,6 +13,83 @@
 extern L7_RC_t ptin_vlan_cpu_set(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
+ * Associate a multicast group to a vlan
+ * 
+ * @param vlanId : Vlan id
+ * @param mcast_group : Multicast group id (if invalid, create a
+ *                    new one).
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int *mcast_group);
+
+/**
+ * Remove multicast group association to vlan
+ * 
+ * @param vlanId : Vlan id
+ * @param mcast_group : Multicast group id.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group);
+
+/**
+ * Add ports to Multicast egress
+ * 
+ * @param intIfNum    : interface to be added
+ * @param mcast_group : Multicast group id (-1 to create).
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int *mcast_group);
+
+/**
+ * Add port from Multicast egress
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group);
+
+/**
+ * Clean Multicast egress entries
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
+
+/**
+ * Create Virtual port
+ * 
+ * @param intIfNum    : interface to be added 
+ * @param ext_ovid    : External outer vlan 
+ * @param ext_ivid    : External inner vlan 
+ * @param int_ovid    : Internal outer vlan 
+ * @param int_ivid    : Internal inner vlan  
+ * @param mcast_group : Multicast group id (-1 to create).
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum, L7_int ext_ovid, L7_int ext_ivid, L7_int int_ovid, L7_int int_ivid, L7_int *mcast_group);
+
+/**
+ * Remove Virtual port
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param ext_ovid    : External outer vlan 
+ * @param ext_ivid    : External inner vlan 
+ * @param mcast_group : Multicast group id.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group);
+
+/**
  * Define MAC Learning for a particular Vlan, and its forwarding 
  * vlan 
  * 
@@ -23,7 +100,7 @@ extern L7_RC_t ptin_vlan_cpu_set(L7_uint16 vlanId, L7_BOOL enable);
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL macLearn);
+extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn);
 
 /**
  * Use crossconnects, instead of the MAC+Vlan bridging, for a 

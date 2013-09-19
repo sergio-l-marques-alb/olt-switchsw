@@ -181,4 +181,31 @@ extern L7_RC_t dtlPtinSlotMode( ptin_slotmode_t *dapiCmd );
  */
 extern L7_RC_t dtlPtinHwResources( st_ptin_policy_resources *resources );
 
+/**
+ * Vlan Multicast configurations
+ * 
+ * @param mc_mode : descriptor with vlan configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinVlanBridgeMulticast( ptin_bridge_vlan_multicast_t *mc_mode );
+
+/**
+ * Multicast egress port configurations
+ * 
+ * @param mc_mode : descriptor with port configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_multicast_t *mc_mode );
+
+/**
+ * Virtual port configurations
+ * 
+ * @param vport : descriptor with virtual port configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport );
+
 #endif

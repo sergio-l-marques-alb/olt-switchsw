@@ -113,8 +113,8 @@ void help_oltBuga(void)
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
-        "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add a flooding vlan to an EVC\r\n"
-        "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Delete a flooding vlan from an EVC\r\n"
+        "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add a GEM flow to an EVC\r\n"
+        "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Delete a GEM flow from an EVC\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
         "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
         "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
@@ -3409,6 +3409,67 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->inn_vlan = valued;
+        }
+        break;
+
+      /* "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add GEM flow to EVC\r\n" */
+      /* "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Remove a GEM flow from EVC\r\n" */
+      case 1607:
+      /* "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Remove a GEM flow from EVC\r\n" */
+      case 1608:
+        {
+          msg_HwEthEvcFlow_t *ptr;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          comando.msgId = (msg==1607) ? CCMSG_ETH_EVC_FLOW_ADD : CCMSG_ETH_EVC_FLOW_REMOVE;
+          comando.infoDim = sizeof(msg_HwEthEvcFlow_t);
+
+          // Pointer to data array
+          ptr = (msg_HwEthEvcFlow_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HwEthEvcFlow_t));
+
+          // Slot id
+          ptr->SlotId = (uint8)-1;
+
+          // EVC index
+          if (StrToLongLong(argv[3+0], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evcId = valued;
+
+          // Intf type
+          if (StrToLongLong(argv[3+1], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = valued;
+
+          // Intf#
+          if (StrToLongLong(argv[3+2], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_id = valued;
+
+          // Outer VLAN
+          if (StrToLongLong(argv[3+3], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.outer_vid = valued;
+
+          // Inner VLAN
+          if (StrToLongLong(argv[3+4], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.inner_vid = valued;
         }
         break;
 

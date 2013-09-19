@@ -69,6 +69,7 @@ struct ptin_evc_intf_s {
                              *  Leaf: S' (ONLY applicable to point-to-multipoint services)
                              *        (on p2multipoint services we allow a S->S'
                              *         xlate per leaf port) */
+  L7_uint16  inner_vlan;    /* Inner VLAN */
 
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  point-to-point - NOT APPLICABLE
@@ -1442,6 +1443,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_idx);  /* cannot fail! */
     }
 
+    /* TODO Create Multicast group: only for bridging (no crossconnects) applications */
+    if (!is_p2p)
+    {
+
+    }
+
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
     ptin_crossconnect_enable(root_vlan, is_p2p, is_stacked);
 
@@ -2397,6 +2404,31 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: bridge successfully removed", evc_idx);
 
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Adds a GEM flow to the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
+{
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes a GEM flow from the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
+{
   return L7_SUCCESS;
 }
 
@@ -6147,7 +6179,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
   }
 
   /* Set Forward VLAN to int_vlan and set Mac Learning state */
-  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, mac_learning);
+  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, -1, mac_learning);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "VLAN %u: error setting MAC Learning state to %s (w/ Forward VLAN %u) (rc=%d)",
