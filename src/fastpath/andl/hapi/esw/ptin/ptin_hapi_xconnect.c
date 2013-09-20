@@ -474,18 +474,21 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
 /**
  * Create Virtual port
  * 
- * @param dapiPort    : PON port
- * @param match_ovid  : GEM id (outer vlan)
- * @param match_ivid  : inner vlan after GEM id
- * @param egress_ovid : outer vlan inside switch
- * @param egress_ivid : inner vlan inside switch
- * @param mcast_group : mc group (-1 to create)
+ * @param dapiPort      : PON port
+ * @param match_ovid    : GEM id (outer vlan)
+ * @param match_ivid    : inner vlan after GEM id
+ * @param egress_ovid   : outer vlan inside switch
+ * @param egress_ivid   : inner vlan inside switch 
+ * @param mcast_group   : mc group (-1 to create) 
+ * @param virtual_gport : vport id (to be returned) 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
-                            L7_int *mcast_group)
+                            L7_uint16 match_ovid, L7_uint16 match_ivid,
+                            L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                            L7_int *mcast_group,
+                            L7_int *virtual_gport)
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -583,21 +586,27 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
     return L7_FAILURE;
   }
 
+  /* Return vport id */
+  if (virtual_gport != L7_NULLPTR)
+    *virtual_gport = vlan_port.vlan_port_id;
+
   return L7_SUCCESS;
 }
 
 /**
  * Remove virtual port
  * 
- * @param dapiPort    : PON port
- * @param match_ovid  : GEM id (outer vlan)
- * @param match_ivid  : inner vlan after GEM id
- * @param mcast_group : multicast group
+ * @param dapiPort      : PON port
+ * @param match_ovid    : GEM id (outer vlan)
+ * @param match_ivid    : inner vlan after GEM id 
+ * @param virtual_gport : vport id
+ * @param mcast_group   : multicast group
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
                             L7_uint16 match_ovid, L7_uint16 match_ivid,
+                            L7_int virtual_gport,
                             L7_int mcast_group)
 {
   DAPI_PORT_t  *dapiPortPtr;
@@ -638,12 +647,21 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   bcmx_vlan_port_t vlan_port;
   bcmx_vlan_port_t_init(&vlan_port);
 
-  /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
-  vlan_port.flags = BCM_VLAN_PORT_INNER_VLAN_ADD | BCM_VLAN_PORT_INNER_VLAN_REPLACE;
-  vlan_port.match_vlan = match_ovid;
-  vlan_port.match_inner_vlan = match_ivid;
-  vlan_port.criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
-  BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
+  /* If virtual port id is provided, use it */
+  if (virtual_gport > 0)
+  {
+    vlan_port.flags = BCM_VLAN_PORT_WITH_ID;
+    vlan_port.vlan_port_id = virtual_gport;
+  }
+  else
+  {
+    /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
+    vlan_port.flags = BCM_VLAN_PORT_INNER_VLAN_ADD | BCM_VLAN_PORT_INNER_VLAN_REPLACE;
+    vlan_port.match_vlan = match_ovid;
+    vlan_port.match_inner_vlan = match_ivid;
+    vlan_port.criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+    BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
+  }
 
   if ((error=bcmx_vlan_port_find(&vlan_port)) != BCM_E_NONE)
   {

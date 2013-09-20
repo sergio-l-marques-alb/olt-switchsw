@@ -327,6 +327,7 @@ typedef struct
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
+  L7_int virtual_gport;
   L7_int multicast_group;
 } ptin_vport_t;
 

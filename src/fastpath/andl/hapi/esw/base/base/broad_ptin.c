@@ -624,11 +624,15 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   switch (vport->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_vp_create(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->int_ovid, vport->int_ivid, &vport->multicast_group);
+    rc = ptin_hapi_vp_create(&dapiPort,
+                             vport->ext_ovid, vport->ext_ivid,
+                             vport->int_ovid, vport->int_ivid,
+                             &vport->multicast_group,
+                             &vport->virtual_gport);
     break;
   case DAPI_CMD_CLEAR:
   case DAPI_CMD_CLEAR_ALL:
-    rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->multicast_group);
+    rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
     break;
   default:
     rc = L7_FAILURE;
