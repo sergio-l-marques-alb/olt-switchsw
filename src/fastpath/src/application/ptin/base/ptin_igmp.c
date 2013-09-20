@@ -2438,7 +2438,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
 
   //st_IgmpInstCfg_t *igmpInst;
-  L7_uint16 evc_id;
+  L7_uint32 evc_id;
   ptin_HwEthMef10Evc_t evcConf;
 
   #if 0
