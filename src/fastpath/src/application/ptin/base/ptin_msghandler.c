@@ -1571,7 +1571,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a bridge to EVC# %u", evcBridge->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;

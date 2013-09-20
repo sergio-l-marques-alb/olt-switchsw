@@ -8021,33 +8021,39 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_id, L7_int ptin_port)
  * 
  * @param evc_id 
  */
-void ptin_evc_dump(L7_uint evc_id)
+void ptin_evc_dump(L7_uint32 evc_ext_id)
 {
   L7_uint start, end;
   L7_uint i, j;
   struct ptin_evc_client_s *pclient;
+  L7_uint32 evc_id;
 
   /* Dump all ? */
-  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     start = 0;
-    end   = PTIN_SYSTEM_N_EVCS - 1;
+    end   = PTIN_SYSTEM_N_EXTENDED_EVCS - 1;
   }
   else
   {
-    start = evc_id;
-    end   = evc_id;
+    start = evc_ext_id;
+    end   = evc_ext_id;
   }
 
-  for (evc_id = start; evc_id <= end; evc_id++)
+  for (evc_ext_id = start; evc_ext_id <= end; evc_ext_id++)
   {
-    if (!evcs[evc_id].in_use) {
-      if (evc_id<PTIN_SYSTEM_N_EVCS)
-        printf("*** EVC# %02u not in use\n\n", evc_id);
+    if (!IS_eEVC_IN_USE(evc_ext_id))
       continue;
-    }
 
-    printf("EVC# %02u\n", evc_id);
+//  if (!evcs[evc_id].in_use) {
+//    if (evc_id<PTIN_SYSTEM_N_EVCS)
+//      printf("*** EVC# %02u not in use\n\n", evc_id);
+//    continue;
+//  }
+
+    ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+    printf("eEVC# %02u (internal id %u)\n", evc_ext_id, evc_id);
 
     printf("  Flags     = 0x%08X", evcs[evc_id].flags);
     if (evcs[evc_id].flags)
@@ -8072,6 +8078,8 @@ void ptin_evc_dump(L7_uint evc_id)
       printf("IGMP  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
       printf("DHCPop82  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+      printf("PPPoE  ");
     printf("\n");
 
     printf("  MC Flood  = %s (%u)\n", evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_ALL ? "All":evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_UNKNOWN ? "Unknown":"None",
@@ -8160,8 +8168,33 @@ void ptin_evc_which(L7_uint int_vlan)
   printf("Internal vlan %u => EVC %u\r\n\n",int_vlan,evc_id);
 
   /* Dump EVC */
-  ptin_evc_dump(evc_id);
+  ptin_evc_dump(evcs[evc_id].extended_id);
 }
+
+
+/**
+ * Dumps EVC extended index mapping 
+ */
+void ptin_evc_map(void)
+{
+  L7_uint32 evc_ext_id;
+
+  printf("+---------+---------+\n");
+  printf("| Ext. ID | Int. ID |\n");
+  printf("+---------+---------+\n");
+
+  for (evc_ext_id=0; evc_ext_id < PTIN_SYSTEM_N_EXTENDED_EVCS; evc_ext_id++) {
+    if (!IS_eEVC_IN_USE(evc_ext_id))
+      continue;
+
+    printf("|  %5u  |  %5d  |\n", evc_ext_id, evc_ext2int[evc_ext_id]);
+  }
+
+  printf("+---------+---------+\n");
+
+  return;
+}
+
 
 #if 0
 void sizeof_evc(void)

@@ -86,6 +86,7 @@ void ptin_debug(void)
   printf("  ptin_intf_dump            - prints info about all PHY interfaces\r\n");
   printf("  ptin_lag_dump             - prints info about all LAG interfaces\r\n");
   printf("  ptin_evc_dump <id>        - prints info about EVCs (use -1 to display all)\r\n");
+  printf("  ptin_evc_map              - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int> - prints info about the EVC related to the given internal vlan\r\n");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC\r\n");
