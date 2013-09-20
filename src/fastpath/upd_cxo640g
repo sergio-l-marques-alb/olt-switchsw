@@ -30,8 +30,9 @@ echo "World!"
 #cp ../../../../../fastpath.shell/bin/fastpath.shell .
 #lc_put $1 $2 fastpath.shell /usr/local/ptin/sbin .
 
-#cp ../../../../../fastpath.cli/bin/fastpath.cli .
-#lc_put $1 $2 fastpath.cli /usr/local/ptin/sbin .
+cd ../fastpath.cli/bin
+lc_put $1 $2 fp.cli /usr/local/ptin/sbin
+cd -
 
 #cd -
  

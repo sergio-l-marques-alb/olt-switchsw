@@ -517,7 +517,7 @@ L7_RC_t ptin_pppoe_instance_remove(L7_uint32 UcastEvcId)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_instance_destroy(L7_uint16 evcId)
+L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId)
 {
   return ptin_pppoe_instance_remove(evcId);
 }

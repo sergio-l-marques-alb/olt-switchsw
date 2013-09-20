@@ -425,7 +425,7 @@ extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+extern L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
 
 /**
  * Update snooping configuration, when interfaces are 

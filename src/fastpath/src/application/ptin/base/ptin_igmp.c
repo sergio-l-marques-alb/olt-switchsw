@@ -4609,7 +4609,7 @@ static L7_RC_t igmp_assoc_avlTree_purge( void )
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* IGMP instance management already deal with trp rules */
