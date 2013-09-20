@@ -122,7 +122,7 @@ extern L7_RC_t ptin_pppoe_enable(L7_BOOL enable);
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-extern L7_RC_t ptin_pppoe_is_evc_used(L7_uint16 evcId);
+extern L7_RC_t ptin_pppoe_is_evc_used(L7_uint32 evcId);
 
 /**
  * Creates a PPPOE instance
@@ -131,7 +131,7 @@ extern L7_RC_t ptin_pppoe_is_evc_used(L7_uint16 evcId);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_instance_add(L7_uint16 UcastEvcId);
+extern L7_RC_t ptin_pppoe_instance_add(L7_uint32 UcastEvcId);
 
 /**
  * Removes a PPPOE instance
@@ -140,7 +140,7 @@ extern L7_RC_t ptin_pppoe_instance_add(L7_uint16 UcastEvcId);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_instance_remove(L7_uint16 UcastEvcId);
+extern L7_RC_t ptin_pppoe_instance_remove(L7_uint32 UcastEvcId);
 
 /**
  * Update PPPOE entries, when EVCs are deleted
@@ -487,7 +487,7 @@ extern L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan, L7_uint client_idx, 
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
+extern L7_RC_t ptin_pppoe_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
  * Increment PPPOE statistics

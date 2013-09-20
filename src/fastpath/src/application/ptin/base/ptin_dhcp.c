@@ -156,7 +156,7 @@ typedef struct {
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
 
 /* Reference of evcid using internal vlan as reference */
-static L7_uint8 dhcpInst_fromEvcId[PTIN_SYSTEM_N_EVCS];
+static L7_uint8 dhcpInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /* Global DHCP statistics at interface level */
 ptin_DHCP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
@@ -373,12 +373,12 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_dhcp_is_evc_used(L7_uint16 evcId)
+L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evcId)
 {
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FALSE;
   }
 
@@ -403,21 +403,21 @@ L7_RC_t ptin_dhcp_is_evc_used(L7_uint16 evcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_instance_add(L7_uint16 UcastEvcId)
+L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
 {
   L7_uint dhcp_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid EVC id: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",UcastEvcId);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
   if (!ptin_evc_is_in_use(UcastEvcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: ucEvcId%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -462,14 +462,14 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint16 UcastEvcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_instance_remove(L7_uint16 UcastEvcId)
+L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId)
 {
   L7_uint dhcp_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid EVC ids: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -1354,7 +1354,7 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_en
   dhcpSnoopBinding_t  dsBinding;
   L7_uint16           index, i;
   ptin_intf_t         ptin_intf;
-  L7_uint16           evc_idx;
+  L7_uint             evc_idx;
   L7_uint16           n_max;
 
   n_max = (max_entries!=L7_NULLPTR && *max_entries<PLAT_MAX_FDB_MAC_ENTRIES) ? (*max_entries) : PLAT_MAX_FDB_MAC_ENTRIES;
@@ -1405,7 +1405,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint16 *
   dhcpSnoopBinding_t  dsBinding;
   L7_uint16           index, i;
   ptin_intf_t         ptin_intf;
-  L7_uint16           evc_idx;
+  L7_uint             evc_idx;
   L7_uint16           n_max;
 
   n_max = (max_entries!=L7_NULLPTR && *max_entries<PLAT_MAX_FDB_MAC_ENTRIES) ? (*max_entries) : PLAT_MAX_FDB_MAC_ENTRIES;
@@ -2612,15 +2612,15 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
+L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_evc_intfCfg_t intfCfg;
 
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FAILURE;
   }
 
@@ -3015,7 +3015,7 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
  */
 static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_t **dhcpInst, L7_uint *dhcpInst_idx)
 {
-  L7_uint16 evc_idx, dhcp_idx;
+  L7_uint32 evc_idx, dhcp_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)

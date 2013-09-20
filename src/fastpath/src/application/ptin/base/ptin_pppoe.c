@@ -156,7 +156,7 @@ typedef struct {
 st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
 
 /* Reference of evcid using internal vlan as reference */
-static L7_uint8 pppoeInst_fromEvcId[PTIN_SYSTEM_N_EVCS];
+static L7_uint8 pppoeInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /* Global PPPOE statistics at interface level */
 ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
@@ -379,19 +379,19 @@ L7_RC_t ptin_pppoe_enable(L7_BOOL enable)
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_pppoe_is_evc_used(L7_uint16 evcId)
+L7_RC_t ptin_pppoe_is_evc_used(L7_uint32 evcId)
 {
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FALSE;
   }
 
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"eEVC id is not active: evcId=%u",evcId);
     return L7_FALSE;
   }
 
@@ -409,21 +409,21 @@ L7_RC_t ptin_pppoe_is_evc_used(L7_uint16 evcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_instance_add(L7_uint16 UcastEvcId)
+L7_RC_t ptin_pppoe_instance_add(L7_uint32 UcastEvcId)
 {
   L7_uint pppoe_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid EVC id: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid eEVC id: ucEvcId=%u",UcastEvcId);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
   if (!ptin_evc_is_in_use(UcastEvcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"EVC id is not active: ucEvcId%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"eEVC id is not active: ucEvcId%u",UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -468,14 +468,14 @@ L7_RC_t ptin_pppoe_instance_add(L7_uint16 UcastEvcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_instance_remove(L7_uint16 UcastEvcId)
+L7_RC_t ptin_pppoe_instance_remove(L7_uint32 UcastEvcId)
 {
   L7_uint pppoe_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid EVC ids: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid eEVC ids: ucEvcId=%u",UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -2652,22 +2652,22 @@ L7_RC_t ptin_pppoe_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
+L7_RC_t ptin_pppoe_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_evc_intfCfg_t intfCfg;
 
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FAILURE;
   }
 
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"eEVC id is not active: evcId=%u",evcId);
     return L7_FAILURE;
   }
 
@@ -3055,10 +3055,10 @@ static L7_RC_t ptin_pppoe_instance_deleteAll_clients(L7_uint pppoe_idx)
  */
 static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCfg_t **pppoeInst, L7_uint *pppoeInst_idx)
 {
-  L7_uint16 evc_idx, pppoe_idx;
+  L7_uint32 evc_idx, pppoe_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
-  if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"No EVC associated to internal vlan %u",intVlan);

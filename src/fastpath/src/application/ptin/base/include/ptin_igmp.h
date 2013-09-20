@@ -438,7 +438,7 @@ extern L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_d
  *  
  * @return L7_BOOL : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
+extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
  * Reset Proxy machine
@@ -454,7 +454,7 @@ extern L7_RC_t ptin_igmp_proxy_reset(void);
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-extern L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
+extern L7_RC_t ptin_igmp_is_evc_used(L7_uint32 evcId);
 
 /**
  * Creates an IGMP instance
@@ -464,7 +464,7 @@ extern L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId);
+extern L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 /**
  * Removes an IGMP instance
@@ -474,7 +474,7 @@ extern L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId);
+extern L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 /**
  * Reactivate all IGMP instances
@@ -644,7 +644,7 @@ extern L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
+extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                        L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                        L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
                                        L7_BOOL is_static );
@@ -673,7 +673,7 @@ extern L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc );
+extern L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc );
 #endif
 
 /******************************************************** 

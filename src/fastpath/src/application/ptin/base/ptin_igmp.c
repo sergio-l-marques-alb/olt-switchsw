@@ -160,9 +160,9 @@ typedef struct {
 /* List of all IGMP associations */
 ptinIgmpPairAvlTree_t igmpPairDB;
 
-static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
+static L7_RC_t igmp_assoc_pair_get( L7_uint32 evc_uc,
                                     L7_inet_addr_t *channel_group, L7_inet_addr_t *channel_source,
-                                    L7_uint16 *evc_mc );
+                                    L7_uint32 *evc_mc );
 static L7_RC_t igmp_assoc_channelIP_prepare( L7_inet_addr_t *channel_in, L7_uint16 channel_mask,
                                              L7_inet_addr_t *channel_out, L7_uint32 *number_of_channels);
 static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node );
@@ -191,7 +191,7 @@ typedef struct {
 st_IgmpInstCfg_t  igmpInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 
 /* Reference of evcid using internal vlan as reference */
-static L7_uint8 igmpInst_fromEvcId[PTIN_SYSTEM_N_EVCS];
+static L7_uint8 igmpInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /* Configuration structures */
 ptin_IgmpProxyCfg_t igmpProxyCfg;
@@ -350,7 +350,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 static L7_RC_t ptin_igmp_global_configuration(void);
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable);
 #if (defined IGMPASSOC_MULTI_MC_SUPPORTED)
-static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
 #endif
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
@@ -370,7 +370,7 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 //static L7_RC_t ptin_igmp_router_intf_config(L7_uint router_intf, L7_uint16 router_vlan, L7_uint admin);
 //static L7_RC_t ptin_igmp_clients_intf_config(L7_uint client_intf, L7_uint admin);
 
-static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *client);
+static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
 static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
 
 /**
@@ -1091,19 +1091,19 @@ L7_RC_t ptin_igmp_proxy_reset(void)
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId)
+L7_RC_t ptin_igmp_is_evc_used(L7_uint32 evcId)
 {
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FALSE;
   }
 
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC id is not active: evcId=%u",evcId);
     return L7_FALSE;
   }
 
@@ -1122,15 +1122,15 @@ L7_RC_t ptin_igmp_is_evc_used(L7_uint16 evcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
+L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 {
   L7_uint igmp_idx;
 
   /* Validate arguments */
-  if (McastEvcId>=PTIN_SYSTEM_N_EVCS ||
-      UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (McastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS ||
+      UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -1141,7 +1141,7 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
       #endif
      )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC ids are not active: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC ids are not active: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -1214,15 +1214,15 @@ L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
+L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 {
   L7_uint igmp_idx;
 
   /* Validate arguments */
-  if (McastEvcId>=PTIN_SYSTEM_N_EVCS ||
-      UcastEvcId>=PTIN_SYSTEM_N_EVCS)
+  if (McastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS ||
+      UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_FAILURE;
   }
 
@@ -1338,30 +1338,30 @@ L7_RC_t ptin_igmp_instance_destroy(L7_uint16 evcId)
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
+L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_evc_intfCfg_t intfCfg;
   ptin_HwEthMef10Evc_t evcCfg;
 
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EVCS)
+  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC id: evcId=%u",evcId);
     return L7_FAILURE;
   }
 
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evcId))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC id is not active: evcId=%u",evcId);
     return L7_FAILURE;
   }
 
   /* Check if this EVC is being used by any igmp instance */
   if (ptin_igmp_instance_find_fromSingleEvcId(evcId,L7_NULLPTR)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"EVC %u is not used in any IGMP instance... nothing to do",evcId);
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"eEVC %u is not used in any IGMP instance... nothing to do",evcId);
     return L7_SUCCESS;
   }
 
@@ -1369,14 +1369,14 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
   evcCfg.index = evcId;
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring EVC %u configuration",evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring eEVC %u configuration",evcId);
     return L7_FAILURE;
   }
 
   /* Get interface configuration */
   if (ptin_evc_intfCfg_get(evcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring interface %u/%u configuarion from EVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring interface %u/%u configuarion from eEVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evcId);
     return L7_FAILURE;
   }
 
@@ -1385,7 +1385,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint16 evcId, ptin_intf_t *p
   {
     if (usmDbSnoopVlanModeSet(1,intfCfg.int_vlan,enable,L7_AF_INET)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring to %u int_vlan %u of interface %u/%u (EVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evcId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring to %u int_vlan %u of interface %u/%u (eEVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evcId);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP trapping configured to %u, for vlan %u (interface %u/%u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id);
@@ -2315,7 +2315,7 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
 L7_RC_t ptin_igmp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
   //st_IgmpInstCfg_t *igmpInst;
-  L7_uint16   evc_uc, evc_mc;
+  L7_uint32   evc_uc, evc_mc;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t mc_intf_cfg;
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
@@ -2403,7 +2403,7 @@ L7_RC_t ptin_igmp_vlan_validate(L7_uint16 intVlan)
     return L7_FAILURE;
   }
   #else
-  L7_uint16 evc_idx;
+  L7_uint32 evc_idx;
 
   /* Get EVC id */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
@@ -2477,7 +2477,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 
   #else
 
-  L7_uint16 evc_uc;
+  L7_uint32 evc_uc;
   ptin_HwEthMef10Evc_t evcConf;
 
   /* Get EVC id from this internal vlan */
@@ -2528,7 +2528,7 @@ L7_RC_t ptin_igmp_vlan_UC_is_unstacked(L7_uint16 intVlan, L7_BOOL *is_unstacked)
 L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
   //st_IgmpInstCfg_t *igmpInst;
-  L7_uint16   evc_id;
+  L7_uint32   evc_id;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t mc_intf_cfg;
 
@@ -2608,7 +2608,7 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   //st_IgmpInstCfg_t *igmpInst;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t intf_cfg;
-  L7_uint16 evc_id;
+  L7_uint32 evc_id;
 
   #if 0
   /* IGMP instance, from internal vlan */
@@ -2689,8 +2689,8 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t
 {
   st_IgmpInstCfg_t *igmpInst;
   L7_uint16 intRootVlan;
-  L7_uint16 evcId_uc;
-  L7_uint16 evcId_mc;
+  L7_uint32 evcId_uc;
+  L7_uint32 evcId_mc;
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
@@ -2854,7 +2854,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   L7_uint32   intIfNum;
   L7_uint     ptin_port;
   ptin_intf_t ptin_intf;
-  L7_uint16   evc_idx;
+  L7_uint32   evc_idx;
 
   #if (!defined IGMP_QUERIER_IN_UC_EVC)
   st_IgmpInstCfg_t *igmpInst;
@@ -3778,10 +3778,10 @@ L7_RC_t igmp_assoc_init( void )
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
+static L7_RC_t igmp_assoc_pair_get( L7_uint32 evc_uc,
                                     L7_inet_addr_t *channel_group,
                                     L7_inet_addr_t *channel_source,
-                                    L7_uint16 *evc_mc )
+                                    L7_uint32 *evc_mc )
 {
   ptinIgmpPairDataKey_t  avl_key;
   ptinIgmpPairInfoData_t *avl_infoData;
@@ -3792,16 +3792,16 @@ static L7_RC_t igmp_assoc_pair_get( L7_uint16 evc_uc,
 
   #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
   /* Validate unicast service */
-  if ( evc_uc >= PTIN_SYSTEM_N_EVCS )
+  if ( evc_uc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid UC evc (%u)", evc_uc);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid UC eEVC (%u)", evc_uc);
     return L7_FAILURE;
   }
   /* Check if UC EVC is active */
   if ( !ptin_evc_is_in_use(evc_uc) )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"UC evc %u is not in use!", evc_uc);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"UC eEVC %u is not in use!", evc_uc);
     return L7_FAILURE;
   }
   #endif
@@ -3878,8 +3878,8 @@ L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
                                  L7_inet_addr_t *channel_source,
                                  L7_uint16 *vlan_mc )
 {
-  L7_uint16 evc_uc=0;
-  L7_uint16 evc_mc=0;
+  L7_uint32 evc_uc=0;
+  L7_uint32 evc_mc=0;
 
   #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
   if ( vlan_uc >= PTIN_VLAN_MIN && vlan_uc <= PTIN_VLAN_MAX )
@@ -4016,7 +4016,7 @@ L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
+L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                 L7_inet_addr_t *channel_group , L7_uint16 channel_grpMask,
                                 L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
                                 L7_BOOL is_static )
@@ -4061,7 +4061,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint16 evc_uc, L7_uint16 evc_mc,
   #endif
 
   /* Validate multicast service */
-  if ( evc_mc >= PTIN_SYSTEM_N_EVCS )
+  if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
     return L7_FAILURE;
@@ -4303,18 +4303,18 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
+L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
 {
   /* Validate multicast service */
-  if ( evc_mc >= PTIN_SYSTEM_N_EVCS )
+  if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC eEVC (%u)", evc_mc);
     return L7_FAILURE;
   }
   /* Check if MC EVC is active */
   if ( !ptin_evc_is_in_use(evc_mc) )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u is not in use!", evc_mc);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC eEVC %u is not in use!", evc_mc);
     return L7_FAILURE;
   }
 
@@ -5544,7 +5544,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
  */
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx)
 {
-  L7_uint16 evc_idx, igmp_idx;
+  L7_uint32 evc_idx, igmp_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
@@ -5822,7 +5822,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
 {
   L7_uint16   idx, vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
@@ -5843,7 +5843,7 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint16 evc_idx, L7_BOOL enable, p
   enable &= 1;
 
   /* Validate argument */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid evc index %u",evc_idx);
     return L7_FAILURE;
@@ -6417,20 +6417,20 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *client)
+static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client)
 {
   L7_uint16 intVlan, innerVlan;
 
   /* Validate evc index  */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid EVC id: evcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC id: evcId=%u",evc_idx);
     return L7_FAILURE;
   }
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"EVC id is not active: evcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC id is not active: evcId=%u",evc_idx);
     return L7_FAILURE;
   }
   /* Validate client */
@@ -8643,7 +8643,8 @@ void ptin_igmp_proxy_dump(void)
  */
 void ptin_igmp_querier_dump(L7_int evcId)
 {
-  L7_uint16 evc_idx, vlanId;
+  L7_uint16 vlanId;
+  L7_uint32 evc_idx;
   ptin_HwEthMef10Evc_t evcConf;
   L7_inet_addr_t address;
   L7_uint32 query_interval, expiry_interval;
@@ -8682,7 +8683,7 @@ void ptin_igmp_querier_dump(L7_int evcId)
     printf("\nPrinting only IGMP UC service provided %u:\r\n",evcId);
   }
 
-  for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++)
+  for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EXTENDED_EVCS; evc_idx++)
   {
     /* Print this? */
     if (evcId>0 && evc_idx!=evcId)
