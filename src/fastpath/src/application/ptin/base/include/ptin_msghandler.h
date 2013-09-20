@@ -640,6 +640,7 @@ typedef struct {
                             // 0x000200 - IGMP protocol (PTin custom field)
                             // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
+  L7_uint16 nni_cvlan;  // NNI inner vlan
   msg_HwEthIntf_t intf; // outer vlan is the GEM id
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 

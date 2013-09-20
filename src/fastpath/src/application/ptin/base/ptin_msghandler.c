@@ -1588,7 +1588,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_EVC_FLOW_ADD:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_BRIDGE_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
+               "Message received: CCMSG_ETH_EVC_FLOW_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
 
@@ -1615,7 +1615,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_EVC_FLOW_REMOVE:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_BRIDGE_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
+               "Message received: CCMSG_ETH_EVC_FLOW_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
 

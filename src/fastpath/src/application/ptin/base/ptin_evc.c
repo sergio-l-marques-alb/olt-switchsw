@@ -64,6 +64,8 @@ typedef struct ptin_evc_gemflow_s
   L7_uint16 gem_id;       /* GEM id, used as outer vlan*/
   L7_uint16 service_id;   /* Service id, used as inner vlan */
   L7_uint32 flags;        /* Flags identifying flow */
+  L7_uint16 int_ovlan;    /* Internal outer vlan */
+  L7_uint16 client_vlan;  /* Client vlan used internally */
   L7_int virtual_gport;   /* Gport identifying virtual port */
 } ptin_evc_gemflow_t;
 
@@ -2585,13 +2587,11 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   L7_uint evc_id, evc_ext_id;
   L7_uint leaf_port;
   L7_uint32 intIfNum;
-  L7_uint int_vlan, nni_inner_vlan;
+  L7_uint int_vlan;
   L7_int  vport_id, multicast_group;
   L7_uint flow_id, id_free;
   ptin_evc_gemflow_t *flow;
-  //struct ptin_evc_client_s *pclient;
-
-  return L7_SUCCESS;
+  struct ptin_evc_client_s *pclient;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -2637,7 +2637,7 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   /* Get internal vlan and inner NNI vlan */
   int_vlan = evcs[evc_id].intf[leaf_port].int_vlan;
-  nni_inner_vlan = IS_EVC_STACKED(evc_id) ? evcs[evc_id].intf[leaf_port].inner_vlan : 0;
+  //nni_inner_vlan = IS_EVC_STACKED(evc_id) ? evcs[evc_id].intf[root_port].inner_vlan : 0;
 
   /* Multicast group */
   multicast_group = evcs[evc_id].multicast_group;
@@ -2683,7 +2683,7 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* Create virtual port */
   if (ptin_virtual_port_add(intIfNum,
                             evcFlow->outer_vid, evcFlow->inner_vid,
-                            int_vlan, nni_inner_vlan,
+                            int_vlan, evcFlow->client_vlan,
                             multicast_group,
                             &vport_id) != L7_SUCCESS)
   {
@@ -2693,45 +2693,52 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   /* Save data related to flow */
   flow[flow_id].in_use        = L7_TRUE;
+  flow[flow_id].int_ovlan     = int_vlan;
+  flow[flow_id].client_vlan   = evcFlow->client_vlan;
   flow[flow_id].gem_id        = evcFlow->outer_vid;
   flow[flow_id].service_id    = evcFlow->inner_vid;
   flow[flow_id].flags         = evcFlow->flags;
   flow[flow_id].virtual_gport = vport_id;
 
-  #if 0
   /* Add client if service is stacked */
-  if (IS_EVC_STACKED(evc_id))
+  if (evcFlow->client_vlan>0 && IS_EVC_STACKED(evc_id))
   {
-    /* Check if client entry already exists */
-    ptin_evc_find_client(nni_inner_vlan, &evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
-    if (pclient != NULL)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u already have a client with CVID = %u", evc_id, nni_inner_vlan);
-      return L7_SUCCESS;
-    }
+    /* Get client */
+    pclient = L7_NULLPTR;
+    ptin_evc_find_client(evcFlow->client_vlan, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pclient);
 
     /* SEM CLIENTS UP */
     osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
-    /* Add client to the EVC struct */
-    dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pclient);  /* get a free client entry */
-    pclient->in_use       = L7_TRUE;                                              /* update it */
-    pclient->client_vlan  = nni_inner_vlan;
-    pclient->out_vlan     = evcFlow->outer_vid;
-    pclient->uni_cvlan    = evcFlow->inner_vid;
-    /* No vlans to be flooded */
-    memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
-    pclient->bwprofile[PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
-    pclient->bwprofile[PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
-    pclient->counter  [PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
-    pclient->counter  [PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
-    dl_queue_add_tail(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
-    evcs[evc_id].n_clients++;
-  }
+    /* Create new client if not existent */
+    if (pclient == L7_NULLPTR)
+    {
+      /* Add client to the EVC struct */
+      dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pclient);  /* get a free client entry */
+      pclient->in_use       = L7_TRUE;                                              /* update it */
+      pclient->client_vlan  = evcFlow->client_vlan;
+      pclient->out_vlan     = evcFlow->outer_vid;
+      pclient->uni_cvlan    = 0;
+      /* No vlans to be flooded */
+      memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
+      pclient->bwprofile[PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
+      pclient->bwprofile[PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
+      pclient->counter  [PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
+      pclient->counter  [PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
+      dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
+      evcs[evc_id].n_clients++;
+    }
+    else
+    {
+      /* Otherwise, update data */
+      pclient->client_vlan  = evcFlow->client_vlan;
+      pclient->out_vlan     = evcFlow->outer_vid;
+      pclient->uni_cvlan    = 0;
+    }
 
-  /* SEM CLIENTS DOWN */
-  osapiSemaGive(ptin_evc_clients_sem);
-  #endif
+    /* SEM CLIENTS DOWN */
+    osapiSemaGive(ptin_evc_clients_sem);
+  }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
 
@@ -2753,6 +2760,7 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   L7_int  multicast_group;
   L7_uint flow_id;
   ptin_evc_gemflow_t *flow;
+  struct ptin_evc_client_s *pclient;
 
   return L7_SUCCESS;
 
@@ -2810,25 +2818,57 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
     if (flow[flow_id].in_use && flow[flow_id].gem_id == evcFlow->outer_vid)
       break;
   }
-
-  /* Check if was found */
+  /* Check if there is a free id to be used */
   if (flow_id >= PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flow not found", evc_id);
-    return L7_NOT_EXIST;
-  }
-
-  /* Create virtual port */
-  if (ptin_virtual_port_remove(intIfNum, flow[flow_id].virtual_gport, multicast_group) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port (vport=%d)", evc_id, flow[flow_id].virtual_gport);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available gem flows", evc_id);
     return L7_FAILURE;
   }
 
-  /* Clear data related to flow */
+  /* Remove virtual port */
+  if (ptin_virtual_port_remove(intIfNum, flow[flow_id].virtual_gport, multicast_group) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Clear data from flow */
   memset(&flow[flow_id], 0x00, sizeof(ptin_evc_gemflow_t));
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully removed", evc_ext_id);
+  if (flow[flow_id].client_vlan > 0 && IS_EVC_STACKED(evc_id))
+  {
+    /* Check if there is no more flows: remove client if so */
+    for (flow_id=0; flow_id<PTIN_FLOOD_VLANS_MAX && !(flow[flow_id].in_use); flow_id++);
+
+    /* No flows found... proceed to remove client */
+    if (flow_id >= PTIN_FLOOD_VLANS_MAX)
+    {
+      /* Get client */
+      pclient = L7_NULLPTR;
+      ptin_evc_find_client(flow[flow_id].client_vlan, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pclient);
+
+      /* Remove client */
+      if (pclient != L7_NULLPTR)
+      {
+        /* SEM CLIENTS UP */
+        osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+        /* Delete client from the EVC struct */
+        dl_queue_remove(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pclient);
+        pclient->in_use       = L7_FALSE;
+        pclient->client_vlan  = 0;
+        pclient->out_vlan     = 0;
+        pclient->client_vlan  = 0;
+        dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pclient);
+        evcs[evc_id].n_clients--;
+
+        /* SEM CLIENTS DOWN */
+        osapiSemaGive(ptin_evc_clients_sem);
+      }
+    }
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added", evc_ext_id);
 
   return L7_SUCCESS;
 }

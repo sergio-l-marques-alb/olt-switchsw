@@ -505,6 +505,7 @@ typedef struct {
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 inner_vid;    // Inner vlan
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */
@@ -548,9 +549,12 @@ typedef struct {
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint32 evcId;                // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-
+  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                            // 0x000200 - IGMP protocol (PTin custom field)
+                            // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
+  L7_uint16 nni_cvlan;  // NNI inner vlan
   msg_HwEthIntf_t intf; // outer vlan is the GEM id
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 

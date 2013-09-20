@@ -428,6 +428,8 @@ typedef struct {
   L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
   L7_uint32 flags;        // Protocol flags
 
+  L7_uint16 client_vlan;  // Client clan
+
   /* Client interface (root is already known by the EVC) */
   ptin_intf_t ptin_intf;  // PON interface
   L7_uint16   outer_vid;  // GEM id
