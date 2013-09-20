@@ -890,24 +890,28 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
     *mcast_group = mc_group;
   }
 
-  /* Get current control definitions for this vlan */
-  bcm_vlan_control_vlan_t_init(&control);
-  if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+  /* Only for valid vlans */
+  if (vlanId>0 && vlanId<4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
-  
-  /* Associate a MC group */
-  control.broadcast_group = mc_group;
-  control.unknown_multicast_group = mc_group;
-  control.unknown_unicast_group = mc_group;
+    /* Get current control definitions for this vlan */
+    bcm_vlan_control_vlan_t_init(&control);
+    if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    
+    /* Associate a MC group */
+    control.broadcast_group = mc_group;
+    control.unknown_multicast_group = mc_group;
+    control.unknown_unicast_group = mc_group;
 
-  /* Apply new control definitions to this vlan */
-  if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
+    /* Apply new control definitions to this vlan */
+    if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
@@ -936,24 +940,28 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
     return L7_FAILURE;
   }
 
-  /* Get current control definitions for this vlan */
-  bcm_vlan_control_vlan_t_init(&control);
-  if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+  /* Only for valid vlans */
+  if (vlanId>0 && vlanId<4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
-  
-  /* Associate a MC group */
-  control.broadcast_group         = -1;
-  control.unknown_multicast_group = -1;
-  control.unknown_unicast_group   = -1;
+    /* Get current control definitions for this vlan */
+    bcm_vlan_control_vlan_t_init(&control);
+    if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    
+    /* Associate a MC group */
+    control.broadcast_group         = -1;
+    control.unknown_multicast_group = -1;
+    control.unknown_unicast_group   = -1;
 
-  /* Apply new control definitions to this vlan */
-  if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
+    /* Apply new control definitions to this vlan */
+    if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
   }
 
   /* Destroy MC group */

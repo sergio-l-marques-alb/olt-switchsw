@@ -13,15 +13,32 @@
 extern L7_RC_t ptin_vlan_cpu_set(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
- * Associate a multicast group to a vlan
+ * Create a multicast group
  * 
- * @param vlanId : Vlan id
- * @param mcast_group : Multicast group id (if invalid, create a
- *                    new one).
+ * @param mcast_group : Multicast group id to be returned.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int *mcast_group);
+extern L7_RC_t ptin_multicast_group_create(L7_int *mcast_group);
+
+/**
+ * Destroy a multicast group
+ * 
+ * @param mcast_group : Multicast group id to be destroyed.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group);
+
+/**
+ * Associate a multicast group to a vlan
+ * 
+ * @param vlanId : Vlan id
+ * @param mcast_group : Multicast group id.
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group);
 
 /**
  * Remove multicast group association to vlan
@@ -37,11 +54,11 @@ extern L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_gr
  * Add ports to Multicast egress
  * 
  * @param intIfNum    : interface to be added
- * @param mcast_group : Multicast group id (-1 to create).
+ * @param mcast_group : Multicast group id.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int *mcast_group);
+extern L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group);
 
 /**
  * Add port from Multicast egress

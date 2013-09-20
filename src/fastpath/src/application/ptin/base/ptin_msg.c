@@ -2173,12 +2173,13 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
     ptinEvcConf.intf[i].intf_type = msgEvcConf->intf[i].intf_type;
     ptinEvcConf.intf[i].mef_type  = msgEvcConf->intf[i].mef_type;
     ptinEvcConf.intf[i].vid       = msgEvcConf->intf[i].vid;
+    ptinEvcConf.intf[i].vid_inner = msgEvcConf->intf[i].inner_vid;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u",
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u/%-04u",
              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
              ptinEvcConf.intf[i].intf_id,
              ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-             ptinEvcConf.intf[i].vid);
+             ptinEvcConf.intf[i].vid,ptinEvcConf.intf[i].vid_inner);
   }
 
   if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
@@ -2302,12 +2303,14 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
+  ptinEvcFlow.flags               = msgEvcFlow->flags;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
   ptinEvcFlow.outer_vid           = msgEvcFlow->intf.outer_vid; /* must be a leaf */
   ptinEvcFlow.inner_vid           = msgEvcFlow->intf.inner_vid;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID = %u", ptinEvcFlow.outer_vid);

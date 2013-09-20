@@ -352,6 +352,7 @@ typedef struct {
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 vid_inner;    // Inner vlan associated to this interface
 } ptin_HwEthMef10Intf_t;
 
 /* EVC config */
@@ -405,6 +406,8 @@ typedef struct {
                              *  Leaf: S' (ONLY applicable to unstacked services)
                              *        (on unstacked services we allow a S->S'
                              *         xlate per leaf port) */
+  L7_uint16  inner_vlan;    /* Inner vlan associated to interface */
+
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  stacked   - NOT APPLICABLE
                              *  unstacked - one internal VLAN per interface */
@@ -422,6 +425,7 @@ typedef struct {
 /* EVC stacked bridge */
 typedef struct {
   L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;        // Protocol flags
 
   /* Client interface (root is already known by the EVC) */
   ptin_intf_t ptin_intf;  // PON interface

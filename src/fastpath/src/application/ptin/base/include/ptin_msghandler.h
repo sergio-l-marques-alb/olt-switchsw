@@ -594,11 +594,16 @@ typedef struct {
 typedef struct {
   L7_uint8  SlotId;
   L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint32 flags;        // 0x0001 - Bundling      (not implemented)
-                          // 0x0002 - All to One    (not implemented)
-                          // 0x0004 - Stacked       (PTin custom field)
-                          // 0x0008 - Mac Learning  (PTin custom field)
-                          // 0x0010 - cpu Trapping  (PTin custom field)
+  L7_uint32 flags;        // 0x000001 - Bundling      (not implemented)
+                          // 0x000002 - All to One    (not implemented)
+                          // 0x000004 - Stacked       (PTin custom field)
+                          // 0x000008 - Mac Learning  (PTin custom field)
+                          // 0x000010 - cpu Trapping  (PTin custom field)
+                          // 0x000100 - DHCP protocol (PTin custom field)
+                          // 0x000200 - IGMP protocol (PTin custom field)
+                          // 0x000400 - PPPOE protocol (PTin custom field)
+                          // 0x010000 - P2P EVC        (PTin custom field)
+                          // 0x020000 - QUATTRO EVC    (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
@@ -630,8 +635,10 @@ typedef struct {
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint32 evcId;                // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-
+  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                            // 0x000200 - IGMP protocol (PTin custom field)
+                            // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
   msg_HwEthIntf_t intf; // outer vlan is the GEM id
 } __attribute__((packed)) msg_HwEthEvcFlow_t;

@@ -667,7 +667,14 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  xlate.innerAction   = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
+  if (innerVlanId!=0)
+  {
+    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_DELETE;
+  }
+  else
+  {
+    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
+  }
 #endif
 
   /* DTL call */
