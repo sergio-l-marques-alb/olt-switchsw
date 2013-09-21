@@ -669,7 +669,7 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 #else
   if (innerVlanId!=0)
   {
-    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_DELETE;
+    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
   }
   else
   {

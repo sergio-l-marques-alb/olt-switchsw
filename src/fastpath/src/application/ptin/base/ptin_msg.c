@@ -2304,6 +2304,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
   ptinEvcFlow.flags               = msgEvcFlow->flags;
+  ptinEvcFlow.client_vlan         = msgEvcFlow->nni_cvlan;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
   ptinEvcFlow.outer_vid           = msgEvcFlow->intf.outer_vid; /* must be a leaf */
@@ -2313,8 +2314,9 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID = %u", ptinEvcFlow.outer_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID = %u", ptinEvcFlow.inner_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Client vlan = %u", ptinEvcFlow.client_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID  = %u", ptinEvcFlow.outer_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID  = %u", ptinEvcFlow.inner_vid);
 
   if (ptin_evc_gem_flow_add(&ptinEvcFlow) != L7_SUCCESS)
   {
