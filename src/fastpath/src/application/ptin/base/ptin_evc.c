@@ -287,7 +287,7 @@ static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 
 static void    ptin_evc_vlan_pool_init(void);
 
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue);
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2mp, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
 static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
@@ -1511,7 +1511,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
-    if (ptin_evc_freeVlanQueue_allocate(evc_id, !is_p2mp, &freeVlan_queue)!=L7_SUCCESS)
+    if (ptin_evc_freeVlanQueue_allocate(evc_id, is_p2mp, &freeVlan_queue)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_id);
       ptin_evc_entry_free(evc_ext_id);
@@ -5508,7 +5508,7 @@ static void ptin_evc_vlan_pool_init(void)
  * @return L7_RC_t L7_SUCCESS if success
  * @return L7_RC_t L7_FAILURE if there are no VLANs available
  */
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue)
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2mp, dl_queue_t **freeVlan_queue)
 {
  #if (PTIN_SYSTEM_GROUP_VLANS)
   struct ptin_queue_s *fv_queue;
@@ -5520,7 +5520,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2p,
   }
 
   /* If evc is P2P, use apropriate free vlan queue */
-  if (is_p2p)
+  if (!is_p2mp)
   {
     *freeVlan_queue = &queue_p2p_free_vlans;
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
@@ -7088,10 +7088,11 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
           if (IS_EVC_INTF_LEAF(evc_id,port) && IS_EVC_STACKED(evc_id))  continue;
 
           /* If outer vlan matches, we have a conflict */
-          if (evcs[evc_id].intf[port].out_vlan == evcConf->intf[i].vid)
+          if (evcs[evc_id].intf[port].out_vlan   == evcConf->intf[i].vid &&
+              evcs[evc_id].intf[port].inner_vlan == evcConf->intf[i].vid_inner)
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u, port=%u (%u/%u) of EVC %u has the same vlan %u",
-                    i,port,ptin_intf.intf_type,ptin_intf.intf_id,evc_id,evcConf->intf[i].vid);
+            LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u, port=%u (%u/%u) of EVC %u has the same vlan %u+%u",
+                    i,port,ptin_intf.intf_type,ptin_intf.intf_id,evc_id,evcConf->intf[i].vid,evcConf->intf[i].vid_inner);
             return L7_FAILURE;
           }
         }
