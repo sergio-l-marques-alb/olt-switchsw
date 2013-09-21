@@ -28,6 +28,7 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
+#define GEM_FLOWS_FEATURE 0
 
 #define PTIN_FLOOD_VLANS_MAX  8
 
@@ -1552,6 +1553,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
+    #if GEM_FLOWS_FEATURE
     if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
@@ -1564,6 +1566,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
       return L7_FAILURE;      
     }
+    #endif
 
     /* Update EVC entry (this info will be used on the configuration functions) */
     evcs[evc_id].in_use           = L7_TRUE;
@@ -1718,6 +1721,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
       }
 
+      #if GEM_FLOWS_FEATURE
       /* Virtual ports: Destroy multicast group */
       if (evcs[evc_id].multicast_group > 0)
       {
@@ -1728,6 +1732,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
         evcs[evc_id].multicast_group = -1;
       }
+      #endif
 
       if (evc_ext_id == PTIN_EVC_INBAND)
         switching_vlan_delete(PTIN_VLAN_INBAND);
@@ -2030,12 +2035,14 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
+  #if GEM_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
   if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
     return L7_FAILURE;
   }
+  #endif
   evcs[evc_id].multicast_group = -1;
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
@@ -2213,12 +2220,14 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
+  #if GEM_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
   if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
     return L7_FAILURE;
   }
+  #endif
   evcs[evc_id].multicast_group = -1;
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
@@ -2596,11 +2605,6 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   L7_uint evc_id, evc_ext_id;
   L7_uint leaf_port;
   L7_uint32 intIfNum;
-  L7_uint int_vlan;
-  L7_int  vport_id, multicast_group;
-  L7_uint flow_id, id_free;
-  ptin_evc_gemflow_t *flow;
-  struct ptin_evc_client_s *pclient;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -2643,6 +2647,13 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
     return L7_FAILURE;
   }
+
+  #if GEM_FLOWS_FEATURE
+  L7_uint int_vlan;
+  L7_int  vport_id, multicast_group;
+  L7_uint flow_id, id_free;
+  ptin_evc_gemflow_t *flow;
+  struct ptin_evc_client_s *pclient;
 
   /* Get internal vlan and inner NNI vlan */
   int_vlan = evcs[evc_id].intf[leaf_port].int_vlan;
@@ -2743,6 +2754,7 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
+  #endif
 
   return L7_SUCCESS;
 }
@@ -2759,10 +2771,6 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
   L7_uint32 intIfNum;
-  L7_int    multicast_group;
-  L7_uint   flow_id, client_vlan;
-  ptin_evc_gemflow_t *flow;
-  struct ptin_evc_client_s *pclient;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -2805,6 +2813,12 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
     return L7_FAILURE;
   }
+
+  #if GEM_FLOWS_FEATURE
+  L7_int    multicast_group;
+  L7_uint   flow_id, client_vlan;
+  ptin_evc_gemflow_t *flow;
+  struct ptin_evc_client_s *pclient;
 
   /* Multicast group */
   multicast_group = evcs[evc_id].multicast_group;
@@ -2872,6 +2886,7 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added", evc_ext_id);
+  #endif
 
   return L7_SUCCESS;
 }
@@ -4814,7 +4829,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     }
     evcs[evc_id].n_roots++;
 
-    #if 1
+    #if GEM_FLOWS_FEATURE
     /* Virtual ports: Add port to Multicast egress */
     if (ptin_multicast_egress_port_add(intIfNum, evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
@@ -4974,7 +4989,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   {
     int_vlan = evcs[evc_id].rvlan;
 
-    #if 1
+    #if GEM_FLOWS_FEATURE
     /* Virtual ports: Remove port from Multicast egress */
     if (ptin_multicast_egress_port_remove(intIfNum, evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
