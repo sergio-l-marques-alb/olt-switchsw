@@ -28,7 +28,7 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
-#define GEM_FLOWS_FEATURE 0
+#define GEM_FLOWS_FEATURE 1
 
 #define PTIN_FLOOD_VLANS_MAX  8
 
@@ -1434,7 +1434,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   /* For EVC# PTIN_EVC_INBAND, it must be point-to-multipoint! */
-  if (evc_ext_id == PTIN_EVC_INBAND && !is_p2mp)
+  if (!is_p2mp && evc_ext_id == PTIN_EVC_INBAND)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: inBand EVC cannot be P2P/QUATTRO!", evc_ext_id);
     return L7_FAILURE;
@@ -1450,7 +1450,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   #endif
 
   /* For P2P topologies */
-  if ( !is_p2mp && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)) )
+  if (!is_p2mp && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: P2P/QUATTRO EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_ext_id);
     return L7_FAILURE;
@@ -1460,7 +1460,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   p2p_port1 = -1;
   p2p_port2 = -1;
   /* Unstacked 1:1 EVCs only accept one root and one leaf, or two root ports */
-  if ( is_p2p && !is_stacked )
+  if (is_p2p && !is_stacked)
   {
     /* With no leafs, use the first two root ports */
     if ( n_roots >= 2 && n_leafs == 0 )
@@ -1535,8 +1535,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Check if there are enough internal VLANs on the pool
        *  P2P:  only one internal VLAN is needed (shared among all the ports)
        *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
-      if ( ( !is_p2mp && (freeVlan_queue->n_elems < 1) ) ||
-           (  is_p2mp && (freeVlan_queue->n_elems < (n_leafs + 1)) ) )
+      if ( (!is_p2mp && (freeVlan_queue->n_elems < 1)) ||
+           ( is_p2mp && (freeVlan_queue->n_elems < (n_leafs + 1))) )
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: not enough internal VLANs available", evc_id);
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
@@ -1553,18 +1553,22 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
-    #if GEM_FLOWS_FEATURE
-    if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
-      error = L7_TRUE;
-    }
 
-    /* Virtual ports: Configure multicast group for the new leaf vlan */
-    if (ptin_vlanBridge_multicast_set(root_vlan, multicast_group)!=L7_SUCCESS)
+    #if GEM_FLOWS_FEATURE
+    if ((evcConf->flags & PTIN_EVC_MASK_SERV_TYPE) == PTIN_EVC_SERV_TYPE_QUATTRO)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
-      return L7_FAILURE;      
+      if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
+        error = L7_TRUE;
+      }
+
+      /* Virtual ports: Configure multicast group for the new leaf vlan */
+      if (ptin_vlanBridge_multicast_set(root_vlan, multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
+        return L7_FAILURE;      
+      }
     }
     #endif
 
@@ -1612,7 +1616,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
-      if ( is_p2mp )
+      if (is_p2mp)
       {
         if (ptin_evc_p2multipoint_intf_add(evc_id, ptin_port) != L7_SUCCESS)
         {
@@ -1623,7 +1627,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
 
     /* For EVCs point-to-point unstacked, create now the crossconnection */
-    if ( is_p2p && !is_stacked )
+    if (is_p2p && !is_stacked)
     {
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
       if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -1699,12 +1703,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #endif
 
       /* If EVC is P2MP, remove specific translations */
-      if ( is_p2mp )
+      if (is_p2mp)
       {
         ptin_evc_p2multipoint_intf_remove_all(evc_id);
       }
       /* For unstacked P2P EVCs, remove single vlan cross-connection */
-      else if ( is_p2p && !is_stacked )
+      else if (is_p2p && !is_stacked)
       {
         /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
         switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -1751,7 +1755,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     evc_id = evc_ext2int[evc_ext_id];
 
     /* For unstacked P2P services, don't allow ports change */
-    if ( is_p2p && !is_stacked )
+    if (is_p2p && !is_stacked)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Unstacked point-to-point EVC... no change allowed", evc_id);
       return L7_FAILURE;
@@ -1788,7 +1792,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
         /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
          * and all the root interfaces */
-        if ( is_p2mp )
+        if (is_p2mp)
         {
           if (ptin_evc_p2multipoint_intf_add(evc_id, i) != L7_SUCCESS)
           {
@@ -1819,7 +1823,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
 
         /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-        if ( is_p2mp )
+        if (is_p2mp)
         {
           if (ptin_evc_p2multipoint_intf_remove(evc_id, i) != L7_SUCCESS)
           {
@@ -2037,10 +2041,13 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
 
   #if GEM_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
-  if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+  if (evcs[evc_id].multicast_group > 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
-    return L7_FAILURE;
+    if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      return L7_FAILURE;
+    }
   }
   #endif
   evcs[evc_id].multicast_group = -1;
@@ -2222,10 +2229,13 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
 
   #if GEM_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
-  if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+  if (evcs[evc_id].multicast_group > 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
-    return L7_FAILURE;
+    if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      return L7_FAILURE;
+    }
   }
   #endif
   evcs[evc_id].multicast_group = -1;
@@ -2298,6 +2308,13 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   }
 
   ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Check if the EVC is P2P or P2MP */
+  if (!IS_EVC_P2P(evc_id) && !IS_EVC_P2MULTIPOINT(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not P2P nor P2MP!!!", evc_id);
+    return L7_FAILURE;
+  }
 
   /* Check if the EVC is stacked */
   if (!IS_EVC_STACKED(evc_id))
@@ -2451,6 +2468,13 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   }
 
   ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Check if the EVC is P2P or P2MP */
+  if (!IS_EVC_P2P(evc_id) && !IS_EVC_P2MULTIPOINT(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not P2P nor P2MP!!!", evc_id);
+    return L7_FAILURE;
+  }
 
   /* Check if the EVC is stacked */
   if (!IS_EVC_STACKED(evc_id))
@@ -2648,6 +2672,13 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
+  /* Only for QUATTRO serices */
+  if (!IS_EVC_QUATTRO(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flows are only applied to QUATTRO services", evc_id);
+    return L7_FAILURE;
+  }
+
   #if GEM_FLOWS_FEATURE
   L7_uint int_vlan;
   L7_int  vport_id, multicast_group;
@@ -2811,6 +2842,13 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   if (ptin_intf_port2intIfNum(leaf_port, &intIfNum) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
+    return L7_FAILURE;
+  }
+
+  /* Only for QUATTRO serices */
+  if (!IS_EVC_QUATTRO(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flows are only applied to QUATTRO services", evc_id);
     return L7_FAILURE;
   }
 
@@ -4828,15 +4866,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       return L7_FAILURE;
     }
     evcs[evc_id].n_roots++;
-
-    #if GEM_FLOWS_FEATURE
-    /* Virtual ports: Add port to Multicast egress */
-    if (ptin_multicast_egress_port_add(intIfNum, evcs[evc_id].multicast_group)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast egress for port %u", evc_id, ptin_port);
-      return L7_FAILURE;
-    }
-    #endif
   }
   else
   {
@@ -4989,15 +5018,6 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   {
     int_vlan = evcs[evc_id].rvlan;
 
-    #if GEM_FLOWS_FEATURE
-    /* Virtual ports: Remove port from Multicast egress */
-    if (ptin_multicast_egress_port_remove(intIfNum, evcs[evc_id].multicast_group)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removig port %u from Multicast egress", evc_id, ptin_port);
-      //return L7_FAILURE;
-    }
-    #endif
-
     if (switching_root_remove(ptin_port, out_vlan, ((is_stacked) ? inn_vlan : 0), int_vlan) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing root interface [ptin_port=%u Vs=%u Vi=%u Vr=%u]",
@@ -5029,7 +5049,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       }
       #endif
     }
-    else
+    else if (is_p2mp)
     {
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans); /* free VLAN */
     }
