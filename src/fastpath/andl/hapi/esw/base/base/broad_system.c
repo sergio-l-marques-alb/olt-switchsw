@@ -3226,8 +3226,6 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   L7_uint16               vlan_match = 0x0fff;
   BROAD_METER_ENTRY_t     meterInfo;
   L7_uint16 index, igmp_index, igmp_index_free;
-  /* For QUATTRO vlans */
-  //static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting igmp trapping processing");
 
@@ -3468,6 +3466,9 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
 
   #if 0
+  /* For QUATTRO vlans */
+  static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
+
   if (snoop_enable && )
   {
     do
@@ -3587,12 +3588,10 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   L7_uint8                ip_type;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                            FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
-  L7_uint16               vlan, vlan_match = 0xfff;
+  L7_uint16               vlan_match = 0xfff;
   BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, dhcp_index, dhcp_index_free;
-  /* Policy id for quattro vlans */
-  static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting dhcp trapping processing");
 
@@ -3873,12 +3872,12 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   }
 
   #if EVC_QUATTRO_FLOWS_FEATURE
+  /* Policy id for quattro vlans */
+  static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
+
   /* Enable QUATTRO vlans trap */
   if (snoop_enable && policyId_quattro == BROAD_POLICY_INVALID)
   {
-    vlan = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN & PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
-    vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
-
     do
     {
       result = hapiBroadPolicyCreate(policyType);
@@ -3893,7 +3892,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3917,7 +3916,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3941,7 +3940,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3965,7 +3964,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
