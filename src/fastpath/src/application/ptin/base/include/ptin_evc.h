@@ -431,14 +431,14 @@ extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
- * Check if the EVC related to an internal vlan is P2P. 
+ * Return EVC type from internal vlan. 
  *  
  * @param intVlan    : Internal outer-vlan 
- * @param is_p2p     : Is EVC P2P? (output)
+ * @param evc_type   : evc type (output)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p);
+extern L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type);
 
 /**
  * Check if the EVC related to an internal vlan is stacked. 

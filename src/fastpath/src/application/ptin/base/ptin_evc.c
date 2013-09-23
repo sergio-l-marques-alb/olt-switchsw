@@ -28,8 +28,6 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
-#define GEM_FLOWS_FEATURE 1
-
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -230,6 +228,10 @@ static dl_queue_t queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS
 #else
 static dl_queue_t queue_free_vlans; /* Pool of free internal VLANs */
 #endif
+/* Queue for QUATTRO P2P vlans */
+#if EVC_QUATTRO_FLOWS_FEATURE
+static dl_queue_t queue_quattro_p2p_free_vlans;
+#endif
 
 /* Lookup table to convert extended in internal EVC indexes */
 static L7_uint32 evc_ext2int[PTIN_SYSTEM_N_EXTENDED_EVCS];
@@ -244,14 +246,22 @@ static L7_uint32 evcId_from_internalVlan[4096];
 /* Local Macros */
 #define IS_eEVC_IN_USE(a)               (evc_ext2int[a] < PTIN_SYSTEM_N_EXTENDED_EVCS)
 
-#define IS_EVC_P2P(evc_id)             ((evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE ) == PTIN_EVC_SERV_TYPE_P2P    )
-#define IS_EVC_P2MULTIPOINT(evc_id)    ((evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE ) == PTIN_EVC_SERV_TYPE_P2MP   )
-#define IS_EVC_QUATTRO(evc_id)         ((evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE ) == PTIN_EVC_SERV_TYPE_QUATTRO)
+#define IS_EVC_P2P(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P )
+#define IS_EVC_P2MP(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == 0 )
+#define IS_EVC_QUATTRO(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO )
+#define IS_EVC_STD(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == 0 )
 
-#define IS_EVC_STACKED(evc_id)         ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
-#define IS_EVC_UNSTACKED(evc_id)       ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == 0 )
+#define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
+#define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
+#define IS_EVC_QUATTRO_P2P(evc_id)    (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2P(evc_id))
+#define IS_EVC_QUATTRO_P2MP(evc_id)   (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2MP(evc_id))
 
-#define IS_EVC_WITH_CPU_TRAP(evc_id)   ((evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
+#define IS_EVC_STACKED(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
+#define IS_EVC_UNSTACKED(evc_id)      ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == 0 )
+
+#define EVC_SINGLE_INTVLAN(evc_type)  ((evc_type)!=PTIN_EVC_TYPE_STD_P2MP)
+
+#define IS_EVC_WITH_CPU_TRAP(evc_id)  ((evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
 
 #define IS_EVC_INTF_USED(evc_id,ptin_port) (evcs[evc_id].intf[ptin_port].in_use)
 #define IS_EVC_INTF_ROOT(evc_id,ptin_port) (IS_EVC_INTF_USED(evc_id,ptin_port) && evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
@@ -287,7 +297,7 @@ static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 
 static void    ptin_evc_vlan_pool_init(void);
 
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2mp, dl_queue_t **freeVlan_queue);
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint evc_type, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
 static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
@@ -1186,14 +1196,14 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 }
 
 /**
- * Check if the EVC related to an internal vlan is P2P. 
+ * Return EVC type from internal vlan. 
  *  
  * @param intVlan    : Internal outer-vlan 
- * @param is_p2p     : Is EVC P2P? (output)
+ * @param evc_type   : evc type (output)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
+L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type)
 {
   L7_uint evc_id;
 
@@ -1220,9 +1230,9 @@ L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
   }
 
   /* Check if EVC is stacked, and return result */
-  if (is_p2p!=L7_NULLPTR)
+  if (evc_type!=L7_NULLPTR)
   {
-    *is_p2p = IS_EVC_P2P(evc_id);
+    *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
   }
 
   return L7_SUCCESS;
@@ -1345,7 +1355,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint   i;
   L7_uint   evc_id, evc_ext_id;
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
-  L7_BOOL   is_p2p, is_p2mp, is_stacked;
+  L7_uint   evc_type;
+  L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
   L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
   L7_BOOL   cpu_trap;
@@ -1385,14 +1396,26 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_SERV_TYPE)      == PTIN_EVC_SERV_TYPE_P2P;
-  is_p2mp       = (evcConf->flags & PTIN_EVC_MASK_SERV_TYPE)      == PTIN_EVC_SERV_TYPE_P2MP;
-  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED)        == PTIN_EVC_MASK_STACKED;
-  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)    == PTIN_EVC_MASK_MACLEARNING;
-  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)  == PTIN_EVC_MASK_DHCP_PROTOCOL;
-  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)  == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  evc_type      = (evcConf->flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P           ) == PTIN_EVC_MASK_P2P;
+  is_quattro    = (evcConf->flags & PTIN_EVC_MASK_QUATTRO       ) == PTIN_EVC_MASK_QUATTRO;
+  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED       ) == PTIN_EVC_MASK_STACKED;
+  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING   ) == PTIN_EVC_MASK_MACLEARNING;
+  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL ) == PTIN_EVC_MASK_DHCP_PROTOCOL;
+  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
-  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)   == PTIN_EVC_MASK_CPU_TRAPPING;
+  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
+
+  /* Check if this EVC is allowd to be QUATTRO type */
+  if (is_quattro)
+  {
+    #if (EVC_QUATTRO_FLOWS_FEATURE)
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: This is a QUATTRO EVC", evc_ext_id);
+    #else
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+    return L7_FAILURE;
+    #endif
+  }
 
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
   /* Also save the first root and leaf port */
@@ -1434,7 +1457,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   /* For EVC# PTIN_EVC_INBAND, it must be point-to-multipoint! */
-  if (!is_p2mp && evc_ext_id == PTIN_EVC_INBAND)
+  if (evc_ext_id == PTIN_EVC_INBAND && evc_type != PTIN_EVC_TYPE_STD_P2MP)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: inBand EVC cannot be P2P/QUATTRO!", evc_ext_id);
     return L7_FAILURE;
@@ -1450,7 +1473,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   #endif
 
   /* For P2P topologies */
-  if (!is_p2mp && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)))
+  if ((is_p2p || is_quattro) && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: P2P/QUATTRO EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_ext_id);
     return L7_FAILURE;
@@ -1460,7 +1483,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   p2p_port1 = -1;
   p2p_port2 = -1;
   /* Unstacked 1:1 EVCs only accept one root and one leaf, or two root ports */
-  if (is_p2p && !is_stacked)
+  if (is_p2p || is_quattro)
   {
     /* With no leafs, use the first two root ports */
     if ( n_roots >= 2 && n_leafs == 0 )
@@ -1511,7 +1534,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
-    if (ptin_evc_freeVlanQueue_allocate(evc_id, is_p2mp, &freeVlan_queue)!=L7_SUCCESS)
+    if (ptin_evc_freeVlanQueue_allocate(evc_id, evc_type, &freeVlan_queue)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_id);
       ptin_evc_entry_free(evc_ext_id);
@@ -1535,8 +1558,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Check if there are enough internal VLANs on the pool
        *  P2P:  only one internal VLAN is needed (shared among all the ports)
        *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
-      if ( (!is_p2mp && (freeVlan_queue->n_elems < 1)) ||
-           ( is_p2mp && (freeVlan_queue->n_elems < (n_leafs + 1))) )
+      if ( ( EVC_SINGLE_INTVLAN(evc_type) && (freeVlan_queue->n_elems < 1)) ||
+           (!EVC_SINGLE_INTVLAN(evc_type) && (freeVlan_queue->n_elems < (n_leafs + 1))) )
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: not enough internal VLANs available", evc_id);
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
@@ -1549,13 +1572,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
-    ptin_crossconnect_enable(root_vlan, is_p2p, is_stacked);
+    ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P), is_stacked);
 
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
 
-    #if GEM_FLOWS_FEATURE
-    if ((evcConf->flags & PTIN_EVC_MASK_SERV_TYPE) == PTIN_EVC_SERV_TYPE_QUATTRO)
+    #if EVC_QUATTRO_FLOWS_FEATURE
+    if (is_quattro)
     {
       if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
       {
@@ -1616,7 +1639,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
-      if (is_p2mp)
+      if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
       {
         if (ptin_evc_p2multipoint_intf_add(evc_id, ptin_port) != L7_SUCCESS)
         {
@@ -1627,7 +1650,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
 
     /* For EVCs point-to-point unstacked, create now the crossconnection */
-    if (is_p2p && !is_stacked)
+    if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
     {
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
       if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -1703,12 +1726,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #endif
 
       /* If EVC is P2MP, remove specific translations */
-      if (is_p2mp)
+      if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
       {
         ptin_evc_p2multipoint_intf_remove_all(evc_id);
       }
       /* For unstacked P2P EVCs, remove single vlan cross-connection */
-      else if (is_p2p && !is_stacked)
+      else if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
       {
         /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
         switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -1725,9 +1748,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
       }
 
-      #if GEM_FLOWS_FEATURE
+      #if EVC_QUATTRO_FLOWS_FEATURE
       /* Virtual ports: Destroy multicast group */
-      if (evcs[evc_id].multicast_group > 0)
+      if (is_quattro && evcs[evc_id].multicast_group > 0)
       {
         if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
         {
@@ -1792,7 +1815,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
         /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
          * and all the root interfaces */
-        if (is_p2mp)
+        if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
         {
           if (ptin_evc_p2multipoint_intf_add(evc_id, i) != L7_SUCCESS)
           {
@@ -1823,7 +1846,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
 
         /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-        if (is_p2mp)
+        if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
         {
           if (ptin_evc_p2multipoint_intf_remove(evc_id, i) != L7_SUCCESS)
           {
@@ -1999,7 +2022,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   }
 
   /* Remove bridges on N:1 EVCs */
-  if (IS_EVC_P2MULTIPOINT(evc_id))
+  if (IS_EVC_STD_P2MP(evc_id))
   {
     if (ptin_evc_p2multipoint_intf_remove_all(evc_id) != L7_SUCCESS)
     {
@@ -2008,7 +2031,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if (IS_EVC_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
+  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     L7_int port1 = evcs[evc_id].p2p_port1_intf;
     L7_int port2 = evcs[evc_id].p2p_port2_intf;
@@ -2039,9 +2062,9 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
-  #if GEM_FLOWS_FEATURE
+  #if EVC_QUATTRO_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
-  if (evcs[evc_id].multicast_group > 0)
+  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
   {
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
@@ -2187,7 +2210,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   }
 
   /* Remove bridges on N:1 EVCs */
-  if (IS_EVC_P2MULTIPOINT(evc_id))
+  if (IS_EVC_STD_P2MP(evc_id))
   {
     if (ptin_evc_p2multipoint_intf_remove_all(evc_id) != L7_SUCCESS)
     {
@@ -2196,7 +2219,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if (IS_EVC_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
+  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     L7_int port1 = evcs[evc_id].p2p_port1_intf;
     L7_int port2 = evcs[evc_id].p2p_port2_intf;
@@ -2227,9 +2250,9 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
-  #if GEM_FLOWS_FEATURE
+  #if EVC_QUATTRO_FLOWS_FEATURE
   /* Virtual ports: Destroy Multicast group */
-  if (evcs[evc_id].multicast_group > 0)
+  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
   {
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
@@ -2310,9 +2333,9 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Check if the EVC is P2P or P2MP */
-  if (!IS_EVC_P2P(evc_id) && !IS_EVC_P2MULTIPOINT(evc_id))
+  if (!IS_EVC_STD(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not P2P nor P2MP!!!", evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is QUATTRO?", evc_id);
     return L7_FAILURE;
   }
 
@@ -2372,11 +2395,11 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   #if ( !PTIN_BOARD_IS_MATRIX )
   /* Also for P2MP this routine will be executed, as long as it is stacked */
   /* For these ones the internal vlan will be the interface internal one */
-  if (IS_EVC_P2P(evc_id))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     rc = switching_p2p_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_id].rvlan);
   }
-  else if (IS_EVC_P2MULTIPOINT(evc_id))
+  else if (IS_EVC_STD_P2MP(evc_id))
   {
     rc = switching_p2multipoint_stacked_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_id].intf[leaf_intf].int_vlan, evcs[evc_id].rvlan);
   }
@@ -2388,7 +2411,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only make cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_P2P(evc_id))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
     rc = switching_p2p_bridge_add(root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
@@ -2470,9 +2493,9 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Check if the EVC is P2P or P2MP */
-  if (!IS_EVC_P2P(evc_id) && !IS_EVC_P2MULTIPOINT(evc_id))
+  if (!IS_EVC_STD(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not P2P nor P2MP!!!", evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is QUATTRO?", evc_id);
     return L7_FAILURE;
   }
 
@@ -2564,11 +2587,11 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
   #if ( !PTIN_BOARD_IS_MATRIX )
   /* Remove translations */
-  if (IS_EVC_P2P(evc_id))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     rc = switching_p2p_leaf_remove(leaf_intf, pclient->out_vlan, pclient->client_vlan, evcs[evc_id].rvlan);
   }
-  else if (IS_EVC_P2MULTIPOINT(evc_id))
+  else if (IS_EVC_STD_P2MP(evc_id))
   {
     rc = switching_p2multipoint_stacked_leaf_remove(leaf_intf, pclient->out_vlan, pclient->client_vlan, evcs[evc_id].intf[leaf_intf].int_vlan, evcs[evc_id].rvlan);
   }
@@ -2580,7 +2603,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only remove cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_P2P(evc_id))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     /* Delete bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
     rc = switching_p2p_bridge_remove(root_intf, evcs[evc_id].rvlan, leaf_intf, pclient->out_vlan, pclient->client_vlan);
@@ -2679,7 +2702,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
-  #if GEM_FLOWS_FEATURE
+  #if EVC_QUATTRO_FLOWS_FEATURE
   L7_uint int_ovid;
   L7_int  vport_id, multicast_group;
   L7_uint flow_id, id_free;
@@ -2708,9 +2731,9 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* If found an existent flow, remove it first */
   if (flow_id<PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: flow id already exists",
-            evc_id, flow[flow_id].uni_ovid, leaf_port);
-    return L7_ALREADY_CONFIGURED;
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists",
+                evc_id, flow[flow_id].uni_ovid, leaf_port);
+    return L7_SUCCESS;
   }
   else
   {
@@ -2785,6 +2808,9 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
+  #else
+  LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+  return L7_ERROR;
   #endif
 
   return L7_SUCCESS;
@@ -2852,7 +2878,7 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
-  #if GEM_FLOWS_FEATURE
+  #if EVC_QUATTRO_FLOWS_FEATURE
   L7_int    multicast_group;
   L7_uint   flow_id, client_vlan;
   ptin_evc_flow_t *flow;
@@ -2924,6 +2950,9 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added", evc_ext_id);
+  #else
+  LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+  return L7_ERROR;
   #endif
 
   return L7_SUCCESS;
@@ -4822,8 +4851,8 @@ static void ptin_evc_entry_init(L7_uint evc_id)
  */
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg)
 {
-  L7_BOOL is_p2p, is_p2mp;
-  L7_BOOL is_stacked;
+  L7_uint evc_type;
+  L7_BOOL is_p2p, is_quattro, is_stacked;
   L7_BOOL is_root;
   L7_BOOL mac_learning;
   L7_BOOL cpu_trap;
@@ -4833,13 +4862,14 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   L7_uint32 intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
-  is_p2p       = (evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE)     == PTIN_EVC_SERV_TYPE_P2P;
-  is_p2mp      = (evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE)     == PTIN_EVC_SERV_TYPE_P2MP;
-  is_stacked   = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED)       == PTIN_EVC_MASK_STACKED;
-  is_root      = intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
-  mac_learning = (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING)   == PTIN_EVC_MASK_MACLEARNING;
-  cpu_trap     = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)  == PTIN_EVC_MASK_CPU_TRAPPING;
-  root_vlan    = evcs[evc_id].rvlan;
+  evc_type     = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p       = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P        ) == PTIN_EVC_MASK_P2P;
+  is_quattro   = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO    ) == PTIN_EVC_MASK_QUATTRO;
+  is_stacked   = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED    ) == PTIN_EVC_MASK_STACKED;
+  mac_learning = (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING) == PTIN_EVC_MASK_MACLEARNING;
+  cpu_trap     = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)== PTIN_EVC_MASK_CPU_TRAPPING;
+  is_root      =  intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
+  root_vlan    =  evcs[evc_id].rvlan;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding %s# %02u (MEF %s) ...",
             evc_id,
@@ -4869,7 +4899,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   }
   else
   {
-    if (!is_p2mp)
+    if (EVC_SINGLE_INTVLAN(evc_type))
       int_vlan = evcs[evc_id].rvlan;     /* Internal VLAN is the same for all interfaces, including leafs */
     else
       ptin_evc_vlan_allocate(&int_vlan, evcs[evc_id].queue_free_vlans, evc_id); /* One VLAN for each unstacked leaf */
@@ -4981,8 +5011,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
  */
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
-  L7_BOOL is_p2p, is_p2mp;
-  L7_BOOL is_stacked;
+  L7_uint evc_type;
+  L7_BOOL is_p2p, is_quattro, is_stacked;
   L7_BOOL is_root;
   L7_uint16 out_vlan;
   L7_uint16 inn_vlan;
@@ -4990,8 +5020,9 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   ptin_intf_t intf;
   L7_uint32 intIfNum;
 
-  is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE) == PTIN_EVC_SERV_TYPE_P2P;
-  is_p2mp    = (evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE) == PTIN_EVC_SERV_TYPE_P2MP;
+  evc_type   = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
+  is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
   is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
   is_root    = evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT;
   out_vlan   = evcs[evc_id].intf[ptin_port].out_vlan;
@@ -5049,7 +5080,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       }
       #endif
     }
-    else if (is_p2mp)
+    else if (!is_quattro)
     {
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans); /* free VLAN */
     }
@@ -5452,6 +5483,10 @@ static void ptin_evc_vlan_pool_init(void)
 
   /* Stacked block */
   dl_queue_init(&queue_p2p_free_vlans);
+  /* Quattro P2P block */
+  #if EVC_QUATTRO_FLOWS_FEATURE
+  dl_queue_init(&queue_quattro_p2p_free_vlans);
+  #endif
 
   for (i=PTIN_VLAN_MIN; i<PTIN_VLAN_MAX && i<PTIN_SYSTEM_EVC_P2P_VLAN_MAX; i++)
   {
@@ -5484,6 +5519,14 @@ static void ptin_evc_vlan_pool_init(void)
     dl_queue_add(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t*)&queues_pool[i]);
   }
 
+  /* QUATTRO P2P vlans */
+  #if EVC_QUATTRO_FLOWS_FEATURE
+  for (i=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX; i++)
+  {
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_quattro_p2p_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
+  }
+  #endif
 #else
   dl_queue_init(&queue_free_vlans);
 
@@ -5508,7 +5551,7 @@ static void ptin_evc_vlan_pool_init(void)
  * @return L7_RC_t L7_SUCCESS if success
  * @return L7_RC_t L7_FAILURE if there are no VLANs available
  */
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2mp, dl_queue_t **freeVlan_queue)
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL evc_type, dl_queue_t **freeVlan_queue)
 {
  #if (PTIN_SYSTEM_GROUP_VLANS)
   struct ptin_queue_s *fv_queue;
@@ -5520,11 +5563,22 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL is_p2mp
   }
 
   /* If evc is P2P, use apropriate free vlan queue */
-  if (!is_p2mp)
+  if (evc_type == PTIN_EVC_TYPE_STD_P2P || evc_type == PTIN_EVC_TYPE_QUATTRO_P2MP)
   {
     *freeVlan_queue = &queue_p2p_free_vlans;
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
     return L7_SUCCESS;
+  }
+  else if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    #if EVC_QUATTRO_FLOWS_FEATURE
+    *freeVlan_queue = &queue_quattro_p2p_free_vlans;
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "QUATTRO Free Vlan Queue selected!");
+    return L7_SUCCESS;
+    #else
+    LOG_ERR(LOG_CTX_PTIN_EVC, "No QUATTRO vlan available!");
+    return L7_ERROR;
+    #endif
   }
 
   if (queue_p2multipoint_freeVlan_queues.n_elems == 0)
@@ -5567,7 +5621,11 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
   }
 
   /* If (free vlan) queue is the stacked one, do nothing */
-  if (freeVlan_queue == &queue_p2p_free_vlans)
+  if (freeVlan_queue == &queue_p2p_free_vlans
+      #if EVC_QUATTRO_FLOWS_FEATURE
+      || freeVlan_queue == &queue_quattro_p2p_free_vlans
+      #endif
+     )
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue given... do nothing!");
     return L7_SUCCESS;
@@ -7206,7 +7264,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_P2MULTIPOINT(evc_id))
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
     #endif
     {
       profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
@@ -7429,7 +7487,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_P2MULTIPOINT(evc_id))
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
     #endif
     {
       profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
@@ -8100,12 +8158,16 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       printf("BUNDLING  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_ALL2ONE)
       printf("ALL2ONE  ");
-    if ((evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE)==PTIN_EVC_SERV_TYPE_P2P)
+
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO)
+      printf("QUATTRO-");
+
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P)
       printf("P2P     ");
-    else if ((evcs[evc_id].flags & PTIN_EVC_MASK_SERV_TYPE)==PTIN_EVC_SERV_TYPE_QUATTRO)
-      printf("QUATTRO ");
     else
       printf("P2MP    ");
+
+
     if (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED)
       printf("STACKED    ");
     else

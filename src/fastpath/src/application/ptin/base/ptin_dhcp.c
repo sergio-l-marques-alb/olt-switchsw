@@ -3152,7 +3152,8 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   /* If UC EVC is point-to-point, use its root vlan */
-  if ((evcCfg.flags & PTIN_EVC_MASK_SERV_TYPE)!=PTIN_EVC_SERV_TYPE_P2MP)
+  if ((evcCfg.flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P  || 
+      (evcCfg.flags & PTIN_EVC_MASK_QUATTRO ) == PTIN_EVC_MASK_QUATTRO)
 #endif
   {
     if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
