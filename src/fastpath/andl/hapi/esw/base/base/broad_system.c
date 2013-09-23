@@ -3242,7 +3242,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
 
   /* Vlan processing, only for non QUATTRO vlans */
-  if (vlanId >= PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS)
+  if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
     return L7_SUCCESS;
@@ -3465,58 +3465,54 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     }
   }
 
-  #if 0
   /* For QUATTRO vlans */
-  static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
+  #if EVC_QUATTRO_FLOWS_FEATURE
+  static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
+  L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
 
-  if (snoop_enable && )
+  vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+
+  if (snoop_enable && policyId_quattro == BROAD_POLICY_INVALID)
   {
     do
     {
-    #if defined(FEAT_METRO_CPE_V1_0)
-      /*On bcm53115 with DOT1AD package, dot1ad related rules in TCAM will be
-        hit first for IGMP packets (as DOT1AD rules are only based on VLAN tags).
-        As a result IGMP packets will not be trapped to CPU.
-        To fix this problem, we need to install protocol snooping rules at higher
-        priority compared to DOT1AD rules.*/
-      if( (hapiBroadRoboVariantCheck()==  __BROADCOM_53115_ID) &&
-          (dapi_g->system->dvlanEnable == L7_TRUE) )
-      {
-       result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
-      }
-      else
-      {
-        /* Don't create the policy now. */
-        /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
-           function after dvlan is enabled */ 
-        return result;
+      #if defined(FEAT_METRO_CPE_V1_0)
+        /*On bcm53115 with DOT1AD package, dot1ad related rules in TCAM will be
+          hit first for IGMP packets (as DOT1AD rules are only based on VLAN tags).
+          As a result IGMP packets will not be trapped to CPU.
+          To fix this problem, we need to install protocol snooping rules at higher
+          priority compared to DOT1AD rules.*/
+        if( (hapiBroadRoboVariantCheck()==  __BROADCOM_53115_ID) &&
+            (dapi_g->system->dvlanEnable == L7_TRUE) )
+        {
+         result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
+        }
+        else
+        {
+          /* Don't create the policy now. */
+          /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
+             function after dvlan is enabled */ 
+          return result;
+          result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+        }
+      #else
         result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-      }
-    #else
-      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-    #endif
-
-      if (result != L7_SUCCESS)
+      #endif
+        if (result != L7_SUCCESS)
         break;
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy of cell %u created",index);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"QUATTRO policy created");
 
       /* give IGMP frames high priority and trap to the CPU. */
       result = hapiBroadPolicyRuleAdd(&ruleId);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier OVID=%u/0x%04x defined",vlan_list[index][POLICY_VLAN_ID],vlan_list[index][POLICY_VLAN_MASK]);
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
       if (result != L7_SUCCESS)  break;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
-    #ifdef BCM_ROBO_SUPPORT 
-      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 8, 0, 0);
-    #endif
       if (result != L7_SUCCESS)  break;
 
       /* Check if IGMP frames should be switched or not */
@@ -3534,35 +3530,39 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
 
     if (result == L7_SUCCESS)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting QUATTRO policy");
 
-      result = hapiBroadPolicyCommit(&igmpId[index]);
+      result = hapiBroadPolicyCommit(&policyId_quattro);
       if (result == L7_SUCCESS)
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "QUATTRO policy commited successfully");
       else
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting policy of cell %u", index);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting QUATTRO policy");
     }
     else
     {
       hapiBroadPolicyCreateCancel();
 
-      igmpId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+      policyId_quattro = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling QUATTRO policy");
     }
 
-    if (result != L7_SUCCESS && igmpId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && policyId_quattro != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(igmpId[index]);
+      (void)hapiBroadPolicyDelete(policyId_quattro);
 
-      igmpId[index]    = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+      policyId_quattro = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting QUATTRO policy");
     }
-
+  }
+  else if (!snoop_enable && policyId_quattro != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(policyId_quattro);
+    policyId_quattro = BROAD_POLICY_INVALID;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "QUATTRO Policy deleted");
   }
   #endif
+
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished igmp trapping processing");
 
   return result;
@@ -3608,7 +3608,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   }
 
   /* Vlan processing, only for non QUATTRO vlans */
-  if (vlanId >= PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS)
+  if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
     return L7_SUCCESS;
@@ -3874,6 +3874,9 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   #if EVC_QUATTRO_FLOWS_FEATURE
   /* Policy id for quattro vlans */
   static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
+  L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
+
+  vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
 
   /* Enable QUATTRO vlans trap */
   if (snoop_enable && policyId_quattro == BROAD_POLICY_INVALID)
@@ -3892,7 +3895,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3916,7 +3919,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3940,7 +3943,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3964,7 +3967,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -4058,12 +4061,19 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
     first_time   = L7_FALSE;
   }
 
-#if (PTIN_SYSTEM_GROUP_VLANS)
+  /* Vlan processing, only for non QUATTRO vlans */
+  if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
+    return L7_SUCCESS;
+  }
+
+ #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
-#endif
+ #endif
 
   /* PPPoE packets on any port must go to the CPU and be rate limited to 64 kbps */
   meterInfo.cir       = RATE_LIMIT_PPPoE;
@@ -4223,6 +4233,79 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
+
+  /* For QUATTRO vlans */
+  #if EVC_QUATTRO_FLOWS_FEATURE
+  static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
+  L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
+
+  vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+
+  /* Enable QUATTRO vlans trap */
+  if (pppoe_enable && policyId_quattro == BROAD_POLICY_INVALID)
+  {
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS)
+        break;
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "QUATTRO Policy created");
+
+      /* give dhcp frames high priority and trap to the CPU. */
+
+      /* PPPoE packets from client */
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_quattro, (L7_uchar8 *) &vlan_match);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&pppoe_ethtype, exact_match);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+
+    } while ( 0 );
+
+    if (result == L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting QUATTRO policy");
+      if ((result=hapiBroadPolicyCommit(&policyId_quattro)) == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "QUATTRO policy commited successfully");
+      }
+    }
+    else
+    {
+      hapiBroadPolicyCreateCancel();
+
+      policyId_quattro  = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling QUATTRO policy");
+    }
+
+    if (result != L7_SUCCESS && policyId_quattro != BROAD_POLICY_INVALID )
+    {
+      /* attempt to delete the policy in case it was created */
+      (void)hapiBroadPolicyDelete(policyId_quattro);
+
+      policyId_quattro = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting QUATTRO policy");
+    }
+  }
+  /* Disable QUATTRO vlans trap */
+  else if (!pppoe_enable && policyId_quattro != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(policyId_quattro);
+    policyId_quattro = BROAD_POLICY_INVALID;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy QUATTRO deleted");
+  }
+  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished PPPoE trapping processing");
 

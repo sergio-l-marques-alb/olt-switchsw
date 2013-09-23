@@ -28,6 +28,13 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
+/* Assure PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS is 1024 */
+#if EVC_QUATTRO_FLOWS_FEATURE
+#if (PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS!=1024)
+#error "ola"
+#endif
+#endif
+
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -2899,8 +2906,8 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   /* Check if there is a free id to be used */
   if (flow_id >= PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flow not found", evc_id);
+    return L7_SUCCESS;
   }
 
   /* Get client vlan */
