@@ -59,16 +59,16 @@ struct ptin_evc_client_s {
 
 
 /* Information of a gem flow */
-typedef struct ptin_evc_gemflow_s
+typedef struct ptin_evc_flow_s
 {
   L7_uint8  in_use;       /* 1 if active */
-  L7_uint16 gem_id;       /* GEM id, used as outer vlan*/
-  L7_uint16 service_id;   /* Service id, used as inner vlan */
   L7_uint32 flags;        /* Flags identifying flow */
-  L7_uint16 int_ovlan;    /* Internal outer vlan */
-  L7_uint16 client_vlan;  /* Client vlan used internally */
-  L7_int virtual_gport;   /* Gport identifying virtual port */
-} ptin_evc_gemflow_t;
+  L7_uint16 uni_ovid;     /* GEM id, used as outer vlan*/
+  L7_uint16 uni_ivid;     /* Service id, used as inner vlan */
+  L7_uint16 int_ovid;     /* Internal outer vlan */
+  L7_uint16 int_ivid;     /* Client vlan used internally (upstream flow) */
+  L7_int virtual_gport;   /* GPort identifying virtual port */
+} ptin_evc_flow_t;
 
 
 /* EVC Interface entry */
@@ -93,7 +93,7 @@ struct ptin_evc_intf_s {
                              *  point-to-multipoint - one internal VLAN per interface */
 
   /* GEM flows */
-  ptin_evc_gemflow_t gemflow[PTIN_FLOOD_VLANS_MAX];
+  ptin_evc_flow_t flow[PTIN_SYSTEM_N_FLOWS_MAX];
 
   /* Counters/Profiles per client on unstacked EVCs (counter per leaf port) */
   void      *counter;       /* Pointer to a counter struct entry */
@@ -2618,13 +2618,13 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 /**
- * Adds a GEM flow to the EVC
+ * Adds a flow to the EVC
  * 
  * @param evcFlow : Flow info
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
+L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 {
   L7_uint evc_id, evc_ext_id;
   L7_uint leaf_port;
@@ -2632,7 +2632,7 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   evc_ext_id = evcFlow->evc_idx;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u gem flow connection...", evc_ext_id);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -2680,26 +2680,26 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   #if GEM_FLOWS_FEATURE
-  L7_uint int_vlan;
+  L7_uint int_ovid;
   L7_int  vport_id, multicast_group;
   L7_uint flow_id, id_free;
-  ptin_evc_gemflow_t *flow;
+  ptin_evc_flow_t *flow;
   struct ptin_evc_client_s *pclient;
 
   /* Get internal vlan and inner NNI vlan */
-  int_vlan = evcs[evc_id].intf[leaf_port].int_vlan;
+  int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
 
   /* Multicast group */
   multicast_group = evcs[evc_id].multicast_group;
 
-  /* Pointer to gem flows array */
-  flow = &evcs[evc_id].intf[leaf_port].gemflow[0];
+  /* Pointer to flows array */
+  flow = &evcs[evc_id].intf[leaf_port].flow[0];
 
-  /* Search for an existent gem flow, with these inputs */
+  /* Search for an existent flow, with these inputs */
   id_free = PTIN_FLOOD_VLANS_MAX;
   for (flow_id=0; flow_id<PTIN_FLOOD_VLANS_MAX; flow_id++)
   {
-    if (flow[flow_id].in_use && flow[flow_id].gem_id == evcFlow->outer_vid)
+    if (flow[flow_id].in_use && flow[flow_id].uni_ovid == evcFlow->uni_ovid)
       break;
     if (id_free>=PTIN_FLOOD_VLANS_MAX && !flow[flow_id].in_use)
       id_free = flow_id;
@@ -2708,8 +2708,8 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* If found an existent flow, remove it first */
   if (flow_id<PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists",
-            evc_id, flow[flow_id].gem_id, leaf_port);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: flow id already exists",
+            evc_id, flow[flow_id].uni_ovid, leaf_port);
     return L7_ALREADY_CONFIGURED;
   }
   else
@@ -2720,14 +2720,14 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* Check if there is a free id to be used */
   if (flow_id >= PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available gem flows", evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
     return L7_FAILURE;
   }
 
   /* Create virtual port */
   if (ptin_virtual_port_add(intIfNum,
-                            evcFlow->outer_vid, evcFlow->inner_vid,
-                            int_vlan, evcFlow->client_vlan,
+                            evcFlow->uni_ovid, evcFlow->uni_ivid,
+                            int_ovid, evcFlow->int_ivid,
                             multicast_group,
                             &vport_id) != L7_SUCCESS)
   {
@@ -2737,19 +2737,19 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   /* Save data related to flow */
   flow[flow_id].in_use        = L7_TRUE;
-  flow[flow_id].int_ovlan     = int_vlan;
-  flow[flow_id].client_vlan   = evcFlow->client_vlan;
-  flow[flow_id].gem_id        = evcFlow->outer_vid;
-  flow[flow_id].service_id    = evcFlow->inner_vid;
+  flow[flow_id].int_ovid      = int_ovid;
+  flow[flow_id].int_ivid      = evcFlow->int_ivid;
+  flow[flow_id].uni_ovid      = evcFlow->uni_ovid;
+  flow[flow_id].uni_ivid      = evcFlow->uni_ivid;
   flow[flow_id].flags         = evcFlow->flags;
   flow[flow_id].virtual_gport = vport_id;
 
   /* Add client if service is stacked */
-  if (evcFlow->client_vlan>0 && IS_EVC_STACKED(evc_id))
+  if (evcFlow->int_ivid>0 && IS_EVC_STACKED(evc_id))
   {
     /* Get client */
     pclient = L7_NULLPTR;
-    ptin_evc_find_client(evcFlow->client_vlan, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pclient);
+    ptin_evc_find_client(evcFlow->int_ivid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pclient);
 
     /* SEM CLIENTS UP */
     osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
@@ -2760,8 +2760,8 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       /* Add client to the EVC struct */
       dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pclient);  /* get a free client entry */
       pclient->in_use       = L7_TRUE;                                              /* update it */
-      pclient->client_vlan  = evcFlow->client_vlan;
-      pclient->out_vlan     = evcFlow->outer_vid;
+      pclient->client_vlan  = evcFlow->int_ivid;
+      pclient->out_vlan     = evcFlow->uni_ovid;
       pclient->uni_cvlan    = 0;
       /* No vlans to be flooded */
       memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
@@ -2775,8 +2775,8 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     else
     {
       /* Otherwise, update data */
-      pclient->client_vlan  = evcFlow->client_vlan;
-      pclient->out_vlan     = evcFlow->outer_vid;
+      pclient->client_vlan  = evcFlow->int_ivid;
+      pclient->out_vlan     = evcFlow->uni_ovid;
       pclient->uni_cvlan    = 0;
     }
 
@@ -2791,13 +2791,13 @@ L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 }
 
 /**
- * Removes a GEM flow from the EVC
+ * Removes a flow from the EVC
  * 
  * @param evcFlow : Flow info
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
+L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
 {
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
@@ -2805,7 +2805,7 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
 
   evc_ext_id = evcFlow->evc_idx;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u gem flow connection...", evc_ext_id);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -2855,30 +2855,30 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   #if GEM_FLOWS_FEATURE
   L7_int    multicast_group;
   L7_uint   flow_id, client_vlan;
-  ptin_evc_gemflow_t *flow;
+  ptin_evc_flow_t *flow;
   struct ptin_evc_client_s *pclient;
 
   /* Multicast group */
   multicast_group = evcs[evc_id].multicast_group;
 
-  /* Pointer to gem flows array */
-  flow = &evcs[evc_id].intf[leaf_port].gemflow[0];
+  /* Pointer to flows array */
+  flow = &evcs[evc_id].intf[leaf_port].flow[0];
 
-  /* Search for an existent gem flow, with these inputs */
+  /* Search for an existent flow, with these inputs */
   for (flow_id=0; flow_id<PTIN_FLOOD_VLANS_MAX; flow_id++)
   {
-    if (flow[flow_id].in_use && flow[flow_id].gem_id == evcFlow->outer_vid)
+    if (flow[flow_id].in_use && flow[flow_id].uni_ovid == evcFlow->uni_ovid)
       break;
   }
   /* Check if there is a free id to be used */
   if (flow_id >= PTIN_FLOOD_VLANS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available gem flows", evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
     return L7_FAILURE;
   }
 
   /* Get client vlan */
-  client_vlan = flow[flow_id].client_vlan;
+  client_vlan = flow[flow_id].int_ivid;
 
   /* Remove virtual port */
   if (ptin_virtual_port_remove(intIfNum, flow[flow_id].virtual_gport, multicast_group) != L7_SUCCESS)
@@ -2888,7 +2888,7 @@ L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   /* Clear data from flow */
-  memset(&flow[flow_id], 0x00, sizeof(ptin_evc_gemflow_t));
+  memset(&flow[flow_id], 0x00, sizeof(ptin_evc_flow_t));
 
   if (client_vlan > 0 && IS_EVC_STACKED(evc_id))
   {
@@ -8235,18 +8235,21 @@ void ptin_evc_map(void)
 }
 
 
-#if 0
+
 void sizeof_evc(void)
 {
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_client_s) = %d", sizeof(struct ptin_evc_client_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_intf_s)   = %d", sizeof(struct ptin_evc_intf_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_s)        = %d", sizeof(struct ptin_evc_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evcs)              = %d", sizeof(evcs));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(clients)           = %d", sizeof(clients));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "total(evcs+clients)       = %d", sizeof(evcs)+sizeof(clients));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_client_s)     = %d", sizeof(struct ptin_evc_client_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_intf_s)       = %d", sizeof(struct ptin_evc_intf_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_s)            = %d", sizeof(struct ptin_evc_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_IGMP_Statistics_t)= %d", sizeof(ptin_IGMP_Statistics_t));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "PTIN_SYSTEM_N_INTERF          = %d", PTIN_SYSTEM_N_INTERF);
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(IGMP statistics)       = %d", sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evcs)                  = %d", sizeof(evcs));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(clients)               = %d", sizeof(clients));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "total(evcs+clients)           = %d", sizeof(evcs)+sizeof(clients));
 }
 
-
+#if 0
 void test_bitmaps(void)
 {
     #define SIZE    16

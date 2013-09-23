@@ -2291,7 +2291,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 }
 
 /**
- * Adds an GEM flow to an EVC
+ * Adds a flow to an EVC
  * 
  * @param msgEvcFlow : Flow info
  * 
@@ -2304,21 +2304,21 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
   ptinEvcFlow.flags               = msgEvcFlow->flags;
-  ptinEvcFlow.client_vlan         = msgEvcFlow->nni_cvlan;
+  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.outer_vid           = msgEvcFlow->intf.outer_vid; /* must be a leaf */
-  ptinEvcFlow.inner_vid           = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Client vlan = %u", ptinEvcFlow.client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID  = %u", ptinEvcFlow.outer_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID  = %u", ptinEvcFlow.inner_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
 
-  if (ptin_evc_gem_flow_add(&ptinEvcFlow) != L7_SUCCESS)
+  if (ptin_evc_flow_add(&ptinEvcFlow) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
     return L7_FAILURE;
@@ -2328,7 +2328,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 }
 
 /**
- * Removes a GEM flow from an EVC
+ * Removes a flow from an EVC
  * 
  * @param msgEvcFlow : Flow info
  * 
@@ -2342,16 +2342,17 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.outer_vid           = msgEvcFlow->intf.outer_vid; /* must be a leaf */
-  ptinEvcFlow.inner_vid           = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                  ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID = %u", ptinEvcFlow.outer_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID = %u", ptinEvcFlow.inner_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                ptinEvcFlow.ptin_intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
 
-  if (ptin_evc_gem_flow_remove(&ptinEvcFlow) != L7_SUCCESS)
+  if (ptin_evc_flow_remove(&ptinEvcFlow) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
     return L7_FAILURE;

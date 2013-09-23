@@ -85,6 +85,7 @@ extern int ptin_sys_number_of_ports;
 
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -217,6 +218,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -351,6 +353,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -481,6 +484,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_EVCS            65    /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         PTIN_SYSTEM_N_PONS /* 1 client per interface */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -652,6 +656,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
@@ -770,6 +775,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_FLOWS_MAX       64    /* Maximum nr of flows per interface */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */

@@ -401,7 +401,7 @@ extern L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge);
 extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
 
 /**
- * Adds an GEM flow to an EVC
+ * Adds an flow to an EVC
  * 
  * @param msgEvcFlow : Flow info
  * 
@@ -410,7 +410,7 @@ extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
 extern L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow);
 
 /**
- * Removes a GEM flow from an EVC
+ * Removes a flow from an EVC
  * 
  * @param msgEvcFlow : Flow info
  * 

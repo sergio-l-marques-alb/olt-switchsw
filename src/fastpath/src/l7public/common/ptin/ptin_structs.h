@@ -432,12 +432,12 @@ typedef struct {
   L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
   L7_uint32 flags;        // Protocol flags
 
-  L7_uint16 client_vlan;  // Client clan
+  L7_uint16 int_ivid;     // C-VLAN tagged in the upstream flows (inside the switch)
 
   /* Client interface (root is already known by the EVC) */
   ptin_intf_t ptin_intf;  // PON interface
-  L7_uint16   outer_vid;  // GEM id
-  L7_uint16   inner_vid;  // UNI cvlan
+  L7_uint16   uni_ovid;   // GEM id
+  L7_uint16   uni_ivid;   // UNI cvlan
 } ptin_HwEthEvcFlow_t;
 
 /* Client identification */

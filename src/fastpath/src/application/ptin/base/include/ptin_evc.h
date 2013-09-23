@@ -482,24 +482,24 @@ extern
 L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
 
 /**
- * Adds a GEM flow to the EVC
+ * Adds a flow to the EVC
  * 
  * @param evcFlow : Flow info
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_gem_flow_add(ptin_HwEthEvcFlow_t *evcFlow);
+L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow);
 
 /**
- * Removes a GEM flow from the EVC
+ * Removes a flow from the EVC
  * 
  * @param evcFlow : Flow info
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_gem_flow_remove(ptin_HwEthEvcFlow_t *evcFlow);
+L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow);
 
 /**
  * Gets the flooding vlans list
