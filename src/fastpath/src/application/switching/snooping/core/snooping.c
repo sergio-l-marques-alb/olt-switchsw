@@ -310,135 +310,6 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
 }
 
 
-L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
-{
-  switch (packetType)
-  {
-  case L7_IGMP_MEMBERSHIP_QUERY:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_TX;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX;   
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
-    case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX;   
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  case SNOOP_PTIN_GENERAL_QUERY:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_TX;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX;   
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
-    case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX;   
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX;   
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
-    case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX;   
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX;   
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
-    case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX;   
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-  case L7_IGMP_V1_MEMBERSHIP_REPORT:
-  case L7_IGMP_V2_MEMBERSHIP_REPORT:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_JOINS_SENT;   
-//  case SNOOP_STAT_FIELD_TOTAL_RX:
-//    return SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX;
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED;   
-//  case SNOOP_STAT_FIELD_DROPPED_RX:
-//    return SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX;
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  case L7_IGMP_V2_LEAVE_GROUP:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_LEAVES_SENT;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_LEAVES_RECEIVED;   
-//  case SNOOP_STAT_FIELD_VALID_RX:
-//    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
-//  case SNOOP_STAT_FIELD_INVALID_RX:
-//    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
-//  case SNOOP_STAT_FIELD_DROPPED_RX:
-//    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  case L7_IGMP_V3_MEMBERSHIP_REPORT:
-    switch (fieldType)
-    {
-    case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX;   
-    case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX;   
-    case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX;   
-    case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX;   
-    case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX;   
-    default:
-      return SNOOP_STAT_FIELD_ALL;
-    }
-
-  default:
-    return SNOOP_STAT_FIELD_ALL;
-  }
-}
-
-
 /***********************************************************************
 * @purpose Function to handle incoming snoop control packets
 *
@@ -3024,7 +2895,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             return L7_FAILURE;
           }
           LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 General Query Rec'd" );
-          queryType=SNOOP_PTIN_GENERAL_QUERY;            
+          queryType=L7_IGMP_MEMBERSHIP_QUERY;            
         }
         else /* Should be group or group & source specific query */
         {
@@ -3041,7 +2912,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             {
               LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group Specific Query Rec'd");
 
-              queryType=SNOOP_PTIN_GROUP_SPECIFIC_QUERY;
+              queryType=L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY;
 
               ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);                
             }
@@ -3049,7 +2920,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             {
               LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");
               ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX);
-              queryType=SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY;             
+              queryType=L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY;             
             }
           }
           else
@@ -3155,7 +3026,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
   switch (queryType)
   {
-  case SNOOP_PTIN_GENERAL_QUERY:
+  case L7_IGMP_MEMBERSHIP_QUERY:
     {      
       ptr=snoopPTinGeneralQueryProcess(mcastPacket->vlanId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, selectedDelay, &sendReport, &timeout,robustnessVariable);
       snoopStatIgmpField=SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX;
@@ -3163,13 +3034,13 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       break;
     }
 
-  case SNOOP_PTIN_GROUP_SPECIFIC_QUERY:
+  case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
     {
       ptr=snoopPTinGroupSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,selectedDelay, &sendReport, &timeout,robustnessVariable);      
       snoopStatIgmpField=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX;
       break;
     }
-  case SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY:
+  case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
     {
       ptr=snoopPTinGroupSourceSpecifcQueryProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM, noOfSources, sourceList, selectedDelay, &sendReport, &timeout,robustnessVariable);
       snoopStatIgmpField=SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX;   
@@ -4172,7 +4043,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   if (totalRecords>0)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-    if (snoopPTinScheduleReportMessage(vlanId,&firstGroupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,totalRecords, firstGroupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
+    if (snoopPTinScheduleReportMessage(vlanId,&firstGroupAddr,L7_IGMP_V3_MEMBERSHIP_REPORT,0,L7_FALSE,totalRecords, firstGroupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_ERROR;
