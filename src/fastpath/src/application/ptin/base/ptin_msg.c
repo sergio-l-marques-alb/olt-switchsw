@@ -116,7 +116,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 
   msgFPInfo->SlotIndex    = ptin_board_slotId;
   msgFPInfo->BoardPresent = (ptin_state == PTIN_LOADED);
-  
+
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "FASTPATH 6.3.0.2", 20);
 
   return L7_SUCCESS;
@@ -143,10 +143,10 @@ void ptin_msg_defaults_reset(void)
   ptin_evc_destroy_all();
 
   /* ERPS */
-  #ifdef PTIN_ENABLE_ERPS
+#ifdef PTIN_ENABLE_ERPS
   ptin_erps_clear();
   ptin_hal_erps_clear();
-  #endif
+#endif
 
   return;
 }
@@ -432,7 +432,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
  */
 L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
 {
-  #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint ptin_port;
   ptin_HWEthRFC2819_PortStatistics_t  portStats;
 
@@ -466,9 +466,9 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   LOG_TRACE(LOG_CTX_PTIN_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
 
   return L7_SUCCESS;
-  #else
+#else
   return L7_NOT_SUPPORTED;
-  #endif
+#endif
 }
 
 
@@ -1197,13 +1197,13 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
-           qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
+            qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
+            qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
+            qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
+            qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
   return L7_SUCCESS;
 }
@@ -1230,17 +1230,17 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate   = %u",qos_msg->shaping_rate);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos    = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
-           qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
+            qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
-           qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
+            qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
+            qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
+            qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
-           qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
+            qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
   /* Clear structures */
   memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
@@ -1394,7 +1394,8 @@ L7_RC_t ptin_msg_Lag_get(msg_LACPLagInfo_t *lagInfo, L7_uint *nElems)
 
     ptinLagConf.lagId = lag_idx;
 
-    if (ptin_intf_LagConfig_get(&ptinLagConf) != L7_SUCCESS) {
+    if (ptin_intf_LagConfig_get(&ptinLagConf) != L7_SUCCESS)
+    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading LAG# %u", lag_idx);
       return L7_FAILURE;
     }
@@ -1524,7 +1525,8 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
 
     ptinLagStatus.lagId = lag_idx;
 
-    if (ptin_intf_LagStatus_get(&ptinLagStatus) != L7_SUCCESS) {
+    if (ptin_intf_LagStatus_get(&ptinLagStatus) != L7_SUCCESS)
+    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting status of LAG# %u", lag_idx);
       return L7_FAILURE;
     }
@@ -1690,7 +1692,8 @@ L7_RC_t ptin_msg_LACPStats_get(msg_LACPStats_t *lagStats, L7_uint *nElems)
   {
     ptinLagStats.port = port_idx;
 
-    if (ptin_intf_LACPStats_get(&ptinLagStats) != L7_SUCCESS) {
+    if (ptin_intf_LACPStats_get(&ptinLagStats) != L7_SUCCESS)
+    {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting status of Port# %u", port_idx);
       return L7_FAILURE;
     }
@@ -1836,7 +1839,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u",mac_table->intro.numEntries);
 
-  #if 0
+#if 0
   L7_uint8  slotId;
   L7_uint32 startId;
   L7_uint64 macAddr;
@@ -1885,7 +1888,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table)
     mac_table->entry[i].addr[4] = (L7_uint8) ((macAddr>>8) & 0xff);
     mac_table->entry[i].addr[5] = (L7_uint8) (macAddr & 0xff);
   }
-  #else
+#else
 
   ptin_switch_mac_entry *entries_list;
 
@@ -1929,7 +1932,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table)
   /* Update number of entries */
   mac_table->intro.numEntries = numEntries;
 
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -1984,7 +1987,7 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
     LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u",numEntries,MSG_CMDGET_MAC_TABLE_MAXENTRIES);
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
   }
-  
+
   /* Remove all elements */
   for (i=0; i<numEntries; i++)
   {
@@ -1997,7 +2000,7 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
     entry.static_entry   = mac_table->entry[i].static_entry;
 
     if (ptin_l2_mac_table_entry_remove(&entry)!=L7_SUCCESS)
-    { 
+    {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing index entry %u",i);
       rc = L7_FAILURE;
     }
@@ -2046,7 +2049,7 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
     LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u",numEntries,MSG_CMDGET_MAC_TABLE_MAXENTRIES);
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
   }
-  
+
   /* Remove all elements */
   for (i=0; i<numEntries; i++)
   {
@@ -2125,10 +2128,10 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
     msgEvcConf->intf[i].vid       = ptinEvcConf.intf[i].vid;
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u",
-             msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-             msgEvcConf->intf[i].intf_id,
-             msgEvcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-             msgEvcConf->intf[i].vid);
+              msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+              msgEvcConf->intf[i].intf_id,
+              msgEvcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+              msgEvcConf->intf[i].vid);
   }
 
   return L7_SUCCESS;
@@ -2175,10 +2178,10 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
     ptinEvcConf.intf[i].vid       = msgEvcConf->intf[i].vid;
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u",
-             ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-             ptinEvcConf.intf[i].intf_id,
-             ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-             ptinEvcConf.intf[i].vid);
+              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+              ptinEvcConf.intf[i].intf_id,
+              ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+              ptinEvcConf.intf[i].vid);
   }
 
   if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
@@ -2239,7 +2242,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                       ptinEvcBridge.intf.intf_id);
+            ptinEvcBridge.intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
@@ -2274,7 +2277,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                       ptinEvcBridge.intf.intf_id);
+            ptinEvcBridge.intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
@@ -2778,11 +2781,11 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
   /* Output data */
   LOG_INFO(LOG_CTX_PTIN_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
-                                                                   (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
+           (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
-                                                                   (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
+           (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
-                                                                   (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
+           (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
@@ -2833,11 +2836,11 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   /* Output data */
   LOG_INFO(LOG_CTX_PTIN_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
-                                                                   (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
+           (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
-                                                                   (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
+           (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
-                                                                   (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
+           (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
   LOG_INFO(LOG_CTX_PTIN_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
@@ -2867,43 +2870,44 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
  */
 L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
 {
-   L7_uint           evc_idx;
-   L7_RC_t           rc;
+  L7_uint           evc_idx;
+  L7_RC_t           rc;
 
-   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
 
-   /* Validate input parameters */
-   if (dhcpEvcInfo==L7_NULLPTR)  {
-     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
-     return L7_FAILURE;
-   }
+  /* Validate input parameters */
+  if (dhcpEvcInfo==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    return L7_FAILURE;
+  }
 
-   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id     = %u",      dhcpEvcInfo->evc_id);
-   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
-   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %s",      dhcpEvcInfo->dhcp_flag);
-   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id     = %u",      dhcpEvcInfo->evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %s",      dhcpEvcInfo->dhcp_flag);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
 
-   /* Extract input data */
-   evc_idx = dhcpEvcInfo->evc_id;
+  /* Extract input data */
+  evc_idx = dhcpEvcInfo->evc_id;
 
-   /* TODO: To be reworked */
-   rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-   if (rc!=L7_SUCCESS)
-   {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
-      return rc;
-   }
-   rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-   /* TODO */
-   #if 0
-   if (rc!=L7_SUCCESS)
-   {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
-      return rc;
-   }
-   #endif
+  /* TODO: To be reworked */
+  rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
+    return rc;
+  }
+  rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+  /* TODO */
+#if 0
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
+    return rc;
+  }
+#endif
 
-   return L7_SUCCESS;
+  return L7_SUCCESS;
 }
 
 /**
@@ -2921,7 +2925,8 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
 
   /* Validate input parameters */
-  if (circuitid==L7_NULLPTR)  {
+  if (circuitid==L7_NULLPTR)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
@@ -2943,7 +2948,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
 
   /* Set circuit-id global data */
   rc = ptin_dhcp_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+                               circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
@@ -2952,13 +2957,13 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   rc = ptin_pppoe_circuitid_set(evc_idx, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
                                 circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
   /* TODO */
-  #if 0
+#if 0
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
     return rc;
   }
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -2978,7 +2983,8 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
 
   /* Validate input parameters */
-  if (circuitid==L7_NULLPTR)  {
+  if (circuitid==L7_NULLPTR)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
@@ -2988,7 +2994,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
 
   /* Set circuit-id global data */
   rc = ptin_dhcp_circuitid_get(evc_idx, circuitid->template_str, &circuitid->mask, circuitid->access_node_id, &circuitid->chassis, &circuitid->rack,
-      &circuitid->frame, &circuitid->ethernet_priority, &circuitid->s_vid);
+                               &circuitid->frame, &circuitid->ethernet_priority, &circuitid->s_vid);
 
   if (rc!=L7_SUCCESS)
   {
@@ -3025,7 +3031,8 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
 
   /* Validate input parameters */
-  if (profile==L7_NULLPTR)  {
+  if (profile==L7_NULLPTR)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
@@ -3062,7 +3069,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 
   /* Get circuit and remote ids */
   rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &profile->circuitId.onuid, &profile->circuitId.slot, &profile->circuitId.port,
-      &profile->circuitId.q_vid, &profile->circuitId.c_vid, L7_NULLPTR, profile->remoteId);
+                            &profile->circuitId.q_vid, &profile->circuitId.c_vid, L7_NULLPTR, profile->remoteId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -3095,7 +3102,8 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
   L7_RC_t           rc = L7_SUCCESS;
 
   /* Validate input parameters */
-  if (profile==L7_NULLPTR)  {
+  if (profile==L7_NULLPTR)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
@@ -3120,15 +3128,15 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
 
     /* Check if all UseGlobal_DHCP_options match */
-    if( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
+    if ( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
     {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
-       return L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+      return L7_FAILURE;
     }
-    if( ((profile[i].options & 0x08) >> 3) != ((profile[i].options & 0x20) >> 5) )
+    if ( ((profile[i].options & 0x08) >> 3) != ((profile[i].options & 0x20) >> 5) )
     {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
-       return L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+      return L7_FAILURE;
     }
 
     /* Extract input data */
@@ -3156,7 +3164,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
     /* Add circuit and remote ids */
     rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+                              profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
@@ -3166,13 +3174,13 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
                                profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
     /* TODO */
-    #if 0
+#if 0
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding PPPoE circuitId+remoteId entry");
       return rc;
     }
-    #endif
+#endif
   }
 
   return L7_SUCCESS;
@@ -3192,7 +3200,8 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
   L7_RC_t           rc;
 
   /* Validate input parameters */
-  if (profile==L7_NULLPTR)  {
+  if (profile==L7_NULLPTR)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
@@ -3242,13 +3251,13 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
     }
     rc = ptin_pppoe_client_delete(evc_idx,&client);
     /* TODO */
-    #if 0
+#if 0
     if ( rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing PPPoE circuitId+remoteId entry");
       return rc;
     }
-    #endif
+#endif
   }
 
   return L7_SUCCESS;
@@ -3286,7 +3295,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   /* Evaluate provided data */
   if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
        !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
-        (dhcp_stats->client.mask == 0x00) )
+       (dhcp_stats->client.mask == 0x00) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
@@ -3378,7 +3387,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
   /* Evaluate provided data */
   if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
        !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
-        (dhcp_stats->client.mask == 0x00) )
+       (dhcp_stats->client.mask == 0x00) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
@@ -3447,7 +3456,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
 
-    /* Evaluate provided data */
+  /* Evaluate provided data */
   if ( !(dhcp_stats->mask & MSG_INTERFACE_MASK) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "At least, interface must be provided");
@@ -3636,7 +3645,8 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   page = input->page;
 
   // For index null, read all mac entries
-  if (page==0) {
+  if (page==0)
+  {
     size = PLAT_MAX_FDB_MAC_ENTRIES;
 
     rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable,&size);
@@ -3779,7 +3789,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
-                                                          (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
+            (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
@@ -3843,10 +3853,10 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
-                                                                                 (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
+            (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
@@ -4120,7 +4130,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   /* Evaluate provided data */
   if ( igmp_stats->mcEvcId==(L7_uint16)-1 ||
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
-        (igmp_stats->client.mask == 0x00) )
+       (igmp_stats->client.mask == 0x00) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
@@ -4178,15 +4188,21 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
   igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
 #else
- /* Return data */
+  /* Return data */
   igmp_stats->stats.active_groups                                                       = stats.active_groups;            
   igmp_stats->stats.active_clients                                                      = stats.active_clients;           
+  igmp_stats->stats.igmp_tx                                                             = /*stats.igmp_sent+*/ stats.joins_sent+stats.leaves_sent+stats.igmpv3.membership_report_tx+
+                                                                                              stats.igmpquery.general_query_tx+stats.igmpquery.group_query_tx+stats.igmpquery.source_query_tx;
 
-  igmp_stats->stats.igmp_tx                                                             = stats.igmp_sent;                  
-  igmp_stats->stats.igmp_total_rx                                                       = stats.igmp_intercepted;                     
-  igmp_stats->stats.igmp_valid_rx                                                       = stats.igmp_received_valid;      
-  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+  igmp_stats->stats.igmp_valid_rx                                                       = /*stats.igmp_received_valid+*/ stats.igmpv3.membership_report_valid_rx+
+                                                                                          stats.leaves_received+stats.joins_received_success+stats.igmpquery.general_query_valid_rx+
+                                                                                          +stats.igmpquery.group_query_valid_rx+stats.igmpquery.source_query_valid_rx;
+
+  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.joins_received_failed+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+
   igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
+
+  igmp_stats->stats.igmp_total_rx                                                       = /*stats.igmp_intercepted +*/igmp_stats->stats.igmp_valid_rx+igmp_stats->stats.igmp_invalid_rx+igmp_stats->stats.igmp_dropped_rx;                                         
 
   igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
   igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
@@ -4194,11 +4210,11 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
   igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
-  
+
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
-  
+
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
@@ -4230,7 +4246,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
 
   igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.group_query_valid_rx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.source_query_valid_rx; 
 #endif
 
   return L7_SUCCESS;
@@ -4267,7 +4283,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
   /* Evaluate provided data */
   if ( igmp_stats->mcEvcId==(L7_uint16)-1 ||
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
-        (igmp_stats->client.mask == 0x00) )
+       (igmp_stats->client.mask == 0x00) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
@@ -4336,7 +4352,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
-    /* Evaluate provided data */
+  /* Evaluate provided data */
   if ( !(igmp_stats->mask & MSG_INTERFACE_MASK) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "At least, interface must be provided");
@@ -4397,15 +4413,20 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
   igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
 #else
-  /* Return data */
   igmp_stats->stats.active_groups                                                       = stats.active_groups;            
   igmp_stats->stats.active_clients                                                      = stats.active_clients;           
+  igmp_stats->stats.igmp_tx                                                             = /*stats.igmp_sent+*/ stats.joins_sent+stats.leaves_sent+stats.igmpv3.membership_report_tx+
+                                                                                              stats.igmpquery.general_query_tx+stats.igmpquery.group_query_tx+stats.igmpquery.source_query_tx;
 
-  igmp_stats->stats.igmp_tx                                                             = stats.igmp_sent;                  
-  igmp_stats->stats.igmp_total_rx                                                       = stats.igmp_intercepted;                     
-  igmp_stats->stats.igmp_valid_rx                                                       = stats.igmp_received_valid;      
-  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+  igmp_stats->stats.igmp_valid_rx                                                       = /*stats.igmp_received_valid+*/ stats.igmpv3.membership_report_valid_rx+
+                                                                                          stats.leaves_received+stats.joins_received_success+stats.igmpquery.general_query_valid_rx+
+                                                                                          +stats.igmpquery.group_query_valid_rx+stats.igmpquery.source_query_valid_rx;
+
+  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.joins_received_failed+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
+
   igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
+
+  igmp_stats->stats.igmp_total_rx                                                       = /*stats.igmp_intercepted +*/igmp_stats->stats.igmp_valid_rx+igmp_stats->stats.igmp_invalid_rx+igmp_stats->stats.igmp_dropped_rx;                                         
 
   igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
   igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
@@ -4413,11 +4434,11 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
   igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
-  
+
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
-  
+
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
@@ -4449,11 +4470,11 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
 
   igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.group_query_valid_rx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.source_query_valid_rx; 
 #endif
 
 
-  
+
   return L7_SUCCESS;
 }
 
@@ -4573,7 +4594,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#define IGMPASSOC_MAX_CHANNELS_IN_MESSAGE   100   /* Maximum number of channels in one message */
+  #define IGMPASSOC_MAX_CHANNELS_IN_MESSAGE   100   /* Maximum number of channels in one message */
 static igmpAssoc_entry_t igmpAssoc_list[IGMPASSOC_CHANNELS_MAX];
 static L7_uint16 igmpAssoc_channels_max = 0;
 #endif
@@ -4593,7 +4614,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
   LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_dstIp.addr.ipv4, channel_list->channel_dstIp.family, channel_list->channel_dstmask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
 
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint16 i, i_start;
   L7_uint16 number_of_channels;
   L7_uint8  slotId;
@@ -4678,12 +4699,12 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
   /* Return number of channels */
   *n_channels = number_of_channels;
 
-  #else
+#else
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
   return L7_NOT_SUPPORTED;
 
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -4742,7 +4763,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
       sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
     }
 
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
     if (igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
                                 &groupAddr , channel_list[i].channel_dstmask,
@@ -4754,10 +4775,10 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
               channel_list[i].evcid_mc);
       return L7_FAILURE;
     }
-    #else
+#else
     rc = L7_NOT_SUPPORTED;
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
-    #endif
+#endif
   }
 
   return rc;
@@ -4817,7 +4838,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
       sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
     }
 
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
     if (igmp_assoc_channel_remove( 0,
                                    &groupAddr , channel_list[i].channel_dstmask,
@@ -4830,10 +4851,10 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
       return L7_FAILURE;
     }
 
-    #else
+#else
     rc = L7_NOT_SUPPORTED;
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
-    #endif
+#endif
   }
 
   return rc;
@@ -4857,7 +4878,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
             (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
 
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* Add this channel to associations list */
   L7_inet_addr_t groupAddr, sourceAddr;
 
@@ -4874,7 +4895,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding group 0x%08x to association list (MC EVC id %u)",groupAddr.addr.ipv4.s_addr,channel->evc_id);
     return rc;
   }
-  #endif
+#endif
 
   in_addr.s_addr = channel->channelIp.s_addr;
 
@@ -4882,9 +4903,9 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
 
   if (rc!=L7_SUCCESS)
   {
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);    /* Undo */
-    #endif
+#endif
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
     return rc;
   }
@@ -4920,7 +4941,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
     return rc;
   }
 
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* Remove this channel from association list */
   L7_inet_addr_t groupAddr, sourceAddr;
 
@@ -4937,7 +4958,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group 0x%08x from association list",groupAddr.addr.ipv4.s_addr);
     return rc;
   }
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -4956,10 +4977,10 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   ptin_client_id_t       client;
   L7_RC_t                rc;
 
-  if(numberOfChannels == L7_NULLPTR)
+  if (numberOfChannels == L7_NULLPTR)
   {
-     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters");
-     return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters");
+    return L7_FAILURE;
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of channels");
@@ -4997,7 +5018,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   if (rc==L7_SUCCESS)
   {
     *numberOfChannels = number_of_channels;
-    
+
     /* Copy channels to message */
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {
@@ -5018,7 +5039,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_igmp_channelList_get");
     return rc;
   }
-  
+
   return L7_SUCCESS;
 }
 
@@ -5505,8 +5526,8 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
-#include <sirerrors.h>
-#include <ptin_prot_oam_eth.h>
+  #include <sirerrors.h>
+  #include <ptin_prot_oam_eth.h>
 /************************************************************************** 
 * OAM MEPs Configuration
 **************************************************************************/
@@ -5535,21 +5556,25 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   porta = pi[i].bd.prt;
 
-  
-  switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam)) {
+
+  switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam))
+  {
   case 0:    r=S_OK;
-             ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
-             break;
+    ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
+    break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
   case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
   case 4:    r=ERROR_CODE_NOTPRESENT;  break;
   default:   r=ERROR_CODE_INVALIDPARAM; break;
   }//switch
-  
 
-  if (r==S_OK) {
+
+  if (r==S_OK)
+  {
     return L7_SUCCESS;
-  } else {
+  }
+  else
+  {
     return L7_FAILURE;
   }
 
@@ -5578,25 +5603,30 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   i_mep=po[i].index=pi[i].index;
 
-  if (i_mep<N_MEPs) {
-      prt=oam.mep_db[i_mep].prt;
-      vid=oam.mep_db[i_mep].vid;
-      level=oam.mep_db[i_mep].level;
+  if (i_mep<N_MEPs)
+  {
+    prt=oam.mep_db[i_mep].prt;
+    vid=oam.mep_db[i_mep].vid;
+    level=oam.mep_db[i_mep].level;
   }
 
-  
-  switch (del_mep(i_mep, &oam)) {
+
+  switch (del_mep(i_mep, &oam))
+  {
   case 0:    r=S_OK;
-             ptin_ccm_packet_trap(prt, vid, level, 0);
-             break;
+    ptin_ccm_packet_trap(prt, vid, level, 0);
+    break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
   default:   r=ERROR_CODE_INVALIDPARAM; break;
   }//switch
-  
 
-  if (r==S_OK) {
+
+  if (r==S_OK)
+  {
     return L7_SUCCESS;
-  } else {
+  }
+  else
+  {
     return L7_FAILURE;
   }
 
@@ -5619,7 +5649,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 {
   msg_bd_rmep_t *pi;
   msg_generic_prefix_t *po;
-T_ETH_SRV_OAM *p_oam;
+  T_ETH_SRV_OAM *p_oam;
   L7_uint32 i_mep, i_rmep;
   L7_uint16 r=L7_HARDWARE_ERROR;
 
@@ -5628,20 +5658,23 @@ T_ETH_SRV_OAM *p_oam;
 
   i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
 
-  if (!valid_mep_index(i_mep)) {
+  if (!valid_mep_index(i_mep))
+  {
     return L7_FAILURE;
   }
 
   i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
 
-  
+
   p_oam= &oam;
-  switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->mep_db[i_mep], p_oam)) {
+  switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->mep_db[i_mep], p_oam))
+  {
   case 0:
     r=S_OK;
     break;
   case 4:
-    if (CCMSG_FLUSH_RMEP==inbuff->msgId) {
+    if (CCMSG_FLUSH_RMEP==inbuff->msgId)
+    {
       r=S_OK;
       break;
     }
@@ -5657,11 +5690,14 @@ T_ETH_SRV_OAM *p_oam;
   default:
     r=ERROR_CODE_INVALIDPARAM;
   }
-  
 
-  if (r==S_OK) {
+
+  if (r==S_OK)
+  {
     return L7_SUCCESS;
-  } else {
+  }
+  else
+  {
     return L7_FAILURE;
   }
 
@@ -5693,19 +5729,23 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
   i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
 
-  
+
   p_oam= &oam;
 
-  switch (del_rmep(i_mep, i_rmep, p_oam)) {
+  switch (del_rmep(i_mep, i_rmep, p_oam))
+  {
   case 0:    r=S_OK;             break;
-  //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
+    //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
   default:   r=ERROR_CODE_INVALIDPARAM;
   }
-  
 
-  if (r==S_OK) {
+
+  if (r==S_OK)
+  {
     return L7_SUCCESS;
-  } else {
+  }
+  else
+  {
     return L7_FAILURE;
   }
 
@@ -5733,14 +5773,16 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_mep_t *)outbuff->info;
 
-  if (pi->index>=N_MEPs) {
+  if (pi->index>=N_MEPs)
+  {
     return(L7_FAILURE);
   }
 
-  
+
   p_oam= &oam;
 
-  for (i=pi->index, n=0; i<N_MEPs; i++) {
+  for (i=pi->index, n=0; i<N_MEPs; i++)
+  {
     po[n].index = i;
     po[n].err_code = S_OK;
 
@@ -5753,7 +5795,7 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
 
     if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
   }//for
-  
+
 
   outbuff->infoDim = n*sizeof(msg_bd_mep_t);
   return L7_SUCCESS;
@@ -5784,23 +5826,27 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
   i_mep=     MEP_INDEX_TO_iMEP(pi->index);
   i_rmep=    MEP_INDEX_TO_iRMEP(pi->index);
 
-  if (!valid_mep_index(i_mep) || !valid_rmep_index(i_rmep)) {
+  if (!valid_mep_index(i_mep) || !valid_rmep_index(i_rmep))
+  {
     return(L7_FAILURE);
   }
 
-  
+
   p_oam= &oam;
 
-  if (EMPTY_T_MEP(p_oam->mep_db[i_mep])) {
+  if (EMPTY_T_MEP(p_oam->mep_db[i_mep]))
+  {
     return(L7_FAILURE);
   }
 
-  for (i=i_rmep, n=0; i<N_MAX_MEs_PER_MEP; i++) {
+  for (i=i_rmep, n=0; i<N_MAX_MEs_PER_MEP; i++)
+  {
     po[n].index = iMEP_iRMEP_TO_MEP_INDEX(i_mep, i);//i_mep*0x10000L+i;
     po[n].err_code = S_OK;
 
     if (   !EMPTY_T_MEP(p_oam->mep_db[i_mep].ME[i])
-           ||  N_MAX_MEs_PER_MEP-1==i) {
+           ||  N_MAX_MEs_PER_MEP-1==i)
+    {
       po[n].bd.me=     p_oam->mep_db[i_mep].ME[i];
       //if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
       n++;
@@ -5808,7 +5854,7 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
     if (n+1 > 17   ||  (n+1)*sizeof(msg_bd_me_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_me_t) >= INFO_DIM_MAX) break;
   }//for
-  
+
 
   outbuff->infoDim = n*sizeof(msg_bd_me_t);
 
@@ -5837,24 +5883,27 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_lut_mep_t *)outbuff->info;
 
-  if (pi->index>=N_MAX_LOOKUP_MEPs) {
+  if (pi->index>=N_MAX_LOOKUP_MEPs)
+  {
     return(L7_FAILURE);
   }
 
-  
+
   p_oam= &oam;
 
-  for (i=pi->index, n=0; i<N_MAX_LOOKUP_MEPs; i++) {
+  for (i=pi->index, n=0; i<N_MAX_LOOKUP_MEPs; i++)
+  {
     po[n].index = i;
     po[n].err_code = S_OK;
 
-    if (!EMPTY_T_MEP(p_oam->mep_lut[i])) {
+    if (!EMPTY_T_MEP(p_oam->mep_lut[i]))
+    {
       po[n++].bd= p_oam->mep_lut[i];
     }
 
     if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_lut_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;
   }//for
-  
+
 
   outbuff->infoDim = n*sizeof(msg_bd_lut_mep_t);
 
@@ -5886,7 +5935,8 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   erpsProtParam_t ptinErpsConf;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
@@ -5940,7 +5990,8 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer       = %d",  ptinErpsConf.holdoffTimer);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
 
-  if (ptin_erps_add_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
+  if (ptin_erps_add_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error Creating ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }
@@ -5969,14 +6020,16 @@ L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf)
 #ifdef PTIN_ENABLE_ERPS
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsConf->idx);
 
-  if (ptin_erps_remove_entry(msgErpsConf->idx) != msgErpsConf->idx) {
+  if (ptin_erps_remove_entry(msgErpsConf->idx) != msgErpsConf->idx)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error Removing ERPS#%u", msgErpsConf->idx);
     ptin_hal_erps_entry_deinit(msgErpsConf->idx);
     return L7_FAILURE;
@@ -6008,7 +6061,8 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
   erpsProtParam_t ptinErpsConf;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS) {
+  if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
@@ -6037,7 +6091,8 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
 
   if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_VIDBMP)        memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
-  if (ptin_erps_conf_entry(msgErpsConf->idx, msgErpsConf->mask, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx) {
+  if (ptin_erps_conf_entry(msgErpsConf->idx, msgErpsConf->mask, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }
@@ -6068,14 +6123,16 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   erpsStatus_t status;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (msgErpsStatus->idx >= MAX_PROT_PROT_ERPS) {
+  if (msgErpsStatus->idx >= MAX_PROT_PROT_ERPS)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsStatus->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsStatus->idx);
 
-  if (ptin_erps_get_status(msgErpsStatus->idx, &status) != msgErpsStatus->idx) {
+  if (ptin_erps_get_status(msgErpsStatus->idx, &status) != msgErpsStatus->idx)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error Retrieving Status ERPS#%u", msgErpsStatus->idx);
     return L7_FAILURE;
   }
@@ -6135,15 +6192,18 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
   nextIdx = msgErpsStatus->idx + 1;
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS Next Index %d", nextIdx);
 
-  while ( i < CCMSG_ERPS_STATUS_PAGESIZE ) {
+  while ( i < CCMSG_ERPS_STATUS_PAGESIZE )
+  {
 
     /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-    if (nextIdx >= MAX_PROT_PROT_ERPS) {
+    if (nextIdx >= MAX_PROT_PROT_ERPS)
+    {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", nextIdx, MAX_PROT_PROT_ERPS-1);
       break;
     }
 
-    if (ptin_erps_get_status(nextIdx, &status) != nextIdx) {
+    if (ptin_erps_get_status(nextIdx, &status) != nextIdx)
+    {
       nextIdx++;
       continue;
     }
@@ -6205,7 +6265,8 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u: CMD %d, Port %d", msgErpsCmd->idx, msgErpsCmd->cmd, msgErpsCmd->port);
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS) {
+  if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS)
+  {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
@@ -6257,37 +6318,39 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
 
 #ifdef __802_1x__
 
-#include <sirerrors.h>
-#include <usmdb_dot1x_api.h>
-#include <usmdb_dot1x_auth_serv_api.h>
-#include <dot1x_auth_serv_exports.h>
-#include <dot1x_auth_serv_api.h>
+  #include <sirerrors.h>
+  #include <usmdb_dot1x_api.h>
+  #include <usmdb_dot1x_auth_serv_api.h>
+  #include <dot1x_auth_serv_exports.h>
+  #include <dot1x_auth_serv_api.h>
 
 
 int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
-msg_802_1x_Genrc *pi, *po;
-L7_RC_t r;
+  msg_802_1x_Genrc *pi, *po;
+  L7_RC_t r;
 
- pi=(msg_802_1x_Genrc *)inbuff->info;   po=(msg_802_1x_Genrc *)outbuff->info;
+  pi=(msg_802_1x_Genrc *)inbuff->info;   po=(msg_802_1x_Genrc *)outbuff->info;
 
- switch (inbuff->msgId) {
- case CCMSG_WR_802_1X_ADMINMODE:        r=usmDbDot1xAdminModeSet(1, pi[i].v); break;
- case CCMSG_WR_802_1X_TRACE:            r=usmDbDot1xPacketDebugTraceFlagSet(pi[i].v>>1, pi[i].v&1); break;
- case CCMSG_WR_802_1X_VLANASSGNMODE:    r=usmDbDot1xVlanAssignmentModeSet(1, pi[i].v); break;
- case CCMSG_WR_802_1X_MONMODE:          r=usmDbDot1xMonitorModeSet(1, pi[i].v); break;
- case CCMSG_WR_802_1X_DYNVLANMODE:      r=usmDbDot1xDynamicVlanCreationModeSet(1, pi[i].v); break;
- default:
-     po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-     return 1;
- }
+  switch (inbuff->msgId)
+  {
+  case CCMSG_WR_802_1X_ADMINMODE:        r=usmDbDot1xAdminModeSet(1, pi[i].v); break;
+  case CCMSG_WR_802_1X_TRACE:            r=usmDbDot1xPacketDebugTraceFlagSet(pi[i].v>>1, pi[i].v&1); break;
+  case CCMSG_WR_802_1X_VLANASSGNMODE:    r=usmDbDot1xVlanAssignmentModeSet(1, pi[i].v); break;
+  case CCMSG_WR_802_1X_MONMODE:          r=usmDbDot1xMonitorModeSet(1, pi[i].v); break;
+  case CCMSG_WR_802_1X_DYNVLANMODE:      r=usmDbDot1xDynamicVlanCreationModeSet(1, pi[i].v); break;
+  default:
+    po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
 
- if (L7_SUCCESS!=r) {
-   po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-   return 1;
- }
- else po[i].v = ERROR_CODE_OK;
+  if (L7_SUCCESS!=r)
+  {
+    po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
+  else po[i].v = ERROR_CODE_OK;
 
- return 0;
+  return 0;
 }//msg_wr_802_1x_Genrc
 
 
@@ -6307,52 +6370,58 @@ L7_RC_t r;
 
 
 int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
-msg_802_1x_Genrc2 *pi;
-msg_generic_prefix_t *po;
-ptin_intf_t ptinp;
-L7_RC_t r;
-L7_uint32 intIfNum;
+  msg_802_1x_Genrc2 *pi;
+  msg_generic_prefix_t *po;
+  ptin_intf_t ptinp;
+  L7_RC_t r;
+  L7_uint32 intIfNum;
 
- pi=(msg_802_1x_Genrc2 *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+  pi=(msg_802_1x_Genrc2 *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
 
- ptinp.intf_type=   pi[i].index>>8;
- ptinp.intf_id=     pi[i].index;
- if (L7_SUCCESS!=ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum)) {
-     po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-     return 1;
- }
+  ptinp.intf_type=   pi[i].index>>8;
+  ptinp.intf_id=     pi[i].index;
+  if (L7_SUCCESS!=ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum))
+  {
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
 
- switch (inbuff->msgId) {
-    case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS: r=usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_PORTCONTROLMODE:           r=usmDbDot1xPortControlModeSet(1, intIfNum, pi[i].v);   break;
-    case CCMSG_WR_802_1X_QUIETPERIOD:               r=usmDbDot1xPortQuietPeriodSet(1, intIfNum, pi[i].v);   break;
-    case CCMSG_WR_802_1X_TXPERIOD:                  r=usmDbDot1xPortTxPeriodSet(1, intIfNum, pi[i].v);  break;
-    case CCMSG_WR_802_1X_SUPPTIMEOUT:               r=usmDbDot1xPortSuppTimeoutSet(1, intIfNum, pi[i].v);   break;
-    case CCMSG_WR_802_1X_SERVERTIMEOUT:             r=usmDbDot1xPortServerTimeoutSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_MAXREQ:                    r=usmDbDot1xPortMaxReqSet(1, intIfNum, pi[i].v);    break;
-    case CCMSG_WR_802_1X_REAUTHPERIOD:
-        if (1+pi[i].v==0) {r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 0);   break;}  //Forbidden period disables
-        r=usmDbDot1xPortReAuthPeriodSet(1, intIfNum, pi[i].v);
-        if (L7_SUCCESS!=r) break;
-        r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 1);
-        break;
-    case CCMSG_WR_802_1X_KEYTXENABLED:              r=usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_GUESTVLANID:               r=usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_GUSTVLANPERIOD:            r=usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_MAXUSERS:                  r=usmDbDot1xPortMaxUsersSet(1, intIfNum, pi[i].v); break;
-    case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:       r=usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, pi[i].v); break;
-    default:
-        po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-        return 1;
- }
+  switch (inbuff->msgId)
+  {
+  case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS: r=usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_PORTCONTROLMODE:           r=usmDbDot1xPortControlModeSet(1, intIfNum, pi[i].v);   break;
+  case CCMSG_WR_802_1X_QUIETPERIOD:               r=usmDbDot1xPortQuietPeriodSet(1, intIfNum, pi[i].v);   break;
+  case CCMSG_WR_802_1X_TXPERIOD:                  r=usmDbDot1xPortTxPeriodSet(1, intIfNum, pi[i].v);  break;
+  case CCMSG_WR_802_1X_SUPPTIMEOUT:               r=usmDbDot1xPortSuppTimeoutSet(1, intIfNum, pi[i].v);   break;
+  case CCMSG_WR_802_1X_SERVERTIMEOUT:             r=usmDbDot1xPortServerTimeoutSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_MAXREQ:                    r=usmDbDot1xPortMaxReqSet(1, intIfNum, pi[i].v);    break;
+  case CCMSG_WR_802_1X_REAUTHPERIOD:
+    if (1+pi[i].v==0)
+    {
+      r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 0);   break;
+    }  //Forbidden period disables
+    r=usmDbDot1xPortReAuthPeriodSet(1, intIfNum, pi[i].v);
+    if (L7_SUCCESS!=r) break;
+    r=usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 1);
+    break;
+  case CCMSG_WR_802_1X_KEYTXENABLED:              r=usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_GUESTVLANID:               r=usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_GUSTVLANPERIOD:            r=usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_MAXUSERS:                  r=usmDbDot1xPortMaxUsersSet(1, intIfNum, pi[i].v); break;
+  case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:       r=usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, pi[i].v); break;
+  default:
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
 
- if (L7_SUCCESS!=r) {
-   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-   return 1;
- }
- else po[i].err_code = ERROR_CODE_OK;
+  if (L7_SUCCESS!=r)
+  {
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
+  else po[i].err_code = ERROR_CODE_OK;
 
- return 0;
+  return 0;
 }//msg_wr_802_1x_Genrc2
 
 
@@ -6371,65 +6440,73 @@ L7_uint32 intIfNum;
 
 
 L7_RC_t usmDbDot1xAuthServUserDBUserIndexGet(L7_char8 *name, L7_uint32 *index) {
-    return dot1xAuthServUserDBUserIndexGet(name, index);
+  return dot1xAuthServUserDBUserIndexGet(name, index);
 }
 
 L7_RC_t usmDbDot1xAuthServUserDBUserNameSet(L7_uint32 index, L7_char8 *name) {
-    return dot1xAuthServUserDBUserNameSet(index, name);
+  return dot1xAuthServUserDBUserNameSet(index, name);
 }
 
 L7_RC_t usmDbDot1xAuthServUserDBUserPasswordSet(L7_uint32 index, L7_char8 *password, L7_BOOL encrypted) {
-    return dot1xAuthServUserDBUserPasswordSet(index, password, encrypted);
+  return dot1xAuthServUserDBUserPasswordSet(index, password, encrypted);
 }
 
 L7_RC_t usmDbDot1xAuthServUserDBAvailableIndexGet(L7_uint32 *index) {
-    return dot1xAuthServUserDBAvailableIndexGet(index);
+  return dot1xAuthServUserDBAvailableIndexGet(index);
 }
 
 int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i) {
-msg_802_1x_AuthServ *pi;
-msg_generic_prefix_t *po;
-L7_RC_t r;
-L7_ulong32 k;           //MNGMT preferred index
-L7_uint32 index=-1;     //index to eventual already in table entry
-L7_uchar8 e;
+  msg_802_1x_AuthServ *pi;
+  msg_generic_prefix_t *po;
+  L7_RC_t r;
+  L7_ulong32 k;           //MNGMT preferred index
+  L7_uint32 index=-1;     //index to eventual already in table entry
+  L7_uchar8 e;
 
- pi=(msg_802_1x_AuthServ *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
+  pi=(msg_802_1x_AuthServ *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
 
- k=pi[i].index; //64th bit's lost
- e=pi[i].index>>63;
+  k=pi[i].index; //64th bit's lost
+  e=pi[i].index>>63;
 
- if (L7_SUCCESS==usmDbDot1xAuthServUserDBUserIndexGet(pi[i].name, &index)) {
-     if (k<L7_MAX_IAS_USERS && k!=index) {  //Name already in table with different index
-         po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_DUPLICATENAME);
-         return 1;
-     }
- }
- else index=-1;
+  if (L7_SUCCESS==usmDbDot1xAuthServUserDBUserIndexGet(pi[i].name, &index))
+  {
+    if (k<L7_MAX_IAS_USERS && k!=index)  //Name already in table with different index
+    {
+      po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_DUPLICATENAME);
+      return 1;
+    }
+  }
+  else index=-1;
 
- if (k<L7_MAX_IAS_USERS) {
-     if (k!=index && (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserNameSet(k, pi[i].name)))) {   //index already used (or table full)
-       po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_USED);
-       return 1;
-     }
- }
- else {
-     if (index>=L7_MAX_IAS_USERS) {
-         if (L7_SUCCESS!=usmDbDot1xAuthServUserDBAvailableIndexGet(&index)) {
-             po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_FULLTABLE);
-             return 1;
-         }
-     }
-     k=index;
- }
+  if (k<L7_MAX_IAS_USERS)
+  {
+    if (k!=index && (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserNameSet(k, pi[i].name))))   //index already used (or table full)
+    {
+      po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_USED);
+      return 1;
+    }
+  }
+  else
+  {
+    if (index>=L7_MAX_IAS_USERS)
+    {
+      if (L7_SUCCESS!=usmDbDot1xAuthServUserDBAvailableIndexGet(&index))
+      {
+        po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_FULLTABLE);
+        return 1;
+      }
+    }
+    k=index;
+  }
 
- if (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserPasswordSet(k, pi[i].passwd, e))) {
-   po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
-   return 1;
- }
- else po[i].err_code = ERROR_CODE_OK;
+  if (L7_SUCCESS!=(r=usmDbDot1xAuthServUserDBUserPasswordSet(k, pi[i].passwd, e)))
+  {
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE,ERROR_SEVERITY_ERROR,ERROR_CODE_INVALIDPARAM);
+    return 1;
+  }
+  else po[i].err_code = ERROR_CODE_OK;
 
- return 0;
+  return 0;
 }//msg_wr_802_1x_AuthServ
 #endif //__802_1x__
 
