@@ -311,7 +311,7 @@ typedef struct
   L7_uint32 active_clients;
  
   /*Global Counters*/
-  L7_uint32 igmp_total_tx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
+  L7_uint32 igmp_tx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
   L7_uint32 igmp_total_rx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
   L7_uint32 igmp_valid_rx;/*This counter is equal to the sum of all valid IGMP packets received*/
   L7_uint32 igmp_invalid_rx;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
@@ -354,6 +354,7 @@ typedef struct
   L7_uint32 membership_report_v3;
 
 /*New Fields*/
+//  ptin_IGMPv2_Statistics_t  igmpv2;/*Variable respecting IGMPv2*/  
   ptin_IGMPv3_Statistics_t  igmpv3;/*Variable respecting IGMPv3*/  
   ptin_Query_Statistics_t   igmpquery;/*Variable respecting Query*/
 /*End New Fields*/
