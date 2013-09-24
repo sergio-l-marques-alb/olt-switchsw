@@ -405,14 +405,14 @@ typedef enum
   SNOOP_PTIN_IGMPv1 //Here for historical reasons
 }SnoopPtinProxyMRouterVersion_t;
 
-typedef enum
-{
-  SNOOP_PTIN_MEMBERSHIP_REPORT=0,
-  SNOOP_PTIN_GENERAL_QUERY,
-  SNOOP_PTIN_GROUP_SPECIFIC_QUERY,
-  SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY,
-  SNOOP_PTIN_MEMBERSHIP_QUERY
-}SnoopPtinProxy_Query_t;
+//typedef enum
+//{
+//  SNOOP_PTIN_MEMBERSHIP_REPORT=0,
+//  SNOOP_PTIN_GENERAL_QUERY,
+//  SNOOP_PTIN_GROUP_SPECIFIC_QUERY,
+//  SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY,
+//  SNOOP_PTIN_MEMBERSHIP_QUERY
+//}SnoopPtinProxy_Query_t;
 
 
 typedef struct  snoopPTinProxyGroup_s snoopPTinProxyGroup_t;

@@ -679,7 +679,7 @@ L7_RC_t snoopPTinSourceRemove(snoopPTinL3Interface_t* interfacePtr, snoopPTinL3S
 
   /* Remove clients associated with this source */
   memset(sourcePtr->clients, 0x00, PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE);
-
+  
   snoop_ptin_sourcetimer_stop(&sourcePtr->sourceTimer);
   memset(sourcePtr, 0x00, sizeof(*sourcePtr));
   --interfacePtr->numberOfSources;  
@@ -2933,7 +2933,7 @@ snoopPTinProxyInterface_t* snoopPTinGeneralQueryProcess(L7_uint32 vlanId, L7_uin
     {
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"There is a Pending Response to a General Query General with timeleft higher then selected delay  %u>%u",timeLeft,selectedDelay);
       
-      if (snoop_ptin_proxytimer_start(&interfacePtr->timer,selectedDelay,SNOOP_PTIN_GENERAL_QUERY,L7_TRUE,1,(void*) interfacePtr,robustnessVariable)!=L7_SUCCESS)
+      if (snoop_ptin_proxytimer_start(&interfacePtr->timer,selectedDelay,L7_IGMP_MEMBERSHIP_QUERY,L7_TRUE,1,(void*) interfacePtr,robustnessVariable)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
         *sendReport=L7_FALSE;
@@ -3250,7 +3250,7 @@ static snoopPTinProxyInterface_t* snoopPTinPendingReport2GeneralQuery(L7_uint32 
 
   
   
-  if ((*pendingReport=snoop_ptin_proxytimer_isRunning(&interfacePtr->timer))==L7_TRUE && interfacePtr->timer.reportType==SNOOP_PTIN_GENERAL_QUERY)
+  if ((*pendingReport=snoop_ptin_proxytimer_isRunning(&interfacePtr->timer))==L7_TRUE && interfacePtr->timer.reportType==L7_IGMP_MEMBERSHIP_QUERY)
   {
     *timeout=snoop_ptin_proxytimer_timeleft(&interfacePtr->timer);    
     LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Pending report to general query exists (timeout %u)",*timeout);     
@@ -3339,7 +3339,7 @@ static snoopPTinProxyGroup_t* snoopPTinPendingReport2GroupQuery(snoopPTinL3InfoD
   else
   {     
     if ((*pendingReport=snoop_ptin_proxytimer_isRunning(&groupPtr->timer))==L7_TRUE && 
-        (groupPtr->timer.reportType==SNOOP_PTIN_GROUP_SPECIFIC_QUERY || groupPtr->timer.reportType==SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY))
+        (groupPtr->timer.reportType==L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || groupPtr->timer.reportType==L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY))
     {
       *timeout=snoop_ptin_proxytimer_timeleft(&groupPtr->timer);            
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Pending report to group query exists (timeout %u)",*timeout);   
@@ -3651,7 +3651,7 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
   {
     noOfSources=1;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-    if (snoopPTinScheduleReportMessage(vlanId,groupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
+    if (snoopPTinScheduleReportMessage(vlanId,groupAddr,L7_IGMP_V3_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_FAILURE;
@@ -3888,7 +3888,7 @@ L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_
   {
     noOfRecords=1;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-    if (snoopPTinScheduleReportMessage(vlanId,groupAddr,SNOOP_PTIN_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
+    if (snoopPTinScheduleReportMessage(vlanId,groupAddr,L7_IGMP_V3_MEMBERSHIP_REPORT,0,L7_FALSE,noOfRecords, groupPtr,igmpCfg.host.robustness)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return L7_FAILURE;
