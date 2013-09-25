@@ -2344,7 +2344,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         return L7_FAILURE;
       }
       generalQry = L7_TRUE;
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX);
+//    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX);
     }
     else /* Should be group specific query */
     {
@@ -2360,8 +2360,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
       {
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
-      }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);
+      }      
     }
   }
   else
@@ -2377,7 +2376,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX);
+//    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX);
     }
     else /* Should be group specific query */
     {
@@ -2394,7 +2393,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
         SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess: Invalid Packet");
         return L7_FAILURE;
       }
-      ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);
+//    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);
     }
   }
 
@@ -2622,7 +2621,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
       SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
       robustnessVariable = byteVal & 0x07;    
-      if (robustnessVariable==0)
+      if (robustnessVariable<PTIN_MIN_ROBUSTNESS_VARIABLE)
       {
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid robustness Variable, packet silently discarded");
         return L7_FAILURE;
@@ -2785,18 +2784,6 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopMgmdSrcSpecificMembershipQueryProcess: IGMPv1 Group Specific Query )";
                    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_SPECIFIC_QUERIES_RECEIVED);
 
-
-
-
-
-
-
-
-
-
-
-
-
                    }
                    }
 #else
@@ -2853,17 +2840,14 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
         break;          
       }
     case SNOOP_IGMP_VERSION_3:
-      {          
+      {           
         /* Check if it is general query address or group specific */
         if (inetIsAddressZero(&groupAddr) == L7_TRUE)
-        {
-          ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX);                                          
+        {          
           if (noOfSources!=0)
           {
             LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid IGMPv3 General Query Rec'd: MGroupAddr=0 & NSources=%d, packet silently discarded",noOfSources);
-            pSnoopCB->counters.controlFramesProcessed++;      
-
-
+            pSnoopCB->counters.controlFramesProcessed++;    
             return L7_FAILURE;
           }
           /* Check if IPv4 destination address is same as 224.0.0.1 */
@@ -2892,15 +2876,11 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             if (noOfSources==0)
             {
               LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group Specific Query Rec'd");
-
-              queryType=L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY;
-
-              ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);                
+              queryType=L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY;              
             }
             else
             {
-              LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");
-              ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX);
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");              
               queryType=L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY;             
             }
           }
@@ -3413,15 +3393,15 @@ L7_uint8 snoopRecordType2IGMPStatField(L7_uint8 recordType,L7_uint8 fieldType)
     switch (fieldType)
     {
     case SNOOP_STAT_FIELD_TX:
-      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX;   
+      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX;   
     case SNOOP_STAT_FIELD_TOTAL_RX:
-      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX;   
+      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX;   
     case SNOOP_STAT_FIELD_VALID_RX:
-      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX;   
+      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX;   
     case SNOOP_STAT_FIELD_INVALID_RX:
-      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX;   
+      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX;   
     case SNOOP_STAT_FIELD_DROPPED_RX:
-      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX;   
+      return SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX;   
     default:
       return SNOOP_STAT_FIELD_ALL;
     }
