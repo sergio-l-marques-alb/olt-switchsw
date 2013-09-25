@@ -795,7 +795,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
   L7_netBufHandle   bufHandle;
-  L7_BOOL           is_vlan_stacked;
+  //L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         intIfNum;
@@ -829,15 +829,17 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
+    #if 0
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;
     }
+    #endif
 
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
+    if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
       memmove(&frame[20],&frame[16],frame_len);
       frame[16] = 0x81;

@@ -1257,7 +1257,6 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Add inner vlan when there exists */
-    #if EVC_QUATTRO_FLOWS_FEATURE
     if (extIVlan!=0)
     {
       memmove(&payload[20],&payload[16],payloadLen);
@@ -1268,7 +1267,6 @@ void snoopPacketSend(L7_uint32 intIfNum,
       payloadLen += 4;
       //innerVlanId = extIVlan;
     }
-    #endif
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {

@@ -4072,6 +4072,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
       rc = L7_FAILURE;
     }
 
+    #if EVC_QUATTRO_FLOWS_FEATURE
     /* For QUATTRO services, we have flows instead of bridges */
     if (IS_EVC_QUATTRO(evc_id))
     {
@@ -4084,6 +4085,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
       }
     }
     else
+    #endif
     {
       bridge.intf.vid = pclientFlow->uni_ovid;
       bridge.inn_vlan = pclientFlow->int_ivid;
@@ -8463,14 +8465,13 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
                    pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid);
             printf("   (gport=0x%08x)\r\n", pclientFlow->virtual_gport);
           }
-          #else
+          #endif
           {
             printf("      Client# %2u: OVID=%04u IVID=%04u  (Counter {%s,%s}; BW Prof. {%s,%s})\n", j,
                    pclientFlow->uni_ovid, pclientFlow->int_ivid,
                    pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
                    pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }
-          #endif
 
           pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);
         }

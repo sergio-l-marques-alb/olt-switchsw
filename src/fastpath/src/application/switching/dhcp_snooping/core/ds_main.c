@@ -4876,7 +4876,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_BOOL           is_vlan_stacked;
+  //L7_BOOL           is_vlan_stacked;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -4915,15 +4915,17 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
   {
+    #if 0
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;
     }
+    #endif
 
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
+    if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
       memmove(&frame[20],&frame[16],frameLen);
