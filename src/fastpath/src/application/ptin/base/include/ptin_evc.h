@@ -310,22 +310,20 @@ extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_I
 /**
  * Get next client, belonging to an EVC
  * 
- * @param evc_id     : evc index
- * @param intf_type   : interface type
- * @param intf_id     : interface index
- * @param cvlan       : reference cvlan
- * @param cvlan_next  : next cvlan
- * @param ovlan_next  : outer vlan related to next cvlan
+ * @param evc_id      : evc index
+ * @param ptin_intf   : interface
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
- *  L7_NO_VALUE tells there is no more clients (cvlan_next==0)
+ *  L7_NO_VALUE tells there is no more clients (ivid_next==0)
  *  L7_NOT_EXIST tells the reference vlan was not found
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
 /**
  * Configures a root port (unstacked EVCs) 
@@ -476,11 +474,10 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 /**
  * Get next client, belonging to a vlan
  * 
- * @param intVlan    : internal vlan
+ * @param intVid    : internal vlan
  * @param intIfNum   : intIfNum
- * @param cvlan      : reference inner vlan 
- * @param cvlan_next : next inner vlan
- * @param ovlan_next : ovlan related to the next inner vlan
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
@@ -490,7 +487,7 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
 /**
  * Adds a flow to the EVC

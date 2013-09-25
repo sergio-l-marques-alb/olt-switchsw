@@ -737,6 +737,7 @@ extern L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc );
 extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                       L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 
+#if 0
 /**
  * Get next IGMP client
  * 
@@ -754,7 +755,7 @@ extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7
  */
 extern L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 inner_vlan,
                                      L7_uint16 *inner_vlan_next, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
-
+#endif
 /**
  * Get the client index associated to a Multicast client 
  * 

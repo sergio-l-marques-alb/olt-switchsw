@@ -2236,6 +2236,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   return L7_SUCCESS;
 }
 
+#if 0
 /**
  * Get next IGMP client
  * 
@@ -2345,7 +2346,7 @@ L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 i
   return L7_FAILURE;
   #endif
 }
-
+#endif
 
 /**
  * Build client id structure
