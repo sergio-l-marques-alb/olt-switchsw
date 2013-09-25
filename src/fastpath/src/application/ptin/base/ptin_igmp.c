@@ -182,7 +182,9 @@ typedef struct {
   L7_BOOL   inUse;
   L7_uint16 McastEvcId;
   L7_uint16 UcastEvcId;
-  L7_uint16 nni_ovid;     /* NNI outer vlan used for EVC aggregation in one instance */
+  L7_uint16 nni_ovid;         /* NNI outer vlan used for EVC aggregation in one instance */
+  L7_uint16 n_evcs;
+  L7_uint16 is_quattro_inst;  /* Is a QUATTRO instance type? */
   ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
 } st_IgmpInstCfg_t;
 
@@ -218,7 +220,6 @@ L7_uint8 igmpInst_fromUCVlan[4096];      /* Lookup table to get IGMP instance in
 /* Semaphore to access IGMP stats */
 void *ptin_igmp_stats_sem = L7_NULLPTR;
 void *ptin_igmp_clients_sem = L7_NULLPTR;
-
 
 /*********************************************************** 
  * INLINE FUNCTIONS
@@ -1175,10 +1176,12 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   }
 
   /* Save data in free instance */
-  igmpInstances[igmp_idx].McastEvcId = McastEvcId;
-  igmpInstances[igmp_idx].UcastEvcId = UcastEvcId;
-  igmpInstances[igmp_idx].nni_ovid   = 0;
-  igmpInstances[igmp_idx].inUse = L7_TRUE;
+  igmpInstances[igmp_idx].McastEvcId      = McastEvcId;
+  igmpInstances[igmp_idx].UcastEvcId      = UcastEvcId;
+  igmpInstances[igmp_idx].nni_ovid        = 0;
+  igmpInstances[igmp_idx].n_evcs          = 1;
+  igmpInstances[igmp_idx].is_quattro_inst = L7_FALSE;
+  igmpInstances[igmp_idx].inUse           = L7_TRUE;
 
   /* Save direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[McastEvcId] = igmp_idx;
@@ -1250,7 +1253,7 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   }
 
   /* Configure querier for this instance */
-  if (ptin_igmp_trap_configure(igmp_idx,L7_DISABLE)!=L7_SUCCESS)
+  if (ptin_igmp_trap_configure(igmp_idx, L7_DISABLE)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
     ptin_igmp_querier_configure(igmp_idx,L7_ENABLE);
@@ -1258,10 +1261,12 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   }
 
   /* Clear data and free instance */
-  igmpInstances[igmp_idx].McastEvcId = 0;
-  igmpInstances[igmp_idx].UcastEvcId = 0;
-  igmpInstances[igmp_idx].nni_ovid   = 0;
-  igmpInstances[igmp_idx].inUse = L7_FALSE;
+  igmpInstances[igmp_idx].McastEvcId      = 0;
+  igmpInstances[igmp_idx].UcastEvcId      = 0;
+  igmpInstances[igmp_idx].nni_ovid        = 0;
+  igmpInstances[igmp_idx].n_evcs          = 0;
+  igmpInstances[igmp_idx].is_quattro_inst = L7_FALSE;
+  igmpInstances[igmp_idx].inUse           = L7_FALSE;
 
   /* Reset direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
@@ -1329,6 +1334,14 @@ L7_RC_t ptin_igmp_instance_destroy(L7_uint32 evc_idx)
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 #ifdef EVC_QUATTRO_FLOWS_FEATURE
+
+/**
+ * Return number of QUATTRO instances
+ * 
+ * @return L7_uint : number
+ */
+static L7_uint ptin_igmp_get_quattro_instances(void);
+
 /**
  * Associate an EVC to an IGMP instance
  * 
@@ -1341,6 +1354,9 @@ L7_RC_t ptin_igmp_instance_destroy(L7_uint32 evc_idx)
 L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
   L7_uint igmp_idx;
+  L7_uint evc_type;
+  L7_BOOL new_instance = L7_FALSE;
+  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -1354,6 +1370,21 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC ids are not active: mcEvcId=%u",evc_idx);
     return L7_FAILURE;
+  }
+
+  /* Get EVC type */
+  if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting eEVC %u type",evc_idx);
+    return L7_FAILURE;
+  }
+  /* Is a QUATTRO P2P evc? */
+  is_quattro_inst = (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P);
+
+  /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
+  if (!is_quattro_inst)
+  {
+    nni_ovlan = 0;
   }
 
   /* Is EVC associated to an IGMP instance? */
@@ -1374,33 +1405,51 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no free instances to be used");
       return L7_FAILURE;
     }
+    else
+    {
+      new_instance = L7_TRUE;
+    }
+  }
+
+  /* Save data in free instance */
+  if (new_instance)
+  {
+    igmpInstances[igmp_idx].McastEvcId      = evc_idx;
+    igmpInstances[igmp_idx].UcastEvcId      = 0;
+    igmpInstances[igmp_idx].nni_ovid        = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
+    igmpInstances[igmp_idx].n_evcs          = 0;
+    igmpInstances[igmp_idx].is_quattro_inst = is_quattro_inst;
+    igmpInstances[igmp_idx].inUse           = L7_TRUE;
   }
 
   /* Querier */
   if (ptin_igmp_evc_querier_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting querier configuration for evc_idx=%u (igmp_idx=%u)",evc_idx,igmp_idx);
-    return L7_FAILURE;
-  }
-  /* Trap rule */
-  if (ptin_igmp_evc_trap_configure(evc_idx, L7_ENABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
-    ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE);
+    if (new_instance)
+      memset(&igmpInstances[igmp_idx], 0x00, sizeof(st_IgmpInstCfg_t));
     return L7_FAILURE;
   }
 
-  /* Save data in free instance */
-  if (!igmpInstances[igmp_idx].inUse)
+  /* Only configure trap rule, if evc type is not QUATTRO type,
+     or being QUATTRO, instance is being created now */
+  if (!is_quattro_inst || (new_instance && ptin_igmp_get_quattro_instances()<=1))
   {
-    igmpInstances[igmp_idx].McastEvcId = evc_idx;
-    igmpInstances[igmp_idx].UcastEvcId = 0;
-    igmpInstances[igmp_idx].nni_ovid   = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
-    igmpInstances[igmp_idx].inUse = L7_TRUE;
+    /* Trap rule */
+    if (ptin_igmp_evc_trap_configure(evc_idx, L7_ENABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
+      ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE);
+      memset(&igmpInstances[igmp_idx], 0x00, sizeof(st_IgmpInstCfg_t));
+      return L7_FAILURE;
+    }
   }
 
   /* Save direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[evc_idx] = igmp_idx;
+
+  /* One more EVC associated to this instance */
+  igmpInstances[igmp_idx].n_evcs++;
 
   return L7_SUCCESS;
 }
@@ -1417,6 +1466,8 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
 {
   L7_uint igmp_idx;
   L7_uint16 nni_ovlan;
+  L7_BOOL remove_instance = L7_TRUE;
+  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -1432,6 +1483,13 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
     return L7_SUCCESS;
   }
 
+  /* QUATTRO P2P instance? */
+  is_quattro_inst = igmpInstances[igmp_idx].is_quattro_inst;
+
+  /* Remove instance? */
+  remove_instance = ((igmpInstances[igmp_idx].nni_ovid==0 || igmpInstances[igmp_idx].nni_ovid>4095) ||
+                     (igmpInstances[igmp_idx].n_evcs <= 1));
+
   /* NNI outer vlan */
   nni_ovlan = igmpInstances[igmp_idx].nni_ovid;
 
@@ -1442,25 +1500,35 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
-  /* Configure querier for this instance */
-  if (ptin_igmp_evc_trap_configure(evc_idx, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+  /* Only configure trap rule if not QUATTRO-P2P evc,
+     or, being QUATTRO-P2P evc, is the last IGMP instance to be removed with this kind of evcs */
+  if ( !is_quattro_inst || (remove_instance && ptin_igmp_get_quattro_instances()<=1) )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
-    ptin_igmp_evc_querier_configure(evc_idx, L7_ENABLE);
-    return L7_FAILURE;
+    /* Configure querier for this instance */
+    if (ptin_igmp_evc_trap_configure(evc_idx, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
+      ptin_igmp_evc_querier_configure(evc_idx, L7_ENABLE);
+      return L7_FAILURE;
+    }
   }
 
   /* Reset direct referencing to igmp index from evc ids */
   igmpInst_fromEvcId[evc_idx] = IGMP_INVALID_ENTRY;
 
+  /* One less EVC */
+  if (igmpInstances[igmp_idx].n_evcs > 0)
+    igmpInstances[igmp_idx].n_evcs--;
+
   /* Only clear instance, if there is no one using this NNI outer vlan */
-  if ( (igmpInstances[igmp_idx].nni_ovid==0 || igmpInstances[igmp_idx].nni_ovid>4095) ||
-       (ptin_igmp_instance_find_agg(nni_ovlan, &igmp_idx) != L7_SUCCESS) )
+  if (remove_instance)
   {
-    igmpInstances[igmp_idx].McastEvcId = 0;
-    igmpInstances[igmp_idx].UcastEvcId = 0;
-    igmpInstances[igmp_idx].nni_ovid   = 0;
-    igmpInstances[igmp_idx].inUse = L7_FALSE;
+    igmpInstances[igmp_idx].McastEvcId      = 0;
+    igmpInstances[igmp_idx].UcastEvcId      = 0;
+    igmpInstances[igmp_idx].nni_ovid        = 0;
+    igmpInstances[igmp_idx].n_evcs          = 0;
+    igmpInstances[igmp_idx].is_quattro_inst = L7_FALSE;
+    igmpInstances[igmp_idx].inUse           = L7_FALSE;
   }
 
   return L7_SUCCESS;
@@ -1515,6 +1583,27 @@ L7_RC_t ptin_igmp_evcs_reactivate(void)
 L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx)
 {
   return ptin_igmp_evc_remove(evc_idx);
+}
+
+/**
+ * Return number of QUATTRO instances
+ * 
+ * @return L7_uint : number
+ */
+static L7_uint ptin_igmp_get_quattro_instances(void)
+{
+  L7_uint i, counter;
+
+  counter = 0;
+
+  /* Run all igmp instances */
+  for (i=0; i<PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
+  {
+    if (igmpInstances[i].inUse && igmpInstances[i].is_quattro_inst)
+      counter++;
+  }
+
+  return counter;
 }
 #endif
 #endif
@@ -6541,7 +6630,7 @@ static L7_RC_t ptin_igmp_instance_find_free(L7_uint *igmp_idx)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx)
+static L7_uint ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx)
 {
   L7_uint idx;
 

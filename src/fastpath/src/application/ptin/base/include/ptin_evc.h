@@ -432,6 +432,16 @@ extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Return EVC type. 
+ * 
+ * @param evc_id_ext : extended evc id
+ * @param evc_type   : EVC type (output)
+ *  
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type);
+
+/**
  * Return EVC type from internal vlan. 
  *  
  * @param intVlan    : Internal outer-vlan 
