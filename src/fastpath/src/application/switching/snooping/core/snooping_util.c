@@ -1217,7 +1217,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
                      L7_uint32 vlanId,
                      L7_uint32 innerVIDUntagged,
                      L7_uchar8 *payload,
-                     L7_uint32 payloadLen, L7_uchar8 family)
+                     L7_uint32 payloadLen, L7_uchar8 family,
+                     L7_int client_idx)
 {
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
@@ -1253,7 +1254,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
   ptin_timer_start(31,"snoopPacketSend-ptin_evc_extVlans_get_fromIntVlan");
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVIDUntagged,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Add inner vlan when there exists */
     #if 0
@@ -1623,7 +1624,8 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
       ptin_timer_start(30,"snoopPacketRtrIntfsForward-snoopPacketSend");
       snoopPacketSend(intf, mcastPacket->vlanId, mcastPacket->innerVlanId,
                       mcastPacket->payLoad,
-                      mcastPacket->length, mcastPacket->cbHandle->family);
+                      mcastPacket->length, mcastPacket->cbHandle->family,
+                      mcastPacket->client_idx);
       ptin_timer_stop(30);
       //printf("%s(%d) Packet sent to intf %u with vlan %u\r\n",__FUNCTION__,__LINE__,intf,mcastPacket->vlanId);
 
@@ -1678,9 +1680,11 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
 {
   L7_uint32      intf; /* Loop through internal interface numbers */
   L7_INTF_MASK_t mcastClientAttached;
-  L7_uint        inner_vlan;
   L7_RC_t        rc;
   L7_uint        client_idx;
+  L7_uint        inner_vlan;
+  L7_uint16 uni_ovlan = mcastPacket->vlanId;
+  L7_uint16 uni_ivlan = 0;
 
   client_idx = mcastPacket->client_idx; /* Default client index */
 
@@ -1709,9 +1713,10 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u", intf);
 
         #if (defined IGMP_QUERIER_IN_UC_EVC)
-        L7_uint inner_vlan_next;
+        L7_uint16 inner_vlan_next;
 
-        rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, inner_vlan, &inner_vlan_next, L7_NULLPTR);
+        rc = ptin_igmp_client_next(intf, mcastPacket->vlanId, inner_vlan, &inner_vlan_next, &uni_ovlan, &uni_ivlan);
+        //rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, inner_vlan, &inner_vlan_next, L7_NULLPTR);
 
         if (ptin_debug_igmp_snooping)
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d inner_vlan_next=%u", rc, inner_vlan_next);
@@ -1739,7 +1744,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
         /* If clients are not supported, used null inner vlan */
         else if ( rc == L7_NOT_SUPPORTED )
         {
-          inner_vlan = 0;
+          uni_ivlan = 0;
           client_idx = (L7_uint)-1;
           if (ptin_debug_igmp_snooping)
           {
@@ -1757,14 +1762,15 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
         }
         #else
         /* Standard querier, with no inner vlan (clients querier not supported) */
-        inner_vlan = 0;
+        uni_ivlan = 0;
         rc = L7_NOT_SUPPORTED;
         #endif
 
         /* Send packet */
-        snoopPacketSend(intf, mcastPacket->vlanId, inner_vlan,
+        snoopPacketSend(intf, uni_ovlan, uni_ivlan,
                         mcastPacket->payLoad,
-                        mcastPacket->length, mcastPacket->cbHandle->family);
+                        mcastPacket->length, mcastPacket->cbHandle->family,
+                        mcastPacket->client_idx);
 
         //#if (!defined IGMP_QUERIER_IN_UC_EVC)
         /* Update statistics: only for MC queriers */

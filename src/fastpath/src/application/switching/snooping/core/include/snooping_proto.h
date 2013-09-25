@@ -169,7 +169,8 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg);
 void    snoopPacketSend(L7_uint32 intIfNum,
                      L7_uint32 vlanId, L7_uint32 innerVlanId,
                      L7_uchar8 *payload,
-                     L7_uint32 payloadLen, L7_uchar8 family);
+                     L7_uint32 payloadLen, L7_uchar8 family,
+                     L7_int client_idx);
 /* MGMD Specific */
 SYSNET_PDU_RC_t snoopIGMPPktIntercept(L7_uint32 hookId,
                                       L7_netBufHandle bufHandle,
