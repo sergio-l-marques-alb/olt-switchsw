@@ -883,37 +883,32 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint1
   }
 
   /* Initialize external outer+inner vlans */
-  ovid = 0;
-  ivid = 0;
-
-  /* For stacked Leafs... */
-  if (IS_EVC_STACKED(evc_id))
+  ovid = evcs[evc_id].intf[ptin_port].out_vlan;
+  if (evcs[evc_id].intf[ptin_port].inner_vlan>0 && evcs[evc_id].intf[ptin_port].inner_vlan<4096)
   {
-    /* Interface is root? */
-    if (evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
-    {
-      ovid = evcs[evc_id].intf[ptin_port].out_vlan;
-      ivid = innerVlan;
-    }
+    ivid = evcs[evc_id].intf[ptin_port].inner_vlan;
+  }
+  else
+  {
+    ivid = innerVlan;
+  }
+
+  /* Look to clients/flows for Quattro or standard stacked evcs: */
+  if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
+  {
     /* Interface is leaf? */
-    else
+    if (evcs[evc_id].intf[ptin_port].type!=PTIN_EVC_INTF_LEAF)
     {
       /* Find this client vlan in EVC */
       ptin_evc_find_client(innerVlan, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_id);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
-      ivid = 0;                 /* Inner vlan will be removed */
+      ivid = IS_EVC_QUATTRO(evc_id) ? pclientFlow->uni_ivid : 0;    /* Use only inner vid, if EVC is QUATTRO type */
     }
-  }
-  /* For unstacked EVCs... */
-  else
-  {
-    ovid = evcs[evc_id].intf[ptin_port].out_vlan;
-    ivid = innerVlan;
   }
 
   /* Return output values */

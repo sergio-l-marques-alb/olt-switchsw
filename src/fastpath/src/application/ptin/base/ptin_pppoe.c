@@ -2444,13 +2444,15 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
                                 L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
   L7_uint pppoe_idx;
+  L7_uint16 ovid, ivid;
   ptinPppoeClientInfoData_t *clientInfo;
 
-  /* If leaf interface, and client is provided, go directly to client info */
-  if (!ptin_pppoe_is_intfTrusted(intIfNum, intOVlan) &&
-      client_idx < PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
+  ovid = ivid = 0;
+  /* If client is provided, go directly to client info */
+  if (ptin_pppoe_is_intfTrusted(intIfNum, intOVlan) &&
+      client_idx < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
-    /* Get PPPOE instance from internal vlan */
+    /* Get DHCP instance from internal vlan */
     if (ptin_pppoe_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &pppoe_idx) != L7_SUCCESS)
     {
       return L7_FAILURE;
@@ -2459,15 +2461,19 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
     /* Get pointer to client structure in AVL tree */
     clientInfo = pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx];
 
-    /* Return vlans */
-    if (uni_ovid != L7_SUCCESS)  *uni_ovid = clientInfo->uni_ovid;
-    if (uni_ivid != L7_SUCCESS)  *uni_ovid = clientInfo->uni_ivid;
+    ovid = clientInfo->uni_ovid;
+    ivid = clientInfo->uni_ivid;
   }
-  /* Otherwise, goto EVC data */
-  else
+
+  /* If no data was retrieved, goto EVC info */
+  if (ovid == 0)
   {
-    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, uni_ovid, uni_ivid);
+    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid);
   }
+
+  /* Return vlans */
+  if (uni_ovid != L7_SUCCESS)  *uni_ovid = ovid;
+  if (uni_ivid != L7_SUCCESS)  *uni_ivid = ivid;
 
   return L7_SUCCESS;
 }

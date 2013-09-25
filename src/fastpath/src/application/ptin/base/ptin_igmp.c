@@ -2208,8 +2208,10 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
+  L7_uint16 ovid, ivid;
   ptinIgmpClientInfoData_t *clientInfo;
 
+  ovid = ivid = 0;
   /* If client is provided, go directly to client info */
   if (ptin_igmp_clientIntfVlan_validate(intIfNum, intOVlan) &&
       client_idx < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
@@ -2217,15 +2219,19 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
     /* Get pointer to client structure in AVL tree */
     clientInfo = igmpClients_unified.clients_in_use[client_idx];
 
-    /* Return vlans */
-    if (uni_ovid != L7_SUCCESS)  *uni_ovid = clientInfo->uni_ovid;
-    if (uni_ivid != L7_SUCCESS)  *uni_ovid = clientInfo->uni_ivid;
+    ovid = clientInfo->uni_ovid;
+    ivid = clientInfo->uni_ivid;
   }
-  /* Otherwise, goto EVC data */
-  else
+
+  /* If no data was retrieved, goto EVC info */
+  if (ovid == 0)
   {
-    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, uni_ovid, uni_ivid);
+    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid);
   }
+
+  /* Return vlans */
+  if (uni_ovid != L7_SUCCESS)  *uni_ovid = ovid;
+  if (uni_ivid != L7_SUCCESS)  *uni_ivid = ivid;
 
   return L7_SUCCESS;
 }
