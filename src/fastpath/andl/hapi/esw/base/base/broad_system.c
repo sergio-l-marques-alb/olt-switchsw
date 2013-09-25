@@ -3241,12 +3241,14 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     first_time   = L7_FALSE;
   }
 
+  #if 0
   /* Vlan processing, only for non QUATTRO vlans */
   if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
     return L7_SUCCESS;
   }
+  #endif
 
  #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u",vlanId);
@@ -3467,6 +3469,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
 
   /* For QUATTRO vlans */
   #if EVC_QUATTRO_FLOWS_FEATURE
+  #if 0
   static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
   L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
 
@@ -3562,6 +3565,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "QUATTRO Policy deleted");
   }
   #endif
+  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished igmp trapping processing");
 
@@ -3607,12 +3611,14 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
     first_time   = L7_FALSE;
   }
 
+  #if 0
   /* Vlan processing, only for non QUATTRO vlans */
   if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
     return L7_SUCCESS;
   }
+  #endif
 
  #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u",vlanId);
@@ -3872,6 +3878,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   }
 
   #if EVC_QUATTRO_FLOWS_FEATURE
+  #if 0
   /* Policy id for quattro vlans */
   static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
   L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
@@ -4022,6 +4029,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy QUATTRO deleted");
   }
   #endif
+  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished dhcp trapping processing");
 
@@ -4061,12 +4069,14 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
     first_time   = L7_FALSE;
   }
 
+  #if 0
   /* Vlan processing, only for non QUATTRO vlans */
   if (PTIN_VLAN_IS_QUATTRO_P2P(vlanId))
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u is a QUATTRO vlan. No pre-processing!", vlanId);
     return L7_SUCCESS;
   }
+  #endif
 
  #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
@@ -4236,6 +4246,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 
   /* For QUATTRO vlans */
   #if EVC_QUATTRO_FLOWS_FEATURE
+  #if 0
   static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
   L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
 
@@ -4305,6 +4316,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
     policyId_quattro = BROAD_POLICY_INVALID;
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy QUATTRO deleted");
   }
+  #endif
   #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished PPPoE trapping processing");
