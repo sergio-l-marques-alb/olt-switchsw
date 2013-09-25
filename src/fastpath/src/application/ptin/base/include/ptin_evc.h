@@ -357,6 +357,7 @@ extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
  */
 extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
 
+#if PTIN_IGMP_STATS_IN_EVCS
 /**
  * Get a pointer to IGMP stats
  * 
@@ -397,7 +398,7 @@ extern L7_RC_t ptin_evc_igmp_stats_clear(L7_uint32 evc_ext_id, ptin_intf_t *ptin
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
 extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id);
-
+#endif
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE

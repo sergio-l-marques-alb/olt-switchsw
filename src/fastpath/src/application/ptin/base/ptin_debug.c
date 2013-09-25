@@ -88,6 +88,7 @@ void ptin_debug(void)
   printf("  ptin_evc_dump <id>        - prints info about EVCs (use -1 to display all)\r\n");
   printf("  ptin_evc_map              - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int> - prints info about the EVC related to the given internal vlan\r\n");
+  printf("  ptin_flow_dump <evc_id> <port_type> <port_id>             - Dumps all configured flows");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>        - Clean all profiles and counters of one interface of an EVC\r\n");
