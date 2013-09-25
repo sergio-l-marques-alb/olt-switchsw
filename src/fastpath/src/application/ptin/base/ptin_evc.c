@@ -8581,8 +8581,10 @@ void sizeof_evc(void)
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "PTIN_SYSTEM_N_INTERF          = %d", PTIN_SYSTEM_N_INTERF);
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(IGMP statistics)       = %d", sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evcs)                  = %d", sizeof(evcs));
+  #if EVC_QUATTRO_FLOWS_FEATURE
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_flow_t)       = %d", sizeof(ptin_evc_flow_t));
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evc_flows)             = %d", sizeof(evc_flows));
+  #endif
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(clients)               = %d", sizeof(clients));
   LOG_CRITICAL(LOG_CTX_PTIN_EVC, "total(evcs+clients)           = %d", sizeof(evcs)+sizeof(clients));
 }
