@@ -1598,7 +1598,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EVCFlow_add(evcFlow))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcFlow->evcId);
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -1627,7 +1627,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcFlow->evcId);
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a flow from eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
