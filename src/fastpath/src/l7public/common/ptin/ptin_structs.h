@@ -462,6 +462,14 @@ typedef struct {
   L7_uchar8   macAddr[L7_MAC_ADDR_LEN]; /* [mask=0x10] Source MAC */
 } ptin_client_id_t;
 
+typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
+  L7_uint16   onuid;                /* [mask=0x0040] ONU ID */
+  L7_uint8    slot;             	/* [mask=0x0080] Slot */
+  L7_uint16   port;                 /* [mask=0x0100] Slot Port*/
+  L7_uint16   q_vid;                /* [mask=0x0200] VLAN ID on U interface */
+  L7_uint16   c_vid;                /* [mask=0x0400] C-VLAN on U interface */
+} ptin_clientCircuitId_t;
+
 /* Resources ******************************************************************/
 
 #define PTIN_POLICY_MAX_GROUPS  16

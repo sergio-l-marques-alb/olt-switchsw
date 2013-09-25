@@ -2342,6 +2342,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
+  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
   ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
 
@@ -3090,8 +3091,9 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
  */
 L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 {
-  L7_uint           evc_idx;
-  ptin_client_id_t  client;
+  L7_uint                 evc_idx;
+  ptin_client_id_t        client;
+  ptin_clientCircuitId_t  circuitId_data;
   L7_RC_t           rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
@@ -3133,8 +3135,13 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   }
 
   /* Get circuit and remote ids */
-  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &profile->circuitId.onuid, &profile->circuitId.slot, &profile->circuitId.port,
-      &profile->circuitId.q_vid, &profile->circuitId.c_vid, L7_NULLPTR, profile->remoteId);
+  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
+
+  profile->circuitId.onuid  = circuitId_data.onuid;
+  profile->circuitId.slot   = circuitId_data.slot;
+  profile->circuitId.port   = circuitId_data.port;
+  profile->circuitId.q_vid  = circuitId_data.q_vid;
+  profile->circuitId.c_vid  = circuitId_data.c_vid;
 
   if (rc!=L7_SUCCESS)
   {
@@ -3162,9 +3169,10 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
  */
 L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_uint n_clients)
 {
-  L7_uint           i, evc_idx;
-  ptin_client_id_t  client;
-  L7_RC_t           rc = L7_SUCCESS;
+  L7_uint                 i, evc_idx;
+  ptin_client_id_t        client;
+  ptin_clientCircuitId_t  circuitId;
+  L7_RC_t                 rc = L7_SUCCESS;
 
   /* Validate input parameters */
   if (profile==L7_NULLPTR)  {
@@ -3225,18 +3233,21 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     }
 
     /* TODO: To be reworked */
+    circuitId.onuid   = profile[i].circuitId.onuid;
+    circuitId.slot    = profile[i].circuitId.slot;
+    circuitId.port    = profile[i].circuitId.port;
+    circuitId.q_vid   = profile[i].circuitId.q_vid;
+    circuitId.c_vid   = profile[i].circuitId.c_vid;
 
     /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-         profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
       return rc;
     }
 
-    rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-                               profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
     /* TODO */
     #if 0
     if (rc!=L7_SUCCESS)
@@ -4087,7 +4098,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId,&client);
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0);
 
     if (rc!=L7_SUCCESS)
     {

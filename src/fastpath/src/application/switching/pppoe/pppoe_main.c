@@ -827,7 +827,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + pppoe_header->length;
 
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)

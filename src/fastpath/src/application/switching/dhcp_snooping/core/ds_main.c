@@ -4913,7 +4913,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   //L7_int i;
 
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
   {
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)

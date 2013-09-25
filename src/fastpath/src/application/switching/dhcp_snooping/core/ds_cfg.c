@@ -89,7 +89,7 @@ L7_BOOL _dsVlanEnableGet(L7_uint32 vlanId)
 {
   /* PTin added: This function should be updated */
   #if 1
-  return ptin_dhcp82_vlan_validate(vlanId);
+  return ptin_dhcp_vlan_validate(vlanId);
   #else
   if (L7_VLAN_ISMASKBITSET(dsCfgData->dsVlans, vlanId))
     return L7_TRUE;
@@ -112,7 +112,7 @@ L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  return ptin_dhcp82_intfVlan_validate(intIfNum,vlanId);
+  return ptin_dhcp_intfVlan_validate(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
   L7_uint8 port;
@@ -179,7 +179,7 @@ L7_BOOL _dsIntfL2RelayGet(L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  return ptin_dhcp82_intf_validate(intIfNum);
+  return ptin_dhcp_intf_validate(intIfNum);
   #else
   if (L7_INTF_ISMASKBITSET(dsCfgData->dsL2RelayIntfMode, intIfNum))
     return L7_TRUE;
@@ -455,7 +455,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
   #if 1
-  return ptin_dhcp82_is_intfTrusted(intIfNum,vlanId);
+  return ptin_dhcp_is_intfTrusted(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
   L7_uint8 port;
