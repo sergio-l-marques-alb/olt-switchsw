@@ -1551,3 +1551,71 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
   LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Number of Group Records to be sent :%u",*noOfRecordsPtr);
   return firstGroupPtr;       
 }
+
+
+/*************************************************************************
+ * @purpose Dump IGMPv3 AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void snoopPTinDumpL3AvlTree(void)
+{
+  snoopPTinL3InfoData_t     *avlTreeEntry;  
+  snoopPTinL3InfoDataKey_t  avlTreeKey;
+  snoop_eb_t                *pSnoopEB;
+
+  if ((pSnoopEB = snoopEBGet()) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+
+/* Run all cells in AVL tree */    
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  while ( ( avlTreeEntry = avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &avlTreeKey, L7_MATCH_GETNEXT) ) != L7_NULLPTR )
+  {
+
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
+
+    snoopPTinMcastgroupPrint(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr.addr.ipv4.s_addr);
+
+  }
+}
+
+
+/*************************************************************************
+ * @purpose Dump IGMPv3 Group Record AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void snoopPTinDumpGroupRecordAvlTree(void)
+{
+  snoopPTinProxyGroup_t     *avlTreeEntry;  
+  snoopPTinProxyGroupKey_t  avlTreeKey;
+  
+  snoop_eb_t                *pSnoopEB;
+
+  if ((pSnoopEB = snoopEBGet()) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+
+
+ 
+/* Run all cells in AVL tree */    
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  while ( ( avlTreeEntry = avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, L7_MATCH_GETNEXT) ) != L7_NULLPTR )
+  {
+
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(snoopPTinProxyGroupKey_t));
+
+    snoopPTinGroupRecordPrint(avlTreeEntry->key.vlanId,avlTreeEntry->key.groupAddr.addr.ipv4.s_addr,avlTreeEntry->key.recordType);
+
+  }
+}
+
