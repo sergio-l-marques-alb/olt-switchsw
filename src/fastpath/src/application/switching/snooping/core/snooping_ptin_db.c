@@ -1003,13 +1003,12 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
 L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_inet_addr_t* sourceList,L7_uint32 *noOfRecordsPtr, snoopPTinProxyGroup_t* groupPtr)
 {
   char                debug_buf[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};
-  ptin_IgmpProxyCfg_t igmpCfg;
-  L7_uint16           i; 
+  ptin_IgmpProxyCfg_t igmpCfg;  
   L7_RC_t             rc;
 
   L7_uint32 noOfRecords=0;
 
-  L7_uint16         sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;   
+  L7_uint16         sourceIdx;   
   L7_inet_addr_t*  sourceAddr;
     
   /* Argument validation */
@@ -1039,11 +1038,11 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
      *
      * Finally, remove all sources in sourceList still marked as toremove.
      */
-    for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {
-      if(avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
+      if(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
       {
-        avlTreeEntry->interfaces[intIfNum].sources[i].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
+        avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status = PTIN_SNOOP_SOURCESTATE_TOREMOVE;
       }
     }
     sourceAddr=sourceList;
@@ -1129,9 +1128,9 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
     }
 
     /* Remove every source still marked as toremove */
-    for (i = 0; i < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++i)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {
-      if (avlTreeEntry->interfaces[intIfNum].sources[i].status == PTIN_SNOOP_SOURCESTATE_TOREMOVE)
+      if (avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_TOREMOVE)
       {
 #if 0
         if(L7_SUCCESS == snoopPTinProxySourceAdd(avlTreeEntry,intIfNum, sourceAddr))
@@ -1145,7 +1144,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
             noOfRecords=1;                       
         }
 #endif
-        snoopPTinSourceRemove(&avlTreeEntry->interfaces[intIfNum], &avlTreeEntry->interfaces[intIfNum].sources[i]);        
+        snoopPTinSourceRemove(&avlTreeEntry->interfaces[intIfNum], &avlTreeEntry->interfaces[intIfNum].sources[sourceIdx]);        
       }
     }    
   }
@@ -1297,7 +1296,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
 
 #if SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT
     /* Add to Query sources with timer > 0 && Not in B */
-    for (sourceIdx = 0; sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {    
 
       if (avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status== PTIN_SNOOP_SOURCESTATE_ACTIVE &&  avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].sourceTimer.isRunning == L7_TRUE)      
@@ -1354,7 +1353,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
      /*If this client exists on this interface, remove the client from the clientSource bitmap and also from the clientInterface bitmap*/
     if(snoopPTinClientFind(avlTreeEntry->interfaces[intIfNum].clients,clientIdx)==L7_SUCCESS)
     {
-      for(sourceIdx=0;sourceIdx<avlTreeEntry->interfaces[intIfNum].numberOfSources;sourceIdx++)
+      for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
       {
         if((rc=snoopPTinClientRemove(&avlTreeEntry->interfaces[intIfNum].sources[sourceIdx], clientIdx))==L7_ERROR)
         {
@@ -1461,7 +1460,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
      *
      * Finally, remove all sources in sourceList still marked as toremove.
      */
-    for (sourceIdx = 0; sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 &&  sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {
        if(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_ACTIVE)
        {
@@ -1639,7 +1638,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
      *  - Send Q(G,S), where S are all new sources
      */   
     /* Remove every source still marked as toremove */
-    for (sourceIdx = 0; sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
     {
       if (avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status == PTIN_SNOOP_SOURCESTATE_TOREMOVE)
       {
@@ -1653,7 +1652,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
   }
   else /*To_Ex{}=IGMPv2 Join*/
   { 
-    for (sourceIdx = 0; sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources); ++sourceIdx)
+    for (sourceIdx = 0; avlTreeEntry->interfaces[intIfNum].numberOfSources>0 && sourceIdx < sizeof(avlTreeEntry->interfaces[intIfNum].sources ); ++sourceIdx)
     {
       if (avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
       {
