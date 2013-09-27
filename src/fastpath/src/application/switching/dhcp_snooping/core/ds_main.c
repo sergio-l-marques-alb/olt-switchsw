@@ -4928,9 +4928,15 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
-      memmove(&frame[20],&frame[16],frameLen);
-      frame[16] = 0x81;
-      frame[17] = 0x00;
+            /* No inner tag? */
+      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
+          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
+          *((L7_uint16 *) &frame[16]) != 0x9100)
+      {
+        memmove(&frame[20],&frame[16],frameLen);
+        frame[16] = 0x81;
+        frame[17] = 0x00;
+      }
       frame[18] = extIVlan>>8;
       frame[19] = extIVlan & 0xff;
       frameLen += 4;

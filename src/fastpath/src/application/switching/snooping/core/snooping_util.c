@@ -1259,9 +1259,15 @@ void snoopPacketSend(L7_uint32 intIfNum,
     /* Add inner vlan when there exists */
     if (extIVlan!=0)
     {
-      memmove(&payload[20],&payload[16],payloadLen);
-      payload[16] = 0x81;
-      payload[17] = 0x00;
+      /* No inner tag? */
+      if (*((L7_uint16 *) &payload[16]) != 0x8100 &&
+          *((L7_uint16 *) &payload[16]) != 0x88A8 &&
+          *((L7_uint16 *) &payload[16]) != 0x9100)
+      {
+        memmove(&payload[20],&payload[16],payloadLen);
+        payload[16] = 0x81;
+        payload[17] = 0x00;
+      }
       payload[18] = extIVlan>>8;
       payload[19] = extIVlan & 0xff;
       payloadLen += 4;
@@ -1721,8 +1727,12 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d", rc);
 
         /* if success, use next cvlan */
-        if ( rc == L7_SUCCESS)
+        if (rc == L7_SUCCESS)
         {
+          /* If this client is not an IGMP client, goto next one */
+          if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+            continue;
+
           /* Get client index */
           if (clientFlow.int_ivid != 0)
           {

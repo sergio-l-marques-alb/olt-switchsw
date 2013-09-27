@@ -523,6 +523,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #if ( !PTIN_BOARD_IS_MATRIX )
   L7_BOOL   unstacked_service = L7_FALSE;
 
+#if 0
 #ifndef IGMPASSOC_MULTI_MC_SUPPORTED
   /* Check if MC service is unstacked. If it is, clients will be dynamic */
   if (ptin_igmp_vlan_UC_is_unstacked(pduInfo->vlanId, &unstacked_service)!=L7_SUCCESS)
@@ -532,6 +533,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
+#endif
 #endif
 
   /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */

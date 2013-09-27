@@ -841,9 +841,15 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
     if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
-      memmove(&frame[20],&frame[16],frame_len);
-      frame[16] = 0x81;
-      frame[17] = 0x00;
+      /* No inner tag? */
+      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
+          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
+          *((L7_uint16 *) &frame[16]) != 0x9100)
+      {
+        memmove(&frame[20],&frame[16],frame_len);
+        frame[16] = 0x81;
+        frame[17] = 0x00;
+      }
       frame[18] = extIVlan>>8;
       frame[19] = extIVlan & 0xff;
       frame_len += 4;

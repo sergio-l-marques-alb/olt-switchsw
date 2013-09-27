@@ -494,8 +494,6 @@ extern L7_RC_t ptin_igmp_instances_reactivate(void);
  */
 extern L7_RC_t ptin_igmp_instance_destroy(L7_uint32 evc_idx);
 
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 /**
  * Associate an EVC to an IGMP instance
  * 
@@ -531,8 +529,6 @@ extern L7_RC_t ptin_igmp_evcs_reactivate(void);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
-#endif
-#endif
 
 /**
  * Add a new Multicast client

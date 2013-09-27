@@ -151,7 +151,6 @@ extern L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId);
  */
 extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
 
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 /**
  * Associate an EVC to a DHCP instance
  * 
@@ -179,7 +178,6 @@ extern L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_dhcp_evc_destroy(L7_uint16 evcId);
-#endif
 
 /**
  * Reconfigure global DHCP EVC

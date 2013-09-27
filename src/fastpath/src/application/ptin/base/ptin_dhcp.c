@@ -171,11 +171,9 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx);
 static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_t **dhcpInst, L7_uint *dhcpInst_idx);
 static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint32 UcastEvcId, L7_uint *dhcp_idx);
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 static L7_RC_t ptin_dhcp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *dhcp_idx);
-#endif
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
-static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 UcastEvcId, L7_BOOL enable);
+static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
 static void    ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
 static void    ptin_dhcp_circuitId_build(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
@@ -522,7 +520,6 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
   return ptin_dhcp_instance_remove(evcId);
 }
 
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 
 /**
  * Return number of QUATTRO instances
@@ -584,9 +581,11 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
 
   /* Check if there is an instance with the same NNI outer vlan: use it! */
   /* Otherwise, create a new instance */
-  if ((nni_ovlan == 0 || nni_ovlan > 4095) ||
+  if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
       ptin_dhcp_instance_find_agg(nni_ovlan, &dhcp_idx) != L7_SUCCESS)
   {
+    nni_ovlan = 0;
+
     /* Find an empty instance to be used */
     if (ptin_dhcp_instance_find_free(&dhcp_idx) != L7_SUCCESS)
     {
@@ -745,7 +744,6 @@ static L7_uint ptin_dhcp_get_quattro_instances(void)
 
   return counter;
 }
-#endif
 
 
 /**
@@ -2405,15 +2403,10 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
 
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
-  if (ptin_dhcp_is_intfTrusted(intIfNum, intOVlan) &&
-      client_idx < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (!ptin_dhcp_is_intfTrusted(intIfNum, intOVlan) &&
+      (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE) &&
+      ptin_dhcp_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &dhcp_idx)==L7_SUCCESS)
   {
-    /* Get DHCP instance from internal vlan */
-    if (ptin_dhcp_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &dhcp_idx) != L7_SUCCESS)
-    {
-      return L7_FAILURE;
-    }
-
     /* Get pointer to client structure in AVL tree */
     clientInfo = dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx];
 
@@ -2424,7 +2417,11 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
   {
-    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid);
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
+    {
+      ovid = intOVlan;
+      ivid = intIVlan;
+    }
   }
 
   /* Return vlans */
@@ -3158,7 +3155,6 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
  * Static functions
  ***********************************************************/
 
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 /**
  * Gets the DHCP instance from the NNI ovlan
  * 
@@ -3189,7 +3185,6 @@ static L7_RC_t ptin_dhcp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *dhcp_id
 
   return L7_SUCCESS;
 }
-#endif
 
 /**
  * Find client information in a particulat DHCP instance
@@ -3500,9 +3495,9 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
   return ptin_dhcp_evc_trap_configure(dhcpInstances[dhcp_idx].UcastEvcId, enable);
 }
 
-static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 UcastEvcId, L7_BOOL enable)
+static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan, uc_evcId;
+  L7_uint16            idx, vlan;
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
 #if (!PTIN_SYSTEM_GROUP_VLANS)
@@ -3515,13 +3510,12 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 UcastEvcId, L7_BOOL enable
 
   /* Initialize number of vlans to be configured */
   vlans_number = 0;
-  uc_evcId = UcastEvcId;
 
   /* Get Unicast EVC configuration */
-  evcCfg.index = uc_evcId;
+  evcCfg.index = evc_idx;
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting UC EVC %u configuration",uc_evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting UC EVC %u configuration",evc_idx);
     return L7_FAILURE;
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
@@ -3530,9 +3524,9 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 UcastEvcId, L7_BOOL enable
       (evcCfg.flags & PTIN_EVC_MASK_QUATTRO ) == PTIN_EVC_MASK_QUATTRO)
 #endif
   {
-    if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(evc_idx,&vlan)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",uc_evcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
       return L7_FAILURE;
     }
     if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
@@ -3550,9 +3544,9 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 UcastEvcId, L7_BOOL enable
       /* Get interface configuarions */
       ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
       ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-      if (ptin_evc_intfCfg_get(uc_evcId, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+      if (ptin_evc_intfCfg_get(evc_idx, &ptin_intf, &intfCfg)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,uc_evcId);
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx);
         return L7_FAILURE;
       }
       /* Extract internal vlan */
@@ -3720,9 +3714,11 @@ void ptin_dhcp_dump(void)
       continue;
     }
 
-    printf("DHCP instance %02u: EVC_idx = %u \t[CircuitId Template: %s]\r\n", i,
-           dhcpInstances[i].UcastEvcId, dhcpInstances[i].circuitid.template_str);
-
+    printf("DHCP instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  [CircuitId Template: %s]  ", i,
+           dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
+           dhcpInstances[i].circuitid.template_str);
+    if (dhcpInstances[i].is_quattro_inst)  printf("(QUATTRO)");
+    printf("\r\n");
     i_client = 0;
 
     /* Run all cells in AVL tree */

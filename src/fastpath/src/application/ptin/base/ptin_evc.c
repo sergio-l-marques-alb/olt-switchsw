@@ -151,13 +151,23 @@ struct ptin_evc_s {
   struct ptin_evc_intf_s intf[PTIN_SYSTEM_N_INTERF];
 
   /* Auxiliary (redundant) information */
-  L7_uint32  n_clients;     /* Number of clients associated with this EVC (ONLY on stacked services) */
-  L7_uint32  n_counters;    /* Number of counters associated with this EVC */
+  L7_uint32  n_clients;       /* Number of clients associated with this EVC (ONLY on stacked services) */
+  L7_uint32  n_counters;      /* Number of counters associated with this EVC */
+  L7_uint32  n_quattro_flows; /* Number of clients associated with this EVC (ONLY on stacked services) */
+
   L7_uint32  n_bwprofiles;  /* Number of BW profiles associated with this EVC */
   L7_uint32  n_probes;      /* Number of probes associated with this EVC */
 
   L7_uint8   n_roots;       /* Number of roots */
   L7_uint8   n_leafs;       /* Number of leafs */
+
+  /* Information of first root port */
+  struct
+  {
+    L7_uint8   port;        /* Index of first root port */
+    L7_uint16  nni_ovid;    /* NNI outer vlan of first root port */
+    L7_uint16  nni_ivid;    /* NNI inner vlan of first root port */
+  } root_info;
 
   L7_int     p2p_port1_intf;  /* For P2P services: First port */
   L7_int     p2p_port2_intf;  /* For P2P services: Second port */
@@ -897,7 +907,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint1
   if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
   {
     /* Interface is leaf? */
-    if (evcs[evc_id].intf[ptin_port].type!=PTIN_EVC_INTF_LEAF)
+    if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
     {
       /* Find this client vlan in EVC */
       ptin_evc_find_client(innerVlan, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
@@ -1153,7 +1163,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting evc %u configuration (intVlan=%u)",evc_id,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting evc %u configuration (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
@@ -1738,35 +1748,34 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
     }
 
-    /* If DHCP is enabled, add DHCP instance */
-    if (dhcp_enabled)
+    /* Make instance management for STD or QUATTRO-P2MP evcs */
+    if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P)
     {
-      if (ptin_dhcp_instance_add(evc_ext_id)!=L7_SUCCESS)
+      if (dhcp_enabled)
       {
-        error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
+        if (ptin_dhcp_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+        {
+          error = L7_TRUE;
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
+        }
+        else
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
       }
-      else
+      /* If PPPoE is enabled, add PPPoE trap rule */
+      if (pppoe_enabled)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
-      }
-    }
-    /* If PPPoE is enabled, add PPPoE trap rule */
-    if (pppoe_enabled)
-    {
-      if (ptin_pppoe_instance_add(evc_ext_id)!=L7_SUCCESS)
-      {
-        error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
+        if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+        {
+          error = L7_TRUE;
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
+        }
+        else
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
       }
     }
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (igmp_enabled)
+    if (igmp_enabled && (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P))
     {
       if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
       {
@@ -1783,17 +1792,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
       /* Remove DHCP instance */
       if (dhcp_enabled)
-      {
-        ptin_dhcp_instance_remove(evc_ext_id);
-      }
+        ptin_dhcp_evc_remove(evc_ext_id);
       /* remove PPPoE trap rule */
       if (pppoe_enabled)
-      {
-        ptin_pppoe_instance_remove(evc_ext_id);
-      }
+        ptin_pppoe_evc_remove(evc_ext_id);
+
       /* Remove IGMP trap rules */
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-      if (igmp_enabled)
+      if (igmp_enabled && (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P))
       {
         ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH);
       }
@@ -1943,33 +1949,29 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
     }
 
-    /* If DHCP is enabled, add DHCP instance */
-    if (dhcp_enabled)
+    /* Make instance management for STD or QUATTRO-P2MP evcs */
+    if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P)
     {
-      if (ptin_dhcp_instance_add(evc_ext_id)!=L7_SUCCESS)
+      /* If DHCP is enabled, add DHCP instance */
+      if (dhcp_enabled)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
+        if (ptin_dhcp_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
+        else
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
       }
-      else
+      /* If PPPoE is enabled, add PPPoE trap rule */
+      if (pppoe_enabled)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
-      }
-    }
-    /* If PPPoE is enabled, add PPPoE trap rule */
-    if (pppoe_enabled)
-    {
-      if (ptin_pppoe_instance_add(evc_ext_id)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
+        if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
+        else
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
       }
     }
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (igmp_enabled)
+    if (igmp_enabled && (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P))
     {
       if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
       {
@@ -2066,16 +2068,19 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   }
   #endif
 
+  /* For IGMP enabled EVCs */
+  if (ptin_igmp_is_evc_used(evc_ext_id))
+    ptin_igmp_evc_remove(evc_ext_id);
   /* For DHCP enabled EVCs */
   if (ptin_dhcp_is_evc_used(evc_ext_id))
-    ptin_dhcp_instance_remove(evc_ext_id);
+    ptin_dhcp_evc_remove(evc_ext_id);
   /* For PPPoE enabled EVCs */
   if (ptin_pppoe_is_evc_used(evc_ext_id))
-    ptin_pppoe_instance_remove(evc_ext_id);
+    ptin_pppoe_evc_remove(evc_ext_id);
 
   /* For IGMP enabled evcs, remove trap rules */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if ( evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  if ( (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL) && !IS_EVC_QUATTRO_P2P(evc_id))
   {
     if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
@@ -2213,17 +2218,17 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
 
   /* IF this EVC belongs to an IGMP instance, destroy that instance */
   if (ptin_igmp_is_evc_used(evc_ext_id))
-    ptin_igmp_instance_destroy(evc_ext_id);
+    ptin_igmp_evc_remove(evc_ext_id);
   /* IF this EVC belongs to a DHCP instance, destroy that instance */
   if (ptin_dhcp_is_evc_used(evc_ext_id))
-    ptin_dhcp_instance_destroy(evc_ext_id);
+    ptin_dhcp_evc_remove(evc_ext_id);
   /* IF this EVC belongs to a PPPoE instance, destroy that instance */
   if (ptin_pppoe_is_evc_used(evc_ext_id))
-    ptin_pppoe_instance_destroy(evc_ext_id);
+    ptin_pppoe_evc_remove(evc_ext_id);
 
   /* For IGMP enabled evcs, remove trap rules */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if ( evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  if ((evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL) && !IS_EVC_QUATTRO_P2P(evc_id))
   {
     if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
@@ -2742,8 +2747,8 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
  */
 L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 {
-  L7_uint evc_id, evc_ext_id;
-  L7_uint leaf_port;
+  L7_uint   evc_id, evc_ext_id;
+  L7_uint   leaf_port;
   L7_uint32 intIfNum;
 
   evc_ext_id = evcFlow->evc_idx;
@@ -2822,6 +2827,58 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
 
+  /* IGMP / DHCP / PPPoE instance management */
+  if ((IS_EVC_P2P(evc_id) || (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)) &&
+      (evcs[evc_id].n_quattro_flows == 0))
+  {
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    {
+      ptin_client_id_t clientId;
+
+      /* Client id */
+      memset(&clientId, 0x00, sizeof(clientId));
+      clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
+      clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+      clientId.outerVlan            = 0;      /* Will be determined during client addition */
+      clientId.innerVlan            = IS_EVC_P2P(evc_id) ? evcFlow->int_ivid : evcFlow->uni_ovid;
+      clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+      /* Add client */
+      if (ptin_igmp_client_add(evc_ext_id, &clientId, evcFlow->uni_ovid, evcFlow->uni_ivid) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+        return L7_FAILURE;
+      }
+      /* Only deal with trap rules, if QUATTRO-P2P and is the first one */
+      if (IS_EVC_P2P(evc_id))
+      {
+        /* Configure trap rule */
+        if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+        {
+          ptin_igmp_client_delete(evc_ext_id, &clientId);
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
+          return L7_FAILURE;
+        }
+      }
+    }
+  }
+  if ((evcFlow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) && IS_EVC_P2P(evc_id))
+  {
+    if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to DHCP instance", evc_id);
+      return L7_FAILURE;
+    }
+  }
+  if ((evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) && IS_EVC_P2P(evc_id))
+  {
+    if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to PPPoE instance", evc_id);
+      return L7_FAILURE;
+    }
+  }
+
   /* Create virtual port */
   if (ptin_virtual_port_add(intIfNum,
                             evcFlow->uni_ovid, evcFlow->uni_ivid,
@@ -2835,15 +2892,19 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   /* Add client to the EVC struct */
   dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
-  pflow->in_use       = L7_TRUE;                                              /* update it */
-  pflow->int_ovid     = int_ovid;
-  pflow->int_ivid  = evcFlow->int_ivid;
-  pflow->uni_ovid     = evcFlow->uni_ovid;
-  pflow->uni_ivid     = evcFlow->uni_ivid;
-  pflow->flags        = evcFlow->flags;
+  pflow->in_use   = L7_TRUE;                                              /* update it */
+  pflow->int_ovid = int_ovid;
+  pflow->int_ivid = evcFlow->int_ivid;
+  pflow->uni_ovid = evcFlow->uni_ovid;
+  pflow->uni_ivid = evcFlow->uni_ivid;
+  pflow->flags    = evcFlow->flags;
   pflow->virtual_gport= vport_id;
   dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
   evcs[evc_id].n_clients++;
+  if (IS_EVC_P2P(evc_id))
+  {
+    evcs[evc_id].n_quattro_flows++;
+  }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
   #else
@@ -2976,7 +3037,9 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   L7_uint client_vlan;
   L7_int multicast_group;
   L7_uint32 intIfNum;
+  ptin_intf_t ptin_intf;
   struct ptin_evc_client_s *pflow;
+  L7_uint32 evc_ext_id;
 
   /* Validate arguments */
   if (evc_id >= PTIN_SYSTEM_N_EVCS || ptin_port >= PTIN_SYSTEM_N_INTERF /*|| flow_id >= PTIN_SYSTEM_N_FLOWS_MAX*/)
@@ -2992,10 +3055,13 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     return L7_FAILURE;
   }
 
+  evc_ext_id = evcs[evc_id].extended_id;
+
   /* Convert to intIfNum */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS ||
+      ptin_intf_port2ptintf(ptin_port, &ptin_intf)  != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum/ptin_intf from port %u", evc_id, ptin_port);
     return L7_FAILURE;
   }
 
@@ -3005,6 +3071,58 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Flow not found", evc_id);
     return L7_SUCCESS;
+  }
+
+  /* IGMP / DHCP / PPPoE instance management */
+  if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    if ((IS_EVC_P2P(evc_id) || (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)) &&
+        (evcs[evc_id].n_quattro_flows <= 1))
+    {
+      ptin_client_id_t clientId;
+
+      /* Client id */
+      memset(&clientId, 0x00, sizeof(clientId));
+      clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
+      clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+      clientId.outerVlan            = 0;      /* Will be determined during client addition */
+      clientId.innerVlan            = IS_EVC_P2P(evc_id) ? pflow->int_ivid : pflow->uni_ovid;
+      clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+      /* Remove client */
+      if (ptin_igmp_client_delete(evc_ext_id, &clientId) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
+        return L7_FAILURE;
+      }
+      /* Only deal with trap rules, if QUATTRO-P2P and is the last one */
+      if (IS_EVC_P2P(evc_id))
+      {
+        /* Remove trap rule */
+        if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+        {
+          ptin_igmp_client_add(evc_ext_id, &clientId, pflow->uni_ovid, pflow->uni_ivid);
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
+          return L7_FAILURE;
+        }
+      }
+    }
+  }
+  if ((pflow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) && IS_EVC_P2P(evc_id))
+  {
+    if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from DHCP instance", evc_id);
+      return L7_FAILURE;
+    }
+  }
+  if ((pflow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) && IS_EVC_P2P(evc_id))
+  {
+    if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
+      return L7_FAILURE;
+    }
   }
 
   /* Multicast group */
@@ -3033,6 +3151,12 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   /* Update number of flows */
   if (evcs[evc_id].n_clients > 0)
     evcs[evc_id].n_clients--;
+
+  if (IS_EVC_P2P(evc_id))
+  {
+    if (evcs[evc_id].n_quattro_flows>0)
+      evcs[evc_id].n_quattro_flows--;
+  }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed!", evc_id, client_vlan);
 
@@ -4634,7 +4758,7 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEth
   }
 
   /* If current client was not provided, return first client */
-  client_next = (clientFlow==L7_NULLPTR) ? pclient : pclient->next;
+  client_next = (clientFlow==L7_NULLPTR || clientFlow->int_ivid==0) ? pclient : pclient->next;
 
   /* No next client/flow? */
   if (client_next == L7_NULLPTR)
@@ -5019,6 +5143,15 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
               evc_id, ptin_port, intf_cfg->vid, intf_cfg->vid_inner, int_vlan);
       return L7_FAILURE;
     }
+
+    /* Is the first root port? Save its data */
+    if (evcs[evc_id].n_roots == 0)
+    {
+      evcs[evc_id].root_info.port     = ptin_port;
+      evcs[evc_id].root_info.nni_ovid = intf_cfg->vid;
+      evcs[evc_id].root_info.nni_ivid = intf_cfg->vid_inner;
+    }
+    /* One more root port */
     evcs[evc_id].n_roots++;
   }
   else
@@ -8421,10 +8554,11 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     printf("  Leafs     = %-2u        BW Prof. = %u\n", evcs[evc_id].n_leafs, evcs[evc_id].n_bwprofiles);
 
     printf("  Root VLAN = %u\n", evcs[evc_id].rvlan);
+    printf("  Root port1= %-2u        NNI VLAN = %u+%u\n", evcs[evc_id].root_info.port, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
-      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
+      printf("  Clients   = %-4u      Quattro-P2P flows = %u\n", evcs[evc_id].n_clients, evcs[evc_id].n_quattro_flows);
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
@@ -8441,8 +8575,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       printf("#Flows=%u", evcs[evc_id].intf[i].n_flows);
       #endif
       printf("\r\n");
-      printf("    Ext. VLAN     = %5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
-      printf("    Internal VLAN = %5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile != NULL ? "Active":"Disabled");
+      printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
+      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile != NULL ? "Active":"Disabled");
       #ifdef PTIN_ERPS_EVC
       printf("    Port State    = %s\n", evcs[evc_id].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
       #endif
@@ -8461,15 +8595,16 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
           #if EVC_QUATTRO_FLOWS_FEATURE
           if (IS_EVC_QUATTRO(evc_id))
           {
-            printf("Flow# %2u: flags = 0x%08x", i, pclientFlow->flags);
-            printf("      int_vid = %4u+%-4u <-> uni_vid=%4u+%-4u",
-                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid);
-            printf("   (gport=0x%08x)\r\n", pclientFlow->virtual_gport);
+            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x) (Count {%s,%s}; BWProf {%s,%s})\r\n",
+                   j, pclientFlow->flags & 0xffff,
+                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff,
+                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }
+          else
           #endif
           {
-            printf("      Client# %2u: OVID=%04u IVID=%04u  (Counter {%s,%s}; BW Prof. {%s,%s})\n", j,
-                   pclientFlow->uni_ovid, pclientFlow->int_ivid,
+            printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
                    pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
                    pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }

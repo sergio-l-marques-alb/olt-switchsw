@@ -355,12 +355,15 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
 
 static L7_RC_t ptin_igmp_global_configuration(void);
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable);
-#if (defined IGMPASSOC_MULTI_MC_SUPPORTED)
+static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable);
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMP_QUERIER_IN_UC_EVC
 static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
+#endif
+#endif
 static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx);
-#endif
-#endif
+
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
 /* Not used */
@@ -1175,6 +1178,8 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
     return L7_FAILURE;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Using free index %u",igmp_idx);
+
   /* Save data in free instance */
   igmpInstances[igmp_idx].McastEvcId      = McastEvcId;
   igmpInstances[igmp_idx].UcastEvcId      = UcastEvcId;
@@ -1189,6 +1194,8 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   igmpInst_fromEvcId[UcastEvcId] = igmp_idx;
   #endif
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
+
   /* Configure querier for this instance */
   if (ptin_igmp_querier_configure(igmp_idx,L7_ENABLE)!=L7_SUCCESS)
   {
@@ -1200,6 +1207,8 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
     #endif
     return L7_FAILURE;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
 
   /* Configure trapping for this instance */
   if (ptin_igmp_trap_configure(igmp_idx,L7_ENABLE)!=L7_SUCCESS)
@@ -1332,9 +1341,6 @@ L7_RC_t ptin_igmp_instance_destroy(L7_uint32 evc_idx)
   return ptin_igmp_instance_remove(igmpInstances[igmp_idx].McastEvcId,igmpInstances[igmp_idx].UcastEvcId);
 }
 
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
-
 /**
  * Return number of QUATTRO instances
  * 
@@ -1394,11 +1400,15 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     return L7_SUCCESS;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add evc %u from igmp_idx=%u",evc_idx, igmp_idx);
+
   /* Check if there is an instance with the same NNI outer vlan: use it! */
   /* Otherwise, create a new instance */
-  if ((nni_ovlan == 0 || nni_ovlan > 4095) ||
+  if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
       ptin_igmp_instance_find_agg(nni_ovlan, &igmp_idx)!=L7_SUCCESS)
   {
+    nni_ovlan = 0;
+
     /* Find an empty instance to be used */
     if (ptin_igmp_instance_find_free(&igmp_idx)!=L7_SUCCESS)
     {
@@ -1416,11 +1426,13 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   {
     igmpInstances[igmp_idx].McastEvcId      = evc_idx;
     igmpInstances[igmp_idx].UcastEvcId      = 0;
-    igmpInstances[igmp_idx].nni_ovid        = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
+    igmpInstances[igmp_idx].nni_ovid        = nni_ovlan;
     igmpInstances[igmp_idx].n_evcs          = 0;
     igmpInstances[igmp_idx].is_quattro_inst = is_quattro_inst;
     igmpInstances[igmp_idx].inUse           = L7_TRUE;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"igmp_idx=%u: new instance? %u QUATTRO instances=%u",igmp_idx, new_instance,ptin_igmp_get_quattro_instances());
 
   /* Querier */
   if (ptin_igmp_evc_querier_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
@@ -1435,14 +1447,17 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
      or being QUATTRO, instance is being created now */
   if (!is_quattro_inst || (new_instance && ptin_igmp_get_quattro_instances()<=1))
   {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to enable trap rule of igmp_idx=%u",evc_idx, igmp_idx);
+
     /* Trap rule */
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_ENABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_trap_set(evc_idx, 0 /* Not used*/, L7_ENABLE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
       ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE);
       memset(&igmpInstances[igmp_idx], 0x00, sizeof(st_IgmpInstCfg_t));
       return L7_FAILURE;
     }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success enabling trap rule of igmp_idx=%u",igmp_idx);
   }
 
   /* Save direct referencing to igmp index from evc ids */
@@ -1483,6 +1498,8 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
     return L7_SUCCESS;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to remove evc %u from igmp_idx=%u",evc_idx, igmp_idx);
+
   /* QUATTRO P2P instance? */
   is_quattro_inst = igmpInstances[igmp_idx].is_quattro_inst;
 
@@ -1492,6 +1509,8 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
 
   /* NNI outer vlan */
   nni_ovlan = igmpInstances[igmp_idx].nni_ovid;
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"igmp_idx=%u: remove instance? %u  QUATTRO instances=%u",igmp_idx, remove_instance,ptin_igmp_get_quattro_instances());
 
   /* Deconfigure querier for this instance */
   if (ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE)!=L7_SUCCESS)
@@ -1504,13 +1523,16 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
      or, being QUATTRO-P2P evc, is the last IGMP instance to be removed with this kind of evcs */
   if ( !is_quattro_inst || (remove_instance && ptin_igmp_get_quattro_instances()<=1) )
   {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to disable trap rule of igmp_idx=%u", igmp_idx);
+
     /* Configure querier for this instance */
-    if (ptin_igmp_evc_trap_configure(evc_idx, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_trap_set(evc_idx, 0 /*Not used*/, L7_DISABLE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
       ptin_igmp_evc_querier_configure(evc_idx, L7_ENABLE);
       return L7_FAILURE;
     }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success disabling trap rule of igmp_idx=%u",igmp_idx);
   }
 
   /* Reset direct referencing to igmp index from evc ids */
@@ -1605,8 +1627,6 @@ static L7_uint ptin_igmp_get_quattro_instances(void)
 
   return counter;
 }
-#endif
-#endif
 
 /**
  * Update snooping configuration, when interfaces are 
@@ -2214,7 +2234,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
   if (ptin_igmp_clientIntfVlan_validate(intIfNum, intOVlan) &&
-      client_idx < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+      (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE))
   {
     /* Get pointer to client structure in AVL tree */
     clientInfo = igmpClients_unified.clients_in_use[client_idx];
@@ -2226,12 +2246,16 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
   {
-    return ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid);
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, intOVlan, intIVlan, &ovid, &ivid) != L7_SUCCESS)
+    {
+      ovid = intOVlan;
+      ivid = intIVlan;
+    }
   }
 
   /* Return vlans */
-  if (uni_ovid != L7_SUCCESS)  *uni_ovid = ovid;
-  if (uni_ivid != L7_SUCCESS)  *uni_ivid = ivid;
+  if (uni_ovid != L7_NULLPTR)  *uni_ovid = ovid;
+  if (uni_ivid != L7_NULLPTR)  *uni_ivid = ivid;
 
   return L7_SUCCESS;
 }
@@ -3126,7 +3150,7 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
     return L7_FAILURE;
   }
 
-  /* Interface must be Root */
+  /* Interface must be Leaf */
   if (intf_cfg.type!=PTIN_EVC_INTF_LEAF)
   {
 //  if (ptin_debug_igmp_snooping)
@@ -6138,7 +6162,31 @@ static L7_RC_t ptin_igmp_global_configuration(void)
 
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan, mc_evcId;
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
+
+  /* Validate argument */
+  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",igmp_idx);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
+
+  /* IGMP instance must be in use */
+  if (!igmpInstances[igmp_idx].inUse)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",igmp_idx);
+    return L7_FAILURE;
+  }
+
+  return ptin_igmp_evc_trap_set(igmpInstances[igmp_idx].McastEvcId, igmpInstances[igmp_idx].UcastEvcId, enable);
+}
+
+static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable)
+{
+  L7_uint16   idx, vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_intf_t          ptin_intf;
@@ -6148,28 +6196,13 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 
   enable &= 1;
 
-  /* Validate argument */
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid igmp instance index (%u)",igmp_idx);
-    return L7_FAILURE;
-  }
-  /* IGMP instance must be in use */
-  if (!igmpInstances[igmp_idx].inUse)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"igmp instance index %u is not in use",igmp_idx);
-    return L7_FAILURE;
-  }
-
   /* Initialize number of vlans to be configured */
   vlans_number = 0;
 
-  mc_evcId = igmpInstances[igmp_idx].McastEvcId;
-
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_intRootVlan_get(mc_evcId,&vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx_mc, &vlan)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",mc_evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",evc_idx_mc);
     return L7_FAILURE;
   }
   if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
@@ -6178,16 +6211,13 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   }
 
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  L7_uint16 uc_evcId;
   ptin_HwEthMef10Evc_t evcCfg;
 
-  uc_evcId = igmpInstances[igmp_idx].UcastEvcId;
-
   /* Get Unicast EVC configuration */
-  evcCfg.index = uc_evcId;
+  evcCfg.index = evc_idx_uc;
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting UC EVC %u configuration",uc_evcId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting UC EVC %u configuration",evc_idx_uc);
     return L7_FAILURE;
   }
 #if (!PTIN_SYSTEM_GROUP_VLANS)
@@ -6196,9 +6226,9 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
       (evcCfg.flags & PTIN_EVC_MASK_QUATTRO ) == PTIN_EVC_MASK_QUATTRO)
 #endif
   {
-    if (ptin_evc_intRootVlan_get(uc_evcId,&vlan)!=L7_SUCCESS)
+    if (ptin_evc_intRootVlan_get(evc_idx_uc,&vlan)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",uc_evcId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",evc_idx_uc);
       return L7_FAILURE;
     }
     if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
@@ -6229,9 +6259,9 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
       /* Get interface configuarions */
       ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
       ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-      if (ptin_evc_intfCfg_get(uc_evcId, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+      if (ptin_evc_intfCfg_get(evc_idx_uc, &ptin_intf, &intfCfg)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,uc_evcId);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx_uc);
         return L7_FAILURE;
       }
       /* Extract internal vlan */
@@ -6285,6 +6315,8 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
   return L7_SUCCESS;
 }
 
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMP_QUERIER_IN_UC_EVC
 /**
  * Configure an IGMP vlan trapping rule (most essentally for the
  * UC services) 
@@ -6296,7 +6328,6 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
 {
   L7_uint16   idx, vlan;
@@ -6442,7 +6473,7 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
   return L7_SUCCESS;
 }
 #endif
-
+#endif
 
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
 {
@@ -6627,8 +6658,6 @@ static L7_RC_t ptin_igmp_instance_find_free(L7_uint *igmp_idx)
   return L7_SUCCESS;
 }
 
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#ifdef EVC_QUATTRO_FLOWS_FEATURE
 /**
  * Gets the IGMP instance from the NNI ovlan
  * 
@@ -6659,8 +6688,6 @@ static L7_uint ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
 
   return L7_SUCCESS;
 }
-#endif
-#endif
 
 /**
  * Gets the IGMP instance with a specific Mcast and Ucast EVC 
@@ -9059,9 +9086,11 @@ void ptin_igmp_dump(void)
       continue;
     }
 
-    printf("IGMP instance %02u\n", i);
-    printf("   MC evc_idx = %u\r\n",igmpInstances[i].McastEvcId);
-    printf("   UC evc_idx = %u\r\n",igmpInstances[i].UcastEvcId);
+    printf("IGMP instance %02u   ", i);
+    if (igmpInstances[i].is_quattro_inst)  printf("(QUATTRO)");
+    printf("\n");
+    printf("   MC evcId = %4u   NNI VLAN = %u\r\n",igmpInstances[i].McastEvcId, igmpInstances[i].nni_ovid);
+    printf("   UC evcId = %4u     #evc's = %u\r\n",igmpInstances[i].UcastEvcId, igmpInstances[i].n_evcs);
   }
 
   printf("\r\nClients are not associated to IGMP instances any more!!!\r\n");
@@ -9126,7 +9155,7 @@ void ptin_igmp_clients_dump(void)
            #if (MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
-           ": index=%-3u  uni_vid=%-5u+%-5u [%s] #channels=%u\r\n",
+           ": index=%-3u  uni_vid=%4u+%-4u [%s] #channels=%u\r\n",
            i_client,
            #if (MC_CLIENT_INTERF_SUPPORTED)
            avl_info->igmpClientDataKey.ptin_port,
