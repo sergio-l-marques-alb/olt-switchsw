@@ -837,7 +837,13 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
       is_vlan_stacked = L7_TRUE;
     }
     #endif
-
+    /* Modify outer vlan */
+    if (vlanId!=extOVlan)
+    {
+      frame[14] &= 0xf0;
+      frame[14] |= ((extOVlan>>8) & 0x0f);
+      frame[15]  = extOVlan & 0xff;
+    }
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
     if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
@@ -849,17 +855,10 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
         memmove(&frame[20],&frame[16],frame_len);
         frame[16] = 0x81;
         frame[17] = 0x00;
+        frame_len += 4;
       }
-      frame[18] = extIVlan>>8;
+      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
       frame[19] = extIVlan & 0xff;
-      frame_len += 4;
-    }
-    /* Modify outer vlan */
-    if (vlanId!=extOVlan)
-    {
-      frame[14] &= 0xf0;
-      frame[14] |= ((extOVlan>>8) & 0x0f);
-      frame[15]  = extOVlan & 0xff;
     }
   }
 

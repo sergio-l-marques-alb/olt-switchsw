@@ -4923,7 +4923,14 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
       is_vlan_stacked = L7_TRUE;
     }
     #endif
-
+    /* Modify outer vlan */
+    if (vlanId!=extOVlan)
+    {
+      frame[14] &= 0xf0;
+      frame[14] |= ((extOVlan>>8) & 0x0f);
+      frame[15]  = extOVlan & 0xff;
+      //vlanId = extOVlan;
+    }
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
     if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
@@ -4936,19 +4943,11 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
         memmove(&frame[20],&frame[16],frameLen);
         frame[16] = 0x81;
         frame[17] = 0x00;
+        frameLen += 4;
       }
-      frame[18] = extIVlan>>8;
+      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
       frame[19] = extIVlan & 0xff;
-      frameLen += 4;
       //innerVlanId = extIVlan;
-    }
-    /* Modify outer vlan */
-    if (vlanId!=extOVlan)
-    {
-      frame[14] &= 0xf0;
-      frame[14] |= ((extOVlan>>8) & 0x0f);
-      frame[15]  = extOVlan & 0xff;
-      //vlanId = extOVlan;
     }
   }
   #endif

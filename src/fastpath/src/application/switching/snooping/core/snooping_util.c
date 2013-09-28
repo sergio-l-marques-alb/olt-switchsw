@@ -1256,6 +1256,15 @@ void snoopPacketSend(L7_uint32 intIfNum,
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
+    /* Modify outer vlan */
+    if (vlanId!=extOVlan)
+    {
+      payload[14] &= 0xf0;
+      payload[14] |= ((extOVlan>>8) & 0x0f);
+      payload[15]  = extOVlan & 0xff;
+      //vlanId = extOVlan;
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmitted in intIfNum=%u, with vlan=%u (original=%u)",intIfNum,extOVlan,vlanId);
+    }
     /* Add inner vlan when there exists */
     if (extIVlan!=0)
     {
@@ -1267,20 +1276,11 @@ void snoopPacketSend(L7_uint32 intIfNum,
         memmove(&payload[20],&payload[16],payloadLen);
         payload[16] = 0x81;
         payload[17] = 0x00;
+        payloadLen += 4;
       }
-      payload[18] = extIVlan>>8;
+      payload[18] = (payload[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
       payload[19] = extIVlan & 0xff;
-      payloadLen += 4;
       //innerVlanId = extIVlan;
-    }
-    /* Modify outer vlan */
-    if (vlanId!=extOVlan)
-    {
-      payload[14] &= 0xf0;
-      payload[14] |= ((extOVlan>>8) & 0x0f);
-      payload[15]  = extOVlan & 0xff;
-      //vlanId = extOVlan;
-//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmitted in intIfNum=%u, with vlan=%u (original=%u)",intIfNum,extOVlan,vlanId);
     }
   }
   ptin_timer_stop(31);
@@ -1308,14 +1308,14 @@ void snoopPacketSend(L7_uint32 intIfNum,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u)",
             intIfNum, extOVlan, vlanId);
 
-#if 0 //MMelo
-  L7_uint32 i;
-  printf("PayloadLength:%d\n",payloadLen);
-  for (i=0;i<payloadLen;i++)
-    printf("0x%x",payload[i]);
-  printf("\n");
-   return;
-#endif
+  if (ptin_debug_igmp_snooping)
+  {
+    L7_uint32 i;
+    printf("PayloadLength:%d\n",payloadLen);
+    for (i=0;i<payloadLen;i++)
+      printf("%02x ",payload[i]);
+    printf("\n");
+  }
 }
 
 /*********************************************************************
