@@ -2640,7 +2640,8 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
                                      L7_uint *client_idx_ret)
 {
   ptin_client_id_t client;
-  L7_RC_t     rc;
+  L7_uint16 uni_ovid, uni_ivid;
+  L7_RC_t   rc;
 
   /* Build client structure */
   if (ptin_igmp_clientId_build(intIfNum, intVlan, innerVlan, smac, &client)!=L7_SUCCESS)
@@ -2650,8 +2651,23 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
     return L7_FAILURE;
   }
 
+  /* If uni vlans are not provided, but interface is, get uni vlans from EVC data */
+  if ( intIfNum > 0 && intVlan > 0 && innerVlan > 0 )
+  {
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, intVlan, innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for intIfNum %u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                intIfNum, innerVlan, uni_ovid, uni_ivid);
+    }
+    else
+    {
+      uni_ovid = uni_ivid = 0;
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get ext vlans for intIfNum %u, cvlan %u", intIfNum, innerVlan);
+    }
+  }
+
   /* Add client */
-  rc = ptin_igmp_new_client(0 /*Not used*/, &client, 0, 0, L7_TRUE, client_idx_ret);
+  rc = ptin_igmp_new_client(0 /*Not used*/, &client, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
 
   if (rc!=L7_SUCCESS)
   {
@@ -9107,8 +9123,6 @@ void ptin_igmp_dump(void)
 void ptin_igmp_clients_dump(void)
 {
   L7_uint i_client;
-  L7_uint32 intIfNum;
-  L7_uint16 extVlan, innerVlan;
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientInfoData_t *avl_info;
 
@@ -9126,18 +9140,6 @@ void ptin_igmp_clients_dump(void)
   {
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
-
-    extVlan = 0;
-    innerVlan = 0;
-    #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-    innerVlan = avl_info->igmpClientDataKey.innerVlan;
-    #endif
-    #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-    if (ptin_intf_port2intIfNum(avl_info->igmpClientDataKey.ptin_port, &intIfNum)==L7_SUCCESS)
-    {
-      ptin_evc_extVlans_get_fromIntVlan(intIfNum, avl_info->igmpClientDataKey.outerVlan, innerVlan, &extVlan, L7_NULLPTR);
-    }
-    #endif
     
     printf("      Client#%u: "
            #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -9161,7 +9163,7 @@ void ptin_igmp_clients_dump(void)
            avl_info->igmpClientDataKey.ptin_port,
            #endif
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-           extVlan, avl_info->igmpClientDataKey.outerVlan,
+           avl_info->uni_ovid, avl_info->igmpClientDataKey.outerVlan,
            #endif
            #if (MC_CLIENT_INNERVLAN_SUPPORTED)
            avl_info->igmpClientDataKey.innerVlan,

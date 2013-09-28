@@ -613,30 +613,31 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return L7_FAILURE;
   }
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u accepted",pduInfo->intIfNum, McastRootVlan);
 
+  #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
   /* For leaf interfaces */
   if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId)==L7_SUCCESS)
   {
-    /* If board is matrix, client will be added as dynamic type */
-#if (PTIN_BOARD_IS_MATRIX)
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to add dynamically a client");
-
+    #if (PTIN_BOARD_IS_MATRIX)
     /* If the client does not exist, it will be created in dynamic mode */
     if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                      L7_NULL, L7_NULL,
                                      &data[L7_MAC_ADDR_LEN],
                                      &client_idx) != L7_SUCCESS)
+    #else
+    /* For Linecard only: If client was not recognized, add it as dynamic */
+    if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
+        ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                     pduInfo->vlanId, pduInfo->innerVlanId,
+                                     &data[L7_MAC_ADDR_LEN],
+                                     &client_idx) != L7_SUCCESS)
+    #endif
     {
       client_idx = (L7_uint) -1;
       SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
     }
-#else
-    /* Increment intercepted packets for the UC service */
-    /* Do not consider the client. It will be updated later */
-    //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-#endif
   }
+  #endif
 
   /* Update Vlan ID of the root MC service vlan */
   pduInfo->vlanId = McastRootVlan;

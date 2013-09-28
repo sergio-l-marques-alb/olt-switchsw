@@ -66,6 +66,7 @@ extern int ptin_sys_number_of_ports;
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -210,6 +211,7 @@ extern volatile st_fpga_map_t *fpga_map;
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -353,6 +355,7 @@ extern volatile st_fpga_map_t *fpga_map;
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -492,6 +495,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
@@ -647,6 +651,8 @@ extern volatile st_fpga_map_t *fpga_map;
 /* OLT360 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
 
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
+
 #define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
@@ -784,6 +790,8 @@ extern volatile st_fpga_map_t *fpga_map;
 
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+
+#define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define __Y1731_802_1ag_OAM_ETH__
 

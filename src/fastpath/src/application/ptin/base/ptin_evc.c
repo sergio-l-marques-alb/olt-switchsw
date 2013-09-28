@@ -153,7 +153,6 @@ struct ptin_evc_s {
   /* Auxiliary (redundant) information */
   L7_uint32  n_clients;       /* Number of clients associated with this EVC (ONLY on stacked services) */
   L7_uint32  n_counters;      /* Number of counters associated with this EVC */
-  L7_uint32  n_quattro_flows; /* Number of clients associated with this EVC (ONLY on stacked services) */
 
   L7_uint32  n_bwprofiles;  /* Number of BW profiles associated with this EVC */
   L7_uint32  n_probes;      /* Number of probes associated with this EVC */
@@ -269,6 +268,8 @@ static dl_queue_t queue_free_vlans; /* Pool of free internal VLANs */
 /* Queue for QUATTRO P2P vlans */
 #if EVC_QUATTRO_FLOWS_FEATURE
 static dl_queue_t queue_quattro_p2p_free_vlans;
+/* Global number of QUATTRO P2P flows */
+static L7_uint32 n_quattro_p2p_flows = 0;
 #endif
 
 /* Lookup table to convert extended in internal EVC indexes */
@@ -2828,37 +2829,39 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
 
   /* IGMP / DHCP / PPPoE instance management */
-  if ((IS_EVC_P2P(evc_id) || (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)) &&
-      (evcs[evc_id].n_quattro_flows == 0))
+  if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+    /* Always add client */
+    ptin_client_id_t clientId;
+
+    /* Client id */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+    clientId.outerVlan            = 0;      /* Will be determined during client addition */
+    clientId.innerVlan            = evcFlow->uni_ovid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Add client */
+    if (ptin_igmp_client_add(evc_ext_id, &clientId, evcFlow->uni_ovid, evcFlow->uni_ivid) != L7_SUCCESS)
     {
-      ptin_client_id_t clientId;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+      return L7_FAILURE;
+    }
+    #endif
 
-      /* Client id */
-      memset(&clientId, 0x00, sizeof(clientId));
-      clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
-      clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
-      clientId.outerVlan            = 0;      /* Will be determined during client addition */
-      clientId.innerVlan            = IS_EVC_P2P(evc_id) ? evcFlow->int_ivid : evcFlow->uni_ovid;
-      clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
-      /* Add client */
-      if (ptin_igmp_client_add(evc_ext_id, &clientId, evcFlow->uni_ovid, evcFlow->uni_ivid) != L7_SUCCESS)
+    /* Only deal with trap rules, if QUATTRO-P2P and is the first one */
+    if (IS_EVC_P2P(evc_id) && n_quattro_p2p_flows==0)
+    {
+      /* Configure trap rule */
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+        #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        ptin_igmp_client_delete(evc_ext_id, &clientId);
+        #endif
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
         return L7_FAILURE;
-      }
-      /* Only deal with trap rules, if QUATTRO-P2P and is the first one */
-      if (IS_EVC_P2P(evc_id))
-      {
-        /* Configure trap rule */
-        if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
-        {
-          ptin_igmp_client_delete(evc_ext_id, &clientId);
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
-          return L7_FAILURE;
-        }
       }
     }
   }
@@ -2903,7 +2906,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   evcs[evc_id].n_clients++;
   if (IS_EVC_P2P(evc_id))
   {
-    evcs[evc_id].n_quattro_flows++;
+    n_quattro_p2p_flows++;
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
@@ -3076,35 +3079,37 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   /* IGMP / DHCP / PPPoE instance management */
   if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if ((IS_EVC_P2P(evc_id) || (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)) &&
-        (evcs[evc_id].n_quattro_flows <= 1))
+    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+    /* Always remove client */
+    ptin_client_id_t clientId;
+
+    /* Client id */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+    clientId.outerVlan            = 0;      /* Will be determined during client addition */
+    clientId.innerVlan            = pflow->uni_ovid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Remove client */
+    if (ptin_igmp_client_delete(evc_ext_id, &clientId) != L7_SUCCESS)
     {
-      ptin_client_id_t clientId;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
+      return L7_FAILURE;
+    }
+    #endif
 
-      /* Client id */
-      memset(&clientId, 0x00, sizeof(clientId));
-      clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
-      clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
-      clientId.outerVlan            = 0;      /* Will be determined during client addition */
-      clientId.innerVlan            = IS_EVC_P2P(evc_id) ? pflow->int_ivid : pflow->uni_ovid;
-      clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
-      /* Remove client */
-      if (ptin_igmp_client_delete(evc_ext_id, &clientId) != L7_SUCCESS)
+    /* Only deal with trap rules, if QUATTRO-P2P and is the last one */
+    if (IS_EVC_P2P(evc_id) && n_quattro_p2p_flows<=1)
+    {
+      /* Remove trap rule */
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
+        #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        ptin_igmp_client_add(evc_ext_id, &clientId, pflow->uni_ovid, pflow->uni_ivid);
+        #endif
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
         return L7_FAILURE;
-      }
-      /* Only deal with trap rules, if QUATTRO-P2P and is the last one */
-      if (IS_EVC_P2P(evc_id))
-      {
-        /* Remove trap rule */
-        if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-        {
-          ptin_igmp_client_add(evc_ext_id, &clientId, pflow->uni_ovid, pflow->uni_ivid);
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
-          return L7_FAILURE;
-        }
       }
     }
   }
@@ -3154,8 +3159,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 
   if (IS_EVC_P2P(evc_id))
   {
-    if (evcs[evc_id].n_quattro_flows>0)
-      evcs[evc_id].n_quattro_flows--;
+    if (n_quattro_p2p_flows>0)  n_quattro_p2p_flows--;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed!", evc_id, client_vlan);
@@ -8553,12 +8557,12 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     printf("  Roots     = %-2u        Counters = %u\t\tProbes=%u\n", evcs[evc_id].n_roots, evcs[evc_id].n_counters, evcs[evc_id].n_probes);
     printf("  Leafs     = %-2u        BW Prof. = %u\n", evcs[evc_id].n_leafs, evcs[evc_id].n_bwprofiles);
 
-    printf("  Root VLAN = %u\n", evcs[evc_id].rvlan);
-    printf("  Root port1= %-2u        NNI VLAN = %u+%u\n", evcs[evc_id].root_info.port, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
+    printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
+    printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
-      printf("  Clients   = %-4u      Quattro-P2P flows = %u\n", evcs[evc_id].n_clients, evcs[evc_id].n_quattro_flows);
+      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
@@ -8619,6 +8623,9 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     printf("\n");
   }
+  #if EVC_QUATTRO_FLOWS_FEATURE
+  printf("Total number of QUATTRO-P2P flows: %u\r\n", n_quattro_p2p_flows);
+  #endif
 }
 
 /**
