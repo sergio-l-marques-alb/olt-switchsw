@@ -825,9 +825,11 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         #endif
 
         /* Client information */
+        memset(&client, 0x00, sizeof(client));
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = vlanId;
         client.innerVlan = innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
@@ -1093,8 +1095,9 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = vlanId;
         client.innerVlan = innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
@@ -1913,8 +1916,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      ptin_client_id_t client;
 
      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+     client.outerVlan = dhcp_binding.vlanId;
      client.innerVlan = dhcp_binding.innerVlanId;
-     client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+     client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
        LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
@@ -3712,8 +3716,9 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = dhcp_binding.vlanId;
         client.innerVlan = dhcp_binding.innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         if (dhcp_binding.innerVlanId!=0)
         {
