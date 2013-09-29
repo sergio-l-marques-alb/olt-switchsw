@@ -3257,13 +3257,6 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x",vlanId,vlan_match);
  #endif
 
-  /* IGMP packets must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = RATE_LIMIT_IGMP;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_IGMP;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-
   if (hapiBroadRaptorCheck() == L7_TRUE || hapiBroadHawkeyeCheck() == L7_TRUE) 
   {
     result = hapiBroadConfigIgmpFilterRaptor(enableFilter);
@@ -3406,6 +3399,24 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy of cell %u created",index);
         
+      /* Rate limit */
+      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      {
+        meterInfo.cir       = RATE_LIMIT_QUATTRO;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_QUATTRO;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
+      else
+      {
+        meterInfo.cir       = RATE_LIMIT_PPPoE;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_PPPoE;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
+
       /* give IGMP frames high priority and trap to the CPU. */
       result = hapiBroadPolicyRuleAdd(&ruleId);
       if (result != L7_SUCCESS)  break;
@@ -3468,7 +3479,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
 
   /* For QUATTRO vlans */
-  #if EVC_QUATTRO_FLOWS_FEATURE
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   #if 0
   static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
   L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
@@ -3639,12 +3650,6 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
    * snooping overrides this. Note, priority is elevated to just above
    * mcast/bcast/l3 miss packets.
    */
-  /* DHCP packets on untrusted ports must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = RATE_LIMIT_DHCP;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_DHCP;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
   /* If vlan value is valid, Find dhcp index */
   if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
@@ -3748,6 +3753,24 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
         break;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
+
+      /* Rate limit */
+      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      {
+        meterInfo.cir       = RATE_LIMIT_QUATTRO;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_QUATTRO;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
+      else
+      {
+        meterInfo.cir       = RATE_LIMIT_PPPoE;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_PPPoE;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
 
       /* give dhcp frames high priority and trap to the CPU. */
 
@@ -3877,7 +3900,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
     }
   }
 
-  #if EVC_QUATTRO_FLOWS_FEATURE
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   #if 0
   /* Policy id for quattro vlans */
   static BROAD_POLICY_t   policyId_quattro = BROAD_POLICY_INVALID;
@@ -4085,13 +4108,6 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
  #endif
 
-  /* PPPoE packets on any port must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = RATE_LIMIT_PPPoE;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_PPPoE;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-
   /* If vlan value is valid, Find dhcp index */
   if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
   {
@@ -4195,6 +4211,24 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
+      /* Rate limit */
+      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      {
+        meterInfo.cir       = RATE_LIMIT_QUATTRO;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_QUATTRO;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
+      else
+      {
+        meterInfo.cir       = RATE_LIMIT_PPPoE;
+        meterInfo.cbs       = 128;
+        meterInfo.pir       = RATE_LIMIT_PPPoE;
+        meterInfo.pbs       = 128;
+        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      }
+
       /* give dhcp frames high priority and trap to the CPU. */
 
       /* PPPoE packets from client */
@@ -4245,7 +4279,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
   }
 
   /* For QUATTRO vlans */
-  #if EVC_QUATTRO_FLOWS_FEATURE
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   #if 0
   static BROAD_POLICY_t policyId_quattro = BROAD_POLICY_INVALID;
   L7_uint16 vlan_quattro = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
