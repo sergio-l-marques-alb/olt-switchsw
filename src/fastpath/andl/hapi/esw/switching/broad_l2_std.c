@@ -3490,20 +3490,29 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       }
 #endif
     }
+    /* PTin added: virtual ports */
+    #if 1
+    else if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+    {
+      usp.unit = 1;
+      usp.slot = 0;
+      usp.port = 0;
+    }
+    #endif
     else
     {
-    uport = BCMX_UPORT_GET(bcmx_l2_addr->lport);
+      uport = BCMX_UPORT_GET(bcmx_l2_addr->lport);
 
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
-    {
-      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID,
-            "Invalid uport calculated from the BCM uport\nbcmx_l2_addr->lport = %x."
-            " Uport not valid from BCM driver.", bcmx_l2_addr->lport);
-      return;
+      if (uport == BCMX_UPORT_INVALID_DEFAULT)
+      {
+        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID,
+              "Invalid uport calculated from the BCM uport\nbcmx_l2_addr->lport = %x."
+              " Uport not valid from BCM driver.", bcmx_l2_addr->lport);
+        return;
+      }
+
+      HAPI_BROAD_UPORT_TO_USP(uport,&usp);
     }
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&usp);
-  }
   }
 
   if(hapiBroadRoboCheck() == L7_TRUE)
@@ -3675,7 +3684,8 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
 
   if (((bcmx_l2_addr->flags & BCM_L2_NATIVE) && (!(bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER)))
       || ((bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER) && ageAddr == L7_TRUE)
-      || (BCM_GPORT_IS_WLAN_PORT(bcmx_l2_addr->lport) && ageAddr == L7_TRUE) )
+      || (BCM_GPORT_IS_WLAN_PORT(bcmx_l2_addr->lport) && ageAddr == L7_TRUE)
+      || (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport) && ageAddr == L7_TRUE))   /* PTin added: virtual ports */
   {
     /* Make sure that card is not removed while we are processing the callback.
     */
