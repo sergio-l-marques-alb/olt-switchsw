@@ -1637,6 +1637,14 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
     meterInfo.pbs       = 256;
     meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
   }
+  else if (traffType & PACKET_RATE_LIMIT_MULTICAST)
+  {
+    meterInfo.cir       = RATE_LIMIT_MCAST;
+    meterInfo.cbs       = 256;
+    meterInfo.pir       = RATE_LIMIT_MCAST;
+    meterInfo.pbs       = 256;
+    meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  }
   else
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"No traffic type defined");
