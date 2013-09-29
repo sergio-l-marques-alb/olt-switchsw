@@ -905,7 +905,7 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    L7_int32                   frame_len;
    L7_uchar8                  frame_copy[PPPOE_PACKET_SIZE_MAX];
    L7_BOOL                    tlv_vendor_id_found = L7_FALSE;
-   ptinPppoeClientDataKey_t   binding_table_key;
+   ptinPppoeClientDataKey_t   binding_table_key, *result;
 
    LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new client message");
 
@@ -933,19 +933,22 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    memset(&binding_table_key,           0x00,                 sizeof(ptinPppoeClientDataKey_t));
    memcpy(binding_table_key.macAddr,    eth_header->src.addr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
    binding_table_key.rootVlan  = vlanId;
-   if (avlInsertEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key) != L7_NULL)
+
+   result = (ptinPppoeClientDataKey_t *) avlInsertEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key);
+   if ( result == &binding_table_key )
    {
       LOG_NOTICE(LOG_CTX_PTIN_PPPOE, "PPPoE: Unable to register client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
                  binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
                  binding_table_key.rootVlan);
    }
-   else
+   else if (result == L7_NULLPTR )
    {
       ptinPppoeBindingInfoData_t *binding_table_data;
 
       if ((binding_table_data=avlSearchLVL7(&pppoeBindingTable.avlTree, (void *)&binding_table_key, AVL_EXACT)) != L7_NULL)
       {
-         binding_table_data->interface = intIfNum;
+         binding_table_data->interface  = intIfNum;
+         binding_table_data->inner_vlan = innerVlanId;
       }
       else
       {
@@ -1082,7 +1085,8 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    binding_table_key.rootVlan     = vlanId;
    if ((binding_table_data=avlSearchLVL7(&pppoeBindingTable.avlTree, (void *)&binding_table_key, AVL_EXACT)) != L7_NULL)
    {
-      intIfNum = binding_table_data->interface;
+      intIfNum    = binding_table_data->interface;
+      innerVlanId = binding_table_data->inner_vlan;
       avlDeleteEntry(&pppoeBindingTable.avlTree, (void *)&binding_table_key);
    }
    else
@@ -1140,3 +1144,88 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
 
    pppoeClientFrameSend(intIfNum, frame_copy, vlanId, innerVlanId, client_idx);
 }
+
+#if 0
+void ptin_pppoe_bindtable_dump(void)
+{
+  L7_uint i, i_client;
+  pppoeBindingTable avl_key;
+  ptinDhcpClientInfoData_t *avl_info;
+
+  for (i = 0; i < PTIN_SYSTEM_N_DHCP_INSTANCES; i++)
+  {
+    if (!dhcpInstances[i].inUse) {
+      printf("*** Dhcp instance %02u not in use\r\n", i);
+      continue;
+    }
+
+    printf("DHCP instance %02u: EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
+           dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
+           dhcpInstances[i].evcDhcpOptions, dhcpInstances[i].circuitid.template_str);
+    printf("\r\n");
+    i_client = 0;
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                          avlSearchLVL7(&dhcpInstances[i].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+      printf("   Client#%u: "
+             #if (DHCP_CLIENT_INTERF_SUPPORTED)
+             "ptin_port=%-2u "
+             #endif
+             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+             "svlan=%-4u "
+             #endif
+             #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+             "cvlan=%-4u "
+             #endif
+             #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+             "IP=%03u.%03u.%03u.%03u "
+             #endif
+             #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+             #endif
+             ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+             i_client,
+             #if (DHCP_CLIENT_INTERF_SUPPORTED)
+             avl_info->dhcpClientDataKey.ptin_port,
+             #endif
+             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+             avl_info->dhcpClientDataKey.outerVlan,
+             #endif
+             #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+             avl_info->dhcpClientDataKey.innerVlan,
+             #endif
+             #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+             (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
+              (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
+               (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
+                avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
+             #endif
+             #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+             avl_info->dhcpClientDataKey.macAddr[0],
+              avl_info->dhcpClientDataKey.macAddr[1],
+               avl_info->dhcpClientDataKey.macAddr[2],
+                avl_info->dhcpClientDataKey.macAddr[3],
+                 avl_info->dhcpClientDataKey.macAddr[4],
+                  avl_info->dhcpClientDataKey.macAddr[5],
+             #endif
+             avl_info->client_index,
+             avl_info->uni_ovid, avl_info->uni_ivid,
+             avl_info->client_data.dhcp_options,
+             avl_info->client_data.circuitId_str,
+             avl_info->client_data.remoteId_str);
+
+      i_client++;
+    }
+  }
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  printf("Total number of QUATTRO-P2P evcs: %u\r\n", dhcp_quattro_p2p_evcs);
+  #endif
+}
+#endif

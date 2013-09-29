@@ -375,6 +375,11 @@ L7_RC_t pppoeCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error allocating data for PPPoE AVL Trees\n");
     return L7_FAILURE;
   }
+
+  memset(pppoeBindingTable.treeHeap, 0x00, sizeof(PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(avlTreeTables_t)));
+  memset(pppoeBindingTable.dataHeap, 0x00, sizeof(PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(ptinPppoeBindingInfoData_t)));
+  memset(&pppoeBindingTable.avlTree, 0x00, sizeof(pppoeBindingTable.avlTree));
+
   avlCreateAvlTree(&pppoeBindingTable.avlTree, pppoeBindingTable.treeHeap, pppoeBindingTable.dataHeap,  
                    PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE, sizeof(ptinPppoeBindingInfoData_t), 0x10, sizeof(ptinPppoeClientDataKey_t));
 
