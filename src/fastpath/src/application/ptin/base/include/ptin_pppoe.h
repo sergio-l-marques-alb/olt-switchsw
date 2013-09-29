@@ -452,14 +452,12 @@ extern L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L
 /**
  * Get PPPOE EVC ethPrty
  * 
- * @param intIfNum    : FP interface
  * @param intVlan     : internal vlan
- * @param innerVlan   : inner/client vlan 
- * @param ethPrty     : ethernet priority (output) 
+ * @param ethPrty     : priority (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty);
+extern L7_RC_t ptin_pppoe_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty);
 
 /**
  * Get PPPOE client data (PPPOE Options)

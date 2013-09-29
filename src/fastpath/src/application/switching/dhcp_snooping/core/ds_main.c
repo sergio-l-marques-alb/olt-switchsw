@@ -2069,7 +2069,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Change ethernet priority bit
-   if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+   if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
    {
      LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
      return L7_FAILURE;
@@ -4405,7 +4405,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if (relayOptIntIfNum != L7_NULL)
     {
        //Change ethernet priority bit
-      if (ptin_dhcp_ethPrty_get(relayOptIntIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+      if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
@@ -4427,7 +4427,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     else
     {
        //Change ethernet priority bit
-      if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+      if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
@@ -4547,7 +4547,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
           L7_uint8  *frameEthPrty;
 
           //Change ethernet priority bit
-          if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+          if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
             return L7_FAILURE;

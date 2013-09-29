@@ -138,12 +138,16 @@ typedef struct {
   L7_uint16                   UcastEvcId;
   L7_uint16                   nni_ovid;
   L7_uint16                   n_evcs;
-  L7_BOOL                     is_quattro_inst;  /* Is a QUATTRO P2P instance? */
   ptinDhcpClients_t           dhcpClients;
   L7_uint16                   evcDhcpOptions;   /* DHCP Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
   ptin_DHCP_Statistics_t      stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_DhcpInstCfg_t;
+
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+/* Global number of QUATTRO P2P flows */
+static L7_uint32 dhcp_quattro_p2p_evcs = 0;
+#endif
 
 /*********************************************************** 
  * Data structs
@@ -437,7 +441,6 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
   dhcpInstances[dhcp_idx].UcastEvcId      = UcastEvcId;
   dhcpInstances[dhcp_idx].nni_ovid        = 0;
   dhcpInstances[dhcp_idx].n_evcs          = 1;
-  dhcpInstances[dhcp_idx].is_quattro_inst = L7_FALSE;
   dhcpInstances[dhcp_idx].inUse           = L7_TRUE;
 
   /* Configure querier for this instance */
@@ -499,7 +502,6 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId)
   dhcpInstances[dhcp_idx].UcastEvcId      = 0;
   dhcpInstances[dhcp_idx].nni_ovid        = 0;
   dhcpInstances[dhcp_idx].n_evcs          = 0;
-  dhcpInstances[dhcp_idx].is_quattro_inst = L7_FALSE;
   dhcpInstances[dhcp_idx].inUse           = L7_FALSE;
 
   /* Reset direct referencing to dhcp index from evc ids */
@@ -526,7 +528,7 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
  * 
  * @return L7_uint : number
  */
-static L7_uint ptin_dhcp_get_quattro_instances(void);
+//static L7_uint ptin_dhcp_get_quattro_instances(void);
 
 /**
  * Associate an EVC to a DHCP instance
@@ -541,7 +543,6 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   L7_uint dhcp_idx;
   L7_uint evc_type;
   L7_BOOL new_instance = L7_FALSE;
-  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -563,11 +564,9 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", UcastEvcId);
     return L7_FAILURE;
   }
-  /* Is a QUATTRO P2P evc? */
-  is_quattro_inst = (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P);
 
   /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
-  if (!is_quattro_inst)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P)
   {
     nni_ovlan = 0;
   }
@@ -604,15 +603,14 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
     dhcpInstances[dhcp_idx].UcastEvcId      = UcastEvcId;
     dhcpInstances[dhcp_idx].nni_ovid        = nni_ovlan;
     dhcpInstances[dhcp_idx].n_evcs          = 0;
-    dhcpInstances[dhcp_idx].is_quattro_inst = is_quattro_inst;
     dhcpInstances[dhcp_idx].inUse           = L7_TRUE;
   }
 
-  /* Only configure trap rule if not QUATTRO-P2P evc,
-     or, being QUATTRO-P2P evc, is the first instance with this kind of evcs */
-  if (!is_quattro_inst || (new_instance && ptin_dhcp_get_quattro_instances()<=1))
+  /* Configure trap rule for this instance */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs==0)
+  #endif
   {
-    /* Configure trap rule for this instance */
     if (ptin_dhcp_evc_trap_configure(UcastEvcId, L7_ENABLE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
@@ -627,6 +625,14 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   /* One more EVC associated to this instance */
   dhcpInstances[dhcp_idx].n_evcs++;
 
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Update number of QUATTRO-P2P evcs */
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    dhcp_quattro_p2p_evcs++;
+  }
+  #endif
+
   return L7_SUCCESS;
 }
 
@@ -640,9 +646,9 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
 L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
 {
   L7_uint dhcp_idx;
+  L7_uint evc_type;
   L7_uint16 nni_ovid;
   L7_BOOL remove_instance = L7_TRUE;
-  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -658,8 +664,12 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
     return L7_SUCCESS;
   }
 
-  /* QUATTRO P2P instance? */
-  is_quattro_inst = dhcpInstances[dhcp_idx].is_quattro_inst;
+  /* Get EVC type */
+  if (ptin_evc_check_evctype(UcastEvcId, &evc_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", UcastEvcId);
+    return L7_FAILURE;
+  }
 
   /* Remove instance? */
   remove_instance = ((dhcpInstances[dhcp_idx].nni_ovid==0 || dhcpInstances[dhcp_idx].nni_ovid>4095) ||
@@ -668,11 +678,11 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
   /* NNI outer vlan */
   nni_ovid = dhcpInstances[dhcp_idx].nni_ovid;
 
-  /* Only configure trap rule if not QUATTRO-P2P evc,
-     or, being QUATTRO-P2P evc, is the last instance to be removed with this kind of evcs */
-  if ( !is_quattro_inst || (remove_instance && ptin_dhcp_get_quattro_instances()<=1) )
+  /* Configure packet trapping for this instance */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs<=1)
+  #endif
   {
-    /* Configure packet trapping for this instance */
     if (ptin_dhcp_evc_trap_configure(UcastEvcId, L7_DISABLE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error unconfiguring DHCP snooping for dhcp_idx=%u",dhcp_idx);
@@ -705,9 +715,16 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
     dhcpInstances[dhcp_idx].UcastEvcId      = 0;
     dhcpInstances[dhcp_idx].nni_ovid        = 0;
     dhcpInstances[dhcp_idx].n_evcs          = 0;
-    dhcpInstances[dhcp_idx].is_quattro_inst = L7_FALSE;
     dhcpInstances[dhcp_idx].inUse           = L7_FALSE;
   }
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Update number of QUATTRO-P2P evcs */
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    if (dhcp_quattro_p2p_evcs>0)  dhcp_quattro_p2p_evcs--;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -722,27 +739,6 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
 L7_RC_t ptin_dhcp_evc_destroy(L7_uint16 evcId)
 {
   return ptin_dhcp_evc_remove(evcId);
-}
-
-/**
- * Return number of QUATTRO instances
- * 
- * @return L7_uint : number
- */
-static L7_uint ptin_dhcp_get_quattro_instances(void)
-{
-  L7_uint i, counter;
-
-  counter = 0;
-
-  /* Run all dhcp instances */
-  for (i=0; i<PTIN_SYSTEM_N_DHCP_INSTANCES; i++)
-  {
-    if (dhcpInstances[i].inUse && dhcpInstances[i].is_quattro_inst)
-      counter++;
-  }
-
-  return counter;
 }
 
 
@@ -2745,37 +2741,21 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
 /**
  * Get DHCP EVC ethernet priority
  * 
- * @param intIfNum    : FP interface
  * @param intVlan     : internal vlan
- * @param innerVlan   : inner/client vlan 
- * @param circuitId   : circuit id (output) 
- * @param remoteId    : remote id (output)
+ * @param ethPrty     : priority (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty)
+L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
 {
   L7_uint dhcp_idx;
-  ptin_intf_t ptin_intf;
-  ptin_client_id_t client;
-  ptinDhcpClientInfoData_t *client_info;
 
   /* Validate arguments */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
-      intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX  ||
-      L7_NULLPTR == ethPrty                         /*||
-      innerVlan==0 || innerVlan>=4096*/)
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX  ||
+      L7_NULLPTR == ethPrty)
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin format */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
-  {
-    if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
 
@@ -2787,30 +2767,7 @@ L7_RC_t ptin_dhcp_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 i
     return L7_FAILURE;
   }
 
-  if (innerVlan>0 && innerVlan<4096)
-  {
-    /* Build client structure */
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    #if DHCP_CLIENT_INTERF_SUPPORTED
-    client.ptin_intf.intf_type = ptin_intf.intf_type;
-    client.ptin_intf.intf_id   = ptin_intf.intf_id;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-    #endif
-    #if DHCP_CLIENT_INNERVLAN_SUPPORTED
-    client.innerVlan = innerVlan;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    #endif
-
-    /* Find client information */
-    if (ptin_dhcp_client_find(dhcp_idx,&client,&client_info)!=L7_SUCCESS)
-    {
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].UcastEvcId);
-      return L7_FAILURE;
-    }
-
-    ptin_dhcp_evc_ethprty_get(&dhcpInstances[dhcp_idx].circuitid, ethPrty);
-  }
+  ptin_dhcp_evc_ethprty_get(&dhcpInstances[dhcp_idx].circuitid, ethPrty);
 
   return L7_SUCCESS;
 }
@@ -3518,6 +3475,7 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting UC EVC %u configuration",evc_idx);
     return L7_FAILURE;
   }
+
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   /* If UC EVC is point-to-point, use its root vlan */
   if ((evcCfg.flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P  || 
@@ -3717,7 +3675,6 @@ void ptin_dhcp_dump(void)
     printf("DHCP instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  [CircuitId Template: %s]  ", i,
            dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
            dhcpInstances[i].circuitid.template_str);
-    if (dhcpInstances[i].is_quattro_inst)  printf("(QUATTRO)");
     printf("\r\n");
     i_client = 0;
 
@@ -3779,6 +3736,9 @@ void ptin_dhcp_dump(void)
       i_client++;
     }
   }
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  printf("Total number of QUATTRO-P2P evcs: %u\r\n", dhcp_quattro_p2p_evcs);
+  #endif
 }
 
 

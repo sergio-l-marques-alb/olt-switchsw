@@ -371,6 +371,7 @@ typedef struct {
 #define PTIN_EVC_MASK_QUATTRO           0x00020000
 #define PTIN_EVC_MASK_TYPE              (PTIN_EVC_MASK_P2P | PTIN_EVC_MASK_QUATTRO)
 
+/* EVC type */
 #define PTIN_EVC_TYPE_STD_P2MP          0x0
 #define PTIN_EVC_TYPE_STD_P2P           0x1
 #define PTIN_EVC_TYPE_QUATTRO_P2MP      0x2
@@ -392,6 +393,7 @@ typedef struct {
                           // 0x0008 - Mac Learning  (PTin custom field)
                           // 0x0100 - DHCP Protocol (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
+  L7_uint8  evc_type;     // EVC type: STD_P2MP, STD_P2P, QUATTRO_P2MP, QUATTRO_P2P
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   

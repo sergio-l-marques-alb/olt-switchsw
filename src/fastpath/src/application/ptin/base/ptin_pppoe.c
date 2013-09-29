@@ -138,12 +138,16 @@ typedef struct {
   L7_uint16                   UcastEvcId;
   L7_uint16                   nni_ovid;          /* NNI outer vlan */
   L7_uint16                   n_evcs;
-  L7_BOOL                     is_quattro_inst;   /* Is a QUATTRO P2P instance? */
   ptinPppoeClients_t          pppoeClients;
   L7_uint16                   evcPppoeOptions;   /* PPPOE Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
   ptin_PPPOE_Statistics_t     stats_intf[PTIN_SYSTEM_N_INTERF];  /* PPPOE statistics at interface level */
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_PppoeInstCfg_t;
+
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+/* Global number of QUATTRO P2P flows */
+static L7_uint32 pppoe_quattro_p2p_evcs = 0;
+#endif
 
 /*********************************************************** 
  * Data structs
@@ -443,7 +447,6 @@ L7_RC_t ptin_pppoe_instance_add(L7_uint32 UcastEvcId)
   pppoeInstances[pppoe_idx].UcastEvcId      = UcastEvcId;
   pppoeInstances[pppoe_idx].nni_ovid        = 0;
   pppoeInstances[pppoe_idx].n_evcs          = 1;
-  pppoeInstances[pppoe_idx].is_quattro_inst = L7_FALSE;
   pppoeInstances[pppoe_idx].inUse           = L7_TRUE;
 
   /* Configure querier for this instance */
@@ -505,7 +508,6 @@ L7_RC_t ptin_pppoe_instance_remove(L7_uint32 UcastEvcId)
   pppoeInstances[pppoe_idx].UcastEvcId      = 0;
   pppoeInstances[pppoe_idx].nni_ovid        = 0;
   pppoeInstances[pppoe_idx].n_evcs          = 0;
-  pppoeInstances[pppoe_idx].is_quattro_inst = L7_FALSE;
   pppoeInstances[pppoe_idx].inUse           = L7_FALSE;
 
   /* Reset direct referencing to pppoe index from evc ids */
@@ -526,12 +528,6 @@ L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId)
   return ptin_pppoe_instance_remove(evcId);
 }
 
-/**
- * Return number of QUATTRO instances
- * 
- * @return L7_uint : number
- */
-static L7_uint ptin_pppoe_get_quattro_instances(void);
 
 /**
  * Associate an EVC to a PPPOE instance
@@ -546,7 +542,6 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   L7_uint pppoe_idx;
   L7_uint evc_type;
   L7_BOOL new_instance = L7_FALSE;
-  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -568,11 +563,9 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting eEVC %u type",UcastEvcId);
     return L7_FAILURE;
   }
-  /* Is a QUATTRO P2P evc? */
-  is_quattro_inst = (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P);
 
   /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
-  if (!is_quattro_inst)
+  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P)
   {
     nni_ovlan = 0;
   }
@@ -609,15 +602,14 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
     pppoeInstances[pppoe_idx].UcastEvcId      = UcastEvcId;
     pppoeInstances[pppoe_idx].nni_ovid        = nni_ovlan;
     pppoeInstances[pppoe_idx].n_evcs          = 0;
-    pppoeInstances[pppoe_idx].is_quattro_inst = is_quattro_inst;
     pppoeInstances[pppoe_idx].inUse           = L7_TRUE;
   }
 
-  /* Only configure trap rule if not QUATTRO-P2P evc,
-     or, being QUATTRO-P2P evc, is the first instance with this kind of evcs */
-  if (!is_quattro_inst || (new_instance && ptin_pppoe_get_quattro_instances()<=1))
+  /* Configure querier for this instance */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || pppoe_quattro_p2p_evcs==0)
+  #endif
   {
-    /* Configure querier for this instance */
     if (ptin_pppoe_evc_trap_configure(UcastEvcId, L7_ENABLE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
@@ -632,6 +624,14 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   /* One more EVC associated to this instance */
   pppoeInstances[pppoe_idx].n_evcs++;
 
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Update number of QUATTRO-P2P evcs */
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    pppoe_quattro_p2p_evcs++;
+  }
+  #endif
+
   return L7_SUCCESS;
 }
 
@@ -645,9 +645,9 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
 L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId)
 {
   L7_uint pppoe_idx;
+  L7_uint evc_type;
   L7_uint16 nni_ovid;
   L7_BOOL remove_instance = L7_TRUE;
-  L7_BOOL is_quattro_inst = L7_FALSE;
 
   /* Validate arguments */
   if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -663,8 +663,12 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId)
     return L7_SUCCESS;
   }
 
-  /* QUATTRO P2P instance? */
-  is_quattro_inst = pppoeInstances[pppoe_idx].is_quattro_inst;
+  /* Get EVC type */
+  if (ptin_evc_check_evctype(UcastEvcId, &evc_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting eEVC %u type", UcastEvcId);
+    return L7_FAILURE;
+  }
 
   /* Remove instance? */
   remove_instance = ((pppoeInstances[pppoe_idx].nni_ovid==0 || pppoeInstances[pppoe_idx].nni_ovid>4095) ||
@@ -673,14 +677,14 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId)
   /* NNI outer vlan */
   nni_ovid = pppoeInstances[pppoe_idx].nni_ovid;
 
-  /* Only configure trap rule if not QUATTRO-P2P evc,
-     or, being QUATTRO-P2P evc, is the last instance to be removed with this kind of evcs */
-  if ( !is_quattro_inst || (remove_instance && ptin_pppoe_get_quattro_instances()<=1) )
+  /* Configure packet trapping for this instance */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || pppoe_quattro_p2p_evcs<=1)
+  #endif
   {
-    /* Configure packet trapping for this instance */
-    if (ptin_pppoe_evc_trap_configure(pppoe_idx, L7_DISABLE)!=L7_SUCCESS)
+    if (ptin_pppoe_evc_trap_configure(UcastEvcId, L7_DISABLE)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error unconfiguring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error unconfiguring PPPOE snooping for evc_idx=%u",UcastEvcId);
       return L7_FAILURE;
     }
   }
@@ -710,9 +714,16 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId)
     pppoeInstances[pppoe_idx].UcastEvcId      = 0;
     pppoeInstances[pppoe_idx].nni_ovid        = 0;
     pppoeInstances[pppoe_idx].n_evcs          = 0;
-    pppoeInstances[pppoe_idx].is_quattro_inst = L7_FALSE;
     pppoeInstances[pppoe_idx].inUse           = L7_FALSE;
   }
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Update number of QUATTRO-P2P evcs */
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    if (pppoe_quattro_p2p_evcs>0)  pppoe_quattro_p2p_evcs--;
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -727,27 +738,6 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId)
 L7_RC_t ptin_pppoe_evc_destroy(L7_uint32 evcId)
 {
   return ptin_pppoe_evc_remove(evcId);
-}
-
-/**
- * Return number of QUATTRO instances
- * 
- * @return L7_uint : number
- */
-static L7_uint ptin_pppoe_get_quattro_instances(void)
-{
-  L7_uint i, counter;
-
-  counter = 0;
-
-  /* Run all PPPOE instances */
-  for (i=0; i<PTIN_SYSTEM_N_PPPOE_INSTANCES; i++)
-  {
-    if (pppoeInstances[i].inUse && pppoeInstances[i].is_quattro_inst)
-      counter++;
-  }
-
-  return counter;
 }
 
 /**
@@ -2787,37 +2777,21 @@ L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint1
 /**
  * Get PPPOE EVC ethernet priority
  * 
- * @param intIfNum    : FP interface
  * @param intVlan     : internal vlan
- * @param innerVlan   : inner/client vlan 
- * @param circuitId   : circuit id (output) 
- * @param remoteId    : remote id (output)
+ * @param ethPrty     : priority (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 innerVlan, L7_uint8 *ethPrty)
+L7_RC_t ptin_pppoe_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
 {
   L7_uint pppoe_idx;
-  ptin_intf_t ptin_intf;
-  ptin_client_id_t client;
-  ptinPppoeClientInfoData_t *client_info;
 
   /* Validate arguments */
-  if (intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
-      intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX  ||
-      L7_NULLPTR == ethPrty                         /*||
-      innerVlan==0 || innerVlan>=4096*/)
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX  ||
+      L7_NULLPTR == ethPrty)
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Convert interface to ptin format */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
 
@@ -2829,30 +2803,7 @@ L7_RC_t ptin_pppoe_ethPrty_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 
     return L7_FAILURE;
   }
 
-  if (innerVlan>0 && innerVlan<4096)
-  {
-    /* Build client structure */
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    #if PPPOE_CLIENT_INTERF_SUPPORTED
-    client.ptin_intf.intf_type = ptin_intf.intf_type;
-    client.ptin_intf.intf_id   = ptin_intf.intf_id;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-    #endif
-    #if PPPOE_CLIENT_INNERVLAN_SUPPORTED
-    client.innerVlan = innerVlan;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    #endif
-
-    /* Find client information */
-    if (ptin_pppoe_client_find(pppoe_idx,&client,&client_info)!=L7_SUCCESS)
-    {
-      if (ptin_debug_pppoe_snooping)
-        LOG_ERR(LOG_CTX_PTIN_PPPOE,"Non existent client in PPPOE instance %u (EVC id %u)",pppoe_idx,pppoeInstances[pppoe_idx].UcastEvcId);
-      return L7_FAILURE;
-    }
-
-    ptin_pppoe_evc_ethprty_get(&pppoeInstances[pppoe_idx].circuitid, ethPrty);
-  }
+  ptin_pppoe_evc_ethprty_get(&pppoeInstances[pppoe_idx].circuitid, ethPrty);
 
   return L7_SUCCESS;
 }
@@ -3577,6 +3528,7 @@ static L7_RC_t ptin_pppoe_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting UC EVC %u configuration",evc_idx);
     return L7_FAILURE;
   }
+
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   /* If UC EVC is point-to-point, use its root vlan */
   if ((evcCfg.flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P  || 
@@ -3775,7 +3727,6 @@ void ptin_pppoe_dump(void)
     printf("PPPoE instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  [CircuitId Template: %s]  ", i,
            pppoeInstances[i].UcastEvcId, pppoeInstances[i].nni_ovid, pppoeInstances[i].n_evcs,
            pppoeInstances[i].circuitid.template_str);
-    if (pppoeInstances[i].is_quattro_inst)  printf("(QUATTRO)");
     printf("\r\n");
 
     i_client = 0;
@@ -3838,6 +3789,9 @@ void ptin_pppoe_dump(void)
       i_client++;
     }
   }
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  printf("Total number of QUATTRO-P2P evcs: %u\r\n", pppoe_quattro_p2p_evcs);
+  #endif
 }
 
 #if PPPOE_ACCEPT_UNSTACKED_PACKETS
