@@ -3724,9 +3724,9 @@ void ptin_pppoe_dump(void)
       continue;
     }
 
-    printf("PPPoE instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  [CircuitId Template: %s]  ", i,
+    printf("PPPoE instance %02u: EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
            pppoeInstances[i].UcastEvcId, pppoeInstances[i].nni_ovid, pppoeInstances[i].n_evcs,
-           pppoeInstances[i].circuitid.template_str);
+           pppoeInstances[i].evcPppoeOptions, pppoeInstances[i].circuitid.template_str);
     printf("\r\n");
 
     i_client = 0;
@@ -3756,7 +3756,7 @@ void ptin_pppoe_dump(void)
              #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
              "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
              #endif
-             ": index=%-4u  [uni_vlans=%4u+%-4u] circuitId=\"%s\" remoteId=\"%s\"\r\n",
+             ": index=%-4u [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
              i_client,
              #if (PPPOE_CLIENT_INTERF_SUPPORTED)
              avl_info->pppoeClientDataKey.ptin_port,
@@ -3783,6 +3783,7 @@ void ptin_pppoe_dump(void)
              #endif
              avl_info->client_index,
              avl_info->uni_ovid, avl_info->uni_ivid,
+             avl_info->client_data.pppoe_options,
              avl_info->client_data.circuitId_str,
              avl_info->client_data.remoteId_str);
 

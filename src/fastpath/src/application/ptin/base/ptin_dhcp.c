@@ -3672,7 +3672,7 @@ void ptin_dhcp_dump(void)
       continue;
     }
 
-    printf("DHCP instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  options=0x%04x [CircuitId Template: %s]  ", i,
+    printf("DHCP instance %02u: EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
            dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
            dhcpInstances[i].evcDhcpOptions, dhcpInstances[i].circuitid.template_str);
     printf("\r\n");
