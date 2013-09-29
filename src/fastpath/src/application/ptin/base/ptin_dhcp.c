@@ -3672,9 +3672,9 @@ void ptin_dhcp_dump(void)
       continue;
     }
 
-    printf("DHCP instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  [CircuitId Template: %s]  ", i,
+    printf("DHCP instance %02u:   EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u  options=0x%04x [CircuitId Template: %s]  ", i,
            dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
-           dhcpInstances[i].circuitid.template_str);
+           dhcpInstances[i].evcDhcpOptions, dhcpInstances[i].circuitid.template_str);
     printf("\r\n");
     i_client = 0;
 
@@ -3703,7 +3703,7 @@ void ptin_dhcp_dump(void)
              #if (DHCP_CLIENT_MACADDR_SUPPORTED)
              "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
              #endif
-             ": index=%-4u  [uni_vlans=%4u+%-4u] circuitId=\"%s\" remoteId=\"%s\"\r\n",
+             ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
              i_client,
              #if (DHCP_CLIENT_INTERF_SUPPORTED)
              avl_info->dhcpClientDataKey.ptin_port,
@@ -3730,6 +3730,7 @@ void ptin_dhcp_dump(void)
              #endif
              avl_info->client_index,
              avl_info->uni_ovid, avl_info->uni_ivid,
+             avl_info->client_data.dhcp_options,
              avl_info->client_data.circuitId_str,
              avl_info->client_data.remoteId_str);
 
