@@ -2300,6 +2300,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 {
   ptin_HwEthEvcFlow_t ptinEvcFlow;
+  L7_RC_t rc;
 
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
@@ -2318,10 +2319,10 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
 
-  if (ptin_evc_flow_add(&ptinEvcFlow) != L7_SUCCESS)
+  if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
-    return L7_FAILURE;
+    return rc;
   }
 
   return L7_SUCCESS;
@@ -2337,6 +2338,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
 {
   ptin_HwEthEvcFlow_t ptinEvcFlow;
+  L7_RC_t rc;
 
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
@@ -2353,10 +2355,10 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
 
-  if (ptin_evc_flow_remove(&ptinEvcFlow) != L7_SUCCESS)
+  if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
-    return L7_FAILURE;
+    return rc;
   }
 
   return L7_SUCCESS;

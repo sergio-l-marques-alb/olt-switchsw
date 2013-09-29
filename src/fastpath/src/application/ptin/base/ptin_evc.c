@@ -2820,19 +2820,48 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   /* Check if flow entry already exists */
   ptin_evc_find_flow(evcFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
-  if (pflow != NULL)
+
+  /* If flow does it, create it */
+  if (pflow == NULL)
+  {
+    /* Check if there is available flows */
+    if (queue_free_clients.n_elems == 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
+
+    /* Create virtual port */
+    if (ptin_virtual_port_add(intIfNum,
+                              evcFlow->uni_ovid, evcFlow->uni_ivid,
+                              int_ovid, evcFlow->int_ivid,
+                              multicast_group,
+                              &vport_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
+      return L7_FAILURE;
+    }
+
+    /* Add client to the EVC struct */
+    dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
+    pflow->in_use   = L7_TRUE;                                              /* update it */
+    pflow->int_ovid = int_ovid;
+    pflow->int_ivid = evcFlow->int_ivid;
+    pflow->uni_ovid = evcFlow->uni_ovid;
+    pflow->uni_ivid = evcFlow->uni_ivid;
+    pflow->flags    = evcFlow->flags;
+    pflow->virtual_gport= vport_id;
+    dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
+    evcs[evc_id].n_clients++;
+
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
+  }
+  else
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
-    return L7_SUCCESS;
   }
-  /* Check if there is available flows */
-  if (queue_free_clients.n_elems == 0)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
-    return L7_FAILURE;
-  }
-
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
 
   /* IGMP / DHCP / PPPoE instance management */
   if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
@@ -2894,30 +2923,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
   #endif
 
-  /* Create virtual port */
-  if (ptin_virtual_port_add(intIfNum,
-                            evcFlow->uni_ovid, evcFlow->uni_ivid,
-                            int_ovid, evcFlow->int_ivid,
-                            multicast_group,
-                            &vport_id) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
-    return L7_FAILURE;
-  }
-
-  /* Add client to the EVC struct */
-  dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
-  pflow->in_use   = L7_TRUE;                                              /* update it */
-  pflow->int_ovid = int_ovid;
-  pflow->int_ivid = evcFlow->int_ivid;
-  pflow->uni_ovid = evcFlow->uni_ovid;
-  pflow->uni_ivid = evcFlow->uni_ivid;
-  pflow->flags    = evcFlow->flags;
-  pflow->virtual_gport= vport_id;
-  dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
-  evcs[evc_id].n_clients++;
-
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
   #else
   LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
   return L7_ERROR;
@@ -2954,7 +2959,7 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   if (!IS_eEVC_IN_USE(evc_ext_id))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
   ptin_evc_ext2int(evc_ext_id, &evc_id);
 
