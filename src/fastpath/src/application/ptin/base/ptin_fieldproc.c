@@ -514,6 +514,44 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
   return rc;
 }
 
+/**
+ * Apply Rate limit to multicast traffic
+ * 
+ * @param enable : enable status
+ * @param vlanId : vlan id
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
+{
+  ptin_pktRateLimit_t rateLimit;
+  L7_RC_t rc;
+
+  if (vlanId==0 || vlanId>4095)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid Vlan Id %u",vlanId);
+    return L7_FAILURE;
+  }
+
+  memset(&rateLimit,0x00,sizeof(ptin_pktRateLimit_t));
+
+  rateLimit.vlanId      = vlanId;
+  rateLimit.trafficType = PACKET_RATE_LIMIT_MULTICAST;
+
+  rc = dtlPtinRateLimit(L7_ALL_INTERFACES, enable, &rateLimit);
+
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error setting multicast rate limit to vlan %u to %u",vlanId,enable);
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting multicast rate limit to vlan %u to %u",vlanId,enable);
+  }
+
+  return rc;
+}
+
 
 /**
  * Consult hardware resources
