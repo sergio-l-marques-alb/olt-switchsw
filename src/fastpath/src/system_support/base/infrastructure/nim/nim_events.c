@@ -1542,6 +1542,10 @@ void nimEventPostProcessor(NIM_EVENT_NOTIFY_INFO_t eventInfo, NIM_NOTIFY_CB_INFO
           case L7_CAPWAP_TUNNEL_INTF:
             NIM_INTF_SETMASKBIT(nimCtlBlk_g->l2tnnlIntfMask,eventInfo.intIfNum);
             break;
+          /* PTin added: virtual ports */
+          case L7_VLAN_PORT_INTF:
+            NIM_INTF_SETMASKBIT(nimCtlBlk_g->vlanportIntfMask,eventInfo.intIfNum);
+            break;
           default:
             break;
         }
@@ -1603,6 +1607,10 @@ void nimEventPostProcessor(NIM_EVENT_NOTIFY_INFO_t eventInfo, NIM_NOTIFY_CB_INFO
             break;
           case L7_CAPWAP_TUNNEL_INTF:
             NIM_INTF_CLRMASKBIT(nimCtlBlk_g->l2tnnlIntfMask,eventInfo.intIfNum);
+            break;
+          /* PTin added: virtual ports */
+          case L7_VLAN_PORT_INTF:
+            NIM_INTF_CLRMASKBIT(nimCtlBlk_g->vlanportIntfMask,eventInfo.intIfNum);
             break;
           default:
             break;
