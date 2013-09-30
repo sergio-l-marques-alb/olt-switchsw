@@ -382,6 +382,8 @@ static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uin
 static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx);
 static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint16 UcastEvcId);
 
+static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
+
 static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_ref, ptinIgmpClientInfoData_t **client_info);
 //static L7_RC_t ptin_igmp_router_intf_config(L7_uint router_intf, L7_uint16 router_vlan, L7_uint admin);
 //static L7_RC_t ptin_igmp_clients_intf_config(L7_uint client_intf, L7_uint admin);
@@ -1288,6 +1290,33 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   return L7_SUCCESS;
 }
 
+/**
+ * Removes all IGMP instances
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_remove_all_instances(void)
+{
+  L7_uint igmp_idx;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Remove all instances */
+  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  {
+    if ((rc=ptin_igmp_instance_delete(igmp_idx))!=L7_SUCCESS)
+    {
+      if (rc_global == L7_SUCCESS)
+        rc_global = rc;
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp_idx=%u",igmp_idx);
+    }
+  }
+
+  return rc_global;
+}
+
 
 /**
  * Reactivate all IGMP instances
@@ -1399,8 +1428,6 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
       ptin_igmp_instance_find_agg(nni_ovlan, &igmp_idx)!=L7_SUCCESS)
   {
-    nni_ovlan = 0;
-
     /* Find an empty instance to be used */
     if (ptin_igmp_instance_find_free(&igmp_idx)!=L7_SUCCESS)
     {
@@ -1418,7 +1445,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   {
     igmpInstances[igmp_idx].McastEvcId      = evc_idx;
     igmpInstances[igmp_idx].UcastEvcId      = 0;
-    igmpInstances[igmp_idx].nni_ovid        = nni_ovlan;
+    igmpInstances[igmp_idx].nni_ovid        = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
     igmpInstances[igmp_idx].n_evcs          = 0;
     igmpInstances[igmp_idx].inUse           = L7_TRUE;
   }
@@ -5133,6 +5160,66 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t di
 /****************************************************************************** 
  * STATIC FUNCTIONS
  ******************************************************************************/
+
+/**
+ * Delete an IGMP instance
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
+{
+  L7_uint32 i;
+
+  /* Validate arguments */
+  if (igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP instance %u", igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* IGMP instance must be active */
+  if (!igmpInstances[igmp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not active", igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Deconfigure querier for this instance */
+  if (ptin_igmp_querier_configure(igmp_idx,L7_DISABLE)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing querier configuration for igmp_idx=%u",igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Configure querier for this instance */
+  if (ptin_igmp_trap_configure(igmp_idx, L7_DISABLE)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
+    ptin_igmp_querier_configure(igmp_idx,L7_ENABLE);
+    return L7_FAILURE;
+  }
+
+  /* Clear data and free instance */
+  igmpInstances[igmp_idx].McastEvcId      = 0;
+  igmpInstances[igmp_idx].UcastEvcId      = 0;
+  igmpInstances[igmp_idx].nni_ovid        = 0;
+  igmpInstances[igmp_idx].n_evcs          = 0;
+  igmpInstances[igmp_idx].inUse           = L7_FALSE;
+
+  /* Reset direct referencing to igmp index from evc ids */
+  for (i=0; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
+  {
+    if (igmpInst_fromEvcId[i] == igmp_idx)
+    {
+      igmpInst_fromEvcId[i] = IGMP_INVALID_ENTRY;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Add a new Multicast client

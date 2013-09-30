@@ -207,6 +207,19 @@ typedef struct msg_in_addr_s
   L7_uint32   s_addr;    /* 32 bit IPv4 address in network byte order */
 } __attribute__((packed)) msg_in_addr_t;
 
+/* Struct used for reference valuue */
+#define MSG_ID_DEF_TYPE     0       /* Considered to be evc id */
+#define MSG_ID_EVC_TYPE     1       /* Use evc id */
+#define MSG_ID_NNIVID_TYPE  2       /* Use NNI vlan */
+typedef struct
+{
+  L7_uint8  id_type;                /* Reference id type: 1->evc id; 2->NNI SVid */
+  union
+  {
+    L7_uint32   evc_id;             /* EVC ID: 0xffff to use NNI_STAG */
+    L7_uint32   nni_vid;            /* NNI_STAG (to be used, when evc id id 0xffff) */
+  } __attribute__((packed)) id_val;
+} __attribute__((packed)) msg_id_t;
 
 /* Client identification */
 // Message CCMSG_ETH_IGMP_INTF_STATS_GET, CCMSG_ETH_IGMP_CLIENT_STATS_GET, CCMSG_ETH_IGMP_INTF_STATS_CLEAR, CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR
@@ -785,7 +798,7 @@ typedef struct {
 
 typedef struct {
   L7_uchar8   slot_id;              /* Slot ID */ 
-  L7_uint16   evc_id;               /* EVC ID */
+  msg_id_t    id_ref;               /* Id to apply configuration */
 
   char        template_str[256];    /* Circuit-id template string, as configured by the user */
   L7_uint32   mask;                 /* Circuit-id mask, identifying which variables are present in the template string */

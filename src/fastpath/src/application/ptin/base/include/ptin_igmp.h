@@ -479,6 +479,16 @@ extern L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId
 extern L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 /**
+ * Removes all IGMP instances
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_remove_all_instances(void);
+
+/**
  * Reactivate all IGMP instances
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
