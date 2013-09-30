@@ -127,20 +127,20 @@ extern L7_RC_t ptin_pppoe_is_evc_used(L7_uint32 evcId);
 /**
  * Creates a PPPOE instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_instance_add(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx);
 
 /**
  * Removes a PPPOE instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_instance_remove(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_pppoe_instance_remove(L7_uint32 evc_idx);
 
 /**
  * Update PPPOE entries, when EVCs are deleted
@@ -154,21 +154,21 @@ extern L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId);
 /**
  * Associate an EVC to a PPPOE instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * @param nni_ovlan  : NNI outer vlan
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan);
+extern L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan);
 
 /**
  * Deassociate an EVC from a PPPOE instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_evc_remove(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_pppoe_evc_remove(L7_uint32 evc_idx);
 
 /**
  * Update PPPOE entries, when EVCs are deleted
@@ -191,9 +191,9 @@ extern L7_RC_t ptin_pppoe_evc_destroy(L7_uint32 evcId);
 extern L7_RC_t ptin_pppoe_evc_reconf(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 options);
 
 /**
- * Set PPPOE circuit-id global data
+ * Set PPPOE circuit-id global data from EVC id
  *
- * @param evcId           : evc index
+ * @param evc_idx         : evc index
  * @param template_str    : Circuit-id template string
  * @param mask            : Circuit-id mask
  * @param access_node_id  : Access Node ID
@@ -204,8 +204,25 @@ extern L7_RC_t ptin_pppoe_evc_reconf(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_ui
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_circuitid_set(L7_uint32 evcId, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
-                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+extern L7_RC_t ptin_pppoe_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                            L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+
+/**
+ * Set PPPOE circuit-id global data from NNI SVlan
+ *
+ * @param nni_outerVid    : NNI STAG
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pppoe_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                               L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 
 /**
  * Get PPPOE circuit-id global data
@@ -227,7 +244,7 @@ extern L7_RC_t ptin_pppoe_circuitid_get(L7_uint32 evcId, L7_char8 *template_str,
 /**
  * Get PPPOE client data (circuit and remote ids)
  * 
- * @param UcastEvcId        : Unicast evc id
+ * @param evc_idx        : Unicast evc id
  * @param client            : client identification parameters
  * @param options           : PPPOE options
  * @param circuitId_data    : Circuit ID data 
@@ -236,14 +253,14 @@ extern L7_RC_t ptin_pppoe_circuitid_get(L7_uint32 evcId, L7_char8 *template_str,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options, 
+extern L7_RC_t ptin_pppoe_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 *options, 
                                      ptin_clientCircuitId_t *circuitId_data,
                                      L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
  * Add a new PPPOE client
  * 
- * @param UcastEvcId        : Unicast evc id
+ * @param evc_idx        : Unicast evc id
  * @param client            : client identification parameters 
  * @param uni_ovid          : External outer vlan 
  * @param uni_ivid          : External inner vlan  
@@ -253,18 +270,18 @@ extern L7_RC_t ptin_pppoe_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *cli
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+extern L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                      L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId);
 
 /**
  * Remove a PPPOE client
  * 
- * @param UcastEvcId  : Unicast evc id
+ * @param evc_idx  : Unicast evc id
  * @param client      : client identification parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_client_delete(L7_uint32 UcastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 #if 0
 /**
@@ -314,25 +331,25 @@ L7_RC_t ptin_pppoe_stat_intf_get(ptin_intf_t *ptin_intf, ptin_PPPOE_Statistics_t
  * Get PPPOE statistics of a particular PPPOE instance and 
  * interface 
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param intIfNum    : interface
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_stat_instanceIntf_get(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf, ptin_PPPOE_Statistics_t *stat_port);
+L7_RC_t ptin_pppoe_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, ptin_PPPOE_Statistics_t *stat_port);
 
 /**
  * Get PPPOE statistics of a particular PPPOE instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, ptin_PPPOE_Statistics_t *stat_client);
+extern L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_PPPOE_Statistics_t *stat_client);
 
 /**
  * Clear all PPPOE statistics
@@ -344,11 +361,11 @@ extern L7_RC_t ptin_pppoe_stat_clearAll(void);
 /**
  * Clear all statistics of one PPPOE instance
  * 
- * @param UcastEvcId : Unicast EVC id
+ * @param evc_idx : Unicast EVC id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 evc_idx);
 
 /**
  * Clear interface PPPOE statistics
@@ -362,23 +379,23 @@ extern L7_RC_t ptin_pppoe_stat_intf_clear(ptin_intf_t *ptin_intf);
 /**
  * Clear statistics of a particular PPPOE instance and interface
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param intIfNum    : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_stat_instanceIntf_clear(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf);
+extern L7_RC_t ptin_pppoe_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf);
 
 /**
  * Clear PPPOE statistics of a particular PPPOE instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 UcastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 
 /*********************************************************** 

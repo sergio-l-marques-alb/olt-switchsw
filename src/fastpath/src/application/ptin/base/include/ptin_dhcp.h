@@ -118,82 +118,82 @@ extern L7_RC_t ptin_dhcp_enable(L7_BOOL enable);
 /**
  * Check if a EVC is being used in an DHCP instance
  * 
- * @param evcId : evc id
+ * @param evc_idx : evc id
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-extern L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evcId);
+extern L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evc_idx);
 
 /**
  * Creates a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx);
 
 /**
  * Removes a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx);
 
 /**
  * Update DHCP entries, when EVCs are deleted
  * 
- * @param evcId : evc index
+ * @param evc_idx : evc index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId);
+extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint32 evc_idx);
 
 /**
  * Associate an EVC to a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * @param nni_ovlan  : NNI outer vlan
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan);
+extern L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan);
 
 /**
  * Deassociate an EVC from a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx);
 
 /**
  * Update DHCP entries, when EVCs are deleted
  * 
- * @param evcId : evc index
+ * @param evc_idx : evc index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_destroy(L7_uint16 evcId);
+extern L7_RC_t ptin_dhcp_evc_destroy(L7_uint32 evc_idx);
 
 /**
  * Reconfigure global DHCP EVC
  *
- * @param evcId         : evc index
+ * @param evc_idx         : evc index
  * @param dhcp_flag     : DHCP flag (not used)
  * @param options       : options
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options);
+extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options);
 
 /**
- * Set DHCP circuit-id global data
+ * Set DHCP circuit-id global data from EVC id
  *
- * @param evcId           : evc index
+ * @param evc_idx         : evc index
  * @param template_str    : Circuit-id template string
  * @param mask            : Circuit-id mask
  * @param access_node_id  : Access Node ID
@@ -204,13 +204,30 @@ extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
-                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+extern L7_RC_t ptin_dhcp_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                           L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+
+/**
+ * Set DHCP circuit-id global data from NNI SVlan
+ *
+ * @param nni_outerVid    : NNI STAG
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                              L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 
 /**
  * Get DHCP circuit-id global data
  *
- * @param evcId           : evc index
+ * @param evc_idx           : evc index
  * @param template_str    : Circuit-id template string (output)
  * @param mask            : Circuit-id mask (output)
  * @param access_node_id  : Access Node ID (output)
@@ -221,13 +238,13 @@ extern L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, 
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
                                        L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid);
 
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param UcastEvcId        : Unicast evc id
+ * @param evc_idx        : Unicast evc id
  * @param client            : client identification parameters
  * @param options           : PPPOE options
  * @param circuitId_data    : Circuit ID data 
@@ -236,13 +253,13 @@ extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options,
+extern L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 *options,
                                     ptin_clientCircuitId_t *circuitId_data, L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
  * Add a new DHCP client
  * 
- * @param UcastEvcId        : Unicast evc id
+ * @param evc_idx        : Unicast evc id
  * @param client            : client identification parameters
  * @param uni_ovid          : External outer vlan 
  * @param uni_ivid          : External inner vlan  
@@ -252,18 +269,18 @@ extern L7_RC_t ptin_dhcp_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *clie
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId);
 
 /**
  * Remove a DHCP client
  * 
- * @param UcastEvcId  : Unicast evc id
+ * @param evc_idx  : Unicast evc id
  * @param client      : client identification parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_delete(L7_uint32 UcastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 /**
  * Get DHCP Binding table
@@ -312,25 +329,25 @@ L7_RC_t ptin_dhcp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *
  * Get DHCP statistics of a particular DHCP instance and 
  * interface 
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param intIfNum    : interface
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *stat_port);
+L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *stat_port);
 
 /**
  * Get DHCP statistics of a particular DHCP instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, ptin_DHCP_Statistics_t *stat_client);
+extern L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_DHCP_Statistics_t *stat_client);
 
 /**
  * Clear all DHCP statistics
@@ -342,11 +359,11 @@ extern L7_RC_t ptin_dhcp_stat_clearAll(void);
 /**
  * Clear all statistics of one DHCP instance
  * 
- * @param UcastEvcId : Unicast EVC id
+ * @param evc_idx : Unicast EVC id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 UcastEvcId);
+extern L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx);
 
 /**
  * Clear interface DHCP statistics
@@ -360,23 +377,23 @@ extern L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf);
 /**
  * Clear statistics of a particular DHCP instance and interface
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param intIfNum    : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf);
+extern L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf);
 
 /**
  * Clear DHCP statistics of a particular DHCP instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 UcastEvcId, ptin_client_id_t *client);
+extern L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 
 /*********************************************************** 
@@ -504,14 +521,14 @@ extern L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan, L7_uint client_idx, p
  * Update DHCP snooping configuration, when interfaces are 
  * added/removed 
  * 
- * @param evcId     : EVC id 
+ * @param evc_idx     : EVC id 
  * @param ptin_intf : interface 
  * @param enable    : L7_TRUE when interface is added 
  *                    L7_FALSE when interface is removed
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable);
+extern L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_BOOL enable);
 
 /**
  * Increment DHCP statistics
@@ -538,7 +555,7 @@ extern L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp82_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
+extern L7_RC_t ptin_dhcp82_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
                                L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
@@ -553,7 +570,7 @@ extern L7_RC_t ptin_dhcp82_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint1
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp82_config(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
+extern L7_RC_t ptin_dhcp82_config(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
                                   L7_char8 *circuitId, L7_char8 *remoteId);
 
 /**
@@ -566,7 +583,7 @@ extern L7_RC_t ptin_dhcp82_config(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp82_unconfig(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr);
+extern L7_RC_t ptin_dhcp82_unconfig(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr);
 
 /**
  * Get a circuitId+remoteId entry in database
