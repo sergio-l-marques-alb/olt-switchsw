@@ -18,6 +18,8 @@
 #define PTIN_IGMP_VERSION_2 2
 #define PTIN_IGMP_VERSION_3 3
 
+#define PTIN_IGMP_MAX_ROOT_PORTS 16
+
 /* Macros to get RFC3376 timer values */
 #define PTIN_IGMP_AUTO_GMI(rv, qi, qri)                 (((rv) * (qi)) + ((qri)/10))
 #define PTIN_IGMP_AUTO_OQPI(rv, qi, qri)                (((rv) * (qi)) + ((qri)/10/2))
@@ -91,6 +93,11 @@
 #define PTIN_IGMP_MAX_RECORDS_PER_REPORT                      64
 
 #define PTIN_IGMP_MIN_RECORDS_PER_REPORT                      1
+
+#define PTIN_IGMP_MIN_VLAN_ID                                 1
+#define PTIN_IGMP_MAX_VLAN_ID                                 4095
+
+
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure

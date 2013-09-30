@@ -4580,7 +4580,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
  *
  * @return L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
+L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {
   snoopPTinProxyGroup_t *pData;
   snoopPTinProxyGroup_t *snoopEntry;
@@ -4594,14 +4594,14 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, 
 #endif
 
   /*Arguments Validation*/
-  if (interfacePtr==L7_NULLPTR || groupAddr==L7_NULLPTR)
+  if (vlanId<PTIN_IGMP_MIN_VLAN_ID || vlanId>PTIN_IGMP_MAX_VLAN_ID || groupAddr==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   pSnoopEB = snoopEBGet();
-  pData = snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId, groupAddr,recordType, L7_MATCH_EXACT);
+  pData = snoopPTinProxyGroupEntryFind(vlanId, groupAddr,recordType, L7_MATCH_EXACT);
   if (pData == L7_NULLPTR)
   {
     return L7_FAILURE;
@@ -4615,13 +4615,13 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t* interfacePtr, 
 #endif /* L7_MCAST_PACKAGE */
 #endif
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Group Record from the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Group Record from the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, pData);
 
   if (pData == L7_NULL)
   {
     /* Entry does not exist */    
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record does not exist in the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",interfacePtr->key.vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record does not exist in the AVL Tree (vlanId:%u groupAddr:%s recordtype:%u)",vlanId, inetAddrPrint(groupAddr, debug_buf),recordType);
     return L7_FAILURE;
   }
   if (pData == snoopEntry)

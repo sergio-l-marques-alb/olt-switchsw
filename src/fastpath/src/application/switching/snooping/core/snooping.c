@@ -3462,14 +3462,6 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   dataPtr = mcastPacket->ip_payload + MGMD_REPORT_NUM_SOURCES_OFFSET;
   SNOOP_GET_SHORT(noOfGroups, dataPtr);
 
-  /*We need to fix this in the near future: since it can be used to prevent DOS attacks*/
-  if (noOfGroups>PTIN_IGMP_MAX_RECORDS_PER_REPORT || noOfGroups==0)
-  {
-    /* Data ptr will point to the start if group records */
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Number of Group records higher than max allowed value: %u>%u, dropping the packet",noOfGroups,PTIN_IGMP_MAX_RECORDS_PER_REPORT);
-    return L7_FAILURE;
-  }
-
   /* Data ptr will point to the start if group records */
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Number of Group records, %u",noOfGroups);
 
@@ -3486,6 +3478,15 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;
+  }
+
+
+ /*We need to fix this in the near future: since it can be used to prevent DOS attacks*/
+  if (noOfGroups>igmpCfg.host.max_records_per_report || noOfGroups==0)
+  {
+    /* Data ptr will point to the start if group records */
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Number of Group records higher than max allowed value: %u>%u, dropping the packet",noOfGroups,PTIN_IGMP_MAX_RECORDS_PER_REPORT);
+    return L7_FAILURE;
   }
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)
@@ -3899,7 +3900,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
       if (rc!=L7_SUCCESS)
       {
         ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, snoopRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX));         
-        if (snoopPTinGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType)!=L7_SUCCESS)
+        if (snoopPTinGroupRecordRemove(interfacePtr,&snoopEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,recordType)!=L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");
           return L7_ERROR;

@@ -33,7 +33,8 @@
 
 /* PTin added: IGMP snooping */
 #if 1
-#include "logger.h"
+  #include "logger.h"  
+  #include  "snooping_ptin_db.h"
 
 /**
  * Get a list of channels consumed by a particular vlan and 
@@ -87,11 +88,11 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *channelIP, L7_uint16 sVlan, L
   if (!snoopChannelExist4VlanId(sVlan,channelIP,&snoopEntry))
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
-            (channelIP->addr.ipv4.s_addr>>24) & 0xff,
-            (channelIP->addr.ipv4.s_addr>>16) & 0xff,
-            (channelIP->addr.ipv4.s_addr>> 8) & 0xff,
-             channelIP->addr.ipv4.s_addr & 0xff,
-            sVlan);
+                (channelIP->addr.ipv4.s_addr>>24) & 0xff,
+                (channelIP->addr.ipv4.s_addr>>16) & 0xff,
+                (channelIP->addr.ipv4.s_addr>> 8) & 0xff,
+                channelIP->addr.ipv4.s_addr & 0xff,
+                sVlan);
     if (client_list_bmp!=L7_NULLPTR)
     {
       memset(client_list_bmp,
@@ -164,7 +165,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
 
     /* If vlan does not match, skip to the next one */
     if ( sVlanId!=0 && sVlanId!=vlanId )  continue;
-    
+
     /* Run all active channels */
     for (channel_index=0; channel_index<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel_index++)
     {
@@ -201,6 +202,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
 {
   L7_BOOL sendJoin;
   L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
+  L7_uint8     igmp_network_version;
 
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
@@ -214,19 +216,35 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
     return L7_FAILURE;
   }
 
-  /* Determine MAC associated to this channel */
-  dmac[0] = 0x01;
-  dmac[1] = 0x00;
-  dmac[2] = 0x5E;
-  dmac[3] = (channel->addr.ipv4.s_addr>>16) & 0x7f;
-  dmac[4] = (channel->addr.ipv4.s_addr>> 8) & 0xff;
-  dmac[5] =  channel->addr.ipv4.s_addr & 0xff;
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
-  /* Add channel */
-  if (snoop_channel_add_procedure(dmac,vlanId,channel,L7_TRUE,&sendJoin)!=L7_SUCCESS)
+  if (igmp_network_version==3)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
-    return L7_FAILURE;
+    /* Add static channel */
+    /* Add static channel */
+    if (snoopPTinAddStaticGroup(vlanId,SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    /* Determine MAC associated to this channel */
+    dmac[0] = 0x01;
+    dmac[1] = 0x00;
+    dmac[2] = 0x5E;
+    dmac[3] = (channel->addr.ipv4.s_addr>>16) & 0x7f;
+    dmac[4] = (channel->addr.ipv4.s_addr>> 8) & 0xff;
+    dmac[5] =  channel->addr.ipv4.s_addr & 0xff;
+
+    /* Add channel */
+    if (snoop_channel_add_procedure(dmac,vlanId,channel,L7_TRUE,&sendJoin)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -243,6 +261,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
 L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
 {
   L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
+  L7_uint8     igmp_network_version;
 
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
@@ -256,19 +275,36 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
     return L7_FAILURE;
   }
 
-  /* Determine MAC associated to this channel */
-  dmac[0] = 0x01;
-  dmac[1] = 0x00;
-  dmac[2] = 0x5E;
-  dmac[3] = (channel->addr.ipv4.s_addr>>16) & 0x7f;
-  dmac[4] = (channel->addr.ipv4.s_addr>> 8) & 0xff;
-  dmac[5] =  channel->addr.ipv4.s_addr & 0xff;
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
-  /* Add channel */
-  if (snoop_channel_remove_procedure(dmac,vlanId,channel)!=L7_SUCCESS)
+  if (igmp_network_version==3)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel");
-    return L7_FAILURE;
+    /* Add static channel */
+    /* Add static channel */
+    if (snoopPTinRemoveStaticGroup(vlanId,SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+
+    /* Determine MAC associated to this channel */
+    dmac[0] = 0x01;
+    dmac[1] = 0x00;
+    dmac[2] = 0x5E;
+    dmac[3] = (channel->addr.ipv4.s_addr>>16) & 0x7f;
+    dmac[4] = (channel->addr.ipv4.s_addr>> 8) & 0xff;
+    dmac[5] =  channel->addr.ipv4.s_addr & 0xff;
+
+    /* Add channel */
+    if (snoop_channel_remove_procedure(dmac,vlanId,channel)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -421,16 +457,16 @@ L7_RC_t snoopAdminModeSet(L7_uint32 adminMode, L7_uchar8 family)
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-        "snoopAdminModeSet: Failed to set global igmp snooping mode to  %d."
-        " Failed to set global IGMP Snooping mode due to message queue being full",
-        adminMode);
+            "snoopAdminModeSet: Failed to set global igmp snooping mode to  %d."
+            " Failed to set global IGMP Snooping mode due to message queue being full",
+            adminMode);
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopAdminModeSet: Failed to give msgQueue semaphore");
+              "snoopAdminModeSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -474,7 +510,7 @@ L7_RC_t snoopPrioModeSet(L7_uint8 prio, L7_uchar8 family)
   {
     pSnoopCB->snoopCfgData->snoopAdminIGMPPrio = prio;
   }
-  
+
   return L7_SUCCESS;
 }
 #endif
@@ -602,20 +638,20 @@ L7_RC_t snoopIntfCfgModeSet(L7_uint32 intIfNum, L7_uint32 mode,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)
       != L7_SUCCESS)
   {
-      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-          "snoopIntfModeSet: Failed to set igmp snooping mode %d for interface %s."
-          " Failed to set interface IGMP Snooping mode due to message queue being full",
-              mode, ifName);
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+            "snoopIntfModeSet: Failed to set igmp snooping mode %d for interface %s."
+            " Failed to set interface IGMP Snooping mode due to message queue being full",
+            mode, ifName);
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopIntfModeSet: Failed to give msgQueue semaphore");
+              "snoopIntfModeSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -1078,7 +1114,7 @@ L7_RC_t snoopIntfFastLeaveAdminModeGet(L7_uint32 intIfNum, L7_uint32 *mode,
   }
 
   *mode = (pCfg->intfMode & SNOOP_VLAN_FAST_LEAVE_MODE) ?
-    L7_ENABLE : L7_DISABLE;
+          L7_ENABLE : L7_DISABLE;
 
   return L7_SUCCESS;
 }
@@ -1124,7 +1160,7 @@ L7_RC_t snoopIntfFastLeaveAdminModeSet(L7_uint32 intIfNum, L7_uint32 mode,
   }
 
   currentFastLeaveIntfMode = (pCfg->intfMode & SNOOP_VLAN_FAST_LEAVE_MODE) ?
-    L7_ENABLE : L7_DISABLE;
+                             L7_ENABLE : L7_DISABLE;
 
   if (mode == currentFastLeaveIntfMode)
   {
@@ -1203,20 +1239,20 @@ L7_RC_t snoopIntfMrouterSet(L7_uint32 intIfNum, L7_uint32 mode,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)
       != L7_SUCCESS)
   {
-      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-          "snoopIntfMrouterSet: Failed to set igmp mrouter mode %d for interface %s."
-          " Failed to set interface muticast router mode due to IGMP Snooping message "
-          "queue being full", mode, ifName);
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+            "snoopIntfMrouterSet: Failed to set igmp mrouter mode %d for interface %s."
+            " Failed to set interface muticast router mode due to IGMP Snooping message "
+            "queue being full", mode, ifName);
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopIntfMrouterSet: Failed to give msgQueue semaphore");
+              "snoopIntfMrouterSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -1357,7 +1393,7 @@ L7_RC_t snoopEntriesFlush(L7_uchar8 family)
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopEntriesFlush: Failed to send snooping table flush");
+            "snoopEntriesFlush: Failed to send snooping table flush");
     return L7_FAILURE;
   }
   else
@@ -1365,7 +1401,7 @@ L7_RC_t snoopEntriesFlush(L7_uchar8 family)
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopEntriesFlush: Failed to give msgQueue semaphore");
+              "snoopEntriesFlush: Failed to give msgQueue semaphore");
       return L7_FAILURE;
     }
   }
@@ -1431,7 +1467,7 @@ L7_RC_t snoopMcastNotify(L7_inet_addr_t *mcastGroupAddr,
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-           "snoopMcastNotify: Failed to send mcast entry notify");
+            "snoopMcastNotify: Failed to send mcast entry notify");
     return L7_FAILURE;
   }
   else
@@ -1439,7 +1475,7 @@ L7_RC_t snoopMcastNotify(L7_inet_addr_t *mcastGroupAddr,
     if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-             "snoopMcastNotify: Failed to give msgQueue semaphore");
+              "snoopMcastNotify: Failed to give msgQueue semaphore");
       return L7_FAILURE;
     }
   }
@@ -1615,8 +1651,8 @@ L7_RC_t snoopVlanModeSet(L7_uint32 vlanId, L7_uint32 vlanMode, L7_uchar8 family)
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-        "snoopVlanModeSet: Failed to set igmp snooping mode %d for vlan %d."
-        " Failed to set VLAN IGM Snooping mode due to message queue being full",
+            "snoopVlanModeSet: Failed to set igmp snooping mode %d for vlan %d."
+            " Failed to set VLAN IGM Snooping mode due to message queue being full",
             vlanMode, vlanId);
   }
   else
@@ -1624,7 +1660,7 @@ L7_RC_t snoopVlanModeSet(L7_uint32 vlanId, L7_uint32 vlanMode, L7_uchar8 family)
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopIntfMrouterSet: Failed to give msgQueue semaphore");
+              "snoopIntfMrouterSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -1669,12 +1705,12 @@ L7_RC_t snoopVlanFastLeaveModeSet(L7_uint32 vlanId, L7_uint32 fastLeaveMode,
   if (fastLeaveMode == L7_ENABLE)
   {
     pSnoopCB->snoopCfgData->snoopVlanMode[vlanId]
-      |= SNOOP_VLAN_FAST_LEAVE_MODE;
+    |= SNOOP_VLAN_FAST_LEAVE_MODE;
   }
   else if (fastLeaveMode == L7_DISABLE)
   {
     pSnoopCB->snoopCfgData->snoopVlanMode[vlanId]
-      &= (~SNOOP_VLAN_FAST_LEAVE_MODE);
+    &= (~SNOOP_VLAN_FAST_LEAVE_MODE);
   }
 
   /* set flag to indicate configuration has changed */
@@ -1716,7 +1752,7 @@ L7_RC_t snoopVlanFastLeaveModeGet(L7_uint32 vlanId, L7_BOOL *fastLeaveMode,
 
   *fastLeaveMode = (pSnoopCB->snoopCfgData->snoopVlanMode[vlanId] &
                     SNOOP_VLAN_FAST_LEAVE_MODE)
-    ? L7_TRUE : L7_FALSE;
+                   ? L7_TRUE : L7_FALSE;
   return L7_SUCCESS;
 }
 
@@ -1783,7 +1819,7 @@ L7_RC_t snoopVlanGroupMembershipIntervalSet(L7_uint32 vlanId,
   }
 
   pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].groupMembershipInterval =
-    groupMembershipInterval;
+  groupMembershipInterval;
 
   /* set flag to indicate configuration has changed */
   pSnoopCB->snoopCfgData->cfgHdr.dataChanged = L7_TRUE;
@@ -1825,7 +1861,7 @@ L7_RC_t snoopVlanGroupMembershipIntervalGet(L7_uint32 vlanId,
   }
 
   *groupMembershipInterval =
-    pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].groupMembershipInterval;
+  pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].groupMembershipInterval;
 
   return L7_SUCCESS;
 }
@@ -1893,7 +1929,7 @@ L7_RC_t snoopVlanMaximumResponseTimeSet(L7_uint32 vlanId,
   }
 
   pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime =
-    responseTime;
+  responseTime;
 
   /* set flag to indicate configuration has changed */
   pSnoopCB->snoopCfgData->cfgHdr.dataChanged = L7_TRUE;
@@ -1935,7 +1971,7 @@ L7_RC_t snoopVlanMaximumResponseTimeGet(L7_uint32 vlanId,
   }
 
   *responseTime =
-    pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
+  pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
 
   return L7_SUCCESS;
 }
@@ -1999,7 +2035,7 @@ L7_RC_t snoopVlanMcastRtrExpiryTimeSet(L7_uint32 vlanId,
   }
 
   pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].mcastRtrExpiryTime =
-    mcastRtrExpiryTime;
+  mcastRtrExpiryTime;
   /* set flag to indicate configuration has changed */
   pSnoopCB->snoopCfgData->cfgHdr.dataChanged = L7_TRUE;
   return L7_SUCCESS;
@@ -2040,7 +2076,7 @@ L7_RC_t snoopVlanMcastRtrExpiryTimeGet(L7_uint32 vlanId,
   }
 
   *mcastRtrExpiryTime =
-    pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].mcastRtrExpiryTime;
+  pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].mcastRtrExpiryTime;
   return L7_SUCCESS;
 }
 
@@ -2069,7 +2105,7 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrSet(L7_uint32 intIfNum, L7_uint32 vlanId,
   snoopMgmtMsg_t       msg;
   L7_uchar8            currentStatus;
 
-  if(status != L7_ENABLE && status != L7_DISABLE)
+  if (status != L7_ENABLE && status != L7_DISABLE)
   {
     return L7_FAILURE;
   }
@@ -2132,16 +2168,16 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrSet(L7_uint32 intIfNum, L7_uint32 vlanId,
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-        "snoopIntfApiVlanStaticMcastRtrSet: Failed to set igmp mrouter mode %d for interface %s on Vlan %d."
-        " Failed to set VLAN multicast router mode due to IGMP Snooping message queue being full",
-        status, ifName, vlanId);
+            "snoopIntfApiVlanStaticMcastRtrSet: Failed to set igmp mrouter mode %d for interface %s on Vlan %d."
+            " Failed to set VLAN multicast router mode due to IGMP Snooping message queue being full",
+            status, ifName, vlanId);
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopIntfApiVlanStaticMcastRtrSet: Failed to give msgQueue semaphore");
+              "snoopIntfApiVlanStaticMcastRtrSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -2337,7 +2373,7 @@ L7_RC_t snoopQuerierAdminModeSet(L7_uint32 adminMode, L7_uchar8 family)
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierAdminModeSet: Failed to set global snooping querier mode to %d ",
+            "snoopQuerierAdminModeSet: Failed to set global snooping querier mode to %d ",
             adminMode);
   }
   else
@@ -2345,7 +2381,7 @@ L7_RC_t snoopQuerierAdminModeSet(L7_uint32 adminMode, L7_uchar8 family)
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierAdminModeSet: Failed to give msgQueue semaphore");
+              "snoopQuerierAdminModeSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -2495,14 +2531,14 @@ L7_RC_t snoopQuerierAddressSet(void *snoopQuerierAddr,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierAddressSet: Failed to post a message to queue");
+            "snoopQuerierAddressSet: Failed to post a message to queue");
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierAddressSet: Failed to give msgQueue semaphore\n");
+              "snoopQuerierAddressSet: Failed to give msgQueue semaphore\n");
     }
   }
 
@@ -2537,7 +2573,7 @@ L7_RC_t snoopQuerierVersionGet(L7_uint32 *version, L7_uchar8 family)
   }
 
   *version =
-    pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierVersion;
+  pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierVersion;
 
   return L7_SUCCESS;
 }
@@ -2606,7 +2642,7 @@ L7_RC_t snoopQuerierVersionSet(L7_uint32 version, L7_uchar8 family)
       != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierVersionSet: Failed to set snooping querier version to  %d",
+            "snoopQuerierVersionSet: Failed to set snooping querier version to  %d",
             version);
   }
   else
@@ -2614,7 +2650,7 @@ L7_RC_t snoopQuerierVersionSet(L7_uint32 version, L7_uchar8 family)
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierVersionSet: Failed to give msgQueue semaphore");
+              "snoopQuerierVersionSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -2649,7 +2685,7 @@ L7_RC_t snoopQuerierQueryIntervalGet(L7_uint32 *queryInterval,
   }
 
   *queryInterval =
-    pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierQueryInterval;
+  pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierQueryInterval;
 
   return L7_SUCCESS;
 }
@@ -2700,7 +2736,7 @@ L7_RC_t snoopQuerierQueryIntervalSet(L7_uint32 queryInterval, L7_uchar8 family)
   }
 
   pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierQueryInterval =
-    queryInterval;
+  queryInterval;
 
   /* set flag to indicate configuration has changed */
   pSnoopCB->snoopCfgData->cfgHdr.dataChanged = L7_TRUE;
@@ -2734,7 +2770,7 @@ L7_RC_t snoopQuerierExpiryIntervalGet(L7_uint32 *expiryInterval,
   }
 
   *expiryInterval =
-    pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierExpiryInterval;
+  pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierExpiryInterval;
 
   return L7_SUCCESS;
 }
@@ -2787,7 +2823,7 @@ L7_RC_t snoopQuerierExpiryIntervalSet(L7_uint32 expiryInterval,
   }
 
   pSnoopCB->snoopCfgData->snoopQuerierCfgData.snoopQuerierExpiryInterval =
-    expiryInterval;
+  expiryInterval;
 
   /* set flag to indicate configuration has changed */
   pSnoopCB->snoopCfgData->cfgHdr.dataChanged = L7_TRUE;
@@ -2891,13 +2927,13 @@ L7_RC_t snoopQuerierVlanModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
       return L7_TABLE_IS_FULL;
     }
     pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].snoopVlanQuerierCfgData.snoopQuerierVlanAdminMode
-      |= SNOOP_QUERIER_MODE;
+    |= SNOOP_QUERIER_MODE;
     pSnoopCB->enabledSnoopQuerierVlans++;
   }
   else if (vlanMode == L7_DISABLE)
   {
     pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].snoopVlanQuerierCfgData.snoopQuerierVlanAdminMode
-      &= (~SNOOP_QUERIER_MODE);
+    &= (~SNOOP_QUERIER_MODE);
     pSnoopCB->enabledSnoopQuerierVlans--;
   }
   else
@@ -2915,7 +2951,7 @@ L7_RC_t snoopQuerierVlanModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierVlanModeSet: Failed to set snooping querier mode %d for vlan %d",
+            "snoopQuerierVlanModeSet: Failed to set snooping querier mode %d for vlan %d",
             vlanMode, vlanId);
   }
   else
@@ -2923,7 +2959,7 @@ L7_RC_t snoopQuerierVlanModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierVlanModeSet: Failed to give msgQueue semaphore");
+              "snoopQuerierVlanModeSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -3025,12 +3061,12 @@ L7_RC_t snoopQuerierVlanElectionModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
   if (vlanMode == L7_ENABLE)
   {
     pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].snoopVlanQuerierCfgData.snoopQuerierVlanAdminMode
-      |= SNOOP_QUERIER_ELECTION_PARTICIPATE;
+    |= SNOOP_QUERIER_ELECTION_PARTICIPATE;
   }
   else if (vlanMode == L7_DISABLE)
   {
     pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].snoopVlanQuerierCfgData.snoopQuerierVlanAdminMode
-      &= (~SNOOP_QUERIER_ELECTION_PARTICIPATE);
+    &= (~SNOOP_QUERIER_ELECTION_PARTICIPATE);
   }
   else
   {
@@ -3047,7 +3083,7 @@ L7_RC_t snoopQuerierVlanElectionModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierVlanElectionModeSet: Failed to set snooping querier election mode %d for vlan %d",
+            "snoopQuerierVlanElectionModeSet: Failed to set snooping querier election mode %d for vlan %d",
             vlanMode, vlanId);
   }
   else
@@ -3055,7 +3091,7 @@ L7_RC_t snoopQuerierVlanElectionModeSet(L7_uint32 vlanId, L7_uint32 vlanMode,
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierVlanElectionModeSet: Failed to give msgQueue semaphore");
+              "snoopQuerierVlanElectionModeSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -3189,14 +3225,14 @@ L7_RC_t snoopQuerierVlanAddressSet(L7_uint32 vlanId,
                        L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SNOOPING_COMPONENT_ID,
-           "snoopQuerierVlanAddressSet: Failed to post a message to queue");
+            "snoopQuerierVlanAddressSet: Failed to post a message to queue");
   }
   else
   {
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-             "snoopQuerierVlanAddressSet: Failed to give msgQueue semaphore");
+              "snoopQuerierVlanAddressSet: Failed to give msgQueue semaphore");
     }
   }
 
@@ -3421,18 +3457,18 @@ L7_RC_t snoopQuerierOperStateGet(L7_uint32 vlanId, L7_uint32 *state,
 
   switch (pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperState)
   {
-    case SNOOP_QUERIER_DISABLED:
-      *state = L7_SNOOP_QUERIER_DISABLED;
-      break;
-    case  SNOOP_QUERIER_NON_QUERIER:
-      *state = L7_SNOOP_QUERIER_NON_QUERIER;
-      break;
-    case SNOOP_QUERIER_QUERIER:
-      *state = L7_SNOOP_QUERIER_QUERIER;
-      break;
-    default:
-      osapiSemaGive(pSnoopCB->snoopOperDataAvlTree.semId);
-      return L7_FAILURE;
+  case SNOOP_QUERIER_DISABLED:
+    *state = L7_SNOOP_QUERIER_DISABLED;
+    break;
+  case  SNOOP_QUERIER_NON_QUERIER:
+    *state = L7_SNOOP_QUERIER_NON_QUERIER;
+    break;
+  case SNOOP_QUERIER_QUERIER:
+    *state = L7_SNOOP_QUERIER_QUERIER;
+    break;
+  default:
+    osapiSemaGive(pSnoopCB->snoopOperDataAvlTree.semId);
+    return L7_FAILURE;
   }
   osapiSemaGive(pSnoopCB->snoopOperDataAvlTree.semId);
   return L7_SUCCESS;
@@ -3505,7 +3541,7 @@ L7_RC_t snoopQuerierOperMaxRespTimeGet(L7_uint32 vlanId, L7_uint32 *maxRespTime,
       else
       {
         *maxRespTime =
-          pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
+        pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
       }
     }
     else /* MLD */
@@ -3529,10 +3565,9 @@ L7_RC_t snoopQuerierOperMaxRespTimeGet(L7_uint32 vlanId, L7_uint32 *maxRespTime,
   }
   else if (pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperState ==
            SNOOP_QUERIER_QUERIER)
-
   {
     *maxRespTime =
-      pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
+    pSnoopCB->snoopCfgData->snoopVlanCfgData[vlanId].maxResponseTime;
   }
   else
   {
@@ -3641,26 +3676,25 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
 {
   snoopIntfCfgData_t  *pCfg;
   snoop_cb_t          *pSnoopCB = L7_NULLPTR;
- 
+
   if (!vlanStaticMcastRtr)
   {
     return L7_ERROR;
   }
- 
+
   /* Get Snoop Control Block */
   if ((pSnoopCB = snoopCBGet(family)) == L7_NULLPTR)
   {
     return L7_FAILURE;
   }
- 
+
   if (snoopMapIntfIsConfigurable(intIfNum, &pCfg, pSnoopCB) != L7_TRUE)
   {
     return L7_ERROR;
   }
- 
+
   memcpy(vlanStaticMcastRtr, &pCfg->vlanStaticMcastRtr, sizeof(L7_VLAN_MASK_t));
   return L7_SUCCESS;
 }
 
- 
 
