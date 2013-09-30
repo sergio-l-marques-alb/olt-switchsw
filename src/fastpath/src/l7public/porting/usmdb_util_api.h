@@ -49,7 +49,7 @@
 #define  USM_LOGICAL_TUNNEL_INTF    0x0400
 #define  USM_LOGICAL_WIRELESS_INTF    0x0800
 #define  USM_LOGICAL_L2_TUNNEL_INTF   0x1000
-
+#define  USM_LOGICAL_VLAN_PORT_INTF   0x2000    /* PTin added: virtual ports */
 
 /* USMDB protocol ID definition for PBVLANs */
 #define L7_USMDB_PROTOCOL_IP      1          

@@ -1785,29 +1785,42 @@ L7_RC_t   nimIntfCreate(nimIntfCreateRequest_t *pRequest, nimIntfCreateOutput_t 
         usp.port = pRequest->pIntfIdInfo->configSpecifier.tunnelId + 1;
         break;
 
-    case L7_WIRELESS_INTF:
-      /*
-       * get the u and s from cmgr, port is the id of the interface
-       * The passed in tunnelId is 0 based and it's range needs to be
-       * determined as 1 - platIntfTunnelIntfMaxCountGet()
-       */
+      case L7_WIRELESS_INTF:
+        /*
+         * get the u and s from cmgr, port is the id of the interface
+         * The passed in tunnelId is 0 based and it's range needs to be
+         * determined as 1 - platIntfTunnelIntfMaxCountGet()
+         */
 
-      usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;
-      usp.slot = (L7_uchar8)platSlotwirelessNetSlotNumGet ();
-      usp.port = pRequest->pIntfIdInfo->configSpecifier.wirelessNetId;
-      break;
+        usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;
+        usp.slot = (L7_uchar8)platSlotwirelessNetSlotNumGet ();
+        usp.port = pRequest->pIntfIdInfo->configSpecifier.wirelessNetId;
+        break;
 
-    case L7_CAPWAP_TUNNEL_INTF:
-      /*
-       * get the u and s from cmgr, port is the id of the interface
-       * The passed in tunnelId is 0 based and it's range needs to be
-       * determined as 1 - platIntfTunnelIntfMaxCountGet()
-       */
+      case L7_CAPWAP_TUNNEL_INTF:
+        /*
+         * get the u and s from cmgr, port is the id of the interface
+         * The passed in tunnelId is 0 based and it's range needs to be
+         * determined as 1 - platIntfTunnelIntfMaxCountGet()
+         */
 
-      usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;
-      usp.slot = (L7_uchar8)platSlotL2TunnelSlotNumGet ();
-      usp.port = pRequest->pIntfIdInfo->configSpecifier.l2tunnelId;
-      break;
+        usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;
+        usp.slot = (L7_uchar8)platSlotL2TunnelSlotNumGet ();
+        usp.port = pRequest->pIntfIdInfo->configSpecifier.l2tunnelId;
+        break;
+
+      /* PTin added: virtual ports */
+      case L7_VLAN_PORT_INTF:
+        /*
+         * get the u and s from cmgr, port is the id of the interface
+         * The passed in tunnelId is 0 based and it's range needs to be
+         * determined as 1 - platIntfTunnelIntfMaxCountGet()
+         */
+
+        usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;
+        usp.slot = (L7_uchar8)platSlotVlanPortSlotNumGet ();
+        usp.port = pRequest->pIntfIdInfo->configSpecifier.vlanportId;
+        break;
 
       default:
         NIM_LOG_MSG("NIM: Unknown interface type in nimIntfCreate\n");

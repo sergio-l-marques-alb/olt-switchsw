@@ -43,7 +43,7 @@
 
 
 #define L7_MAX_LOGICAL_PORTS_PER_SLOT                       8
-#define L7_MAX_LOGICAL_SLOTS_PER_UNIT                       6     
+#define L7_MAX_LOGICAL_SLOTS_PER_UNIT                       7     /* PTin modified: virtual ports */  /* 6 */
 #define L7_MAX_CPU_PORTS_PER_SLOT                           1
 #define L7_MAX_CPU_SLOTS_PER_UNIT                           1
 #define L7_MAX_NUM_STACK_INTF                               0

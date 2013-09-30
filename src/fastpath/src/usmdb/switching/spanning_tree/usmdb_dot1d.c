@@ -883,7 +883,8 @@ L7_BOOL usmDbDot1dIsValidIntf(L7_uint32 unitIndex, L7_uint32 intIfNum)
        (sysIntfType == L7_LOOPBACK_INTF) ||
        (sysIntfType == L7_WIRELESS_INTF) ||
        (sysIntfType == L7_CAPWAP_TUNNEL_INTF) ||
-       (sysIntfType == L7_TUNNEL_INTF) )
+       (sysIntfType == L7_TUNNEL_INTF) ||
+       (sysIntfType == L7_VLAN_PORT_INTF) )       /* PTin added: virtual ports */
     return L7_FALSE;
 
   return L7_TRUE;

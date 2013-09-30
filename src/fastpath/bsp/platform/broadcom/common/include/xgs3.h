@@ -236,6 +236,8 @@
 #define     PLAT_MAX_NUM_WIRELESS_INTF            64
 #define     PLAT_MAX_NUM_L2TUNNEL_VLANS           0
 
+#define     PLAT_MAX_NUM_VLAN_PORT_INTF           0   /* PTin added: virtual ports */
+
 #if PLAT_BCM_CHIP == L7_BCM_HELIX
 #define     PLAT_RT_MAX_EQUAL_COST_ROUTES         4
 #else

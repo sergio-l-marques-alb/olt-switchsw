@@ -399,6 +399,7 @@
 #define IS_PORT_TYPE_LOOPBACK(_pDapiPortPtr)          ((_pDapiPortPtr)->type == L7_IANA_SOFTWARE_LOOPBACK)
 #define IS_PORT_TYPE_TUNNEL(_pDapiPortPtr)            ((_pDapiPortPtr)->type == L7_IANA_TUNNEL)
 #define IS_PORT_TYPE_CAPWAP_TUNNEL(_pDapiPortPtr)     ((_pDapiPortPtr)->type == L7_IANA_CAPWAP_TUNNEL)
+#define IS_PORT_TYPE_VLAN_PORT(_pDapiPortPtr)         ((_pDapiPortPtr)->type == L7_IANA_VLAN_PORT)  /* PTin added: virtual ports */
 
 #define CPU_USP_GET(_usp)                             dapiCpuUspGet((_usp))
 

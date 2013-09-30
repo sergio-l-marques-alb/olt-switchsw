@@ -372,6 +372,10 @@ nimDebugIntfTypeToString(L7_uint32 sysIntfType)
     case L7_CAPWAP_TUNNEL_INTF:
       pName = "L7_CAPWAP_TUNNEL_INTF";
       break;
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      pName = "L7_VLAN_PORT_INTF";
+      break;
     case L7_MAX_INTF_TYPE_VALUE:
       pName = "L7_MAX_INTF_TYPE_VALUE";
       break;
@@ -405,6 +409,10 @@ void nimDebugConfigIdPrint(nimConfigID_t *pCfgID)
       break;
     case L7_CAPWAP_TUNNEL_INTF:
       sysapiPrintf("l2tunnelId:%u\n", pCfgID->configSpecifier.l2tunnelId);
+      break;
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      sysapiPrintf("vlanportId:%u\n", pCfgID->configSpecifier.vlanportId);
       break;
     default:
       sysapiPrintf("usp:%d.%d.%d\n", pCfgID->configSpecifier.usp.unit,
@@ -595,6 +603,10 @@ void nimDebugPortIntIfNum(nimIntf_t *port)
         break;
       case L7_IANA_CAPWAP_TUNNEL:
         sysapiPrintf("ifType =  L7_IANA_CAPWAP_TUNNEL\n");
+        break;
+      /* PTin added: virtual ports */
+      case L7_IANA_VLAN_PORT:
+        sysapiPrintf("ifType =  L7_IANA_VLAN_PORT\n");
         break;
       default:
         sysapiPrintf("ifType =  UNKNOWN %d \n", port->operInfo.ianaType);

@@ -278,7 +278,7 @@ L7_RC_t   hpcDiagStart(void);
 #define L7_LOGICAL_CARD_LOOPBACK_INTF_ID             0xFF040001
 #define L7_LOGICAL_CARD_TUNNEL_INTF_ID               0xFF050001
 #define L7_LOGICAL_CARD_CAPWAP_TUNNEL_INTF_ID        0xFF060001
-
+#define L7_LOGICAL_CARD_VLAN_PORT_INTF_ID            0xFF070001   /* PTin added: virtual ports */
 
 typedef struct
 {

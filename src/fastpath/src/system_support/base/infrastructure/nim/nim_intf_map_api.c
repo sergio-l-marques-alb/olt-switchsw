@@ -598,6 +598,8 @@ L7_RC_t nimGetIntfTypeFromUSP(nimUSP_t* usp, L7_INTF_TYPES_t *sysIntfType)
     *sysIntfType = L7_WIRELESS_INTF;
   else if (slot == platSlotL2TunnelSlotNumGet() )
     *sysIntfType = L7_CAPWAP_TUNNEL_INTF;
+  else if (slot == platSlotVlanPortSlotNumGet() )     /* PTin added: virtual ports */
+    *sysIntfType = L7_VLAN_PORT_INTF;
   else
     *sysIntfType = L7_PHYSICAL_INTF;  /* WPJ_TBD:  Assume physical until more automatic mapping is done */
   return rc;
@@ -1319,6 +1321,12 @@ L7_RC_t nimUspFromConfigIDGet(nimConfigID_t *configId,nimUSP_t *usp)
     tmpUSP.unit = L7_LOGICAL_UNIT;
     tmpUSP.slot = (L7_uchar8)platSlotL2TunnelSlotNumGet();
     tmpUSP.port = configId->configSpecifier.l2tunnelId;
+    break;
+  /* PTin added: virtual ports */
+  case L7_VLAN_PORT_INTF:
+    tmpUSP.unit = L7_LOGICAL_UNIT;
+    tmpUSP.slot = (L7_uchar8)platSlotVlanPortSlotNumGet();
+    tmpUSP.port = configId->configSpecifier.vlanportId;
     break;
   case L7_PHYSICAL_INTF:
   case L7_CPU_INTF:

@@ -218,6 +218,20 @@ L7_uint32 platSlotwirelessNetSlotNumGet (void);
 *********************************************************************/
 L7_uint32 platSlotL2TunnelSlotNumGet (void);
 
+/* PTin added: virtual ports */
+/*********************************************************************
+* @purpose  Get the Vlan Port slot number
+*
+* @param    void
+*
+* @returns
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_uint32 platSlotVlanPortSlotNumGet (void);
+
 /*********************************************************************
 * @purpose  Get the maximum number of interfaces for the device.
 *
@@ -570,6 +584,20 @@ L7_uint32 platIntfwirelessNetIntfMaxCountGet (void);
 * @end
 *********************************************************************/
 L7_uint32 platIntfL2TunnelIntfMaxCountGet (void);
+
+/* PTin added: virtual ports */
+/*********************************************************************
+* @purpose  Maximum number of vlan port Interfaces
+*
+* @param    void
+*
+* @returns
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_uint32 platIntfVlanPortIntfMaxCountGet (void);
 
 /*********************************************************************
 * @purpose  Maximum number of CPU Interfaces

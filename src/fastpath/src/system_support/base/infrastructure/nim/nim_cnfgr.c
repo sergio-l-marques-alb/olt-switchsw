@@ -326,6 +326,12 @@ static int nimConfigIdCompare(const void *a, const void *b, size_t len)
                            &id_b->configSpecifier.l2tunnelId,
                            sizeof(L7_uint32));
 
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      return avlCompareULong32(&id_a->configSpecifier.vlanportId,
+                           &id_b->configSpecifier.vlanportId,
+                           sizeof(L7_uint32));
+
     default:
       /*
        * A node with an invalid type is a critical error.

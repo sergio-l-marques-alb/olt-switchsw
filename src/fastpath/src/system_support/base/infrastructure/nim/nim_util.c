@@ -437,7 +437,8 @@ L7_RC_t nimInterfaceCounters ( L7_uint32 intIfNum , L7_BOOL create)
   * L7_IANA_OTHER (1) and L7_IANA_OTHER_CPU (1) have the same value
   * so this check is needed to distinguish between them.
   */
-  if (nimCtlBlk_g->nimPorts[intIfNum].sysIntfType == L7_WIRELESS_INTF)
+  if (nimCtlBlk_g->nimPorts[intIfNum].sysIntfType == L7_WIRELESS_INTF ||
+      nimCtlBlk_g->nimPorts[intIfNum].sysIntfType == L7_VLAN_PORT_INTF)     /* PTin added: virtual ports */
   {
     return L7_SUCCESS;
   }
@@ -1023,6 +1024,22 @@ L7_RC_t nimIntIfNumCreate(nimConfigID_t configId, L7_uint32 *intIfNum)
       }
       break;
 
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      if (configId.configSpecifier.vlanportId >= L7_MAX_NUM_VLAN_PORT_INTF)
+      {
+        rc = L7_FAILURE;
+        NIM_LOG_MSG("NIM: out of range vlan port interface (%d)\n",
+                    configId.configSpecifier.vlanportId);
+      }
+      else
+      {
+        (void) nimIntIfNumRangeGet(L7_VLAN_PORT_INTF, &min, &max);
+        *intIfNum = min + configId.configSpecifier.vlanportId;
+        rc = L7_SUCCESS;
+      }
+      break;
+
     case L7_STACK_INTF:
       rc = L7_FAILURE;
       NIM_LOG_MSG("NIM: unsupported type of interface L7_STACK_INTF\n");
@@ -1167,15 +1184,23 @@ L7_BOOL nimNumberOfInterfaceExceeded(L7_INTF_TYPES_t intfType)
       }
       break;
 
-  case L7_WIRELESS_INTF:
-    if (nimCtlBlk_g->numberOfInterfacesByType[L7_WIRELESS_INTF] >= platIntfwirelessNetIntfMaxCountGet())
-    {
-      rc = L7_TRUE;
-    }
-    break;
+    case L7_WIRELESS_INTF:
+      if (nimCtlBlk_g->numberOfInterfacesByType[L7_WIRELESS_INTF] >= platIntfwirelessNetIntfMaxCountGet())
+      {
+        rc = L7_TRUE;
+      }
+      break;
 
     case L7_CAPWAP_TUNNEL_INTF:
       if (nimCtlBlk_g->numberOfInterfacesByType[L7_CAPWAP_TUNNEL_INTF] >= platIntfL2TunnelIntfMaxCountGet())
+      {
+        rc = L7_TRUE;
+      }
+      break;
+
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      if (nimCtlBlk_g->numberOfInterfacesByType[L7_VLAN_PORT_INTF] >= platIntfVlanPortIntfMaxCountGet())
       {
         rc = L7_TRUE;
       }
@@ -1243,6 +1268,11 @@ L7_int32 nimMaxIntfForIntfTypeGet(L7_INTF_TYPES_t intfType)
 
     case L7_CAPWAP_TUNNEL_INTF:
       numIntf = platIntfL2TunnelIntfMaxCountGet();
+      break;
+
+    /* PTin added: virtual ports */
+    case L7_VLAN_PORT_INTF:
+      numIntf = platIntfVlanPortIntfMaxCountGet();
       break;
 
     default:
@@ -1769,6 +1799,22 @@ void nimIntIfNumRangePopulate(void)
                 + platIntfwirelessNetIntfMaxCountGet() + 1;
 
           max = min + (platIntfL2TunnelIntfMaxCountGet() - 1);
+          nimCtlBlk_g->intfTypeData[i].minIntIfNumber = min;
+          nimCtlBlk_g->intfTypeData[i].maxIntIfNumber = max;
+          break;
+
+        /* PTin added: virtual ports */
+        case L7_VLAN_PORT_INTF:
+          /* Vlan port interfaces are directly after the L2 tunnel net interfaces */
+          min = platIntfPhysicalIntfMaxCountGet() 
+                + platIntfCpuIntfMaxCountGet() + platIntfLagIntfMaxCountGet()
+                + platIntfVlanIntfMaxCountGet()
+                + platIntfLoopbackIntfMaxCountGet() 
+                + platIntfTunnelIntfMaxCountGet() 
+                + platIntfwirelessNetIntfMaxCountGet()
+                + platIntfL2TunnelIntfMaxCountGet() + 1;
+
+          max = min + (platIntfVlanPortIntfMaxCountGet() - 1);
           nimCtlBlk_g->intfTypeData[i].minIntIfNumber = min;
           nimCtlBlk_g->intfTypeData[i].maxIntIfNumber = max;
           break;
