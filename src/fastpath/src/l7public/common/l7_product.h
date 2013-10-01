@@ -366,6 +366,7 @@
 #define L7_NUM_WIRELESS_INTFS                    0
 #endif
 
+/* PTin modified: virtual ports */
 #define L7_MAX_INTERFACE_COUNT                  (L7_MAX_PORT_COUNT        \
                                                  + L7_MAX_CPU_SLOTS_PER_UNIT     \
                                                  + L7_MAX_NUM_LAG_INTF     \
@@ -373,6 +374,7 @@
                                                  + L7_MAX_NUM_LOOPBACK_INTF \
                                                  + L7_MAX_NUM_TUNNEL_INTF  \
                                                  + L7_NUM_WIRELESS_INTFS \
+                                                 + L7_MAX_NUM_VLAN_PORT_INTF \
                                                  + L7_MAX_NUM_STACK_INTF + 1)
 
 #define L7_ALL_UNITS                            L7_MAX_UNITS_PER_STACK+1
