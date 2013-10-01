@@ -1028,8 +1028,8 @@ typedef struct _st_IGMP_Statistics_t
   uint32 active_groups;
   uint32 active_clients;
 
-  uint32 igmp_tx;  
-  uint32 igmp_total_rx;  
+  uint32 igmp_total_rx;
+  uint32 igmp_tx;
   uint32 igmp_valid_rx;
   uint32 igmp_invalid_rx;
   uint32 igmp_dropped_rx;

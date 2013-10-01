@@ -6274,13 +6274,14 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan;
+  L7_uint16   idx, mc_vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_intf_t          ptin_intf;
   L7_uint16            intf_idx;
   ptin_evc_intfCfg_t   intfCfg;
 #endif
+  L7_uint32 flags;
 
   enable &= 1;
 
@@ -6288,18 +6289,19 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   vlans_number = 0;
 
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_intRootVlan_get(evc_idx_mc, &vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",evc_idx_mc);
     return L7_FAILURE;
   }
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+  if (mc_vlan>=PTIN_VLAN_MIN && mc_vlan<=PTIN_VLAN_MAX)
   {
-    vlan_list[vlans_number++] = vlan;
+    vlan_list[vlans_number++] = mc_vlan;
   }
 
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   ptin_HwEthMef10Evc_t evcCfg;
+  L7_uint16 vlan;
 
   /* Get Unicast EVC configuration */
   evcCfg.index = evc_idx_uc;
@@ -6401,8 +6403,16 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     return L7_FAILURE;
   }
 
+  /* Disable/Reenable Multicast rate limit */
+  if (ptin_evc_flags_get(evc_idx_mc, &flags)==L7_SUCCESS &&
+      flags & PTIN_EVC_MASK_CPU_TRAPPING)
+  {
+    ptin_multicast_rateLimit(!enable, mc_vlan);
+  }
+
   return L7_SUCCESS;
 }
+
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 #ifdef IGMP_QUERIER_IN_UC_EVC
