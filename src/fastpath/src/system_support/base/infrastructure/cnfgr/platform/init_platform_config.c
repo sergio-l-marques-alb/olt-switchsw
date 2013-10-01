@@ -759,7 +759,7 @@ L7_uint32 platIntfTunnelIntfMaxCountGet (void)
 *********************************************************************/
 L7_uint32 platIntfwirelessNetIntfMaxCountGet (void)
 {
-  return L7_MAX_NUM_WIRELESS_INTF;
+  return L7_NUM_WIRELESS_INTFS; /* PTin modified: virtual ports */ /*L7_MAX_NUM_WIRELESS_INTF;*/
 }
 
 /*********************************************************************
