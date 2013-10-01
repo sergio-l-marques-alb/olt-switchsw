@@ -1026,7 +1026,8 @@ L7_RC_t nimIntIfNumCreate(nimConfigID_t configId, L7_uint32 *intIfNum)
 
     /* PTin added: virtual ports */
     case L7_VLAN_PORT_INTF:
-      if (configId.configSpecifier.vlanportId >= L7_MAX_NUM_VLAN_PORT_INTF)
+      if (configId.configSpecifier.vlanportId == 0 ||
+          configId.configSpecifier.vlanportId > L7_MAX_NUM_VLAN_PORT_INTF)
       {
         rc = L7_FAILURE;
         NIM_LOG_MSG("NIM: out of range vlan port interface (%d)\n",
@@ -1035,7 +1036,7 @@ L7_RC_t nimIntIfNumCreate(nimConfigID_t configId, L7_uint32 *intIfNum)
       else
       {
         (void) nimIntIfNumRangeGet(L7_VLAN_PORT_INTF, &min, &max);
-        *intIfNum = min + configId.configSpecifier.vlanportId;
+        *intIfNum = min + (configId.configSpecifier.vlanportId-1);
         rc = L7_SUCCESS;
       }
       break;
@@ -1357,7 +1358,7 @@ L7_RC_t nimUtilIntfStateSet(L7_uint32 intIfNum, L7_INTF_STATES_t state)
   }
   else if ((intIfNum < 1) || (intIfNum > platIntfTotalMaxCountGet()))
   {
-    NIM_LOG_MSG("NIM: intIfNum out of range\n");
+    NIM_LOG_MSG("NIM: intIfNum out of range (max=%u)\n",platIntfTotalMaxCountGet());
     rc = L7_FAILURE;
   }
   else
@@ -1811,8 +1812,7 @@ void nimIntIfNumRangePopulate(void)
                 + platIntfVlanIntfMaxCountGet()
                 + platIntfLoopbackIntfMaxCountGet() 
                 + platIntfTunnelIntfMaxCountGet() 
-                + platIntfwirelessNetIntfMaxCountGet()
-                + platIntfL2TunnelIntfMaxCountGet() + 1;
+                + platIntfwirelessNetIntfMaxCountGet() + 1;
 
           max = min + (platIntfVlanPortIntfMaxCountGet() - 1);
           nimCtlBlk_g->intfTypeData[i].minIntIfNumber = min;
