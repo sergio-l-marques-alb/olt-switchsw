@@ -279,6 +279,9 @@ static L7_uint8 evcs_intfs_in_use[PTIN_SYSTEM_N_INTERF];
 /* Reference of evcid using internal vlan as reference */
 static L7_uint32 evcId_from_internalVlan[4096];
 
+/* Keep track of number of QUATTRO P2P evcs */
+static L7_uint16 n_quattro_p2p_evcs = 0;
+
 
 /* Local Macros */
 #define IS_eEVC_IN_USE(a)               (evc_ext2int[a] < PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -1734,25 +1737,29 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring rate limiters", evc_ext_id);
 
-      /* Rate limiter for BC */
-      if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+      /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
+      if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P || n_quattro_p2p_evcs == 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
-        error = L7_TRUE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
-      }
-      /* Rate limiter for MC */
-      if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
-        error = L7_TRUE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
+        /* Rate limiter for BC */
+        if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
+        }
+        /* Rate limiter for MC */
+        if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
+        }
       }
     }
 
@@ -1894,8 +1901,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Remove the broadcast rate limiter for unstacked services */
       if ( cpu_trap)
       {
-        ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
-        ptin_multicast_rateLimit(L7_DISABLE,root_vlan);
+        /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
+        if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P || n_quattro_p2p_evcs == 0)
+        {
+          ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
+          ptin_multicast_rateLimit(L7_DISABLE,root_vlan);
+        }
       }
 
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -1919,6 +1930,15 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_evc_entry_free(evc_ext_id);
 
       return L7_FAILURE;
+    }
+    /* Successfull creation */
+    else
+    {
+      /* Count number of QUATTRO P2P evcs */
+      if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+      {
+        n_quattro_p2p_evcs++;
+      }
     }
   }
   /* EVC is in use: ONLY allow adding or removing ports */
@@ -2231,9 +2251,13 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   /* Remove BCast rate limit for unstacked services */
   if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
-    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
-    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
+    /* Only for non QUATTRO-P2P evcs, or if is the last QUATTRO-P2P */
+    if (!IS_EVC_QUATTRO_P2P(evc_id) || n_quattro_p2p_evcs <= 1)
+    {
+      ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+      ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
+    }
   }
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -2248,6 +2272,12 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   }
   #endif
   evcs[evc_id].multicast_group = -1;
+
+  /* Update number of QUATTRO-P2P evcs */
+  if (IS_EVC_QUATTRO_P2P(evc_id))
+  {
+    if (n_quattro_p2p_evcs>0)  n_quattro_p2p_evcs--;
+  }
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
   if (evc_ext_id == PTIN_EVC_INBAND)
@@ -2428,9 +2458,13 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   /* Remove BCast rate limit for unstacked services */
   if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
-    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
-    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
+    /* Only for non QUATTRO-P2P evcs, or if is the last QUATTRO-P2P */
+    if (!IS_EVC_QUATTRO_P2P(evc_id) || n_quattro_p2p_evcs <= 1)
+    {
+      ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+      ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
+    }
   }
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -2445,6 +2479,12 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   }
   #endif
   evcs[evc_id].multicast_group = -1;
+
+  /* Update number of QUATTRO-P2P evcs */
+  if (IS_EVC_QUATTRO_P2P(evc_id))
+  {
+    if (n_quattro_p2p_evcs>0)  n_quattro_p2p_evcs--;
+  }
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
   if (evc_ext_id == PTIN_EVC_INBAND)
