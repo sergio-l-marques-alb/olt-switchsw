@@ -1577,9 +1577,11 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
   static L7_BOOL          first_time = L7_TRUE;
   BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-  L7_uchar8               broadcast_mac[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
-                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  L7_uchar8               broadcast_mac[]      = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               broadcast_mac_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               multicast_mac[]      = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               multicast_mac_mask[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uint8                *mac_value, *mac_mask;
   L7_uint16               vlanId, vlan_match = 0xfff, traffType;
   BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
@@ -1636,6 +1638,9 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
     meterInfo.pir       = RATE_LIMIT_BCAST;
     meterInfo.pbs       = 256;
     meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+    mac_value = broadcast_mac;
+    mac_mask  = broadcast_mac_mask;
   }
   else if (traffType & PACKET_RATE_LIMIT_MULTICAST)
   {
@@ -1644,6 +1649,9 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
     meterInfo.pir       = RATE_LIMIT_MCAST;
     meterInfo.pbs       = 256;
     meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+    mac_value = multicast_mac;
+    mac_mask  = multicast_mac_mask;
   }
   else
   {
@@ -1746,7 +1754,7 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&rateLimit_list[index].vlanId[POLICY_VLAN_ID], (L7_uchar8 *) &rateLimit_list[index].vlanId[POLICY_VLAN_MASK]);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, broadcast_mac, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_value, mac_mask);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
