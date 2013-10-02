@@ -864,7 +864,7 @@ L7_RC_t ptin_evc_intRootVlan_get_fromIntVlan(L7_uint16 intVlan, L7_uint16 *intRo
   evc_id = evcId_from_internalVlan[intVlan];
   if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
   }
   /* Is EVC in use? */
