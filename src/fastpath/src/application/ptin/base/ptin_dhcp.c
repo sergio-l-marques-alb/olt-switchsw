@@ -3744,7 +3744,7 @@ void ptin_dhcp_dump(void)
       /* Prepare next key */
       memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
 
-      printf("   Client#%u: "
+      printf("   Client#%-3u: "
              #if (DHCP_CLIENT_INTERF_SUPPORTED)
              "ptin_port=%-2u "
              #endif
