@@ -145,7 +145,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
 
   /* Validate arguments */
   if ((sVlanId!=0 && (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX)) ||
-      client_index>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
+      client_index>=PTIN_SYSTEM_IGMP_MAXCLIENTS ||
       intIfNum>=L7_MAX_INTERFACE_COUNT)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");

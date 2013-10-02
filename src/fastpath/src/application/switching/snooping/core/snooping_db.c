@@ -1017,7 +1017,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_clients, n_clients);
 
     /* Clear only clients which are using this interface */
-    for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; i++)
+    for (i=0; i<PTIN_SYSTEM_IGMP_MAXCLIENTS; i++)
     {
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,i))  continue;
 
@@ -1588,7 +1588,7 @@ L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
   }
 
   /* Verify if one more client can be added */
-  if (snoopEntry->channel_list[channel_index].number_of_clients>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (snoopEntry->channel_list[channel_index].number_of_clients>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopClientAdd: No more room to add a new client",client);
@@ -2030,7 +2030,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
-      client>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
+      client>=PTIN_SYSTEM_IGMP_MAXCLIENTS ||
       intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
@@ -2176,7 +2176,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   /* Validate arguments */
   if (dmac==L7_NULLPTR || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX ||
       mgmdGroupAddr==L7_NULLPTR || mgmdGroupAddr->family!=L7_AF_INET ||
-      client>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE ||
+      client>=PTIN_SYSTEM_IGMP_MAXCLIENTS ||
       intIfNum==0 || intIfNum>=PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
   {
     if (ptin_debug_igmp_snooping)
@@ -2519,7 +2519,7 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_clients, snoopEntry->channel_list[channel_index].number_of_clients);
 
   /* Run all clients, and update number of active channels for each one */
-  for (client=0; client<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client++)
+  for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
   {
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,client))  continue;
 
@@ -2586,7 +2586,7 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_clients, snoopEntry->channel_list[channel_index].number_of_clients);
 
     /* Run all clients, and update number of active channels for each one */
-    for (client=0; client<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; client++)
+    for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
     {
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,client))  continue;
 
@@ -2809,7 +2809,7 @@ static L7_RC_t snoopValidateArguments(snoopInfoData_t *snoopEntry,
   }
 
   /* Validate client range (0 value will always be valid) */
-  if (client>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopClientAdd: Invalid client index (%u)",client);
@@ -2877,7 +2877,7 @@ static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
             if (!entry->channel_list[channel_index].active)
               continue;
             /* If client_index is provided, only consider channels used by this client index */
-            if (client_index<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
+            if (client_index<PTIN_SYSTEM_IGMP_MAXCLIENTS &&
                 !PTIN_IS_MASKBITSET(entry->channel_list[channel_index].clients_list,client_index))
               continue;
             channel_list[*num_channels].groupAddr.family            = L7_AF_INET;
@@ -2927,7 +2927,7 @@ static void snoopChannelsGet(L7_uint16 vlanId,
     return;
   }
 
-  max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
+  max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;
   *num_channels    = 0;
   
   if ((pSnoopEB = snoopEBGet()) == L7_NULLPTR)
@@ -2971,7 +2971,7 @@ static void snoopChannelsGet(L7_uint16 vlanId,
       interface_ptr = &avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM];
       
 
-      for(sourceIdx=0; sourceIdx <= PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
+      for(sourceIdx=0; sourceIdx <= PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP; ++sourceIdx)
       {
         snoopPTinL3Source_t *source_ptr;
 
@@ -3073,7 +3073,7 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
     }
     printf("\r\n");
     printf("    Clients list: ");
-    for (j=0; j<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; j++)
+    for (j=0; j<PTIN_SYSTEM_IGMP_MAXCLIENTS; j++)
     {
       if (PTIN_IS_MASKBITSET(snoopEntry->channel_list[i].clients_list,j))
         printf("%u ",j);
@@ -3206,7 +3206,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
         }
         printf("\r\n");
         printf("      Clients list:");
-        for (j=0; j<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE; j++)
+        for (j=0; j<PTIN_SYSTEM_IGMP_MAXCLIENTS; j++)
         {
           if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].clients_list,j))  continue;
           if (ptin_igmp_clientData_get(intVlan,j,&clientData)!=L7_SUCCESS)

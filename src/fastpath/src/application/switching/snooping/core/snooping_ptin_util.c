@@ -288,7 +288,7 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFl
 L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAddr, L7_uint8  reportType,L7_uint32 timeOut, L7_BOOL isInterface,L7_uint32 noOfRecords, void* ptr, L7_uint8 robustnessVariable)
 {
   ptin_IgmpProxyCfg_t igmpCfg;
-  L7_uint16           foundIdx=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP,sourceIdx;
+  L7_uint16           foundIdx=PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP,sourceIdx;
   L7_uint32           newNoOfRecords=0,noOfRecordsAux=noOfRecords;
   L7_int64  noOfPendingRecords;
 
@@ -1139,7 +1139,7 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
         printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
         printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);
         printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));        
-        for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
+        for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP; ++sourceIdx)
         {
           if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
           {
@@ -1352,7 +1352,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
 
   /* Argument validation */
   if (groupPtr == L7_NULLPTR || (groupPtr->source==L7_NULLPTR && groupPtr->numberOfSources!=0) || (groupPtr->source!=L7_NULLPTR && groupPtr->numberOfSources==0) 
-      || groupPtr->numberOfSources>PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP)
+      || groupPtr->numberOfSources>PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
@@ -1518,7 +1518,7 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
         firstGroupPtr=groupPtr;
       }
 
-      for (sourceIdx=0;sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;sourceIdx++)
+      for (sourceIdx=0;sourceIdx<PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;sourceIdx++)
       {
         if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE &&  
             avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].sourceTimer.isRunning==L7_TRUE &&
