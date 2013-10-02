@@ -842,6 +842,46 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
 }
 
 /**
+ * Gets the root vlan (internal) from the internal vlan
+ * 
+ * @param intVlan     : Internal vlan
+ * @param intRootVlan : Internal root vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_intRootVlan_get_fromIntVlan(L7_uint16 intVlan, L7_uint16 *intRootVlan)
+{
+  L7_uint32 evc_id;
+
+  /* Validate arguments */
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
+    return L7_FAILURE;
+  }
+  /* Is EVC in use? */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u (intVlan=%u) is not in use", evc_id, intVlan);
+    return L7_NOT_EXIST;
+  }
+
+  /* Return root vlan */
+  if (intRootVlan != L7_NULLPTR)
+    *intRootVlan = evcs[evc_id].rvlan;
+
+  return L7_SUCCESS;
+}
+
+/**
  * Gets flag options for a particular evc
  * 
  * @param evc_ext_id: EVC extended id 

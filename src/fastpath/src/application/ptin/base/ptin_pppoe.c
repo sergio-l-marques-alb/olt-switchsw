@@ -2251,27 +2251,12 @@ L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client
  */
 L7_RC_t ptin_pppoe_rootVlan_get(L7_uint16 intVlan, L7_uint16 *rootVlan)
 {
-  st_PppoeInstCfg_t  *pppoeInst;
-  L7_uint16           intRootVlan;
-
-  /* PPPoE instance, from internal vlan */
-  if (ptin_pppoe_inst_get_fromIntVlan(intVlan,&pppoeInst,L7_NULLPTR)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get_fromIntVlan(intVlan, rootVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"No PPPoE instance associated to intVlan %u",intVlan);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting rootVlan for intVlan=%u", intVlan);
     return L7_FAILURE;
   }
-
-  /* Get Multicast root vlan */
-  if (ptin_evc_intRootVlan_get(pppoeInst->evc_idx, &intRootVlan)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error getting rootVlan for evc_idx=%u (intVlan=%u)",pppoeInst->evc_idx, intVlan);
-    return L7_FAILURE;
-  }
-
-  /* Return Multicast root vlan */
-  if (rootVlan!=L7_SUCCESS)  *rootVlan = intRootVlan;
 
   return L7_SUCCESS;
 }
