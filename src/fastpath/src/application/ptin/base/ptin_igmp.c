@@ -6407,7 +6407,18 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   if (ptin_evc_flags_get(evc_idx_mc, &flags)==L7_SUCCESS &&
       flags & PTIN_EVC_MASK_CPU_TRAPPING)
   {
-    ptin_multicast_rateLimit(!enable, mc_vlan);
+    /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
+    if (enable)
+    {
+      ptin_multicast_rateLimit(L7_DISABLE, mc_vlan);
+      ptin_broadcast_rateLimit(L7_ENABLE , mc_vlan);
+    }
+    /* And vice-versa */
+    else
+    {
+      ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
+      ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
+    }
   }
 
   return L7_SUCCESS;

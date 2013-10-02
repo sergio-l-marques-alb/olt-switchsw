@@ -842,6 +842,46 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
 }
 
 /**
+ * Gets the root vlan (internal) from the internal vlan
+ * 
+ * @param intVlan     : Internal vlan
+ * @param intRootVlan : Internal root vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_intRootVlan_get_fromIntVlan(L7_uint16 intVlan, L7_uint16 *intRootVlan)
+{
+  L7_uint32 evc_id;
+
+  /* Validate arguments */
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC", intVlan);
+    return L7_FAILURE;
+  }
+  /* Is EVC in use? */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u (intVlan=%u) is not in use", evc_id, intVlan);
+    return L7_NOT_EXIST;
+  }
+
+  /* Return root vlan */
+  if (intRootVlan != L7_NULLPTR)
+    *intRootVlan = evcs[evc_id].rvlan;
+
+  return L7_SUCCESS;
+}
+
+/**
  * Gets flag options for a particular evc
  * 
  * @param evc_ext_id: EVC extended id 
@@ -1748,6 +1788,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P || n_quattro_p2p_evcs == 0)
       #endif
       {
+        #if 0
         /* Rate limiter for BC */
         if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
         {
@@ -1758,6 +1799,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         {
           LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
         }
+        #endif
         /* Rate limiter for MC */
         if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
         {
@@ -4343,7 +4385,9 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
   bridge.intf.mef_type  = evcs[evc_id].intf[intf_idx].type;
 
   /* Get all clients */
-  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow) == NOERR)
+  pclientFlow = L7_NULLPTR;
+  dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow);
+  while (pclientFlow != L7_NULLPTR)
   {
     /* Clean client */
     res = ptin_evc_pclientFlow_clean(evc_id, pclientFlow, L7_TRUE);
@@ -4384,6 +4428,9 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
                   evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
       }
     }
+
+    /* Next client/flow */
+    pclientFlow = (struct  ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t *) pclientFlow);
   }
 
   return rc;
