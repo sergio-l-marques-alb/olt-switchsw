@@ -6404,7 +6404,8 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   }
 
   /* Disable/Reenable Multicast rate limit */
-  if (ptin_evc_flags_get(evc_idx_mc, &flags, &mc_flood)==L7_SUCCESS && mc_flood)    /* Get EVC options: only if MC flood is active */
+  if (ptin_evc_flags_get(evc_idx_mc, &flags, &mc_flood)==L7_SUCCESS &&
+      (flags & PTIN_EVC_MASK_CPU_TRAPPING) && mc_flood)     /* Get EVC options and check if CPU trapping and MC flooding is active */
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Apply only to non QUATTRO-P2P or unique QUATTRO-P2P evcs */
