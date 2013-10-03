@@ -1298,7 +1298,7 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_remove_all_instances(void)
+L7_RC_t ptin_igmp_clean_all(void)
 {
   L7_uint igmp_idx;
   L7_RC_t rc, rc_global = L7_SUCCESS;
@@ -1312,6 +1312,22 @@ L7_RC_t ptin_igmp_remove_all_instances(void)
         rc_global = rc;
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp_idx=%u",igmp_idx);
     }
+  }
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Remove Multicast associations */
+  if ((rc=igmp_assoc_clean_all())!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp associations");
+    rc_global = rc;
+  }
+  #endif
+
+  /* Now, remove all clients */
+  if ((rc=ptin_igmp_all_clients_flush())!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp clients");
+    rc_global = rc;
   }
 
   return rc_global;
@@ -1806,7 +1822,7 @@ L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
  * @param McastEvcId  : Multicast evc id
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_all_clients_flush(L7_uint32 McastEvcId)
+L7_RC_t ptin_igmp_all_clients_flush(void)
 {
   /* Remove all clients */
   if ( ptin_igmp_rm_all_clients(0 /*Not used*/, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
@@ -4848,6 +4864,17 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
 }
 
 /**
+ * Remove all associations
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_clean_all(void)
+{
+  return igmp_assoc_avlTree_purge();
+}
+
+
+/**
  * Prepare an ip address to be used for the AVL trees
  * 
  * @param channel_in  : ip address (in) 
@@ -5184,7 +5211,7 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   if (!igmpInstances[igmp_idx].inUse)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not active", igmp_idx);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
   /* Deconfigure querier for this instance */
