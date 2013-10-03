@@ -886,6 +886,7 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #define RATE_LIMIT_DHCP     512
 #define RATE_LIMIT_PPPoE    512
 #define RATE_LIMIT_BCAST    256
+#define RATE_LIMIT_MCAST    1024
 #define RATE_LIMIT_APS      512
 #define RATE_LIMIT_CCM      512
 

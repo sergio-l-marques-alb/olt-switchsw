@@ -561,6 +561,7 @@ typedef struct {
 
 // Rate limit structure
 #define PACKET_RATE_LIMIT_BROADCAST 0x0001
+#define PACKET_RATE_LIMIT_MULTICAST 0x0002
 typedef struct {
   L7_int    operation;                  // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
   L7_uint16 vlanId;

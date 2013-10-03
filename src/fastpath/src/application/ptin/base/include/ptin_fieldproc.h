@@ -195,6 +195,16 @@ extern L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
 extern L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
 
 /**
+ * Apply Rate limit to multicast traffic
+ * 
+ * @param enable : enable status
+ * @param vlanId : vlan id
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
+
+/**
  * Consult hardware resources
  * 
  * @param resources : available resources
