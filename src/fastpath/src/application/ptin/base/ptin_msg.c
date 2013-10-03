@@ -139,6 +139,9 @@ void ptin_msg_defaults_reset(void)
   eth_srv_oam_msg_defaults_reset();
 #endif
 
+  /* Remove all IGMP instances */
+  ptin_igmp_clean_all();
+
   /* EVCs */
   ptin_evc_destroy_all();
 

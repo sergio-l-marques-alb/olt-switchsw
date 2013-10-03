@@ -370,6 +370,8 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 //static L7_RC_t ptin_igmp_router_intf_config(L7_uint router_intf, L7_uint16 router_vlan, L7_uint admin);
 //static L7_RC_t ptin_igmp_clients_intf_config(L7_uint client_intf, L7_uint admin);
 
+static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
+
 static L7_RC_t ptin_igmp_clientId_convert(L7_uint16 evc_idx, ptin_client_id_t *client);
 static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
 
@@ -1275,6 +1277,50 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId)
 
 
 /**
+ * Removes all IGMP instances
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_clean_all(void)
+{
+  L7_uint igmp_idx;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Remove all instances */
+  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+  {
+    if ((rc=ptin_igmp_instance_delete(igmp_idx))!=L7_SUCCESS)
+    {
+      if (rc_global == L7_SUCCESS)
+        rc_global = rc;
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp_idx=%u",igmp_idx);
+    }
+  }
+
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  /* Remove Multicast associations */
+  if ((rc=igmp_assoc_clean_all())!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp associations");
+    rc_global = rc;
+  }
+  #endif
+
+  /* Now, remove all clients */
+  if ((rc=ptin_igmp_all_clients_flush())!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp clients");
+    rc_global = rc;
+  }
+
+  return rc_global;
+}
+
+
+/**
  * Reactivate all IGMP instances
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
@@ -1462,10 +1508,9 @@ L7_RC_t ptin_igmp_client_delete(L7_uint16 evc_idx, ptin_client_id_t *client)
 /**
  * Remove all Multicast clients 
  * 
- * @param McastEvcId  : Multicast evc id
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId)
+L7_RC_t ptin_igmp_all_clients_flush(void)
 {
   /* Remove all clients */
   if ( ptin_igmp_rm_all_clients(0 /*Not used*/, L7_FALSE, L7_TRUE)!=L7_SUCCESS ||
@@ -4332,6 +4377,16 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
 }
 
 /**
+ * Remove all associations
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t igmp_assoc_clean_all(void)
+{
+  return igmp_assoc_avlTree_purge();
+}
+
+/**
  * Prepare an ip address to be used for the AVL trees
  * 
  * @param channel_in  : ip address (in) 
@@ -4644,6 +4699,64 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint16 evc_idx, L7_BOOL enable, ptin_dir_t di
 /****************************************************************************** 
  * STATIC FUNCTIONS
  ******************************************************************************/
+
+/**
+ * Delete an IGMP instance
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
+{
+  L7_uint32 i;
+
+  /* Validate arguments */
+  if (igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid IGMP instance %u", igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* IGMP instance must be active */
+  if (!igmpInstances[igmp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not active", igmp_idx);
+    return L7_SUCCESS;
+  }
+
+  /* Deconfigure querier for this instance */
+  if (ptin_igmp_querier_configure(igmp_idx,L7_DISABLE)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing querier configuration for igmp_idx=%u",igmp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Configure querier for this instance */
+  if (ptin_igmp_trap_configure(igmp_idx, L7_DISABLE)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
+    ptin_igmp_querier_configure(igmp_idx,L7_ENABLE);
+    return L7_FAILURE;
+  }
+
+  /* Clear data and free instance */
+  igmpInstances[igmp_idx].McastEvcId      = 0;
+  igmpInstances[igmp_idx].UcastEvcId      = 0;
+  igmpInstances[igmp_idx].inUse           = L7_FALSE;
+
+  /* Reset direct referencing to igmp index from evc ids */
+  for (i=0; i<PTIN_SYSTEM_N_EVCS; i++)
+  {
+    if (igmpInst_fromEvcId[i] == igmp_idx)
+    {
+      igmpInst_fromEvcId[i] = IGMP_INVALID_ENTRY;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Add a new Multicast client

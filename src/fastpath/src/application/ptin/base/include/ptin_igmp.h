@@ -488,6 +488,16 @@ extern L7_RC_t ptin_igmp_instance_add(L7_uint16 McastEvcId, L7_uint16 UcastEvcId
 extern L7_RC_t ptin_igmp_instance_remove(L7_uint16 McastEvcId, L7_uint16 UcastEvcId);
 
 /**
+ * Removes all IGMP instances
+ * 
+ * @param McastEvcId : Multicast evc id 
+ * @param UcastEvcId : Unicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clean_all(void);
+
+/**
  * Reactivate all IGMP instances
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
@@ -528,10 +538,9 @@ extern L7_RC_t ptin_igmp_client_delete(L7_uint16 evc_idx, ptin_client_id_t *clie
 /**
  * Remove all Multicast clients 
  * 
- * @param McastEvcId  : Multicast evc id
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_all_clients_flush(L7_uint16 McastEvcId);
+extern L7_RC_t ptin_igmp_all_clients_flush(void);
 
 /**
  * Get list of channels, starting from a specific channel index
@@ -685,6 +694,13 @@ extern L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t igmp_assoc_channel_clear( L7_uint16 evc_uc, L7_uint16 evc_mc );
+
+/**
+ * Remove all associations
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t igmp_assoc_clean_all(void);
 #endif
 
 /******************************************************** 
