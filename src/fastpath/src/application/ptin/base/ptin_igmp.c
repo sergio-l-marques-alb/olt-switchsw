@@ -6281,7 +6281,7 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   L7_uint16            intf_idx;
   ptin_evc_intfCfg_t   intfCfg;
 #endif
-  L7_uint32 flags;
+  L7_uint32 flags, mc_flood;
 
   enable &= 1;
 
@@ -6404,20 +6404,25 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   }
 
   /* Disable/Reenable Multicast rate limit */
-  if (ptin_evc_flags_get(evc_idx_mc, &flags)==L7_SUCCESS &&
-      flags & PTIN_EVC_MASK_CPU_TRAPPING)
+  if (ptin_evc_flags_get(evc_idx_mc, &flags, &mc_flood)==L7_SUCCESS && mc_flood)    /* Get EVC options: only if MC flood is active */
   {
-    /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
-    if (enable)
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Apply only to non QUATTRO-P2P or unique QUATTRO-P2P evcs */
+    if ( !(flags & PTIN_EVC_MASK_QUATTRO) || !(flags & PTIN_EVC_MASK_P2P) || (igmp_quattro_p2p_evcs <= 1) )
+    #endif
     {
-      ptin_multicast_rateLimit(L7_DISABLE, mc_vlan);
-      ptin_broadcast_rateLimit(L7_ENABLE , mc_vlan);
-    }
-    /* And vice-versa */
-    else
-    {
-      ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
-      ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
+      /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
+      if (enable)
+      {
+        ptin_multicast_rateLimit(L7_DISABLE, mc_vlan);
+        ptin_broadcast_rateLimit(L7_ENABLE , mc_vlan);
+      }
+      /* And vice-versa */
+      else
+      {
+        ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
+        ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
+      }
     }
   }
 
