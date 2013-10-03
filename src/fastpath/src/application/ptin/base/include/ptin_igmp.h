@@ -422,12 +422,11 @@ extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
  * 
  * @param evc_idx   : evc index
  * @param enable    : enable flag 
- * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
- *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
+ * @param set_trap  : configure trap rule?  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+extern L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_trap);
 
 /**
  * Update snooping configuration, when interfaces are 

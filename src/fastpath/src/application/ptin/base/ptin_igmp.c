@@ -5341,12 +5341,11 @@ static L7_RC_t igmp_assoc_avlTree_purge( void )
  * 
  * @param evc_idx   : evc index
  * @param enable    : enable flag 
- * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
- *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
+ * @param set_trap  : configure trap rule? 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_trap)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* IGMP instance management already deal with trp rules */
@@ -5356,11 +5355,14 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t di
     return L7_SUCCESS;
   }
 
-  /* Configure trap rule */
-  if (ptin_igmp_evc_trap_configure(evc_idx, enable, direction) != L7_SUCCESS)
+  if (set_trap)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
-    return L7_FAILURE;
+    /* Configure trap rule */
+    if (ptin_igmp_evc_trap_configure(evc_idx, enable, PTIN_DIR_BOTH) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
+      return L7_FAILURE;
+    }
   }
 
   #ifdef IGMP_QUERIER_IN_UC_EVC
@@ -5368,7 +5370,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t di
   if (ptin_igmp_evc_querier_configure(evc_idx,enable)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring querier to %u",evc_idx,enable);
-    ptin_igmp_evc_trap_configure(evc_idx, !enable, direction);
+    ptin_igmp_evc_trap_configure(evc_idx, !enable, PTIN_DIR_BOTH);
     return L7_FAILURE;
   }
   #endif
