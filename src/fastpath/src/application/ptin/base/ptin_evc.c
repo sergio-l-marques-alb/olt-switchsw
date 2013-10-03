@@ -1460,14 +1460,30 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* Add a broadcast rate limiter for unstacked services */
     if ( cpu_trap )
     {
-      if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+      if (evcConf->mc_flood)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_idx);
-        error = L7_TRUE;
+        /* Rate limiter for MC */
+        if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_idx);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_idx);
+        }
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_idx);
+        if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_idx);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_idx);
+        }
       }
     }
 
@@ -1594,7 +1610,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Remove the broadcast rate limiter for unstacked services */
       if ( cpu_trap)
       {
-        ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
+        ptin_broadcast_rateLimit(L7_DISABLE, root_vlan);
+        ptin_multicast_rateLimit(L7_DISABLE, root_vlan);
       }
 
       if (evc_idx == PTIN_EVC_INBAND)
@@ -1865,6 +1882,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_idx)
   if (IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
+    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
   }
 
@@ -2054,6 +2072,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
   if (IS_EVC_WITH_CPU_TRAP(evc_idx))
   {
     ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
+    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
   }
 
