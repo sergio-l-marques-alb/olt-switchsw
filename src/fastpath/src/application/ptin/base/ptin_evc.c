@@ -1907,9 +1907,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (igmp_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+    if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
@@ -1938,9 +1938,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
       /* Remove IGMP trap rules */
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-      if (igmp_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+      if (igmp_enabled)
       {
-        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH);
+        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs));
       }
       #endif
 
@@ -2128,9 +2128,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (igmp_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+    if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
       }
@@ -2252,12 +2252,9 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
-      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
     /* Update number of igmp quattro-p2p evcs */
     DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
@@ -2425,12 +2422,9 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
-      }
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
     /* Update number of igmp quattro-p2p evcs */
     DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
@@ -3094,16 +3088,13 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     /* Configure trap rule (only at addition - this should not activate IGMP flag) */
     if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
     {
-      if (NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)) != L7_SUCCESS)
       {
-        if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
-        {
-          #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-          ptin_igmp_client_delete(evc_ext_id, &clientId);
-          #endif
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
-          return L7_FAILURE;
-        }
+        #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        ptin_igmp_client_delete(evc_ext_id, &clientId);
+        #endif
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
+        return L7_FAILURE;
       }
       /* Update number of igmp quattro-p2p evcs */
       INCREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
@@ -3350,14 +3341,11 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   {
     if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
-      if (UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+      /* Remove trap rule */
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
       {
-        /* Remove trap rule */
-        if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
-          return L7_FAILURE;
-        }
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
+        return L7_FAILURE;
       }
       /* Update number of IGMP QUATTRO-P2P evcs */
       DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
