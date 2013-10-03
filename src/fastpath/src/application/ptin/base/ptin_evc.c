@@ -889,7 +889,7 @@ L7_RC_t ptin_evc_intRootVlan_get_fromIntVlan(L7_uint16 intVlan, L7_uint16 *intRo
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags)
+L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc_flood)
 {
   L7_uint32 evc_id;
 
@@ -909,9 +909,11 @@ L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags)
 
   ptin_evc_ext2int(evc_ext_id, &evc_id);
 
-  /* Return root vlan */
-  if (flags != L7_NULLPTR)
-    *flags = evcs[evc_id].flags;
+  /* Return evc flags */
+  if (flags != L7_NULLPTR)    *flags = evcs[evc_id].flags;
+
+  /* Return mc_flood status */
+  if (mc_flood != L7_NULLPTR) *mc_flood = evcs[evc_id].mc_flood;
 
   return L7_SUCCESS;
 }
@@ -1788,27 +1790,31 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P || n_quattro_p2p_evcs == 0)
       #endif
       {
-        #if 0
-        /* Rate limiter for BC */
-        if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+        if (evcConf->mc_flood)
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
-          error = L7_TRUE;
+          /* Rate limiter for MC */
+          if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
+            error = L7_TRUE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
+          }
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
-        }
-        #endif
-        /* Rate limiter for MC */
-        if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
-          error = L7_TRUE;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
+          /* Rate limiter for BC */
+          if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
+            error = L7_TRUE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
+          }
         }
       }
     }

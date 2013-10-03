@@ -254,11 +254,12 @@ extern L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRoot
  * Gets flag options for a particular evc
  * 
  * @param evc_ext_id: EVC extended id 
- * @param flags     : Flag options
+ * @param flags     : Flag options 
+ * @param mc_flood  : Multicast flood
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags);
+extern L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc_flood);
 
 /**
  * Get the outer+inner external vlan for a specific 
