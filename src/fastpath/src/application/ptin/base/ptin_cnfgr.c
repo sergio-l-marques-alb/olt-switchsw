@@ -32,6 +32,7 @@
 #include "ptin_pppoe.h"
 #include "ptin_ssm.h"
 #include "ptin_prot_erps.h"
+#include "ptin_ipdtl0_packet.h"
 #include <ptin_prot_oam_eth.h>
 
 #include "ipc.h"
@@ -341,6 +342,11 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Initialize ERPS data structures (includes semaphores and timer) */
   #ifdef PTIN_ENABLE_ERPS
   ptin_prot_erps_init();
+  #endif
+
+  /* IP dtl0 module initialization. */
+  #ifdef PTIN_ENABLE_DTL0TRAP
+  ptin_ipdtl0_init();
   #endif
 
   #if ( PTIN_BOARD_IS_STANDALONE )

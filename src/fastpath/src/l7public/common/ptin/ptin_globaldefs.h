@@ -17,6 +17,7 @@
 #if PTIN_BOARD_IS_MATRIX
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
+  #define PTIN_ENABLE_DTL0TRAP
 
   #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
   #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
@@ -889,6 +890,7 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #define RATE_LIMIT_MCAST    1024
 #define RATE_LIMIT_APS      512
 #define RATE_LIMIT_CCM      512
+#define RATE_LIMIT_IPDTL0   512
 
 /* PTin module states */
 typedef enum {
