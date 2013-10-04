@@ -97,14 +97,20 @@ static L7_int32  snoopPTinProxy_decode_max_resp_code(L7_uchar8 family, L7_int32 
 {
   L7_int32           max_resp_time = 0;
 
+#if  !SNOOP_PTIN_CISCO_MAX_RESPONSE_CODE_BUG
   if (max_resp_code < 0x80)
   {
     max_resp_time= max_resp_code;
   }
   else
   {
+   
     max_resp_time= ((max_resp_code & 0x0F) | 0x10) << (((max_resp_code & 0x70) >>4)+3);
   }
+#else
+//Since Cisco equiments consider Max Response Code=Max Response Time, we will behave accordingly 
+   max_resp_time= max_resp_code;
+#endif
 
   if (family == L7_AF_INET)
   {
@@ -139,7 +145,7 @@ static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 maxResponseTim
 #include"rng_api.h"//MMELO
 #include"osapi.h"//MMELO
 #endif
-  L7_int32 selectedDelay = 0;
+  L7_int32 selectedDelay;
 
 #if 0
   extern L7_double64 L7_Random(void);
@@ -150,22 +156,11 @@ static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 maxResponseTim
 
   randval =  L7_Random();
 #endif
-
-  if (maxResponseTime<1)
-    selectedDelay=1;
-  else /*if (randval<0.5)
-    selectedDelay=1;
-  else if (maxResponseTime *randval>maxResponseTime || maxResponseTime *randval<1)*/
-    selectedDelay =maxResponseTime/2;
-//else
-//  selectedDelay= maxResponseTime *randval;
-
-#if 0
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP,
-            "selectedDelay %u  randval %e",selectedDelay, randval);
-#endif
-
-  return(selectedDelay);
+ 
+  if ((selectedDelay=maxResponseTime/2)<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL)
+    selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
+  
+ return(selectedDelay);
 }
 
 /*End PTin Added: MGMD Proxy*/
@@ -2523,7 +2518,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   /* Interface must be root */
   if (ptin_igmp_rootIntfVlan_validate(mcastPacket->intIfNum, mcastPacket->vlanId)!=L7_SUCCESS)
   {
-    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
+//  ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"This is not a root interface (intIfNum=%u)! Packet silently discarded.",mcastPacket->intIfNum);
     return L7_ERROR;
   }
@@ -3009,7 +3004,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     }
   }
 
-  if (ptr !=L7_NULLPTR && sendReport==L7_TRUE && timeout>=1)
+  if (ptr !=L7_NULLPTR && sendReport==L7_TRUE && timeout>=PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Scheduling Membership Report Message with timeout: %u ",timeout); 
 
@@ -3023,7 +3018,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "sendReport Flag is equal to L7_TRUE, while groupPtr=L7_NULLPTR");      
   }
-  else if (timeout<1)
+  else if (timeout<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Selected delay smaller than allowed value (%u<1)",timeout);
   }

@@ -795,10 +795,6 @@ static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
                                               ptin_igmpChannelInfo_t *channel_list,
                                               L7_uint16 *num_channels,
                                               L7_uint16 max_num_channels);
-static void snoopChannelsGet(L7_uint16 vlanId,
-                             L7_uint16 client_index,
-                             ptin_igmpChannelInfo_t *channel_list,
-                             L7_uint16 *num_channels); //Supports IGMPv3
 
 /***************************************************************************
 * @purpose  Check if a particular channel group have no interfaces attached
@@ -1352,7 +1348,7 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       else
       {
         if (ptin_debug_igmp_snooping)
-          LOG_WARNING(LOG_CTX_PTIN_IGMP,"Interface %u is already active",intIfNum);
+          LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already active",intIfNum);
       }
     }
   }
@@ -2315,7 +2311,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum)
+L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum,L7_BOOL isStatic)
 {
   snoopInfoData_t *snoopEntry;
   char dmac[L7_ENET_MAC_ADDR_LEN];
@@ -2344,7 +2340,7 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_ui
     if (ptin_debug_igmp_snooping)
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoop entry does not exist");
     /* Entry does not exist... give back the semaphore and create new entry */
-    if (snoopEntryCreate(dmac, vlanId, L7_AF_INET, L7_FALSE)!=L7_SUCCESS)
+    if (snoopEntryCreate(dmac, vlanId, L7_AF_INET, isStatic)!=L7_SUCCESS)
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP, "snoopEntryCreate failed. Table full");
@@ -2371,6 +2367,9 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_ui
     return L7_FAILURE;
   }
 
+  
+  if(isStatic==L7_TRUE)
+    snoopEntry->staticGroup=L7_FALSE;
   /* Add interface for this channel */
   if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
   {
@@ -2378,6 +2377,8 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_ui
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfAdd failed");
     return L7_FAILURE;
   }
+  if(isStatic==L7_TRUE)
+    snoopEntry->staticGroup=L7_TRUE;
 
   return L7_SUCCESS;
 }
@@ -2694,36 +2695,16 @@ void snoopChannelsListGet(L7_uint16 vlanId,
                           L7_uint16 *num_channels)
 {
   L7_uint16             max_num_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES;
-  ptin_IgmpProxyCfg_t   igmpCfg;
-
+ 
   if (num_channels==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return;
   }
-
-  /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
-    return;
-  }
-
-  //TODO: In the future, this MUST retrieve all channels from the IGMPv3 structures. However, that is postponed until compatibility mode in IGMPv3 is supported.
-  if (igmpCfg.clientVersion == 2)
-  {
-    snoopChannelsListGet_v2_recursive(L7_NULLPTR, vlanId, client_index, channel_list, num_channels, max_num_channels);
-  }
-  else if (igmpCfg.clientVersion == 3)
-  {
-    snoopChannelsGet(vlanId, client_index, channel_list, num_channels);
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "We've read num_channels:%u",*num_channels);
-  }
-  else
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
-    return;
-  }
+ 
+  snoopChannelsListGet_v2_recursive(L7_NULLPTR, vlanId, client_index, channel_list, num_channels, max_num_channels);
+ 
+  
 }
 
 /**
@@ -2905,13 +2886,15 @@ static void snoopChannelsListGet_v2_recursive(avlTreeTables_t *cell_ptr,
  * Client VLAN. 
  * 
  * @param cell_ptr          Pointer to the AVL Tree element
- * @param vlanId            UNI VLAN
+ * @param vlanId            UNI VLAN 
+ * @param vlanId            intIfNum 
  * @param client_index      Client index
  * @param channel_list      Channels list (output)
  * @param num_channels      Number of channels (output) 
  * @param max_num_channels  Maximum number of channels
  */
-static void snoopChannelsGet(L7_uint16 vlanId,
+void snoopChannelsGet(L7_uint16 vlanId,
+                             L7_uint32 intIfNum,
                              L7_uint16 client_index,
                              ptin_igmpChannelInfo_t *channel_list,
                              L7_uint16 *num_channels)
@@ -2972,12 +2955,12 @@ static void snoopChannelsGet(L7_uint16 vlanId,
       //Add an entry for clients that have requested this group but with no source in particular.
       interface_ptr = &avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM];
 
-
-      for (sourceIdx=0; sourceIdx <= PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
+      
+      for (sourceIdx=0; sourceIdx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
       {
         snoopPTinL3Source_t *source_ptr;
 
-        source_ptr = &interface_ptr->sources[sourceIdx];
+        source_ptr = &interface_ptr->sources[sourceIdx];        
 
 #if 0
 //Only consider sources for which traffic forwarding is enabled
@@ -2999,9 +2982,9 @@ static void snoopChannelsGet(L7_uint16 vlanId,
         if (avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE &&  
             avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].sourceTimer.isRunning==L7_TRUE &&
             snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].sources[sourceIdx].clients)==L7_ALREADY_CONFIGURED)
-        {
+        { 
           //Filter by client (if requested)
-          if ((client_index == (L7_uint16)-1) || (PTIN_IS_MASKBITSET(interface_ptr->clients, client_index)))
+          if ((client_index == (L7_uint16)-1) || (PTIN_IS_MASKBITSET(avlTreeEntry->interfaces[intIfNum].sources[sourceIdx].clients, client_index)))
           {
             LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource:0x%08X Clients:0x%0*X", 8*PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE, source_ptr->sourceAddr);
             inetCopy(&channel_list[*num_channels].groupAddr, &avlTreeKey.mcastGroupAddr);
@@ -3024,16 +3007,17 @@ static void snoopChannelsGet(L7_uint16 vlanId,
       if (interface_ptr->numberOfClients != 0)
       {
         //Filter by client (if requested)
-        if ((client_index == (L7_uint16)-1 && channelAdded==L7_FALSE)  || (PTIN_IS_MASKBITSET(interface_ptr->clients, client_index)))
+        if (channelAdded==L7_FALSE && ((client_index == (L7_uint16)-1 )  || (PTIN_IS_MASKBITSET(avlTreeEntry->interfaces[intIfNum].clients, client_index))))
         {
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"\t\tSource: ANY_SOURCE");
           inetCopy(&channel_list[*num_channels].groupAddr, &avlTreeKey.mcastGroupAddr);
           inetAddressReset(&channel_list[*num_channels].sourceAddr);
           channel_list[*num_channels].static_type = avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].isStatic;
-          ++(*num_channels);
-          channelAdded=L7_FALSE;
+          ++(*num_channels);          
         }
       }
+      if(channelAdded==L7_TRUE)
+        channelAdded=L7_FALSE;
     }
   }
 }
@@ -4696,12 +4680,12 @@ snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7
 
   if (pData == L7_NULL)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Unable to find Interface in the AVL Tree (vlanId:%u)",vlanId);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Unable to find root vlan in the AVL Tree (vlanId:%u)",vlanId);
     return L7_NULLPTR;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Interface  found in the AVL Tree (vlanId:%u)",vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Root vlan  found in the AVL Tree (vlanId:%u)",vlanId);
     return pData;
   }
 }
@@ -4753,11 +4737,11 @@ snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_
 
   if (pData == L7_NULL)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Interface added to the AVL Tree(vlanId:%u)",vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Root vlan added to the AVL Tree(vlanId:%u)",vlanId);
     /*entry was added into the avl tree*/
     if ((pData = snoopPTinProxyInterfaceEntryFind(vlanId, AVL_EXACT)) == L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find Interface in the AVL Tree, after adding it! (vlanId:%u)",vlanId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find root vlan in the AVL Tree, after adding it! (vlanId:%u)",vlanId);
       return L7_NULLPTR;
     }
     *newEntry=L7_TRUE; 
@@ -4767,12 +4751,12 @@ snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_
   if (pData == &snoopEntry)
   {
     /*some error in avl tree addition*/
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to add Interface to the AVL Tree(vlanId:%u)",vlanId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to add root vlan to the AVL Tree(vlanId:%u)",vlanId);
     return L7_NULLPTR;
   }
 
   /*entry already exists*/
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Interface previouly added to the AVL Tree(vlanId:%u)",pData->key.vlanId);
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Root vlan previouly added to the AVL Tree(vlanId:%u)",pData->key.vlanId);
   return pData;
 }
 
@@ -4811,13 +4795,13 @@ L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId)
   snoopNotifyL3Mcast(macAddr, vlanId, &zeroMask);
 #endif /* L7_MCAST_PACKAGE */
 #endif
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove Interface from the AVL Tree (vlanId:%u)",vlanId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to remove root vlan from the AVL Tree (vlanId:%u)",vlanId);
   pData = avlDeleteEntry(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, pData);
 
   if (pData == L7_NULL)
   {
     /* Entry does not exist */    
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Interface does not exist in the AVL Tree (vlanId:%u)",vlanId);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Root vlan does not exist in the AVL Tree (vlanId:%u)",vlanId);
     return L7_FAILURE;
   }
   if (pData == snoopEntry)

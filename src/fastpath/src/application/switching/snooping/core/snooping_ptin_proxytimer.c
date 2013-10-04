@@ -382,6 +382,10 @@ void timerCallback(void *param)
   snoopPTinProxyGroup_t*     groupPtr=L7_NULLPTR;
   snoopPTinProxyInterface_t* interfacePtr;
   L7_uint8                  robustnessVariable;
+  L7_BOOL                   isInterface;
+  L7_uint8                  reportType;
+  L7_uint32                 noOfRecords;
+  void*                     groupData;
 
   L7_uint32               timerHandle;
   snoopPTinProxyTimer_t *pTimerData;  
@@ -409,7 +413,7 @@ void timerCallback(void *param)
   if (pTimerData->isInterface)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proxy Interface timer expired (vlan:%u)",
-            ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);
+            ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);    
     interfacePtr    = (snoopPTinProxyInterface_t *) pTimerData->groupData;
   }
   else
@@ -420,7 +424,10 @@ void timerCallback(void *param)
     interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->interfacePtr;    
   }
   robustnessVariable=pTimerData->robustnessVariable;
-   
+  isInterface=pTimerData->isInterface;
+  reportType=pTimerData->reportType;
+  noOfRecords=pTimerData->noOfRecords;
+  groupData=pTimerData->groupData;
   /* Remove node for SLL list */
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
   {
@@ -437,7 +444,7 @@ void timerCallback(void *param)
     return ;
   }
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Trigger Membership Report Message");
-  if (snoopPTinScheduleReportMessage(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,pTimerData->reportType,0,pTimerData->isInterface,pTimerData->noOfRecords,pTimerData->groupData,robustnessVariable)!=L7_SUCCESS)
+  if (snoopPTinScheduleReportMessage(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,reportType,0,isInterface,noOfRecords,groupData,robustnessVariable)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
     return ;
@@ -514,7 +521,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
               inetAddrPrint(&pTimer->(snoopPTinProxyGroup_t*)(groupData)->key.groupAddr, debug_buf));
 #else
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u)",timeout);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Group timer (timeout:%u groupRecord:%u",timeout);
 #endif
   }
 

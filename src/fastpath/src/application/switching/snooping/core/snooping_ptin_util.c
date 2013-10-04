@@ -1127,6 +1127,7 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
 //  return;
 //}
 
+  printf("-----------------------------------------\n");
   /* Search for the requested multicast group */
   if (L7_NULLPTR != (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
   {
@@ -1141,27 +1142,30 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
       {
         L7_uint32 sourceIdx; 
 
-        printf("Interface: %02u |\n", ifIdx);
+        printf("Interface: %02u |\n", ifIdx);                
+        printf("              |Static:         %s\n", snoopEntry->interfaces[ifIdx].isStatic?"Yes":"No");        
+        printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
+        printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);        
+        printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));                
+        printf("              |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].numberOfClients);        
         printf("              |Clients: ");
         L7_int8 clientIdx;
         for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
         {
           printf("%08X", snoopEntry->interfaces[ifIdx].clients[clientIdx]);
-        }
+        }                      
         printf("\n");
-        printf("              |Filter-Mode:    %s\n", snoopEntry->interfaces[ifIdx].filtermode==PTIN_SNOOP_FILTERMODE_INCLUDE?"Include":"Exclude");
-        printf("              |Nbr of Sources: %u\n", snoopEntry->interfaces[ifIdx].numberOfSources);
-        printf("              |Group-Timer:    %u\n", snoop_ptin_grouptimer_timeleft(&snoopEntry->interfaces[ifIdx].groupTimer));        
         for (sourceIdx=0; sourceIdx<PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
         {
           if (snoopEntry->interfaces[ifIdx].sources[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
           {
             L7_int8 clientIdx;
             printf("                       |Source: %s\n", inetAddrPrint(&(snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceAddr), debug_buf));
-            printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");
+            printf("                                |Static:%s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].isStatic?"Yes":"No");
+            printf("                                |status:         %s\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].status==PTIN_SNOOP_SOURCESTATE_ACTIVE?"Active":"ToRemove");            
             printf("                                |Source-Timer:   %u\n", snoop_ptin_sourcetimer_timeleft(&snoopEntry->interfaces[ifIdx].sources[sourceIdx].sourceTimer));
-            printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);
-            printf("                                |Clients: ");
+            printf("                                |Nbr of Clients: %u\n", snoopEntry->interfaces[ifIdx].sources[sourceIdx].numberOfClients);            
+            printf("                                |Clients: ");            
             for (clientIdx=(PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE-1); clientIdx>=0; --clientIdx)
             {
               printf("%08X", snoopEntry->interfaces[ifIdx].sources[sourceIdx].clients[clientIdx]);
@@ -1174,8 +1178,9 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText)
   }
   else
   {
-    printf("Unknown Group %s VlanId %u\n", inetAddrPrint(&groupAddr, debug_buf), vlanId);
+    printf("Unknown Group %s VlanId %u\n", inetAddrPrint(&groupAddr, debug_buf), vlanId);    
   }
+  printf("-----------------------------------------\n");
 }
 
 
@@ -1301,7 +1306,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
     }
     if (++groupPtrAux->retransmissions>=groupPtrAux->robustnessVariable)
     {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing Group Record %s with recorType %u  (retransmissions:%u)", inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType,groupPtrAux->retransmissions);      
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Adding Group Record %s with recorType %u  (retransmissions:%u) to Removal List", inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType,groupPtrAux->retransmissions);      
       groupAddr[noOfGroupRecord2remove]=&groupPtrAux->key.groupAddr;
       recordType[noOfGroupRecord2remove++]=groupPtrAux->key.recordType;                  
 
@@ -1384,7 +1389,7 @@ static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGr
   {
     if (++sourcePtrTmp->retransmissions>=sourcePtrTmp->robustnessVariable)
     {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Going to add Source Address %s from the group record (retransmissions:%u) to removal list", inetAddrPrint(&sourcePtrTmp->key.sourceAddr, debug_buf),sourcePtrTmp->retransmissions); 
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Adding Source Address %s from the group record (retransmissions:%u) to Removal List", inetAddrPrint(&sourcePtrTmp->key.sourceAddr, debug_buf),sourcePtrTmp->retransmissions); 
       sourceAddr[noOfSources2Remove++]=&sourcePtrTmp->key.sourceAddr;      
     }
     sourcePtrTmp=sourcePtrTmp->nextSource;
@@ -1477,6 +1482,9 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
 
     if (avlTreeEntry->snoopPTinL3InfoDataKey.vlanId==interfacePtr->key.vlanId && 
         avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_TRUE && 
+#if (PTIN_BOARD_IS_LINECARD)
+        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].isStatic==L7_FALSE && 
+#endif
         snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)==L7_ALREADY_CONFIGURED)
     {
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Address Number %u",++groupIdx);

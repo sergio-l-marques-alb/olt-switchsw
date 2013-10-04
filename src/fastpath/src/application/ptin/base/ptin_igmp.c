@@ -1548,6 +1548,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
   L7_uint16                i, max_channels, n_channels;
   L7_uint                  igmp_idx, client_idx;
   L7_uint16                McastRootVlan;
+  L7_uint32                intIfNum;
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
@@ -1611,6 +1612,8 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     }
     /* Extract client index */
     client_idx = clientInfo->client_index;
+    /* Extract Interface Number */
+    ptin_intf_ptintf2intIfNum(&client->ptin_intf,&intIfNum);
   }
   else
   {
@@ -1626,7 +1629,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint16 McastEvcId, ptin_client_id_t *client
     channelList_size = 0;
 
     n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
-    if (ptin_snoop_activeChannels_get(McastRootVlan, client_idx, channelList, &n_channels) != L7_SUCCESS)
+    if (ptin_snoop_activeChannels_get(McastRootVlan,intIfNum, client_idx, channelList, &n_channels) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting channels list");
       return L7_FAILURE;
@@ -1706,8 +1709,9 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   /* Get IGMP instance index */
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
-    return L7_FAILURE;
+    *number_of_clients=0;
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
+    return L7_NOT_EXIST;
   }
 
   /* For the first reading, get the clients list */
@@ -1724,11 +1728,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
       }
 
       /* Channel to search for */
+      memset(&channel,0x00,sizeof(L7_inet_addr_t));
       channel.family = L7_AF_INET;
       channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
       /* Get list of client indexes for this vlan */
-      if (ptin_snoop_clientsList_get(&channel,McastRootVlan,clientIdx_bmp_list,L7_NULLPTR)!=L7_SUCCESS)
+      if (ptin_snoop_clientsList_get(&channel,McastRootVlan,clientIdx_bmp_list,number_of_clients)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting list of clients");
         return L7_FAILURE;
@@ -1763,29 +1768,29 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
       if ( !((clientIdx_bmp_list[client_idx/UINT32_BITSIZE]>>(client_idx%UINT32_BITSIZE)) & 1) )
         continue;
 
-      #if (MC_CLIENT_INTERF_SUPPORTED)
+#if (MC_CLIENT_INTERF_SUPPORTED)
       /* Convert port to interface */
       if (ptin_intf_port2ptintf(infoData->igmpClientDataKey.ptin_port, &ptin_intf)!=L7_SUCCESS)
         continue;
       clientList[n_clients].ptin_intf = ptin_intf;
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-      #endif
-      #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+#endif
+#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
       clientList[n_clients].outerVlan = infoData->igmpClientDataKey.outerVlan;
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-      #endif
-      #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+#endif
+#if (MC_CLIENT_INNERVLAN_SUPPORTED)
       clientList[n_clients].innerVlan = infoData->igmpClientDataKey.innerVlan;
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-      #endif
-      #if (MC_CLIENT_IPADDR_SUPPORTED)
+#endif
+#if (MC_CLIENT_IPADDR_SUPPORTED)
       clientList[n_clients].ipv4_addr = infoData->igmpClientDataKey.ipv4_addr;
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
-      #endif
-      #if (MC_CLIENT_MACADDR_SUPPORTED)
+#endif
+#if (MC_CLIENT_MACADDR_SUPPORTED)
       memcpy(clientList[n_clients].macAddr, infoData->igmpClientDataKey.macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
       clientList[n_clients].mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
-      #endif
+#endif
 
       /* Restore client id structure */
       if (ptin_igmp_clientId_restore(&clientList[n_clients])!=L7_SUCCESS)
@@ -1838,7 +1843,7 @@ L7_RC_t ptin_igmp_static_channel_add(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_ch
 {
   L7_uint igmp_idx;
   L7_uint16 McastRootVlan;
-  L7_inet_addr_t channel;
+  L7_inet_addr_t channel; 
 
   /* Validate arguments */
   if (ipv4_channel==L7_NULLPTR || ipv4_channel->s_addr==0)
@@ -1862,6 +1867,8 @@ L7_RC_t ptin_igmp_static_channel_add(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_ch
   }
 
   /* Channel */
+  /*Since we are using the Group Address as a key in the AVL Tree, we need to set all bits to 0 to avoid having bits at unknown state*/
+  memset(&channel , 0x00, sizeof(L7_inet_addr_t));
   channel.family = L7_AF_INET;
   channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
@@ -1911,6 +1918,8 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint16 McastEvcId, L7_in_addr_t *ipv4_channe
   }
 
   /* Channel */
+  /*Since we are using the Group Address as a key in the AVL Tree, we need to set all bits to 0 to avoid having bits at unknown state*/
+  memset(&channel , 0x00, sizeof(L7_inet_addr_t));  
   channel.family = L7_AF_INET;
   channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
