@@ -509,5 +509,21 @@ L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid)
     return (ptin_ipdtl0_dtl0Vid2outerVid[dtl0Vid]);
 }
 
+#else
+
+/***************************************
+ * DUMMY ROUTINES
+ ***************************************/
+
+L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid)
+{
+    return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
+}
+
+L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid)
+{
+    return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
+}
+
 #endif /* PTIN_ENABLE_DTL0TRAP */
 
