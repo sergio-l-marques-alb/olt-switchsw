@@ -113,5 +113,8 @@ L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 
 #endif  /* _PTIN_IP_DTL0_PACKET_H */
 
+#else
+L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
+L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 #endif /* PTIN_ENABLE_DTL0TRAP */
 
