@@ -3087,6 +3087,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         SETIPCACKOK(outbuffer);
+        outbuffer->infoDim = sizeof(msg_erps_status_t);
         LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
