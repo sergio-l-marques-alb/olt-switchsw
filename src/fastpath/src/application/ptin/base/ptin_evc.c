@@ -4402,7 +4402,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
   if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
-  bridge.index          = evc_id;
+  bridge.index          = evcs[evc_id].extended_id;
   bridge.intf.intf_type = intf_idx < PTIN_SYSTEM_N_PORTS ? PTIN_EVC_INTF_PHYSICAL : PTIN_EVC_INTF_LOGICAL;
   bridge.intf.intf_id   = intf_idx < PTIN_SYSTEM_N_PORTS ? intf_idx : intf_idx - PTIN_SYSTEM_N_PORTS;
   bridge.intf.mef_type  = evcs[evc_id].intf[intf_idx].type;
@@ -4509,7 +4509,7 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 int
   }
 
   /* Build struct to remove bridge */
-  bridge.index          = evc_id;
+  bridge.index          = evcs[evc_id].extended_id;
   bridge.intf.intf_type = ptin_intf.intf_type;
   bridge.intf.intf_id   = ptin_intf.intf_id;
   bridge.intf.mef_type  = evcs[evc_id].intf[intf_idx].type;
