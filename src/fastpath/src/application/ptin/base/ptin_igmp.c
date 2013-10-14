@@ -2003,7 +2003,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
   L7_uint         igmp_idx, client_idx;
   L7_inet_addr_t  channel;
   L7_uint16       n_clients, max_clients;
-  L7_uint32       clientIdx_bmp_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/UINT32_BITSIZE];
+  L7_uint32       clientIdx_bmp_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/UINT32_BITSIZE+1];
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientDataKey_t   key;
   ptinIgmpClientInfoData_t *infoData;

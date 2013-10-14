@@ -27,6 +27,6 @@ mkdir -p $APPS_FOLDER/backup/$PLATFORM_FOLDER
 mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
 
 echo "Copying $PLATFORM binaries"
-cp $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
-cp $BIN_PATH/$BIN_FILE.unstripped $APPS_FOLDER/backup/$PLATFORM_FOLDER
+cp -v $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
+cp -v $BIN_PATH/$BIN_FILE.unstripped $APPS_FOLDER/backup/$PLATFORM_FOLDER
 echo "Done!"

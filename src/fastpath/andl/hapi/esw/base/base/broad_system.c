@@ -3418,7 +3418,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       }
 
       /* give IGMP frames high priority and trap to the CPU. */
-      result = hapiBroadPolicyRuleAdd(&ruleId);
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
@@ -4517,7 +4517,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* APS packets from client */
-      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  {
         break;
       }
@@ -4705,7 +4705,7 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* CCM packets from client */
-      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
       if (result != L7_SUCCESS)  {
         break;
       }
