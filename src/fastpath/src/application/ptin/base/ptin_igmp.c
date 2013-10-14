@@ -2102,6 +2102,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
       /* Restore client id structure */
       if (ptin_igmp_clientId_restore(&clientList[n_clients])!=L7_SUCCESS)
       {
+        osapiSemaGive(ptin_igmp_clients_sem);
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error restoring client id structure");
         return L7_FAILURE;
       }
