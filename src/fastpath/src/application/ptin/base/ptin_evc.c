@@ -1460,7 +1460,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* Add a broadcast rate limiter for unstacked services */
     if ( cpu_trap )
     {
-      if (evcConf->mc_flood)
+      if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
       {
         /* Rate limiter for MC */
         if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
