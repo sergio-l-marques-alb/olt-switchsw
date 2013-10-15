@@ -2081,11 +2081,19 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
     pSnoopOperEntry->snoopQuerierInfo.qqic=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+#if ( PTIN_BOARD_IS_MATRIX )
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_MIN_ROBUSTNESS_VARIABLE;    
+#else
     pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;    
+#endif
   }
   else
   {    
+#if ( PTIN_BOARD_IS_MATRIX )
+    pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_MIN_ROBUSTNESS_VARIABLE;
+#else
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;    
+#endif    
     pSnoopOperEntry->snoopQuerierInfo.qqic=igmpCfg.querier.query_interval;    
     pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=igmpCfg.querier.query_response_interval;    
   }

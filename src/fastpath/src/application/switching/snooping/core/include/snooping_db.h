@@ -166,7 +166,7 @@ L7_RC_t snoopPTinProxySourceEntryDelete(snoopPTinProxyGroup_t* groupPtr, L7_inet
 
 snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_uint32 flag);
 snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t * interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_BOOL* newEntry,L7_uint8 robustnessVariable);
-L7_RC_t snoopPTinProxyGroupEntryDelete(snoopPTinProxyInterface_t * interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType);
+L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType);
 
 snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7_uint32 flag);
 snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_BOOL* newEntry);

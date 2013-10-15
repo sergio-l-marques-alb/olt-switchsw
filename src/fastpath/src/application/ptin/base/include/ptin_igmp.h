@@ -20,6 +20,8 @@
 #define PTIN_IGMP_VERSION_2 2
 #define PTIN_IGMP_VERSION_3 3
 
+#define PTIN_IGMP_MAX_ROOT_PORTS 16
+
 /* Macros to get RFC3376 timer values */
 #define PTIN_IGMP_AUTO_GMI(rv, qi, qri)                 (((rv) * (qi)) + ((qri)/10))
 #define PTIN_IGMP_AUTO_OQPI(rv, qi, qri)                (((rv) * (qi)) + ((qri)/10/2))
@@ -37,7 +39,10 @@
 #define PTIN_IGMP_DEFAULT_FASTLEAVEMODE                 1
 
 /* Default config values (based on RFC3376) */
-#define PTIN_IGMP_DEFAULT_ROBUSTNESS                    2
+#define PTIN_MAX_ROBUSTNESS_VARIABLE 7 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
+#define PTIN_MIN_ROBUSTNESS_VARIABLE 1 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
+#define PTIN_IGMP_DEFAULT_ROBUSTNESS 2
+
 
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
 
@@ -90,6 +95,11 @@
 #define PTIN_IGMP_MAX_RECORDS_PER_REPORT                      64
 
 #define PTIN_IGMP_MIN_RECORDS_PER_REPORT                      1
+
+#define PTIN_IGMP_MIN_VLAN_ID                                 1
+#define PTIN_IGMP_MAX_VLAN_ID                                 4095
+
+
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
@@ -313,7 +323,7 @@ typedef struct
   L7_uint32 active_clients;
  
   /*Global Counters*/
-  L7_uint32 igmp_total_tx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
+  L7_uint32 igmp_tx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
   L7_uint32 igmp_total_rx;  /*This counter is equal to the sum of all IGMP packets received (valid+invalid+dropped*/  
   L7_uint32 igmp_valid_rx;/*This counter is equal to the sum of all valid IGMP packets received*/
   L7_uint32 igmp_invalid_rx;/*This counter is equal to the sum of all invalid IGMP packets received, e.g. invalid message type*/
@@ -356,6 +366,7 @@ typedef struct
   L7_uint32 membership_report_v3;
 
 /*New Fields*/
+//  ptin_IGMPv2_Statistics_t  igmpv2;/*Variable respecting IGMPv2*/  
   ptin_IGMPv3_Statistics_t  igmpv3;/*Variable respecting IGMPv3*/  
   ptin_Query_Statistics_t   igmpquery;/*Variable respecting Query*/
 /*End New Fields*/

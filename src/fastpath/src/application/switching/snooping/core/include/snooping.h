@@ -60,8 +60,6 @@
 
 #define SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM 0
 
-#define SNOOP_PTIN_MAX_ROBUSTNESS_VARIABLE 7 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
-
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0 /*Currently we do not support sending Group and Source Specific Queries*/
 
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 0 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
@@ -405,14 +403,14 @@ typedef enum
   SNOOP_PTIN_IGMPv1 //Here for historical reasons
 }SnoopPtinProxyMRouterVersion_t;
 
-typedef enum
-{
-  SNOOP_PTIN_MEMBERSHIP_REPORT=0,
-  SNOOP_PTIN_GENERAL_QUERY,
-  SNOOP_PTIN_GROUP_SPECIFIC_QUERY,
-  SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY,
-  SNOOP_PTIN_MEMBERSHIP_QUERY
-}SnoopPtinProxy_Query_t;
+//typedef enum
+//{
+//  SNOOP_PTIN_MEMBERSHIP_REPORT=0,
+//  SNOOP_PTIN_GENERAL_QUERY,
+//  SNOOP_PTIN_GROUP_SPECIFIC_QUERY,
+//  SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFIC_QUERY,
+//  SNOOP_PTIN_MEMBERSHIP_QUERY
+//}SnoopPtinProxy_Query_t;
 
 
 typedef struct  snoopPTinProxyGroup_s snoopPTinProxyGroup_t;

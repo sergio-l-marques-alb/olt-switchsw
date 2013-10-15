@@ -31,6 +31,12 @@ void snoopPTinMcastgroupPrint(L7_int32 vlanId,L7_uint32 groupAddrText);
 //Debug method that prints stored information for a specific group record
 void snoopPTinGroupRecordPrint(L7_uint32 vlanId,L7_uint32 groupAddrText,L7_uint8 recordType);
 
+//Debug method that prints stored information for IGMPv3 AVL Tree
+void snoopPTinDumpL3AvlTree(void);
+
+//Debug method that prints stored information for IGMPv3 Group Records AVL Tree
+void snoopPTinDumpGroupRecordAvlTree(void);
+
 L7_RC_t snoopPTinL2ClientAdd      ();  //PLACEHOLDER
 L7_RC_t snoopPTinL2ClientRemove   ();  //PLACEHOLDER
 

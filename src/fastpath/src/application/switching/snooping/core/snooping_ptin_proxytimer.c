@@ -504,7 +504,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     pTimer->robustnessVariable=robustnessVariable;
   }
 
-  if (isInterface  || reportType==SNOOP_PTIN_GENERAL_QUERY)
+  if (isInterface  || reportType==L7_IGMP_MEMBERSHIP_QUERY)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Starting Proxy Interface timer (timeout:%u)",timeout);
   }

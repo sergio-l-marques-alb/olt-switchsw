@@ -771,14 +771,15 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
    * IGMP Querier config
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Querier config:");
-
+  
   /* Querier Robustness */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV
-      && igmpProxyCfg.querier.robustness != igmpProxy->querier.robustness)
+      && igmpProxyCfg.querier.robustness != igmpProxy->querier.robustness && igmpProxy->querier.robustness>=PTIN_MIN_ROBUSTNESS_VARIABLE && igmpProxy->querier.robustness<=PTIN_MAX_ROBUSTNESS_VARIABLE)
   {
     igmpProxyCfg.querier.robustness = igmpProxy->querier.robustness;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.querier.robustness);
   }
+
 
   /* Query Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
@@ -7761,9 +7762,9 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
 /*Query Counters*/
 /*Generic Query*/
   case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->general_queries_sent;
-    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->general_queries_sent;
-    if (stat_client!=L7_NULLPTR)  statClient=stat_client->general_queries_sent;
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpquery.generic_query_invalid_rx;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->igmpquery.generic_query_invalid_rx;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpquery.generic_query_invalid_rx;
     break;
 /*End Generic Query*/
 
@@ -7911,7 +7912,7 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
     if (stat_client!=L7_NULLPTR)  statClient=stat_client->igmpv3.membership_report_dropped_rx;
     break;
 
-    /*GROUP RECORD*/
+        /*GROUP RECORD*/
     /*Allow*/
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
     if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->igmpv3.group_record.allow_tx;
@@ -8748,10 +8749,10 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
 /*End Old Counters*/
 
 /*Generic Query*/
-  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->general_queries_sent++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->general_queries_sent++;
-    if (stat_client!=L7_NULLPTR)  stat_client->general_queries_sent++;
+  case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:  
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->igmpquery.generic_query_invalid_rx++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->igmpquery.generic_query_invalid_rx++;
+    if (stat_client!=L7_NULLPTR)  stat_client->igmpquery.generic_query_invalid_rx++;
     break;
 /*End Generic Query*/
 

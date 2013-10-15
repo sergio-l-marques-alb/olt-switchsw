@@ -1599,7 +1599,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
   } while(0);
 #endif
 
-     /* Forward frame to all interfaces in this VLAN with multicast routers attached */
+  /* Forward frame to all interfaces in this VLAN with multicast routers attached */
   for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
   {
     if ( (L7_INTF_ISMASKBITSET(/*pSnoopOperEntry->*/mcastRtrAttached,           /* PTin modified: IGMP snooping */
@@ -1655,7 +1655,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
         ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_LEAVES_SENT);
         break;
       }
-      ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_SENT);
+//    ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_SENT);
     }
   } /* End of interface iterations */
   return L7_SUCCESS;
@@ -2837,4 +2837,132 @@ L7_uchar8 snoopGetEndianess(void)
         return SNOOP_LITTLE_ENDIAN;
     else
     return SNOOP_BIG_ENDIAN;
+}
+
+L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
+{
+  switch (packetType)
+  {
+//case L7_IGMP_MEMBERSHIP_QUERY:
+//  switch (fieldType)
+//  {
+//  case SNOOP_STAT_FIELD_TX:
+//    return SNOOP_STAT_FIELD_GENERAL_QUERY_TX;
+//  case SNOOP_STAT_FIELD_TOTAL_RX:
+//    return SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX;
+//  case SNOOP_STAT_FIELD_VALID_RX:
+//    return SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX;
+//  case SNOOP_STAT_FIELD_INVALID_RX:
+//    return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;
+//  case SNOOP_STAT_FIELD_DROPPED_RX:
+//    return SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX;
+//  default:
+//    return SNOOP_STAT_FIELD_ALL;
+//  }
+
+  case L7_IGMP_MEMBERSHIP_QUERY: /*To avoid defining a new type, we consider the Memmbership Query Message 0x11 to be equal to a General Query*/
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_GENERAL_QUERY_TX;   
+    case SNOOP_STAT_FIELD_TOTAL_RX:
+      return SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX;   
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX;   
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
+    case SNOOP_STAT_FIELD_DROPPED_RX:
+      return SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX;   
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+
+  case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;   
+    case SNOOP_STAT_FIELD_TOTAL_RX:
+      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX;   
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX;   
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
+    case SNOOP_STAT_FIELD_DROPPED_RX:
+      return SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX;   
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+
+  case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX;   
+    case SNOOP_STAT_FIELD_TOTAL_RX:
+      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX;   
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX;   
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX;   
+    case SNOOP_STAT_FIELD_DROPPED_RX:
+      return SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX;   
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+  case L7_IGMP_V1_MEMBERSHIP_REPORT:
+  case L7_IGMP_V2_MEMBERSHIP_REPORT:
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_JOINS_SENT;   
+//  case SNOOP_STAT_FIELD_TOTAL_RX:
+//    return SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX;
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS;   
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED;   
+  case SNOOP_STAT_FIELD_DROPPED_RX:
+    return SNOOP_STAT_FIELD_IGMP_DROPPED;
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+
+  case L7_IGMP_V2_LEAVE_GROUP:
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_LEAVES_SENT;   
+//  case SNOOP_STAT_FIELD_TOTAL_RX:
+//    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
+  case SNOOP_STAT_FIELD_VALID_RX:
+    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID;
+    case SNOOP_STAT_FIELD_DROPPED_RX:
+      return SNOOP_STAT_FIELD_IGMP_DROPPED;
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+
+  case L7_IGMP_V3_MEMBERSHIP_REPORT:
+    switch (fieldType)
+    {
+    case SNOOP_STAT_FIELD_TX:
+      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX;   
+    case SNOOP_STAT_FIELD_TOTAL_RX:
+      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX;   
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX;   
+    case SNOOP_STAT_FIELD_INVALID_RX:
+      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX;   
+    case SNOOP_STAT_FIELD_DROPPED_RX:
+      return SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX;   
+    default:
+      return SNOOP_STAT_FIELD_ALL;
+    }
+
+  default:
+    return SNOOP_STAT_FIELD_ALL;
+  }
 }
