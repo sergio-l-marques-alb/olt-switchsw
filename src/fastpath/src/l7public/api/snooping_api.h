@@ -44,7 +44,7 @@
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
  */
-L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels);
+L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint32 intIfNum,L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels);
 
 /**
  * Get a list of clients (client indexes) watching a particular 

@@ -35,6 +35,7 @@
 #if 1
   #include "logger.h"  
   #include  "snooping_ptin_db.h"
+  #include  "ptin_igmp.h"
 
 /**
  * Get a list of channels consumed by a particular vlan and 
@@ -48,14 +49,40 @@
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels)
+L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels)
 {
+  ptin_IgmpProxyCfg_t   igmpCfg;
+
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channels==L7_NULLPTR || nChannels==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_FAILURE;
+  }
+ 
+  /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    return L7_FAILURE;
+  }
 
-  /* Get list of channels */
-  snoopChannelsListGet(vlanId, client_index, channels, nChannels);
-
+  //TODO: In the future, this MUST retrieve all channels from the IGMPv3 structures. However, that is postponed until compatibility mode in IGMPv3 is supported.
+  if (igmpCfg.clientVersion == 2)
+  {
+     /* Get list of channels */
+    snoopChannelsListGet(vlanId, client_index, channels, nChannels);
+  }
+  else if (igmpCfg.clientVersion == 3)
+  {
+    snoopChannelsGet(vlanId,intIfNum, client_index, channels, nChannels);
+    
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
+    return L7_FAILURE;
+  }
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "We've read num_channels:%u",*nChannels);
   return L7_SUCCESS;
 }
 
@@ -63,63 +90,129 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId, L7_uint16 client_index, 
  * Get a list of clients (client indexes) watching a particular 
  * channel 
  * 
- * @param channelIP         : channel
- * @param sVlan             : group vlan
+ * @param groupAddr         : channel
+ * @param vlanId             : group vlan
  * @param client_list_bmp   : client list
  * @param number_of_clients : number of clients
  * 
  * @return L7_RC_t L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *channelIP, L7_uint16 sVlan, L7_uint32 *client_list_bmp, L7_uint16 *number_of_clients)
-{
+L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, L7_uint32 *client_list_bmp, L7_uint16 *number_of_clients)
+{  
   snoopInfoData_t *snoopEntry;
   L7_uint16 channel_index;
+  L7_uint8     igmp_network_version;
 
-  if (channelIP==L7_NULL || sVlan<PTIN_VLAN_MIN || sVlan>PTIN_VLAN_MAX || client_list_bmp==L7_NULLPTR)
+  if (groupAddr==L7_NULL || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || client_list_bmp==L7_NULLPTR  || number_of_clients==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Parameters");
     return L7_FAILURE;
+  }
 
-  if (channelIP->family!=L7_AF_INET)
+  if (groupAddr->family!=L7_AF_INET)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Only IPv4 is supported!");
     return L7_FAILURE;
   }
 
-  // Search for channel
-  if (!snoopChannelExist4VlanId(sVlan,channelIP,&snoopEntry))
+  /* Get igmp network version */
+  igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
+
+  if (igmp_network_version==3)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
-                (channelIP->addr.ipv4.s_addr>>24) & 0xff,
-                (channelIP->addr.ipv4.s_addr>>16) & 0xff,
-                (channelIP->addr.ipv4.s_addr>> 8) & 0xff,
-                channelIP->addr.ipv4.s_addr & 0xff,
-                sVlan);
-    if (client_list_bmp!=L7_NULLPTR)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv3 Clients List Get!");
+     snoopPTinL3InfoData_t  *snoopEntryV3; 
+     /* Search for entry in AVL tree*/
+    if (L7_NULLPTR == (snoopEntryV3 = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)) || 
+        snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
+        snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients==0)
     {
-      memset(client_list_bmp,
-             0x00,
-             sizeof(snoopEntry->channel_list[channel_index].clients_list));
-    }
-    if (number_of_clients!=L7_NULLPTR)
-    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+                  (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
+                  (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
+                  (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
+                  groupAddr->addr.ipv4.s_addr & 0xff,
+                  vlanId);
+
       *number_of_clients = 0;
+      return L7_SUCCESS;
+    }
+    /* If exists read client bitmap, per leaf interface*/
+    else
+    {
+      L7_uint32 client_list_bmp_tmp[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];
+      memset(client_list_bmp_tmp,0x00,sizeof(snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients));
+      *number_of_clients=0;
+      L7_uint16 intIfNum; 
+      L7_uint16 idx;     
+
+      for (intIfNum=1; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
+      {
+        if(snoopEntryV3->interfaces[intIfNum].active==L7_TRUE && snoopEntryV3->interfaces[intIfNum].numberOfClients>0)
+        {    
+          for (idx=0;idx<PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE ; idx++)
+          {
+            if (snoopEntryV3->interfaces[intIfNum].clients[idx]!=0)
+            {
+              client_list_bmp_tmp[idx]|=snoopEntryV3->interfaces[intIfNum].clients[idx];  
+              LOG_NOTICE(LOG_CTX_PTIN_IGMP,"At least one client!");
+            }            
+          } 
+          *number_of_clients+=snoopEntryV3->interfaces[intIfNum].numberOfClients;          
+        }
+      }
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"We have read number_of_clients:%u",*number_of_clients);
+      if(*number_of_clients>0)
+      {        
+        memcpy(client_list_bmp,
+                 client_list_bmp_tmp,
+                 sizeof(client_list_bmp_tmp));
+      }
+      else
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Something must had went wrong, since the variable number of clients is different from what we have read on the client bitmap!");
+      }
     }
   }
   else
   {
-    /* Get channel index */
-    channel_index = (channelIP->addr.ipv4.s_addr>>23) & 0x1f;
-
-    // Copy clients bitmap
-    if (client_list_bmp!=L7_NULLPTR)
+    // Search for channel
+    if (!snoopChannelExist4VlanId(vlanId,groupAddr,&snoopEntry))
     {
-      memcpy(client_list_bmp,
-             snoopEntry->channel_list[channel_index].clients_list,
-             sizeof(snoopEntry->channel_list[channel_index].clients_list));
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+                  (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
+                  (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
+                  (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
+                  groupAddr->addr.ipv4.s_addr & 0xff,
+                  vlanId);
+      if (client_list_bmp!=L7_NULLPTR)
+      {
+        memset(client_list_bmp,
+               0x00,
+               sizeof(snoopEntry->channel_list[channel_index].clients_list));
+      }
+      if (number_of_clients!=L7_NULLPTR)
+      {
+        *number_of_clients = 0;
+      }
     }
-    /* Number of clients */
-    if (number_of_clients!=L7_NULLPTR)
+    else
     {
-      *number_of_clients = snoopEntry->channel_list[channel_index].number_of_clients;
+      /* Get channel index */
+      channel_index = (groupAddr->addr.ipv4.s_addr>>23) & 0x1f;
+
+      // Copy clients bitmap
+      if (client_list_bmp!=L7_NULLPTR)
+      {
+        memcpy(client_list_bmp,
+               snoopEntry->channel_list[channel_index].clients_list,
+               sizeof(snoopEntry->channel_list[channel_index].clients_list));
+      }
+      /* Number of clients */
+      if (number_of_clients!=L7_NULLPTR)
+      {
+        *number_of_clients = snoopEntry->channel_list[channel_index].number_of_clients;
+      }
     }
   }
 
@@ -199,9 +292,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
-{
-  L7_BOOL sendJoin;
-  L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
+{  
   L7_uint8     igmp_network_version;
 
   /* Validate arguments */
@@ -221,16 +312,33 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
 
   if (igmp_network_version==3)
   {
-    /* Add static channel */
-    /* Add static channel */
-    if (snoopPTinAddStaticGroup(vlanId,SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+    L7_uint32 intIfNum;
+    L7_INTF_MASK_t mcastClientAttached;
+    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
-      return L7_FAILURE;
-    }
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      return L7_SUCCESS;
+    }  
+
+    /* Add static channel for root and leaf interfaces*/
+    for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+    {
+      if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intIfNum)) )
+      {
+        /* Add static channel */
+        if (snoopPTinAddStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+          return L7_FAILURE;
+        }
+      }
+    }    
   }
   else
   {
+    L7_BOOL sendJoin;
+    L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
+
     /* Determine MAC associated to this channel */
     dmac[0] = 0x01;
     dmac[1] = 0x00;
@@ -259,8 +367,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
-{
-  L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
+{  
   L7_uint8     igmp_network_version;
 
   /* Validate arguments */
@@ -279,17 +386,32 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   igmp_network_version = snoopCheckPrecedenceParamGet(vlanId, L7_ALL_INTERFACES, SNOOP_PARAM_IGMP_NETWORK_VERSION, L7_AF_INET);
 
   if (igmp_network_version==3)
-  {
-    /* Add static channel */
-    /* Add static channel */
-    if (snoopPTinRemoveStaticGroup(vlanId,SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+  { 
+    L7_uint32 intIfNum;
+    L7_INTF_MASK_t mcastClientAttached;
+    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
-      return L7_FAILURE;
-    }
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      return L7_SUCCESS;
+    }  
+
+    /* Add static channel for root and leaf interfaces*/
+    for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+    {
+      if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intIfNum)) )
+      {
+        /* Remove static channel */
+        if (snoopPTinRemoveStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+          return L7_FAILURE;
+        }
+      }
+    }    
   }
   else
   {
+    L7_uchar8 dmac[L7_MAC_ADDR_LEN]={ 0x01, 0x00, 0x5E, 0x00, 0x00, 0x00 };
 
     /* Determine MAC associated to this channel */
     dmac[0] = 0x01;

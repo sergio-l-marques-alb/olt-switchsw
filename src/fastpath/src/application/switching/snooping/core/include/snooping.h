@@ -64,6 +64,8 @@
 
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE 0 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
 
+#define SNOOP_PTIN_CISCO_MAX_RESPONSE_CODE_BUG 1
+
 /*This values are not defined in RFC3376, altought it makes sense to have them in order to easily identify the type of packet to be sent*/
 #define L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY             0x10
 #define L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY 0x9
@@ -387,6 +389,7 @@ typedef struct snoopPTinL3InfoData_s
 {
   snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
   snoopPTinL3Interface_t   interfaces[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP]; // Iface id 0 is used to store Proxy information.
+//L7_uint32                clients[PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE];    //Bitmap of Clients per Group Address
 
   snoopInfoData_t          *L2MC;
 
