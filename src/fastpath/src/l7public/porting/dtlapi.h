@@ -2038,6 +2038,19 @@ EXT_API L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle,
 EXT_API L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle,
                                 sysnet_pdu_info_t *pduInfo);
 
+/*******************************************************************************
+* @purpose   Processes received IP packets
+*
+* @param     bufHandle @b{(input)} Handle to the buffer
+* @param     *pduInfo   @b{(input)} Pointer to pdu info structure
+*
+* @returns   L7_TRUE
+*
+* @notes     PTIN Added
+*
+* @end
+**********************************************************************/
+EXT_API L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo);
 
 
 /* DTL MPI APIs */

@@ -76,6 +76,7 @@ typedef enum
   PTIN_PACKET_PPPOE,
   PTIN_PACKET_APS,
   PTIN_PACKET_CCM,
+  PTIN_PACKET_IPDTL0,
   PTIN_PACKET_LAST
 } ptin_packet_type_t;
 #endif

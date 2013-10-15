@@ -113,7 +113,8 @@ void pingDebugPacketRxTrace(L7_uint32 intIfNum, L7_uchar8 *buff)
 *
 *********************************************************************/
 void pingDebugPacketTxTrace(L7_uint32 intIfNum, L7_uchar8 *buff)
-{L7_enetHeader_t     *enetHdr;
+{
+  L7_enetHeader_t     *enetHdr;
   L7_enet_encaps_t    *encap;
   L7_ipHeader_t       *ipHdr;
   struct icmp         *icmpPtr;
@@ -122,10 +123,11 @@ void pingDebugPacketTxTrace(L7_uint32 intIfNum, L7_uchar8 *buff)
   L7_char8 destIp[20];
   L7_char8 type[20];
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   if(pingDebugPacketTraceFlag != L7_TRUE)
       return;
+
+  nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
   enetHdr = (L7_enetHeader_t *)(&buff[0]);
   encap = (L7_enet_encaps_t *)((L7_uchar8 *)enetHdr + L7_ENET_HDR_SIZE);

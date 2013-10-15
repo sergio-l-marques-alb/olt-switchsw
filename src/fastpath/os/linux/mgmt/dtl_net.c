@@ -56,11 +56,22 @@
   #include "sim_debug_api.h"
   #include "ipv6_commdefs.h"
 
-extern L7_uint16 ptin_cfg_inband_vlan_get(void);  /* PTin added: inband */
+/* PTin added: inband */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#define __DISABLE_DTL0INBANDVID_REMOVAL__ 0
+#else
+#define __DISABLE_DTL0INBANDVID_REMOVAL__ 1
+#endif
+
+#define DTL0INBANDVID 4093
+extern L7_uint16 ptin_cfg_inband_vlan_get(void);
+extern L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
+extern L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 
 #ifdef DTL_USE_TAP
 void dtlSendCmd(int fd, L7_uint32 intIfNum, L7_netBufHandle handle, tapDtlInfo *info);
 #endif
+/* PTin end */
 
 /* need init function to open sockets for NET driver */
 /* need to start a task to read from socket and write to DTL */
@@ -106,6 +117,15 @@ extern L7_BOOL dtlNetInitDone;
 #define TUN_DRV_NAME "/dev/net/tun"
 int dtl_net_fd;
 #endif
+
+/* PTin added: inband */
+L7_BOOL dtlNetPtinDebug = L7_FALSE;
+
+void dtlNetPtinDebugEnable(L7_BOOL enable)
+{
+    dtlNetPtinDebug = enable & 1;
+}
+
 
 void dtlDeleteAll()
 {
@@ -263,6 +283,29 @@ void dtlGlobalInit (void)
 #endif
 } /* dtlGlobalInit */
 
+
+/* PTin added: inband */
+L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo)
+{
+  if (data!=NULL && nbytes!=0)
+  {
+    /* Always update the physical interface for a MAC addr in the network port fdb. */
+    dtlInsert ( data+6, pduInfo->intIfNum );
+
+    if (0 > write(dtl_net_fd,data,nbytes)) {}
+  }
+  else
+  {
+    SYSAPI_NET_MBUF_FREE (bufHandle);
+    return(L7_FAILURE);
+  }
+
+  SYSAPI_NET_MBUF_FREE (bufHandle);
+
+  return(L7_SUCCESS);
+}
+
+
 /********************************************************************************
 * dtlIPProtoRecv - function to process IP packets from the MUX
 * For switching with ipv6 mgmt tagged vlan packets have to be parsed by this
@@ -392,7 +435,7 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     memcpy(&pktEtherType, data + L7_ENET_HDR_SIZE, sizeof(L7_ushort16));
     ether_type = osapiNtohs(pktEtherType);
 
-    if (ether_type == L7_ETYPE_8021Q)
+    if (__DISABLE_DTL0INBANDVID_REMOVAL__ && ether_type == L7_ETYPE_8021Q)
     {
        /*make sure its the default vlan*/
        memcpy(&vlan_id, &data[14], sizeof(vlan_id));
@@ -491,7 +534,7 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 #ifdef DTL_USE_TAP
     memcpy(&ether_type, &data[12], sizeof(ether_type));
     ether_type = osapiNtohs(ether_type);
-    if (ether_type == L7_ETYPE_8021Q)
+    if (__DISABLE_DTL0INBANDVID_REMOVAL__ && ether_type == L7_ETYPE_8021Q)
     {
        /*make sure its the default vlan*/
        memcpy(&vlan_id, &data[14], sizeof(vlan_id));
@@ -693,13 +736,28 @@ void ptin_AddTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint
     data[i+4] = data[i];
 
   /* Insert tag */
-  data[12]= (L7_uchar8) ((etype >> 8) & 0xFF);
-  data[13]= (L7_uchar8) ( etype       & 0xFF);
+  data[12]= (L7_uchar8) ((etype >> 8)  & 0xFF);
+  data[13]= (L7_uchar8) ( etype        & 0xFF);
   data[14]= (L7_uchar8) ((vlanId >> 8) & 0xFF);
   data[15]= (L7_uchar8) ( vlanId       & 0xFF);
   *data_length += 4;
 }
+
+void ptin_ReplaceTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data)
+{
+  /* Replace tag */
+  data[12]= (L7_uchar8) ((etype >> 8)  & 0xFF);
+  data[13]= (L7_uchar8) ( etype        & 0xFF);
+  data[14]= (L7_uchar8) ((vlanId >> 8) & 0xFF);
+  data[15]= (L7_uchar8) ( vlanId       & 0xFF);
+}
 /* PTin end */
+
+/* PTin Notes:
+ *              - Packets received untagged (from dtl0) are processed as inBand Communication Channel;
+ *              - Tagged packets are coming from virtual interfaces such as dtl0.1065 (VLAN ID 1065)
+ *              and are switched according to that VLAN ID (4093 is a special case for inBand Communication Channel, others are used by PTP).
+ */
 
 void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtlInfo *info)
 {
@@ -712,7 +770,14 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    register L7_ipHeader_t *ip_header;
    sysnet_pdu_info_t pduInfo;
    SYSNET_PDU_RC_t hookAction;
-   L7_uint16 vid;                     /* PTin added: inband */
+
+   /* PTin added: inband */
+   L7_uint16    vid = 0;                        
+   L7_BOOL      isTaggedPacket = L7_FALSE;      
+   L7_BOOL      isInbandVidPacket = L7_FALSE;   
+   L7_uint16    dtl0Vid = 0;
+   L7_uchar8    etype_8021q[] = {0x81,0x00};    /* L7_ETYPE_8021Q */
+
 
    /*
     *zero out the dtlCmd structure
@@ -725,11 +790,72 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     */
    SYSAPI_NET_MBUF_GET_DATASTART(handle,data);
    SYSAPI_NET_MBUF_GET_DATALENGTH(handle,data_length);
+   
+   /* PTin added: Is this a 802.1Q packet? */
+   if (memcmp(&data[12], etype_8021q, 2) == 0)
+   {
+      dtl0Vid = ((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
 
-   /* PTin added: inband */
-   vid = ptin_cfg_inband_vlan_get();
-   if (vid == 0)
-     vid = simMgmtVlanIdGet();
+      isTaggedPacket = L7_TRUE;
+
+      if (dtlNetPtinDebug)
+      {
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Packet is Tagged (vid=%d)\n\r", dtl0Vid);
+      }
+
+      if (dtl0Vid == DTL0INBANDVID)
+      {
+         isInbandVidPacket = L7_TRUE;
+
+         vid = ptin_cfg_inband_vlan_get();            /* This is the packet outer VID */
+         if (vid == 0)
+            vid = simMgmtVlanIdGet();
+
+         ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
+
+         vid = simMgmtVlanIdGet();                    /* This is the internal VID */
+      }
+      else
+      {
+         vid = ptin_ipdtl0_getOuterVid(dtl0Vid);      /* This is the packet outer VID */
+
+         ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
+
+
+         vid = ptin_ipdtl0_getInternalVid(dtl0Vid);   /* This is the internal VID */
+         if (vid == 0)
+         {
+            info->discard = L7_TRUE;
+            goto dtlSendCmdExit;
+         }
+      }
+   }
+   else
+   {
+      vid = ptin_cfg_inband_vlan_get();
+      if (vid == 0)
+        vid = simMgmtVlanIdGet();
+
+      ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
+      SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
+
+      vid = simMgmtVlanIdGet();                    /* This is the internal VID */
+   }
+
+   #if __PACKET_DEBUG__
+   if (dtlNetPtinDebug)
+   {
+      int i;
+
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Received: \n\r");
+      for (i=0; i<data_length; i++)
+      {
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
+      }
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+   }
+   #endif
+
    /* PTin end */
 
    /*
@@ -741,16 +867,17 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
        *this is a multicast address
        */
 
-      /* PTin added: inband */
-      ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
-      SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
-      /* PTin end */
+      if (dtlNetPtinDebug)
+      {
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "this is a multicast or broadcast address\n\r");
+      }
 
       info->dtlCmdInfo.intfNum = 0;
       info->dtlCmdInfo.priority = 0;
       info->dtlCmdInfo.typeToSend = DTL_VLAN_MULTICAST;
-      info->dtlCmdInfo.cmdType.L2.domainId = simMgmtVlanIdGet();
+      info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
       info->dtlCmd = DTL_CMD_TX_L2;
+
       /*
        *we are done
        */
@@ -763,90 +890,100 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
        *this is not a multicast frame
        *It is either ARP or IP
        */
-      memcpy(&etype, &data[12], sizeof(etype));
+
+      if (dtlNetPtinDebug)
+      {
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "this is not a multicast frame. It is either ARP or IP. ETHERTYPE %.2x%.2x\n\r", data[16], data[17]);
+      }
+
+      /* At this point, Packet is always tagged */
+      memcpy(&etype, &data[16], sizeof(etype));
+      
       etype = osapiNtohs(etype);
       if(etype == L7_ETYPE_ARP)
       {
-          /*
-           *its an arp frame
-           *Find the appropriate interface number
-           */
-          if(dtlFind(data,&intIfNum) != L7_SUCCESS)
-          {
-             /*
-              *failed search, tell tap monitor to
-              *discard
-              */
-             goto dtlSendCmdExit;
-          }
-          else
-          {
-             /*
-              *found our interface, fill in dtlCmdInfo
-              */
-
-             /* PTin added: inband */
-             ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
-             SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
-             /* PTin end */
-
-             info->dtlCmdInfo.intfNum = intIfNum;
-             info->dtlCmdInfo.priority = 0;
-             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
-             info->dtlCmdInfo.cmdType.L2.domainId = simMgmtVlanIdGet();
-             info->dtlCmd = DTL_CMD_TX_L2;
-             info->discard = L7_FALSE;
-             goto dtlSendCmdExit;
-          }
-      }/*end if(ether_type...*/
-      else if(etype == L7_ETYPE_IP)
-      {
-         /* Find the physical port where the destination MAC address is. If
-         * that port is not active, clear the ARP cache in the IP stack. It may
-         * be that the port mapping is stale and we need to ARP again to update
-         * the mapping. */
-        if ((dtlFind(data,&intIfNum) != L7_SUCCESS) ||
-            (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) ||
-            (activeState != L7_ACTIVE))
-        {
-          dtlStats.stale_flushes++;
-          dtlDeleteAll();
-          sprintf( dtlIfName, "%s%d", L7_DTL_PORT_IF, 0 );
-          osapiArpFlush(dtlIfName);
-          goto dtlSendCmdExit;
+         /*
+          *its an arp frame
+          *Find the appropriate interface number
+          */
+         if(dtlFind(data,&intIfNum) != L7_SUCCESS)
+         {
+            /*
+             *failed search, tell tap monitor to
+             *discard
+             */
+            goto dtlSendCmdExit;
          }
          else
          {
-            ip_header = (L7_ipHeader_t *)&data[14];
-            if(ip_header->iph_prot == IP_PROT_ICMP)
-                pingDebugPacketTxTrace(intIfNum,data);
-
-            /* PTin added: inband */
-            ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
-            SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
-            /* PTin end */
+            /*
+            *found our interface, fill in dtlCmdInfo
+            */
 
             info->dtlCmdInfo.intfNum = intIfNum;
             info->dtlCmdInfo.priority = 0;
             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
-            info->dtlCmdInfo.cmdType.L2.domainId = simMgmtVlanIdGet();
+            info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
             info->dtlCmd = DTL_CMD_TX_L2;
             info->discard = L7_FALSE;
 
-            /* Call interceptors who are interested in outgoing IP frames post L2 encapsualtion.  If
-             ** L7_TRUE is returned, the frame was either discarded or consumed, which means that the
-             ** network buffer has been freed by the intercept call, or will be freed by the consumer.
-              */
-            bzero((char *)&pduInfo, sizeof(sysnet_pdu_info_t));
-            pduInfo.destIntIfNum = intIfNum;
-            pduInfo.destVlanId = simMgmtVlanIdGet();
-            if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_POSTCAP_OUT, handle, &pduInfo,
-                              L7_NULLPTR, &hookAction) == L7_TRUE)
-            {
-              return;
-            }
             goto dtlSendCmdExit;
          }
+      }/*end if(ether_type...*/
+      else if(etype == L7_ETYPE_IP)
+      {        
+          /* Find the physical port where the destination MAC address is. If
+          * that port is not active, clear the ARP cache in the IP stack. It may
+          * be that the port mapping is stale and we need to ARP again to update
+          * the mapping. */
+         if ((dtlFind(data,&intIfNum) != L7_SUCCESS) ||
+             (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) ||
+             (activeState != L7_ACTIVE))
+         {        
+           dtlStats.stale_flushes++;
+           dtlDeleteAll();
+           sprintf( dtlIfName, "%s%d", L7_DTL_PORT_IF, 0 );
+           osapiArpFlush(dtlIfName);
+           goto dtlSendCmdExit;
+          }
+          else
+          {
+             /* PTin added: inband */
+             if (!isTaggedPacket)
+             {         
+                ip_header = (L7_ipHeader_t *)&data[14];
+                if(ip_header->iph_prot == IP_PROT_ICMP)
+                   pingDebugPacketTxTrace(intIfNum,data);
+             }
+             else
+             {
+                ip_header = (L7_ipHeader_t *)&data[18];
+                if(ip_header->iph_prot == IP_PROT_ICMP)
+                   pingDebugPacketTxTrace(intIfNum,data);         
+             }
+             /* PTin end */         
+         
+             info->dtlCmdInfo.intfNum = intIfNum;
+             info->dtlCmdInfo.priority = 0;
+             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
+             info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+             info->dtlCmd = DTL_CMD_TX_L2;
+             info->discard = L7_FALSE;
+         
+             /* Call interceptors who are interested in outgoing IP frames post L2 encapsualtion.  If
+              ** L7_TRUE is returned, the frame was either discarded or consumed, which means that the
+              ** network buffer has been freed by the intercept call, or will be freed by the consumer.
+               */
+             bzero((char *)&pduInfo, sizeof(sysnet_pdu_info_t));
+             pduInfo.destIntIfNum = intIfNum;
+             pduInfo.destVlanId = vid;
+             if (SYSNET_PDU_INTERCEPT(L7_AF_INET, SYSNET_INET_POSTCAP_OUT, handle, &pduInfo,
+                               L7_NULLPTR, &hookAction) == L7_TRUE)
+             {
+               return;
+             }
+             goto dtlSendCmdExit;
+          }
       }
       else if(etype == L7_ETYPE_IPV6)
       {
@@ -856,15 +993,10 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          }
          else
          {
-            /* PTin added: inband */
-            ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
-            SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
-            /* PTin end */
-
             info->dtlCmdInfo.intfNum = intIfNum;
             info->dtlCmdInfo.priority = 0;
             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
-            info->dtlCmdInfo.cmdType.L2.domainId = simMgmtVlanIdGet();
+            info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
             info->dtlCmd = DTL_CMD_TX_L2;
             info->discard = L7_FALSE;
             goto dtlSendCmdExit;
