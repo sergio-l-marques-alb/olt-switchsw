@@ -549,7 +549,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       msg_HWEthPhyStatus_t *pin     = (msg_HWEthPhyStatus_t *) inbuffer->info;
 
-      #if (PTIN_SYSTEM_N_PONS > 0)
+      #if (PTIN_SYSTEM_N_PONS > 0 || PTIN_SYSTEM_N_ETH > 0)
       L7_uint i;
       msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
 
@@ -560,7 +560,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_DEBUG(LOG_CTX_PTIN_MSG, " PortId    = %u", pin->Port );
 
       /* Single port ? */
-      if (pin->Port < PTIN_SYSTEM_N_PONS)
+      if (pin->Port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH))
       {
         memcpy(pout, pin, sizeof(msg_HWEthPhyStatus_t));
 
@@ -577,7 +577,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Swipe all ports */
       else
       {
-        for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
+        for (i = 0; i < PTIN_SYSTEM_N_ETH; i++)
         {
           memcpy(&pout[i], pin, sizeof(msg_HWEthPhyStatus_t));
           pout[i].Port = i;
@@ -587,7 +587,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         /* Error? */
-        if (i < PTIN_SYSTEM_N_PONS)
+        if (i < PTIN_SYSTEM_N_ETH)
         {
           LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);

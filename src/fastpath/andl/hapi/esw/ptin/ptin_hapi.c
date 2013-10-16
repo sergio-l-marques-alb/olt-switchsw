@@ -211,7 +211,7 @@ L7_RC_t ptin_hapi_phy_init(void)
   }
   #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
   int i;
-  for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
+  for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
     if (ptin_hapi_kr4_set(i)!=L7_SUCCESS)
     {

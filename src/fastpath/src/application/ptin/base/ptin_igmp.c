@@ -7972,7 +7972,7 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
-    if (client!=L7_NULLPTR && ptin_port<PTIN_SYSTEM_N_PONS)
+    if (client!=L7_NULLPTR && (ptin_port<PTIN_SYSTEM_N_PONS || ptin_port<PTIN_SYSTEM_N_ETH))
     {
       /* Statistics at client level */
       stat_client = &client->stats_client;
