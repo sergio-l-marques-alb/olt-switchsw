@@ -255,7 +255,7 @@ L7_RC_t ptin_intf_portExt_init(void)
 
     /* L2 Station move priority defaults */
     #if ( !PTIN_BOARD_IS_MATRIX )
-    if (port<PTIN_SYSTEM_N_PONS)
+    if (port < PTIN_SYSTEM_N_PONS || port < PTIN_SYSTEM_N_ETH)
     {
       mefExt.macLearn_stationMove_prio = 1;
     }
@@ -630,13 +630,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   if (phyConf->Mask & PTIN_PHYCONF_MASK_MEDIA)
   {
     /* NOTE: it is assumed that the PON ports are mapped from port 0 to L7_SYSTEM_PON_PORTS-1 */
-    if ( port < PTIN_SYSTEM_N_PONS ) {
+    if (port < PTIN_SYSTEM_N_PONS || port >= PTIN_SYSTEM_N_ETH)
+    {
       phyConf_data[port].Media = PHY_PORT_MEDIA_INTERNAL;
-//      LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
     }
     else {
       phyConf_data[port].Media = PHY_PORT_MEDIA_OPTICAL;
-//      LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
     }
   }
 
@@ -3170,13 +3169,15 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* Media */
   /* NOTE: it is assumed that the PON ports are mapped from port 0 to L7_SYSTEM_PON_PORTS-1 */
   phyConf->Mask |= 0x0002;
-  if ( port < PTIN_SYSTEM_N_PONS ) {
-    phyConf->Media = PHY_PORT_MEDIA_OPTICAL;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
-  }
-  else {
+  if ( port < PTIN_SYSTEM_N_PONS || port >= PTIN_SYSTEM_N_ETH )
+  {
     phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
     LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
+  }
+  else
+  {
+    phyConf->Media = PHY_PORT_MEDIA_OPTICAL;
+    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
   }
 
   return L7_SUCCESS;

@@ -76,6 +76,7 @@ extern int ptin_sys_number_of_ports;
 
 # define PTIN_SYSTEM_N_PORTS           18
 # define PTIN_SYSTEM_N_PONS            8 
+# define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
@@ -221,6 +222,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_PORTS           12
 # define PTIN_SYSTEM_N_PONS            8 
+# define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
@@ -365,6 +367,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_PORTS           20
 # define PTIN_SYSTEM_N_PONS            16 
+# define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
@@ -504,7 +507,8 @@ extern volatile st_fpga_map_t *fpga_map;
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
 # define PTIN_SYSTEM_N_PORTS           52
-# define PTIN_SYSTEM_N_PONS            48
+# define PTIN_SYSTEM_N_PONS            0
+# define PTIN_SYSTEM_N_ETH             48
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
@@ -542,15 +546,15 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE PTIN_SYSTEM_N_PONS   /* 1 client per frontal port */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE PTIN_SYSTEM_N_ETH   /* 1 client per frontal port */
 # define PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   PTIN_SYSTEM_N_PONS   /* 1 client per DHCP instance */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  PTIN_SYSTEM_N_PONS   /* 1 client per PPPoE instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   PTIN_SYSTEM_N_ETH   /* 1 client per DHCP instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  PTIN_SYSTEM_N_ETH   /* 1 client per PPPoE instance */
 
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
 #define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
@@ -687,6 +691,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_PORTS           (36+1)
 # define PTIN_SYSTEM_N_PONS            0 
+# define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   ((PTIN_SYSTEM_N_PORTS-1)/2-1)
 # define PTIN_SYSTEM_N_LAGS            (PTIN_SYSTEM_N_PORTS-1)
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
@@ -816,6 +821,7 @@ extern volatile st_fpga_map_t *fpga_map;
 
 # define PTIN_SYSTEM_N_PORTS           64
 # define PTIN_SYSTEM_N_PONS            0 
+# define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   (PTIN_SYSTEM_N_PORTS/2-1)
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)

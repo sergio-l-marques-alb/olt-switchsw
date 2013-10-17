@@ -224,7 +224,7 @@ static void monitor_throughput(void)
 void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink)
 {
   #ifdef MAP_FPGA
-  if (port >= PTIN_SYSTEM_N_PONS || port >= 64)
+  if (port >= PTIN_SYSTEM_N_ETH || port >= 64)
     return;
 
   if (port%2==0)  /* Pair ports */
@@ -324,13 +324,13 @@ static void monitor_alarms(void)
     if (linkStatus[port] != link)
     {
       #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
-        #if ( PTIN_BOARD_IS_STANDALONE )
-        /* For OLT7-8CH There is only alarms for non PON interfaces */
-        if (port>=PTIN_SYSTEM_N_PONS)
-        #elif (PTIN_BOARD_IS_MATRIX)
+        #if (PTIN_BOARD_IS_MATRIX)
         /* For CXP360G There is only alarms for external LAGs */
         if (interface_is_valid &&
             ptin_intf.intf_type==PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id<PTIN_SYSTEM_N_LAGS_EXTERNAL)
+        #else
+        /* There is only alarms for non PON interfaces */
+        if (port >= PTIN_SYSTEM_N_PONS)
         #endif
         {
           if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
@@ -378,11 +378,13 @@ static void monitor_alarms(void)
       if (lagActiveMembers[port]!=isActiveMember)
       {
         //if (pfw_shm->intf[port].admin && isMember)
-        #if ( !PTIN_BOARD_IS_LINECARD )
-          #if ( PTIN_BOARD_IS_STANDALONE )
-          #else
+        #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
+          #if (PTIN_BOARD_IS_MATRIX)
           /* For CXP360G boards, only send alarms for external LAGs */
           if (lagIdList[port]<PTIN_SYSTEM_N_LAGS_EXTERNAL)
+          #else
+          /* There is only alarms for non PON interfaces */
+          if (port >= PTIN_SYSTEM_N_PONS)
           #endif
           {
             if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
@@ -399,7 +401,7 @@ static void monitor_alarms(void)
       /* Led control */
       #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
       /* (only to physical and valid interfaces) */
-      if (port<PTIN_SYSTEM_N_PONS && interface_is_valid)
+      if (port<PTIN_SYSTEM_N_ETH && interface_is_valid)
       {
         if (adminState)
         {
@@ -507,13 +509,13 @@ static void monitor_matrix_commutation(void)
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
-  for (port = PTIN_SYSTEM_N_PONS; port < PTIN_SYSTEM_N_PORTS; port++)
+  for (port = PTIN_SYSTEM_N_ETH; port < PTIN_SYSTEM_N_PORTS; port++)
   {
     /* Set port enable */
     if (cx_work_slot)
-      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_PONS+1)) ? L7_TRUE : L7_FALSE;  /* Only port 1 will be active */
+      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_ETH+1)) ? L7_TRUE : L7_FALSE;  /* Only port 1 will be active */
     else
-      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_PONS+0)) ? L7_TRUE : L7_FALSE;  /* Only port 0 will be active */
+      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_ETH+0)) ? L7_TRUE : L7_FALSE;  /* Only port 0 will be active */
 
     phyConf.Port = port;
     if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS)
