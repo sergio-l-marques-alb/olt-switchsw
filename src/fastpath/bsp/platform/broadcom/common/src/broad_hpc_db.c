@@ -298,10 +298,12 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   L7_int  slot, port;
   L7_uint total_lanes;
 
-  L7_int  ptp_wc_index, ptp_wc_lane;
-  L7_int  wc_index, wc_lane, wc_group, speedG;
+  L7_int    ptp_wc_index;
+  L7_int    ptp_wc_lane;
+  L7_uint8  mx_board_ver;
+  L7_int    wc_index, wc_lane, wc_group, speedG;
   L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
-  L7_BOOL wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
+  L7_BOOL   wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
 
   HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
 
@@ -360,25 +362,27 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     memset(ports_per_segment, 0x00, sizeof(ports_per_segment));
     memset(wclanes_in_use, 0x00, sizeof(wclanes_in_use));
 
-    /* PTP port */
-    #if 1
-    switch (matrix_board_version())
+    /* PTP port only exists for hw versions 1 and 2 */
+    mx_board_ver = matrix_board_version();
+    if (mx_board_ver < 3)
     {
-      case 1:
-        ptp_wc_index = 0; ptp_wc_lane = 0;
-        break;
-      default:
-        ptp_wc_index = 1; ptp_wc_lane = 0;
+      switch (mx_board_ver)
+      {
+        case 1:
+          ptp_wc_index = 0; ptp_wc_lane = 0;
+          break;
+        default:
+          ptp_wc_index = 1; ptp_wc_lane = 0;
+      }
+
+      /* Which WC group is being used? */
+      wc_group = WCSlotMap[ptp_wc_index].wcGroup;
+
+      /* WC Lane is marked as is in use to not be used for other purposes */
+      wclanes_in_use[ptp_wc_index][ptp_wc_lane] = L7_TRUE;
+      /* Update bandwidth */
+      bw_max[wc_group] += 1;    /* 1 Gb */
     }
-
-    /* Which WC group is being used? */
-    wc_group = WCSlotMap[ptp_wc_index].wcGroup;
-
-    /* WC Lane is marked as is in use to not be used for other purposes */
-    wclanes_in_use[ptp_wc_index][ptp_wc_lane] = L7_TRUE;
-    /* Update bandwidth */
-    bw_max[wc_group] += 1;    /* 1 Gb */
-    #endif
 
     /* Run all provided slots */
     for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; slot++)
@@ -507,45 +511,46 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       }
     }
 
-    /* PTP port */
-    #if 1
-    if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+    /* PTP port only exists for hw versions 1 and 2 */
+    if (mx_board_ver < 3)
     {
-      slot     = WCSlotMap[ptp_wc_index].slotIdx;
-      wc_group = WCSlotMap[ptp_wc_index].wcGroup;
-
-      /* Check if there is available BW to use PTP port */
-      if ((bw_max[wc_group] + 1 /*GB*/) > WC_GROUP_MAX_BW ||
-          (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) > WC_SEGMENT_MAX_PORTS)
+      if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
       {
-        LOG_ERR(LOG_CTX_STARTUP,"No WC found for PTP port (slot=%u, wc=%u, lane=%u)", slot, ptp_wc_index, ptp_wc_lane);
+        slot     = WCSlotMap[ptp_wc_index].slotIdx;
+        wc_group = WCSlotMap[ptp_wc_index].wcGroup;
+
+        /* Check if there is available BW to use PTP port */
+        if ((bw_max[wc_group] + 1 /*GB*/) > WC_GROUP_MAX_BW ||
+            (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) > WC_SEGMENT_MAX_PORTS)
+        {
+          LOG_ERR(LOG_CTX_STARTUP,"No WC found for PTP port (slot=%u, wc=%u, lane=%u)", slot, ptp_wc_index, ptp_wc_lane);
+          return L7_NOT_SUPPORTED;
+        }
+
+        wcMap[port].portNum  = port;
+        wcMap[port].slotNum  = slot;
+        wcMap[port].wcIdx    = ptp_wc_index;
+        wcMap[port].wcLane   = ptp_wc_lane;
+        wcMap[port].wcSpeedG = 1;     /* 1G */
+        LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u (PTP port)",
+                  wcMap[port].portNum,
+                  wcMap[port].slotNum,
+                  wcMap[port].wcIdx,
+                  wcMap[port].wcLane,
+                  wcMap[port].wcSpeedG);
+
+        /* Update temp variables */
+        ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
+        bw_max[wc_group] += 1;
+
+        port++;   /* Next port */
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_STARTUP,"Could not allocate PTP port!");
         return L7_NOT_SUPPORTED;
       }
-
-      wcMap[port].portNum  = port;
-      wcMap[port].slotNum  = slot;
-      wcMap[port].wcIdx    = ptp_wc_index;
-      wcMap[port].wcLane   = ptp_wc_lane;
-      wcMap[port].wcSpeedG = 1;     /* 1G */
-      LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u (PTP port)",
-                wcMap[port].portNum,
-                wcMap[port].slotNum,
-                wcMap[port].wcIdx,
-                wcMap[port].wcLane,
-                wcMap[port].wcSpeedG);
-
-      /* Update temp variables */
-      ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-      bw_max[wc_group] += 1;
-
-      port++;   /* Next port */
     }
-    else
-    {
-      LOG_ERR(LOG_CTX_STARTUP,"Could not allocate PTP port!");
-      return L7_NOT_SUPPORTED;
-    }
-    #endif
 
     /* Do not use remaining ports */
     #if 0
