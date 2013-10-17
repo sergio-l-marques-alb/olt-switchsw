@@ -1583,6 +1583,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
   cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
 
+  /* To be changed in the future */
+  if (dhcp_enabled && !pppoe_enabled)
+  {
+    pppoe_enabled = L7_TRUE;
+    evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  }
+
   /* Check if this EVC is allowd to be QUATTRO type */
   if (is_quattro)
   {
@@ -1884,8 +1891,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
     if (dhcp_enabled)
     {
-      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS ||
-          ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
@@ -1928,7 +1934,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (dhcp_enabled)
       {
         ptin_dhcp_evc_remove(evc_ext_id);
-        ptin_pppoe_evc_remove(evc_ext_id);
       }
       /* remove PPPoE trap rule */
       if (pppoe_enabled)
@@ -2111,8 +2116,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* If DHCP is enabled, add DHCP instance */
     if (dhcp_enabled)
     {
-      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS ||
-          ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
       else
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
@@ -2240,7 +2244,6 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   if (ptin_dhcp_is_evc_used(evc_ext_id))
   {
     ptin_dhcp_evc_remove(evc_ext_id);
-    ptin_pppoe_evc_remove(evc_ext_id);
   }
   /* For PPPoE enabled EVCs */
   if (ptin_pppoe_is_evc_used(evc_ext_id))
@@ -2410,7 +2413,6 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   if (ptin_dhcp_is_evc_used(evc_ext_id))
   {
     ptin_dhcp_evc_remove(evc_ext_id);
-    ptin_pppoe_evc_remove(evc_ext_id);
   }
   /* IF this EVC belongs to a PPPoE instance, destroy that instance */
   if (ptin_pppoe_is_evc_used(evc_ext_id))
@@ -3107,13 +3109,14 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   if ( (evcFlow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) &&
       !(evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL) )
   {
-    if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS ||
-        ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to DHCP instance", evc_id);
       return L7_FAILURE;
     }
     evcs[evc_id].flags |= PTIN_EVC_MASK_DHCP_PROTOCOL;
+    /* To be changed in the future */
+    evcFlow->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
   }
   if ( (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) &&
       !(evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) )
@@ -3357,8 +3360,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     #if (!PTIN_BOARD_IS_MATRIX)
     if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
     {
-      if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS ||
-          ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS)
+      if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from DHCP instance", evc_id);
         return L7_FAILURE;
