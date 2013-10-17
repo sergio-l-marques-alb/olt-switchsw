@@ -1297,6 +1297,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
   cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)   == PTIN_EVC_MASK_CPU_TRAPPING;
 
+  /* To be changed in the future */
+  if (dhcp_enabled && !pppoe_enabled)
+  {
+    pppoe_enabled = L7_TRUE;
+    evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  }
+
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
   /* Also save the first root and leaf port */
   n_roots = 0;

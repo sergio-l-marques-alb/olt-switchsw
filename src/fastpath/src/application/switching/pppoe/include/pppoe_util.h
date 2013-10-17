@@ -42,7 +42,8 @@ typedef struct
 typedef struct
 {
   ptinPppoeClientDataKey_t   dataKey;
-  L7_uint32                  interface; /*Interface throught which the client request arrived*/
+  L7_uint32                  interface;   /*Interface throught which the client request arrived*/
+  L7_uint16                  inner_vlan;  /* Internal inner vlan */
 
   void *next;
 } ptinPppoeBindingInfoData_t;
