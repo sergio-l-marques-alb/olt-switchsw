@@ -4573,6 +4573,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
 
       /* Trap the frames to CPU, so that they are not switched */
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TS_TO_CPU, 0, 0, 0);
       if (result != L7_SUCCESS)  {
         break;
       }

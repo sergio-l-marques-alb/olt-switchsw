@@ -458,6 +458,13 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     }
     break;
 
+  case BROAD_ACTION_TS_TO_CPU:
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.cpu_cosq;
+    }
+    break;
+
   case BROAD_ACTION_SET_TOS:
   case BROAD_ACTION_SET_DSCP:
     if (policyStage == BROAD_POLICY_STAGE_EGRESS)

@@ -2128,6 +2128,19 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
 }
 
+/* PTin added */
+void ptin_ReplaceVid(L7_ushort16 vlanId, L7_uchar8 *data)
+{
+  /* Replace tag */
+
+  data[14] &= 0xF0;
+  data[15] =  0;
+
+  data[14] |= (L7_uchar8) ((vlanId >> 8) & 0x0F);
+  data[15] = (L7_uchar8) ( vlanId       & 0xFF);
+}
+/* PTin end */
+
 L7_uint32 hapiRxQueueLostMsgs = 0;
 /*********************************************************************
 *
@@ -2193,7 +2206,17 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n", __FUNCTION__, __LINE__,
            bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
            bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan);
+
+    printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
+
+  if (bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f)
+  {
+    printf("rx_timestamp %d\n\r", bcm_pkt->rx_timestamp); 
+  }
+
+  // PTin
+  ptin_ReplaceVid(bcm_pkt->vlan, bcm_pkt->pkt_data->data);
 
   /* Dump first 64 bytes */
   if (cpu_intercepted_packets_dump)

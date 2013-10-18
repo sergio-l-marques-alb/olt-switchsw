@@ -185,6 +185,7 @@ typedef enum
     BROAD_ACTION_MIRROR,        /* unit      slot    port     mirror to lport                          */
     BROAD_ACTION_TRAP_TO_CPU,   /* n/a       n/a     n/a      unconditional trap to cpu, no switching  */
     BROAD_ACTION_COPY_TO_CPU,   /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
+    BROAD_ACTION_TS_TO_CPU,     /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_SET_COSQ,      /* cosq      n/a     n/a      set cos queue of switched traffic only   */
     BROAD_ACTION_SET_DSCP,      /* dscp      n/a     n/a      set ip dscp in l3 packet                 */
     BROAD_ACTION_SET_TOS,       /* tos       n/a     n/a      set tos in l3 packet                     */
