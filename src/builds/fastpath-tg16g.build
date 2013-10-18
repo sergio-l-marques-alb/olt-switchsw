@@ -1,0 +1,8 @@
+#!/bin/sh
+
+export MODULE=fastpath-tg16g
+export PLATFORMS="TG16G"
+
+export APPLICATION=fastpath
+
+. ./fastpath.build $1

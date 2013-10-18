@@ -4,7 +4,7 @@ PLATFORM=TOLT8G
 PLATFORM_FOLDER=$PLATFORM
 FILESYSTEM=rootfs
 
-BASE=../../builds
+BASE=../builds
 APPS_FOLDER=$BASE/apps
 
 KO_PATH=./output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$PLATFORM/target

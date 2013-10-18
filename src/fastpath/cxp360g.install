@@ -4,7 +4,7 @@ PLATFORM=CXP360G
 PLATFORM_FOLDER=CXO360G-MX
 FILESYSTEM=rootfs
 
-BASE=../../builds
+BASE=../builds
 APPS_FOLDER=$BASE/apps
 
 KO_PATH=./output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_$PLATFORM/target
