@@ -4,7 +4,7 @@ PLATFORM=CXO640G
 PLATFORM_FOLDER=$PLATFORM-MX
 FILESYSTEM=rootfs
 
-BASE=../../builds
+BASE=../builds
 APPS_FOLDER=$BASE/apps
 
 KO_PATH=./output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_$PLATFORM/target

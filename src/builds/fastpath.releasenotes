@@ -1,0 +1,16 @@
+Fastpath 6.3.0.2 Release Notes
+Version 2.7.0-r1019
+ - Fix OLTTS-3270/OLTSWITCH-202: (Stacked) EVCs destruction is not working at Reset Defaults procedure.
+ - Fix OLTTS-3252/OLTSWITCH-201: Fastpath enters in deadlock when reading client list in SF board (for version 3.1).
+ - Fix OLTTS-3238/OLTSWITCH-200: Multicast Rate Limiters are overriding IGMP trapping rules.
+Version 2.7.0.-r1022
+ - Req OLTTS-2229/OLTSWITCH-180: Exploring Broadcom's IEEE1588 capabilities (r1009,1011-1014).
+ - Req OLTTS-1511/OLTSWITCH-97 : Bugfixes and several improvements (r931-969,1010).
+Version 2.7.0-r1037
+ - Fix OLTTS-2937/OLTSWITCH-203: RX counter rules are not working when traffic is double-tagged.
+ - Fix OLTTS-2616/OLTTS-3068/OLTSWITCH-174: [TA48GE] Alarm traps from TA48GE interfaces are not being sent.
+ - Fix OLTTS-3188/OLTSWITCH-205: [TA48GE] Mediatype status on the TA48 is not shown correctly.
+ - Fix OLTTS-2731/OLTSWITCH-206: [TA48GE] Backplane link in slot 18 on mode C is down, caused by lane polarities inverted.
+ - Tsk OLTSWITCH-207: [CXO640G] Remove PTP port for HW Version 3.
+ - Tsk OLTSWITCH-184: PPPoE instances management refactored at ptin_evc.c
+ - Tsk OLTSWITCH-48 : Fastpath versioning method updated.
