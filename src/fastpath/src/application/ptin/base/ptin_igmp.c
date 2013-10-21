@@ -388,8 +388,6 @@ static L7_RC_t ptin_igmp_client_find(L7_uint igmp_idx, ptin_client_id_t *client_
 //static L7_RC_t ptin_igmp_router_intf_config(L7_uint router_intf, L7_uint16 router_vlan, L7_uint admin);
 //static L7_RC_t ptin_igmp_clients_intf_config(L7_uint client_intf, L7_uint admin);
 
-static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
-
 static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
 static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
 
@@ -1293,7 +1291,6 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   return L7_SUCCESS;
 }
 
-
 /**
  * Removes all IGMP instances
  * 
@@ -1823,6 +1820,7 @@ L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
 /**
  * Remove all Multicast clients 
  * 
+ * @param McastEvcId  : Multicast evc id
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_igmp_all_clients_flush(void)
@@ -4885,6 +4883,7 @@ L7_RC_t igmp_assoc_clean_all(void)
 {
   return igmp_assoc_avlTree_purge();
 }
+
 
 /**
  * Prepare an ip address to be used for the AVL trees
