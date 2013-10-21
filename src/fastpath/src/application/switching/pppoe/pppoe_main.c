@@ -795,7 +795,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
   L7_netBufHandle   bufHandle;
-  L7_BOOL           is_vlan_stacked;
+  //L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
   L7_uint32         intIfNum;
@@ -827,31 +827,38 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + pppoe_header->length;
 
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
+    #if 0
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;
     }
-
-    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
-    {
-      memmove(&frame[20],&frame[16],frame_len);
-      frame[16] = 0x81;
-      frame[17] = 0x00;
-      frame[18] = extIVlan>>8;
-      frame[19] = extIVlan & 0xff;
-      frame_len += 4;
-    }
+    #endif
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
       frame[14] &= 0xf0;
       frame[14] |= ((extOVlan>>8) & 0x0f);
       frame[15]  = extOVlan & 0xff;
+    }
+    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
+    if (/*is_vlan_stacked &&*/ extIVlan!=0)
+    {
+      /* No inner tag? */
+      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
+          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
+          *((L7_uint16 *) &frame[16]) != 0x9100)
+      {
+        memmove(&frame[20],&frame[16],frame_len);
+        frame[16] = 0x81;
+        frame[17] = 0x00;
+        frame_len += 4;
+      }
+      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
+      frame[19] = extIVlan & 0xff;
     }
   }
 

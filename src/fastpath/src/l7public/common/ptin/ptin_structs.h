@@ -306,7 +306,30 @@ typedef struct
   L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x08)
     #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN   0x10
   L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
+  L7_int    multicast_group;        // Associate a multicast group
 } ptin_bridge_vlan_mode_t;
+
+/* Multicast management with vlans and ports */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t oper;    /* Operation */
+  L7_int  vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
+  L7_int  multicast_group;    /* Multicast group id (-1 to be created) */
+  L7_BOOL destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
+} ptin_bridge_vlan_multicast_t;
+
+/* Virtual ports management */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t oper;
+  L7_int ext_ovid;
+  L7_int ext_ivid;
+  L7_int int_ovid;
+  L7_int int_ivid;
+  L7_int virtual_gport;
+  L7_int multicast_group;
+} ptin_vport_t;
 
 /* Struct used to manipulate cross connects via DTL */
 typedef struct
@@ -330,18 +353,29 @@ typedef struct {
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 vid_inner;    // Inner vlan associated to this interface
 } ptin_HwEthMef10Intf_t;
 
 /* EVC config */
-#define PTIN_EVC_MASK_BUNDLING        0x00000001
-#define PTIN_EVC_MASK_ALL2ONE         0x00000002
-#define PTIN_EVC_MASK_STACKED         0x00000004
-#define PTIN_EVC_MASK_MACLEARNING     0x00000008
-#define PTIN_EVC_MASK_CPU_TRAPPING    0x00000010
-#define PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
-#define PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
-#define PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400
-#define PTIN_EVC_MASK_P2P             0x00010000
+#define PTIN_EVC_MASK_BUNDLING          0x00000001
+#define PTIN_EVC_MASK_ALL2ONE           0x00000002
+#define PTIN_EVC_MASK_STACKED           0x00000004
+#define PTIN_EVC_MASK_MACLEARNING       0x00000008
+#define PTIN_EVC_MASK_CPU_TRAPPING      0x00000010
+#define PTIN_EVC_MASK_DHCP_PROTOCOL     0x00000100
+#define PTIN_EVC_MASK_IGMP_PROTOCOL     0x00000200
+#define PTIN_EVC_MASK_PPPOE_PROTOCOL    0x00000400
+#define PTIN_EVC_MASK_SERV_STD          0x00000000
+
+#define PTIN_EVC_MASK_P2P               0x00010000
+#define PTIN_EVC_MASK_QUATTRO           0x00020000
+#define PTIN_EVC_MASK_TYPE              (PTIN_EVC_MASK_P2P | PTIN_EVC_MASK_QUATTRO)
+
+/* EVC type */
+#define PTIN_EVC_TYPE_STD_P2MP          0x0
+#define PTIN_EVC_TYPE_STD_P2P           0x1
+#define PTIN_EVC_TYPE_QUATTRO_P2MP      0x2
+#define PTIN_EVC_TYPE_QUATTRO_P2P       0x3
 
 #define PTIN_EVC_MC_FLOOD_ALL       0
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1
@@ -359,6 +393,7 @@ typedef struct {
                           // 0x0008 - Mac Learning  (PTin custom field)
                           // 0x0100 - DHCP Protocol (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
+  L7_uint8  evc_type;     // EVC type: STD_P2MP, STD_P2P, QUATTRO_P2MP, QUATTRO_P2P
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
@@ -383,6 +418,8 @@ typedef struct {
                              *  Leaf: S' (ONLY applicable to unstacked services)
                              *        (on unstacked services we allow a S->S'
                              *         xlate per leaf port) */
+  L7_uint16  inner_vlan;    /* Inner vlan associated to interface */
+
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  stacked   - NOT APPLICABLE
                              *  unstacked - one internal VLAN per interface */
@@ -396,6 +433,19 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   ptin_HwEthMef10Intf_t intf; // VID represents the new outer VLAN (Vs')
 } ptin_HwEthEvcBridge_t;
+
+/* EVC stacked bridge */
+typedef struct {
+  L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;        // Protocol flags
+
+  L7_uint16 int_ivid;     // C-VLAN tagged in the upstream flows (inside the switch)
+
+  /* Client interface (root is already known by the EVC) */
+  ptin_intf_t ptin_intf;  // PON interface
+  L7_uint16   uni_ovid;   // GEM id
+  L7_uint16   uni_ivid;   // UNI cvlan
+} ptin_HwEthEvcFlow_t;
 
 /* Client identification */
 
@@ -413,6 +463,14 @@ typedef struct {
   L7_uint32   ipv4_addr;                /* [mask=0x08] IP address */
   L7_uchar8   macAddr[L7_MAC_ADDR_LEN]; /* [mask=0x10] Source MAC */
 } ptin_client_id_t;
+
+typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
+  L7_uint16   onuid;                /* [mask=0x0040] ONU ID */
+  L7_uint8    slot;             	/* [mask=0x0080] Slot */
+  L7_uint16   port;                 /* [mask=0x0100] Slot Port*/
+  L7_uint16   q_vid;                /* [mask=0x0200] VLAN ID on U interface */
+  L7_uint16   c_vid;                /* [mask=0x0400] C-VLAN on U interface */
+} ptin_clientCircuitId_t;
 
 /* Resources ******************************************************************/
 

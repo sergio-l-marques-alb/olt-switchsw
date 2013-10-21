@@ -528,3 +528,94 @@ L7_RC_t dtlPtinHwResources( st_ptin_policy_resources *resources )
   return dapiCtl(&ddUsp, DAPI_CMD_PTIN_HW_RESOURCES, (void *) resources);
 }
 
+/**
+ * Vlan Multicast configurations
+ * 
+ * @param mc_mode : descriptor with vlan configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinVlanBridgeMulticast( ptin_bridge_vlan_multicast_t *mc_mode )
+{
+  DAPI_USP_t ddUsp;
+  L7_RC_t rc;
+
+  ddUsp.unit = -1;
+  ddUsp.slot = -1;
+  ddUsp.port = -1;
+
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_MULTICAST, (void *) mc_mode);
+
+  return rc;
+}
+
+/**
+ * Multicast egress port configurations
+ * 
+ * @param mc_mode : descriptor with port configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_multicast_t *mc_mode )
+{
+  nimUSP_t usp;
+  DAPI_USP_t ddUsp;
+  L7_RC_t rc;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_MULTICAST_EGRESS_PORT, (void *) mc_mode);
+
+  return rc;
+}
+
+/**
+ * Virtual port configurations
+ * 
+ * @param vport : descriptor with virtual port configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport )
+{
+  nimUSP_t usp;
+  DAPI_USP_t ddUsp;
+  L7_RC_t rc;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VIRTUAL_PORT, (void *) vport);
+
+  return rc;
+}
+

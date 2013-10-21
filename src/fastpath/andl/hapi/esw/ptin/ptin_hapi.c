@@ -69,6 +69,8 @@ int ptin_sys_number_of_ports = PTIN_SYSTEM_N_PORTS;
 
 static L7_RC_t hapi_ptin_portMap_init(void);
 
+L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
+
 L7_RC_t ptin_hapi_kr4_set(L7_int port);
 
 /**
@@ -224,8 +226,114 @@ L7_RC_t ptin_hapi_phy_init(void)
   }
   #endif
 
+  /* Egress port configuration, only for PON boards */
+  #if (PTIN_BOARD==PTIN_BOARD_OLT7_8CH_B || PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TG16G)
+  if (hapi_ptin_egress_ports(PTIN_SYSTEM_N_PONS) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error initializing egress ports!");
+    rc = L7_FAILURE;
+  }
+  #endif
+
   return rc;
 
+}
+
+/**
+ * Initialize egress ports for all physical ports
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
+{
+  int i, unit=0;
+  bcm_port_t bcm_port;
+  bcm_pbmp_t pbm_all, pbm_eth;
+
+  /* Validate arguments */
+  if (port_frontier>=ptin_sys_number_of_ports)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid port frontier (%u)",port_frontier);
+    return L7_FAILURE;
+  }
+
+  /* Switch unit */
+  if (hapi_ptin_bcmUnit_get(&unit) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"bcm_port map not initialized!");
+    return L7_FAILURE;
+  }
+
+  /* Prepare port bitmaps */
+  BCM_PBMP_CLEAR(pbm_all);
+  BCM_PBMP_CLEAR(pbm_eth);
+  for (i=0; i<port_frontier; i++)
+  {
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
+      return L7_FAILURE;
+    }
+    BCM_PBMP_PORT_ADD(pbm_all, bcm_port);
+  }
+  for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
+  {
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
+      return L7_FAILURE;
+    }
+    BCM_PBMP_PORT_ADD(pbm_all, bcm_port);
+    BCM_PBMP_PORT_ADD(pbm_eth, bcm_port);
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_ALL:");
+  for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_all.pbits[i]);
+  }
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_ETH:");
+  for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_eth.pbits[i]);
+  }
+
+  /* PON ports: egress ports are the ethernet ones only */
+  for (i=0; i<port_frontier; i++)
+  {
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
+      return L7_FAILURE;
+    }
+    /* Configure egress ports list */
+    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_eth)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for PON port %u/%u",i, bcm_port);
+  }
+  /* ETH ports */
+  for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
+  {
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
+      return L7_FAILURE;
+    }
+    /* Configure egress ports list */
+    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_all)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for ETH port %u/%u",i,bcm_port);
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for all ports");
+
+  return L7_SUCCESS;
 }
 
 /** 

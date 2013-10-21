@@ -1571,7 +1571,63 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a bridge to EVC# %u", evcBridge->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
+    }
+
+    /* CCMSG_ETH_EVC_FLOW_ADD ***********************************************/
+    case CCMSG_ETH_EVC_FLOW_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOW_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
+
+      CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
+
+      msg_HwEthEvcFlow_t *evcFlow;
+      evcFlow = (msg_HwEthEvcFlow_t *) inbuffer->info;
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_EVCFlow_add(evcFlow))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_FLOW_ADD */
+    }
+
+    /* CCMSG_ETH_EVC_FLOW_REMOVE ********************************************/
+    case CCMSG_ETH_EVC_FLOW_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_FLOW_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
+
+      CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
+
+      msg_HwEthEvcFlow_t *evcFlow;
+      evcFlow = (msg_HwEthEvcFlow_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_EVCFlow_remove(evcFlow);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing a flow from eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;

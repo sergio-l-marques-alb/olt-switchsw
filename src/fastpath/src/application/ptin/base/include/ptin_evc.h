@@ -30,6 +30,7 @@ extern L7_RC_t ptin_evc_init(void);
  * Gets an EVC configuration
  * 
  * @param evcConf Pointer to the output struct (index field is used as input param)
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -39,6 +40,7 @@ extern L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf);
  * Creates or reconfigures an EVC
  * 
  * @param evcConf Pointer to the input struct
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -47,11 +49,12 @@ extern L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf);
 /**
  * Deletes an EVC
  * 
- * @param evc_idx
+ * @param evc_id
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_delete(L7_uint evc_idx);
+extern L7_RC_t ptin_evc_delete(L7_uint evc_id);
 
 /**
  * Destroys all EVCs (except INBAND!)
@@ -64,6 +67,7 @@ extern L7_RC_t ptin_evc_destroy_all(void);
  * Adds a bridge to a stacked EVC between the root and a particular interface
  * 
  * @param evcBridge Bridge info
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -73,6 +77,7 @@ extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
  * Removes a bridge from a stacked EVC between the root and a particular interface
  * 
  * @param evcBridge Bridge info
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -81,7 +86,7 @@ extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
 /**
  * Adds a flooding vlan
  * 
- * @param evcId       : EVC index
+ * @param evc_ext_id  : EVC extended id
  * @param ptin_intf   : port of which client_vlan belongs
  * @param client_vlan : client vlan to apply this flooding vlan
  * @param outer_vlan  : outer vlan of transmitted  packets
@@ -89,13 +94,13 @@ extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
                                         L7_uint16 outer_vlan, L7_uint16 inner_vlan );
 
 /**
  * Removes a flooding vlan
  * 
- * @param evcId       : EVC index
+ * @param evc_ext_id  : EVC extended id
  * @param ptin_intf   : port of which client_vlan belongs
  * @param client_vlan : client vlan to apply this flooding vlan
  * @param outer_vlan  : outer vlan of transmitted packets
@@ -103,7 +108,7 @@ extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evcId, ptin_intf_t *ptin_intf,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evcId, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
                                            L7_uint16 outer_vlan, L7_uint16 inner_vlan );
 
 /**
@@ -113,33 +118,33 @@ extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evcId, ptin_intf_t *ptin_in
 /**
  * Read data of a bandwidth profile
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile (input and output)
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : bw profile (input and output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_bwProfile_get(L7_uint evc_idx, ptin_bw_profile_t *profile);
+extern L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile);
 
 /**
  * Apply a bandwidth profile to an EVC and (optionally) to a 
  * specific client 
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : bw profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_idx, ptin_bw_profile_t *profile);
+extern L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile);
 
 /**
  * Remove a bandwidth profile to an EVC 
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : bw profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_idx, ptin_bw_profile_t *profile);
+extern L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile);
 
 /**
  * EVC Counters management functions
@@ -148,33 +153,33 @@ extern L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_idx, ptin_bw_profile_t *pro
 /**
  * Read RX statistics of a particular EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile 
- * @param stats : Statistics data
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile 
+ * @param stats      : Statistics data
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_evcStats_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
+extern L7_RC_t ptin_evc_evcStats_get(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
 
 /**
  * Add a rule to make packets counting of a specific EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_evcStats_set(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
+extern L7_RC_t ptin_evc_evcStats_set(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile);
 
 /**
  * Delete a rule to make packets counting of a specific EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
+extern L7_RC_t ptin_evc_evcStats_delete(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile);
 
 
 /******************************************************** 
@@ -184,11 +189,11 @@ extern L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t
 /**
  * Determines if a particular EVC is in use
  * 
- * @param evc_idx : EVC id
+ * @param evc_ext_id : EVC extended id
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-extern L7_BOOL ptin_evc_is_in_use(L7_uint evc_idx);
+extern L7_BOOL ptin_evc_is_in_use(L7_uint32 evc_ext_id);
 
 /**
  * Determines if a particular Port/LAG is being used on any EVC
@@ -202,20 +207,22 @@ extern L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx);
 /**
  * Get interface configuration within an EVC
  *  
- * @param evc_idx   : EVC index
- * @param ptin_intf : PTin interface 
- * @param cfg       : interface configuration 
+ * @param evc_ext_id : EVC extended id
+ * @param ptin_intf  : PTin interface 
+ * @param cfg        : interface configuration 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_intfCfg_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_evc_intfCfg_t *cfg);
+extern L7_RC_t ptin_evc_intfCfg_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_evc_intfCfg_t *cfg);
 
 /**
  * Gets an EVC configuration from an internal vlan as input 
  * parameter 
  *  
  * @param internalVlan : Internal vlan
- * @param evcConf      : Pointer to the evc configuration struct
+ * @param evcConf      : Pointer to the evc configuration struct 
+ *  
+ * @note The returned EVC id will be the extended one 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -224,39 +231,40 @@ extern L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10E
 /**
  * Gets the internal vlan for a particular evc and interface
  * 
- * @param evc_id    : EVC id 
- * @param ptin_intf : interface
- * @param intVlan   : Internal vlan
+ * @param evc_ext_id : EVC extended id 
+ * @param ptin_intf  : interface
+ * @param intVlan    : Internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan);
+extern L7_RC_t ptin_evc_intVlan_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan);
 
 /**
  * Gets the root vlan (internal) for a particular evc
  * 
- * @param evc_id      : EVC id 
+ * @param evc_ext_id  : EVC extended id 
  * @param intRootVlan : Internal root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_intRootVlan_get(L7_uint16 evc_id, L7_uint16 *intRootVlan);
+extern L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan);
 
 /**
  * Get the outer+inner external vlan for a specific 
- * interface+evc_idx+innerVlan. 
+ * interface+evc_id+innerVlan. 
  *  
- * @param intIfNum  : FP interface#
- * @param evc_idx   : EVC index
- * @param innerVlan : Inner vlan
- * @param extOVlan  : External outer-vlan 
- * @param extIVlan  : External inner-vlan (01 means that there 
- *                     is no inner vlan)
+ * @param intIfNum   : FP interface#
+ * @param evc_ext_id : EVC extended index
+ * @param innerVlan  : Inner vlan
+ * @param extOVlan   : External outer-vlan 
+ * @param extIVlan   : External inner-vlan (01 means that there 
+ *                      is no inner vlan)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
+#if 0
 /**
  * Validate outer vlan
  * 
@@ -268,7 +276,8 @@ extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_u
  *                   L7_NOT_EXIST if extOVlan does not exist
  *                   L7_FAILURE if other error
  */
-extern L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan);
+extern L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan);
+#endif 
 
 /**
  * Get internal vlans, from external vlans and the interface
@@ -301,22 +310,20 @@ extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_I
 /**
  * Get next client, belonging to an EVC
  * 
- * @param evc_idx     : evc index
- * @param intf_type   : interface type
- * @param intf_id     : interface index
- * @param cvlan       : reference cvlan
- * @param cvlan_next  : next cvlan
- * @param ovlan_next  : outer vlan related to next cvlan
+ * @param evc_id      : evc index
+ * @param ptin_intf   : interface
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
- *  L7_NO_VALUE tells there is no more clients (cvlan_next==0)
+ *  L7_NO_VALUE tells there is no more clients (ivid_next==0)
  *  L7_NOT_EXIST tells the reference vlan was not found
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
 /**
  * Configures a root port (unstacked EVCs) 
@@ -340,7 +347,7 @@ extern L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan);
 extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
 
 /**
- * Flushes FDB for all int.VLAN associated to this evc_idx
+ * Flushes FDB for all int.VLAN associated to this evc_id
  * 
  * @param int_vlan  Root Inner VLAN
  * 
@@ -348,6 +355,7 @@ extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
  */
 extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
 
+#if PTIN_IGMP_STATS_IN_EVCS
 /**
  * Get a pointer to IGMP stats
  * 
@@ -362,34 +370,33 @@ extern L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 
 /**
  * Get a pointer to IGMP stats
  * 
- * @param evc_idx      : EVC index 
- * @param ptin_intf    : interface
- * @param stats_intf   : Stats
+ * @param evc_ext_id  : EVC extended index 
+ * @param ptin_intf   : interface
+ * @param stats_intf  : Stats
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-extern L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf);
+extern L7_RC_t ptin_evc_igmp_stats_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf);
 
 /**
  * Clear IGMP stats of one interface
  * 
- * @param evc_idx      : EVC index 
- * @param ptin_intf    : interface
+ * @param evc_ext_id  : EVC extended index 
+ * @param ptin_intf   : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-extern L7_RC_t ptin_evc_igmp_stats_clear(L7_uint evc_idx, ptin_intf_t *ptin_intf);
+extern L7_RC_t ptin_evc_igmp_stats_clear(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf);
 
 /**
  * Clear IGMP stats of all interfaces
  * 
- * @param evc_idx      : EVC index 
- * @param ptin_intf    : interface
+ * @param evc_ext_id  : EVC extended index 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint evc_idx);
-
+extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id);
+#endif
 
 /******************************************************** 
  * FOR FASTPATH INTERNAL MODULES USAGE
@@ -400,11 +407,11 @@ extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint evc_idx);
  * parameter 
  *  
  * @param internalVlan : Internal vlan
- * @param evc_id       : EVC id
+ * @param evc_ext_id   : EVC extended id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id);
+extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext_id);
 
 /**
  * Get the outer+inner external vlan for a specific 
@@ -423,14 +430,24 @@ extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
- * Check if the EVC related to an internal vlan is P2P. 
+ * Return EVC type. 
+ * 
+ * @param evc_id_ext : extended evc id
+ * @param evc_type   : EVC type (output)
+ *  
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type);
+
+/**
+ * Return EVC type from internal vlan. 
  *  
  * @param intVlan    : Internal outer-vlan 
- * @param is_p2p     : Is EVC P2P? (output)
+ * @param evc_type   : evc type (output)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p);
+extern L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type);
 
 /**
  * Check if the EVC related to an internal vlan is stacked. 
@@ -457,11 +474,10 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 /**
  * Get next client, belonging to a vlan
  * 
- * @param intVlan    : internal vlan
+ * @param intVid    : internal vlan
  * @param intIfNum   : intIfNum
- * @param cvlan      : reference inner vlan 
- * @param cvlan_next : next inner vlan
- * @param ovlan_next : ovlan related to the next inner vlan
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
@@ -471,7 +487,27 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next);
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
+
+/**
+ * Adds a flow to the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow);
+
+/**
+ * Removes a flow from the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow);
 
 /**
  * Gets the flooding vlans list

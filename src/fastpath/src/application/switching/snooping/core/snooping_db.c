@@ -1050,8 +1050,8 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
         {
           ip_addr.family = L7_AF_INET;
           ip_addr.addr.ipv4.s_addr = snoopEntry->channel_list[channel_index].ipAddr;
-          if (igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS ||
-              igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS)
+          if (igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS /*||
+              igmp_generate_packet_and_send(vlan,L7_IGMP_V2_LEAVE_GROUP,&ip_addr)!=L7_SUCCESS*/)
           {
             if (ptin_debug_igmp_snooping)
               LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
@@ -1879,8 +1879,8 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   /* Send two joins */
   if (fwdFlag && igmp_network_version<=2)
   {
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS ||
-        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
+    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS /*||
+        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS*/)
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending joins to router interfaces");
@@ -1986,8 +1986,8 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
     /* Send two leave messages */
     if (igmp_network_version <= 2)
     {
-      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
-          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS /*||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS*/)
       {
         if (ptin_debug_igmp_snooping)
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
@@ -2128,8 +2128,8 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   /* Send one join */
   if (fwdFlag && igmp_network_version<=2)
   {
-    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS ||
-        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS)
+    if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS /*||
+        igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_MEMBERSHIP_REPORT,mgmdGroupAddr)!=L7_SUCCESS*/)
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending join to router interfaces");
@@ -2282,8 +2282,8 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   {
     if (fwdFlag)
     {
-      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS ||
-          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS)
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS /*||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,mgmdGroupAddr)!=L7_SUCCESS*/)
       {
         if (ptin_debug_igmp_snooping)
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leave to router interfaces");
@@ -3340,8 +3340,8 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
     /* Send two leave messages */
     if (igmp_network_version <= 2)
     {
-      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS ||
-          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS)
+      if (igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS /*||
+          igmp_generate_packet_and_send(vlanId,L7_IGMP_V2_LEAVE_GROUP,&channel)!=L7_SUCCESS*/)
       {
         if (ptin_debug_igmp_snooping)
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");

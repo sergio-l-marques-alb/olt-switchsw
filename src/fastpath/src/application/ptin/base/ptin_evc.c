@@ -28,6 +28,13 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
+/* Assure PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS is 1024 */
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if (PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS!=1024)
+#error "ola"
+#endif
+#endif
+
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -42,17 +49,39 @@ struct ptin_evc_client_s {
 
   L7_BOOL    in_use;        /* When set, indicates that this entry is valid */
 
-  L7_uint16  inn_vlan;      /* Inner VLAN (Client VLAN) (ignored on root ports) */
-  L7_uint16  out_vlan;      /* S' -> Translated S-VLAN (depends on S+C) */
+  L7_uint16  int_ovid;      /* Internal outer vlan */
+  L7_uint16  int_ivid;      /* Inner VLAN (Client VLAN) (ignored on root ports) */
+
+  L7_uint16  uni_ovid;      /* S' -> Translated S-VLAN (depends on S+C) */
+  L7_uint16  uni_ivid;      /* Inner S' -> Translated C-VLAN */
 
   /* GEM ids which will be flooded the ARP packets */
   L7_uint16  flood_vlan[PTIN_FLOOD_VLANS_MAX];
+  L7_int     virtual_gport;
+  L7_uint32  flags;         /* Client/flow flags */
 
   /* Counters/Profiles per client on stacked EVCs (S+C) */
   void      *counter[2];    /* Pointer to a counter struct entry */
   void      *bwprofile[2];  /* Pointer to a BW profile struct entry */
 };  // sizeof=24
 
+#if 0
+/* Information of a gem flow */
+typedef struct ptin_evc_flow_s
+{
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_evc_flow_s *next;
+  struct ptin_evc_flow_s *prev;
+
+  L7_uint8  in_use;       /* 1 if active */
+  L7_uint32 flags;        /* Flags identifying flow */
+  L7_uint16 uni_ovid;     /* GEM id, used as outer vlan*/
+  L7_uint16 uni_ivid;     /* Service id, used as inner vlan */
+  L7_uint16 int_ovid;     /* Internal outer vlan */
+  L7_uint16 int_ivid;     /* Client vlan used internally (upstream flow) */
+  L7_int virtual_gport;   /* GPort identifying virtual port */
+} ptin_evc_flow_t;
+#endif
 
 /* EVC Interface entry */
 struct ptin_evc_intf_s {
@@ -69,10 +98,18 @@ struct ptin_evc_intf_s {
                              *  Leaf: S' (ONLY applicable to point-to-multipoint services)
                              *        (on p2multipoint services we allow a S->S'
                              *         xlate per leaf port) */
+  L7_uint16  inner_vlan;    /* Inner VLAN */
 
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  point-to-point - NOT APPLICABLE
                              *  point-to-multipoint - one internal VLAN per interface */
+
+  /* GEM flows */
+  #if 0
+  L7_uint16       n_flows;                        /* Number of flows */
+  //ptin_evc_flow_t flow[64];  /* List of flows */
+  dl_queue_t      flows;                          /* flows queue */
+  #endif
 
   /* Counters/Profiles per client on unstacked EVCs (counter per leaf port) */
   void      *counter;       /* Pointer to a counter struct entry */
@@ -88,6 +125,7 @@ struct ptin_evc_intf_s {
 /* EVC entry */
 struct ptin_evc_s {
   L7_BOOL    in_use;        /* When set, indicates that this entry is valid */
+  L7_uint32  extended_id;   /* Extended ID assigned to this EVC */
 
   L7_uint32  flags;         /* PTIN_EVC_MASK_xxx:
                              *  PTIN_EVC_MASK_BUNDLING        0x00000001
@@ -113,13 +151,22 @@ struct ptin_evc_s {
   struct ptin_evc_intf_s intf[PTIN_SYSTEM_N_INTERF];
 
   /* Auxiliary (redundant) information */
-  L7_uint32  n_clients;     /* Number of clients associated with this EVC (ONLY on stacked services) */
-  L7_uint32  n_counters;    /* Number of counters associated with this EVC */
+  L7_uint32  n_clients;       /* Number of clients associated with this EVC (ONLY on stacked services) */
+  L7_uint32  n_counters;      /* Number of counters associated with this EVC */
+
   L7_uint32  n_bwprofiles;  /* Number of BW profiles associated with this EVC */
   L7_uint32  n_probes;      /* Number of probes associated with this EVC */
 
   L7_uint8   n_roots;       /* Number of roots */
   L7_uint8   n_leafs;       /* Number of leafs */
+
+  /* Information of first root port */
+  struct
+  {
+    L7_uint8   port;        /* Index of first root port */
+    L7_uint16  nni_ovid;    /* NNI outer vlan of first root port */
+    L7_uint16  nni_ivid;    /* NNI inner vlan of first root port */
+  } root_info;
 
   L7_int     p2p_port1_intf;  /* For P2P services: First port */
   L7_int     p2p_port2_intf;  /* For P2P services: Second port */
@@ -133,8 +180,12 @@ struct ptin_evc_s {
                              */
   //struct ptin_evc_client_s *client_ref[4096];   /* Direct reference to clients information */
 
+  L7_int multicast_group;   /* Multicast group associated to thi service */
+
+  #if PTIN_IGMP_STATS_IN_EVCS
   /* IGMP statistics */
   ptin_IGMP_Statistics_t stats_igmp_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
+  #endif
 
   dl_queue_t *queue_free_vlans;   /* Pointer to queue of free vlans */
 };  // sizeof=36+32*36=1188
@@ -170,21 +221,42 @@ struct ptin_queue_s {
   dl_queue_t *queue;
 };
 
+/* EVC entry (for pool queue) */
+struct ptin_evc_entry_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_evc_entry_s *next;
+  struct ptin_evc_entry_s *prev;
+
+  L7_uint evc_id;  /* One index of evcs[] array */
+};
+
 /* Static array structures: EVCs + Clients + VLANs */
 static struct ptin_evc_s        evcs[PTIN_SYSTEM_N_EVCS];       // sizeof=65*1188=77220
+static struct ptin_evc_entry_s  evcs_pool[PTIN_SYSTEM_N_EVCS];  /* Array with all the indexes of EVCs to be used in a queue */
+
 static struct ptin_evc_client_s clients[PTIN_SYSTEM_N_CLIENTS]; // sizeof=24*1024=24576
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
+
 #if (PTIN_SYSTEM_GROUP_VLANS)
 static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS];
 #endif
+
+/* List of flows */
+#if 0
+static ptin_evc_flow_t evc_flows[PTIN_SYSTEM_N_FLOWS_MAX];
+#endif
+
 /* Allocated space for all probes */
 static struct ptin_probe_s      probes[PTIN_SYSTEM_MAX_COUNTERS];
 
 /* Queues */
-static dl_queue_t queue_evcs;         /* Queue of busy EVCs entries */
+static dl_queue_t queue_busy_evcs;    /* Queue of busy EVCs entries */
 static dl_queue_t queue_free_evcs;    /* Queue of free EVCs entries */
 static dl_queue_t queue_free_clients; /* Clients (busy) queues are mapped on each interface per EVC */
 static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
+#if 0
+static dl_queue_t queue_free_flows;   /* Flows (busy) queues are mapped on each interface per EVC */
+#endif
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
 static dl_queue_t queue_p2multipoint_freeVlan_queues;
@@ -193,68 +265,101 @@ static dl_queue_t queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS
 #else
 static dl_queue_t queue_free_vlans; /* Pool of free internal VLANs */
 #endif
+/* Queue for QUATTRO P2P vlans */
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+static dl_queue_t queue_quattro_p2p_free_vlans;
+#endif
+
+/* Lookup table to convert extended in internal EVC indexes */
+static L7_uint32 evc_ext2int[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /* List with all the ports/lags used by EVCs */
 static L7_uint8 evcs_intfs_in_use[PTIN_SYSTEM_N_INTERF];
 
 /* Reference of evcid using internal vlan as reference */
-static L7_uint8 evcId_from_internalVlan[4096];
+static L7_uint32 evcId_from_internalVlan[4096];
+
 
 /* Local Macros */
-#define IS_EVC_P2P(evc_idx)             ((evcs[evc_idx].flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P)
-#define IS_EVC_P2MULTIPOINT(evc_idx)    ((evcs[evc_idx].flags & PTIN_EVC_MASK_P2P     ) == 0 )
+#define IS_eEVC_IN_USE(a)               (evc_ext2int[a] < PTIN_SYSTEM_N_EXTENDED_EVCS)
 
-#define IS_EVC_STACKED(evc_idx)         ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
-#define IS_EVC_UNSTACKED(evc_idx)       ((evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED ) == 0 )
+#define IS_EVC_P2P(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P )
+#define IS_EVC_P2MP(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == 0 )
+#define IS_EVC_QUATTRO(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO )
+#define IS_EVC_STD(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == 0 )
 
-#define IS_EVC_WITH_CPU_TRAP(evc_idx)   ((evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
+#define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
+#define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
+#define IS_EVC_QUATTRO_P2P(evc_id)    (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2P(evc_id))
+#define IS_EVC_QUATTRO_P2MP(evc_id)   (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2MP(evc_id))
 
-#define IS_EVC_INTF_USED(evc_idx,ptin_port) (evcs[evc_idx].intf[ptin_port].in_use)
-#define IS_EVC_INTF_ROOT(evc_idx,ptin_port) (IS_EVC_INTF_USED(evc_idx,ptin_port) && evcs[evc_idx].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
-#define IS_EVC_INTF_LEAF(evc_idx,ptin_port) (IS_EVC_INTF_USED(evc_idx,ptin_port) && evcs[evc_idx].intf[ptin_port].type==PTIN_EVC_INTF_LEAF)
+#define IS_EVC_STACKED(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
+#define IS_EVC_UNSTACKED(evc_id)      ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == 0 )
+
+#define EVC_SINGLE_INTVLAN(evc_type)  ((evc_type)!=PTIN_EVC_TYPE_STD_P2MP)
+
+#define IS_EVC_WITH_CPU_TRAP(evc_id)  ((evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
+
+#define IS_EVC_INTF_USED(evc_id,ptin_port) (evcs[evc_id].intf[ptin_port].in_use)
+#define IS_EVC_INTF_ROOT(evc_id,ptin_port) (IS_EVC_INTF_USED(evc_id,ptin_port) && evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
+#define IS_EVC_INTF_LEAF(evc_id,ptin_port) (IS_EVC_INTF_USED(evc_id,ptin_port) && evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_LEAF)
 
 /* DriveShell functions */
-L7_RC_t ptin_evc_allclients_remove( L7_uint evc_idx );                                                    /* Used by ptin_evc_delete */
-L7_RC_t ptin_evc_intfclients_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id );             /* Used by ptin_evc_destroy */
-L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan );
+L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id );                                                    /* Used by ptin_evc_delete */
+L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id );        /* Used by ptin_evc_destroy */
+L7_RC_t ptin_evc_client_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan );
 
 void ptin_evc_clean_counters_enable( L7_BOOL enable );
 void ptin_evc_clean_profiles_enable( L7_BOOL enable );
 
-L7_RC_t ptin_evc_clean_all( L7_uint evc_idx, L7_BOOL force );                                             /* Used by ptin_evc_delete */
-L7_RC_t ptin_evc_intf_clean_all( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );  /* Used by ptin_evc_destroy */
+L7_RC_t ptin_evc_clean_all( L7_uint evc_id, L7_BOOL force );                                             /* Used by ptin_evc_delete */
+L7_RC_t ptin_evc_intf_clean_all( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );  /* Used by ptin_evc_destroy */
 
-L7_RC_t ptin_evc_allintfs_clean( L7_uint evc_idx, L7_BOOL force );                                        /* Used by ptin_evc_delete */
-L7_RC_t ptin_evc_intf_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );      /* Used by ptin_evc_destroy */
+L7_RC_t ptin_evc_allintfs_clean( L7_uint evc_id, L7_BOOL force );                                        /* Used by ptin_evc_delete */
+L7_RC_t ptin_evc_intf_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );      /* Used by ptin_evc_destroy */
 
-L7_RC_t ptin_evc_allclients_clean( L7_uint evc_idx, L7_BOOL force );
-L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );
-L7_RC_t ptin_evc_client_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan, L7_BOOL force );
+L7_RC_t ptin_evc_allclients_clean( L7_uint evc_id, L7_BOOL force );
+L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force );
+L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan, L7_BOOL force );
+
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+//static L7_RC_t ptin_evc_port_flows_clean(L7_uint16 evc_id, L7_uint ptin_port);
+static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 uni_ovid);
+#endif
 
 /* Local functions prototypes */
-static L7_RC_t ptin_evc_pclient_clean( L7_uint evc_idx, struct ptin_evc_client_s *pclient, L7_BOOL force );
+static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, struct ptin_evc_client_s *pclientFlow, L7_BOOL force );
 
-static void    ptin_evc_entry_reset(L7_uint evc_idx);
+static void    ptin_evc_entry_init(L7_uint evc_id);
+static L7_RC_t ptin_evc_entry_allocate(L7_uint evc_ext_id, L7_uint *evc_id);
+static L7_RC_t ptin_evc_entry_free(L7_uint evc_ext_id);
+
+static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
+//static L7_RC_t ptin_evc_int2ext(L7_uint32 evc_id, L7_uint32 *evc_ext_id);
+
 static void    ptin_evc_vlan_pool_init(void);
 
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue);
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint evc_type, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
-static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_idx);
+static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
 
-static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthMef10Intf_t *intf_cfg);
-static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf);
-static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx);
+static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg);
+static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port);
+static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_id);
 
-static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf);
-static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_intf);
-static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx);
+static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_id, L7_uint ptin_port);
+static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_id, L7_uint ptin_port);
+static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_id);
 
-static void    ptin_evc_intf_list_get(L7_uint evc_idx, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
+static void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
 static void    ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue_elem_t **pelem);
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_elem_t **pelem);
+#endif
 
-static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 int_vlan);
-static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 int_vlan);
+static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivlan);
+static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan);
 static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 
@@ -283,13 +388,13 @@ static L7_RC_t switching_vlan_delete(L7_uint16 vid);
 static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap);
 
 static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf);
-static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *profile, void ***bwPolicer_ptr);
-static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t *profile, void ***counters_ptr);
+static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile, void ***bwPolicer_ptr);
+static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t *profile, void ***counters_ptr);
 
-static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
-static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
-static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile);
-static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port);
+static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
+static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profile);
+static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *profile);
+static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_id, L7_int ptin_port);
 
 
 /* Semaphore to access EVC clients */
@@ -308,15 +413,19 @@ L7_RC_t ptin_evc_init(void)
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC init started...");
 
-  /* Initialize EVCs queues */
-  dl_queue_init(&queue_evcs);
-  dl_queue_init(&queue_free_evcs);
-
   /* Initialize free clients queues */
-  memset(clients,0x00,sizeof(clients));
+  memset(clients, 0x00, sizeof(clients));
   dl_queue_init(&queue_free_clients);
   for (i=0; i<(sizeof(clients)/sizeof(clients[0])); i++)
     dl_queue_add(&queue_free_clients, (dl_queue_elem_t*)&clients[i]);
+
+  #if 0
+  /* Initialize free flows queue */
+  memset(evc_flows, 0x00, sizeof(evc_flows));
+  dl_queue_init(&queue_free_flows);
+  for (i=0; i<(sizeof(evc_flows)/sizeof(evc_flows[0])); i++)
+    dl_queue_add(&queue_free_flows, (dl_queue_elem_t*)&evc_flows[i]);
+  #endif
 
   /* Initialize free probes queue */
   memset(probes,0x00,sizeof(probes));
@@ -326,7 +435,19 @@ L7_RC_t ptin_evc_init(void)
 
   /* Reset EVCs structs */
   for (i=0; i<(sizeof(evcs)/sizeof(evcs[0])); i++)
-    ptin_evc_entry_reset(i);
+    ptin_evc_entry_init(i);
+
+  /* Initialize EVCs busy queues (empty) */
+  dl_queue_init(&queue_busy_evcs);
+
+  /* Initialize EVCs free queue and update evc indexes of the pool elements */
+  dl_queue_init(&queue_free_evcs);
+  for (i=0; i<PTIN_SYSTEM_N_EVCS; i++) {
+    evcs_pool[i].evc_id = i;
+    dl_queue_add(&queue_free_evcs, (dl_queue_elem_t*) &evcs_pool[i]);
+  }
+
+  memset(evc_ext2int, 0xFF, sizeof(evc_ext2int)); /* Set to 0xFF because 0 is a valid index */
 
   /* Reset EVCs ports/lags in use */
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
@@ -350,16 +471,16 @@ L7_RC_t ptin_evc_init(void)
 /**
  * Determines if a particular EVC is in use
  * 
- * @param evc_idx : EVC id
+ * @param evc_ext_id : EVC extended id
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_evc_is_in_use(L7_uint evc_idx)
+L7_BOOL ptin_evc_is_in_use(L7_uint32 evc_ext_id)
 {
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
     return L7_FALSE;
 
-  return evcs[evc_idx].in_use;
+  return IS_eEVC_IN_USE(evc_ext_id);
 }
 
 /**
@@ -371,20 +492,20 @@ L7_BOOL ptin_evc_is_in_use(L7_uint evc_idx)
  */
 L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx)
 {
-  L7_int evc_idx;
+  L7_int evc_id;
 
   if (intf_idx>=PTIN_SYSTEM_N_INTERF)
     return L7_FALSE;
 
   /* Run all EVCs */
-  for ( evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++ )
+  for ( evc_id=0; evc_id<PTIN_SYSTEM_N_EVCS; evc_id++ )
   {
     /* Skip not used EVCs */
-    if (!evcs[evc_idx].in_use)
+    if (!evcs[evc_id].in_use)
       continue;
 
     /* If any EVC is using this interface, return TRUE immediately */
-    if (evcs[evc_idx].intf[intf_idx].in_use)
+    if (evcs[evc_id].intf[intf_idx].in_use)
       return L7_TRUE;
   }
 
@@ -395,22 +516,32 @@ L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx)
 /**
  * Get interface configuration within an EVC
  *  
- * @param evc_idx   : EVC index
- * @param ptin_intf : PTin interface 
- * @param cfg       : interface configuration 
+ * @param evc_ext_id : EVC extended id
+ * @param ptin_intf  : PTin interface 
+ * @param cfg        : interface configuration 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intfCfg_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_evc_intfCfg_t *cfg)
+L7_RC_t ptin_evc_intfCfg_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_evc_intfCfg_t *cfg)
 {
   L7_uint32 intf_idx;
+  L7_uint32 evc_id;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf,&intf_idx)!=L7_SUCCESS)
@@ -419,20 +550,14 @@ L7_RC_t ptin_evc_intfCfg_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_evc_i
     return L7_FAILURE;
   }
 
-  /* Check if EVC is active */
-  if (!evcs[evc_idx].in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "evc_idx %u is inactive", evc_idx);
-    return L7_FAILURE;
-  }
-
   /* Extract configuration */
   if (cfg!=L7_NULLPTR)
   {
-    cfg->in_use   = evcs[evc_idx].intf[intf_idx].in_use;
-    cfg->type     = evcs[evc_idx].intf[intf_idx].type;
-    cfg->out_vlan = evcs[evc_idx].intf[intf_idx].out_vlan;
-    cfg->int_vlan = evcs[evc_idx].intf[intf_idx].int_vlan;
+    cfg->in_use     = evcs[evc_id].intf[intf_idx].in_use;
+    cfg->type       = evcs[evc_id].intf[intf_idx].type;
+    cfg->out_vlan   = evcs[evc_id].intf[intf_idx].out_vlan;
+    cfg->inner_vlan = evcs[evc_id].intf[intf_idx].inner_vlan;
+    cfg->int_vlan   = evcs[evc_id].intf[intf_idx].int_vlan;
   }
 
   return L7_SUCCESS;
@@ -441,46 +566,51 @@ L7_RC_t ptin_evc_intfCfg_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_evc_i
 /**
  * Gets an EVC configuration
  * 
- * @param evcConf Pointer to the output struct (index field is used as input param)
+ * @param evcConf Pointer to the output struct (index field is used as input param) 
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
+  L7_uint evc_ext_id;
   L7_uint i;
 
-  evc_idx = evcConf->index;
+  evc_ext_id = evcConf->index;
 
-  //LOG_INFO(LOG_CTX_PTIN_EVC, "Reading EVC# %u...", evc_idx);
+  //LOG_INFO(LOG_CTX_PTIN_EVC, "Reading EVC# %u...", evc_id);
 
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  /* Validate EVC# extended range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if ( !IS_eEVC_IN_USE(evc_ext_id) )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_FAILURE;
   }
 
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
   /* Copy data to the output struct */
-  evcConf->flags          = evcs[evc_idx].flags;
-  evcConf->type           = evcs[evc_idx].type;
-  evcConf->mc_flood       = evcs[evc_idx].mc_flood;
+  evcConf->flags    = evcs[evc_id].flags;
+  evcConf->type     = evcs[evc_id].type;
+  evcConf->evc_type =(evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  evcConf->mc_flood = evcs[evc_id].mc_flood;
   memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
 
   /* Return number of attached clients */
-  evcConf->n_clients = evcs[evc_idx].n_clients;
+  evcConf->n_clients = evcs[evc_id].n_clients;
 
   evcConf->n_intf = 0;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if (evcs[evc_idx].intf[i].in_use)
+    if (evcs[evc_id].intf[i].in_use)
     {
       if (i < PTIN_SYSTEM_N_PORTS)
       {
@@ -492,8 +622,9 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
         evcConf->intf[evcConf->n_intf].intf_id   = i - PTIN_SYSTEM_N_PORTS;
         evcConf->intf[evcConf->n_intf].intf_type = PTIN_EVC_INTF_LOGICAL;
       }
-      evcConf->intf[evcConf->n_intf].mef_type = evcs[evc_idx].intf[i].type;
-      evcConf->intf[evcConf->n_intf].vid      = evcs[evc_idx].intf[i].out_vlan;
+      evcConf->intf[evcConf->n_intf].mef_type   = evcs[evc_id].intf[i].type;
+      evcConf->intf[evcConf->n_intf].vid        = evcs[evc_id].intf[i].out_vlan;
+      evcConf->intf[evcConf->n_intf].vid_inner  = evcs[evc_id].intf[i].inner_vlan;
       evcConf->n_intf++;
     }
   }
@@ -516,7 +647,7 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
  */
 L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10Evc_t *evcConf)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -527,29 +658,29 @@ L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10Evc_t *e
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[internalVlan];
+  evc_id = evcId_from_internalVlan[internalVlan];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use",evc_idx,internalVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use",evc_id,internalVlan);
     return L7_FAILURE;
   }
 
   /* Get evc data */
   if (evcConf!=L7_NULLPTR)
   {
-    evcConf->index = evc_idx;
+    evcConf->index = evcs[evc_id].extended_id;
     rc = ptin_evc_get(evcConf);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting evc data from internalVlan=%u, evcId=%u",internalVlan,evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting evc data from internalVlan=%u, evcId=%u",internalVlan,evc_id);
     }
   }
 
@@ -561,13 +692,13 @@ L7_RC_t ptin_evc_get_fromIntVlan(L7_uint16 internalVlan, ptin_HwEthMef10Evc_t *e
  * parameter 
  *  
  * @param internalVlan : Internal vlan
- * @param evc_id       : EVC id
+ * @param evc_ext_id   : EVC extended id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id)
+L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext_id)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
 
   /* Validate arguments */
   if (internalVlan>=4096)
@@ -577,22 +708,23 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id)
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[internalVlan];
+  evc_id = evcId_from_internalVlan[internalVlan];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use",evc_idx,internalVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use",evc_id,internalVlan);
     return L7_FAILURE;
   }
 
-  if (evc_id!=L7_NULLPTR)  *evc_id = evc_idx;
+  if (evc_ext_id != L7_NULLPTR)
+    *evc_ext_id = evcs[evc_id].extended_id;
 
   return L7_SUCCESS;
 }
@@ -600,16 +732,17 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint16 *evc_id)
 /**
  * Gets the internal vlan for a particular evc and interface
  * 
- * @param evc_id    : EVC id 
- * @param ptin_intf : interface
- * @param intVlan   : Internal vlan
+ * @param evc_ext_id : EVC extended id 
+ * @param ptin_intf  : interface
+ * @param intVlan    : Internal vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan)
+L7_RC_t ptin_evc_intVlan_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 *intVlan)
 {
   L7_uint32 ptin_port;
   L7_uint16 internal_vlan;
+  L7_uint32 evc_id;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -617,18 +750,22 @@ L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid argument");
     return L7_FAILURE;
   }
-  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid evc %u",evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
-  /* EVC must be in use */
-  if (!evcs[evc_id].in_use)
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u is not in use",evc_id);
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
   }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Obtain ptin_port */
   if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
@@ -668,71 +805,80 @@ L7_RC_t ptin_evc_intVlan_get(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16
 /**
  * Gets the root vlan (internal) for a particular evc
  * 
- * @param evc_id      : EVC id 
+ * @param evc_ext_id  : EVC extended id 
  * @param intRootVlan : Internal root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intRootVlan_get(L7_uint16 evc_id, L7_uint16 *intRootVlan)
+L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
 {
-  /* Validate arguments */
-  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid evc %u",evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
-  /* EVC must be in use */
-  if (!evcs[evc_id].in_use)
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u is not in use",evc_id);
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
   }
 
-  /* Root vlan must be defined */
-  if (evcs[evc_id].rvlan<PTIN_VLAN_MIN || evcs[evc_id].rvlan>PTIN_VLAN_MAX)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Evc %u has an invalid root vlan (%u)",evc_id,evcs[evc_id].rvlan);
-    return L7_FAILURE;
-  }
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Return root vlan */
-  if (intRootVlan!=L7_NULLPTR)  *intRootVlan = evcs[evc_id].rvlan;
+  if (intRootVlan != L7_NULLPTR)
+    *intRootVlan = evcs[evc_id].rvlan;
 
   return L7_SUCCESS;
 }
 
 /**
  * Get the outer+inner external vlan for a specific 
- * interface+evc_idx+innerVlan. 
+ * interface+evc_id+innerVlan. 
  *  
- * @param intIfNum  : FP interface#
- * @param evc_idx   : EVC index
- * @param innerVlan : Inner vlan
- * @param extOVlan  : External outer-vlan 
- * @param extIVlan  : External inner-vlan (01 means that there 
- *                     is no inner vlan)
+ * @param intIfNum    : FP interface#
+ * @param evc_ext_id : EVC extended index
+ * @param innerVlan   : Inner vlan
+ * @param extOVlan    : External outer-vlan 
+ * @param extIVlan    : External inner-vlan (01 means that there 
+ *                      is no inner vlan)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
+L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
   L7_uint32 ptin_port;
   L7_uint16 ovid, ivid;
-  struct ptin_evc_client_s *pclient;
+  struct ptin_evc_client_s *pclientFlow;
+  L7_uint32 evc_id;
 
   /* Validate arguments */
-  if (intIfNum==0 || evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (intIfNum == 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Extract and validate intIfNum */
   if (ptin_intf_intIfNum2port(intIfNum,&ptin_port)!=L7_SUCCESS)
@@ -740,44 +886,39 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 i
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"IntIfNum=%u/ptin_port=%u is not used in EVC=%u",intIfNum,ptin_port,evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"IntIfNum=%u/ptin_port=%u is not used in EVC=%u",intIfNum,ptin_port,evc_id);
     return L7_FAILURE;
   }
 
   /* Initialize external outer+inner vlans */
-  ovid = 0;
-  ivid = 0;
-
-  /* For stacked Leafs... */
-  if (IS_EVC_STACKED(evc_idx))
+  ovid = evcs[evc_id].intf[ptin_port].out_vlan;
+  if (evcs[evc_id].intf[ptin_port].inner_vlan>0 && evcs[evc_id].intf[ptin_port].inner_vlan<4096)
   {
-    /* Interface is root? */
-    if (evcs[evc_idx].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
-    {
-      ovid = evcs[evc_idx].intf[ptin_port].out_vlan;
-      ivid = innerVlan;
-    }
-    /* Interface is leaf? */
-    else
-    {
-      /* Find this client vlan in EVC */
-      ptin_evc_find_client(innerVlan, &(evcs[evc_idx].intf[ptin_port].clients), (dl_queue_elem_t **) &pclient);
-      if (pclient==NULL)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_idx);
-        return L7_FAILURE;
-      }
-      ovid = pclient->out_vlan;
-      ivid = 0;                 /* Inner vlan will be removed */
-    }
+    ivid = evcs[evc_id].intf[ptin_port].inner_vlan;
   }
-  /* For unstacked EVCs... */
   else
   {
-    ovid = evcs[evc_idx].intf[ptin_port].out_vlan;
     ivid = innerVlan;
+  }
+
+  /* Look to clients/flows for Quattro or standard stacked evcs: */
+  if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
+  {
+    /* Interface is leaf? */
+    if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
+    {
+      /* Find this client vlan in EVC */
+      ptin_evc_find_client(innerVlan, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+      if (pclientFlow==NULL)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_id);
+        return L7_FAILURE;
+      }
+      ovid = pclientFlow->uni_ovid;
+      ivid = IS_EVC_QUATTRO(evc_id) ? pclientFlow->uni_ivid : 0;    /* Use only inner vid, if EVC is QUATTRO type */
+    }
   }
 
   /* Return output values */
@@ -787,6 +928,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 i
   return L7_SUCCESS;
 }
 
+#if 0
 /**
  * Validate outer vlan
  * 
@@ -798,7 +940,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint16 evc_idx, L7_uint16 i
  *                   L7_NOT_EXIST if extOVlan does not exist
  *                   L7_FAILURE if other error
  */
-L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan)
+L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_id, ptin_intf_t *ptin_intf, L7_uint16 extOVlan, L7_uint16 innerVlan)
 {
   L7_uint32 ptin_port;
   struct ptin_evc_client_s *pclient;
@@ -815,15 +957,15 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
     return L7_FAILURE;
   }
   /* Validate evc index */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
   /* EVC must be active */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use",evc_id);
     return L7_FAILURE;
   }
 
@@ -834,14 +976,14 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
     return L7_FAILURE;
   }
   /* Interface must be active */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_intf=%u/%u (ptin_port=%u) is not used in EVC=%u", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port, evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_intf=%u/%u (ptin_port=%u) is not used in EVC=%u", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port, evc_id);
     return L7_FAILURE;
   }
 
   /* If EVC is stacked, and interface is a leaf, search for its clients */
-  if (IS_EVC_STACKED(evc_idx) && IS_EVC_INTF_LEAF(evc_idx,ptin_port))
+  if (IS_EVC_STACKED(evc_id) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
   {
     /* Validate inner vlan */
     if (innerVlan==0 || innerVlan>=4096)
@@ -851,7 +993,7 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
     }
 
     /* Check if client entry already exists */
-    ptin_evc_find_client(innerVlan, &evcs[evc_idx].intf[ptin_port].clients, (dl_queue_elem_t**) &pclient);
+    ptin_evc_find_client(innerVlan, &evcs[evc_id].intf[ptin_port].clients, (dl_queue_elem_t**) &pclient);
 
     /* Client not found */
     if (pclient == L7_NULLPTR)
@@ -869,7 +1011,7 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
   else
   {
     /* Compare outer vlan: if found, leave cycle */
-    if (evcs[evc_idx].intf[ptin_port].out_vlan != extOVlan)
+    if (evcs[evc_id].intf[ptin_port].out_vlan != extOVlan)
     {
       return L7_NOT_EXIST;
     }
@@ -878,6 +1020,7 @@ L7_RC_t ptin_evc_extVlan_validate(L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_
   /* If we get here, it's because outer vlan is valid */
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Get internal vlans, from external vlans and the interface
@@ -895,8 +1038,8 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
                              L7_uint16 *intOVlan)
 {
   L7_uint16 internal_vlan;
-  L7_uint32 ptin_port, evc_idx;
-  struct ptin_evc_client_s *pclient;
+  L7_uint32 ptin_port, evc_id;
+  struct ptin_evc_client_s *pclientFlow;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -918,58 +1061,58 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
   }
 
   /* Run all valid EVCs searching for this outer vlan */
-  for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EVCS; evc_idx++)
+  for (evc_id=0; evc_id<PTIN_SYSTEM_N_EVCS; evc_id++)
   {
     /* Skip not active EVCs */
-    if (!evcs[evc_idx].in_use)
+    if (!evcs[evc_id].in_use)
       continue;
 
     /* Skip EVCs with this interface not used */
-    if (!evcs[evc_idx].intf[ptin_port].in_use)
+    if (!evcs[evc_id].intf[ptin_port].in_use)
       continue;
 
     /* If EVC is stacked, and interface is a leaf, search for its clients */
-    if (IS_EVC_STACKED(evc_idx) && IS_EVC_INTF_LEAF(evc_idx,ptin_port))
+    if ((IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
     {
       /* Validate inner vlan */
       if (extIVlan==0 || extIVlan>=4096)
         continue;
 
       /* Check if client entry already exists */
-      ptin_evc_find_client(extIVlan, &evcs[evc_idx].intf[ptin_port].clients, (dl_queue_elem_t**) &pclient);
+      ptin_evc_find_client(extIVlan, &evcs[evc_id].intf[ptin_port].clients, (dl_queue_elem_t**) &pclientFlow);
 
       /* Client not found */
-      if (pclient == L7_NULLPTR)
+      if (pclientFlow == L7_NULLPTR)
         continue;
 
       /* Compare outer vlan: if found, leave cycle */
-      if (pclient->out_vlan == extOVlan)
+      if (pclientFlow->uni_ovid == extOVlan)
         break;
     }
     /* If EVC unstacked, or interface is root, compare the interface outer vlan */
     else
     {
       /* Compare outer vlan: if found, leave cycle */
-      if (evcs[evc_idx].intf[ptin_port].out_vlan == extOVlan)
+      if (evcs[evc_id].intf[ptin_port].out_vlan == extOVlan)
         break;
     }
   }
 
   /* Check if outer vlan was found */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC not found with outer vlan %u in ptin_intf %u/%u", extOVlan, ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* EVC was found at this point */
-  internal_vlan = evcs[evc_idx].intf[ptin_port].int_vlan;
+  internal_vlan = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Validate internal vlan */
   if (internal_vlan<PTIN_VLAN_MIN || internal_vlan>PTIN_VLAN_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid internal vlan %u for EVC %u and ptin_intf %u/%u",
-            internal_vlan, evc_idx, ptin_intf->intf_type,ptin_intf->intf_id);
+            internal_vlan, evc_id, ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -997,7 +1140,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
   L7_uint intf_idx;
   L7_uint32 intIfNum;
   ptin_intf_t ptin_intf;
-  L7_uint16 evc_idx;
+  L7_uint16 evc_id;
 
   /* Validate arguments */
   if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
@@ -1007,8 +1150,8 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
@@ -1016,11 +1159,11 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
 
   /* Get MC EVC configuration */
   memset(&evcCfg,0x00,sizeof(ptin_HwEthMef10Evc_t));
-  evcCfg.index = evc_idx;
+  evcCfg.index = evcs[evc_id].extended_id;
   if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting evc %u configuration (intVlan=%u)",evc_idx,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting evc %u configuration (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
@@ -1071,7 +1214,8 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
  */
 L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
+  L7_uint evc_ext_id;
 
   /* Validate arguments */
   if (intIfNum==0 || intOVlan<PTIN_VLAN_MIN || intOVlan>PTIN_VLAN_MAX)
@@ -1081,17 +1225,19 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intOVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intOVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
     return L7_FAILURE;
   }
 
+  evc_ext_id = evcs[evc_id].extended_id;
+
   /* Get external vlans */
-  if (ptin_evc_extVlans_get(intIfNum, evc_idx, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get(intIfNum, evc_ext_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting external vlans for intIfNum=%u, evc_idx=%u, intIVlan=%u",intIfNum,evc_idx,intIVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
     return L7_FAILURE;
   }
 
@@ -1099,16 +1245,51 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 }
 
 /**
- * Check if the EVC related to an internal vlan is P2P. 
+ * Return EVC type. 
+ * 
+ * @param evc_id_ext : extended evc id
+ * @param evc_type   : EVC type (output)
+ *  
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type)
+{
+  L7_uint32 evc_id;
+
+  /* Get local evc id */
+  if (ptin_evc_ext2int(evc_id_ext, &evc_id) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting local evc id");
+    return L7_FAILURE;
+  }
+
+  /* EVC should be active */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use",evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Check if EVC is stacked, and return result */
+  if (evc_type!=L7_NULLPTR)
+  {
+    *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Return EVC type from internal vlan. 
  *  
  * @param intVlan    : Internal outer-vlan 
- * @param is_p2p     : Is EVC P2P? (output)
+ * @param evc_type   : evc type (output)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
+L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
 
   /* Validate arguments */
   if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
@@ -1118,24 +1299,24 @@ L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
   }
 
   /* EVC should be active */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
   /* Check if EVC is stacked, and return result */
-  if (is_p2p!=L7_NULLPTR)
+  if (evc_type!=L7_NULLPTR)
   {
-    *is_p2p = IS_EVC_P2P(evc_idx);
+    *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
   }
 
   return L7_SUCCESS;
@@ -1151,7 +1332,7 @@ L7_RC_t ptin_evc_check_is_p2p_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_p2p)
  */
 L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_stacked)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
 
   /* Validate arguments */
   if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
@@ -1161,24 +1342,24 @@ L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_sta
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
   }
 
   /* EVC should be active */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
   /* Check if EVC is stacked, and return result */
   if (is_stacked!=L7_NULLPTR)
   {
-    *is_stacked = IS_EVC_STACKED(evc_idx);
+    *is_stacked = IS_EVC_STACKED(evc_id);
   }
 
   return L7_SUCCESS;
@@ -1196,7 +1377,7 @@ L7_RC_t ptin_evc_check_is_stacked_fromIntVlan(L7_uint16 intVlan, L7_BOOL *is_sta
  */
 L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 {
-  L7_uint   evc_idx;
+  L7_uint   evc_id;
   L7_uint32 ptin_port;
 
   /* Validate arguments */
@@ -1207,17 +1388,17 @@ L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
     return L7_FAILURE;
   }
 
   /* EVC should be active */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
@@ -1236,9 +1417,9 @@ L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   }
 
   /* Check if port is in use */
-  if ( !evcs[evc_idx].intf[ptin_port].in_use )
+  if ( !evcs[evc_id].intf[ptin_port].in_use )
   {
-    //LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u (intIfNum %u) not used in evc %u",ptin_port, intIfNum, evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u (intIfNum %u) not used in evc %u",ptin_port, intIfNum, evc_id);
     return L7_FAILURE;
   }
 
@@ -1249,15 +1430,17 @@ L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
  * Creates or reconfigures an EVC
  * 
  * @param evcConf Pointer to the input struct
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 {
   L7_uint   i;
-  L7_uint   evc_idx;
+  L7_uint   evc_id, evc_ext_id;
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
-  L7_BOOL   is_p2p, is_stacked;
+  L7_uint   evc_type;
+  L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
   L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
   L7_BOOL   cpu_trap;
@@ -1267,19 +1450,27 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_int    root_port1, root_port2, leaf_port1;
   L7_int    p2p_port1, p2p_port2;
   L7_uint16 root_vlan;
-  L7_uint   ptin_intf;
+  L7_uint   ptin_port;
   L7_uint32 intIfNum;
+  L7_int    multicast_group;
   dl_queue_t *freeVlan_queue;
+  L7_RC_t   rc;
 
-  evc_idx = evcConf->index;
+  evc_ext_id = evcConf->index;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring EVC# %u...", evc_idx);
-
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  /* Validate extended EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC id %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
+  }
+
+  if (IS_eEVC_IN_USE(evc_ext_id)) {
+    evc_id = evc_ext2int[evc_ext_id];
+    LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (internal index %u)...", evc_ext_id, evc_id);
+  }
+  else {
+    LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (new index)...", evc_ext_id);
   }
 
   /* Validate parameters */
@@ -1289,19 +1480,32 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P)            == PTIN_EVC_MASK_P2P;
-  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED)        == PTIN_EVC_MASK_STACKED;
-  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING)    == PTIN_EVC_MASK_MACLEARNING;
-  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)  == PTIN_EVC_MASK_DHCP_PROTOCOL;
-  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)  == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  evc_type      = (evcConf->flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P           ) == PTIN_EVC_MASK_P2P;
+  is_quattro    = (evcConf->flags & PTIN_EVC_MASK_QUATTRO       ) == PTIN_EVC_MASK_QUATTRO;
+  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED       ) == PTIN_EVC_MASK_STACKED;
+  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING   ) == PTIN_EVC_MASK_MACLEARNING;
+  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL ) == PTIN_EVC_MASK_DHCP_PROTOCOL;
+  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
-  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING)   == PTIN_EVC_MASK_CPU_TRAPPING;
+  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
 
   /* To be changed in the future */
   if (dhcp_enabled && !pppoe_enabled)
   {
     pppoe_enabled = L7_TRUE;
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  }
+
+  /* Check if this EVC is allowd to be QUATTRO type */
+  if (is_quattro)
+  {
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: This is a QUATTRO EVC", evc_ext_id);
+    #else
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+    return L7_FAILURE;
+    #endif
   }
 
   /* Get the number of Roots and Leafs of received msg (for validation purposes) */
@@ -1313,40 +1517,40 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   {
     /* Convert Phy/Lag# into PTin Intf index */
     if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
-      ptin_intf = evcConf->intf[i].intf_id;
+      ptin_port = evcConf->intf[i].intf_id;
     else
-      ptin_intf = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
+      ptin_port = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
 
     if (evcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT)
     {
       n_roots++;
-      if (root_port1 < 0)       root_port1 = ptin_intf;   /* First root port */
-      else if (root_port2 < 0)  root_port2 = ptin_intf;   /* Second root port */
+      if (root_port1 < 0)       root_port1 = ptin_port;   /* First root port */
+      else if (root_port2 < 0)  root_port2 = ptin_port;   /* Second root port */
     }
     else
     {
       n_leafs++;
-      if (leaf_port1 < 0)       leaf_port1 = ptin_intf;   /* First leaf port */
+      if (leaf_port1 < 0)       leaf_port1 = ptin_port;   /* First leaf port */
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: First root ports = %u,%u   First leaf port = %u", evc_idx, root_port1, root_port2, leaf_port1);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: First root ports = %u,%u   First leaf port = %u", evc_ext_id, root_port1, root_port2, leaf_port1);
 
   /* Do not accept:
    *   1. no roots
    *   2. leafs in EVC# PTIN_EVC_INBAND */
   if ((n_roots == 0) ||
-      (evc_idx == PTIN_EVC_INBAND && n_leafs != 0))
+      (evc_ext_id == PTIN_EVC_INBAND && n_leafs != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: combination of roots/leafs is invalid! [roots=%u leafs=%u]",
-            evc_idx, n_roots, n_leafs);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: combination of roots/leafs is invalid! [roots=%u leafs=%u]",
+            evc_ext_id, n_roots, n_leafs);
     return L7_FAILURE;
   }
 
   /* For EVC# PTIN_EVC_INBAND, it must be point-to-multipoint! */
-  if (evc_idx == PTIN_EVC_INBAND && is_p2p)
+  if (evc_ext_id == PTIN_EVC_INBAND && evc_type != PTIN_EVC_TYPE_STD_P2MP)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: inBand EVC cannot be P2P!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: inBand EVC cannot be P2P/QUATTRO!", evc_ext_id);
     return L7_FAILURE;
   }
 
@@ -1354,15 +1558,15 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* EVCs with no leafs, and only one root port are not valid */
   if (n_roots == 1 && n_leafs == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs cannot have only root port and no leaf ports for 1:1 EVCs", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs cannot have only root port and no leaf ports for 1:1 EVCs", evc_id);
     return L7_FAILURE;
   }
   #endif
 
   /* For P2P topologies */
-  if ( is_p2p && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)) )
+  if ((is_p2p || is_quattro) && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: P2P/QUATTRO EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_ext_id);
     return L7_FAILURE;
   }
 
@@ -1370,7 +1574,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   p2p_port1 = -1;
   p2p_port2 = -1;
   /* Unstacked 1:1 EVCs only accept one root and one leaf, or two root ports */
-  if ( is_p2p && !is_stacked )
+  if (is_p2p || is_quattro)
   {
     /* With no leafs, use the first two root ports */
     if ( n_roots >= 2 && n_leafs == 0 )
@@ -1386,12 +1590,12 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Unstacked P2P EVCs must only two ports", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Unstacked P2P EVCs must only two ports", evc_ext_id);
       return L7_FAILURE;
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Port1 = %u   Port2 = %u", evc_idx, p2p_port1, p2p_port2 );
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Port1 = %u   Port2 = %u", evc_ext_id, p2p_port1, p2p_port2 );
 
   /* Check if phy ports are already assigned to LAGs */
   for (i=0; i<evcConf->n_intf; i++)
@@ -1401,33 +1605,41 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_intf_port2intIfNum(evcConf->intf[i].intf_id, &intIfNum);
       if (dot3adAggGet(intIfNum, &intIfNum) == L7_SUCCESS)
       {
-        ptin_intf_intIfNum2port(intIfNum, &ptin_intf);
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: port# %u belongs to LAG# %u", evc_idx,
-                evcConf->intf[i].intf_id, ptin_intf - PTIN_SYSTEM_N_PORTS);
+        ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: port# %u belongs to LAG# %u", evc_ext_id,
+                evcConf->intf[i].intf_id, ptin_port - PTIN_SYSTEM_N_PORTS);
         return L7_FAILURE;
       }
     }
   }
 
   /* New EVC ? */
-  if (!evcs[evc_idx].in_use)
+  if ( !IS_eEVC_IN_USE(evc_ext_id) )
   {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: creating a new entry...", evc_idx);
+    rc = ptin_evc_entry_allocate(evc_ext_id, &evc_id);
+    if (rc != L7_SUCCESS) {
+      LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Error allocating an internal EVC!");
+      return L7_FAILURE;
+    }
+
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
-    if (ptin_evc_freeVlanQueue_allocate(evc_idx, is_p2p, &freeVlan_queue)!=L7_SUCCESS)
+    if (ptin_evc_freeVlanQueue_allocate(evc_id, evc_type, &freeVlan_queue)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_id);
+      ptin_evc_entry_free(evc_ext_id);
       return L7_FAILURE;
     }
 
     /* EXCEPTION: EVC# PTIN_EVC_INBAND is for inBand management, which means a fixed root VLAN ID */
-    if (evc_idx == PTIN_EVC_INBAND)
+    if (evc_ext_id == PTIN_EVC_INBAND)
     {
       if (switching_vlan_create(PTIN_VLAN_INBAND) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error creating VLAN ID %u for inBand management purposes", evc_idx, PTIN_VLAN_INBAND);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error creating VLAN ID %u for inBand management purposes", evc_id, PTIN_VLAN_INBAND);
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
+        ptin_evc_entry_free(evc_ext_id);
         return L7_FAILURE;
       }
       root_vlan = PTIN_VLAN_INBAND;
@@ -1437,30 +1649,53 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Check if there are enough internal VLANs on the pool
        *  P2P:  only one internal VLAN is needed (shared among all the ports)
        *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
-      if ( ( is_p2p  && (freeVlan_queue->n_elems < 1) ) ||
-           ( !is_p2p && (freeVlan_queue->n_elems < (n_leafs + 1)) ) )
+      if ( ( EVC_SINGLE_INTVLAN(evc_type) && (freeVlan_queue->n_elems < 1)) ||
+           (!EVC_SINGLE_INTVLAN(evc_type) && (freeVlan_queue->n_elems < (n_leafs + 1))) )
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: not enough internal VLANs available", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: not enough internal VLANs available", evc_id);
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
+        ptin_evc_entry_free(evc_ext_id);
         return L7_FAILURE;
       }
 
       /* Get a VLAN from the pool to use as Internal Root VLAN */
-      ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_idx);  /* cannot fail! */
+      ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_id);  /* cannot fail! */
     }
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
-    ptin_crossconnect_enable(root_vlan, is_p2p, is_stacked);
+    ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P), is_stacked);
+
+    /* Virtual ports: Create Multicast group */
+    multicast_group = -1;
+
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (is_quattro)
+    {
+      if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
+        error = L7_TRUE;
+      }
+
+      /* Virtual ports: Configure multicast group for the new leaf vlan */
+      if (ptin_vlanBridge_multicast_set(root_vlan, multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
+        return L7_FAILURE;      
+      }
+    }
+    #endif
 
     /* Update EVC entry (this info will be used on the configuration functions) */
-    evcs[evc_idx].in_use           = L7_TRUE;
-    evcs[evc_idx].flags            = evcConf->flags;
-    evcs[evc_idx].type             = evcConf->type;
-    evcs[evc_idx].mc_flood         = evcConf->mc_flood;
-    evcs[evc_idx].rvlan            = root_vlan;         /* ...above created */
-    evcs[evc_idx].queue_free_vlans = freeVlan_queue;
-    evcs[evc_idx].p2p_port1_intf   = p2p_port1;
-    evcs[evc_idx].p2p_port2_intf   = p2p_port2;
+    evcs[evc_id].in_use           = L7_TRUE;
+    evcs[evc_id].flags            = evcConf->flags;
+    evcs[evc_id].type             = evcConf->type;
+    evcs[evc_id].mc_flood         = evcConf->mc_flood;
+    evcs[evc_id].rvlan            = root_vlan;         /* ...above created */
+    evcs[evc_id].queue_free_vlans = freeVlan_queue;
+    evcs[evc_id].p2p_port1_intf   = p2p_port1;
+    evcs[evc_id].p2p_port2_intf   = p2p_port2;
+    evcs[evc_id].multicast_group  = multicast_group;
 
     error = L7_FALSE;
 
@@ -1472,24 +1707,24 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         /* Rate limiter for MC */
         if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_idx);
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
           error = L7_TRUE;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_idx);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
         }
       }
       else
       {
         if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_idx);
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
           error = L7_TRUE;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_idx);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
         }
       }
     }
@@ -1499,21 +1734,21 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       /* Convert Phy/Lag# into PTin Intf index */
       if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
-        ptin_intf = evcConf->intf[i].intf_id;
+        ptin_port = evcConf->intf[i].intf_id;
       else
-        ptin_intf = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
+        ptin_port = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
 
       /* Apply config */
-      if (ptin_evc_intf_add(evc_idx, ptin_intf, &evcConf->intf[i]) != L7_SUCCESS)
+      if (ptin_evc_intf_add(evc_id, ptin_port, &evcConf->intf[i]) != L7_SUCCESS)
       {
         error = L7_TRUE;
         break;
       }
 
       /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
-      if ( !is_p2p )
+      if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
       {
-        if (ptin_evc_p2multipoint_intf_add(evc_idx, ptin_intf) != L7_SUCCESS)
+        if (ptin_evc_p2multipoint_intf_add(evc_id, ptin_port) != L7_SUCCESS)
         {
           error = L7_TRUE;
           break;
@@ -1522,54 +1757,53 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
 
     /* For EVCs point-to-point unstacked, create now the crossconnection */
-    if ( is_p2p && !is_stacked )
+    if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
     {
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-      if (switching_p2p_bridge_add(p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
-                                   p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan,
+      if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                                   p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
                                    0 /* No inner vlan */) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_idx,
-                p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
-                p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+                p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
         error = L7_TRUE;
       }
     }
 
-    /* If DHCP is enabled, add DHCP instance */
+    /* Protocol management */
+    #if (!PTIN_BOARD_IS_MATRIX)
     if (dhcp_enabled)
     {
-      if (ptin_dhcp_instance_add(evc_idx)!=L7_SUCCESS)
+      if (ptin_dhcp_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
       {
         error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
       }
       else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_idx);
-      }
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
     }
     /* If PPPoE is enabled, add PPPoE trap rule */
     if (pppoe_enabled)
     {
-      if (ptin_pppoe_instance_add(evc_idx)!=L7_SUCCESS)
+      if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
       {
         error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
       }
       else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_idx);
-      }
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
     }
+    #endif
+
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH)!=L7_SUCCESS)
       {
         error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
       }
     }
     #endif
@@ -1577,42 +1811,41 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* Error occured ? */
     if (error)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to be created", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to be created", evc_id);
 
+      #if (!PTIN_BOARD_IS_MATRIX)
       /* Remove DHCP instance */
       if (dhcp_enabled)
-      {
-        ptin_dhcp_instance_remove(evc_idx);
-      }
+        ptin_dhcp_evc_remove(evc_ext_id);
       /* remove PPPoE trap rule */
       if (pppoe_enabled)
-      {
-        ptin_pppoe_instance_remove(evc_idx);
-      }
+        ptin_pppoe_evc_remove(evc_ext_id);
+      #endif
+
       /* Remove IGMP trap rules */
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
       if (igmp_enabled)
       {
-        ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH);
+        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH);
       }
       #endif
 
       /* If EVC is P2MP, remove specific translations */
-      if ( !is_p2p )
+      if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
       {
-        ptin_evc_p2multipoint_intf_remove_all(evc_idx);
+        ptin_evc_p2multipoint_intf_remove_all(evc_id);
       }
       /* For unstacked P2P EVCs, remove single vlan cross-connection */
-      else if ( !is_stacked )
+      else if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
       {
         /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-        switching_p2p_bridge_remove(p2p_port1, evcs[evc_idx].intf[p2p_port1].int_vlan,
-                                    p2p_port2, evcs[evc_idx].intf[p2p_port2].int_vlan,
+        switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                                    p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
                                     0 /* No inner vlan */);
       }
       
       /* Remove all previously configured interfaces */
-      ptin_evc_intf_remove_all(evc_idx);
+      ptin_evc_intf_remove_all(evc_id);
 
       /* Remove the broadcast rate limiter for unstacked services */
       if ( cpu_trap)
@@ -1621,12 +1854,25 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         ptin_multicast_rateLimit(L7_DISABLE, root_vlan);
       }
 
-      if (evc_idx == PTIN_EVC_INBAND)
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      /* Virtual ports: Destroy multicast group */
+      if (is_quattro && evcs[evc_id].multicast_group > 0)
+      {
+        if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
+          //return L7_FAILURE;
+        }
+        evcs[evc_id].multicast_group = -1;
+      }
+      #endif
+
+      if (evc_ext_id == PTIN_EVC_INBAND)
         switching_vlan_delete(PTIN_VLAN_INBAND);
       else
         ptin_evc_vlan_free(root_vlan, freeVlan_queue);
       
-      ptin_evc_entry_reset(evc_idx);
+      ptin_evc_entry_free(evc_ext_id);
 
       return L7_FAILURE;
     }
@@ -1634,14 +1880,17 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* EVC is in use: ONLY allow adding or removing ports */
   else
   {
+    /* Get the internal index based on the extended one */
+    evc_id = evc_ext2int[evc_ext_id];
+
     /* For unstacked P2P services, don't allow ports change */
-    if ( is_p2p && !is_stacked )
+    if (is_p2p && !is_stacked)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Unstacked point-to-point EVC... no change allowed", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Unstacked point-to-point EVC... no change allowed", evc_id);
       return L7_FAILURE;
     }
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_idx);
+    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_id);
 
     /* Create a lookup table to map the evcConf.intf (sequecial) to the evc.intf (indexed) */
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
@@ -1659,11 +1908,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
       /* Port added ? */
-      if ((evcs[evc_idx].intf[i].in_use == 0) && (intf2cfg[i] >= 0))
+      if ((evcs[evc_id].intf[i].in_use == 0) && (intf2cfg[i] >= 0))
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding interface# %u...", evc_idx, i);
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding interface# %u...", evc_id, i);
 
-        if (ptin_evc_intf_add(evc_idx, i, &evcConf->intf[intf2cfg[i]]) != L7_SUCCESS)
+        if (ptin_evc_intf_add(evc_id, i, &evcConf->intf[intf2cfg[i]]) != L7_SUCCESS)
         {
           /* Signal error, but try to process the rest of the config */
           error = L7_TRUE;
@@ -1672,9 +1921,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
         /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
          * and all the root interfaces */
-        if ( !is_p2p )
+        if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
         {
-          if (ptin_evc_p2multipoint_intf_add(evc_idx, i) != L7_SUCCESS)
+          if (ptin_evc_p2multipoint_intf_add(evc_id, i) != L7_SUCCESS)
           {
             /* Signal error, but try to process the rest of the config */
             error = L7_TRUE;
@@ -1684,16 +1933,20 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* Port removed ? */
-      else if ((evcs[evc_idx].intf[i].in_use) && (intf2cfg[i] < 0))
+      else if ((evcs[evc_id].intf[i].in_use) && (intf2cfg[i] < 0))
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing interface# %u...", evc_idx, i);
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing interface# %u...", evc_id, i);
 
         /* Do not allow port removal if counters or BW profiles are configured */
-        if ((evcs[evc_idx].intf[i].counter  != NULL) ||
-            (evcs[evc_idx].intf[i].bwprofile!= NULL))
+        if ((evcs[evc_id].intf[i].counter  != NULL) ||
+            (evcs[evc_id].intf[i].bwprofile!= NULL)
+            #if 0
+            || (evcs[evc_id].intf[i].n_flows > 0)
+            #endif
+            )
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u has counter/BW profile configured! Cannot remove it!",
-                  evc_idx,
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u has counter/BW profiles or flows configured! Cannot remove it!",
+                  evc_id,
                   i < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
                   i < PTIN_SYSTEM_N_PORTS ? i : i - PTIN_SYSTEM_N_PORTS);
 
@@ -1703,9 +1956,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
 
         /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-        if ( !is_p2p )
+        if (evc_type == PTIN_EVC_TYPE_STD_P2MP)
         {
-          if (ptin_evc_p2multipoint_intf_remove(evc_idx, i) != L7_SUCCESS)
+          if (ptin_evc_p2multipoint_intf_remove(evc_id, i) != L7_SUCCESS)
           {
             /* Signal error, but try to process the rest of the config */
             error = L7_TRUE;
@@ -1713,7 +1966,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
           }
         }
 
-        if (ptin_evc_intf_remove(evc_idx, i) != L7_SUCCESS)
+        if (ptin_evc_intf_remove(evc_id, i) != L7_SUCCESS)
         {
           /* Signal error, but try to process the rest of the config */
           error = L7_TRUE;
@@ -1722,43 +1975,41 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
     }
 
+    #if (!PTIN_BOARD_IS_MATRIX)
     /* If DHCP is enabled, add DHCP instance */
     if (dhcp_enabled)
     {
-      if (ptin_dhcp_instance_add(evc_idx)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_idx);
-      }
+      if (ptin_dhcp_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
       else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_idx);
-      }
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added", evc_id);
     }
     /* If PPPoE is enabled, add PPPoE trap rule */
     if (pppoe_enabled)
     {
-      if (ptin_pppoe_instance_add(evc_idx)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_idx);
-      }
+      if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
       else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_idx);
-      }
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
     }
+    #endif
+
     /* If IGMP is enabled, add trap rule for this service */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_idx, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
       }
     }
     #endif
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u successfully created", evc_idx);
+  /* Update lookup table for extended->internal convertion */
+  evc_ext2int[evc_ext_id] = evc_id;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully created with internal index %u", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
@@ -1766,332 +2017,389 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 /**
  * Deletes an EVC
  * 
- * @param evc_idx
+ * @param evc_ext_id
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_delete(L7_uint evc_idx)
+L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
 {
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Deleting EVC# %u...", evc_idx);
+  L7_uint evc_id;
 
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Deleting eEVC# %u...", evc_ext_id);
+
+  /* Validate eEVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if ( !IS_eEVC_IN_USE(evc_ext_id) )
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_SUCCESS;
   }
 
-  /* IF this EVC belongs to an IGMP instance, stop procedure */
-  if (ptin_igmp_is_evc_used(evc_idx))
+  evc_id = evc_ext2int[evc_ext_id];
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, evc_id);
+
+  /* If this EVC belongs to an IGMP instance, stop procedure */
+  if (ptin_igmp_is_evc_used(evc_ext_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: This EVC belongs to an IGMP instance... So it cannot be removed!",
-            evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: This EVC belongs to an IGMP instance... So it cannot be removed!", evc_id);
     return L7_FAILURE;
   }
 
+  #if 0
+  L7_uint port;
+  /* Run all ports and check if there is flows configured */
+  for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
+  {
+    if (evcs[evc_id].intf[port].in_use && evcs[evc_id].intf[port].n_flows>0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u has flows configured... cannot remove EVC!", evc_id, port);
+      return L7_FAILURE;
+    }
+  }
+  #endif
+
   #ifdef EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL
   /* Check if there are counters pending... */
-  if (evcs[evc_idx].n_counters > 0 || evcs[evc_idx].n_probes > 0)
+  if (evcs[evc_id].n_counters > 0 || evcs[evc_id].n_probes > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters + %u probes are still configured! EVC cannot be removed!",
-            evc_idx, evcs[evc_idx].n_counters, evc_idx, evcs[evc_idx].n_probes);
+            evc_id, evcs[evc_id].n_counters, evc_id, evcs[evc_id].n_probes);
     return L7_FAILURE;
   }
   #endif
   #ifdef EVC_BWPROFILES_REQUIRE_CLEANUP_BEFORE_REMOVAL
   /* Check if there are BW profiles pending... */
-  if (evcs[evc_idx].n_bwprofiles > 0)
+  if (evcs[evc_id].n_bwprofiles > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u BW profiles are still configured! EVC cannot be removed!",
-            evc_idx, evcs[evc_idx].n_bwprofiles);
+            evc_id, evcs[evc_id].n_bwprofiles);
     return L7_FAILURE;
   }
   #endif
   #ifdef EVC_CLIENTS_REQUIRE_CLEANUP_BEFORE_REMOVAL
   /* Check if there are clients pending... */
-  if (evcs[evc_idx].n_clients > 0)
+  if (evcs[evc_id].n_clients > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u clients are still configured! EVC cannot be removed!",
-            evc_idx, evcs[evc_idx].n_clients);
+            evc_id, evcs[evc_id].n_clients);
     return L7_FAILURE;
+  }
+  #endif
+
+  /* For IGMP enabled EVCs */
+  if (ptin_igmp_is_evc_used(evc_ext_id))
+    ptin_igmp_evc_remove(evc_ext_id);
+
+  #if (!PTIN_BOARD_IS_MATRIX)
+  /* For DHCP enabled EVCs */
+  if (ptin_dhcp_is_evc_used(evc_ext_id))
+    ptin_dhcp_evc_remove(evc_ext_id);
+  /* For PPPoE enabled EVCs */
+  if (ptin_pppoe_is_evc_used(evc_ext_id))
+    ptin_pppoe_evc_remove(evc_ext_id);
+  #endif
+
+  /* For IGMP enabled evcs, remove trap rules */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
+    }
   }
   #endif
 
   #if 0
   {
     /* Clean profiles and counters to all EVC interfaces */
-    if (ptin_evc_clean_all(evc_idx, L7_TRUE)!=L7_SUCCESS)
+    if (ptin_evc_clean_all(evc_id, L7_TRUE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning profiles and counters! EVC cannot be removed!",
-              evc_idx);
+              evc_id);
       return L7_FAILURE;
     }
   }
   #endif
 
   /* Only clean service resources... Clients remotion will do the rest */
-  if (ptin_evc_allintfs_clean(evc_idx, L7_TRUE)!=L7_SUCCESS)
+  if (ptin_evc_allintfs_clean(evc_id, L7_TRUE)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters! EVC cannot be removed!",
-            evc_idx);
+            evc_id);
     return L7_FAILURE;
   }
-  /* Clean any clients that may exist */
-  if (ptin_evc_allclients_remove(evc_idx)!=L7_SUCCESS)
+  /* Clean any clients/flows that may exist */
+  if (ptin_evc_allclientsflows_remove(evc_id)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing all clients! EVC cannot be removed!",
-            evc_idx);
+            evc_id);
     return L7_FAILURE;
   }
 
   /* Remove bridges on N:1 EVCs */
-  if (IS_EVC_P2MULTIPOINT(evc_idx))
+  if (IS_EVC_STD_P2MP(evc_id))
   {
-    if (ptin_evc_p2multipoint_intf_remove_all(evc_idx) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove_all(evc_id) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_id);
       return L7_FAILURE;
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if ( !IS_EVC_STACKED(evc_idx) )
+  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
   {
-    L7_int port1 = evcs[evc_idx].p2p_port1_intf;
-    L7_int port2 = evcs[evc_idx].p2p_port2_intf;
+    L7_int port1 = evcs[evc_id].p2p_port1_intf;
+    L7_int port2 = evcs[evc_id].p2p_port2_intf;
 
     /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-    if (switching_p2p_bridge_remove(port1, evcs[evc_idx].intf[port2].int_vlan,
-                                    port2, evcs[evc_idx].intf[port2].int_vlan,
+    if (switching_p2p_bridge_remove(port1, evcs[evc_id].intf[port2].int_vlan,
+                                    port2, evcs[evc_id].intf[port2].int_vlan,
                                     0 /* No inner vlan */) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_idx,
-              port1, evcs[evc_idx].intf[port1].int_vlan,
-              port2, evcs[evc_idx].intf[port2].int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+              port1, evcs[evc_id].intf[port1].int_vlan,
+              port2, evcs[evc_id].intf[port2].int_vlan);
       return L7_FAILURE;
     }
   }
 
   /* Remove all configured interfaces */
-  if (ptin_evc_intf_remove_all(evc_idx) != L7_SUCCESS)
+  if (ptin_evc_intf_remove_all(evc_id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing interfaces config", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing interfaces config", evc_id);
     return L7_FAILURE;
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
-    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
-    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
+    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
-  /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
-  if (evc_idx == PTIN_EVC_INBAND)
-    switching_vlan_delete(PTIN_VLAN_INBAND);
-  else
-    ptin_evc_vlan_free(evcs[evc_idx].rvlan, evcs[evc_idx].queue_free_vlans);
-
-  /* For DHCP enabled EVCs */
-  if (ptin_dhcp_is_evc_used(evc_idx))
-    ptin_dhcp_instance_remove(evc_idx);
-  /* For PPPoE enabled EVCs */
-  if (ptin_pppoe_is_evc_used(evc_idx))
-    ptin_pppoe_instance_remove(evc_idx);
-
-  /* For IGMP enabled evcs, remove trap rules */
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Virtual ports: Destroy Multicast group */
+  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
   {
-    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      return L7_FAILURE;
     }
   }
   #endif
+  evcs[evc_id].multicast_group = -1;
 
-  ptin_evc_entry_reset(evc_idx);
+  /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
+  if (evc_ext_id == PTIN_EVC_INBAND)
+    switching_vlan_delete(PTIN_VLAN_INBAND);
+  else
+    ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u successfully removed", evc_idx);
+  ptin_evc_entry_free(evc_ext_id);
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully removed (internal id %u)", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
 
 
 /**
- * Destroys an EVC
+ * Destroys an EVC (extended index)
  * 
- * @param evc_idx
+ * @param evc_ext_id
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_destroy(L7_uint evc_idx)
+L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
 {
   L7_uint     intf_idx;
+  L7_uint     evc_id;
   ptin_intf_t ptin_intf;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Destroying EVC# %u...", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Destroying eEVC# %u...", evc_ext_id);
 
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if ( !IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_SUCCESS;
   }
 
+  evc_id = evc_ext2int[evc_ext_id];
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, evc_id);
+
   /* IF this EVC belongs to an IGMP instance, destroy that instance */
-  if (ptin_igmp_is_evc_used(evc_idx))
-    ptin_igmp_instance_destroy(evc_idx);
+  if (ptin_igmp_is_evc_used(evc_ext_id))
+    ptin_igmp_evc_remove(evc_ext_id);
+
+  #if (!PTIN_BOARD_IS_MATRIX)
   /* IF this EVC belongs to a DHCP instance, destroy that instance */
-  if (ptin_dhcp_is_evc_used(evc_idx))
-    ptin_dhcp_instance_destroy(evc_idx);
+  if (ptin_dhcp_is_evc_used(evc_ext_id))
+    ptin_dhcp_evc_remove(evc_ext_id);
   /* IF this EVC belongs to a PPPoE instance, destroy that instance */
-  if (ptin_pppoe_is_evc_used(evc_idx))
-    ptin_pppoe_instance_destroy(evc_idx);
+  if (ptin_pppoe_is_evc_used(evc_ext_id))
+    ptin_pppoe_evc_remove(evc_ext_id);
+  #endif
 
   /* For IGMP enabled evcs, remove trap rules */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if ( evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_configure(evc_idx, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, PTIN_DIR_BOTH)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
   }
   #endif
 
   /* IF this EVC belongs to an DHCP instance, destroy that instance */
-  if (evcs[evc_idx].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+  if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP is not cleared!!!", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP is not cleared!!!", evc_id);
 //    TODO !!!
-//    ptin_dhcp_instance_destroy(evc_idx);
+//    ptin_dhcp_instance_destroy(evc_ext_id);
   }
 
   /* For each interface... */
   for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
   {
-    if (!evcs[evc_idx].intf[intf_idx].in_use)
+    if (!evcs[evc_id].intf[intf_idx].in_use)
       continue;
 
-    if (ptin_intf_port2ptintf(intf_idx,&ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(intf_idx, &ptin_intf)!=L7_SUCCESS)
       continue;
 
     /* Clean EVC */
     #if 0
     {
-      if (ptin_evc_intf_clean_all(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
+      if (ptin_evc_intf_clean_all(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning profiles and counters!!!", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning profiles and counters!!!", evc_id);
         return L7_FAILURE;
       }
     }
     #else
     {
       /* Only clean service resources... Clients remotion will do the rest */
-      if (ptin_evc_intf_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
+      if (ptin_evc_intf_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_id);
         return L7_FAILURE;
       }
     }
     #endif
 
-    /* Remove all clients */
-    if (ptin_evc_intfclients_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+    /* Remove all clients/flows */
+    if (ptin_evc_intfclientsflows_remove(evc_id, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_id);
       return L7_FAILURE;
     }
   }
 
   /* Check if there are counters pending... */
-  if (evcs[evc_idx].n_counters > 0 || evcs[evc_idx].n_probes > 0)
+  if (evcs[evc_id].n_counters > 0 || evcs[evc_id].n_probes > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u counters + %u probes are still configured! EVC cannot be destroyed!",
-            evc_idx, evcs[evc_idx].n_counters, evcs[evc_idx].n_probes);
+            evc_id, evcs[evc_id].n_counters, evcs[evc_id].n_probes);
     return L7_FAILURE;
   }
   /* Check if there are BW profiles pending... */
-  if (evcs[evc_idx].n_bwprofiles > 0)
+  if (evcs[evc_id].n_bwprofiles > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u BW profiles are still configured! EVC cannot be destroyed!",
-            evc_idx, evcs[evc_idx].n_bwprofiles);
+            evc_id, evcs[evc_id].n_bwprofiles);
     return L7_FAILURE;
   }
   /* Check if there are clients pending... */
-  if (evcs[evc_idx].n_clients > 0)
+  if (evcs[evc_id].n_clients > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u clients are still configured! EVC cannot be destroyed!",
-            evc_idx, evcs[evc_idx].n_clients);
+            evc_id, evcs[evc_id].n_clients);
     return L7_FAILURE;
   }
 
   /* Remove bridges on N:1 EVCs */
-  if (IS_EVC_P2MULTIPOINT(evc_idx))
+  if (IS_EVC_STD_P2MP(evc_id))
   {
-    if (ptin_evc_p2multipoint_intf_remove_all(evc_idx) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove_all(evc_id) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_id);
       return L7_FAILURE;
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if ( !IS_EVC_STACKED(evc_idx) )
+  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
   {
-    L7_int port1 = evcs[evc_idx].p2p_port1_intf;
-    L7_int port2 = evcs[evc_idx].p2p_port2_intf;
+    L7_int port1 = evcs[evc_id].p2p_port1_intf;
+    L7_int port2 = evcs[evc_id].p2p_port2_intf;
 
     /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-    if (switching_p2p_bridge_remove(port1, evcs[evc_idx].intf[port2].int_vlan,
-                                    port2, evcs[evc_idx].intf[port2].int_vlan,
+    if (switching_p2p_bridge_remove(port1, evcs[evc_id].intf[port2].int_vlan,
+                                    port2, evcs[evc_id].intf[port2].int_vlan,
                                     0 /* No inner vlan */) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_idx,
-              port1, evcs[evc_idx].intf[port1].int_vlan,
-              port2, evcs[evc_idx].intf[port2].int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+              port1, evcs[evc_id].intf[port1].int_vlan,
+              port2, evcs[evc_id].intf[port2].int_vlan);
       return L7_FAILURE;
     }
   }
 
   /* Remove all previously configured interfaces */
-  if (ptin_evc_intf_remove_all(evc_idx) != L7_SUCCESS)
+  if (ptin_evc_intf_remove_all(evc_id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing interfaces config", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing interfaces config", evc_id);
     return L7_FAILURE;
   }
 
   /* Remove BCast rate limit for unstacked services */
-  if (IS_EVC_WITH_CPU_TRAP(evc_idx))
+  if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
-    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
-    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_idx].rvlan);
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_idx);
+    ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+    ptin_multicast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast rate limit removed", evc_id);
   }
 
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Virtual ports: Destroy Multicast group */
+  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
+  {
+    if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      return L7_FAILURE;
+    }
+  }
+  #endif
+  evcs[evc_id].multicast_group = -1;
+
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
-  if (evc_idx == PTIN_EVC_INBAND)
+  if (evc_ext_id == PTIN_EVC_INBAND)
     switching_vlan_delete(PTIN_VLAN_INBAND);
   else
-    ptin_evc_vlan_free(evcs[evc_idx].rvlan, evcs[evc_idx].queue_free_vlans);
+    ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
 
-  ptin_evc_entry_reset(evc_idx);
+  ptin_evc_entry_free(evc_ext_id);
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u successfully destroyed", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
@@ -2106,8 +2414,9 @@ L7_RC_t ptin_evc_destroy_all(void)
 {
   L7_uint i;
 
-  for (i=1; i<PTIN_SYSTEM_N_EVCS; i++)
-    if (evcs[i].in_use)
+  /* Start with index 1 because PTIN_EVC_INBAND=0 */
+  for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
+    if (IS_eEVC_IN_USE(i))
       ptin_evc_destroy(i);
 
   return L7_SUCCESS;
@@ -2118,40 +2427,50 @@ L7_RC_t ptin_evc_destroy_all(void)
  * Adds a bridge to a stacked EVC between the root and a particular interface
  * 
  * @param evcBridge Bridge info
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id, evc_ext_id;
   L7_uint root_intf;
   L7_uint leaf_intf;
   L7_uint i;
   L7_RC_t rc = L7_SUCCESS;
   struct ptin_evc_client_s *pclient;
 
-  evc_idx = evcBridge->index;
+  evc_ext_id = evcBridge->index;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding EVC# %u bridge connection...", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u bridge connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Check if the EVC is P2P or P2MP */
+  if (!IS_EVC_STD(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is QUATTRO?", evc_id);
     return L7_FAILURE;
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
   }
 
@@ -2163,10 +2482,10 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 
   /* Validate leaf interface (from received message) */
   if ((leaf_intf >= PTIN_SYSTEM_N_INTERF) ||
-      (!evcs[evc_idx].intf[leaf_intf].in_use) ||
-      (evcs[evc_idx].intf[leaf_intf].type != PTIN_EVC_INTF_LEAF))
+      (!evcs[evc_id].intf[leaf_intf].in_use) ||
+      (evcs[evc_id].intf[leaf_intf].type != PTIN_EVC_INTF_LEAF))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_idx,
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
             evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
     return L7_FAILURE;
   }
@@ -2175,37 +2494,42 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   root_intf = PTIN_SYSTEM_N_INTERF;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if (evcs[evc_idx].intf[i].in_use &&
-        evcs[evc_idx].intf[i].type == PTIN_EVC_INTF_ROOT)
+    if (evcs[evc_id].intf[i].in_use &&
+        evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT)
     {
       root_intf = i;
       break;
     }
   }
+  if (root_intf >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No root port was found", evc_id);
+    return L7_FAILURE;
+  }
 
   /* Check if client entry already exists */
-  ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_idx].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
+  ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
   if (pclient != NULL)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u already have a bridge with Inner VID = %u", evc_idx,
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u already have a bridge with Inner VID = %u", evc_id,
                 evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id, evcBridge->inn_vlan);
     return L7_SUCCESS;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_idx,
-           root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
+           root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
 
   /* Add translation rules */
   #if ( !PTIN_BOARD_IS_MATRIX )
   /* Also for P2MP this routine will be executed, as long as it is stacked */
   /* For these ones the internal vlan will be the interface internal one */
-  if ( IS_EVC_P2P(evc_idx) )
+  if (IS_EVC_STD_P2P(evc_id))
   {
-    rc = switching_p2p_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_idx].rvlan);
+    rc = switching_p2p_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_id].rvlan);
   }
-  else
+  else if (IS_EVC_STD_P2MP(evc_id))
   {
-    rc = switching_p2multipoint_stacked_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_idx].intf[leaf_intf].int_vlan, evcs[evc_idx].rvlan);
+    rc = switching_p2multipoint_stacked_leaf_add(leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan, evcs[evc_id].intf[leaf_intf].int_vlan, evcs[evc_id].rvlan);
   }
   if (rc != L7_SUCCESS)
   {
@@ -2215,13 +2539,13 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only make cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_P2P(evc_idx))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-    rc = switching_p2p_bridge_add(root_intf, evcs[evc_idx].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
+    rc = switching_p2p_bridge_add(root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding bridge", evc_id,
               evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
       return L7_FAILURE;
     }
@@ -2232,26 +2556,29 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 
   /* Add client to the EVC struct */
   dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pclient);  /* get a free client entry */
-  pclient->in_use    = L7_TRUE;                                              /* update it */
-  pclient->inn_vlan  = evcBridge->inn_vlan;
-  pclient->out_vlan  = evcBridge->intf.vid;
+  pclient->in_use   = L7_TRUE;                                              /* update it */
+  pclient->int_ivid = evcBridge->inn_vlan;
+  pclient->uni_ovid = evcBridge->intf.vid;
+  pclient->uni_ivid = 0;
+  /* Save protocol enable flags */
+  pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
   /* No vlans to be flooded */
   memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
   pclient->bwprofile[PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
   pclient->bwprofile[PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
   pclient->counter  [PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
   pclient->counter  [PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
-  dl_queue_add_tail(&evcs[evc_idx].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
-  evcs[evc_idx].n_clients++;
+  dl_queue_add_tail(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
+  evcs[evc_id].n_clients++;
 
   /* SEM CLIENTS DOWN */
   osapiSemaGive(ptin_evc_clients_sem);
 
   /* Update client direct referencing */
   //if (evcBridge->inn_vlan<4096)
-  //  evcs[evc_idx].client_ref[evcBridge->inn_vlan] = pclient;
+  //  evcs[evc_id].client_ref[evcBridge->inn_vlan] = pclient;
   
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: bridge successfully added", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully added", evc_ext_id);
 
   return L7_SUCCESS;
 }
@@ -2262,40 +2589,50 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
  * NOTE: if there is no bridge, L7_SUCCESS is returned anyway
  * 
  * @param evcBridge Bridge info
+ * @note The EVC id is the extended one. 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id, evc_ext_id;
   L7_uint root_intf;
   L7_uint leaf_intf;
   L7_uint i;
   L7_RC_t rc = L7_SUCCESS;
   struct ptin_evc_client_s *pclient;
 
-  evc_idx = evcBridge->index;
+  evc_ext_id = evcBridge->index;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing EVC# %u bridge connection...", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing eEVC# %u bridge connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
-    return L7_NOT_EXIST;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Check if the EVC is P2P or P2MP */
+  if (!IS_EVC_STD(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is QUATTRO?", evc_id);
+    return L7_FAILURE;
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
   }
 
@@ -2308,19 +2645,19 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   /* Validate leaf interface (from received message) */
   if ( leaf_intf >= PTIN_SYSTEM_N_INTERF )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_idx,
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
             evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
     return L7_FAILURE;
   }
-  if ( !evcs[evc_idx].intf[leaf_intf].in_use )
+  if ( !evcs[evc_id].intf[leaf_intf].in_use )
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_idx,
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_id,
             evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
     return L7_NOT_EXIST;
   }
-  if ( evcs[evc_idx].intf[leaf_intf].type != PTIN_EVC_INTF_LEAF )
+  if ( evcs[evc_id].intf[leaf_intf].type != PTIN_EVC_INTF_LEAF )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_idx,
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_id,
             evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
     return L7_FAILURE;
   }
@@ -2329,31 +2666,36 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   root_intf = PTIN_SYSTEM_N_INTERF;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if (evcs[evc_idx].intf[i].in_use &&
-        evcs[evc_idx].intf[i].type == PTIN_EVC_INTF_ROOT)
+    if (evcs[evc_id].intf[i].in_use &&
+        evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT)
     {
       root_intf = i;
       break;
     }
   }
+  if (root_intf >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No root port was found", evc_id);
+    return L7_FAILURE;
+  }
 
   /* Get client entry */
-  ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_idx].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
+  ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
   if (pclient == NULL)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u does not have any bridge with Inner VID = %u", evc_idx,
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u does not have any bridge with Inner VID = %u", evc_id,
                 evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id, evcBridge->inn_vlan);
     return L7_NOT_EXIST;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: deleting bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_idx,
-           root_intf, evcs[evc_idx].rvlan, leaf_intf, pclient->out_vlan, pclient->inn_vlan);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: deleting bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
+           root_intf, evcs[evc_id].rvlan, leaf_intf, pclient->uni_ovid, pclient->int_ivid);
 
   /* Check if there are counters attached */
   #ifdef EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL
   if ( pclient->counter[PTIN_EVC_INTF_ROOT]!=NULL || pclient->counter[PTIN_EVC_INTF_LEAF]!=NULL )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have counters attached... please, remove them first!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have counters attached... please, remove them first!", evc_id);
     return L7_FAILURE;
   }
   #endif
@@ -2361,27 +2703,27 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   #ifdef EVC_BWPROFILES_REQUIRE_CLEANUP_BEFORE_REMOVAL
   if ( pclient->bwprofile[PTIN_EVC_INTF_ROOT]!=NULL || pclient->bwprofile[PTIN_EVC_INTF_LEAF]!=NULL )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have profiles attached... please, remove them first!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have profiles attached... please, remove them first!", evc_id);
     return L7_FAILURE;
   }
   #endif
 
   /* Remove profiles and counters to this client */
-  if ( ptin_evc_pclient_clean(evc_idx,pclient, L7_TRUE) != L7_SUCCESS )
+  if ( ptin_evc_pclientFlow_clean(evc_id,pclient, L7_TRUE) != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: can't remove profiles and counters to client!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: can't remove profiles and counters to client!", evc_id);
     return L7_FAILURE;
   }
 
   #if ( !PTIN_BOARD_IS_MATRIX )
   /* Remove translations */
-  if (IS_EVC_P2P(evc_idx))
+  if (IS_EVC_STD_P2P(evc_id))
   {
-    rc = switching_p2p_leaf_remove(leaf_intf, pclient->out_vlan, pclient->inn_vlan, evcs[evc_idx].rvlan);
+    rc = switching_p2p_leaf_remove(leaf_intf, pclient->uni_ovid, pclient->int_ivid, evcs[evc_id].rvlan);
   }
-  else
+  else if (IS_EVC_STD_P2MP(evc_id))
   {
-    rc = switching_p2multipoint_stacked_leaf_remove(leaf_intf, pclient->out_vlan, pclient->inn_vlan, evcs[evc_idx].intf[leaf_intf].int_vlan, evcs[evc_idx].rvlan);
+    rc = switching_p2multipoint_stacked_leaf_remove(leaf_intf, pclient->uni_ovid, pclient->int_ivid, evcs[evc_id].intf[leaf_intf].int_vlan, evcs[evc_id].rvlan);
   }
   if (rc != L7_SUCCESS)
   {
@@ -2391,13 +2733,13 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only remove cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_P2P(evc_idx))
+  if (IS_EVC_STD_P2P(evc_id))
   {
     /* Delete bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-    rc = switching_p2p_bridge_remove(root_intf, evcs[evc_idx].rvlan, leaf_intf, pclient->out_vlan, pclient->inn_vlan);
+    rc = switching_p2p_bridge_remove(root_intf, evcs[evc_id].rvlan, leaf_intf, pclient->uni_ovid, pclient->int_ivid);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error deleting bridge", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error deleting bridge", evc_id,
               evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id);
       return L7_FAILURE;
     }
@@ -2407,24 +2749,457 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
   /* Delete client from the EVC struct */
-  dl_queue_remove(&evcs[evc_idx].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient);
+  dl_queue_remove(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient);
   pclient->in_use   = L7_FALSE;
-  pclient->inn_vlan = 0;
-  pclient->out_vlan = 0;
+  pclient->int_ivid = 0;
+  pclient->uni_ovid = 0;
+  pclient->int_ivid = 0;
+  pclient->flags    = 0;
   dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pclient);
-  evcs[evc_idx].n_clients--;
+  evcs[evc_id].n_clients--;
 
   /* SEM CLIENTS DOWN */
   osapiSemaGive(ptin_evc_clients_sem);
 
   /* Update client direct referencing */
   //if (evcBridge->inn_vlan<4096)
-  //  evcs[evc_idx].client_ref[evcBridge->inn_vlan] = L7_NULLPTR;
+  //  evcs[evc_id].client_ref[evcBridge->inn_vlan] = L7_NULLPTR;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: bridge successfully removed", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully removed", evc_ext_id);
 
   return L7_SUCCESS;
 }
+
+
+/**
+ * Adds a flow to the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
+{
+  L7_uint   evc_id, evc_ext_id;
+  L7_uint   leaf_port;
+  L7_uint32 intIfNum;
+
+  evc_ext_id = evcFlow->evc_idx;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Determine leaf ptin_intf */
+  if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+    leaf_port = evcFlow->ptin_intf.intf_id;
+  else
+    leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+
+  /* Validate leaf interface (from received message) */
+  if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
+      (!evcs[evc_id].intf[leaf_port].in_use) ||
+      (evcs[evc_id].intf[leaf_port].type != PTIN_EVC_INTF_LEAF))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
+            evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcFlow->ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(leaf_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
+    return L7_FAILURE;
+  }
+
+  /* Only for QUATTRO serices */
+  if (!IS_EVC_QUATTRO(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flows are only applied to QUATTRO services", evc_id);
+    return L7_FAILURE;
+  }
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  L7_uint int_ovid;
+  L7_int  vport_id, multicast_group;
+  struct ptin_evc_client_s *pflow;
+
+  /* Get internal vlan and inner NNI vlan */
+  int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
+
+  /* Multicast group */
+  multicast_group = evcs[evc_id].multicast_group;
+
+  /* Check if flow entry already exists */
+  ptin_evc_find_flow(evcFlow->uni_ovid, &evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t**) &pflow);
+
+  /* If flow does it, create it */
+  if (pflow == NULL)
+  {
+    /* Check if there is available flows */
+    if (queue_free_clients.n_elems == 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available flows", evc_id);
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
+
+    /* Create virtual port */
+    if (ptin_virtual_port_add(intIfNum,
+                              evcFlow->uni_ovid, evcFlow->uni_ivid,
+                              int_ovid, evcFlow->int_ivid,
+                              multicast_group,
+                              &vport_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
+      return L7_FAILURE;
+    }
+
+    /* Add client to the EVC struct */
+    dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
+    pflow->in_use   = L7_TRUE;                                              /* update it */
+    pflow->int_ovid = int_ovid;
+    pflow->int_ivid = evcFlow->int_ivid;
+    pflow->uni_ovid = evcFlow->uni_ovid;
+    pflow->uni_ivid = evcFlow->uni_ivid;
+    pflow->flags    = evcFlow->flags;
+    pflow->virtual_gport= vport_id;
+    dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
+    evcs[evc_id].n_clients++;
+
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
+  }
+  else
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
+  }
+
+  /* IGMP / DHCP / PPPoE instance management */
+  if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+    /* Always add client */
+    ptin_client_id_t clientId;
+
+    /* Client id */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+    clientId.outerVlan            = 0;      /* Will be determined during client addition */
+    clientId.innerVlan            = evcFlow->uni_ovid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+    /* Add client */
+    if (ptin_igmp_client_add(evc_ext_id, &clientId, evcFlow->uni_ovid, evcFlow->uni_ivid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
+      return L7_FAILURE;
+    }
+    #endif
+
+    /* Configure trap rule (only at addition - this should not activate IGMP flag) */
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+    {
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, PTIN_DIR_BOTH) != L7_SUCCESS)
+      {
+        #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        ptin_igmp_client_delete(evc_ext_id, &clientId);
+        #endif
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
+        return L7_FAILURE;
+      }
+      evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
+    }
+  }
+  #if (!PTIN_BOARD_IS_MATRIX)
+  if ( (evcFlow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) &&
+      !(evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL) )
+  {
+    if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to DHCP instance", evc_id);
+      return L7_FAILURE;
+    }
+    evcs[evc_id].flags |= PTIN_EVC_MASK_DHCP_PROTOCOL;
+  }
+  if ( (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) &&
+      !(evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) )
+  {
+    if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to PPPoE instance", evc_id);
+      return L7_FAILURE;
+    }
+    evcs[evc_id].flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  }
+  #endif
+
+  #else
+  LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+  return L7_ERROR;
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes a flow from the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
+{
+  L7_uint   evc_id, evc_ext_id;
+  L7_uint   leaf_port;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  evc_ext_id = evcFlow->evc_idx;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing eEVC# %u flow connection...", evc_ext_id);
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_SUCCESS;
+  }
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Determine leaf ptin_intf */
+  if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+    leaf_port = evcFlow->ptin_intf.intf_id;
+  else
+    leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+
+  /* Validate leaf interface (from received message) */
+  if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
+      (!evcs[evc_id].intf[leaf_port].in_use) ||
+      (evcs[evc_id].intf[leaf_port].type != PTIN_EVC_INTF_LEAF))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
+            evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcFlow->ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Only for QUATTRO serices */
+  if (!IS_EVC_QUATTRO(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Flows are only applied to QUATTRO services", evc_id);
+    return L7_FAILURE;
+  }
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  /* Remove flow */
+  rc = ptin_evc_flow_unconfig(evc_id, leaf_port, evcFlow->uni_ovid);
+  #endif
+
+  return rc;
+}
+
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if 0
+/**
+ * Remove all flows of one EVC and one port
+ * 
+ * @author mruas (9/24/2013)
+ * 
+ * @param evc_id 
+ * @param ptin_port 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_evc_port_flows_clean(L7_uint16 evc_id, L7_uint ptin_port)
+{
+  struct ptin_evc_client_s *pflow;
+
+  /* Validate arguments */
+  if (evc_id >= PTIN_SYSTEM_N_EVCS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid EVC# %u, or ptin_port %u", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* EVC and port should be active */
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[ptin_port].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u/port %u not active", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Get all flows, and remove them, one by one */
+  while (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].clients, (dl_queue_elem_t **) &pflow) == NOERR)
+  {
+    /* Remove flow */
+    if (ptin_evc_flow_unconfig(evc_id, ptin_port, pflow->int_ovid) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u/port %u: Error removing flow with uni_ovid %u", evc_id, ptin_port, pflow->int_ovid);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
+/**
+ * Unconfigure an EVC flow
+ * 
+ * @param evc_id 
+ * @param ptin_port 
+ * @param uni_ovid : external outer vlan (gem id)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 uni_ovid)
+{
+  L7_uint client_vlan;
+  L7_int multicast_group;
+  L7_uint32 intIfNum;
+  ptin_intf_t ptin_intf;
+  struct ptin_evc_client_s *pflow;
+  L7_uint32 evc_ext_id;
+
+  /* Validate arguments */
+  if (evc_id >= PTIN_SYSTEM_N_EVCS || ptin_port >= PTIN_SYSTEM_N_INTERF /*|| flow_id >= PTIN_SYSTEM_N_FLOWS_MAX*/)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid EVC# %u, ptin_port %u", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* EVC and port should be active */
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[ptin_port].in_use /*|| !evcs[evc_id].intf[ptin_port].flow[flow_id].in_use*/)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u/port %u not active", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS ||
+      ptin_intf_port2ptintf(ptin_port, &ptin_intf)  != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get intIfNum/ptin_intf from port %u", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Check if flow entry does not exists: do nothing if don't */
+  ptin_evc_find_flow(uni_ovid, &evcs[evc_id].intf[ptin_port].clients, (dl_queue_elem_t**) &pflow);
+  if (pflow == NULL)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Flow not found", evc_id);
+    return L7_SUCCESS;
+  }
+
+  /* IGMP / DHCP / PPPoE instance management */
+  if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+    /* Always remove client */
+    ptin_client_id_t clientId;
+
+    /* Client id */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+    clientId.outerVlan            = 0;      /* Will be determined during client addition */
+    clientId.innerVlan            = pflow->uni_ovid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    #endif
+  }
+
+  /* Multicast group */
+  multicast_group = evcs[evc_id].multicast_group;
+
+  /* Get client vlan */
+  client_vlan = pflow->int_ivid;
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to remove flow related to client %u", evc_id, client_vlan);
+
+  /* Force removal of counters and profiles */
+  ptin_evc_pclientFlow_clean(evc_id, pflow, L7_TRUE);
+
+  /* Remove virtual port */
+  if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Delete client from the EVC struct */
+  dl_queue_remove(&evcs[evc_id].intf[ptin_port].clients, (dl_queue_elem_t*) pflow);
+  /* Clear data from flow */
+  memset(pflow, 0x00, sizeof(struct ptin_evc_client_s));
+  dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pflow);
+  /* Update number of flows */
+  if (evcs[evc_id].n_clients > 0)
+    evcs[evc_id].n_clients--;
+
+  /* If no more flows, remove instances */
+  if (IS_EVC_P2P(evc_id) || evcs[evc_id].intf[ptin_port].clients.n_elems == 0)
+  {
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    {
+      /* Remove trap rule */
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, PTIN_DIR_BOTH)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
+        return L7_FAILURE;
+      }
+      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+    }
+
+    #if (!PTIN_BOARD_IS_MATRIX)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+    {
+      if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from DHCP instance", evc_id);
+        return L7_FAILURE;
+      }
+      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCP_PROTOCOL);
+    }
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+    {
+      if (ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
+        return L7_FAILURE;
+      }
+      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
+    }
+    #endif
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed!", evc_id, client_vlan);
+
+  return L7_SUCCESS;
+}
+#endif
 
 /**
  * Gets the flooding vlans list
@@ -2441,7 +3216,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
                                  L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans )
 {
-  L7_uint16   evc_idx;
+  L7_uint16   evc_id;
   L7_uint16   max_vlans;
   L7_int      ptin_port, port, i, index;
   dl_queue_t *queue;
@@ -2456,8 +3231,8 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   }
 
   /* Get evc id and validate it */
-  evc_idx = evcId_from_internalVlan[intVlan];
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     if (ptin_packet_debug_enable)
       LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
@@ -2465,18 +3240,18 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   }
 
   /* EVC should be active */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_idx,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use (intVlan=%u)",evc_id,intVlan);
     return L7_FAILURE;
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
   }
 
@@ -2487,27 +3262,27 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
     if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: intIfNum %u is invalid", evc_idx, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: intIfNum %u is invalid", evc_id, intIfNum);
       return L7_FAILURE;
     }
     /* Validate ptin_port */
     if ( ptin_port >= PTIN_SYSTEM_N_INTERF )
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: invalid ptin_port %u associated to inIfNum %u", evc_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: invalid ptin_port %u associated to inIfNum %u", evc_id, ptin_port, intIfNum);
       return L7_FAILURE;
     }
     /* Check if port is in use */
-    if ( !evcs[evc_idx].intf[ptin_port].in_use )
+    if ( !evcs[evc_id].intf[ptin_port].in_use )
     {
       if (ptin_packet_debug_enable)
-        LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not active in this EVC", evc_idx, ptin_port);
+        LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not active in this EVC", evc_id, ptin_port);
       return L7_NOT_EXIST;
     }
-    if ( evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not a leaf interface", evc_idx, ptin_port);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Port %u is not a leaf interface", evc_id, ptin_port);
       return L7_FAILURE;
     }
   }
@@ -2532,8 +3307,8 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   for (port=0; port<PTIN_SYSTEM_N_INTERF && index<max_vlans; port++)
   {
     /* Skip not used ports, or non leafs */
-    if ( !evcs[evc_idx].intf[ptin_port].in_use ||
-         evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( !evcs[evc_id].intf[ptin_port].in_use ||
+         evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
     /* Only apply to specified port, or all of them if not specified */
@@ -2543,7 +3318,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
       osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
       /* Clients queue */
-      queue = &evcs[evc_idx].intf[port].clients;
+      queue = &evcs[evc_id].intf[port].clients;
 
       pclient = L7_NULLPTR;
 
@@ -2555,7 +3330,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
       while (pclient != L7_NULLPTR && index<max_vlans)
       {
         /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->inn_vlan == client_vlan)
+        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
         {
           /* Run all vlan elements */
           for ( i=0; i<PTIN_FLOOD_VLANS_MAX && index<max_vlans; i++)
@@ -2591,7 +3366,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   }
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: List of vlans read from client_vlan %u (%u vlans)", evc_idx, client_vlan, index);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: List of vlans read from client_vlan %u (%u vlans)", evc_id, client_vlan, index);
 
   return L7_SUCCESS;
 }
@@ -2599,7 +3374,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
 /**
  * Adds a flooding vlan
  * 
- * @param evcId       : EVC index
+ * @param evc_ext_id  : EVC extended id
  * @param ptin_intf   : port of which client_vlan belongs
  * @param client_vlan : client vlan to apply this flooding vlan
  * @param outer_vlan  : outer vlan of transmitted  packets
@@ -2607,9 +3382,10 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
                                  L7_uint16 outer_vlan, L7_uint16 inner_vlan )
 {
+  L7_uint32 evc_id;
   L7_int ptin_port, port, i;
   dl_queue_t *queue;
   struct ptin_evc_client_s *pclient;
@@ -2623,23 +3399,25 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
   }
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;
   }
 
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
   }
 
@@ -2654,19 +3432,19 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
     /* Validate leaf interface (from received message) */
     if ( ptin_port >= PTIN_SYSTEM_N_INTERF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_FAILURE;
     }
-    if ( !evcs[evc_idx].intf[ptin_port].in_use )
+    if ( !evcs[evc_id].intf[ptin_port].in_use )
     {
-      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_idx,
+      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_NOT_EXIST;
     }
-    if ( evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_FAILURE;
     }
@@ -2680,8 +3458,8 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
     /* Skip not used ports, or non leafs */
-    if ( !evcs[evc_idx].intf[ptin_port].in_use ||
-         evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( !evcs[evc_id].intf[ptin_port].in_use ||
+         evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
     /* Only apply to specified port, or all of them if not specified */
@@ -2691,7 +3469,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
       osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
       /* Clients queue */
-      queue = &evcs[evc_idx].intf[port].clients;
+      queue = &evcs[evc_id].intf[port].clients;
 
       pclient = L7_NULLPTR;
 
@@ -2703,10 +3481,10 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
       while (pclient != L7_NULLPTR)
       {
         /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->inn_vlan == client_vlan)
+        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
         {
           /* Only add new flooding vlan, if it is different than the newer one */
-          if ( pclient->out_vlan != outer_vlan )
+          if ( pclient->uni_ovid != outer_vlan )
           {
             /* Check if this vlan already exists */
             for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
@@ -2720,24 +3498,24 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
               if ( i < PTIN_FLOOD_VLANS_MAX)
               {
                 pclient->flood_vlan[i] = outer_vlan;
-                LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: New outer vlan %u added to cvlan %u (port %u) - index=%u", evc_idx, outer_vlan, pclient->inn_vlan, port, i);
+                LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: New outer vlan %u added to cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
               }
               else
               {
-                LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No more free elements for cvlan %u (port %u)", evc_idx, pclient->inn_vlan, port);
+                LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No more free elements for cvlan %u (port %u)", evc_id, pclient->int_ivid, port);
                 rc = L7_FAILURE;
               }
             }
             /* outer vlan found: */
             else
             {
-              LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Outer vlan %u already exists for cvlan %u (port %u) - index=%u", evc_idx, outer_vlan, pclient->inn_vlan, port, i);
+              LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Outer vlan %u already exists for cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
             }
           }
           /* Provided outer vlan is repeated */
           else
           {
-            LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Ignored outer vlan %u for cvlan %u (port %u)", evc_idx, outer_vlan, pclient->inn_vlan, port);
+            LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Ignored outer vlan %u for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
           }
 
           /* No need to search for more clients, if it was provided */
@@ -2752,7 +3530,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added outer vlan %u to client_vlan %u", evc_idx, outer_vlan, client_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Added outer vlan %u to client_vlan %u", evc_ext_id, outer_vlan, client_vlan);
 
   return L7_SUCCESS;
 }
@@ -2760,7 +3538,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
 /**
  * Removes a flooding vlan
  * 
- * @param evcId       : EVC index
+ * @param evc_ext_id  : EVC extended id
  * @param ptin_intf   : port of which client_vlan belongs
  * @param client_vlan : client vlan to apply this flooding vlan
  * @param outer_vlan  : outer vlan of transmitted packets
@@ -2768,9 +3546,10 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_u
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
+L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
                                     L7_uint16 outer_vlan, L7_uint16 inner_vlan )
 {
+  L7_uint32 evc_id;
   L7_int ptin_port, port, i;
   dl_queue_t *queue;
   struct ptin_evc_client_s *pclient;
@@ -2783,23 +3562,25 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
   }
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;
   }
 
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
   }
 
@@ -2814,19 +3595,19 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
     /* Validate leaf interface (from received message) */
     if ( ptin_port >= PTIN_SYSTEM_N_INTERF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is invalid", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_FAILURE;
     }
-    if ( !evcs[evc_idx].intf[ptin_port].in_use )
+    if ( !evcs[evc_id].intf[ptin_port].in_use )
     {
-      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_idx,
+      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not active in this EVC", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_NOT_EXIST;
     }
-    if ( evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_idx,
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u is not a leaf interface", evc_id,
               ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptin_intf->intf_id);
       return L7_FAILURE;
     }
@@ -2840,8 +3621,8 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
     /* Skip not used ports, or non leafs */
-    if ( !evcs[evc_idx].intf[ptin_port].in_use ||
-         evcs[evc_idx].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
+    if ( !evcs[evc_id].intf[ptin_port].in_use ||
+         evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF )
       continue;
 
     /* Only apply to specified port, or all of them if not specified */
@@ -2851,7 +3632,7 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
       osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
       /* Clients queue */
-      queue = &evcs[evc_idx].intf[port].clients;
+      queue = &evcs[evc_id].intf[port].clients;
 
       pclient = L7_NULLPTR;
 
@@ -2863,7 +3644,7 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
       while (pclient != L7_NULLPTR)
       {
         /* Only apply to specified client_vlan, or all of them if not specified (if null) */
-        if (client_vlan == 0 || pclient->inn_vlan == client_vlan)
+        if (client_vlan == 0 || pclient->int_ivid == client_vlan)
         {
           /* Search for the outer vlan */
           for ( i=0; i<PTIN_FLOOD_VLANS_MAX && pclient->flood_vlan[i]!=outer_vlan; i++);
@@ -2871,11 +3652,11 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
           if ( i < PTIN_FLOOD_VLANS_MAX)
           {
             pclient->flood_vlan[i] = 0;
-            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed outer vlan %u from cvlan %u (port %u) - index=%u", evc_idx, outer_vlan, pclient->inn_vlan, port, i);
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed outer vlan %u from cvlan %u (port %u) - index=%u", evc_id, outer_vlan, pclient->int_ivid, port, i);
           }
           else
           {
-            LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Outer vlan %u not found for cvlan %u (port %u)", evc_idx, outer_vlan, pclient->inn_vlan, port);
+            LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Outer vlan %u not found for cvlan %u (port %u)", evc_id, outer_vlan, pclient->int_ivid, port);
           }
 
           /* No need to search for more clients, if client was provided */
@@ -2891,7 +3672,7 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed outer vlan %u from client_vlan %u", evc_idx, outer_vlan, client_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Removed outer vlan %u from client_vlan %u", evc_ext_id, outer_vlan, client_vlan);
 
   return L7_SUCCESS;
 }
@@ -2903,18 +3684,35 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint16 evc_idx, ptin_intf_t *ptin_intf, L
 /**
  * Read data of a bandwidth profile
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile (input and output)
+ * @param evc_ext_id : EVC extended index
+ * @param profile     : bw profile (input and output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_get(L7_uint evc_idx, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
 {
   ptin_bw_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Verify and update profile data */
-  if (ptin_evc_bwProfile_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
+  if (ptin_evc_bwProfile_verify(evc_id,profile,(void ***) &policy_loc)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
     return L7_FAILURE;
@@ -2940,19 +3738,36 @@ L7_RC_t ptin_evc_bwProfile_get(L7_uint evc_idx, ptin_bw_profile_t *profile)
  * Apply a bandwidth profile to an EVC and (optionally) to a 
  * specific client 
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile     : bw profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_idx, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_ext_id, ptin_bw_profile_t *profile)
 {
   ptin_bw_policy_t **policy_loc=L7_NULLPTR;
   ptin_bw_policy_t *policy_old, *policy_new;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Verify and update profile data */
-  if (ptin_evc_bwProfile_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
+  if (ptin_evc_bwProfile_verify(evc_id,profile,(void ***) &policy_loc)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
     return L7_FAILURE;
@@ -2988,12 +3803,12 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_idx, ptin_bw_profile_t *profile)
   /* One more profile */
   if (policy_old==L7_NULLPTR && policy_new!=L7_NULLPTR)
   {
-    evcs[evc_idx].n_bwprofiles++;
+    evcs[evc_id].n_bwprofiles++;
   }
   /* One less profile */
   else if (policy_old!=L7_NULLPTR && policy_new==L7_NULLPTR)
   {
-    if (evcs[evc_idx].n_bwprofiles>0)  evcs[evc_idx].n_bwprofiles--;
+    if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
   }
 
   if (*policy_loc==L7_NULLPTR)
@@ -3007,18 +3822,35 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_idx, ptin_bw_profile_t *profile)
 /**
  * Remove a bandwidth profile to an EVC 
  * 
- * @param evc_idx : EVC index
- * @param profile : bw profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile     : bw profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_idx, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_ext_id, ptin_bw_profile_t *profile)
 {
   ptin_bw_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Verify and update profile data */
-  rc = ptin_evc_bwProfile_verify(evc_idx,profile,(void ***) &policy_loc);
+  rc = ptin_evc_bwProfile_verify(evc_id,profile,(void ***) &policy_loc);
   if ( rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
@@ -3043,7 +3875,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_idx, ptin_bw_profile_t *profile)
   *policy_loc = L7_NULLPTR;
 
   /* One less profile */
-  if (evcs[evc_idx].n_bwprofiles>0)  evcs[evc_idx].n_bwprofiles--;
+  if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
 
   return L7_SUCCESS;
 }
@@ -3056,25 +3888,42 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_idx, ptin_bw_profile_t *profile)
 /**
  * Read statistics of a particular EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile 
- * @param stats : Statistics data
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile 
+ * @param stats      : Statistics data
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_evcStats_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats)
+L7_RC_t ptin_evc_evcStats_get(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats)
 {
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Probe processing */
   if (profile!=L7_NULLPTR && profile->dst_ip!=0)
   {
-    return ptin_evc_probe_get(evc_idx, profile, stats);
+    return ptin_evc_probe_get(evc_id, profile, stats);
   }
 
   /* Verify and update profile data */
-  if (ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
+  if (ptin_evc_evcStats_verify(evc_id,profile,(void ***) &policy_loc)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
     return L7_FAILURE;
@@ -3099,25 +3948,42 @@ L7_RC_t ptin_evc_evcStats_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile,
 /**
  * Add a rule to make packets counting of a specific EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_evcStats_set(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+L7_RC_t ptin_evc_evcStats_set(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile)
 {
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   ptin_evcStats_policy_t *policy_old, *policy_new;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Probe processing */
   if (profile!=L7_NULLPTR && profile->dst_ip!=0)
   {
-    return ptin_evc_probe_add(evc_idx, profile);
+    return ptin_evc_probe_add(evc_id, profile);
   }
 
   /* Verify and update profile data */
-  if (ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc)!=L7_SUCCESS)
+  if (ptin_evc_evcStats_verify(evc_id,profile,(void ***) &policy_loc)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
     return L7_FAILURE;
@@ -3153,12 +4019,12 @@ L7_RC_t ptin_evc_evcStats_set(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
   /* One more counter */
   if (policy_old==L7_NULLPTR && policy_new!=L7_NULLPTR)
   {
-    evcs[evc_idx].n_counters++;
+    evcs[evc_id].n_counters++;
   }
   /* One less counter */
   else if (policy_old!=L7_NULLPTR && policy_new==L7_NULLPTR)
   {
-    if (evcs[evc_idx].n_counters>0)  evcs[evc_idx].n_counters--;
+    if (evcs[evc_id].n_counters>0)  evcs[evc_id].n_counters--;
   }
 
   if (*policy_loc==L7_NULLPTR)
@@ -3172,24 +4038,41 @@ L7_RC_t ptin_evc_evcStats_set(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
 /**
  * Delete a rule to make packets counting of a specific EVC
  * 
- * @param evc_idx : EVC index
- * @param profile : evcStats profile
+ * @param evc_ext_id : EVC extended index
+ * @param profile    : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+L7_RC_t ptin_evc_evcStats_delete(L7_uint32 evc_ext_id, ptin_evcStats_profile_t *profile)
 {
   ptin_evcStats_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Probe processing */
   if (profile!=L7_NULLPTR && profile->dst_ip!=0)
   {
-    return ptin_evc_probe_delete(evc_idx, profile);
+    return ptin_evc_probe_delete(evc_id, profile);
   }
 
   /* Verify and update profile data */
-  rc = ptin_evc_evcStats_verify(evc_idx,profile,(void ***) &policy_loc);
+  rc = ptin_evc_evcStats_verify(evc_id,profile,(void ***) &policy_loc);
   if ( rc != L7_SUCCESS )
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Profile data have conflicts");
@@ -3215,7 +4098,7 @@ L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profi
   *policy_loc = L7_NULLPTR;
 
   /* One less counter */
-  if (evcs[evc_idx].n_counters>0)  evcs[evc_idx].n_counters--;
+  if (evcs[evc_id].n_counters>0)  evcs[evc_id].n_counters--;
 
   return L7_SUCCESS;
 }
@@ -3226,6 +4109,9 @@ L7_RC_t ptin_evc_evcStats_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profi
 
 static L7_BOOL ptin_clean_counters = L7_TRUE;
 static L7_BOOL ptin_clean_profiles = L7_FALSE;
+#if 0
+static L7_BOOL ptin_clean_flows    = L7_FALSE;
+#endif
 
 /**
  * Allow counters to be removed during cleanup
@@ -3248,45 +4134,45 @@ void ptin_evc_clean_profiles_enable( L7_BOOL enable )
 }
 
 /**
- * Remove all clients for a specific evc
+ * Remove all clients/flows for a specific evc
  * 
- * @param evc_idx : evc index 
+ * @param evc_id : evc index 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_allclients_remove( L7_uint evc_idx )
+L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
   {
-    if (!evcs[evc_idx].intf[intf_idx].in_use)
+    if (!evcs[evc_id].intf[intf_idx].in_use)
       continue;
 
     if (ptin_intf_port2ptintf(intf_idx,&ptin_intf)!=L7_SUCCESS)
       continue;
 
-    /* Remove all clients of this interface */
-    if (ptin_evc_intfclients_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+    /* Remove all clients/flows of this interface */
+    if (ptin_evc_intfclientsflows_remove(evc_id, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing all clients from intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing all clients/flows from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
       rc = L7_FAILURE;
     }
   }
@@ -3297,22 +4183,22 @@ L7_RC_t ptin_evc_allclients_remove( L7_uint evc_idx )
 /**
  * Remove all clients for a specific evc and interface
  * 
- * @param evc_idx : evc index
+ * @param evc_id   : evc index 
  * @param intf_idx : interface index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intfclients_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id )
+L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
-  struct  ptin_evc_client_s *pclient;
+  struct  ptin_evc_client_s *pclientFlow;
   ptin_HwEthEvcBridge_t     bridge;
   L7_RC_t                   res;
   L7_RC_t                   rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -3327,43 +4213,59 @@ L7_RC_t ptin_evc_intfclients_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uin
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use || !evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
-  bridge.index          = evc_idx;
+  bridge.index          = evc_id;
   bridge.intf.intf_type = intf_idx < PTIN_SYSTEM_N_PORTS ? PTIN_EVC_INTF_PHYSICAL : PTIN_EVC_INTF_LOGICAL;
   bridge.intf.intf_id   = intf_idx < PTIN_SYSTEM_N_PORTS ? intf_idx : intf_idx - PTIN_SYSTEM_N_PORTS;
-  bridge.intf.mef_type  = evcs[evc_idx].intf[intf_idx].type;
+  bridge.intf.mef_type  = evcs[evc_id].intf[intf_idx].type;
 
   /* Get all clients */
-  while (dl_queue_get_head(&evcs[evc_idx].intf[intf_idx].clients, (dl_queue_elem_t **) &pclient) == NOERR)
+  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow) == NOERR)
   {
-    bridge.intf.vid = pclient->out_vlan;
-    bridge.inn_vlan = pclient->inn_vlan;
-
     /* Clean client */
-    res = ptin_evc_pclient_clean(evc_idx,pclient, L7_TRUE);
+    res = ptin_evc_pclientFlow_clean(evc_id, pclientFlow, L7_TRUE);
     if ( res != L7_SUCCESS )
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client intf=%u/%u,cvlan=%",evc_idx,bridge.intf.intf_type,bridge.intf.intf_id,bridge.inn_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client/flow",evc_id);
       rc = L7_FAILURE;
     }
 
-    /* Remove this bridge (client) */
-    if (ptin_evc_p2p_bridge_remove(&bridge)!=L7_SUCCESS)
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* For QUATTRO services, we have flows instead of bridges */
+    if (IS_EVC_QUATTRO(evc_id))
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing bridge for client of cvlan=%u attached to intf=%u/%u",
-              evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
-      rc = L7_FAILURE;
+      /* Clean client */
+      res = ptin_evc_flow_unconfig(evc_id, intf_idx, pclientFlow->int_ovid);
+      if ( res != L7_SUCCESS )
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing flow",evc_id);
+        rc = L7_FAILURE;
+      }
     }
     else
+    #endif
     {
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan %u attached to intf=%u/%u removed",
-                evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
+      bridge.intf.vid = pclientFlow->uni_ovid;
+      bridge.inn_vlan = pclientFlow->int_ivid;
+
+      /* Remove this bridge (client) */
+      if (ptin_evc_p2p_bridge_remove(&bridge)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing bridge for client of cvlan=%u attached to intf=%u/%u",
+                evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan %u attached to intf=%u/%u removed",
+                  evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
+      }
     }
   }
 
@@ -3373,21 +4275,21 @@ L7_RC_t ptin_evc_intfclients_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uin
 /**
  * Remove client
  * 
- * @param evc_idx 
+ * @param evc_id 
  * @param intf_type 
  * @param intf_id 
  * @param cvlan 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan )
+L7_RC_t ptin_evc_client_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
   ptin_HwEthEvcBridge_t bridge;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -3402,28 +4304,28 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 in
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use || !evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... nothing to do!");
     return L7_SUCCESS;
   }
 
   /* Clean client */
-  if ( ptin_evc_client_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, cvlan, L7_TRUE) != L7_SUCCESS )
+  if ( ptin_evc_client_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, cvlan, L7_TRUE) != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client of cvlan=%u attached to intf=%u/%u!",evc_idx, cvlan, ptin_intf.intf_type, ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client of cvlan=%u attached to intf=%u/%u!",evc_id, cvlan, ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
   /* Build struct to remove bridge */
-  bridge.index          = evc_idx;
+  bridge.index          = evc_id;
   bridge.intf.intf_type = ptin_intf.intf_type;
   bridge.intf.intf_id   = ptin_intf.intf_id;
-  bridge.intf.mef_type  = evcs[evc_idx].intf[intf_idx].type;
+  bridge.intf.mef_type  = evcs[evc_id].intf[intf_idx].type;
   bridge.intf.vid       = 0;
   bridge.inn_vlan       = cvlan;
 
@@ -3431,12 +4333,12 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 in
   if (ptin_evc_p2p_bridge_remove(&bridge)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing bridge for client of cvlan=%u attached to intf=%u/%u",
-            evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
+            evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
     return L7_FAILURE;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan %u attached to intf=%u/%u removed",
-            evc_idx, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
+            evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
 
   return L7_SUCCESS;
 }
@@ -3445,35 +4347,35 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 in
  * This function will clean all counters and profiles associated 
  * to all interfaces and clients of an EVC
  *  
- * @param evc_idx : EVC index 
+ * @param evc_id : EVC index 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_clean_all( L7_uint evc_idx, L7_BOOL force )
+L7_RC_t ptin_evc_clean_all( L7_uint evc_id, L7_BOOL force )
 {
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
   /* Clean all interfaces profiles and counters */
-  if (ptin_evc_allintfs_clean(evc_idx, force)!=L7_SUCCESS)
+  if (ptin_evc_allintfs_clean(evc_id, force)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning interfaces",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning interfaces",evc_id);
     rc = L7_FAILURE;
   }
 
   /* Clean all clients profiles and counters */
-  if (ptin_evc_allclients_clean(evc_idx, force)!=L7_SUCCESS)
+  if (ptin_evc_allclients_clean(evc_id, force)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients",evc_id);
     rc = L7_FAILURE;
   }
 
@@ -3484,37 +4386,37 @@ L7_RC_t ptin_evc_clean_all( L7_uint evc_idx, L7_BOOL force )
  * This function will clean all counters and profiles associated 
  * to one interface of an EVC, as well to its clients
  *  
- * @param evc_idx : EVC index 
+ * @param evc_id : EVC index 
  * @param intf_type 
  * @param intf_id 
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_intf_clean_all( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
+L7_RC_t ptin_evc_intf_clean_all( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
 {
   L7_RC_t     rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
   /* Clean all interfaces profiles and counters */
-  if (ptin_evc_intf_clean(evc_idx,intf_type,intf_id, force)!=L7_SUCCESS)
+  if (ptin_evc_intf_clean(evc_id,intf_type,intf_id, force)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning interface %u/%u",evc_idx,intf_type,intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning interface %u/%u",evc_id,intf_type,intf_id);
     rc = L7_FAILURE;
   }
 
   /* Clean all clients profiles and counters */
-  if (ptin_evc_intfclients_clean(evc_idx,intf_type,intf_id, force)!=L7_SUCCESS)
+  if (ptin_evc_intfclients_clean(evc_id,intf_type,intf_id, force)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients of intf=%u/%u",evc_idx,intf_type,intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients of intf=%u/%u",evc_id,intf_type,intf_id);
     rc = L7_FAILURE;
   }
 
@@ -3525,39 +4427,39 @@ L7_RC_t ptin_evc_intf_clean_all( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 i
  * This function will clean all counters and profiles associated 
  * to a specific evc 
  *  
- * @param evc_idx : EVC index 
+ * @param evc_id : EVC index 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_allintfs_clean( L7_uint evc_idx, L7_BOOL force )
+L7_RC_t ptin_evc_allintfs_clean( L7_uint evc_id, L7_BOOL force )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
   {
-    if (!evcs[evc_idx].intf[intf_idx].in_use)
+    if (!evcs[evc_id].intf[intf_idx].in_use)
       continue;
 
     if (ptin_intf_port2ptintf(intf_idx, &ptin_intf)!=L7_SUCCESS)
       continue;
 
     /* Clean interface */
-    if (ptin_evc_intf_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, force)!=L7_SUCCESS)
+    if (ptin_evc_intf_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, force)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning profiles and counters of intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning profiles and counters of intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
       rc = L7_FAILURE;
     }
   }
@@ -3568,43 +4470,43 @@ L7_RC_t ptin_evc_allintfs_clean( L7_uint evc_idx, L7_BOOL force )
 /**
  * Clean all clients for a specific evc
  * 
- * @param evc_idx : evc index 
+ * @param evc_id : evc index 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_allclients_clean( L7_uint evc_idx, L7_BOOL force )
+L7_RC_t ptin_evc_allclients_clean( L7_uint evc_id, L7_BOOL force )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
   {
-    if (!evcs[evc_idx].intf[intf_idx].in_use)
+    if (!evcs[evc_id].intf[intf_idx].in_use)
       continue;
 
     if (ptin_intf_port2ptintf(intf_idx,&ptin_intf)!=L7_SUCCESS)
       continue;
 
     /* Clean all clients of this interface */
-    if (ptin_evc_intfclients_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, force)!=L7_SUCCESS)
+    if (ptin_evc_intfclients_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, force)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients from intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning all clients from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
       rc = L7_FAILURE;
     }
   }
@@ -3615,20 +4517,20 @@ L7_RC_t ptin_evc_allclients_clean( L7_uint evc_idx, L7_BOOL force )
 /**
  * Clean all clients for a specific evc and interface
  * 
- * @param evc_idx : evc index
+ * @param evc_id : evc index
  * @param intf_idx : interface index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
+L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
-  struct  ptin_evc_client_s *pclient;
+  struct  ptin_evc_client_s *pclientFlow;
   L7_RC_t     rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -3643,31 +4545,31 @@ L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use || !evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* SEM CLIENTS UP */
   osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
   /* Get all clients */
-  if (dl_queue_get_head(&evcs[evc_idx].intf[intf_idx].clients, (dl_queue_elem_t **) &pclient)==NOERR)
+  if (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow)==NOERR)
   {
-    while ( pclient != L7_NULLPTR )
+    while ( pclientFlow != L7_NULLPTR )
     {
       /* Clean client */
-      if (ptin_evc_pclient_clean(evc_idx,pclient, force)!=L7_SUCCESS)
+      if (ptin_evc_pclientFlow_clean(evc_id, pclientFlow, force)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client intf=%u/%u,cvlan=%u",
-                evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, pclient->inn_vlan);
+                evc_id, ptin_intf.intf_type, ptin_intf.intf_id, pclientFlow->int_ivid);
         rc = L7_FAILURE;
       }
 
       /* Get next client */
-      pclient = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_idx].intf[intf_idx].clients, (dl_queue_elem_t *) pclient);
+      pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t *) pclientFlow);
     }
   }
 
@@ -3681,18 +4583,18 @@ L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint
  * This function will clean all counters and profiles associated 
  * to a specific evc and interface
  *  
- * @param evc_idx : EVC index 
+ * @param evc_id : EVC index 
  * @param intf_idx : intferface index  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_intf_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
+L7_RC_t ptin_evc_intf_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_BOOL force )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -3707,35 +4609,45 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use || !evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
     return L7_SUCCESS;
 
   /* Remove counter on this interface */
   if (force /*ptin_clean_force*/ || ptin_clean_counters)
   {
-    if (evcs[evc_idx].intf[intf_idx].counter != L7_NULL)
+    if (evcs[evc_id].intf[intf_idx].counter != L7_NULL)
     {
-      ptin_evcStats_delete(evcs[evc_idx].intf[intf_idx].counter);
-      evcs[evc_idx].intf[intf_idx].counter = L7_NULL;
-      if (evcs[evc_idx].n_counters>0)  evcs[evc_idx].n_counters--;
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Counter removed from intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
+      ptin_evcStats_delete(evcs[evc_id].intf[intf_idx].counter);
+      evcs[evc_id].intf[intf_idx].counter = L7_NULL;
+      if (evcs[evc_id].n_counters>0)  evcs[evc_id].n_counters--;
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Counter removed from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
     }
 
     /* Remove all probes of this interface, if any */
-    ptin_evc_probe_delete_all(evc_idx, intf_idx);
+    ptin_evc_probe_delete_all(evc_id, intf_idx);
   }
 
   /* Remove bw profile on this interface */
   if (force /*ptin_clean_force*/ || ptin_clean_profiles)
   {
-    if (evcs[evc_idx].intf[intf_idx].bwprofile != L7_NULL)
+    if (evcs[evc_id].intf[intf_idx].bwprofile != L7_NULL)
     {
-      ptin_bwPolicer_delete(evcs[evc_idx].intf[intf_idx].bwprofile);
-      evcs[evc_idx].intf[intf_idx].bwprofile = L7_NULL;
-      if (evcs[evc_idx].n_bwprofiles>0)  evcs[evc_idx].n_bwprofiles--;
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from intf=%u/%u",evc_idx,ptin_intf.intf_type,ptin_intf.intf_id);
+      ptin_bwPolicer_delete(evcs[evc_id].intf[intf_idx].bwprofile);
+      evcs[evc_id].intf[intf_idx].bwprofile = L7_NULL;
+      if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
     }
   }
+
+  #if 0
+  /* Remove all flows for this interface */
+  if (force || ptin_clean_flows)
+  {
+    ptin_evc_port_flows_clean(evc_id, intf_idx);
+    evcs[evc_id].intf[intf_idx].n_flows = 0;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Flows removed from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
+  }
+  #endif
 
   return L7_SUCCESS;
 }
@@ -3743,21 +4655,21 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_
 /**
  * Clean client profiles and counters
  * 
- * @param evc_idx 
+ * @param evc_id 
  * @param intf_type 
  * @param intf_id 
  * @param cvlan 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_client_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan, L7_BOOL force )
+L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan, L7_BOOL force )
 {
   L7_uint     intf_idx;
   ptin_intf_t ptin_intf;
-  struct ptin_evc_client_s *pclient;
+  struct ptin_evc_client_s *pclientFlow;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -3772,29 +4684,29 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 int
     return L7_FAILURE;
   }
 
-  if (!evcs[evc_idx].in_use || !evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... nothing to do!");
     return L7_SUCCESS;
   }
 
   /* Find provided client */
-  ptin_evc_find_client(cvlan, &(evcs[evc_idx].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
+  ptin_evc_find_client(cvlan, &(evcs[evc_id].intf[intf_idx].clients), (dl_queue_elem_t **) &pclientFlow);
 
-  if (pclient==L7_NULLPTR)
+  if (pclientFlow==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan=%u attached to intf=%u/%u not found!",evc_idx, cvlan, ptin_intf.intf_type,ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan=%u attached to intf=%u/%u not found!",evc_id, cvlan, ptin_intf.intf_type,ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
   /* Clean client */
-  if (ptin_evc_pclient_clean(evc_idx, pclient, force)!=L7_SUCCESS)
+  if (ptin_evc_pclientFlow_clean(evc_id, pclientFlow, force)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client of cvlan=%u attached to intf=%u/%u!",evc_idx, cvlan, ptin_intf.intf_type,ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error cleaning client of cvlan=%u attached to intf=%u/%u!",evc_id, cvlan, ptin_intf.intf_type,ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -3804,36 +4716,36 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_idx, L7_uint8 intf_type, L7_uint8 int
 /**
  * Get next client, belonging to an EVC
  * 
- * @param evc_idx     : evc index
+ * @param evc_id      : evc index
  * @param ptin_intf   : interface
- * @param cvlan       : reference cvlan
- * @param cvlan_next  : next cvlan
- * @param ovlan_next  : outer vlan related to next cvlan
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
- *  L7_NO_VALUE tells there is no more clients (cvlan_next==0)
+ *  L7_NO_VALUE tells there is no more clients (ivid_next==0)
  *  L7_NOT_EXIST tells the reference vlan was not found
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
-L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next)
+L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
 {
-  L7_uint     intf_idx;
+  L7_uint vid_ref;
+  L7_uint intf_idx;
   struct ptin_evc_client_s *client_next;
   struct ptin_evc_client_s *pclient;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS || ptin_intf==L7_NULLPTR)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS || ptin_intf==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  /* Validate evc_idx */
-  if (!evcs[evc_idx].in_use)
+  /* Validate evc_id */
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_id);
     return L7_FAILURE;
   }
 
@@ -3845,61 +4757,60 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
   }
 
   /* Check if interface is in use by the evc */
-  if (!evcs[evc_idx].intf[intf_idx].in_use)
+  if (!evcs[evc_id].intf[intf_idx].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u/%u is not in use by EVC %u!",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u/%u is not in use by EVC %u!",ptin_intf->intf_type,ptin_intf->intf_id,evc_id);
     return L7_FAILURE;
   }
 
-  /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  /* Reset pclient */
+  pclient = L7_NULLPTR;
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (IS_EVC_QUATTRO(evc_id))
   {
-    //LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... clients are not supported!");
-    return L7_NOT_SUPPORTED;
+    vid_ref = (clientFlow!=L7_NULLPTR) ? clientFlow->uni_ovid : 0;
+
+    /* Find provided client */
+    ptin_evc_find_flow(vid_ref, &(evcs[evc_id].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
   }
-
-  /* Find provided client */
-  ptin_evc_find_client(cvlan, &(evcs[evc_idx].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
-
-  /* First client? */
-  if ( cvlan == 0)
+  else
+  #endif
+  if (IS_EVC_STACKED(evc_id))
   {
-    /* Provided client does not exist */
-    if (pclient==L7_NULLPTR)
-    {
-      //LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: No clients attached to intf=%u/%u!",evc_idx, ptin_intf->intf_type,ptin_intf->intf_id);
-      return L7_NO_VALUE;
-    }
-    client_next = pclient;
+    vid_ref = (clientFlow!=L7_NULLPTR) ? clientFlow->int_ivid : 0;
+
+    /* Find provided client */
+    ptin_evc_find_client(vid_ref, &(evcs[evc_id].intf[intf_idx].clients), (dl_queue_elem_t **) &pclient);
   }
   else
   {
-    /* Provided client does not exist */
-    if (pclient==L7_NULLPTR)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Client of cvlan=%u attached to intf=%u/%u not found!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
-      return L7_NOT_EXIST;
-    }
-
-    if ( pclient->next == L7_NULLPTR )
-    {
-      if (cvlan_next!=L7_NULLPTR)  *cvlan_next = 0;
-      if (ovlan_next!=L7_NULLPTR)  *ovlan_next = 0;
-      //LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Last cvlan (%u) attached to intf=%u/%u reached!",evc_idx, cvlan, ptin_intf->intf_type,ptin_intf->intf_id);
-      return L7_NO_VALUE;
-    }
-    client_next = pclient->next;
+    return L7_NOT_SUPPORTED;
   }
 
-  /* Next cvlan */
-  if (cvlan_next!=L7_NULLPTR)
+  /* No client found? */
+  if (pclient == L7_NULLPTR)
   {
-    *cvlan_next = client_next->inn_vlan;
+    return L7_NOT_EXIST;
   }
-  /* Next outer vlan */
-  if (ovlan_next!=L7_NULLPTR)
+
+  /* If current client was not provided, return first client */
+  client_next = (clientFlow==L7_NULLPTR || clientFlow->int_ivid==0) ? pclient : pclient->next;
+
+  /* No next client/flow? */
+  if (client_next == L7_NULLPTR)
   {
-    *ovlan_next = client_next->out_vlan;
+    return L7_NO_VALUE;
+  }
+
+  /* Return next client data */
+  if (clientFlow_next != L7_NULLPTR)
+  {
+    clientFlow_next->evc_idx  = evc_id;
+    clientFlow_next->flags    = client_next->flags;
+    clientFlow_next->int_ivid = client_next->int_ivid;
+    clientFlow_next->uni_ovid = client_next->uni_ovid;
+    clientFlow_next->uni_ivid = client_next->uni_ivid;
   }
 
   return L7_SUCCESS;
@@ -3908,11 +4819,10 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
 /**
  * Get next client, belonging to a vlan
  * 
- * @param intVlan    : internal vlan
+ * @param intVid    : internal vlan
  * @param intIfNum   : intIfNum
- * @param cvlan      : reference inner vlan 
- * @param cvlan_next : next inner vlan
- * @param ovlan_next : ovlan related to the next inner vlan
+ * @param clientFlow  : Current client data
+ * @param clientFlow_next : Next client data
  * 
  * @return L7_RC_t : 
  *  L7_SUCCESS tells a next client was returned
@@ -3921,43 +4831,43 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint c
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
-L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint cvlan, L7_uint *cvlan_next, L7_uint *ovlan_next)
+L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
 {
-  L7_uint     evc_idx;
+  L7_uint     evc_id;
   ptin_intf_t ptin_intf;
 
   /* Validate arguments */
-  if (intVlan>=4096)
+  if (intVid>=4096)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVlan=%u)",intVlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVid=%u)",intVid);
     return L7_FAILURE;
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[intVlan];
+  evc_id = evcId_from_internalVlan[intVid];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     return L7_FAILURE;
   }
 
-  /* Validate evc_idx */
-  if (!evcs[evc_idx].in_use)
+  /* Validate evc_id */
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not active!",evc_id);
     return L7_FAILURE;
   }
 
   /* Convert intIfNum to ptin_intf format */
-  if ( ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u: Error acquiring ptin_intf from intIfNum %u!",evc_idx, intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u: Error acquiring ptin_intf from intIfNum %u!",evc_id, intIfNum);
     return L7_FAILURE;
   }
 
   /* Get next client */
-  return ptin_evc_client_next(evc_idx, &ptin_intf, cvlan, cvlan_next, ovlan_next);
+  return ptin_evc_client_next(evc_id, &ptin_intf, clientFlow, clientFlow_next);
 }
 
 /****************************************************************************** 
@@ -3968,39 +4878,39 @@ L7_RC_t ptin_evc_vlan_client_next( L7_uint intVlan, L7_uint32 intIfNum, L7_uint 
  * This function will clean all counters and profiles associated 
  * to the provided client 
  *  
- * @param evc_idx : EVC index 
+ * @param evc_id : EVC index 
  * @param pclient : client pointer
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_pclient_clean( L7_uint evc_idx, struct ptin_evc_client_s *pclient, L7_BOOL force )
+static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, struct ptin_evc_client_s *pclientFlow, L7_BOOL force )
 {
   L7_uint i;
 
   /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
-  if (!evcs[evc_idx].in_use || pclient==L7_NULLPTR)
+  if (!evcs[evc_id].in_use || pclientFlow==L7_NULLPTR)
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_idx))
+  if (!IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* Remove counters */
   if (force /*ptin_clean_force*/ || ptin_clean_counters)
   {
-    for (i=0; i<(sizeof(pclient->counter)/sizeof(pclient->counter[0])); i++)
+    for (i=0; i<(sizeof(pclientFlow->counter)/sizeof(pclientFlow->counter[0])); i++)
     {
-      if (pclient->counter[i] != L7_NULL)
+      if (pclientFlow->counter[i] != L7_NULL)
       {
-        ptin_evcStats_delete(pclient->counter[i]);
-        pclient->counter[i] = L7_NULL;
-        if (evcs[evc_idx].n_counters>0)  evcs[evc_idx].n_counters--;
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Counter removed from client of cvlan=%u (outerVlan=%u)",evc_idx,pclient->inn_vlan,pclient->out_vlan);
+        ptin_evcStats_delete(pclientFlow->counter[i]);
+        pclientFlow->counter[i] = L7_NULL;
+        if (evcs[evc_id].n_counters>0)  evcs[evc_id].n_counters--;
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Counter removed from client of cvlan=%u (outerVlan=%u)", evc_id, pclientFlow->int_ivid, pclientFlow->uni_ovid);
       }
     }
   }
@@ -4008,14 +4918,14 @@ static L7_RC_t ptin_evc_pclient_clean( L7_uint evc_idx, struct ptin_evc_client_s
   /* Remove BW Profiles */
   if (force /*ptin_clean_force*/ || ptin_clean_profiles)
   {
-    for (i=0; i<(sizeof(pclient->bwprofile)/sizeof(pclient->bwprofile[0])); i++)
+    for (i=0; i<(sizeof(pclientFlow->bwprofile)/sizeof(pclientFlow->bwprofile[0])); i++)
     {
-      if (pclient->bwprofile[i] != L7_NULL)
+      if (pclientFlow->bwprofile[i] != L7_NULL)
       {
-        ptin_bwPolicer_delete(pclient->bwprofile[i]);
-        pclient->bwprofile[i] = L7_NULL;
-        if (evcs[evc_idx].n_bwprofiles>0)  evcs[evc_idx].n_bwprofiles--;
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from client of cvlan=%u (outerVlan=%u)",evc_idx,pclient->inn_vlan,pclient->out_vlan);
+        ptin_bwPolicer_delete(pclientFlow->bwprofile[i]);
+        pclientFlow->bwprofile[i] = L7_NULL;
+        if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from client of cvlan=%u (outerVlan=%u)", evc_id, pclientFlow->int_ivid, pclientFlow->uni_ovid);
       }
     }
   }
@@ -4024,23 +4934,184 @@ static L7_RC_t ptin_evc_pclient_clean( L7_uint evc_idx, struct ptin_evc_client_s
 }
 
 /**
- * Reset an EVC entry to the default parameters (empty)
+ * Allocates an EVC entry from the pool
  * 
- * @param evc_idx 
+ * @author alex (9/18/2013)
+ * 
+ * @param evc_ext_id EVC extended index (input)
+ * @param evc_id     Allocated index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static void ptin_evc_entry_reset(L7_uint evc_idx)
+static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
+{
+  RET_CODE_t rc;
+  struct ptin_evc_entry_s *evc_pool_entry;
+
+  if (evc_ext2int[evc_ext_id] < PTIN_SYSTEM_N_EXTENDED_EVCS) {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "The extended entry %u is already in use!", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  /* Try to get an entry from the pool of free elements */
+  rc = dl_queue_remove_head(&queue_free_evcs, (dl_queue_elem_t **) &evc_pool_entry);
+  if (rc != NOERR) {
+    LOG_CRITICAL(LOG_CTX_PTIN_EVC, "There are no free EVCs available! rc=%d", rc);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "EVC free pool: %u of %u entries",
+            queue_free_evcs.n_elems, PTIN_SYSTEM_N_EVCS);
+
+  /* Add it to the busy queue */
+  rc = dl_queue_add_tail(&queue_busy_evcs, (dl_queue_elem_t *) evc_pool_entry);
+  if (rc != NOERR) {
+    LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Error adding EVC to the busy queue! rc=%d", rc);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "EVC busy pool: %u of %u entries",
+            queue_busy_evcs.n_elems, PTIN_SYSTEM_N_EVCS);
+
+  *evc_id = evc_pool_entry->evc_id;                     /* output var. */
+
+  evc_ext2int[evc_ext_id] = *evc_id;                    /* Update lookup table */
+
+  evcs[evc_pool_entry->evc_id].in_use = 1;              /* ...in use */
+  evcs[evc_pool_entry->evc_id].extended_id = evc_ext_id;/* Save the extended */
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Frees EVC pool entry and resets the EVC to the default parameters (empty)
+ * 
+ * @param evc_ext_id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
+ */
+static L7_RC_t ptin_evc_entry_free(L7_uint evc_ext_id)
+{
+  L7_RC_t rc;
+  L7_uint evc_id;
+  struct ptin_evc_entry_s *evc_pool_entry;
+
+  evc_id = evc_ext2int[evc_ext_id];
+  if (evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+    return L7_SUCCESS;
+
+  evc_ext2int[evc_ext_id] = -1;
+
+  /* Reset EVC data */
+  ptin_evc_entry_init(evc_id);
+
+  /* Get the EVC entry based on it index */
+  evc_pool_entry = &evcs_pool[evc_id];
+
+  /* Remove the EVC from the busy queue */
+  rc = dl_queue_remove(&queue_busy_evcs, (dl_queue_elem_t *) evc_pool_entry);
+  if (rc != NOERR) {
+    LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Entry not found! rc=%d", rc);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "EVC busy pool: %u of %u entries",
+            queue_busy_evcs.n_elems, PTIN_SYSTEM_N_EVCS);
+
+  /* Add it to the free queue */
+  rc = dl_queue_add_tail(&queue_free_evcs, (dl_queue_elem_t *) evc_pool_entry);
+  if (rc != NOERR) {
+    LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Error adding EVC to the free queue! rc=%d", rc);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "EVC free pool: %u of %u entries",
+            queue_free_evcs.n_elems, PTIN_SYSTEM_N_EVCS);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Convert EVC extended id into the internal id
+ * 
+ * @author alex (9/19/2013)
+ * 
+ * @param evc_ext_id 
+ * @param evc_id 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id)
+{
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS) {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid eEVC %u", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (evc_ext2int[evc_ext_id] >= PTIN_SYSTEM_N_EXTENDED_EVCS) {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (evc_id != NULL)
+    *evc_id = evc_ext2int[evc_ext_id];
+
+  return L7_SUCCESS;
+}
+
+
+///**
+// * Convert EVC id into the extended id
+// *
+// * @author alex (9/19/2013)
+// *
+// * @param evc_id
+// * @param evc_ext_id
+// *
+// * @return L7_RC_t
+// */
+//static L7_RC_t ptin_evc_int2ext(L7_uint32 evc_id, L7_uint32 *evc_ext_id)
+//{
+//  if (evc_id >= PTIN_SYSTEM_N_EVCS) {
+//    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid EVC id %u", evc_id);
+//    return L7_FAILURE;
+//  }
+//
+//  if (!evcs[evc_id].in_use) {
+//    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC %u not in use", evc_id);
+//    return L7_FAILURE;
+//  }
+//
+//  if (evc_ext_id != NULL)
+//    *evc_ext_id = evcs[evc_id].extended_id;
+//
+//  return L7_SUCCESS;
+//}
+
+/**
+ * Init an EVC entry to the default parameters (empty)
+ * 
+ * @param evc_id 
+ */
+static void ptin_evc_entry_init(L7_uint evc_id)
 {
   L7_uint i;
 
   /* Release free vlan queue */
-  ptin_evc_freeVlanQueue_free(evcs[evc_idx].queue_free_vlans);
+  ptin_evc_freeVlanQueue_free(evcs[evc_id].queue_free_vlans);
 
   /* Reset EVC entry (set all memory to 0x00) */
-  memset(&evcs[evc_idx], 0x00, sizeof(evcs[evc_idx]));
+  memset(&evcs[evc_id], 0x00, sizeof(evcs[evc_id]));
 
   /* Initialize free clients queue (per interface) */
   for (i=0; i<(sizeof(evcs[0].intf)/sizeof(evcs[0].intf[0])); i++)
-    dl_queue_init(&evcs[evc_idx].intf[i].clients);
+    dl_queue_init(&evcs[evc_id].intf[i].clients);
+
+#if 0
+  /* Initialize flows queue (per interface) */
+  for (i=0; i<(sizeof(evcs[0].intf)/sizeof(evcs[0].intf[0])); i++)
+    dl_queue_init(&evcs[evc_id].intf[i].flows);
+#endif
 }
 
 
@@ -4048,154 +5119,183 @@ static void ptin_evc_entry_reset(L7_uint evc_idx)
  * Configure an interface of a particular EVC
  * (and updates EVCs struct with the configuration)
  * 
- * @param evc_idx   EVC #
- * @param ptin_intf Interface #
+ * @param evc_id   EVC #
+ * @param ptin_port Interface #
  * @param intf_cfg  Pointer to the interface config data
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthMef10Intf_t *intf_cfg)
+static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg)
 {
-  L7_BOOL is_p2p;
-  L7_BOOL is_stacked;
+  L7_uint evc_type;
+  L7_BOOL is_p2p, is_quattro, is_stacked;
   L7_BOOL is_root;
   L7_BOOL mac_learning;
   L7_BOOL cpu_trap;
   L7_uint16 int_vlan;
   L7_uint16 root_vlan;
   ptin_intf_t intf;
+  L7_uint32 intIfNum;
   L7_RC_t rc = L7_SUCCESS;
 
-  is_p2p       = (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
-  is_stacked   = (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
-  is_root      = intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
-  mac_learning = (evcs[evc_idx].flags & PTIN_EVC_MASK_MACLEARNING) == PTIN_EVC_MASK_MACLEARNING;
-  cpu_trap     = (evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING;
-  root_vlan    = evcs[evc_idx].rvlan;
+  /* Correct params */
+  if (intf_cfg->vid_inner >= 4096)
+  {
+    intf_cfg->vid_inner = 0;
+  }
+
+  evc_type     = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p       = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P        ) == PTIN_EVC_MASK_P2P;
+  is_quattro   = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO    ) == PTIN_EVC_MASK_QUATTRO;
+  is_stacked   = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED    ) == PTIN_EVC_MASK_STACKED;
+  mac_learning = (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING) == PTIN_EVC_MASK_MACLEARNING;
+  cpu_trap     = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)== PTIN_EVC_MASK_CPU_TRAPPING;
+  is_root      =  intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
+  root_vlan    =  evcs[evc_id].rvlan;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding %s# %02u (MEF %s) ...",
-            evc_idx,
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? ptin_intf : ptin_intf - PTIN_SYSTEM_N_PORTS,
+            evc_id,
+            ptin_port < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
+            ptin_port < PTIN_SYSTEM_N_PORTS ? ptin_port : ptin_port - PTIN_SYSTEM_N_PORTS,
             is_root ? "Root":"Leaf");
+
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error converting port %u to intIfNum", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
 
   if (is_root)
   {
     int_vlan = root_vlan;   /* Vroot is the same for all the root interfaces */
 
-    rc = switching_root_add(ptin_intf, intf_cfg->vid, int_vlan);
+    rc = switching_root_add(ptin_port, intf_cfg->vid,
+                            ((is_stacked) ? intf_cfg->vid_inner : 0),
+                            int_vlan,
+                            (is_quattro && !is_stacked));
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding root interface [ptin_intf=%u Vs=%u Vr=%u]",
-              evc_idx, ptin_intf, intf_cfg->vid, int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding root interface [ptin_port=%u Vs=%u Vi=%u Vr=%u]",
+              evc_id, ptin_port, intf_cfg->vid, intf_cfg->vid_inner, int_vlan);
       return L7_FAILURE;
     }
-    evcs[evc_idx].n_roots++;
 
-    rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_idx].mc_flood, cpu_trap );
-    if (rc != L7_SUCCESS)
+    /* Is the first root port? Save its data */
+    if (evcs[evc_id].n_roots == 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
-              evc_idx, int_vlan, root_vlan, mac_learning, evcs[evc_idx].mc_flood);
-      return L7_FAILURE;
+      evcs[evc_id].root_info.port     = ptin_port;
+      evcs[evc_id].root_info.nni_ovid = intf_cfg->vid;
+      evcs[evc_id].root_info.nni_ivid = intf_cfg->vid_inner;
     }
+    /* One more root port */
+    evcs[evc_id].n_roots++;
   }
   else
   {
-    if (is_p2p)
-      int_vlan = evcs[evc_idx].rvlan;     /* Internal VLAN is the same for all interfaces, including leafs */
+    if (EVC_SINGLE_INTVLAN(evc_type))
+      int_vlan = evcs[evc_id].rvlan;     /* Internal VLAN is the same for all interfaces, including leafs */
     else
-      ptin_evc_vlan_allocate(&int_vlan, evcs[evc_idx].queue_free_vlans, evc_idx); /* One VLAN for each unstacked leaf */
+      ptin_evc_vlan_allocate(&int_vlan, evcs[evc_id].queue_free_vlans, evc_id); /* One VLAN for each unstacked leaf */
 
-    if (switching_leaf_add(ptin_intf, int_vlan) != L7_SUCCESS)
+    if (switching_leaf_add(ptin_port, int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding leaf [ptin_intf=%u Vl=%u]",
-              evc_idx, ptin_intf, int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding leaf [ptin_port=%u Vl=%u]",
+              evc_id, ptin_port, int_vlan);
 
-      ptin_evc_vlan_free(int_vlan, evcs[evc_idx].queue_free_vlans);       /* free VLAN */
+      ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans);       /* free VLAN */
       return L7_FAILURE;
     }
-    evcs[evc_idx].n_leafs++;
-
-    rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_idx].mc_flood, cpu_trap);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
-              evc_idx, int_vlan, root_vlan, mac_learning, evcs[evc_idx].mc_flood);
-      return L7_FAILURE;
-    }
+    evcs[evc_id].n_leafs++;
 
     if (is_p2p)
     {
       /* Add translations for leaf ports, only if we are in matrix board */
       #if ( PTIN_BOARD_IS_MATRIX )
-      rc = switching_p2p_leaf_add(ptin_intf, intf_cfg->vid, 0, int_vlan);
+      rc = switching_p2p_leaf_add(ptin_port, intf_cfg->vid, 0, int_vlan);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",ptin_intf, rc);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",ptin_port, rc);
         return L7_FAILURE;
       }
       #endif
     }
   }
 
-  evcs_intfs_in_use[ptin_intf]++; /* Add this interface to the list of members in use */
+  /* Vlan mode configuration */
+  rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap );
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
+            evc_id, int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood);
+    return L7_FAILURE;
+  }
+
+  evcs_intfs_in_use[ptin_port]++; /* Add this interface to the list of members in use */
 
   /* Update intf struct (common info) */
-  evcs[evc_idx].intf[ptin_intf].in_use   = L7_TRUE;
-  evcs[evc_idx].intf[ptin_intf].type     = intf_cfg->mef_type;
-  evcs[evc_idx].intf[ptin_intf].int_vlan = int_vlan;
+  evcs[evc_id].intf[ptin_port].in_use   = L7_TRUE;
+  evcs[evc_id].intf[ptin_port].type     = intf_cfg->mef_type;
+  evcs[evc_id].intf[ptin_port].int_vlan = int_vlan;
   #ifdef PTIN_ERPS_EVC
-  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FORWARDING;
+  evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
   #if ( !PTIN_BOARD_IS_MATRIX )
   if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
   {
-    evcs[evc_idx].intf[ptin_intf].out_vlan = 0xFFFF;  /* on stacked EVCs, leafs out.vid is defined per client and not per interface */
+    evcs[evc_id].intf[ptin_port].out_vlan   = 0xFFFF;  /* on stacked EVCs, leafs out.vid is defined per client and not per interface */
+    evcs[evc_id].intf[ptin_port].inner_vlan = 0;
   }
   else
   #endif
   {
-    evcs[evc_idx].intf[ptin_intf].out_vlan = intf_cfg->vid;
+    evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
+    evcs[evc_id].intf[ptin_port].inner_vlan = (intf_cfg->vid_inner>0 && intf_cfg->vid_inner<4096) ? intf_cfg->vid_inner : 0;
   }
 
-  evcs[evc_idx].intf[ptin_intf].counter   = L7_NULLPTR;
-  evcs[evc_idx].intf[ptin_intf].bwprofile = L7_NULLPTR;
-  evcs[evc_idx].intf[ptin_intf].clients.head    = L7_NULLPTR;
-  evcs[evc_idx].intf[ptin_intf].clients.tail    = L7_NULLPTR;
-  evcs[evc_idx].intf[ptin_intf].clients.n_elems = 0;
+  evcs[evc_id].intf[ptin_port].counter   = L7_NULLPTR;
+  evcs[evc_id].intf[ptin_port].bwprofile = L7_NULLPTR;
+
+  evcs[evc_id].intf[ptin_port].clients.head    = L7_NULLPTR;
+  evcs[evc_id].intf[ptin_port].clients.tail    = L7_NULLPTR;
+  evcs[evc_id].intf[ptin_port].clients.n_elems = 0;
+  #if 0
+  evcs[evc_id].intf[ptin_port].flows.head    = L7_NULLPTR;
+  evcs[evc_id].intf[ptin_port].flows.tail    = L7_NULLPTR;
+  evcs[evc_id].intf[ptin_port].flows.n_elems = 0;
+  #endif
 
   /* Update snooping configuration */
-  if (ptin_intf_port2ptintf(ptin_intf,&intf)==L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port,&intf)==L7_SUCCESS)
   {
-    if ( ptin_igmp_is_evc_used(evc_idx)
+    if ( ptin_igmp_is_evc_used(evcs[evc_id].extended_id)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-         || evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
+         || evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
     #endif
        )
     {
-      ptin_igmp_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
+      ptin_igmp_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"IGMP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
-    if (ptin_dhcp_is_evc_used(evc_idx))
+    if (ptin_dhcp_is_evc_used(evcs[evc_id].extended_id))
     {
-      ptin_dhcp_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
+      ptin_dhcp_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"DHCP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
-    if (ptin_pppoe_is_evc_used(evc_idx))
+    if (ptin_pppoe_is_evc_used(evcs[evc_id].extended_id))
     {
-      ptin_pppoe_snooping_trap_interface_update(evc_idx,&intf,L7_TRUE);
+      ptin_pppoe_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"PPPoE packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %02u (MEF %s Out.VID=%04hu Int.VID=%04hu) successfully added",
-            evc_idx,
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? ptin_intf : ptin_intf - PTIN_SYSTEM_N_PORTS,
-            evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-            evcs[evc_idx].intf[ptin_intf].out_vlan,
-            evcs[evc_idx].intf[ptin_intf].int_vlan);
+            evc_id,
+            ptin_port < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
+            ptin_port < PTIN_SYSTEM_N_PORTS ? ptin_port : ptin_port - PTIN_SYSTEM_N_PORTS,
+            evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+            evcs[evc_id].intf[ptin_port].out_vlan,
+            evcs[evc_id].intf[ptin_port].int_vlan);
 
   return L7_SUCCESS;
 }
@@ -4204,114 +5304,131 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_idx, L7_uint ptin_intf, ptin_HwEthM
  * Removes an interface configuration (translation entries)
  * NOTE: the intf entry is removed from EVC struct 
  * 
- * @param evc_idx EVC #
- * @param ptin_intf Interface #
+ * @param evc_id EVC #
+ * @param ptin_port Interface #
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
+static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
-  L7_BOOL is_p2p;
+  L7_uint evc_type;
+  L7_BOOL is_p2p, is_quattro, is_stacked;
   L7_BOOL is_root;
   L7_uint16 out_vlan;
+  L7_uint16 inn_vlan;
   L7_uint16 int_vlan;
   ptin_intf_t intf;
+  L7_uint32 intIfNum;
 
-  is_p2p     = (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P;
-  is_root    = evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT;
-  out_vlan   = evcs[evc_idx].intf[ptin_intf].out_vlan;
-  int_vlan   = evcs[evc_idx].intf[ptin_intf].int_vlan;
+  evc_type   = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+  is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
+  is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
+  is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+  is_root    = evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT;
+  out_vlan   = evcs[evc_id].intf[ptin_port].out_vlan;
+  inn_vlan   = evcs[evc_id].intf[ptin_port].inner_vlan;
+  int_vlan   = evcs[evc_id].intf[ptin_port].int_vlan;
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing %s# %02u (MEF %s Out.VID=%04u Int.VID=%04u) ...",
-            evc_idx,
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? ptin_intf : ptin_intf - PTIN_SYSTEM_N_PORTS,
-            evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-            evcs[evc_idx].intf[ptin_intf].out_vlan,
-            evcs[evc_idx].intf[ptin_intf].int_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing %s# %02u (MEF %s Out.VID=%04u Inn.VID=%04u Int.VID=%04u) ...",
+            evc_id,
+            ptin_port < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
+            ptin_port < PTIN_SYSTEM_N_PORTS ? ptin_port : ptin_port - PTIN_SYSTEM_N_PORTS,
+            evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+            evcs[evc_id].intf[ptin_port].out_vlan,
+            evcs[evc_id].intf[ptin_port].inner_vlan,
+            evcs[evc_id].intf[ptin_port].int_vlan);
+
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error converting port %u to intIfNum", evc_id, ptin_port);
+    return L7_FAILURE;
+  }
 
   if (is_root)
   {
-    int_vlan = evcs[evc_idx].rvlan;
+    int_vlan = evcs[evc_id].rvlan;
 
-    if (switching_root_remove(ptin_intf, out_vlan, int_vlan) != L7_SUCCESS)
+    if (switching_root_remove(ptin_port, out_vlan, ((is_stacked) ? inn_vlan : 0), int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing root interface [ptin_intf=%u Vs=%u Vr=%u]",
-              evc_idx, ptin_intf, out_vlan, int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing root interface [ptin_port=%u Vs=%u Vi=%u Vr=%u]",
+              evc_id, ptin_port, out_vlan, inn_vlan, int_vlan);
       return L7_FAILURE;
     }
-    evcs[evc_idx].n_roots--;
+    evcs[evc_id].n_roots--;
   }
   else
   {
-    if (switching_leaf_remove(ptin_intf, int_vlan) != L7_SUCCESS)
+    if (switching_leaf_remove(ptin_port, int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing leaf [ptin_intf=%u Vl=%u]",
-              evc_idx, ptin_intf, int_vlan);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing leaf [ptin_port=%u Vl=%u]",
+              evc_id, ptin_port, int_vlan);
       return L7_FAILURE;
     }
-    evcs[evc_idx].n_leafs--;
+    evcs[evc_id].n_leafs--;
 
     if (is_p2p)
     {
       /* Add translations for leaf ports, only if we are in matrix board */
       #if ( PTIN_BOARD_IS_MATRIX )
       L7_RC_t rc;
-      rc = switching_p2p_leaf_remove(ptin_intf, out_vlan, 0, int_vlan);
+      rc = switching_p2p_leaf_remove(ptin_port, out_vlan, 0, int_vlan);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",ptin_intf, rc);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",ptin_port, rc);
         return L7_FAILURE;
       }
       #endif
     }
-    else
+    else if (!is_quattro)
     {
-      ptin_evc_vlan_free(int_vlan, evcs[evc_idx].queue_free_vlans); /* free VLAN */
+      ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans); /* free VLAN */
     }
   }
 
   /* Update snooping configuration */
-  if (ptin_intf_port2ptintf(ptin_intf,&intf)==L7_SUCCESS)
+  if (ptin_intf_port2ptintf(ptin_port,&intf)==L7_SUCCESS)
   {
-    if ( ptin_igmp_is_evc_used(evc_idx)
+    if ( ptin_igmp_is_evc_used(evcs[evc_id].extended_id)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-         || evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
+         || evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
     #endif
        )
     {
-      ptin_igmp_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
+      ptin_igmp_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_FALSE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"IGMP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
-    if (ptin_dhcp_is_evc_used(evc_idx))
+    if (ptin_dhcp_is_evc_used(evcs[evc_id].extended_id))
     {
-      ptin_dhcp_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
+      ptin_dhcp_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_FALSE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"DHCP packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
-    if (ptin_pppoe_is_evc_used(evc_idx))
+    if (ptin_pppoe_is_evc_used(evcs[evc_id].extended_id))
     {
-      ptin_pppoe_snooping_trap_interface_update(evc_idx,&intf,L7_FALSE);
+      ptin_pppoe_snooping_trap_interface_update(evcs[evc_id].extended_id,&intf,L7_FALSE);
       LOG_TRACE(LOG_CTX_PTIN_EVC,"PPPoE packet trapping updated for interface %u/%u",intf.intf_type,intf.intf_id);
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %02u (MEF %s Out.VID=%04u Int.VID=%04u) successfully removed",
-            evc_idx,
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
-            ptin_intf < PTIN_SYSTEM_N_PORTS ? ptin_intf : ptin_intf - PTIN_SYSTEM_N_PORTS,
-            evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-            evcs[evc_idx].intf[ptin_intf].out_vlan,
-            evcs[evc_idx].intf[ptin_intf].int_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %02u (MEF %s Out.VID=%04u Inn.VID=%04u Int.VID=%04u) successfully removed",
+            evc_id,
+            ptin_port < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
+            ptin_port < PTIN_SYSTEM_N_PORTS ? ptin_port : ptin_port - PTIN_SYSTEM_N_PORTS,
+            evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+            evcs[evc_id].intf[ptin_port].out_vlan,
+            evcs[evc_id].intf[ptin_port].inner_vlan,
+            evcs[evc_id].intf[ptin_port].int_vlan);
 
-  evcs_intfs_in_use[ptin_intf]--; /* Remove this interface from the list of members in use */
+  evcs_intfs_in_use[ptin_port]--; /* Remove this interface from the list of members in use */
 
   /* Clear intf struct (common info) */
-  evcs[evc_idx].intf[ptin_intf].in_use   = L7_FALSE;
-  evcs[evc_idx].intf[ptin_intf].type     = 0;
-  evcs[evc_idx].intf[ptin_intf].out_vlan = 0;
-  evcs[evc_idx].intf[ptin_intf].int_vlan = 0;
+  evcs[evc_id].intf[ptin_port].in_use     = L7_FALSE;
+  evcs[evc_id].intf[ptin_port].type       = 0;
+  evcs[evc_id].intf[ptin_port].out_vlan   = 0;
+  evcs[evc_id].intf[ptin_port].inner_vlan = 0;
+  evcs[evc_id].intf[ptin_port].int_vlan   = 0;
   #ifdef PTIN_ERPS_EVC
-  evcs[evc_idx].intf[ptin_intf].portState = PTIN_EVC_PORT_FORWARDING;
+  evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
 
   return L7_SUCCESS;
@@ -4321,9 +5438,9 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
  * Removes all interfaces from an EVC
  * NOTE: EVC interfaces data is cleared
  * 
- * @param evc_idx 
+ * @param evc_id 
  */
-static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx)
+static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_id)
 {
   L7_uint i;
   L7_RC_t rc = L7_SUCCESS;
@@ -4331,12 +5448,12 @@ static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx)
   /* Remove all configured interfaces */
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if (!evcs[evc_idx].intf[i].in_use)
+    if (!evcs[evc_id].intf[i].in_use)
       continue;
 
-    if (ptin_evc_intf_remove(evc_idx, i) != L7_SUCCESS)
+    if (ptin_evc_intf_remove(evc_id, i) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to remove intf# %u", evc_idx, i);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to remove intf# %u", evc_id, i);
       rc = L7_FAILURE;
     }
   }
@@ -4349,14 +5466,14 @@ static L7_RC_t ptin_evc_intf_remove_all(L7_uint evc_idx)
  * Adds translation entries to the leaf interface and also to the root ports 
  * in order to create an E-Tree
  * 
- * @param evc_idx    EVC #
+ * @param evc_id    EVC #
  * @param leaf_intf  Leaf interface #
  * @param roots_intf Root interfaces list
  * @param n_roots    Nr of root intf present in the roots_intf array
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf)
+static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_id, L7_uint ptin_port)
 {
   L7_uint   l, r;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -4364,32 +5481,32 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf
   L7_BOOL   is_stacked;
   L7_RC_t   rc = L7_SUCCESS;
 
-  is_stacked = (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+  is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
 
   /* Root intf ? */
-  if (evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT)
+  if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT)
   {
     /* Get all leaf interfaces... */
-    ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+    ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: configuring %u leafs on root intf# %02u (Out.VID=%04u) ...",
-              evc_idx,
+              evc_id,
               n_intf,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].out_vlan);
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].out_vlan);
 
     /* Add all leaf xlate entries on the root port */
     for (l=0; l<n_intf; l++)
     {
-      rc = switching_p2multipoint_root_add(ptin_intf,                                    /* Root intf */
-                                           evcs[evc_idx].intf[ptin_intf].out_vlan,       /* Vs */
-                                           evcs[evc_idx].intf[intf_list[l]].int_vlan,    /* Vl */
+      rc = switching_p2multipoint_root_add(ptin_port,                                    /* Root intf */
+                                           evcs[evc_id].intf[ptin_port].out_vlan,       /* Vs */
+                                           evcs[evc_id].intf[intf_list[l]].int_vlan,    /* Vl */
                                            is_stacked );
 
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding to root a bridge leaf entry [root_intf=%u Vs=%u Vl=%u]",
-                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan, evcs[evc_idx].intf[intf_list[l]].int_vlan);
+                evc_id, ptin_port, evcs[evc_id].intf[ptin_port].out_vlan, evcs[evc_id].intf[intf_list[l]].int_vlan);
         break;
       }
     }
@@ -4398,57 +5515,57 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf
   else
   {
     /* Get all root interfaces... */
-    ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_ROOT, intf_list, &n_intf);
+    ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_ROOT, intf_list, &n_intf);
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: configuring leaf intf# %u (Int.VID=%04u) on %u root interfaces...",
-              evc_idx,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].int_vlan,
+              evc_id,
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].int_vlan,
               n_intf);
 
     /* Add leaf xlate entry on all root ports */
     for (r=0; r<n_intf; r++)
     {
       rc = switching_p2multipoint_root_add(intf_list[r],                              /* Root intf */
-                                        evcs[evc_idx].intf[intf_list[r]].out_vlan,    /* Vs */
-                                        evcs[evc_idx].intf[ptin_intf].int_vlan,       /* Vl */
+                                        evcs[evc_id].intf[intf_list[r]].out_vlan,    /* Vs */
+                                        evcs[evc_id].intf[ptin_port].int_vlan,       /* Vl */
                                         is_stacked );
 
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding to root a bridge leaf entry [root_intf=%u Vs=%u Vl=%u]",
-                evc_idx, intf_list[r], evcs[evc_idx].intf[intf_list[r]].out_vlan, evcs[evc_idx].intf[ptin_intf].int_vlan);
+                evc_id, intf_list[r], evcs[evc_id].intf[intf_list[r]].out_vlan, evcs[evc_id].intf[ptin_port].int_vlan);
         break;
       }
     }
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: configuring leaf intf# %02u (Out.VID=%04u Int.VID=%04u) on root Int.VLAN=%04u",
-              evc_idx,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].out_vlan,
-              evcs[evc_idx].intf[ptin_intf].int_vlan,
-              evcs[evc_idx].rvlan);
+              evc_id,
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].out_vlan,
+              evcs[evc_id].intf[ptin_port].int_vlan,
+              evcs[evc_id].rvlan);
 
     /* Finally add the bridge leaf entry */
-    rc = switching_p2multipoint_leaf_add(ptin_intf,                                      /* Leaf intf */
-                                         evcs[evc_idx].rvlan);                           /* Vr */
+    rc = switching_p2multipoint_leaf_add(ptin_port,                                      /* Leaf intf */
+                                         evcs[evc_id].rvlan);                           /* Vr */
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding leaf entry [leaf_intf=%u Vr=%u]",
-              evc_idx, ptin_intf, evcs[evc_idx].rvlan);
+              evc_id, ptin_port, evcs[evc_id].rvlan);
     }
     /* Only for unstacked services */
-    if ( !(evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) )
+    if ( !(evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) )
     {
-      rc = switching_p2multipoint_unstacked_leaf_add(ptin_intf,                                      /* Leaf intf */
-                                                     evcs[evc_idx].intf[ptin_intf].out_vlan,         /* Vs' */
-                                                     evcs[evc_idx].intf[ptin_intf].int_vlan,         /* Vl */
-                                                     evcs[evc_idx].rvlan);                           /* Vr */
+      rc = switching_p2multipoint_unstacked_leaf_add(ptin_port,                                      /* Leaf intf */
+                                                     evcs[evc_id].intf[ptin_port].out_vlan,         /* Vs' */
+                                                     evcs[evc_id].intf[ptin_port].int_vlan,         /* Vl */
+                                                     evcs[evc_id].rvlan);                           /* Vr */
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding unstacked leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
-                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
-                evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+                evc_id, ptin_port, evcs[evc_id].intf[ptin_port].out_vlan,
+                evcs[evc_id].intf[ptin_port].int_vlan, evcs[evc_id].rvlan);
       }
     }
   }
@@ -4464,12 +5581,12 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_idx, L7_uint ptin_intf
  * removed, and not the associated leafs. However, if a bridge leaf is removed, 
  * the configuration associated with all the roots is also removed. 
  * 
- * @param evc_idx   EVC #
- * @param ptin_intf Interface #
+ * @param evc_id   EVC #
+ * @param ptin_port Interface #
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_intf)
+static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
   L7_uint   l, r;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -4477,28 +5594,28 @@ static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_i
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Root intf ? */
-  if (evcs[evc_idx].intf[ptin_intf].type == PTIN_EVC_INTF_ROOT)
+  if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT)
   {
     /* Get all leaf interfaces... */
-    ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+    ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing %u leafs of root intf# %02u (Out.VID=%04u) ...",
-              evc_idx,
+              evc_id,
               n_intf,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].out_vlan);
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].out_vlan);
 
     /* Remove all leaf xlate entries on the root port */
     for (l=0; l<n_intf; l++)
     {
-      rc = switching_p2multipoint_root_remove(ptin_intf,                                   /* Root intf */
-                                           evcs[evc_idx].intf[ptin_intf].out_vlan,      /* Vs */
-                                           evcs[evc_idx].intf[intf_list[l]].int_vlan);  /* Vl */
+      rc = switching_p2multipoint_root_remove(ptin_port,                                   /* Root intf */
+                                           evcs[evc_id].intf[ptin_port].out_vlan,      /* Vs */
+                                           evcs[evc_id].intf[intf_list[l]].int_vlan);  /* Vl */
 
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing from root a bridge leaf entry [root_intf=%u Vs=%u Vl=%u]",
-                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan, evcs[evc_idx].intf[intf_list[l]].int_vlan);
+                evc_id, ptin_port, evcs[evc_id].intf[ptin_port].out_vlan, evcs[evc_id].intf[intf_list[l]].int_vlan);
         break;
       }
     }
@@ -4507,58 +5624,58 @@ static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_i
   else
   {
     /* Get all root interfaces... */
-    ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_ROOT, intf_list, &n_intf);
+    ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_ROOT, intf_list, &n_intf);
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing leaf intf# %u (Int.VID=%04u) of %u root interfaces...",
-              evc_idx,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].int_vlan,
+              evc_id,
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].int_vlan,
               n_intf);
 
     /* Remove leaf xlate entry on all root ports */
     for (r=0; r<n_intf; r++)
     {
       rc = switching_p2multipoint_root_remove(intf_list[r],                                /* Root intf */
-                                           evcs[evc_idx].intf[intf_list[r]].out_vlan,   /* Vs */
-                                           evcs[evc_idx].intf[ptin_intf].int_vlan);     /* Vl */
+                                           evcs[evc_id].intf[intf_list[r]].out_vlan,   /* Vs */
+                                           evcs[evc_id].intf[ptin_port].int_vlan);     /* Vl */
 
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing from root a bridge leaf entry [root_intf=%u Vs=%u Vl=%u]",
-                evc_idx, intf_list[r], evcs[evc_idx].intf[intf_list[r]].out_vlan, evcs[evc_idx].intf[ptin_intf].int_vlan);
+                evc_id, intf_list[r], evcs[evc_id].intf[intf_list[r]].out_vlan, evcs[evc_id].intf[ptin_port].int_vlan);
         break;
       }
     }
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing leaf intf# %02u (Out.VID=%04u Int.VID=%04u) of root Int.VLAN=%04u",
-              evc_idx,
-              ptin_intf,
-              evcs[evc_idx].intf[ptin_intf].out_vlan,
-              evcs[evc_idx].intf[ptin_intf].int_vlan,
-              evcs[evc_idx].rvlan);
+              evc_id,
+              ptin_port,
+              evcs[evc_id].intf[ptin_port].out_vlan,
+              evcs[evc_id].intf[ptin_port].int_vlan,
+              evcs[evc_id].rvlan);
 
     /* Finally remove the bridge leaf entry */
-    if ( !(evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED) )
+    if ( !(evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) )
     {
-      rc = switching_p2multipoint_unstacked_leaf_remove( ptin_intf,                                     /* Leaf intf */
-                                                         evcs[evc_idx].intf[ptin_intf].out_vlan,        /* Vs' */
-                                                         evcs[evc_idx].intf[ptin_intf].int_vlan,        /* Vl */
-                                                         evcs[evc_idx].rvlan);                          /* Vr */
+      rc = switching_p2multipoint_unstacked_leaf_remove( ptin_port,                                     /* Leaf intf */
+                                                         evcs[evc_id].intf[ptin_port].out_vlan,        /* Vs' */
+                                                         evcs[evc_id].intf[ptin_port].int_vlan,        /* Vl */
+                                                         evcs[evc_id].rvlan);                          /* Vr */
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing unstacked leaf entry [leaf_intf=%u Vs'=%u Vl=%u Vr=%u]",
-                evc_idx, ptin_intf, evcs[evc_idx].intf[ptin_intf].out_vlan,
-                evcs[evc_idx].intf[ptin_intf].int_vlan, evcs[evc_idx].rvlan);
+                evc_id, ptin_port, evcs[evc_id].intf[ptin_port].out_vlan,
+                evcs[evc_id].intf[ptin_port].int_vlan, evcs[evc_id].rvlan);
       }
     }
 
-    rc = switching_p2multipoint_leaf_remove(ptin_intf,                                     /* Leaf intf */
-                                            evcs[evc_idx].rvlan);                          /* Vr */
+    rc = switching_p2multipoint_leaf_remove(ptin_port,                                     /* Leaf intf */
+                                            evcs[evc_id].rvlan);                          /* Vr */
 
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing leaf entry [leaf_intf=%u Vr=%u]",
-              evc_idx, ptin_intf, evcs[evc_idx].rvlan);
+              evc_id, ptin_port, evcs[evc_id].rvlan);
     }
   }
 
@@ -4569,9 +5686,9 @@ static L7_RC_t ptin_evc_p2multipoint_intf_remove(L7_uint evc_idx, L7_uint ptin_i
  * Removes all bridges interfaces from an EVC (unstacked) 
  * NOTE: EVC interfaces data is not cleared
  * 
- * @param evc_idx 
+ * @param evc_id 
  */
-static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx)
+static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_id)
 {
   L7_uint i;
   L7_RC_t rc = L7_SUCCESS;
@@ -4579,12 +5696,12 @@ static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx)
   /* Remove bridges (unstacked EVCs) */
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if (!evcs[evc_idx].intf[i].in_use)
+    if (!evcs[evc_id].intf[i].in_use)
       continue;
 
-    if (ptin_evc_p2multipoint_intf_remove(evc_idx, i) != L7_SUCCESS)
+    if (ptin_evc_p2multipoint_intf_remove(evc_id, i) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to remove intf# %u bridge config", evc_idx, i);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to remove intf# %u bridge config", evc_id, i);
       rc = L7_FAILURE;
     }
   }
@@ -4596,27 +5713,27 @@ static L7_RC_t ptin_evc_p2multipoint_intf_remove_all(L7_uint evc_idx)
 /**
  * Gets the list of root/leaf interfaces of an EVC
  * 
- * @param evc_idx 
+ * @param evc_id 
  * @param mef_type  PTIN_EVC_INTF_ROOT / PTIN_EVC_INTF_LEAF 
  * @param intf_list (output) Array with the root/leaf list
  * @param n_elems   (output) Nr of elems of list array
  */
-static void ptin_evc_intf_list_get(L7_uint evc_idx, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems)
+static void ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems)
 {
   L7_uint i;
 
   *n_elems = 0;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
   {
-    if ((evcs[evc_idx].intf[i].in_use) &&
-        (evcs[evc_idx].intf[i].type == mef_type))
+    if ((evcs[evc_id].intf[i].in_use) &&
+        (evcs[evc_id].intf[i].type == mef_type))
     {
       intf_list[*n_elems] = i;
       (*n_elems)++;
     }
   }
 
-//LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %u %s", evc_idx,
+//LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: %u %s", evc_id,
 //          *n_elems, mef_type == PTIN_EVC_INTF_ROOT ? "Roots":"Leafs");
 }
 
@@ -4640,7 +5757,7 @@ static void ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue
   while (pclient != NULL)
   {
     /* If inner vlan is null, the first cvlan is returned */
-    if (inn_vlan == 0 || pclient->inn_vlan == inn_vlan)
+    if (inn_vlan == 0 || pclient->int_ivid == inn_vlan)
     {
       *pelem = (dl_queue_elem_t *) pclient;
       break;
@@ -4652,6 +5769,37 @@ static void ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue
   osapiSemaGive(ptin_evc_clients_sem);
 }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+/**
+ * Search flow based on uni outer VID
+ * 
+ * @param queue 
+ * @param pelem 
+ */
+static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_elem_t **pelem)
+{
+  struct ptin_evc_client_s *pflow = NULL;
+
+  /* SEM UP */
+
+  *pelem = NULL;
+
+  dl_queue_get_head(queue, (dl_queue_elem_t **)&pflow);
+
+  while (pflow != NULL)
+  {
+    /* If inner vlan is null, the first cvlan is returned */
+    if (uni_ovid == 0 || pflow->uni_ovid == uni_ovid)
+    {
+      *pelem = (dl_queue_elem_t *) pflow;
+      break;
+    }
+    pflow = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pflow);
+  }
+
+  /* SEM DOWN */
+}
+#endif
 
 /* Internal VLANs management functions ****************************************/
 
@@ -4666,6 +5814,10 @@ static void ptin_evc_vlan_pool_init(void)
 
   /* Stacked block */
   dl_queue_init(&queue_p2p_free_vlans);
+  /* Quattro P2P block */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  dl_queue_init(&queue_quattro_p2p_free_vlans);
+  #endif
 
   for (i=PTIN_VLAN_MIN; i<PTIN_VLAN_MAX && i<PTIN_SYSTEM_EVC_P2P_VLAN_MAX; i++)
   {
@@ -4698,6 +5850,14 @@ static void ptin_evc_vlan_pool_init(void)
     dl_queue_add(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t*)&queues_pool[i]);
   }
 
+  /* QUATTRO P2P vlans */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  for (i=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX; i++)
+  {
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_quattro_p2p_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
+  }
+  #endif
 #else
   dl_queue_init(&queue_free_vlans);
 
@@ -4715,30 +5875,41 @@ static void ptin_evc_vlan_pool_init(void)
 /**
  * Allocates a free VLAN queue from the pool
  * 
- * @param evc_idx    : EVC index 
+ * @param evc_id    : EVC index 
  * @param is_stacked : Is EVC stacked 
  * @param queue : Pointer to free vlan queue (output)
  * 
  * @return L7_RC_t L7_SUCCESS if success
  * @return L7_RC_t L7_FAILURE if there are no VLANs available
  */
-static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_idx, L7_BOOL is_p2p, dl_queue_t **freeVlan_queue)
+static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_BOOL evc_type, dl_queue_t **freeVlan_queue)
 {
  #if (PTIN_SYSTEM_GROUP_VLANS)
   struct ptin_queue_s *fv_queue;
 
-  if (evc_idx>PTIN_SYSTEM_N_EVCS)
+  if (evc_id>PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid EVC index (%u)",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid EVC index (%u)",evc_id);
     return L7_FAILURE;
   }
 
   /* If evc is P2P, use apropriate free vlan queue */
-  if (is_p2p)
+  if (evc_type == PTIN_EVC_TYPE_STD_P2P || evc_type == PTIN_EVC_TYPE_QUATTRO_P2MP)
   {
     *freeVlan_queue = &queue_p2p_free_vlans;
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
     return L7_SUCCESS;
+  }
+  else if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  {
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    *freeVlan_queue = &queue_quattro_p2p_free_vlans;
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "QUATTRO Free Vlan Queue selected!");
+    return L7_SUCCESS;
+    #else
+    LOG_ERR(LOG_CTX_PTIN_EVC, "No QUATTRO vlan available!");
+    return L7_ERROR;
+    #endif
   }
 
   if (queue_p2multipoint_freeVlan_queues.n_elems == 0)
@@ -4781,7 +5952,11 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
   }
 
   /* If (free vlan) queue is the stacked one, do nothing */
-  if (freeVlan_queue == &queue_p2p_free_vlans)
+  if (freeVlan_queue == &queue_p2p_free_vlans
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      || freeVlan_queue == &queue_quattro_p2p_free_vlans
+      #endif
+     )
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue given... do nothing!");
     return L7_SUCCESS;
@@ -4814,7 +5989,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
  * @return L7_RC_t L7_SUCCESS if success
  * @return L7_RC_t L7_FAILURE if there are no VLANs available
  */
-static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_idx)
+static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id)
 {
   struct ptin_vlan_s *pvlan;
 
@@ -4840,13 +6015,13 @@ static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, 
   /* Mark this internal vlan, as being used by the given evc id */
   if (pvlan->vid<4096)
   {
-    if (evc_idx<PTIN_SYSTEM_N_EVCS)
+    if (evc_id<PTIN_SYSTEM_N_EVCS)
     {
-      evcId_from_internalVlan[pvlan->vid] = evc_idx;
+      evcId_from_internalVlan[pvlan->vid] = evc_id;
     }
     else
     {
-      evcId_from_internalVlan[pvlan->vid] = (L7_uint8) -1;
+      evcId_from_internalVlan[pvlan->vid] = -1;
     }
   }
 
@@ -4876,7 +6051,7 @@ static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans)
   /* Free this internal vlan, as not being used by any evc */
   if (vlan<4096)
   {
-    evcId_from_internalVlan[vlan] = (L7_uint8) -1;
+    evcId_from_internalVlan[vlan] = -1;
   }
 
   return L7_SUCCESS;
@@ -4896,13 +6071,13 @@ static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 int_vlan)
+static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding root intf# %u [Out.VID=%u Int.VLAN=%u]...",
-           root_intf, out_vlan, int_vlan);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
+           root_intf, out_vlan, inner_vlan, int_vlan);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -4939,16 +6114,16 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   }
 
   /* Add ingress xlate entry: (root_intf) out_vlan -> int_vlan */
-  rc = ptin_xlate_ingress_add(intIfNum, out_vlan, 0, int_vlan, 0);
+  rc = ptin_xlate_ingress_add(intIfNum, out_vlan, inner_vlan, int_vlan, 0);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Ingress entry [Out.VLAN %u => Int.VLAN] %u (rc=%d)",
-            intIfNum, out_vlan, int_vlan, rc);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Ingress entry [Out.VLAN %u + Inn.VLAN %u => Int.VLAN] %u (rc=%d)",
+            intIfNum, out_vlan, inner_vlan, int_vlan, rc);
     return L7_FAILURE;
   }
 
   /* Add egress xlate entry: (root_intf) int_vlan -> out_vlan */
-  rc = ptin_xlate_egress_add(intIfNum, int_vlan, 0, out_vlan, 0);
+  rc = ptin_xlate_egress_add(intIfNum, int_vlan, 0, out_vlan, (egress_del_ivlan) ? (L7_uint16)-1 : inner_vlan);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Int.VLAN %u => Out.VLAN %u] (rc=%d)",
@@ -4968,13 +6143,13 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 int_vlan)
+static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing root intf# %u [Out.VID=%u Int.VLAN=%u]...",
-           root_intf, out_vlan, int_vlan);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
+           root_intf, out_vlan, inner_vlan, int_vlan);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -4994,11 +6169,11 @@ static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_u
   }
 
   /* Delete ingress xlate entry: (root_intf) out_vlan -> int_vlan */
-  rc = ptin_xlate_ingress_delete(intIfNum, out_vlan, 0);
+  rc = ptin_xlate_ingress_delete(intIfNum, out_vlan, inner_vlan);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Ingress entry [Out.VLAN %u => Int.VLAN %u] (rc=%d)",
-            intIfNum, out_vlan, int_vlan, rc);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u xlate Ingress entry [Out.VLAN %u+Inn.VLAN %u => Int.VLAN %u] (rc=%d)",
+            intIfNum, out_vlan, inner_vlan, int_vlan, rc);
     return L7_FAILURE;
   }
 
@@ -5027,7 +6202,7 @@ static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_u
  */
 L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
 {
-  L7_uint   evc_idx;
+  L7_uint   evc_id;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -5041,24 +6216,24 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[int_vlan];
+  evc_id = evcId_from_internalVlan[int_vlan];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC Not found");
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_id, int_vlan);
     return L7_FAILURE;
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "Unblocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
-           root_intf, int_vlan, evc_idx);
+           root_intf, int_vlan, evc_id);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -5078,27 +6253,27 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
 
 
   /* Get all leaf interfaces... */
-  ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+  ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_id, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Adding root intf# %02u to leaf Int.VID=%04u",
-              evc_idx,
+              evc_id,
               intIfNum,
-              evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
+              evcs[evc_id].intf[intf_list[l]].int_vlan); /* Vl */
 
     /* Associate leaf internal vlan to the root intf */
-    if (usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
+    if (usmDbVlanMemberSet(1, evcs[evc_id].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, rc);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_id].intf[intf_list[l]].int_vlan, intIfNum, rc);
       rc = L7_FAILURE;
     }   
   }
 
-  evcs[evc_idx].intf[root_intf].portState = PTIN_EVC_PORT_FORWARDING;
+  evcs[evc_id].intf[root_intf].portState = PTIN_EVC_PORT_FORWARDING;
 
   return rc;
 }
@@ -5113,7 +6288,7 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
  */
 L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
 {
-  L7_uint   evc_idx;
+  L7_uint   evc_id;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -5127,24 +6302,24 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[int_vlan];
+  evc_id = evcId_from_internalVlan[int_vlan];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC Not found");
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_id, int_vlan);
     return L7_FAILURE;
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "Blocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
-           root_intf, int_vlan, evc_idx);
+           root_intf, int_vlan, evc_id);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(root_intf, &intIfNum);
@@ -5162,33 +6337,33 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Get all leaf interfaces... */
-  ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+  ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_id, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Blocking root intf# %02u on leaf with Int.VID=%04u",
-              evc_idx,
+              evc_id,
               intIfNum,
-              evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
+              evcs[evc_id].intf[intf_list[l]].int_vlan); /* Vl */
 
     /* Associate leaf internal vlan to the root intf */
-    if (usmDbVlanMemberSet(1, evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
+    if (usmDbVlanMemberSet(1, evcs[evc_id].intf[intf_list[l]].int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, intIfNum, rc);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating leaf Int.VLAN %u to root intIfNum# %u to (rc=%d)", evcs[evc_id].intf[intf_list[l]].int_vlan, intIfNum, rc);
       rc = L7_FAILURE;
     }   
   }
 
-  evcs[evc_idx].intf[root_intf].portState = PTIN_EVC_PORT_BLOCKING;
+  evcs[evc_id].intf[root_intf].portState = PTIN_EVC_PORT_BLOCKING;
 
   return rc;
 }
 
 /**
- * Flushes FDB for all int.VLAN associated to this evc_idx
+ * Flushes FDB for all int.VLAN associated to this evc_id
  * 
  * @param int_vlan  Root Inner VLAN
  * 
@@ -5196,7 +6371,7 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
  */
 L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 {
-  L7_uint   evc_idx;
+  L7_uint   evc_id;
   L7_RC_t   rc = L7_SUCCESS;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
@@ -5209,23 +6384,23 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[int_vlan];
+  evc_id = evcId_from_internalVlan[int_vlan];
 
   /* Check if this internal vlan is in use by any evc */
-  if (evc_idx>=PTIN_SYSTEM_N_EVCS)
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC Not found");
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_idx, int_vlan);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u (intVlan=%u) should be in use", evc_id, int_vlan);
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing EVC#%u", evc_idx);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing EVC#%u", evc_id);
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
 
@@ -5238,21 +6413,21 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 
 
   /* Get all leaf interfaces... */
-  ptin_evc_intf_list_get(evc_idx, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+  ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_idx, n_intf);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_id, n_intf);
 
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
   {
     LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u",
-              evc_idx,
-              evcs[evc_idx].intf[intf_list[l]].int_vlan); /* Vl */
+              evc_id,
+              evcs[evc_id].intf[intf_list[l]].int_vlan); /* Vl */
 
     /* Flush FDB on this Leaf VLAN */
-    if (fdbFlushByVlan(evcs[evc_idx].intf[intf_list[l]].int_vlan) != L7_SUCCESS)
+    if (fdbFlushByVlan(evcs[evc_id].intf[intf_list[l]].int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", evcs[evc_idx].intf[intf_list[l]].int_vlan, rc);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", evcs[evc_id].intf[intf_list[l]].int_vlan, rc);
       rc = L7_FAILURE;
     }
   }
@@ -5262,6 +6437,7 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 
 #endif
 
+#if PTIN_IGMP_STATS_IN_EVCS
 /**
  * Get a pointer to IGMP stats
  * 
@@ -5273,7 +6449,7 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
  */
 L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNum, ptin_IGMP_Statistics_t **stats_intf)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
   L7_uint32 ptin_port;
 
   /* Validate Vlan */
@@ -5283,19 +6459,19 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
   }
 
   /* Get evc id */
-  evc_idx = evcId_from_internalVlan[intVlan];
+  evc_id = evcId_from_internalVlan[intVlan];
 
   /* Check if this evc is valid */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_id);
     return L7_FAILURE;
   }
 
   /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    //LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_id);
     return L7_FAILURE;
   }
 
@@ -5307,14 +6483,14 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
   }
 
   /* Interface, must be in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
-    //LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_idx);
+    //LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_id);
     return L7_FAILURE;
   }
 
   if (stats_intf!=L7_SUCCESS)
-    *stats_intf = &evcs[evc_idx].stats_igmp_intf[ptin_port];
+    *stats_intf = &evcs[evc_id].stats_igmp_intf[ptin_port];
 
   return L7_SUCCESS;
 }
@@ -5322,29 +6498,39 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
 /**
  * Get a pointer to IGMP stats
  * 
- * @param evc_idx      : EVC index 
+ * @param evc_ext_id  : EVC extended index 
  * @param ptin_intf    : interface
  * @param stats_intf   : stats
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf)
+L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf)
 {
   L7_uint32 ptin_port;
+  L7_uint32 evc_id;
 
-  /* Check if this evc is valid */
-  if (ptin_intf==L7_NULLPTR || evc_idx >= PTIN_SYSTEM_N_EVCS)
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
@@ -5354,14 +6540,14 @@ L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_IG
   }
 
   /* Interface, must be in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_id);
     return L7_FAILURE;
   }
 
   if (stats_intf!=L7_SUCCESS)
-    memcpy(stats_intf, &evcs[evc_idx].stats_igmp_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
+    memcpy(stats_intf, &evcs[evc_id].stats_igmp_intf[ptin_port], sizeof(ptin_IGMP_Statistics_t));
 
   return L7_SUCCESS;
 }
@@ -5369,28 +6555,38 @@ L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, ptin_IG
 /**
  * Clear IGMP stats of one interface
  * 
- * @param evc_idx      : EVC index 
- * @param ptin_intf    : interface
+ * @param evc_ext_id  : EVC extended index 
+ * @param ptin_intf   : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-L7_RC_t ptin_evc_igmp_stats_clear(L7_uint evc_idx, ptin_intf_t *ptin_intf)
+L7_RC_t ptin_evc_igmp_stats_clear(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf)
 {
   L7_uint32 ptin_port;
+  L7_uint32 evc_id;
 
-  /* Check if this evc is valid */
-  if (ptin_intf==L7_NULLPTR || evc_idx >= PTIN_SYSTEM_N_EVCS)
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf or EVC %u Not found", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
+
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
+  }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
@@ -5400,14 +6596,14 @@ L7_RC_t ptin_evc_igmp_stats_clear(L7_uint evc_idx, ptin_intf_t *ptin_intf)
   }
 
   /* Interface, must be in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Interface %u of evc %u is not active", ptin_port, evc_id);
     return L7_FAILURE;
   }
 
   /* Clear stats */
-  memset(&evcs[evc_idx].stats_igmp_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
+  memset(&evcs[evc_id].stats_igmp_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
 
   return L7_SUCCESS;
 }
@@ -5415,32 +6611,36 @@ L7_RC_t ptin_evc_igmp_stats_clear(L7_uint evc_idx, ptin_intf_t *ptin_intf)
 /**
  * Clear IGMP stats of all interfaces
  * 
- * @param evc_idx      : EVC index 
- * @param ptin_intf    : interface
+ * @param evc_id      : EVC index 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint evc_idx)
+L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id)
 {
-  /* Check if this evc is valid */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u Not found", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
-  /* Check if this evc is in use... if not we have a non-consistent situation */
-  if (!evcs[evc_idx].in_use)
+  /* Is EVC in use? */
+  if (!IS_eEVC_IN_USE(evc_ext_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Non-consistent situation: evc %u should be in use", evc_idx);
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_NOT_EXIST;
   }
+
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
 
   /* Clear all stats */
-  memset(evcs[evc_idx].stats_igmp_intf, 0x00, sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
+  memset(evcs[evc_id].stats_igmp_intf, 0x00, sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Configures a leaf port (for stacked and unstacked EVCs) 
@@ -6173,7 +7373,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
   }
 
   /* Set Forward VLAN to int_vlan and set Mac Learning state */
-  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, mac_learning);
+  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, -1, mac_learning);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "VLAN %u: error setting MAC Learning state to %s (w/ Forward VLAN %u) (rc=%d)",
@@ -6190,6 +7390,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
     return L7_FAILURE;
   }
   usmdbFilterVlanFilteringModeGet(1, vid, &mcf);
+
   LOG_TRACE(LOG_CTX_PTIN_EVC,"success with usmdbFilterVlanFilteringModeSet(1,%u,%u) => usmdbFilterVlanFilteringModeSet(1,%u,&mc_flood): mc_flood=%u",vid,mc_flood,vid,mcf);
 
   return L7_SUCCESS;
@@ -6204,7 +7405,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
  */
 static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 {
-  L7_uint     i, evc_id;
+  L7_uint32   i, evc_id;
   L7_int      port;
   ptin_intf_t ptin_intf;
 
@@ -6216,9 +7417,9 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
   }
 
   /* EVC index */
-  if (evcConf->index>=PTIN_SYSTEM_N_EVCS)
+  if (evcConf->index >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid EVC index (%u)",evcConf->index);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid eEVC index (%u)",evcConf->index);
     return L7_FAILURE;
   }
 
@@ -6270,7 +7471,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
         for (evc_id=0; evc_id<PTIN_SYSTEM_N_EVCS; evc_id++)
         {
           /* Skip the referred evc or not used ones */
-          if (evc_id==evcConf->index || !evcs[evc_id].in_use)  continue;
+          if (!evcs[evc_id].in_use || evcs[evc_id].extended_id == evcConf->index)  continue;
           /* Skip evcs which are not using this interface */
           if (!evcs[evc_id].intf[port].in_use)  continue;
 
@@ -6278,10 +7479,11 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
           if (IS_EVC_INTF_LEAF(evc_id,port) && IS_EVC_STACKED(evc_id))  continue;
 
           /* If outer vlan matches, we have a conflict */
-          if (evcs[evc_id].intf[port].out_vlan == evcConf->intf[i].vid)
+          if (evcs[evc_id].intf[port].out_vlan   == evcConf->intf[i].vid &&
+              evcs[evc_id].intf[port].inner_vlan == evcConf->intf[i].vid_inner)
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u, port=%u (%u/%u) of EVC %u has the same vlan %u",
-                    i,port,ptin_intf.intf_type,ptin_intf.intf_id,evc_id,evcConf->intf[i].vid);
+            LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u, port=%u (%u/%u) of EVC %u has the same vlan %u+%u",
+                    i,port,ptin_intf.intf_type,ptin_intf.intf_id,evc_id,evcConf->intf[i].vid,evcConf->intf[i].vid_inner);
             return L7_FAILURE;
           }
         }
@@ -6295,7 +7497,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 /**
  * Verify bandwidth profile parameters
  * 
- * @param evc_idx : evc index
+ * @param evc_id : evc index
  * @param profile : profile data 
  * @param bwPolicer_ptr : Location of policer pointer in evc 
  *                database (address of a ptr to a ptr to
@@ -6303,12 +7505,12 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *profile, void ***bwPolicer_ptr)
+static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile, void ***bwPolicer_ptr)
 {
   nimUSP_t  usp;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_int    ptin_port, i_port;
-  struct ptin_evc_client_s *pclient;
+  struct ptin_evc_client_s *pclientFlow;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Starting bw profile verification");
 
@@ -6320,7 +7522,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Initial bw profile data:");
-  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_idx);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," srcIntf     = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," dstIntf     = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
@@ -6331,16 +7533,16 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
   LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -6369,7 +7571,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface: ptin_port=%u",ptin_port);
 
     /* Verify if interface is in use */
-    if (!evcs[evc_idx].intf[ptin_port].in_use)
+    if (!evcs[evc_id].intf[ptin_port].in_use)
     {
       LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
       return L7_NOT_EXIST;
@@ -6378,11 +7580,11 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
 
     /* Verify Svlan*/
     if (profile->outer_vlan_in>0 &&
-        evcs[evc_idx].intf[ptin_port].out_vlan>0 && evcs[evc_idx].intf[ptin_port].out_vlan<4096)
+        evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
     {
-      if (profile->outer_vlan_in!=evcs[evc_idx].intf[ptin_port].out_vlan)
+      if (profile->outer_vlan_in!=evcs[evc_id].intf[ptin_port].out_vlan)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_idx].intf[ptin_port].out_vlan);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_id].intf[ptin_port].out_vlan);
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
@@ -6395,10 +7597,10 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_P2MULTIPOINT(evc_idx))
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
     #endif
     {
-      profile->outer_vlan_out = evcs[evc_idx].intf[ptin_port].out_vlan;
+      profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
       profile->inner_vlan_out = profile->inner_vlan_in;
     }
 
@@ -6408,53 +7610,53 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
       /* If inner_vlan is null, use the general policer for the interface */
       if (profile->inner_vlan_in==0)
       {
-        *bwPolicer_ptr = &(evcs[evc_idx].intf[ptin_port].bwprofile);
+        *bwPolicer_ptr = &(evcs[evc_id].intf[ptin_port].bwprofile);
       } /* if (profile->inner_vlan_in==0) */
       /* If valid, find the specified client, and provide the policer location */
       else
       {
         /* Find the specified cvlan in all EVC clients */
-        for (i_port=0, pclient=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclient==L7_NULLPTR; i_port++)
+        for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
         {
-          if ( IS_EVC_INTF_ROOT(evc_idx,ptin_port) ||
-              (IS_EVC_INTF_LEAF(evc_idx,ptin_port) && i_port==ptin_port))
+          if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
+              (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
           {
-            ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_idx].intf[i_port].clients), (dl_queue_elem_t **) &pclient);
+            ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
           }
         }
         /* Client not found */
-        if (pclient==L7_NULLPTR)
+        if (pclientFlow==L7_NULLPTR)
         {
-          LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_idx);
+          LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
           return L7_NOT_EXIST;
         }
         /* If interface is a leaf... */
-        if (IS_EVC_INTF_LEAF(evc_idx,ptin_port))
+        if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
         {
           /* Compare its outer vlan with the given one */
           if (profile->outer_vlan_in>0 &&
-              pclient->out_vlan>0 && pclient->out_vlan<4096)
+              pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
           {
-            if (profile->outer_vlan_in!=pclient->out_vlan)
+            if (profile->outer_vlan_in!=pclientFlow->uni_ovid)
             {
-              LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_in,pclient->out_vlan);
+              LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_in, pclientFlow->uni_ovid);
               return L7_FAILURE;
             }
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
-          profile->outer_vlan_out = pclient->out_vlan;
+          profile->outer_vlan_out = pclientFlow->uni_ovid;
           profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
-          *bwPolicer_ptr = &(pclient->bwprofile[PTIN_EVC_INTF_LEAF]);
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF]);
         }
         else
         {
-          *bwPolicer_ptr = &(pclient->bwprofile[PTIN_EVC_INTF_ROOT]);
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT]);
         }
       } /* else (profile->inner_vlan_in==0) */
     } /* if (bwPolicer_ptr!=L7_NULLPTR) */
 
     /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_in = evcs[evc_idx].intf[ptin_port].int_vlan;
+    profile->outer_vlan_in = evcs[evc_id].intf[ptin_port].int_vlan;
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_in);
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
   /* If source interface is not provided... */
@@ -6490,7 +7692,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Destination interface: ptin_port=%u",ptin_port);
 
     /* Verify if interface is in use */
-    if (!evcs[evc_idx].intf[ptin_port].in_use)
+    if (!evcs[evc_id].intf[ptin_port].in_use)
     {
       LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
       return L7_NOT_EXIST;
@@ -6503,7 +7705,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
   } /* else (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0) */
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Final bw profile data:");
-  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_idx);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," srcIntf     = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," dstIntf     = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
@@ -6519,7 +7721,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
 /**
  * Verify evcStats profile parameters
  * 
- * @param evc_idx : evc index
+ * @param evc_id : evc index
  * @param profile : evcStats profile data 
  * @param counters_ptr : Location of evcStats pointer in evc 
  *                database (address of a ptr to a ptr to
@@ -6527,12 +7729,12 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_idx, ptin_bw_profile_t *pro
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t *profile, void ***counters_ptr)
+static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t *profile, void ***counters_ptr)
 {
   nimUSP_t  usp;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
   L7_int    ptin_port, i_port;
-  struct ptin_evc_client_s *pclient;
+  struct ptin_evc_client_s *pclientFlow;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Starting evcStats verification");
 
@@ -6544,7 +7746,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Initial evcStats profile data:");
-  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_idx);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_src = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_dst = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
@@ -6554,16 +7756,16 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   LOG_TRACE(LOG_CTX_PTIN_EVC," Dest_IP   = %u",profile->dst_ip);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -6592,7 +7794,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface: ptin_port=%u",ptin_port);
 
     /* Verify if interface is in use */
-    if (!evcs[evc_idx].intf[ptin_port].in_use)
+    if (!evcs[evc_id].intf[ptin_port].in_use)
     {
       LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
       return L7_NOT_EXIST;
@@ -6601,11 +7803,11 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
 
     /* Verify Svlan*/
     if (profile->outer_vlan_in>0 &&
-        evcs[evc_idx].intf[ptin_port].out_vlan>0 && evcs[evc_idx].intf[ptin_port].out_vlan<4096)
+        evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
     {
-      if (profile->outer_vlan_in!=evcs[evc_idx].intf[ptin_port].out_vlan)
+      if (profile->outer_vlan_in!=evcs[evc_id].intf[ptin_port].out_vlan)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_idx].intf[ptin_port].out_vlan);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_id].intf[ptin_port].out_vlan);
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
@@ -6618,10 +7820,10 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_idx,ptin_port) || IS_EVC_P2MULTIPOINT(evc_idx))
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
     #endif
     {
-      profile->outer_vlan_out = evcs[evc_idx].intf[ptin_port].out_vlan;
+      profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
       profile->inner_vlan_out = profile->inner_vlan_in;
     }
 
@@ -6631,52 +7833,52 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
       /* If inner_vlan is null, use the general policer for the interface */
       if (profile->inner_vlan_in==0)
       {
-        *counters_ptr = &(evcs[evc_idx].intf[ptin_port].counter);
+        *counters_ptr = &(evcs[evc_id].intf[ptin_port].counter);
       } /* if (profile->inner_vlan_in==0) */
       /* If valid, find the specified client, and provide the policer location */
       else
       {
         /* Find the specified cvlan in all EVC clients */
-        for (i_port=0, pclient=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclient==L7_NULLPTR; i_port++)
+        for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
         {
-          if ( IS_EVC_INTF_ROOT(evc_idx,ptin_port) ||
-              (IS_EVC_INTF_LEAF(evc_idx,ptin_port) && i_port==ptin_port))
+          if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
+              (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
           {
-            ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_idx].intf[i_port].clients), (dl_queue_elem_t **) &pclient);
+            ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
           }
         }
-        if (pclient==L7_NULLPTR)
+        if (pclientFlow==L7_NULLPTR)
         {
-          LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_idx);
+          LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
           return L7_NOT_EXIST;
         }
         /* If interface is a leaf... */
-        if (IS_EVC_INTF_LEAF(evc_idx,ptin_port))
+        if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
         {
           /* Compare its outer vlan with the given one */
           if (profile->outer_vlan_in>0 &&
-              pclient->out_vlan>0 && pclient->out_vlan<4096)
+              pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
           {
-            if (profile->outer_vlan_in!=pclient->out_vlan)
+            if (profile->outer_vlan_in!=pclientFlow->uni_ovid)
             {
-              LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_in,pclient->out_vlan);
+              LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_in,pclientFlow->uni_ovid);
               return L7_FAILURE;
             }
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
-          profile->outer_vlan_out = pclient->out_vlan;
+          profile->outer_vlan_out = pclientFlow->uni_ovid;
           profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
-          *counters_ptr = &(pclient->counter[PTIN_EVC_INTF_LEAF]);
+          *counters_ptr = &(pclientFlow->counter[PTIN_EVC_INTF_LEAF]);
         }
         else
         {
-          *counters_ptr = &(pclient->counter[PTIN_EVC_INTF_ROOT]);
+          *counters_ptr = &(pclientFlow->counter[PTIN_EVC_INTF_ROOT]);
         }
       } /* else (profile->inner_vlan_in==0) */
     } /* if (counters_ptr!=L7_NULLPTR) */
 
     /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_in = evcs[evc_idx].intf[ptin_port].int_vlan;
+    profile->outer_vlan_in = evcs[evc_id].intf[ptin_port].int_vlan;
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_in);
 
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
@@ -6688,7 +7890,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
   } /* else (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Final evcStats profile data:");
-  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_idx);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_src = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_dst = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
@@ -6703,13 +7905,13 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_idx, ptin_evcStats_profile_t
 /**
  * Read statistics of a particular probe
  * 
- * @param evc_idx : EVC index
+ * @param evc_id : EVC index
  * @param profile : evcStats profile 
  * @param stats : Statistics data
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats)
+static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats)
 {
   nimUSP_t  usp;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -6733,16 +7935,16 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   }
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -6777,7 +7979,7 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   }
 
   /* Verify if interface is in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
     return L7_NOT_EXIST;
@@ -6786,18 +7988,18 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *prof
 
 
   /* Find an existent probe */
-  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  if (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
   {
     while ( pprobe != L7_NULLPTR )
     {
       /* If probe is found, break cycle */
       if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
         break;
       }
       /* Get next client */
-      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
     }
   }
   else
@@ -6808,7 +8010,7 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   /* Validate policy location */
   if (pprobe==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
     return L7_FAILURE;
   }
 
@@ -6829,12 +8031,12 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_idx, ptin_evcStats_profile_t *prof
 /**
  * Get a new probe node to store counter
  * 
- * @param evc_idx : EVC index
+ * @param evc_id : EVC index
  * @param profile : Stats profile
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profile)
 {
   nimUSP_t  usp;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -6859,16 +8061,16 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   }
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -6903,7 +8105,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   }
 
   /* Verify if interface is in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
     return L7_NOT_EXIST;
@@ -6911,32 +8113,32 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
   /* We should have an outer vlan for this interface */
-  if (evcs[evc_idx].intf[ptin_port].out_vlan==0 ||
-      evcs[evc_idx].intf[ptin_port].out_vlan>=4096)
+  if (evcs[evc_id].intf[ptin_port].out_vlan==0 ||
+      evcs[evc_id].intf[ptin_port].out_vlan>=4096)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not unstacked!",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not unstacked!",evc_id);
     return L7_FAILURE;
   }
 
   /* Update outer vlans */
   profile->outer_vlan_out = 0;
-  profile->outer_vlan_in  = evcs[evc_idx].intf[ptin_port].int_vlan;
+  profile->outer_vlan_in  = evcs[evc_id].intf[ptin_port].int_vlan;
   profile->inner_vlan_out = 0;
   profile->inner_vlan_out = 0;
 
   /* Find an existent probe */
-  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  if (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
   {
     while ( pprobe != L7_NULLPTR )
     {
       /* If probe is found, break cycle */
       if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
         break;
       }
       /* Get next client */
-      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
     }
   }
   else
@@ -6955,7 +8157,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
     }
 
     /* add it to the corresponding interface */
-    if (dl_queue_add_tail(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe)!=NOERR)
+    if (dl_queue_add_tail(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe)!=NOERR)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"Error adding a new node to queue_probe");
       dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t*) pprobe);
@@ -6967,7 +8169,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
     pprobe->channel_ip  = profile->dst_ip;
     pprobe->counter     = L7_NULLPTR;
 
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe created: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe created: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
   }
 
   /* Counter pointer */
@@ -6990,7 +8192,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error adding probing evcStats");
     /* Restore queues */
-    dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe);
+    dl_queue_remove(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t*) pprobe);
     dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t*) pprobe);
     pprobe->in_use      = L7_FALSE;
     pprobe->channel_ip  = 0;
@@ -7003,12 +8205,12 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
   /* One more counter */
   if (policy_old==L7_NULLPTR && policy_new!=L7_NULLPTR)
   {
-    evcs[evc_idx].n_probes++;
+    evcs[evc_id].n_probes++;
   }
   /* One less counter */
   else if (policy_old!=L7_NULLPTR && policy_new==L7_NULLPTR)
   {
-    if (evcs[evc_idx].n_probes>0)  evcs[evc_idx].n_probes--;
+    if (evcs[evc_id].n_probes>0)  evcs[evc_id].n_probes--;
   }
 
   if (*policy_loc==L7_NULLPTR)
@@ -7022,12 +8224,12 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_idx, ptin_evcStats_profile_t *prof
 /**
  * Get a new probe node to store counter
  * 
- * @param evc_idx : EVC index
+ * @param evc_id : EVC index
  * @param profile : Stats profile
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *profile)
+static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *profile)
 {
   nimUSP_t  usp;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -7051,16 +8253,16 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   }
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -7095,7 +8297,7 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   }
 
   /* Verify if interface is in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
     return L7_NOT_EXIST;
@@ -7103,19 +8305,19 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
   /* Get all clients */
-  if (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
+  if (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
   {
     while ( pprobe != L7_NULLPTR )
     {
       /* If probe is found, break cycle */
       if (pprobe->in_use && pprobe->channel_ip==profile->dst_ip)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Probe found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
         break;
       }
 
       /* Get next client */
-      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+      pprobe = (struct ptin_probe_s *) dl_queue_get_next(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
     }
   }
   else
@@ -7126,7 +8328,7 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   /* Probe not found */
   if (pprobe == L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_idx,ptin_port,profile->dst_ip);
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"Probe not found: EVCid=%u, ptin port=%u, channel=0x%08x",evc_id,ptin_port,profile->dst_ip);
     return L7_SUCCESS;
   }
 
@@ -7134,7 +8336,7 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   policy = (ptin_evcStats_policy_t *) pprobe->counter;
 
   /* Remove this node from queue */
-  dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+  dl_queue_remove(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
   /* Add it to free probes */
   dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t *) pprobe);
   /* Reset node */
@@ -7151,7 +8353,7 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
   }
 
   /* One less counter */
-  if (evcs[evc_idx].n_probes>0)   evcs[evc_idx].n_probes--;
+  if (evcs[evc_id].n_probes>0)   evcs[evc_id].n_probes--;
 
   return L7_SUCCESS;
 }
@@ -7159,12 +8361,12 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_idx, ptin_evcStats_profile_t *p
 /**
  * Remove all probes from a specific interface
  * 
- * @param evc_idx : EVC index
+ * @param evc_id : EVC index
  * @param ptin_port : port
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
+static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_id, L7_int ptin_port)
 {
   L7_int    cnt;
   struct    ptin_probe_s *pprobe;
@@ -7172,16 +8374,16 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_idx, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is out of range [0..%u]", evc_id, PTIN_SYSTEM_N_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Is EVC in use? */
-  if (!evcs[evc_idx].in_use)
+  if (!evcs[evc_id].in_use)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_idx);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_id);
     return L7_NOT_EXIST;
   }
 
@@ -7193,7 +8395,7 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
   }
 
   /* Verify if interface is in use */
-  if (!evcs[evc_idx].intf[ptin_port].in_use)
+  if (!evcs[evc_id].intf[ptin_port].in_use)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC,"ptin_port %d is not in use",ptin_port);
     return L7_NOT_EXIST;
@@ -7204,7 +8406,7 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
   cnt = 0;
 
   /* Get all clients */
-  while (dl_queue_get_head(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe) == NOERR)
+  while (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe) == NOERR)
   {
     if (pprobe==L7_NULLPTR)  continue;
 
@@ -7212,7 +8414,7 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
     policy = (ptin_evcStats_policy_t *) pprobe->counter;
 
     /* Remove this node from queue */
-    dl_queue_remove(&evcs[evc_idx].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
+    dl_queue_remove(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t *) pprobe);
     /* Add it to free probes */
     dl_queue_add_head(&queue_free_probes, (dl_queue_elem_t *) pprobe);
     /* Reset node */
@@ -7232,7 +8434,7 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
     cnt++;
 
     /* One less counter */
-    if (evcs[evc_idx].n_probes>0)   evcs[evc_idx].n_probes--;
+    if (evcs[evc_id].n_probes>0)   evcs[evc_id].n_probes--;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"%d probes removed successfully!",cnt);
@@ -7243,79 +8445,161 @@ static L7_RC_t ptin_evc_probe_delete_all(L7_uint evc_idx, L7_int ptin_port)
 /* DEBUG Functions ************************************************************/
 
 /**
- * Dumps EVC detailed info 
- * If evc_idx is invalid, all EVCs are dumped 
+ * Dumps EVC flow data 
  * 
- * @param evc_idx 
+ * @param evc_id 
+ * @param port_type 
+ * @param port_id 
  */
-void ptin_evc_dump(L7_uint evc_idx)
+void ptin_flow_dump(L7_uint32 evc_ext_id, L7_uint32 port_type, L7_uint32 port_id)
+{
+  #if 0
+  L7_uint i;
+  L7_uint32 evc_id;
+  L7_uint port;
+  ptin_evc_flow_t *pflow;
+
+  /* Validate EVC id */
+  if (evc_ext_id>=PTIN_SYSTEM_N_EXTENDED_EVCS || !IS_eEVC_IN_USE(evc_ext_id))
+  {
+    printf("EVC %u not existent\r\n", evc_ext_id);
+    return;
+  }
+
+  /* Convert to local representation */
+  ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+  /* Validate interface */
+  if ( (port_type != 0 && port_type != 1) || (port_id >= PTIN_SYSTEM_N_PORTS))
+  {
+    printf("Port %u/%u not valid\r\n", port_type, port_id);
+    return;
+  }
+
+  /* Calculate port */
+  port = (port_type==0) ? port_id : (PTIN_SYSTEM_N_PORTS+port_id);
+
+  /* Interface must be active */
+  if (!evcs[evc_id].in_use || !evcs[evc_id].intf[port_id].in_use)
+  {
+    printf("Interface %u/%u of EVC %u not active\r\n", port_type, port_id, evc_ext_id);
+    return;
+  }
+
+  printf("\nNumber of configured flows: %u\r\n\n", evcs[evc_id].intf[port].n_flows);
+
+  dl_queue_get_head(&evcs[evc_id].intf[port].flows, (dl_queue_elem_t **) &pflow);
+
+  for (i=0; i<evcs[evc_id].intf[port].flows.n_elems; i++) {
+    printf("Flow #%-3u: flags = 0x%08x   ", i, pflow->flags);
+    if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+      printf("IGMP  ");
+    if (pflow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+      printf("DHCP  ");
+    if (pflow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+      printf("PPPoE ");
+    printf("(gport=0x%08x)\r\n", pflow->virtual_gport);
+    printf("         int_vid =%5u+%-5u <-> uni_vid =%5u+%-5u\r\n", pflow->int_ovid, pflow->int_ivid, pflow->uni_ovid, pflow->uni_ivid);
+
+    pflow = (ptin_evc_flow_t *) dl_queue_get_next(&evcs[evc_id].intf[port].flows, (dl_queue_elem_t *) pflow);
+  }
+
+  printf("\r\n");
+  #else
+  printf("EVC flows feature is not active on this platform!\r\n");
+  #endif
+}
+
+
+/**
+ * Dumps EVC detailed info 
+ * If evc_id is invalid, all EVCs are dumped 
+ * 
+ * @param evc_id 
+ */
+void ptin_evc_dump(L7_uint32 evc_ext_id)
 {
   L7_uint start, end;
   L7_uint i, j;
-  struct ptin_evc_client_s *pclient;
+  struct ptin_evc_client_s *pclientFlow;
+  L7_uint32 evc_id;
 
   /* Dump all ? */
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     start = 0;
-    end   = PTIN_SYSTEM_N_EVCS - 1;
+    end   = PTIN_SYSTEM_N_EXTENDED_EVCS - 1;
   }
   else
   {
-    start = evc_idx;
-    end   = evc_idx;
+    start = evc_ext_id;
+    end   = evc_ext_id;
   }
 
-  for (evc_idx = start; evc_idx <= end; evc_idx++)
+  for (evc_ext_id = start; evc_ext_id <= end; evc_ext_id++)
   {
-    if (!evcs[evc_idx].in_use) {
-      if (evc_idx<PTIN_SYSTEM_N_EVCS)
-        printf("*** EVC# %02u not in use\n\n", evc_idx);
+    if (!IS_eEVC_IN_USE(evc_ext_id))
       continue;
-    }
 
-    printf("EVC# %02u\n", evc_idx);
+//  if (!evcs[evc_id].in_use) {
+//    if (evc_id<PTIN_SYSTEM_N_EVCS)
+//      printf("*** EVC# %02u not in use\n\n", evc_id);
+//    continue;
+//  }
 
-    printf("  Flags     = 0x%08X", evcs[evc_idx].flags);
-    if (evcs[evc_idx].flags)
+    ptin_evc_ext2int(evc_ext_id, &evc_id);
+
+    printf("eEVC# %02u (internal id %u)\n", evc_ext_id, evc_id);
+
+    printf("  Flags     = 0x%08X", evcs[evc_id].flags);
+    if (evcs[evc_id].flags)
       printf("   ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_BUNDLING)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_BUNDLING)
       printf("BUNDLING  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_ALL2ONE)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_ALL2ONE)
       printf("ALL2ONE  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_P2P)
-      printf("P2P   ");
+
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO)
+      printf("QUATTRO-");
+
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P)
+      printf("P2P     ");
     else
-      printf("P2MP  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_STACKED)
+      printf("P2MP    ");
+
+
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED)
       printf("STACKED    ");
     else
       printf("UNSTACKED  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_MACLEARNING)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING)
       printf("MACLEARNING  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_CPU_TRAPPING)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)
       printf("CPUTrap  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
       printf("IGMP  ");
-    if (evcs[evc_idx].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
       printf("DHCPop82  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+      printf("PPPoE  ");
     printf("\n");
 
-    printf("  MC Flood  = %s (%u)\n", evcs[evc_idx].mc_flood == PTIN_EVC_MC_FLOOD_ALL ? "All":evcs[evc_idx].mc_flood == PTIN_EVC_MC_FLOOD_UNKNOWN ? "Unknown":"None",
-           evcs[evc_idx].mc_flood);
+    printf("  MC Flood  = %s (%u)\n", evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_ALL ? "All":evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_UNKNOWN ? "Unknown":"None",
+           evcs[evc_id].mc_flood);
               
-    printf("  Roots     = %2u        Counters = %u\t\tProbes=%u\n", evcs[evc_idx].n_roots, evcs[evc_idx].n_counters, evcs[evc_idx].n_probes);
-    printf("  Leafs     = %2u        BW Prof. = %u\n", evcs[evc_idx].n_leafs, evcs[evc_idx].n_bwprofiles);
+    printf("  Roots     = %-2u        Counters = %u\t\tProbes=%u\n", evcs[evc_id].n_roots, evcs[evc_id].n_counters, evcs[evc_id].n_probes);
+    printf("  Leafs     = %-2u        BW Prof. = %u\n", evcs[evc_id].n_leafs, evcs[evc_id].n_bwprofiles);
 
-    printf("  Root VLAN = %u\n", evcs[evc_idx].rvlan);
+    printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
+    printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
 
     /* Only stacked services have clients */
-    if (IS_EVC_STACKED(evc_idx))
-      printf("  Clients   = %u\n", evcs[evc_idx].n_clients);
+    if (IS_EVC_STACKED(evc_id))
+      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
-      if (!evcs[evc_idx].intf[i].in_use)
+      if (!evcs[evc_id].intf[i].in_use)
         continue;
 
       if (i<PTIN_SYSTEM_N_PORTS)
@@ -7323,31 +8607,46 @@ void ptin_evc_dump(L7_uint evc_idx)
       else
         printf("  LAG# %02u\n", i - PTIN_SYSTEM_N_PORTS);
 
-      printf("    MEF Type      = %s\n", evcs[evc_idx].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
-      printf("    Outer VLAN    = %-5u      Counter  = %s\n", evcs[evc_idx].intf[i].out_vlan, evcs[evc_idx].intf[i].counter != NULL ? "Active":"Disabled");
-      printf("    Internal VLAN = %-5u      BW Prof. = %s\n", evcs[evc_idx].intf[i].int_vlan, evcs[evc_idx].intf[i].bwprofile != NULL ? "Active":"Disabled");
+      printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
+      #if 0
+      printf("#Flows=%u", evcs[evc_id].intf[i].n_flows);
+      #endif
+      printf("\r\n");
+      printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
+      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile != NULL ? "Active":"Disabled");
       #ifdef PTIN_ERPS_EVC
-      printf("    Port State    = %s\n", evcs[evc_idx].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
+      printf("    Port State    = %s\n", evcs[evc_id].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
       #endif
 
       /* Only stacked services have clients */
-      if (IS_EVC_STACKED(evc_idx))
+      if (IS_EVC_STACKED(evc_id))
       {
-        printf("    Clients       = %u\n", evcs[evc_idx].intf[i].clients.n_elems);
+        printf("    Clients       = %u\n", evcs[evc_id].intf[i].clients.n_elems);
 
         /* SEM CLIENTS UP */
         osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
-        dl_queue_get_head(&evcs[evc_idx].intf[i].clients, (dl_queue_elem_t **) &pclient);
+        dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
 
-        for (j=0; j<evcs[evc_idx].intf[i].clients.n_elems; j++) {
-          printf("      Client# %2u: OVID=%04u IVID=%04u  Flood Vlans={%4u,%4u,%4u,%4u,%4u,%4u,%4u,%4u} (Counter {%s,%s}; BW Prof. {%s,%s})\n", j,
-                 pclient->out_vlan, pclient->inn_vlan,
-                 pclient->flood_vlan[0], pclient->flood_vlan[1], pclient->flood_vlan[2], pclient->flood_vlan[3], pclient->flood_vlan[4], pclient->flood_vlan[5], pclient->flood_vlan[6], pclient->flood_vlan[7],
-                 pclient->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclient->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
-                 pclient->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclient->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+        for (j=0; j<evcs[evc_id].intf[i].clients.n_elems; j++) {
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+          if (IS_EVC_QUATTRO(evc_id))
+          {
+            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x) (Count {%s,%s}; BWProf {%s,%s})\r\n",
+                   j, pclientFlow->flags & 0xffff,
+                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff,
+                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+          }
+          else
+          #endif
+          {
+            printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
+                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+          }
 
-          pclient = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_idx].intf[i].clients, (dl_queue_elem_t *) pclient);
+          pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);
         }
 
         /* SEM CLIENTS DOWN */
@@ -7366,7 +8665,7 @@ void ptin_evc_dump(L7_uint evc_idx)
  */
 void ptin_evc_which(L7_uint int_vlan)
 {
-  L7_uint evc_idx;
+  L7_uint evc_id;
 
   printf("Which EVC corresponds to the internal vlan %u ?\r\n",int_vlan);
 
@@ -7376,32 +8675,64 @@ void ptin_evc_which(L7_uint int_vlan)
     return;
   }
 
-  evc_idx = evcId_from_internalVlan[int_vlan];
+  evc_id = evcId_from_internalVlan[int_vlan];
 
-  if (evc_idx >= PTIN_SYSTEM_N_EVCS)
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    printf("Vlan %u does not correspond to a valid EVC id (%u)\r\n",int_vlan,evc_idx);
+    printf("Vlan %u does not correspond to a valid EVC id (%u)\r\n",int_vlan,evc_id);
     return;
   }
 
-  printf("Internal vlan %u => EVC %u\r\n\n",int_vlan,evc_idx);
+  printf("Internal vlan %u => EVC %u\r\n\n",int_vlan,evc_id);
 
   /* Dump EVC */
-  ptin_evc_dump(evc_idx);
+  ptin_evc_dump(evcs[evc_id].extended_id);
+}
+
+
+/**
+ * Dumps EVC extended index mapping 
+ */
+void ptin_evc_map(void)
+{
+  L7_uint32 evc_ext_id;
+
+  printf("+---------+---------+\n");
+  printf("| Ext. ID | Int. ID |\n");
+  printf("+---------+---------+\n");
+
+  for (evc_ext_id=0; evc_ext_id < PTIN_SYSTEM_N_EXTENDED_EVCS; evc_ext_id++) {
+    if (!IS_eEVC_IN_USE(evc_ext_id))
+      continue;
+
+    printf("|  %5u  |  %5d  |\n", evc_ext_id, evc_ext2int[evc_ext_id]);
+  }
+
+  printf("+---------+---------+\n");
+
+  return;
+}
+
+
+
+void sizeof_evc(void)
+{
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_client_s)     = %d", sizeof(struct ptin_evc_client_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_intf_s)       = %d", sizeof(struct ptin_evc_intf_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_s)            = %d", sizeof(struct ptin_evc_s));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_IGMP_Statistics_t)= %d", sizeof(ptin_IGMP_Statistics_t));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "PTIN_SYSTEM_N_INTERF          = %d", PTIN_SYSTEM_N_INTERF);
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(IGMP statistics)       = %d", sizeof(ptin_IGMP_Statistics_t)*PTIN_SYSTEM_N_INTERF);
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evcs)                  = %d", sizeof(evcs));
+  #if 0
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_flow_t)       = %d", sizeof(ptin_evc_flow_t));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evc_flows)             = %d", sizeof(evc_flows));
+  #endif
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(clients)               = %d", sizeof(clients));
+  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "total(evcs+clients)           = %d", sizeof(evcs)+sizeof(clients));
 }
 
 #if 0
-void sizeof_evc(void)
-{
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_client_s) = %d", sizeof(struct ptin_evc_client_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_intf_s)   = %d", sizeof(struct ptin_evc_intf_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(ptin_evc_s)        = %d", sizeof(struct ptin_evc_s));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(evcs)              = %d", sizeof(evcs));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "sizeof(clients)           = %d", sizeof(clients));
-  LOG_CRITICAL(LOG_CTX_PTIN_EVC, "total(evcs+clients)       = %d", sizeof(evcs)+sizeof(clients));
-}
-
-
 void test_bitmaps(void)
 {
     #define SIZE    16

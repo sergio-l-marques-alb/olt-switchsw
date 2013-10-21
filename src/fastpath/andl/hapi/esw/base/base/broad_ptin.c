@@ -497,6 +497,14 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
     if (ptin_hapi_bridge_vlan_mode_fwdVlan_set(mode->vlanId, mode->fwdVlanId)!=L7_SUCCESS)
       rc = L7_FAILURE;
   }
+
+  /* Multicast configuration */
+  if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP)
+  {
+    if (ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group)!=L7_SUCCESS)
+      rc = L7_FAILURE;
+  }
+
   /* Outer TPID configuration */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_OTPID)
   {
@@ -517,6 +525,119 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished: rc=%d", rc);
+
+  return rc;
+}
+
+/**
+ * Define vlan mode settings related to Multicast groups
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapiBroadPtinBridgeVlanMulticastSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  ptin_dapi_port_t dapiPort;
+  ptin_bridge_vlan_multicast_t *mode = (ptin_bridge_vlan_multicast_t *) data;
+  L7_RC_t rc = L7_SUCCESS;
+
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  switch (mode->oper)
+  {
+  case DAPI_CMD_SET:
+    rc = ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group);
+    break;
+  case DAPI_CMD_CLEAR:
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->destroy_on_clear);
+    break;
+  case DAPI_CMD_CLEAR_ALL:
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->destroy_on_clear);
+    break;
+  default:
+    rc = L7_FAILURE;
+    break;
+  }
+
+  return rc;
+}
+
+/**
+ * Configure Multicast egress ports
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  ptin_dapi_port_t dapiPort;
+  ptin_bridge_vlan_multicast_t *mode = (ptin_bridge_vlan_multicast_t *) data;
+  L7_RC_t rc = L7_SUCCESS;
+
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  switch (mode->oper)
+  {
+  case DAPI_CMD_SET:
+    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, &dapiPort);
+    break;
+  case DAPI_CMD_CLEAR:
+    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, &dapiPort);
+    break;
+  case DAPI_CMD_CLEAR_ALL:
+    rc = ptin_hapi_multicast_egress_clean(mode->multicast_group, mode->destroy_on_clear);
+    break;
+  default:
+    rc = L7_FAILURE;
+    break;
+  }
+
+  return rc;
+}
+
+/**
+ * Configure Virtual ports
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  ptin_dapi_port_t dapiPort;
+  ptin_vport_t *vport = (ptin_vport_t *) data;
+  L7_RC_t rc = L7_SUCCESS;
+
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  switch (vport->oper)
+  {
+  case DAPI_CMD_SET:
+    rc = ptin_hapi_vp_create(&dapiPort,
+                             vport->ext_ovid, vport->ext_ivid,
+                             vport->int_ovid, vport->int_ivid,
+                             &vport->multicast_group,
+                             &vport->virtual_gport);
+    break;
+  case DAPI_CMD_CLEAR:
+  case DAPI_CMD_CLEAR_ALL:
+    rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+    break;
+  default:
+    rc = L7_FAILURE;
+    break;
+  }
 
   return rc;
 }

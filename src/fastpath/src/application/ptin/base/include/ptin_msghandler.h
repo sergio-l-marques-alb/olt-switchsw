@@ -58,6 +58,9 @@
 #define CCMSG_ETH_EVC_FLOOD_VLAN_GET        0x9036  // struct msg_HwEthEvcFloodVlan_t
 #define CCMSG_ETH_EVC_FLOOD_VLAN_ADD        0x9037  // struct msg_HwEthEvcFloodVlan_t
 #define CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE     0x9038  // struct msg_HwEthEvcFloodVlan_t
+#define CCMSG_ETH_EVC_FLOW_GET              0x9039  // struct msg_HwEthEvcFlow_t
+#define CCMSG_ETH_EVC_FLOW_ADD              0x903A  // struct msg_HwEthEvcFlow_t
+#define CCMSG_ETH_EVC_FLOW_REMOVE           0x903B  // struct msg_HwEthEvcFlow_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // Consultar contadores a pedido: struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // Activar contadores a pedido: struct msg_evcStats_t
@@ -572,23 +575,37 @@ typedef struct {
  ****************************************************/
 
 /* EVC details per interface */
+typedef struct {
+  L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
+  L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
+  L7_uint16 outer_vid;    // Outer VLAN id [1..4094]
+  L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
+} __attribute__((packed)) msg_HwEthIntf_t;
+
+/* EVC details per interface */
 // Messages CCMSG_ETH_EVC_GET, CCMSG_ETH_EVC_ADD and CCMSG_ETH_EVC_REMOVE
 typedef struct {
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */
 typedef struct {
   L7_uint8  SlotId;
   L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint32 flags;        // 0x0001 - Bundling      (not implemented)
-                          // 0x0002 - All to One    (not implemented)
-                          // 0x0004 - Stacked       (PTin custom field)
-                          // 0x0008 - Mac Learning  (PTin custom field)
-                          // 0x0010 - cpu Trapping  (PTin custom field)
+  L7_uint32 flags;        // 0x000001 - Bundling      (not implemented)
+                          // 0x000002 - All to One    (not implemented)
+                          // 0x000004 - Stacked       (PTin custom field)
+                          // 0x000008 - Mac Learning  (PTin custom field)
+                          // 0x000010 - cpu Trapping  (PTin custom field)
+                          // 0x000100 - DHCP protocol (PTin custom field)
+                          // 0x000200 - IGMP protocol (PTin custom field)
+                          // 0x000400 - PPPOE protocol (PTin custom field)
+                          // 0x010000 - P2P EVC        (PTin custom field)
+                          // 0x020000 - QUATTRO EVC    (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
@@ -615,6 +632,19 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
+
+/* EVC flow */
+// Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                            // 0x000200 - IGMP protocol (PTin custom field)
+                            // 0x000400 - PPPOE protocol (PTin custom field)
+  /* Flow information */
+  L7_uint16 nni_cvlan;  // NNI inner vlan
+  msg_HwEthIntf_t intf; // Outer vlan is the GEM id
+} __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC stacked bridge */
 // Messages CCMSG_ETH_EVC_FLOOD_VLAN_ADD and CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE

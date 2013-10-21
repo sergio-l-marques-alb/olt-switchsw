@@ -2094,10 +2094,10 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   L7_uint i;
   ptin_HwEthMef10Evc_t ptinEvcConf;
 
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if (msgEvcConf->id >= PTIN_SYSTEM_N_EVCS)
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -2152,10 +2152,10 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
   L7_uint i;
   ptin_HwEthMef10Evc_t ptinEvcConf;
 
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EVCS))
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -2179,12 +2179,13 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
     ptinEvcConf.intf[i].intf_type = msgEvcConf->intf[i].intf_type;
     ptinEvcConf.intf[i].mef_type  = msgEvcConf->intf[i].mef_type;
     ptinEvcConf.intf[i].vid       = msgEvcConf->intf[i].vid;
+    ptinEvcConf.intf[i].vid_inner = msgEvcConf->intf[i].inner_vid;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u",
-              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-              ptinEvcConf.intf[i].intf_id,
-              ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-              ptinEvcConf.intf[i].vid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u/%-04u",
+             ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+             ptinEvcConf.intf[i].intf_id,
+             ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+             ptinEvcConf.intf[i].vid,ptinEvcConf.intf[i].vid_inner);
   }
 
   if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
@@ -2205,10 +2206,10 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
  */
 L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10Evc_t *msgEvcConf)
 {
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
-  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EVCS))
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -2289,6 +2290,80 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   if ( rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Adds a flow to an EVC
+ * 
+ * @param msgEvcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
+{
+  ptin_HwEthEvcFlow_t ptinEvcFlow;
+  L7_RC_t rc;
+
+  /* Copy data */
+  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
+  ptinEvcFlow.flags               = msgEvcFlow->flags;
+  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
+  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
+  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                  ptinEvcFlow.ptin_intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+
+  if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes a flow from an EVC
+ * 
+ * @param msgEvcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
+{
+  ptin_HwEthEvcFlow_t ptinEvcFlow;
+  L7_RC_t rc;
+
+  /* Copy data */
+  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
+  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
+  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
+  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                ptinEvcFlow.ptin_intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+
+  if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
     return rc;
   }
 
@@ -3027,8 +3102,9 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
  */
 L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 {
-  L7_uint           evc_idx;
-  ptin_client_id_t  client;
+  L7_uint                 evc_idx;
+  ptin_client_id_t        client;
+  ptin_clientCircuitId_t  circuitId_data;
   L7_RC_t           rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
@@ -3071,8 +3147,13 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   }
 
   /* Get circuit and remote ids */
-  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &profile->circuitId.onuid, &profile->circuitId.slot, &profile->circuitId.port,
-                            &profile->circuitId.q_vid, &profile->circuitId.c_vid, L7_NULLPTR, profile->remoteId);
+  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
+
+  profile->circuitId.onuid  = circuitId_data.onuid;
+  profile->circuitId.slot   = circuitId_data.slot;
+  profile->circuitId.port   = circuitId_data.port;
+  profile->circuitId.q_vid  = circuitId_data.q_vid;
+  profile->circuitId.c_vid  = circuitId_data.c_vid;
 
   if (rc!=L7_SUCCESS)
   {
@@ -3100,9 +3181,10 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
  */
 L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_uint n_clients)
 {
-  L7_uint           i, evc_idx;
-  ptin_client_id_t  client;
-  L7_RC_t           rc = L7_SUCCESS;
+  L7_uint                 i, evc_idx;
+  ptin_client_id_t        client;
+  ptin_clientCircuitId_t  circuitId;
+  L7_RC_t                 rc = L7_SUCCESS;
 
   /* Validate input parameters */
   if (profile==L7_NULLPTR)
@@ -3164,18 +3246,21 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     }
 
     /* TODO: To be reworked */
+    circuitId.onuid   = profile[i].circuitId.onuid;
+    circuitId.slot    = profile[i].circuitId.slot;
+    circuitId.port    = profile[i].circuitId.port;
+    circuitId.q_vid   = profile[i].circuitId.q_vid;
+    circuitId.c_vid   = profile[i].circuitId.c_vid;
 
     /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-                              profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
       return rc;
     }
 
-    rc = ptin_pppoe_client_add(evc_idx, &client, profile[i].options, profile[i].circuitId.onuid, profile[i].circuitId.slot,
-                               profile[i].circuitId.port, profile[i].circuitId.q_vid, profile[i].circuitId.c_vid, profile[i].remoteId);
+    rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
     /* TODO */
 #if 0
     if (rc!=L7_SUCCESS)
@@ -4028,7 +4113,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId,&client);
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0);
 
     if (rc!=L7_SUCCESS)
     {

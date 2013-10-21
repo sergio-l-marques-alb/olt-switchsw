@@ -825,9 +825,11 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         #endif
 
         /* Client information */
+        memset(&client, 0x00, sizeof(client));
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = vlanId;
         client.innerVlan = innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
@@ -1093,8 +1095,9 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = vlanId;
         client.innerVlan = innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
@@ -1913,8 +1916,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      ptin_client_id_t client;
 
      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+     client.outerVlan = dhcp_binding.vlanId;
      client.innerVlan = dhcp_binding.innerVlanId;
-     client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+     client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
        LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
@@ -2069,7 +2073,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Change ethernet priority bit
-   if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+   if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
    {
      LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
      return L7_FAILURE;
@@ -3712,8 +3716,9 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+        client.outerVlan = dhcp_binding.vlanId;
         client.innerVlan = dhcp_binding.innerVlanId;
-        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
         if (dhcp_binding.innerVlanId!=0)
         {
@@ -4405,7 +4410,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if (relayOptIntIfNum != L7_NULL)
     {
        //Change ethernet priority bit
-      if (ptin_dhcp_ethPrty_get(relayOptIntIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+      if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
@@ -4427,7 +4432,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
     else
     {
        //Change ethernet priority bit
-      if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+      if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
@@ -4547,7 +4552,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
           L7_uint8  *frameEthPrty;
 
           //Change ethernet priority bit
-          if (ptin_dhcp_ethPrty_get(intIfNum, vlanId, innerVlanId, &ethPrty) != L7_SUCCESS)
+          if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
             return L7_FAILURE;
@@ -4876,7 +4881,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_BOOL           is_vlan_stacked;
+  //L7_BOOL           is_vlan_stacked;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -4913,27 +4918,16 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   //L7_int i;
 
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
   {
+    #if 0
     /* Check if vlan belongs to a stacked EVC */
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;
     }
-
-    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
-    {
-      //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
-      memmove(&frame[20],&frame[16],frameLen);
-      frame[16] = 0x81;
-      frame[17] = 0x00;
-      frame[18] = extIVlan>>8;
-      frame[19] = extIVlan & 0xff;
-      frameLen += 4;
-      //innerVlanId = extIVlan;
-    }
+    #endif
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
@@ -4941,6 +4935,24 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
       frame[14] |= ((extOVlan>>8) & 0x0f);
       frame[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
+    }
+    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
+    if (/*is_vlan_stacked &&*/ extIVlan!=0)
+    {
+      //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
+            /* No inner tag? */
+      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
+          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
+          *((L7_uint16 *) &frame[16]) != 0x9100)
+      {
+        memmove(&frame[20],&frame[16],frameLen);
+        frame[16] = 0x81;
+        frame[17] = 0x00;
+        frameLen += 4;
+      }
+      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
+      frame[19] = extIVlan & 0xff;
+      //innerVlanId = extIVlan;
     }
   }
   #endif

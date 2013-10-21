@@ -401,6 +401,24 @@ extern L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge);
 extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
 
 /**
+ * Adds an flow to an EVC
+ * 
+ * @param msgEvcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow);
+
+/**
+ * Removes a flow from an EVC
+ * 
+ * @param msgEvcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow);
+
+/**
  * Adds a flooding vlan applied to an EVC
  * 
  * @param msgEvcFlood : Flooding vlan info 

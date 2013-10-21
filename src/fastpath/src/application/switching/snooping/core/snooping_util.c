@@ -1217,7 +1217,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
                      L7_uint32 vlanId,
                      L7_uint32 innerVIDUntagged,
                      L7_uchar8 *payload,
-                     L7_uint32 payloadLen, L7_uchar8 family)
+                     L7_uint32 payloadLen, L7_uchar8 family,
+                     L7_int client_idx)
 {
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
@@ -1253,21 +1254,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
   ptin_timer_start(31,"snoopPacketSend-ptin_evc_extVlans_get_fromIntVlan");
   /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVIDUntagged,&extOVlan,&extIVlan)==L7_SUCCESS)
+  if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
-    /* Add inner vlan when there exists */
-    #if 0
-    if (extIVlan!=0)
-    {
-      memmove(&payload[20],&payload[16],payloadLen);
-      payload[16] = 0x81;
-      payload[17] = 0x00;
-      payload[18] = extIVlan>>8;
-      payload[19] = extIVlan & 0xff;
-      payloadLen += 4;
-      //innerVlanId = extIVlan;
-    }
-    #endif
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
@@ -1276,6 +1264,23 @@ void snoopPacketSend(L7_uint32 intIfNum,
       payload[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
 //    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmitted in intIfNum=%u, with vlan=%u (original=%u)",intIfNum,extOVlan,vlanId);
+    }
+    /* Add inner vlan when there exists */
+    if (extIVlan!=0)
+    {
+      /* No inner tag? */
+      if (*((L7_uint16 *) &payload[16]) != 0x8100 &&
+          *((L7_uint16 *) &payload[16]) != 0x88A8 &&
+          *((L7_uint16 *) &payload[16]) != 0x9100)
+      {
+        memmove(&payload[20],&payload[16],payloadLen);
+        payload[16] = 0x81;
+        payload[17] = 0x00;
+        payloadLen += 4;
+      }
+      payload[18] = (payload[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
+      payload[19] = extIVlan & 0xff;
+      //innerVlanId = extIVlan;
     }
   }
   ptin_timer_stop(31);
@@ -1303,14 +1308,14 @@ void snoopPacketSend(L7_uint32 intIfNum,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u)",
             intIfNum, extOVlan, vlanId);
 
-#if 0 //MMelo
-  L7_uint32 i;
-  printf("PayloadLength:%d\n",payloadLen);
-  for (i=0;i<payloadLen;i++)
-    printf("0x%x",payload[i]);
-  printf("\n");
-   return;
-#endif
+  if (ptin_debug_igmp_snooping)
+  {
+    L7_uint32 i;
+    printf("PayloadLength:%d\n",payloadLen);
+    for (i=0;i<payloadLen;i++)
+      printf("%02x ",payload[i]);
+    printf("\n");
+  }
 }
 
 /*********************************************************************
@@ -1623,7 +1628,8 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
       ptin_timer_start(30,"snoopPacketRtrIntfsForward-snoopPacketSend");
       snoopPacketSend(intf, mcastPacket->vlanId, mcastPacket->innerVlanId,
                       mcastPacket->payLoad,
-                      mcastPacket->length, mcastPacket->cbHandle->family);
+                      mcastPacket->length, mcastPacket->cbHandle->family,
+                      mcastPacket->client_idx);
       ptin_timer_stop(30);
       //printf("%s(%d) Packet sent to intf %u with vlan %u\r\n",__FUNCTION__,__LINE__,intf,mcastPacket->vlanId);
 
@@ -1678,9 +1684,11 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
 {
   L7_uint32      intf; /* Loop through internal interface numbers */
   L7_INTF_MASK_t mcastClientAttached;
-  L7_uint        inner_vlan;
   L7_RC_t        rc;
   L7_uint        client_idx;
+  L7_uint16      int_ovlan = mcastPacket->vlanId;
+  L7_uint16      int_ivlan = 0;
+  ptin_HwEthEvcFlow_t clientFlow;
 
   client_idx = mcastPacket->client_idx; /* Default client index */
 
@@ -1701,49 +1709,53 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
   {
     if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intf)) )
     {
-      /* Run all clients */
-      inner_vlan = 0;   /* To get first client */
+      /* To get the first client */
+      memset(&clientFlow, 0x00, sizeof(clientFlow));
       do
       {
         if (ptin_debug_igmp_snooping)
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u", intf);
 
         #if (defined IGMP_QUERIER_IN_UC_EVC)
-        L7_uint inner_vlan_next;
+        /* First client/flow */
+        rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, &clientFlow, &clientFlow);
 
-        rc = ptin_evc_vlan_client_next(mcastPacket->vlanId, intf, inner_vlan, &inner_vlan_next, L7_NULLPTR);
+        /* Internal vlans */
+        int_ivlan = clientFlow.int_ivid;
 
         if (ptin_debug_igmp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d inner_vlan_next=%u", rc, inner_vlan_next);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d", rc);
 
         /* if success, use next cvlan */
-        if ( rc == L7_SUCCESS && inner_vlan_next != 0)
+        if (rc == L7_SUCCESS)
         {
-          /* Use this inner vlan */
-          inner_vlan = inner_vlan_next;
+          /* If this client is not an IGMP client, goto next one */
+          if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+            continue;
 
-          /* Get related client index */
-          if (ptin_igmp_clientIndex_get(intf,
-                                        mcastPacket->vlanId, inner_vlan,
-                                        L7_NULLPTR,
-                                        &client_idx)!=L7_SUCCESS)
+          /* Get client index */
+          if (clientFlow.int_ivid != 0)
           {
-            client_idx = (L7_uint) -1;
-          }
-          if (ptin_debug_igmp_snooping)
-          {
-            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for client cvlan=%u (client_idx=%u) in intIfNum=%u (intVlan=%u)",
-                      inner_vlan, client_idx, intf, mcastPacket->vlanId);
+            /* Get related client index */
+            if (ptin_igmp_clientIndex_get(intf, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
+            {
+              client_idx = (L7_uint) -1;
+            }
+            if (ptin_debug_igmp_snooping)
+            {
+              LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for client cvlan=%u (client_idx=%u) in intIfNum=%u (intVlan=%u)",
+                        int_ivlan, client_idx, intf, int_ovlan);
+            }
           }
         }
         /* If clients are not supported, used null inner vlan */
         else if ( rc == L7_NOT_SUPPORTED )
         {
-          inner_vlan = 0;
+          int_ivlan = 0;
           client_idx = (L7_uint)-1;
           if (ptin_debug_igmp_snooping)
           {
-            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", intf, mcastPacket->vlanId);
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", intf, int_ovlan);
           }
         }
         else
@@ -1751,52 +1763,57 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
           /* An error ocurred */
           if (ptin_debug_igmp_snooping)
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", intf, mcastPacket->vlanId, rc);
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", intf, int_ovlan, rc);
           }
           break;
         }
         #else
         /* Standard querier, with no inner vlan (clients querier not supported) */
-        inner_vlan = 0;
+        int_ivlan = 0;
         rc = L7_NOT_SUPPORTED;
         #endif
 
-        /* Send packet */
-        snoopPacketSend(intf, mcastPacket->vlanId, inner_vlan,
-                        mcastPacket->payLoad,
-                        mcastPacket->length, mcastPacket->cbHandle->family);
-
-        //#if (!defined IGMP_QUERIER_IN_UC_EVC)
-        /* Update statistics: only for MC queriers */
-        switch (igmp_type)
+        /* Only transmit, if IGMP flag is active */
+        if (rc==L7_NOT_SUPPORTED || clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
         {
-        case L7_IGMP_MEMBERSHIP_QUERY:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
-          break;      
-        case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
-          break;
-        case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
-          break;            
-        case L7_IGMP_V1_MEMBERSHIP_REPORT:
-        case L7_IGMP_V2_MEMBERSHIP_REPORT:
-          ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
-          break;
-        case L7_IGMP_V3_MEMBERSHIP_REPORT:
-          ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
-          break;
-        case L7_IGMP_V2_LEAVE_GROUP:
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_LEAVES_SENT);
-          break;
-        }
-//      ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_SENT);
-        //#endif
+          /* Send packet */
+          snoopPacketSend(intf, int_ovlan, int_ivlan,
+                          mcastPacket->payLoad,
+                          mcastPacket->length, mcastPacket->cbHandle->family,
+                          mcastPacket->client_idx);
 
-        if (ptin_debug_igmp_snooping)
-        {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited for intIfNum=%u, with inner_vlan=%u (intVlan=%u)",
-                    intf, inner_vlan, mcastPacket->vlanId);
+          //#if (!defined IGMP_QUERIER_IN_UC_EVC)
+          /* Update statistics: only for MC queriers */
+          switch (igmp_type)
+          {
+          case L7_IGMP_MEMBERSHIP_QUERY:
+            ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);          
+            break;      
+          case L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+            ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+            break;
+          case L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+            ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
+            break;            
+          case L7_IGMP_V1_MEMBERSHIP_REPORT:
+          case L7_IGMP_V2_MEMBERSHIP_REPORT:
+            ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_JOINS_SENT);
+            break;
+          case L7_IGMP_V3_MEMBERSHIP_REPORT:
+            ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,client_idx,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
+            break;
+          case L7_IGMP_V2_LEAVE_GROUP:
+            ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_LEAVES_SENT);
+            break;
+          }
+          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_SENT);
+          //#endif
+
+          if (ptin_debug_igmp_snooping)
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited for intIfNum=%u, with inner_vlan=%u (intVlan=%u)",
+                      intf, int_ivlan, mcastPacket->vlanId);
+          }
         }
       } while (rc==L7_SUCCESS);   /* Next client? */
     }

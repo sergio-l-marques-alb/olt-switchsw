@@ -667,7 +667,14 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  xlate.innerAction   = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
+  if (innerVlanId!=0)
+  {
+    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
+  }
+  else
+  {
+    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
+  }
 #endif
 
   /* DTL call */
@@ -866,8 +873,8 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u",
-              intIfNum, outerVlanId, innerVlanId, newOuterVlanId);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
@@ -1091,8 +1098,19 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
-  //xlate.innerAction   = (innerVlanId!=0) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
+  if (newInnerVlanId==0)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_NONE;
+  }
+  else if (newInnerVlanId>4095)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  else
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_REPLACE;
+  }
+  //xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
 #endif
 
   /* DTL call */

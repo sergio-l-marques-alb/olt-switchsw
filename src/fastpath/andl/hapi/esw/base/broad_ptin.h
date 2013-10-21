@@ -138,6 +138,42 @@ extern L7_RC_t hapiBroadPtinVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
 extern L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
 /**
+ * Define vlan mode settings related to Multicast groups
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapiBroadPtinBridgeVlanMulticastSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+/**
+ * Configure Multicast egress ports
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+/**
+ * Configure Virtual ports
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_multicast_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+/**
  * Set crossconnections
  * 
  * @param usp 

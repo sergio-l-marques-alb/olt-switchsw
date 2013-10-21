@@ -466,6 +466,7 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
 #define PTIN_BROAD_INIT_TRAP_TO_CPU       0
 #define PTIN_BROAD_INIT_ALLOW_COS_CHANGE  0
 
+
 /*********************************************************************
 *
 * @purpose Install system policies for prioritizing traffic.

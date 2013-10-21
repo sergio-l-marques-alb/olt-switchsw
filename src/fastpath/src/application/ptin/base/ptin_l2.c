@@ -67,10 +67,10 @@ L7_RC_t ptin_l2_mac_table_load(void)
   dot1dTpFdbData_t  fdbEntry;
   L7_uint16         index, i;
   ptin_intf_t       ptin_intf;
-  L7_uint16         vlan, evc_id;
-  ptin_HwEthMef10Evc_t evcCfg;
+  L7_uint16         vlan;
   L7_INTF_TYPES_t   intfType;
   L7_RC_t           rc = L7_SUCCESS;
+  L7_uint32         evc_ext_id;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Loading MAC table...");
 
@@ -110,15 +110,12 @@ L7_RC_t ptin_l2_mac_table_load(void)
       continue;
     }
 
-    evc_id = (L7_uint16) -1;
-    if (ptin_evc_get_fromIntVlan(vlan,&evcCfg)==L7_SUCCESS)
-    {
-      evc_id = evcCfg.index;
-    }
+    evc_ext_id = -1;
+    ptin_evc_get_evcIdfromIntVlan(vlan, &evc_ext_id);
 
     // Fill mac-table entry
     mac_table[index].entryId      = index;
-    mac_table[index].evcId        = evc_id;
+    mac_table[index].evcId        = evc_ext_id;
     mac_table[index].vlanId       = vlan;
     mac_table[index].intf         = ptin_intf;
     mac_table[index].static_entry = (fdbEntry.dot1dTpFdbEntryType==L7_FDB_ADDR_FLAG_STATIC);
@@ -281,12 +278,13 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
   /* If vlan is not given */
   if (entry->vlanId>4095)
   {
-    /* Check if EVC id is valid */
-    if (entry->evcId>=PTIN_SYSTEM_N_EVCS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_L2,"Vlan %u and evcId %u are invalid",entry->vlanId,entry->evcId);
-      return L7_FAILURE;
-    }
+    /* TODO: EVC id should be 32 bits instead of 16! */
+//  /* Check if EVC id is valid */
+//  if (entry->evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_L2,"Vlan %u and evcId %u are invalid",entry->vlanId,entry->evcId);
+//    return L7_FAILURE;
+//  }
 
     /* Get root vlan */
     if (ptin_evc_intRootVlan_get(entry->evcId,&vlanId)!=L7_SUCCESS)
@@ -374,12 +372,13 @@ L7_RC_t ptin_l2_mac_table_entry_add( ptin_switch_mac_entry *entry )
   /* If vlan is not given */
   if (entry->vlanId>4095)
   {
-    /* Check if EVC id is valid */
-    if (entry->evcId>=PTIN_SYSTEM_N_EVCS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_L2,"Vlan %u and evcId %u are invalid",entry->vlanId,entry->evcId);
-      return L7_FAILURE;
-    }
+    /* TODO: EVC id should be 32 bits instead of 16! */
+//  /* Check if EVC id is valid */
+//  if (entry->evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_L2,"Vlan %u and evcId %u are invalid",entry->vlanId,entry->evcId);
+//    return L7_FAILURE;
+//  }
 
     /* Get root vlan */
     if (ptin_evc_intRootVlan_get(entry->evcId,&vlanId)!=L7_SUCCESS)

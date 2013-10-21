@@ -61,6 +61,9 @@ extern int canal_buga;
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
+#define CCMSG_ETH_EVC_FLOW_GET              0x9039  // struct msg_HwEthEvcFlow_t
+#define CCMSG_ETH_EVC_FLOW_ADD              0x903A  // struct msg_HwEthEvcFlow_t
+#define CCMSG_ETH_EVC_FLOW_REMOVE           0x903B  // struct msg_HwEthEvcFlow_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // struct msg_evcStats_t
@@ -488,12 +491,21 @@ typedef struct {
  ****************************************************/
 
 /* EVC details per interface */
+typedef struct {
+  L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
+  L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
+  L7_uint16 outer_vid;    // Outer VLAN id [1..4094]
+  L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
+} __attribute__((packed)) msg_HwEthIntf_t;
+
+/* EVC details per interface */
 // Messages CCMSG_ETH_EVC_GET, CCMSG_ETH_EVC_ADD and CCMSG_ETH_EVC_REMOVE
 typedef struct {
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 inner_vid;    // Inner vlan
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */
@@ -532,6 +544,19 @@ typedef struct {
   /* Client interface (root is already known by the EVC) */
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
+
+/* EVC flow */
+// Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                            // 0x000200 - IGMP protocol (PTin custom field)
+                            // 0x000400 - PPPOE protocol (PTin custom field)
+  /* Flow information */
+  L7_uint16 nni_cvlan;  // NNI inner vlan
+  msg_HwEthIntf_t intf; // outer vlan is the GEM id
+} __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /***************************************************** 
  * BW Profiles messages
