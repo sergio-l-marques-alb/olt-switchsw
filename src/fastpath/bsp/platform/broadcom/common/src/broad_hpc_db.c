@@ -298,9 +298,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   L7_int  slot, port;
   L7_uint total_lanes;
 
-  L7_int    ptp_wc_index;
-  L7_int    ptp_wc_lane;
   L7_uint8  mx_board_ver;
+  L7_int    ptp_wc_index = -1;
+  L7_int    ptp_wc_lane  = -1;
   L7_int    wc_index, wc_lane, wc_group, speedG;
   L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
   L7_BOOL   wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
@@ -364,7 +364,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 
     /* PTP port only exists for hw versions 1 and 2 */
     mx_board_ver = matrix_board_version();
-    if (mx_board_ver < 3)
+    if (mx_board_ver < 2)
     {
       switch (mx_board_ver)
       {
@@ -512,7 +512,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     }
 
     /* PTP port only exists for hw versions 1 and 2 */
-    if (mx_board_ver < 3)
+    if (mx_board_ver < 2)
     {
       if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
       {
