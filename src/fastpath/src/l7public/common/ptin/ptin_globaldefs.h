@@ -978,6 +978,7 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 #define RATE_LIMIT_CCM      512
 #define RATE_LIMIT_IPDTL0   512
 #define RATE_LIMIT_QUATTRO  4096
+#define RATE_LIMIT_IPDTL0   512
 
 /* PTin module states */
 typedef enum {
