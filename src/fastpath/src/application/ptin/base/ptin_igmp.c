@@ -1293,33 +1293,6 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   return L7_SUCCESS;
 }
 
-/**
- * Removes all IGMP instances
- * 
- * @param McastEvcId : Multicast evc id 
- * @param UcastEvcId : Unicast evc id 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_remove_all_instances(void)
-{
-  L7_uint igmp_idx;
-  L7_RC_t rc, rc_global = L7_SUCCESS;
-
-  /* Remove all instances */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if ((rc=ptin_igmp_instance_delete(igmp_idx))!=L7_SUCCESS)
-    {
-      if (rc_global == L7_SUCCESS)
-        rc_global = rc;
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp_idx=%u",igmp_idx);
-    }
-  }
-
-  return rc_global;
-}
-
 
 /**
  * Removes all IGMP instances
@@ -5187,12 +5160,11 @@ static L7_RC_t igmp_assoc_avlTree_purge( void )
  * 
  * @param evc_idx   : evc index
  * @param enable    : enable flag 
- * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
- *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
+ * @param set_trap  : configure trap rule? 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_trap)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* IGMP instance management already deal with trp rules */
@@ -5202,11 +5174,14 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t di
     return L7_SUCCESS;
   }
 
-  /* Configure trap rule */
-  if (ptin_igmp_evc_trap_configure(evc_idx, enable, direction) != L7_SUCCESS)
+  if (set_trap)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
-    return L7_FAILURE;
+    /* Configure trap rule */
+    if (ptin_igmp_evc_trap_configure(evc_idx, enable, PTIN_DIR_BOTH) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
+      return L7_FAILURE;
+    }
   }
 
   #ifdef IGMP_QUERIER_IN_UC_EVC
@@ -5214,7 +5189,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t di
   if (ptin_igmp_evc_querier_configure(evc_idx,enable)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring querier to %u",evc_idx,enable);
-    ptin_igmp_evc_trap_configure(evc_idx, !enable, direction);
+    ptin_igmp_evc_trap_configure(evc_idx, !enable, PTIN_DIR_BOTH);
     return L7_FAILURE;
   }
   #endif
@@ -5250,7 +5225,7 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   if (!igmpInstances[igmp_idx].inUse)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not active", igmp_idx);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
   /* Deconfigure querier for this instance */
@@ -6340,13 +6315,14 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan;
+  L7_uint16   idx, mc_vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_intf_t          ptin_intf;
   L7_uint16            intf_idx;
   ptin_evc_intfCfg_t   intfCfg;
 #endif
+  L7_uint32 flags, mc_flood;
 
   enable &= 1;
 
@@ -6354,18 +6330,19 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   vlans_number = 0;
 
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_intRootVlan_get(evc_idx_mc, &vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",evc_idx_mc);
     return L7_FAILURE;
   }
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+  if (mc_vlan>=PTIN_VLAN_MIN && mc_vlan<=PTIN_VLAN_MAX)
   {
-    vlan_list[vlans_number++] = vlan;
+    vlan_list[vlans_number++] = mc_vlan;
   }
 
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   ptin_HwEthMef10Evc_t evcCfg;
+  L7_uint16 vlan;
 
   /* Get Unicast EVC configuration */
   evcCfg.index = evc_idx_uc;
@@ -6467,8 +6444,33 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     return L7_FAILURE;
   }
 
+  /* Disable/Reenable Multicast rate limit */
+  if (ptin_evc_flags_get(evc_idx_mc, &flags, &mc_flood)==L7_SUCCESS &&
+      (flags & PTIN_EVC_MASK_CPU_TRAPPING) && mc_flood)     /* Get EVC options and check if CPU trapping and MC flooding is active */
+  {
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Apply only to non QUATTRO-P2P or unique QUATTRO-P2P evcs */
+    if ( !(flags & PTIN_EVC_MASK_QUATTRO) || !(flags & PTIN_EVC_MASK_P2P) || (igmp_quattro_p2p_evcs <= 1) )
+    #endif
+    {
+      /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
+      if (enable)
+      {
+        ptin_multicast_rateLimit(L7_DISABLE, mc_vlan);
+        ptin_broadcast_rateLimit(L7_ENABLE , mc_vlan);
+      }
+      /* And vice-versa */
+      else
+      {
+        ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
+        ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
+      }
+    }
+  }
+
   return L7_SUCCESS;
 }
+
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 #ifdef IGMP_QUERIER_IN_UC_EVC
