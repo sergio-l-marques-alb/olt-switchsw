@@ -497,7 +497,7 @@ extern L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEv
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clean_all(void);
+extern L7_RC_t ptin_igmp_remove_all_instances(void);
 
 /**
  * Reactivate all IGMP instances

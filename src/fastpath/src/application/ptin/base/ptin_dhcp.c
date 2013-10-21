@@ -135,7 +135,7 @@ typedef struct {
 /* DHCP Instance config struct */
 typedef struct {
   L7_BOOL                     inUse;
-  L7_uint16                   UcastEvcId;
+  L7_uint16                   evc_idx;
   L7_uint16                   nni_ovid;
   L7_uint16                   n_evcs;
   ptinDhcpClients_t           dhcpClients;
@@ -174,11 +174,13 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
 static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx);
 static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_t **dhcpInst, L7_uint *dhcpInst_idx);
 static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
-static L7_RC_t ptin_dhcp_instance_find(L7_uint32 UcastEvcId, L7_uint *dhcp_idx);
+static L7_RC_t ptin_dhcp_instance_find(L7_uint32 evc_idx, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
 static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
 static void    ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
+static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                                L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 static void    ptin_dhcp_circuitId_build(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
 
@@ -371,28 +373,28 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
 /**
  * Check if a EVC is being used in an DHCP instance
  * 
- * @param evcId : evc id
+ * @param evc_idx : evc id
  * 
  * @return L7_RC_t : L7_TRUE or L7_FALSE
  */
-L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evcId)
+L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evc_idx)
 {
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
     return L7_FALSE;
   }
 
   /* This evc must be active */
-  if (!ptin_evc_is_in_use(evcId))
+  if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evc_idx=%u",evc_idx);
     return L7_FALSE;
   }
 
   /* Check if this EVC is being used by any DHCP instance */
-  if (ptin_dhcp_instance_find(evcId,L7_NULLPTR)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)!=L7_SUCCESS)
     return L7_FALSE;
 
   return L7_TRUE;
@@ -401,32 +403,32 @@ L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evcId)
 /**
  * Creates an DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
+L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
 {
   L7_uint dhcp_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
-  if (!ptin_evc_is_in_use(UcastEvcId))
+  if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(UcastEvcId,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",UcastEvcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",evc_idx);
     return L7_SUCCESS;
   }
 
@@ -438,10 +440,10 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
   }
 
   /* Save data in free instance */
-  dhcpInstances[dhcp_idx].UcastEvcId      = UcastEvcId;
-  dhcpInstances[dhcp_idx].nni_ovid        = 0;
-  dhcpInstances[dhcp_idx].n_evcs          = 1;
-  dhcpInstances[dhcp_idx].inUse           = L7_TRUE;
+  dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
+  dhcpInstances[dhcp_idx].nni_ovid = 0;
+  dhcpInstances[dhcp_idx].n_evcs   = 1;
+  dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
 
   /* Configure querier for this instance */
   if (ptin_dhcp_trap_configure(dhcp_idx,L7_ENABLE)!=L7_SUCCESS)
@@ -454,7 +456,7 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
   /* DHCP index in use */
 
   /* Save direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[UcastEvcId] = dhcp_idx;
+  dhcpInst_fromEvcId[evc_idx] = dhcp_idx;
 
   return L7_SUCCESS;
 }
@@ -462,32 +464,32 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 UcastEvcId)
 /**
  * Removes an DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId)
+L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
 {
   L7_uint dhcp_idx;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(UcastEvcId, &dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",UcastEvcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
     return L7_SUCCESS;
   }
 
   /* Remove all clients attached to this instance */
   if (ptin_dhcp_instance_deleteAll_clients(dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (UcastEvcId=%u)",dhcp_idx,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
     return L7_FAILURE;
   }
 
@@ -499,13 +501,13 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId)
   }
 
   /* Clear data and free instance */
-  dhcpInstances[dhcp_idx].UcastEvcId      = 0;
-  dhcpInstances[dhcp_idx].nni_ovid        = 0;
-  dhcpInstances[dhcp_idx].n_evcs          = 0;
-  dhcpInstances[dhcp_idx].inUse           = L7_FALSE;
+  dhcpInstances[dhcp_idx].evc_idx  = 0;
+  dhcpInstances[dhcp_idx].nni_ovid = 0;
+  dhcpInstances[dhcp_idx].n_evcs   = 0;
+  dhcpInstances[dhcp_idx].inUse    = L7_FALSE;
 
   /* Reset direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[UcastEvcId] = DHCP_INVALID_ENTRY;
+  dhcpInst_fromEvcId[evc_idx] = DHCP_INVALID_ENTRY;
 
   return L7_SUCCESS;
 }
@@ -513,13 +515,13 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 UcastEvcId)
 /**
  * Update DHCP entries, when EVCs are deleted
  * 
- * @param evcId : evc index
+ * @param evc_idx : evc index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
+L7_RC_t ptin_dhcp_instance_destroy(L7_uint32 evc_idx)
 {
-  return ptin_dhcp_instance_remove(evcId);
+  return ptin_dhcp_instance_remove(evc_idx);
 }
 
 
@@ -533,35 +535,35 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint16 evcId)
 /**
  * Associate an EVC to a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * @param nni_ovlan  : NNI outer vlan
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
+L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
   L7_uint dhcp_idx;
   L7_uint evc_type;
   L7_BOOL new_instance = L7_FALSE;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
-  if (!ptin_evc_is_in_use(UcastEvcId))
+  if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Get EVC type */
-  if (ptin_evc_check_evctype(UcastEvcId, &evc_type) != L7_SUCCESS)
+  if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", evc_idx);
     return L7_FAILURE;
   }
 
@@ -572,9 +574,9 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   }
 
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(UcastEvcId,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",UcastEvcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",evc_idx);
     return L7_SUCCESS;
   }
 
@@ -583,8 +585,6 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
       ptin_dhcp_instance_find_agg(nni_ovlan, &dhcp_idx) != L7_SUCCESS)
   {
-    nni_ovlan = 0;
-
     /* Find an empty instance to be used */
     if (ptin_dhcp_instance_find_free(&dhcp_idx) != L7_SUCCESS)
     {
@@ -600,10 +600,10 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   /* Save data in free instance */
   if (new_instance)
   {
-    dhcpInstances[dhcp_idx].UcastEvcId      = UcastEvcId;
-    dhcpInstances[dhcp_idx].nni_ovid        = nni_ovlan;
-    dhcpInstances[dhcp_idx].n_evcs          = 0;
-    dhcpInstances[dhcp_idx].inUse           = L7_TRUE;
+    dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
+    dhcpInstances[dhcp_idx].nni_ovid = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
+    dhcpInstances[dhcp_idx].n_evcs   = 0;
+    dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
   }
 
   /* Configure trap rule for this instance */
@@ -611,7 +611,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs==0)
   #endif
   {
-    if (ptin_dhcp_evc_trap_configure(UcastEvcId, L7_ENABLE) != L7_SUCCESS)
+    if (ptin_dhcp_evc_trap_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
       memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
@@ -620,7 +620,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
   }
 
   /* Save direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[UcastEvcId] = dhcp_idx;
+  dhcpInst_fromEvcId[evc_idx] = dhcp_idx;
 
   /* One more EVC associated to this instance */
   dhcpInstances[dhcp_idx].n_evcs++;
@@ -639,11 +639,11 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 UcastEvcId, L7_uint16 nni_ovlan)
 /**
  * Deassociate an EVC from a DHCP instance
  * 
- * @param UcastEvcId : Unicast evc id 
+ * @param evc_idx : Unicast evc id 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
+L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
 {
   L7_uint dhcp_idx;
   L7_uint evc_type;
@@ -651,23 +651,23 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
   L7_BOOL remove_instance = L7_TRUE;
 
   /* Validate arguments */
-  if (UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",UcastEvcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
     return L7_SUCCESS;
   }
 
   /* Get EVC type */
-  if (ptin_evc_check_evctype(UcastEvcId, &evc_type) != L7_SUCCESS)
+  if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", evc_idx);
     return L7_FAILURE;
   }
 
@@ -683,7 +683,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
   if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs<=1)
   #endif
   {
-    if (ptin_dhcp_evc_trap_configure(UcastEvcId, L7_DISABLE)!=L7_SUCCESS)
+    if (ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error unconfiguring DHCP snooping for dhcp_idx=%u",dhcp_idx);
       return L7_FAILURE;
@@ -696,13 +696,13 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
     /* Remove all clients attached to this instance */
     if (ptin_dhcp_instance_deleteAll_clients(dhcp_idx)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (UcastEvcId=%u)",dhcp_idx,UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
       return L7_FAILURE;
     }
   }
 
   /* Reset direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[UcastEvcId] = DHCP_INVALID_ENTRY;
+  dhcpInst_fromEvcId[evc_idx] = DHCP_INVALID_ENTRY;
 
   /* One less EVC */
   if (dhcpInstances[dhcp_idx].n_evcs > 0)
@@ -712,7 +712,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
   if (remove_instance)
   {
     /* Clear data and free instance */
-    dhcpInstances[dhcp_idx].UcastEvcId      = 0;
+    dhcpInstances[dhcp_idx].evc_idx      = 0;
     dhcpInstances[dhcp_idx].nni_ovid        = 0;
     dhcpInstances[dhcp_idx].n_evcs          = 0;
     dhcpInstances[dhcp_idx].inUse           = L7_FALSE;
@@ -732,35 +732,35 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 UcastEvcId)
 /**
  * Update DHCP entries, when EVCs are deleted
  * 
- * @param evcId : evc index
+ * @param evc_idx : evc index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_destroy(L7_uint16 evcId)
+L7_RC_t ptin_dhcp_evc_destroy(L7_uint32 evc_idx)
 {
-  return ptin_dhcp_evc_remove(evcId);
+  return ptin_dhcp_evc_remove(evc_idx);
 }
 
 
 /**
  * Reconfigure global DHCP EVC
  *
- * @param evcId         : evc index
+ * @param evc_idx         : evc index
  * @param dhcp_flag     : DHCP flag (not used)
  * @param options       : options
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 options)
+L7_RC_t ptin_dhcp_evc_reconf(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options)
 {
    L7_uint dhcp_idx;
    ptinDhcpClientDataKey_t avl_key;
    ptinDhcpClientInfoData_t *avl_info;
 
    /* Get DHCP instance index */
-   if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
    {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_FAILURE;
    }
 
@@ -795,9 +795,9 @@ L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 opti
 }
 
 /**
- * Set DHCP circuit-id global data
+ * Set DHCP circuit-id global data from NNI SVlan
  *
- * @param evcId           : evc index
+ * @param nni_outerVid    : NNI STAG
  * @param template_str    : Circuit-id template string
  * @param mask            : Circuit-id mask
  * @param access_node_id  : Access Node ID
@@ -808,10 +808,67 @@ L7_RC_t ptin_dhcp_evc_reconf(L7_uint16 evcId, L7_uint8 dhcp_flag, L7_uint32 opti
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
-                                L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
 {
   L7_uint dhcp_idx;
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
+    return L7_NOT_EXIST;
+  }
+
+  return ptin_dhcp_circuitid_set_instance(dhcp_idx, template_str, mask, access_node_id, chassis, rack, frame, ethernet_priority, s_vid);
+}
+
+/**
+ * Set DHCP circuit-id global data from EVC id
+ *
+ * @param evc_idx         : evc index
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                    L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+{
+  L7_uint dhcp_idx;
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  return ptin_dhcp_circuitid_set_instance(dhcp_idx, template_str, mask, access_node_id, chassis, rack, frame, ethernet_priority, s_vid);
+}
+
+/**
+ * Set DHCP circuit-id global data
+ *
+ * @param dhcp_idx        : instance index
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                                L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+{
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientInfoData_t *avl_info;
 
@@ -833,10 +890,10 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
     return L7_FAILURE;
   }
 
-  /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+  /* Validate DHCP instance index */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -882,7 +939,7 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
 /**
  * Get DHCP circuit-id global data
  *
- * @param evcId           : evc index
+ * @param evc_idx           : evc index
  * @param template_str    : Circuit-id template string
  * @param mask            : Circuit-id mask
  * @param access_node_id  : Access Node ID
@@ -893,7 +950,7 @@ L7_RC_t ptin_dhcp_circuitid_set(L7_uint16 evcId, L7_char8 *template_str, L7_uint
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
                                 L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid)
 {
   L7_uint dhcp_idx;
@@ -906,9 +963,9 @@ L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint
   }
 
   /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find(evcId, &dhcp_idx) != L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -936,7 +993,7 @@ L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param UcastEvcId        : Unicast evc id
+ * @param evc_idx        : Unicast evc id
  * @param client            : client identification parameters
  * @param options           : DHCP options
  * @param circuitId_data    : Circuit ID data 
@@ -945,7 +1002,7 @@ L7_RC_t ptin_dhcp_circuitid_get(L7_uint16 evcId, L7_char8 *template_str, L7_uint
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 *options,
+L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 *options,
                              ptin_clientCircuitId_t *circuitId_data, L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx;
@@ -959,16 +1016,16 @@ L7_RC_t ptin_dhcp_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find(UcastEvcId, &dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Find client information */
   if (ptin_dhcp_client_find(dhcp_idx,client,&client_info)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,evc_idx);
     return L7_FAILURE;
   }
 
@@ -1005,17 +1062,17 @@ L7_RC_t ptin_dhcp_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
 /**
  * Add a new DHCP client
  * 
- * @param UcastEvcId        : Unicast evc id
- * @param client            : client identification parameters 
- * @param uni_ovid          : External outer vlan 
- * @param uni_ivid          : External inner vlan  
- * @param options           : DHCP options
- * @param circuitId         : Circuit ID data 
- * @param remoteId          : remote id
+ * @param evc_idx    : Unicast evc id
+ * @param client     : client identification parameters 
+ * @param uni_ovid   : External outer vlan 
+ * @param uni_ivid   : External inner vlan  
+ * @param options    : DHCP options
+ * @param circuitId  : Circuit ID data 
+ * @param remoteId   : remote id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                              L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId)
 {
   L7_uint dhcp_idx, client_idx;
@@ -1035,9 +1092,9 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
   }
 
   /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find(UcastEvcId, &dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_FAILURE;
   }
 
@@ -1057,15 +1114,15 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
   if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     /* Get interface configuration in the UC EVC */
-    if (ptin_evc_intfCfg_get(UcastEvcId, &client->ptin_intf, &intfCfg)!=L7_SUCCESS)
+    if (ptin_evc_intfCfg_get(evc_idx, &client->ptin_intf, &intfCfg)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring intf configuration for intf %u/%u, evc=%u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring intf configuration for intf %u/%u, evc=%u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Validate interface configuration in EVC: must be in use, and be a leaf/client */
     if (!intfCfg.in_use || intfCfg.type!=PTIN_EVC_INTF_LEAF)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"intf %u/%u is not in use or is not a leaf in evc %u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"intf %u/%u is not in use or is not a leaf in evc %u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Convert to ptin_port format */
@@ -1085,7 +1142,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
      /* Get interface as intIfNum format */
     if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)==L7_SUCCESS)
     {
-      if (ptin_evc_extVlans_get(intIfNum, UcastEvcId, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(intIfNum, evc_idx, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                   client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan, uni_ovid, uni_ivid);
@@ -1204,7 +1261,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
     /* Get new client index */
     if ((client_idx=dhcp_clientIndex_get_new(dhcp_idx))<0)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot get new client index for dhcp_idx=%u (evc=%u)",dhcp_idx,UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot get new client index for dhcp_idx=%u (evc=%u)",dhcp_idx,evc_idx);
       return L7_FAILURE;
     }
 
@@ -1372,12 +1429,12 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 UcastEvcId, ptin_client_id_t *client, L7_
 /**
  * Remove a DHCP client
  * 
- * @param UcastEvcId  : Unicast evc id
+ * @param evc_idx  : Unicast evc id
  * @param client      : client identification parameters
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_client_delete(L7_uint32 UcastEvcId, ptin_client_id_t *client)
+L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
 {
   L7_uint dhcp_idx, client_idx;
   ptinDhcpClientDataKey_t avl_key;
@@ -1395,9 +1452,9 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 UcastEvcId, ptin_client_id_t *client)
   }
 
   /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find(UcastEvcId, &dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",UcastEvcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_NOT_EXIST;
   }
 
@@ -1783,13 +1840,13 @@ L7_RC_t ptin_dhcp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *
  * Get DHCP statistics of a particular DHCP instance and 
  * interface 
  * 
- * @param UcastEvcId  : Unicast EVC id
- * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
+ * @param evc_idx   : Unicast EVC id
+ * @param intIfNum  : interface
+ * @param stat_port : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *stat_port)
+L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *stat_port)
 {
   L7_uint32 ptin_port;
   L7_uint32 dhcp_idx;
@@ -1810,21 +1867,21 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 UcastEvcId, ptin_intf_t *ptin_
   }
 
   /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(UcastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
   if (!intfCfg.in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -1843,13 +1900,13 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 UcastEvcId, ptin_intf_t *ptin_
  * Get DHCP statistics of a particular DHCP instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * @param stat_port   : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client, ptin_DHCP_Statistics_t *stat_client)
+L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_DHCP_Statistics_t *stat_client)
 {
   L7_uint32 dhcp_idx;
   ptinDhcpClientInfoData_t *clientInfo;
@@ -1862,9 +1919,9 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 UcastEvcId, ptin_client_id_t *client
   }
 
   /* Get Dhcp instance */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -1941,19 +1998,19 @@ L7_RC_t ptin_dhcp_stat_clearAll(void)
 /**
  * Clear all statistics of one DHCP instance
  * 
- * @param UcastEvcId : Unicast EVC id
+ * @param evc_idx : Unicast EVC id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 UcastEvcId)
+L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
 {
   L7_uint dhcp_idx;
   L7_uint client_idx;
 
   /* Get Dhcp instance */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2044,12 +2101,12 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
 /**
  * Clear statistics of a particular DHCP instance and interface
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param intIfNum    : interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 UcastEvcId, ptin_intf_t *ptin_intf)
+L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf)
 {
   L7_uint dhcp_idx;
   L7_uint client_idx;
@@ -2073,21 +2130,21 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 UcastEvcId, ptin_intf_t *pti
   }
 
   /* Check if EVC is active, and if interface is part of the EVC */
-  if (ptin_evc_intfCfg_get(UcastEvcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
   if (!intfCfg.in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2123,12 +2180,12 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 UcastEvcId, ptin_intf_t *pti
  * Clear DHCP statistics of a particular DHCP instance and 
  * client
  * 
- * @param UcastEvcId  : Unicast EVC id
+ * @param evc_idx  : Unicast EVC id
  * @param client      : client reference
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 UcastEvcId, ptin_client_id_t *client)
+L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
 {
   L7_uint dhcp_idx;
   ptinDhcpClientInfoData_t *clientInfo;
@@ -2141,9 +2198,9 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 UcastEvcId, ptin_client_id_t *clie
   }
 
   /* Get Dhcp instance */
-  if (ptin_dhcp_instance_find(UcastEvcId,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",UcastEvcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2279,11 +2336,11 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(dhcpInst->UcastEvcId,&ptin_intf,&intfCfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(dhcpInst->evc_idx,&ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->UcastEvcId);
+              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
     return L7_FALSE;
   }
 
@@ -2292,7 +2349,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for EVC %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->UcastEvcId);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->evc_idx);
     return L7_FALSE;
   }
 
@@ -2303,7 +2360,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"For unstrusted interface %u/%u (evc=%u) inner vlan must be used",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->UcastEvcId);
+              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
     return L7_FALSE;
   }
   #endif
@@ -2352,11 +2409,11 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(dhcpInst->UcastEvcId,&ptin_intf,&intfCfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(dhcpInst->evc_idx,&ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->UcastEvcId);
+              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
     return L7_FALSE;
   }
 
@@ -2365,7 +2422,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for EVC %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->UcastEvcId);
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->evc_idx);
     return L7_FALSE;
   }
 
@@ -2700,7 +2757,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     if (ptin_dhcp_client_find(dhcp_idx,&client,&client_info)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].UcastEvcId);
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].evc_idx);
       return L7_FAILURE;
     }
 
@@ -2850,7 +2907,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
       {
          if (ptin_debug_dhcp_snooping)
             LOG_ERR(LOG_CTX_PTIN_DHCP, "Non existent client in DHCP instance %u (EVC id %u)",
-                  dhcp_idx, dhcpInstances[dhcp_idx].UcastEvcId);
+                  dhcp_idx, dhcpInstances[dhcp_idx].evc_idx);
          return L7_FAILURE;
       }
 
@@ -2877,43 +2934,43 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
  * Update DHCP snooping configuration, when interfaces are 
  * added/removed 
  * 
- * @param evcId     : EVC id 
+ * @param evc_idx     : EVC id 
  * @param ptin_intf : interface 
  * @param enable    : L7_TRUE when interface is added 
  *                    L7_FALSE when interface is removed
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *ptin_intf, L7_BOOL enable)
+L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
 #if (!PTIN_SYSTEM_GROUP_VLANS)
   ptin_evc_intfCfg_t intfCfg;
 
   /* Validate arguments */
-  if (evcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* This evc must be active */
-  if (!ptin_evc_is_in_use(evcId))
+  if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evcId=%u",evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evc_idx=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if this EVC is being used by any DHCP instance */
-  if (ptin_dhcp_instance_find(evcId,L7_NULLPTR)!=L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"EVC %u is not used in any DHCP instance... nothing to do",evcId);
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"EVC %u is not used in any DHCP instance... nothing to do",evc_idx);
     return L7_SUCCESS;
   }
 
   /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(evcId,ptin_intf,&intfCfg)!=L7_SUCCESS)
+  if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evcId);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
@@ -2922,7 +2979,7 @@ L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evcId, ptin_intf_t *p
   {
     if (ptin_dhcpPkts_vlan_trap(intfCfg.int_vlan,enable)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring to %u int_vlan %u of interface %u/%u (EVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring to %u int_vlan %u of interface %u/%u (EVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_DHCP,"DHCP trapping configured to %u, for vlan %u (interface %u/%u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id);
@@ -3334,7 +3391,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
     return L7_FAILURE;
   }
 
@@ -3347,10 +3404,10 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   }
 
   /* Check if EVCs are in use */
-  if (!ptin_evc_is_in_use(dhcpInstances[dhcp_idx].UcastEvcId))
+  if (!ptin_evc_is_in_use(dhcpInstances[dhcp_idx].evc_idx))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",dhcp_idx,evc_idx,intVlan,dhcpInstances[dhcp_idx].UcastEvcId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",dhcp_idx,evc_idx,intVlan,dhcpInstances[dhcp_idx].evc_idx);
     return L7_FAILURE;
   }
 
@@ -3388,27 +3445,27 @@ static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *dhcp_idx)
 /**
  * Gets the DHCP instance with a specific Ucast EVC ids 
  * 
- * @param UcastEvcId : Unicast EVC id
+ * @param evc_idx : Unicast EVC id
  * @param dhcp_idx   : DHCP instance index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_dhcp_instance_find(L7_uint32 UcastEvcId, L7_uint *dhcp_idx)
+static L7_RC_t ptin_dhcp_instance_find(L7_uint32 evc_idx, L7_uint *dhcp_idx)
 {
   #if 1
   /* Validate evc index */
-  if (UcastEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
   /* Check if there is an instance associated to this EVC */
-  if (dhcpInst_fromEvcId[UcastEvcId] >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  if (dhcpInst_fromEvcId[evc_idx] >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     return L7_FAILURE;
   }
 
   /* Return index */
-  if (dhcp_idx!=L7_NULLPTR)  *dhcp_idx = dhcpInst_fromEvcId[UcastEvcId];
+  if (dhcp_idx!=L7_NULLPTR)  *dhcp_idx = dhcpInst_fromEvcId[evc_idx];
 
   return L7_SUCCESS;
   #else
@@ -3419,7 +3476,7 @@ static L7_RC_t ptin_dhcp_instance_find(L7_uint32 UcastEvcId, L7_uint *dhcp_idx)
   {
     if (!dhcpInstances[idx].inUse)  continue;
 
-    if (dhcpInstances[idx].UcastEvcId==UcastEvcId)
+    if (dhcpInstances[idx].evc_idx==evc_idx)
       break;
   }
 
@@ -3449,7 +3506,7 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-  return ptin_dhcp_evc_trap_configure(dhcpInstances[dhcp_idx].UcastEvcId, enable);
+  return ptin_dhcp_evc_trap_configure(dhcpInstances[dhcp_idx].evc_idx, enable);
 }
 
 static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
@@ -3673,7 +3730,7 @@ void ptin_dhcp_dump(void)
     }
 
     printf("DHCP instance %02u: EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
-           dhcpInstances[i].UcastEvcId, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
+           dhcpInstances[i].evc_idx, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
            dhcpInstances[i].evcDhcpOptions, dhcpInstances[i].circuitid.template_str);
     printf("\r\n");
     i_client = 0;
@@ -3818,7 +3875,7 @@ static L7_RC_t ptin_dhcp82_database_remove(L7_uint32 intIfNum, L7_uint16 intVlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_dhcp82_get_intfData(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint32 *intIfNum, L7_uint16 *intVlanId);
+static L7_RC_t ptin_dhcp82_get_intfData(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint32 *intIfNum, L7_uint16 *intVlanId);
 
 /**
  * Validate and correct input parameters for access in database
@@ -3845,7 +3902,7 @@ static L7_BOOL ptin_dhcp82_validate_inputs(L7_uint32 *intIfNum, L7_uint16 *intVl
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp82_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
+L7_RC_t ptin_dhcp82_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
                         L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint32 intIfNum;
@@ -3880,7 +3937,7 @@ L7_RC_t ptin_dhcp82_get(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 inner
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp82_config(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
+L7_RC_t ptin_dhcp82_config(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr,
                            L7_char8 *circuitId, L7_char8 *remoteId)
 {
   L7_uint32 intIfNum;
@@ -3913,7 +3970,7 @@ L7_RC_t ptin_dhcp82_config(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 in
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp82_unconfig(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr)
+L7_RC_t ptin_dhcp82_unconfig(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 innerVlanId, L7_uint8 *macAddr)
 {
   L7_uint32 intIfNum;
   L7_uint16 intVlanId;
@@ -4146,7 +4203,7 @@ static L7_RC_t ptin_dhcp82_database_remove(L7_uint32 intIfNum, L7_uint16 intVlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_dhcp82_get_intfData(L7_uint evc_idx, ptin_intf_t *ptin_intf, L7_uint32 *intIfNum, L7_uint16 *intVlanId)
+static L7_RC_t ptin_dhcp82_get_intfData(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint32 *intIfNum, L7_uint16 *intVlanId)
 {
   ptin_evc_intfCfg_t intf_cfg;
 

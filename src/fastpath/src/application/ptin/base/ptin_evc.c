@@ -1595,7 +1595,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Port1 = %u   Port2 = %u", evc_ext_id, p2p_port1, p2p_port2 );
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Port1 = %d   Port2 = %d", evc_ext_id, p2p_port1, p2p_port2 );
 
   /* Check if phy ports are already assigned to LAGs */
   for (i=0; i<evcConf->n_intf; i++)
@@ -1661,6 +1661,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Get a VLAN from the pool to use as Internal Root VLAN */
       ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_id);  /* cannot fail! */
     }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Enabling cross-connects?", evc_ext_id);
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
     ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P), is_stacked);
@@ -1729,6 +1731,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
     }
 
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
+
     /* Configure each interface */
     for (i=0; i<evcConf->n_intf; i++)
     {
@@ -1759,6 +1763,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* For EVCs point-to-point unstacked, create now the crossconnection */
     if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
     {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring P2P unstacked bridge", evc_ext_id);
+
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
       if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
                                    p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
@@ -1769,10 +1775,17 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
                 p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
         error = L7_TRUE;
       }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Single vlanbridge added between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+                  p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                  p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
+      }
     }
 
     /* Protocol management */
     #if (!PTIN_BOARD_IS_MATRIX)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
     if (dhcp_enabled)
     {
       if (ptin_dhcp_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
@@ -1786,7 +1799,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* If PPPoE is enabled, add PPPoE trap rule */
     if (pppoe_enabled)
     {
-      if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+      if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid)!=L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
@@ -1987,7 +2000,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* If PPPoE is enabled, add PPPoE trap rule */
     if (pppoe_enabled)
     {
-      if (ptin_pppoe_evc_add(evc_ext_id, 0 /*One instance per evc*/)!=L7_SUCCESS)
+      if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid)!=L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
       else
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added", evc_id);
@@ -5250,7 +5263,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   #endif
   {
     evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
-    evcs[evc_id].intf[ptin_port].inner_vlan = (intf_cfg->vid_inner>0 && intf_cfg->vid_inner<4096) ? intf_cfg->vid_inner : 0;
+    evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
   }
 
   evcs[evc_id].intf[ptin_port].counter   = L7_NULLPTR;
@@ -7450,6 +7463,12 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"Interface index %u has an invalid mef type (%u/%u: %u)",i,evcConf->intf[i].intf_type,evcConf->intf[i].intf_id,evcConf->intf[i].mef_type);
       return L7_FAILURE;
+    }
+
+    /* Correct values */
+    if (evcConf->intf[i].vid_inner >= 4096)
+    {
+      evcConf->intf[i].vid_inner = 0;
     }
 
     /* If interface is root, or any of the unstacked EVCs,

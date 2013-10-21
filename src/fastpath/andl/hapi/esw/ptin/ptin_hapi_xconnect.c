@@ -319,7 +319,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cr
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_crossconnect_set returned success");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_crossconnect_set returned success (enable=%u, double=%u)", cross_connects_apply, double_tag);
 
   return L7_SUCCESS;
 }
