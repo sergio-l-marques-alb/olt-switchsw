@@ -2224,6 +2224,78 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10Evc_t *msgEvcConf)
   return L7_SUCCESS;
 }
 
+/**
+ * Add/remove port to/from an EVC
+ * 
+ * @param msgEvcPort : Pointer to the input struct 
+ * @param n_size     : Number of structures 
+ * @param oper       : Operation type
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper)
+{
+  L7_uint i;
+  ptin_HwEthMef10Intf_t ptinEvcPort;
+
+  /* Validate arguments */
+  if (msgEvcPort == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "No data provided");
+    return L7_FAILURE;
+  }
+
+  /* Run all structures */
+  for (i=0; i<n_size; i++)
+  {
+    /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+    if (/*(msgEvcPort[i].evcId == PTIN_EVC_INBAND) ||*/ (msgEvcPort[i].evcId >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcPort[i].evcId, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      return L7_FAILURE;
+    }
+
+    /* Copy data to ptin struct */
+    ptinEvcPort.intf_type = msgEvcPort[i].intf.intf_type;
+    ptinEvcPort.intf_id   = msgEvcPort[i].intf.intf_id;
+    ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
+    ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
+    ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
+              ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
+
+    /* Add/remove port */
+    switch (oper)
+    {
+    case PTIN_MSG_OPER_ADD:
+      if (ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        return L7_FAILURE;
+      }
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      break;
+    case PTIN_MSG_OPER_REMOVE:
+      if (ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        return L7_FAILURE;
+      }
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      break;
+    default:
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown operation %u", oper);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Adds a bridge to a stacked EVC between the root and a particular interface

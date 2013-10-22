@@ -129,44 +129,53 @@ static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong
 
 //Function for generic message reading/writing n STRUCT_SIZE structs*************************************************
 //Uses the particular method for reading/writing each struct, "msg_generic_wrd_1struc"*******************************
-static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT) {
-L7_ushort16 i,n;
+static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT)
+{
+  L7_ushort16 i,n;
 
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
+  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
 
-      //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
- if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0) {     
-     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
-     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
-     return(0);
- }
+  //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
+  if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0)
+  {
+    seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
+    LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
+    return(0);
+  }
 
- outbuff->flags   = (IPCLIB_FLAGS_ACK);
+  outbuff->flags   = (IPCLIB_FLAGS_ACK);
 
- n=inbuff->infoDim/STRUCT_SIZE_IN;
+  n = inbuff->infoDim/STRUCT_SIZE_IN;
 
- if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT) {//0..n-1
-   for (i=0;    i<n;    i++)
+  if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT)  //0..n-1
+  {
+    for (i=0;    i<n;    i++)
+    {
      if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
-         outbuff->flags = (IPCLIB_FLAGS_NACK);
-         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+       outbuff->flags = (IPCLIB_FLAGS_NACK);
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
      }
- }
- else {
-     if (n*STRUCT_SIZE_OUT>IPCLIB_MAX_MSGSIZE) {
-         seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
-         return(0);
-     }
-     for (i=n;  i;  i--) //i=n-1..0
-            if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
-                outbuff->flags = (IPCLIB_FLAGS_NACK);
-                LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
-            }
- }
+    }
+  }
+  else
+  {
+    if (n*STRUCT_SIZE_OUT>IPCLIB_MAX_MSGSIZE)
+    {
+     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
+     return(0);
+    }
+    for (i=n;  i;  i--) //i=n-1..0
+    {
+      if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
+          outbuff->flags = (IPCLIB_FLAGS_NACK);
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error WRDing data");
+      }
+    }
+  }
 
- outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
- LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
- return(0);
+  outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
+  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
+  return(0);
 }//msg_generic_wrd
 #endif //__802_1x__
 
@@ -1526,6 +1535,59 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_EVC_REMOVE */
     }
 
+    /* CCMSG_ETH_EVC_PORT_ADD ******************************************************/
+    case CCMSG_ETH_EVC_PORT_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_PORT_ADD (0x%04X)", CCMSG_ETH_EVC_PORT_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
+
+      msg_HWevcPort_t *evcPort = (msg_HWevcPort_t *) inbuffer->info;
+      L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_ADD))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding port to EVC");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_PORT_ADD */
+    }
+
+    /* CCMSG_ETH_EVC_PORT_REMOVE ***************************************************/
+    case CCMSG_ETH_EVC_PORT_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_PORT_REMOVE (0x%04X)", CCMSG_ETH_EVC_PORT_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
+
+      msg_HWevcPort_t *evcPort = (msg_HWevcPort_t *) inbuffer->info;
+      L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_REMOVE))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing port from EVC");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_PORT_REMOVE */
+    }
 
     /* CCMSG_ETH_EVC_BRIDGE_ADD ***********************************************/
     case CCMSG_ETH_EVC_BRIDGE_ADD:

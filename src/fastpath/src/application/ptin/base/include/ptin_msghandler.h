@@ -61,6 +61,8 @@
 #define CCMSG_ETH_EVC_FLOW_GET              0x9039  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_FLOW_ADD              0x903A  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_FLOW_REMOVE           0x903B  // struct msg_HwEthEvcFlow_t
+#define CCMSG_ETH_EVC_PORT_ADD              0x903C  // struct msg_HWevcPort_t
+#define CCMSG_ETH_EVC_PORT_REMOVE           0x903D  // struct msg_HWevcPort_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // Consultar contadores a pedido: struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // Activar contadores a pedido: struct msg_evcStats_t
@@ -658,6 +660,16 @@ typedef struct {
   L7_uint16 nni_cvlan;  // NNI inner vlan
   msg_HwEthIntf_t intf; // Outer vlan is the GEM id
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
+
+/* EVC port add/remove */
+// Messages CCMSG_ETH_EVC_PORT_ADD and CCMSG_ETH_EVC_PORT_REMOVE
+typedef struct
+{
+  L7_uint8  slotId;
+  L7_uint32 evcId;
+
+  msg_HwEthMef10Intf_t intf;
+} __attribute__((packed)) msg_HWevcPort_t;
 
 /* EVC stacked bridge */
 // Messages CCMSG_ETH_EVC_FLOOD_VLAN_ADD and CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE

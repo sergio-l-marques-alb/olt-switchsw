@@ -15,6 +15,17 @@
 #include "ptin_include.h"
 #include "ptin_msghandler.h"
 
+typedef enum
+{
+  PTIN_MSG_OPER_NONE = 0,
+  PTIN_MSG_OPER_INIT,
+  PTIN_MSG_OPER_ADD,
+  PTIN_MSG_OPER_REMOVE,
+  PTIN_MSG_OPER_CLEAR,
+  PTIN_MSG_OPER_DESTROY,
+  PTIN_MSG_OPER_DEINIT
+} ptin_msg_oper_t;
+
 /******************************************************** 
  * EXTERNAL FUNCTIONS PROTOTYPES
  ********************************************************/
@@ -381,6 +392,17 @@ extern L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10Evc_t *msgEvcConf);
+
+/**
+ * Add/remove port to/from an EVC
+ * 
+ * @param msgEvcPort : Pointer to the input struct 
+ * @param n_size     : Number of structures 
+ * @param oper       : Operation type
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper);
 
 /**
  * Adds a bridge to a stacked EVC between the root and a particular interface

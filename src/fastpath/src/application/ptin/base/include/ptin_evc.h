@@ -47,6 +47,26 @@ extern L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf);
 extern L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf);
 
 /**
+ * Add port to an EVC
+ *  
+ * @param evc_ext_id : EVC index
+ * @param evc_intf : Port information
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_port_add(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf);
+
+/**
+ * Remove port from an EVC
+ *  
+ * @param evc_ext_id : EVC index
+ * @param evc_intf : Port information
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf);
+
+/**
  * Deletes an EVC
  * 
  * @param evc_id
