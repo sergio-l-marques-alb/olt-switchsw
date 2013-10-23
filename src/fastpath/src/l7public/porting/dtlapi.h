@@ -85,6 +85,8 @@ typedef enum
 #define L7_DTL_PORT_IF_LEN      4            /* Interface Name length  */
 #define L7_DTL_MAX_PRIORITY     7            /* Maximum number of traffic class priorities */
 
+#define L7_DTL_PKT_F_TIMESYNC   0x10000000   /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. Packet is for Time Sync */
+
 
 /* Layer 2 Protocol-Based Vlan definitions */
 
@@ -297,6 +299,7 @@ typedef struct
     {
       L7_uint32 domainId;
       L7_uint32 vlanId;
+      L7_uint32 flags;    /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
 
     }L2;
 

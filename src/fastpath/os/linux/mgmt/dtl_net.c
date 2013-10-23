@@ -969,6 +969,16 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
              info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
              info->dtlCmd = DTL_CMD_TX_L2;
              info->discard = L7_FALSE;
+
+             if (data[0x26]==0x01 && data[0x27]==0x3f)  /* PTP Timestamp: UDP Port 319 */
+             {
+               info->dtlCmdInfo.cmdType.L2.flags = L7_DTL_PKT_F_TIMESYNC;
+               if (dtlNetPtinDebug) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Setting Flag L7_DTL_PKT_F_TIMESYNC\n\r");
+             }
+             else
+             {
+               info->dtlCmdInfo.cmdType.L2.flags = 0;
+             }
          
              /* Call interceptors who are interested in outgoing IP frames post L2 encapsualtion.  If
               ** L7_TRUE is returned, the frame was either discarded or consumed, which means that the

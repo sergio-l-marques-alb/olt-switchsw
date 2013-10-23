@@ -2520,6 +2520,7 @@ typedef struct
       DAPI_FRAME_TYPE_t           type;
       L7_ushort16                 vlanID;
       L7_uint32                   priority;
+      L7_uint32                   flags;      /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
     } send;
 
     struct

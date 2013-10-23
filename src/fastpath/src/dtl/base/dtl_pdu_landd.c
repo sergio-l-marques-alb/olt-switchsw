@@ -301,8 +301,10 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
         if (dtlCmdInfo->typeToSend == DTL_L2RAW_UNICAST)
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_NO_L2_EGRESS_DATA_TO_PORT;
-        else
+        else {
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_DATA_TO_PORT;
+          sendData.cmdData.send.flags = dtlCmdInfo->cmdType.L2.flags;    /* PTIN added: PTP Timestamp */
+        }
       }
 
       sendData.cmdData.send.frameHdl = bufHandle;

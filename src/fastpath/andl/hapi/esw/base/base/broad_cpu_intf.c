@@ -1342,6 +1342,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   bcm_pkt.cos = hapiBroadTxCosTable[BROAD_TX_PRIO_NORMAL];
 
+  /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
+  bcm_pkt.flags   |= cmdInfo->cmdData.send.flags;
+
 #ifdef L7_CHASSIS
   bcm_pkt.src_mod = 0;
   bcm_pkt.flags   |= BCM_TX_SRC_MOD;
@@ -2124,6 +2127,12 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     osapiTaskYield();
   }
 
+  if (cpu_intercept_debug==3)
+  {
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n %s: Sending to usp %d.%d.%d, wlanvp %d with frameType %d pktflags %x \n", 
+                  __FUNCTION__, destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, frameType, bcm_pkt.flags);
+  }
+
   return result;
 
 }
@@ -2210,7 +2219,8 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
 
-  if (bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f)
+  /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
+  else if ((bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f) && (cpu_intercept_debug==2))
   {
     printf("rx_timestamp %d\n\r", bcm_pkt->rx_timestamp); 
   }
