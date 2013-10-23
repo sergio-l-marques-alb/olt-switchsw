@@ -596,7 +596,7 @@ L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
   igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
   igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
-  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD;
+  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
 
   /* Apply default config */
   rc = ptin_igmp_proxy_config_set(&igmpProxy);
