@@ -299,6 +299,18 @@ extern inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint3
  */
 extern inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
 
+#if PTIN_BOARD_IS_MATRIX
+/**
+ * Converts Slot to LAG index [0..PTIN_SYSTEM_N_LAGS[
+ * 
+ * @param slot      slot
+ * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[ (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
+#endif
+
 /**
  * Check if a LAG is created [1..PTIN_SYSTEM_N_LAGS]
  * 

@@ -1406,6 +1406,40 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
   return L7_SUCCESS;
 }
 
+#if PTIN_BOARD_IS_MATRIX
+/**
+ * Converts Slot to LAG index [0..PTIN_SYSTEM_N_LAGS[
+ * 
+ * @param slot      slot
+ * @param lag_idx   LAG index [0..PTIN_SYSTEM_N_LAGS[ (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
+{
+
+  L7_uint32 aux;
+
+  if ( (slot < PTIN_SYS_LC_SLOT_MIN) || (slot > PTIN_SYS_LC_SLOT_MAX) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot %u is out of range [%u..%u]", slot);
+    return L7_FAILURE;
+  }
+
+  aux = slot + (PTIN_SYSTEM_INTERNAL_LAGID_BASE-PTIN_SYS_LC_SLOT_MIN);
+
+  if (*lag_idx >= PTIN_SYSTEM_N_LAGS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    return L7_FAILURE;
+  }
+
+  *lag_idx = aux;
+
+  return L7_SUCCESS;
+} 
+#endif  // PTIN_BOARD_IS_MATRIX
+
 /**
  * Check if a LAG is created [0..PTIN_SYSTEM_N_LAGS[
  * 

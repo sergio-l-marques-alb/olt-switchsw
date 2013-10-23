@@ -21,6 +21,10 @@
 
   #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
   #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
+
+  
+  #define PTIN_SYSTEM_INTERNAL_LAGID_BASE 18
+
 #endif  // PTIN_BOARD_IS_MATRIX
 
 /* ************************** */
@@ -34,10 +38,10 @@
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
 /* Global to all platforms */
-#define PTIN_SYSTEM_MAX_N_FULLSLOTS   18
-#define PTIN_SYSTEM_MAX_N_PORTS       36
-#define PTIN_SYSTEM_MAX_N_LAGS        PTIN_SYSTEM_MAX_N_PORTS
-#define PTIN_SYSTEM_MTU_SIZE          2048
+#define PTIN_SYSTEM_MAX_N_FULLSLOTS     18
+#define PTIN_SYSTEM_MAX_N_PORTS         36
+#define PTIN_SYSTEM_MAX_N_LAGS          PTIN_SYSTEM_MAX_N_PORTS
+#define PTIN_SYSTEM_MTU_SIZE            2048
 #define PTIN_SYSTEM_N_EXTENDED_EVCS   (1<<16) /* 65536 */
 
 #define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)

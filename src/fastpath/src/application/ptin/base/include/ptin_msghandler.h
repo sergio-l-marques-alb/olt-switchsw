@@ -26,6 +26,7 @@
 #define CCMSG_DEFAULTS_RESET                0x9003  // No struct
 #define CCMSG_APPLICATION_RESOURCES         0x9004  // struct msg_ptin_policy_resources
 #define CCMSG_MULTICAST_MACHINE_RESET       0x9005  // struct msg_HwGenReq_t
+#define CCMSG_TYPEB_PROT_SWITCH             0x9006	// struct msg_HwTypeBprot_t
 
 #define CCMSG_ETH_PHY_STATUS_GET            0x9009  // struct msg_HWEthPhyState_t
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
@@ -200,6 +201,13 @@ typedef struct {
   L7_uint8  type;       // Field used for any purpose
   L7_uint8  mask;       // Generic 8 bit mask
 } __attribute__((packed)) msg_HwGenReq_t;
+
+typedef struct {
+  L7_uint16 prot_idx;
+  L7_uint8  slot;
+  L7_uint8  port;
+} __attribute__((packed)) msg_HwTypeBprot_t;
+
 
 typedef struct {
   L7_uint8  intf_type;  // Interface type: { 0-Physical, 1-Logical (LAG) }

@@ -461,6 +461,34 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
+    /* CCMSG_TYPEB_PROT_SWITCH *******************************************/
+    case CCMSG_TYPEB_PROT_SWITCH:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_TYPEB_PROT_SWITCH (0x%04X)", CCMSG_TYPEB_PROT_SWITCH);
+
+      CHECK_INFO_SIZE(msg_HwTypeBprot_t);
+
+      msg_HwTypeBprot_t *ptr = (msg_HwTypeBprot_t *) &inbuffer->info[0];
+
+      /* TYPE B Protection Switching */
+      rc = ptin_msg_typeBprotSwitch(ptr);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      break;  /* CCMSG_DEFAULTS_RESET */
+    }
+
     /************************************************************************** 
      * SLOT MODE CONFIGURATION
      **************************************************************************/

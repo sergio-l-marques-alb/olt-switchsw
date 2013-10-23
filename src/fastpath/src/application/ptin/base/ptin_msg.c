@@ -31,6 +31,7 @@
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
 #include "ptin_intf.h"
+#include "fdb_api.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -167,6 +168,44 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 
   return L7_SUCCESS;
 }
+
+/**
+ * TYPE B Protection Switching
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
+{
+  #if 0
+  L7_uint32 lag_idx;
+  L7_uint32 intIfNum;
+  #endif
+  L7_RC_t   rc;
+
+  LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch");
+
+  #if 1
+  rc = fdbFlush();
+  #else 
+  rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
+
+  if (rc==L7_SUCCESS) {
+    rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
+    if (rc==L7_SUCCESS) {
+      rc = fdbFlushByPort(intfNum):
+    }
+  }
+  #endif
+
+  if (rc!=L7_SUCCESS) {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "fdbFlush returns %d", rc);
+  }
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Reset alarms state
