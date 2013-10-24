@@ -126,7 +126,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   ptin_dapi_port_t dapiPort;
   ptin_HWPortExt_t  *portExt;
   L7_RC_t rc = L7_SUCCESS;
-  L7_int  macLearn_enable, stationMove_enable, stationMove_prio, stationMove_samePrio;
+  L7_int  macLearn_enable, stationMove_enable, stationMove_prio, stationMove_samePrio, port_type;
 
   /* Extract priority */
   portExt = (ptin_HWPortExt_t *) data;
@@ -159,6 +159,15 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
                       PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE |
                       PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO |
                       PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO;
+
+      /* Egress port type */
+      rc = hapi_ptin_egress_port_type_get(&dapiPort, &port_type);
+
+      if (rc==L7_SUCCESS)
+      {
+        portExt->egress_type  = port_type;
+        portExt->Mask         = PTIN_HWPORTEXT_MASK_EGRESS_TYPE;
+      }
     }
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Result for L2LearnPortSet: %d",rc);
   }
@@ -170,6 +179,15 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)   ? portExt->macLearn_stationMove_enable : -1),
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO)     ? portExt->macLearn_stationMove_prio : -1),
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO) ? portExt->macLearn_stationMove_samePrio : -1) );
+    if (rc == L7_SUCCESS)
+    {
+      /* Egress port type */
+      if (portExt->Mask & PTIN_HWPORTEXT_MASK_EGRESS_TYPE)
+      {
+        /* TODO: Set to egress_type */
+        rc = hapi_ptin_egress_port_type_set(&dapiPort, portExt->egress_type);
+      }
+    }
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Result for L2LearnPortSet: %d",rc);
   }
 

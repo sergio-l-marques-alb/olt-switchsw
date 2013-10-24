@@ -143,6 +143,26 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
 extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp);
 
 /**
+ * Get Egress port type definition
+ * 
+ * @param dapiPort  : Physical interface
+ * @param port_type : Port type (PROMISCUOUS/COMMUNITY/ISOLATED)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapi_ptin_egress_port_type_get(ptin_dapi_port_t *dapiPort, L7_int *port_type);
+
+/**
+ * Egress port type definition
+ * 
+ * @param dapiPort  : Physical or logical interface
+ * @param port_type : Port type (PROMISCUOUS/COMMUNITY/ISOLATED)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_type);
+
+/**
  * Attribute L2 learning priority to specified port
  * 
  * @param dapiPort : Physical or logical interface

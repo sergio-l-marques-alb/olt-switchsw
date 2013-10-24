@@ -112,10 +112,16 @@ typedef struct {
 #define PTIN_HWPORTEXT_MASK_DOUBLETAG                     0x0100
 #define PTIN_HWPORTEXT_MASK_OUTER_TPID                    0x0200
 #define PTIN_HWPORTEXT_MASK_INNER_TPID                    0x0400
+#define PTIN_HWPORTEXT_MASK_EGRESS_TYPE                   0x0800
 #define PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE               0x1000
 #define PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE   0x2000
 #define PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO     0x4000
 #define PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO 0x8000
+
+#define PTIN_PORT_EGRESS_TYPE_PROMISCUOUS   0
+#define PTIN_PORT_EGRESS_TYPE_COMMUNITY     1
+#define PTIN_PORT_EGRESS_TYPE_ISOLATED      2
+
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;
@@ -130,6 +136,7 @@ typedef struct
   L7_uint8  doubletag;                      // 0x0100
   L7_uint16 outer_tpid;                     // 0x0200
   L7_uint16 inner_tpid;                     // 0x0400
+  L7_uint8  egress_type;                    // 0x0800   PROMISCUOUS=0, COMMUNITY=1, ISOLATED=2
   L7_uint8  macLearn_enable;                // 0x1000
   L7_uint8  macLearn_stationMove_enable;    // 0x2000
   L7_uint8  macLearn_stationMove_prio;      // 0x4000

@@ -59,6 +59,11 @@ BROAD_POLICY_t inband_policyId = 0;
 #endif
 int ptin_sys_number_of_ports = PTIN_SYSTEM_N_PORTS;
 
+/* Root ports list for egress isolation purposes */
+bcm_pbmp_t pbm_egress_all_ports;
+bcm_pbmp_t pbm_egress_root_ports;
+bcm_pbmp_t pbm_egress_community_ports;
+
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
  ********************************************************************/
@@ -227,13 +232,11 @@ L7_RC_t ptin_hapi_phy_init(void)
   #endif
 
   /* Egress port configuration, only for PON boards */
-  #if (PTIN_BOARD==PTIN_BOARD_OLT7_8CH_B || PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TG16G)
-  if (hapi_ptin_egress_ports(PTIN_SYSTEM_N_PONS) != L7_SUCCESS)
+  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS,PTIN_SYSTEM_N_ETH)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error initializing egress ports!");
     rc = L7_FAILURE;
   }
-  #endif
 
   return rc;
 
@@ -248,7 +251,6 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
 {
   int i, unit=0;
   bcm_port_t bcm_port;
-  bcm_pbmp_t pbm_all, pbm_eth;
 
   /* Validate arguments */
   if (port_frontier>=ptin_sys_number_of_ports)
@@ -265,37 +267,40 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   }
 
   /* Prepare port bitmaps */
-  BCM_PBMP_CLEAR(pbm_all);
-  BCM_PBMP_CLEAR(pbm_eth);
-  for (i=0; i<port_frontier; i++)
+  BCM_PBMP_CLEAR(pbm_egress_all_ports);
+  BCM_PBMP_CLEAR(pbm_egress_root_ports);
+  BCM_PBMP_CLEAR(pbm_egress_community_ports);
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
       return L7_FAILURE;
     }
-    BCM_PBMP_PORT_ADD(pbm_all, bcm_port);
-  }
-  for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
-  {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    /* All ports */
+    BCM_PBMP_PORT_ADD(pbm_egress_all_ports, bcm_port);
+    /* Root/community ports */
+    if (i>=port_frontier)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
+      BCM_PBMP_PORT_ADD(pbm_egress_root_ports, bcm_port);
+      BCM_PBMP_PORT_ADD(pbm_egress_community_ports, bcm_port);
     }
-    BCM_PBMP_PORT_ADD(pbm_all, bcm_port);
-    BCM_PBMP_PORT_ADD(pbm_eth, bcm_port);
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_ALL:");
   for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_all.pbits[i]);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_egress_all_ports.pbits[i]);
   }
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_ETH:");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_ROOT:");
   for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_eth.pbits[i]);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_egress_root_ports.pbits[i]);
+  }
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"PBM_COMMUNITY:");
+  for (i=0; i<_SHR_PBMP_WORD_MAX; i++)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"0x%08x",pbm_egress_community_ports.pbits[i]);
   }
 
   /* PON ports: egress ports are the ethernet ones only */
@@ -307,7 +312,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
       return L7_FAILURE;
     }
     /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_eth)!=BCM_E_NONE)
+    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
@@ -323,7 +328,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
       return L7_FAILURE;
     }
     /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_all)!=BCM_E_NONE)
+    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
@@ -513,6 +518,216 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
   return L7_SUCCESS;
 }
 
+/**
+ * Get Egress port type definition
+ * 
+ * @param dapiPort  : Physical interface
+ * @param port_type : Port type (PROMISCUOUS/COMMUNITY/ISOLATED)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapi_ptin_egress_port_type_get(ptin_dapi_port_t *dapiPort, L7_int *port_type)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  bcm_port_t    bcm_unit, bcm_port;
+  L7_int        type;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d}",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  /* Validate dapiPort */
+  if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+  /* Accept only physical and lag interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Get bcm_unit and bcm_port */
+  bcm_unit = hapiPortPtr->bcm_unit;
+  bcm_port = hapiPortPtr->bcm_port;
+
+  /* If this is a root port, is PROMISCUOUS type */
+  if (BCM_PBMP_MEMBER(pbm_egress_root_ports, bcm_port))
+  {
+    type = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
+  }
+  /* If this is a community port, is COMMUNITY type */
+  else if (BCM_PBMP_MEMBER(pbm_egress_community_ports, bcm_port))
+  {
+    type = PTIN_PORT_EGRESS_TYPE_COMMUNITY;
+  }
+  /* Otherwise, is ISOLATED type */
+  else
+  {
+    type = PTIN_PORT_EGRESS_TYPE_ISOLATED;
+  }
+
+  if (port_type != L7_NULLPTR)
+  {
+    *port_type = type;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Egress port type definition
+ * 
+ * @param dapiPort  : Physical or logical interface
+ * @param port_type : Port type (PROMISCUOUS/COMMUNITY/ISOLATED)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_type)
+{
+  L7_int i;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  bcm_port_t    bcm_unit, bcm_port;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d}",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  /* Validate dapiPort */
+  if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+  /* Accept only physical and lag interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Physical port */
+  if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+    {
+      BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+      BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+    }
+    else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+    {
+      /* Port used only as community port */
+      BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+      BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+    }
+    else
+    {
+      /* Port used as root and community port */
+      BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+      BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+    }
+  }
+  /* LAG port */
+  else
+  {
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g );
+      if (hapiPortPtr_member==L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+        return L7_FAILURE;
+      }
+
+      if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+      {
+        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
+      else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+      {
+        /* Port used only as community port */
+        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
+      else
+      {
+        /* Port used as root and community port */
+        BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
+    }
+  }
+
+  /* Get bcm_unit */
+  if (hapi_ptin_bcmUnit_get(&bcm_unit) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_unit");
+    return L7_FAILURE;
+  }
+
+  /* Run iteratively all ports, and apply new port map */
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
+    /* Get bcm_port */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error getting bcm_port for port %u",i);
+      continue;
+    }
+
+    /* If this is a root port, apply all ports as egress port map */
+    if (BCM_PBMP_MEMBER(pbm_egress_root_ports, bcm_port))
+    {
+      if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
+        return L7_FAILURE;
+      }
+    }
+    /* If not root port, but is a community port, apply community ports list as egress port map */
+    else if (BCM_PBMP_MEMBER(pbm_egress_community_ports, bcm_port))
+    {
+      if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_community_ports)!=BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
+        return L7_FAILURE;
+      }
+    }
+    /* Otherwise, apply only root ports as egress port map */
+    else
+    {
+      if (bcm_port_egress_set(bcm_unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
+        return L7_FAILURE;
+      }
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
+            port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Attribute L2 learning priority to specified port
@@ -680,6 +895,8 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
 
   return L7_SUCCESS;
 }
+
+
 
 /**
  * Get L2 learning attributes

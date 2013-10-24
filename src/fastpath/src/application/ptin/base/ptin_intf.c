@@ -309,6 +309,7 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   LOG_TRACE(LOG_CTX_PTIN_INTF," doubletag  = %u"                  , mefExt->doubletag);
   LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
   LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," egress_type = %u"                 , mefExt->egress_type);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable  = %u", mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
@@ -381,6 +382,7 @@ L7_RC_t ptin_intf_portExt_get(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   LOG_TRACE(LOG_CTX_PTIN_INTF," doubletag  = %u"                  , mefExt->doubletag);
   LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
   LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," egress_type = %u"                 , mefExt->egress_type);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
