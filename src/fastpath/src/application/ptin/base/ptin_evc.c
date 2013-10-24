@@ -377,7 +377,7 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
 static L7_RC_t switching_p2p_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
 static L7_RC_t switching_p2p_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
 
-static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL is_stacked);
+static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL egress_del_ivid);
 static L7_RC_t switching_p2multipoint_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan);
 
 static L7_RC_t switching_p2multipoint_leaf_add(L7_uint leaf_intf, L7_uint16 root_int_vlan);
@@ -5865,10 +5865,14 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_id, L7_uint ptin_port)
   L7_uint   l, r;
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf;
-  L7_BOOL   is_stacked;
+  L7_BOOL   egress_del_ivid;
   L7_RC_t   rc = L7_SUCCESS;
 
-  is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+  #if (PTIN_BOARD_IS_GPON)
+  egress_del_ivid = ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) != PTIN_EVC_MASK_STACKED);
+  #else
+  egress_del_ivid = L7_FALSE;
+  #endif
 
   /* Root intf ? */
   if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT)
@@ -5888,7 +5892,7 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_id, L7_uint ptin_port)
       rc = switching_p2multipoint_root_add(ptin_port,                                    /* Root intf */
                                            evcs[evc_id].intf[ptin_port].out_vlan,       /* Vs */
                                            evcs[evc_id].intf[intf_list[l]].int_vlan,    /* Vl */
-                                           is_stacked );
+                                           egress_del_ivid );
 
       if (rc != L7_SUCCESS)
       {
@@ -5916,7 +5920,7 @@ static L7_RC_t ptin_evc_p2multipoint_intf_add(L7_uint evc_id, L7_uint ptin_port)
       rc = switching_p2multipoint_root_add(intf_list[r],                              /* Root intf */
                                         evcs[evc_id].intf[intf_list[r]].out_vlan,    /* Vs */
                                         evcs[evc_id].intf[ptin_port].int_vlan,       /* Vl */
-                                        is_stacked );
+                                        egress_del_ivid );
 
       if (rc != L7_SUCCESS)
       {
@@ -7210,7 +7214,7 @@ static L7_RC_t switching_p2p_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_v
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL is_stacked)
+static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL egress_del_ivid)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -7226,11 +7230,11 @@ static L7_RC_t switching_p2multipoint_root_add(L7_uint root_intf, L7_uint16 root
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (is_stacked=%u)",
-           intIfNum, leaf_int_vlan, root_out_vlan, is_stacked);
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (egress_del_ivid=%u)",
+           intIfNum, leaf_int_vlan, root_out_vlan, egress_del_ivid);
 
   /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan; innerVlan is to be removed if EVC is unstacked */
-  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, ((is_stacked) ? 0 : (L7_uint16)-1) );
+  rc = ptin_xlate_egress_add(intIfNum, leaf_int_vlan, 0, root_out_vlan, ((egress_del_ivid) ? (L7_uint16) -1 : 0) );
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (rc=%d)",
