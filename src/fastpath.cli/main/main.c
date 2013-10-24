@@ -111,6 +111,8 @@ void help_oltBuga(void)
         "m 1601 EVC#[0-64] Type[0:P2P/1:P2MP/2:Q] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
         "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Create EVC\r\n"
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
+        "m 1603 EVC#[0-64] type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Add ports to EVC\r\n"
+        "m 1604 EVC#[0-64] type[0-Phy;1-Lag]/intf# ... - Remove ports from EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN CVlan flags[01h:DHCP;02h:IGMP;04h:PPPoE] - Add a GEM flow to an EVC\r\n"
@@ -3299,6 +3301,101 @@ int main (int argc, char *argv[])
           ptr->id = valued;
         }
         break;
+
+      case 1603:
+      {
+        msg_HWevcPort_t *ptr;
+        int slotId, evc_idx, i;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.msgId = CCMSG_ETH_EVC_PORT_ADD;
+        comando.infoDim = 0;
+
+        // Pointer to data array
+        ptr = (msg_HWevcPort_t *) &(comando.info[0]);
+        memset(ptr, 0x00, sizeof(msg_HWevcPort_t));
+
+        // Slot id
+        slotId = (uint8)-1;
+
+        // evc index
+        if (StrToLongLong(argv[3+0], &valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        evc_idx = valued;
+
+        // Interfaces...
+        unsigned int intf, type, mef, vid, ivid;
+        for (i=0; i<(argc-(3+1)); i++) {
+          printf("argv[%u]=%s  **  ", i+(3+1), argv[i+(3+1)]);
+          sscanf(argv[i], "%d/%d/%d/%d/%d", &type, &intf, &mef, &vid, &ivid);
+          printf("%d/%d/%d/%d/%d\n", type, intf, mef, vid, ivid);
+
+          memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
+          ptr[i].slotId         = slotId;
+          ptr[i].evcId          = evc_idx;
+          ptr[i].intf.intf_type = type;
+          ptr[i].intf.intf_id   = intf;
+          ptr[i].intf.mef_type  = mef;
+          ptr[i].intf.vid       = vid;
+          ptr[i].intf.inner_vid = ivid;
+
+          comando.infoDim += sizeof(msg_HWevcPort_t);
+        }
+      }
+      break;
+
+      case 1604:
+      {
+        msg_HWevcPort_t *ptr;
+        int slotId, evc_idx, i;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.msgId = CCMSG_ETH_EVC_PORT_REMOVE;
+        comando.infoDim = 0;
+
+        // Pointer to data array
+        ptr = (msg_HWevcPort_t *) &(comando.info[0]);
+        memset(ptr, 0x00, sizeof(msg_HWevcPort_t));
+
+        // Slot id
+        slotId = (uint8)-1;
+
+        // evc index
+        if (StrToLongLong(argv[3+0], &valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        evc_idx = valued;
+
+        // Interfaces...
+        unsigned int intf, type;
+        for (i=0; i<(argc-(3+1)); i++) {
+          printf("argv[%u]=%s  **  ", i+(3+1), argv[i+(3+1)]);
+          sscanf(argv[i], "%d/%d", &type, &intf);
+          printf("%d/%d\n", type, intf);
+
+          memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
+          ptr[i].slotId         = slotId;
+          ptr[i].evcId          = evc_idx;
+          ptr[i].intf.intf_type = type;
+          ptr[i].intf.intf_id   = intf;
+
+          comando.infoDim += sizeof(msg_HWevcPort_t);
+        }
+      }
+      break;
 
       /* "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n" */
       case 1605:
