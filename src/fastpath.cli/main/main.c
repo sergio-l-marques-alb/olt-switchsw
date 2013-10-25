@@ -51,7 +51,7 @@ void help_oltBuga(void)
         "m 1012 port[0-17] - Get Phy states\n\r"
         "m 1015 [0-Phy,1-Lag]/[intf#] - Get port type definitions\r\n"
         "m 1016 slot=[0-17] intf=<[0-Phy;1-Lag]/intf#> defvid=[1-4095] defprio=[0-7] aftypes=[0/1] ifilter=[0/1] rvlanreg=[0/1] vlanaware=[0/1] type=[0/1/2]\r\n"
-        "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] - Set port type definitions\r\n"
+        "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] - Set port type definitions\r\n"
         "m 1017 [0-Phy,1-Lag]/[intf#] - Get MAC address of given interface\r\n"
         "m 1018 [0-Phy,1-Lag]/[intf#] macAddr[xxxxxxxxxxxxh] - Set MAC address for the provided interface\r\n"
         "m 1020 port[0-17] - Show switch RFC2819 statistics\n\r"
@@ -921,6 +921,16 @@ int main (int argc, char *argv[])
             }
             ptr->inner_tpid = (uint16) valued;
             ptr->Mask |= MSG_HWPORTEXT_MASK_INNER_TPID;
+          }
+          else if (strcmp(param,"etype")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid egress_type value\r\n");
+              exit(0);
+            }
+            ptr->type /*ptr->egress_type*/ = (uint8) valued;
+            ptr->Mask |= MSG_HWPORTEXT_MASK_EGRESS_TYPE;
           }
           else if (strcmp(param,"mlen")==0)
           {
@@ -4332,6 +4342,8 @@ int main (int argc, char *argv[])
               printf("\tOuter TPID             = %u\n\r",po[index].outer_tpid);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_INNER_TPID)
               printf("\tInner TPID             = %u\n\r",po[index].inner_tpid);
+            if (po[index].Mask & MSG_HWPORTEXT_MASK_EGRESS_TYPE)
+              printf("\tEgress Type            = %u\n\r", 0 /*po[index].egress_type*/);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_ENABLE)
               printf("\tMAC Learn Enable                = %u\n\r",po[index].macLearn_enable);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)

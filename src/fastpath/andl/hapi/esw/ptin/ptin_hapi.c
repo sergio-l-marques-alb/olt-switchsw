@@ -317,7 +317,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for PON port %u/%u",i, bcm_port);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for PON port %u (bcm_port=%u)",i, bcm_port);
   }
   /* ETH ports */
   for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
@@ -333,7 +333,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for ETH port %u/%u",i,bcm_port);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for ETH port %u (bcm_port=%u)",i,bcm_port);
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Egress bitmap configured for all ports");
