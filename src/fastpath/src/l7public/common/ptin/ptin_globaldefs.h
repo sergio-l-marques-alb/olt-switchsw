@@ -102,8 +102,8 @@ extern int ptin_sys_number_of_ports;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
@@ -245,8 +245,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
@@ -390,8 +390,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
@@ -531,8 +531,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
@@ -714,8 +714,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)
@@ -844,8 +844,8 @@ extern volatile st_fpga_map_t *fpga_map;
 # define PTIN_SYSTEM_MAX_COUNTERS      128   /* Maximum number of Multicast probes */
 
 #if (PTIN_SYSTEM_GROUP_VLANS)
-# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    32    /* Number of vlans for each unstacked service (Must be power of 2) */
-# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    4     /* Number of vlan blocks for stacked services */
+# define PTIN_SYSTEM_EVC_VLANS_PER_BLOCK    64    /* Number of vlans for each P2MP service (Must be power of 2) */
+# define PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS    8     /* Number of vlan blocks for P2P services */
 # define PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS  (2048/PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MIN       PTIN_VLAN_MIN
 # define PTIN_SYSTEM_EVC_P2P_VLAN_MAX      (PTIN_SYSTEM_EVC_VLANS_PER_BLOCK*PTIN_SYSTEM_EVC_P2P_VLAN_BLOCKS-1)

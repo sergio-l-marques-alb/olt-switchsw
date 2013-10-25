@@ -378,6 +378,9 @@ typedef struct {
 #define PTIN_EVC_MASK_QUATTRO           0x00020000
 #define PTIN_EVC_MASK_TYPE              (PTIN_EVC_MASK_P2P | PTIN_EVC_MASK_QUATTRO)
 
+/* This bit will tell EVC if should use several vlans to gurantee port isolation */
+#define PTIN_EVC_MASK_ETREE             0x00100000
+
 /* EVC type */
 #define PTIN_EVC_TYPE_STD_P2MP          0x0
 #define PTIN_EVC_TYPE_STD_P2P           0x1
