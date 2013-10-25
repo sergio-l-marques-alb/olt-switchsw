@@ -638,6 +638,49 @@ L7_RC_t hapiBroadDebugStatsGet(L7_ushort16 unitNum, L7_ushort16 slotNum, L7_usho
   return result;
 
 }
+
+L7_RC_t hapiBroadDebugSocRegRead(L7_uint32 reg, L7_uint32 unit, soc_port_t port, L7_uint32 *val)
+{
+#ifdef BCM_ESW_SUPPORT
+  int                r;
+  soc_reg_info_t    *reginfo;
+
+  if (!SOC_REG_IS_VALID(unit, reg))
+    return L7_FAILURE;
+
+  reginfo = &SOC_REG_INFO(unit, reg);
+
+  switch (reginfo->regtype)
+  {
+  case soc_portreg:
+    break;
+  default:
+    assert(0);
+  }
+
+  r = soc_reg32_read(unit, soc_reg_addr(unit, reg, port, 0), val);
+
+  if (r < 0)
+  {
+    printk("ERROR: read from register failed: %s\n", soc_errmsg(r));
+    return L7_FAILURE;
+  }
+#endif
+  return L7_SUCCESS;
+}
+
+L7_RC_t hapiBroadDebugSocRegReadDebug(L7_uint32 reg, L7_uint32 unit, soc_port_t port)
+{
+
+  L7_uint32 val;
+
+  hapiBroadDebugSocRegRead(reg, unit, port, &val);
+
+  printk("\n val %d\n", val);
+
+  return L7_SUCCESS;
+}
+
 L7_RC_t hapiBroadDebugSocRegDump(L7_uint32 reg, L7_uint32 unit, L7_uint32 pbmp)
 {
 #ifdef BCM_ESW_SUPPORT
