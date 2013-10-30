@@ -53,7 +53,7 @@
 
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
-#define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10Evc_t
+#define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_FLOOD_VLAN_GET        0x9036  // struct msg_HwEthEvcFloodVlan_t
@@ -72,6 +72,10 @@
 #define CCMSG_ETH_BW_PROFILE_SET            0x9050  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
+
+#define CCMSG_ETH_STORM_CONTROL_GET         0x9055  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_SET         0x9056  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_CLEAR       0x9057  // struct msg_HwEthStormControl_t
 
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
 #define CCMSG_ETH_NTW_CONNECTIVITY_SET      0x9061  // struct msg_NtwConnectivity_t
@@ -647,6 +651,13 @@ typedef struct {
 
 } __attribute__((packed)) msg_HwEthMef10Evc_t;
 
+/* EVC Remove */
+// Messages CCMSG_ETH_EVC_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+} __attribute__((packed)) msg_HwEthMef10EvcRemove_t;
+
 /* EVC stacked bridge */
 // Messages CCMSG_ETH_EVC_BRIDGE_ADD and CCMSG_ETH_EVC_BRIDGE_REMOVE
 typedef struct {
@@ -725,6 +736,18 @@ typedef struct {
   msg_HwEthInterface_t intf_dst;      // [mask=0x08] Destination Interface to apply profile
   msg_HwEthBwProfileData_t profile;   // [mask=0x80] Profile to be applied
 } __attribute__((packed)) msg_HwEthBwProfile_t;
+
+/* Storm control */
+// Messages CCMSG_ETH_STORM_CONTROL_GET, CCMSG_ETH_STORM_CONTROL_SET and CCMSG_ETH_STORM_CONTROL_CLEAR
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 id;                 /* ID */
+  L7_uint16 flags;              /* Control flags: 0x0000 */
+  L7_uint16 mask;               /* Mask */
+  L7_uint32 bcast_rate;         /* [mask=0x0001] in bps */
+  L7_uint32 mcast_rate;         /* [mask=0x0002] in bps */
+  L7_uint32 ucast_unknown_rate; /* [mask=0x0004] in bps */
+} __attribute__((packed)) msg_HwEthStormControl_t;
 
 /***************************************************** 
  * EVC counters messages

@@ -2245,24 +2245,38 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10Evc_t *msgEvcConf)
+L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
 {
-  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+  L7_uint16 i;
+  L7_RC_t rc_global = L7_SUCCESS;
+
+  if (msgEvcConf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid argument");
     return L7_FAILURE;
   }
 
-  if (ptin_evc_delete(msgEvcConf->id) != L7_SUCCESS)
+  for (i=0; i<n_structs; i++)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error deleting EVC# %u", msgEvcConf->id);
-    return L7_FAILURE;
+    /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+    if ((msgEvcConf[i].id == PTIN_EVC_INBAND) || (msgEvcConf[i].id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error deleting EVC# %u", msgEvcConf[i].id);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u successfully deleted", msgEvcConf[i].id);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u successfully deleted", msgEvcConf->id);
-
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**
@@ -2735,6 +2749,190 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
   return L7_SUCCESS;
+}
+
+/**
+ * Get data of an existent storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
+{
+  ptin_stormControl_t stormControl;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+
+  /* Validate arguments */
+  if (msgStormControl==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
+
+  /* Input data */
+  memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_BCAST_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_BCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_MCAST_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_MCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_UCUNK_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_UCUNK_SET;
+  }
+
+  /* Read bandwidth profile */
+  if ((rc=ptin_stormControl_get(&stormControl))!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading storm control data!");
+    return rc;
+  }
+
+  /* Init Output data */
+  msgStormControl->mask = 0;
+  msgStormControl->bcast_rate = 0;
+  msgStormControl->mcast_rate = 0;
+  msgStormControl->ucast_unknown_rate = 0;
+  /* Fill output data */
+  if (stormControl.flags & PTIN_STORMCONTROL_FLAGS_BCAST_SET)
+  {
+    msgStormControl->bcast_rate = stormControl.bcast_rate;
+    msgStormControl->mask |= PTIN_STORMCONTROL_FLAGS_BCAST_SET;
+  }
+  if (stormControl.flags & PTIN_STORMCONTROL_FLAGS_MCAST_SET)
+  {
+    msgStormControl->mcast_rate = stormControl.mcast_rate;
+    msgStormControl->mask |= PTIN_STORMCONTROL_FLAGS_MCAST_SET;
+  }
+  if (stormControl.flags & PTIN_STORMCONTROL_FLAGS_UCUNK_SET)
+  {
+    msgStormControl->ucast_unknown_rate = stormControl.ucunk_rate;
+    msgStormControl->mask |= PTIN_STORMCONTROL_FLAGS_UCUNK_SET;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
+  return rc;
+}
+
+/**
+ * Configure storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
+{
+  ptin_stormControl_t stormControl;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+
+  /* Validate arguments */
+  if (msgStormControl==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
+
+  /* Input data */
+  memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_BCAST_SET)
+  {
+    stormControl.bcast_rate = msgStormControl->bcast_rate;
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_BCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_MCAST_SET)
+  {
+    stormControl.mcast_rate = msgStormControl->mcast_rate;
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_MCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_UCUNK_SET)
+  {
+    stormControl.ucunk_rate = msgStormControl->ucast_unknown_rate;
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_UCUNK_SET;
+  }
+
+  /* Add bandwidth profile */
+  if ((rc=ptin_stormControl_set(&stormControl))!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying storm control profile!");
+    return rc;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
+  return rc;
+}
+
+/**
+ * Clear storm control profile
+ * 
+ * @param msgStormControl : 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
+{
+  ptin_stormControl_t stormControl;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+
+  /* Validate arguments */
+  if (msgStormControl==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
+
+  /* Input data */
+  memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_BCAST_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_BCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_MCAST_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_MCAST_SET;
+  }
+  if (msgStormControl->mask & PTIN_STORMCONTROL_FLAGS_UCUNK_SET)
+  {
+    stormControl.flags |= PTIN_STORMCONTROL_FLAGS_UCUNK_SET;
+  }
+
+  /* Add bandwidth profile */
+  if ((rc=ptin_stormControl_clear(&stormControl))!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error clearing storm control profile!");
+    return rc;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
+  return rc;
 }
 
 /* EVC Statistics *********************************************************/

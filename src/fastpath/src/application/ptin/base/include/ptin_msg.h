@@ -400,7 +400,7 @@ extern L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10Evc_t *msgEvcConf);
+extern L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs);
 
 /**
  * Add/remove port to/from an EVC
@@ -498,6 +498,33 @@ extern L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile);
+
+/**
+ * Get data of an existent storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl);
+
+/**
+ * Configure storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl);
+
+/**
+ * Clear storm control profile
+ * 
+ * @param msgStormControl : 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl);
 
 /* EVC Statistics *********************************************************/
 

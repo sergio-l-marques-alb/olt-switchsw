@@ -3286,7 +3286,7 @@ int main (int argc, char *argv[])
 
       case 1602:
         {
-          msg_HwEthMef10Evc_t *ptr;
+          msg_HwEthMef10EvcRemove_t *ptr;
 
           // Validate number of arguments
           if (argc<3+1)  {
@@ -3295,10 +3295,10 @@ int main (int argc, char *argv[])
           }
 
           comando.msgId = CCMSG_ETH_EVC_REMOVE;
-          comando.infoDim = sizeof(msg_HwEthMef10Evc_t);
+          comando.infoDim = sizeof(msg_HwEthMef10EvcRemove_t);
 
           // Pointer to data array
-          ptr = (msg_HwEthMef10Evc_t *) &(comando.info[0]);
+          ptr = (msg_HwEthMef10EvcRemove_t *) &(comando.info[0]);
 
           // Slot id
           ptr->SlotId = (uint8)-1;
@@ -4202,7 +4202,7 @@ int main (int argc, char *argv[])
           printf("Switch: PRBS status read successfully\n\r");
         }
         else
-          printf(" Switch: Error reading resources list\n\r");
+          printf(" Switch: Error reading PRBS status\n\r");
       }
       break;
 

@@ -58,7 +58,7 @@ extern int canal_buga;
 
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
-#define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10Evc_t
+#define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_FLOW_GET              0x9039  // struct msg_HwEthEvcFlow_t
@@ -537,6 +537,13 @@ typedef struct {
   /* IMPORTANT: interfaces must be in sequence (phy+lags) */
 
 } __attribute__((packed)) msg_HwEthMef10Evc_t;
+
+/* EVC Remove */
+// Messages CCMSG_ETH_EVC_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+} __attribute__((packed)) msg_HwEthMef10EvcRemove_t;
 
 /* EVC port add/remove */
 // Messages CCMSG_ETH_EVC_PORT_ADD and CCMSG_ETH_EVC_PORT_REMOVE
