@@ -3267,12 +3267,10 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   }
   #endif
 
- #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u",vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x",vlanId,vlan_match);
- #endif
 
   if (hapiBroadRaptorCheck() == L7_TRUE || hapiBroadHawkeyeCheck() == L7_TRUE) 
   {
@@ -3648,12 +3646,10 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   }
   #endif
 
- #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u",vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x",vlanId,vlan_match);
- #endif
 
     /* There are 3 set of policies for DHCP packets. Here is why.
    * When DHCP snoopinvlan_listg is enabled, we will have a set of trusted and
@@ -4118,12 +4114,10 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
   }
   #endif
 
- #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
- #endif
 
   /* If vlan value is valid, Find dhcp index */
   if (vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)
@@ -4411,12 +4405,10 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
     first_time   = L7_FALSE;
   }
 
-#if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u", vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x", vlanId, vlan_match);
-#endif
 
   /* APS packets on any port must go to the CPU and be rate limited to 64 kbps */
   meterInfo.cir       = RATE_LIMIT_APS;

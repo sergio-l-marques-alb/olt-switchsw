@@ -1766,6 +1766,116 @@ L7_RC_t hapi_ptin_counters_activity_get_debug(L7_uint phyPort)
   return L7_SUCCESS;
 }
 
+#if 0
+L7_RC_t hapi_ptin_rateLimit_init(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit)
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_uchar8               broadcast_mac[]      = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               broadcast_mac_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               multicast_mac[]      = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               multicast_mac_mask[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               *mac_value, *mac_mask;
+  L7_uint16               vlanId, vlan_mask;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_uint16 index, index_free;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting RL processing");
+
+  /* Broadcast rate limit */
+  if (traffType & PACKET_RATE_LIMIT_BROADCAST)
+  {
+    meterInfo_bcast.cir       = RATE_LIMIT_BCAST;
+    meterInfo_bcast.cbs       = 256;
+    meterInfo_bcast.pir       = RATE_LIMIT_BCAST;
+    meterInfo_bcast.pbs       = 256;
+    meterInfo_bcast.colorMode = BROAD_METER_COLOR_BLIND;
+
+
+  }
+
+  /* Multicast rate limit */
+  meterInfo_mcast.cir       = RATE_LIMIT_MCAST;
+  meterInfo_mcast.cbs       = 256;
+  meterInfo_mcast.pir       = RATE_LIMIT_MCAST;
+  meterInfo_mcast.pbs       = 256;
+  meterInfo_mcast.colorMode = BROAD_METER_COLOR_BLIND;
+
+  /* Unknown unicasts rate limit */
+  meterInfo_ucastunkn.cir       = 1024;
+  meterInfo_ucastunkn.cbs       = 256;
+  meterInfo_ucastunkn.pir       = 1024;
+  meterInfo_ucastunkn.pbs       = 256;
+  meterInfo_ucastunkn.colorMode = BROAD_METER_COLOR_BLIND;
+
+  do
+  {
+    vlanId = PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MIN;
+    vlan_mask = PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MASK;
+
+    mac_value = broadcast_mac;
+    mac_mask  = broadcast_mac_mask;
+
+    result = hapiBroadPolicyCreate(policyType);
+    if (result != L7_SUCCESS)  break;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
+
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_mask);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_value, mac_mask);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+  } while ( 0 );
+
+  if (result == L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
+    if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
+    {
+      rateLimit_list[index].policyId  = policyId;
+      rateLimit_list[index].ruleId    = ruleId;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
+    }
+  }
+  else
+  {
+    hapiBroadPolicyCreateCancel();
+
+    rateLimit_list[index].policyId = BROAD_POLICY_INVALID;
+    rateLimit_list[index].ruleId   = BROAD_POLICY_RULE_INVALID;
+    rateLimit_list[index].vlanId[POLICY_VLAN_ID  ] = L7_NULL;
+    rateLimit_list[index].vlanId[POLICY_VLAN_MASK] = L7_NULL;
+    rateLimit_list[index].vlanId[POLICY_TRAF_TYPE] = L7_NULL;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
+  }
+
+  if (result != L7_SUCCESS && rateLimit_list[index].policyId != BROAD_POLICY_INVALID )
+  {
+    /* attempt to delete the policy in case it was created */
+    (void)hapiBroadPolicyDelete(rateLimit_list[index].policyId);
+
+    rateLimit_list[index].policyId = BROAD_POLICY_INVALID;
+    rateLimit_list[index].ruleId   = BROAD_POLICY_RULE_INVALID;
+    rateLimit_list[index].vlanId[POLICY_VLAN_ID  ] = L7_NULL;
+    rateLimit_list[index].vlanId[POLICY_VLAN_MASK] = L7_NULL;
+    rateLimit_list[index].vlanId[POLICY_TRAF_TYPE] = L7_NULL;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished dhcp trapping processing");
+
+  return result;
+}
+#endif
+
 /**
  * Add a rate limiter to a particular traffic type
  * 
@@ -1828,12 +1938,10 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
   vlan_match = 0xfff;
   traffType  = rateLimit->trafficType;
 
- #if (PTIN_SYSTEM_GROUP_VLANS)
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Original vlan = %u",vlanId);
   vlan_match = PTIN_VLAN_MASK(vlanId);
   vlanId &= vlan_match;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlan = %u, mask=0x%04x",vlanId,vlan_match);
- #endif
 
     /* There are 3 set of policies for DHCP packets. Here is why.
    * When DHCP snooping is enabled, we will have a set of trusted and

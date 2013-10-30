@@ -2943,48 +2943,6 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
  */
 L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  ptin_evc_intfCfg_t intfCfg;
-
-  /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* This evc must be active */
-  if (!ptin_evc_is_in_use(evc_idx))
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evc_idx=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if this EVC is being used by any DHCP instance */
-  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"EVC %u is not used in any DHCP instance... nothing to do",evc_idx);
-    return L7_SUCCESS;
-  }
-
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* If internal vlan associated to interface is valid, use it */
-  if (intfCfg.int_vlan>=PTIN_VLAN_MIN && intfCfg.int_vlan<=PTIN_VLAN_MAX)
-  {
-    if (ptin_dhcpPkts_vlan_trap(intfCfg.int_vlan,enable)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring to %u int_vlan %u of interface %u/%u (EVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
-      return L7_FAILURE;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"DHCP trapping configured to %u, for vlan %u (interface %u/%u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id);
-  }
-#endif
   return L7_SUCCESS;
 }
 
@@ -3514,11 +3472,6 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
   L7_uint16            idx, vlan;
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  ptin_intf_t ptin_intf;
-  L7_uint16            intf_idx;
-  ptin_evc_intfCfg_t   intfCfg;
-#endif
 
   enable &= 1;
 
@@ -3533,59 +3486,15 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If UC EVC is point-to-point, use its root vlan */
-  if ((evcCfg.flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P  || 
-      (evcCfg.flags & PTIN_EVC_MASK_QUATTRO ) == PTIN_EVC_MASK_QUATTRO)
-#endif
+  if (ptin_evc_intRootVlan_get(evc_idx,&vlan)!=L7_SUCCESS)
   {
-    if (ptin_evc_intRootVlan_get(evc_idx,&vlan)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
-      return L7_FAILURE;
-    }
-    if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-    {
-      vlan_list[vlans_number++] = vlan;
-    }
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
+    return L7_FAILURE;
   }
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If unstacked... */
-  else
+  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
   {
-    /* Run all interfaces, and get its configurations */
-    for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
-    {
-      /* Get interface configuarions */
-      ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
-      ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-      if (ptin_evc_intfCfg_get(evc_idx, &ptin_intf, &intfCfg)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx);
-        return L7_FAILURE;
-      }
-      /* Extract internal vlan */
-      vlan = intfCfg.int_vlan;
-      if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-      {
-        /* Verify if this vlan is scheduled to be configured */
-        for (idx=0; idx<vlans_number; idx++)
-          if (vlan_list[idx]==vlan)  break;
-        if (idx<vlans_number)  continue;
-
-        /* Can this vlan be configured? */
-        if (vlans_number>=PTIN_SYSTEM_MAX_N_PORTS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"Excessive number of vlans to be configured (morte than %u)",PTIN_SYSTEM_MAX_N_PORTS);
-          return L7_FAILURE;
-        }
-
-        /* Schedule this vlan to be configured */
-        vlan_list[vlans_number++] = vlan;
-      }
-    }
+    vlan_list[vlans_number++] = vlan;
   }
-#endif
 
   /* Configure vlans */
   for (idx=0; idx<vlans_number; idx++)

@@ -1670,57 +1670,6 @@ L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_BOOL enable)
 {
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  ptin_evc_intfCfg_t intfCfg;
-  ptin_HwEthMef10Evc_t evcCfg;
-
-  /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid eEVC id: evc_idx=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* This evc must be active */
-  if (!ptin_evc_is_in_use(evc_idx))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"eEVC id is not active: evc_idx=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if this EVC is being used by any igmp instance */
-  if (ptin_igmp_instance_find_fromSingleEvcId(evc_idx,L7_NULLPTR)!=L7_SUCCESS)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"eEVC %u is not used in any IGMP instance... nothing to do",evc_idx);
-    return L7_SUCCESS;
-  }
-
-  /* Get EVC configuration */
-  evcCfg.index = evc_idx;
-  if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring eEVC %u configuration",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error acquiring interface %u/%u configuarion from eEVC id %u",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* If internal vlan associated to interface is valid, use it */
-  if (intfCfg.int_vlan>=PTIN_VLAN_MIN && intfCfg.int_vlan<=PTIN_VLAN_MAX)
-  {
-    if (usmDbSnoopVlanModeSet(1,intfCfg.int_vlan,enable,L7_AF_INET)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring to %u int_vlan %u of interface %u/%u (eEVC id %u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
-      return L7_FAILURE;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP trapping configured to %u, for vlan %u (interface %u/%u)",enable,intfCfg.int_vlan,ptin_intf->intf_type,ptin_intf->intf_id);
-  }
-#endif
   return L7_SUCCESS;
 }
 
@@ -6316,11 +6265,6 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
 {
   L7_uint16   idx, mc_vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  ptin_intf_t          ptin_intf;
-  L7_uint16            intf_idx;
-  ptin_evc_intfCfg_t   intfCfg;
-#endif
   L7_uint32 flags, mc_flood;
 
   enable &= 1;
@@ -6351,74 +6295,24 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     return L7_FAILURE;
   }
 
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If UC EVC is point-to-point, use its root vlan */
-  if ((evcCfg.flags & PTIN_EVC_MASK_P2P     ) == PTIN_EVC_MASK_P2P  || 
-      (evcCfg.flags & PTIN_EVC_MASK_QUATTRO ) == PTIN_EVC_MASK_QUATTRO)
-#endif
+  if (ptin_evc_intRootVlan_get(evc_idx_uc,&vlan)!=L7_SUCCESS)
   {
-    if (ptin_evc_intRootVlan_get(evc_idx_uc,&vlan)!=L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",evc_idx_uc);
+    return L7_FAILURE;
+  }
+  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+  {
+    /* Verify if this vlan is scheduled to be configured */
+    for (idx=0; idx<vlans_number; idx++)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",evc_idx_uc);
-      return L7_FAILURE;
+      if (vlan_list[idx]==vlan)  break;
     }
-    if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+    /* If not found, add this vlan */
+    if (idx>=vlans_number)
     {
-      /* Verify if this vlan is scheduled to be configured */
-      for (idx=0; idx<vlans_number; idx++)
-      {
-        if (vlan_list[idx]==vlan)  break;
-      }
-      /* If not found, add this vlan */
-      if (idx>=vlans_number)
-      {
-        vlan_list[vlans_number++] = vlan;
-      }
+      vlan_list[vlans_number++] = vlan;
     }
   }
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* If unstacked, use leaf vlans */
-  else
-  {
-    /* Run all interfaces, and get its configurations */
-    for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
-    {
-      /* Only leaf interfaces are considered */
-      if (evcCfg.intf[intf_idx].mef_type!=PTIN_EVC_INTF_LEAF)
-        continue;
-
-      /* Get interface configuarions */
-      ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
-      ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-      if (ptin_evc_intfCfg_get(evc_idx_uc, &ptin_intf, &intfCfg)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface %u/%u configuration from UC EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx_uc);
-        return L7_FAILURE;
-      }
-      /* Extract internal vlan */
-      vlan = intfCfg.int_vlan;
-      if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-      {
-        /* Verify if this vlan is scheduled to be configured */
-        for (idx=0; idx<vlans_number; idx++)
-        {
-          if (vlan_list[idx]==vlan)  break;
-        }
-        if (idx<vlans_number)  continue;
-
-        /* Can this vlan be configured? */
-        if (vlans_number>=PTIN_SYSTEM_MAX_N_PORTS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Excessive number of vlans to be configured (morte than %u)",PTIN_SYSTEM_MAX_N_PORTS);
-          return L7_FAILURE;
-        }
-
-        /* Schedule this vlan to be configured */
-        vlan_list[vlans_number++] = vlan;
-      }
-    }
-  }
-#endif
 #endif
 
   /* Configure vlans */
@@ -6488,11 +6382,6 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
 {
   L7_uint16   idx, vlan;
   L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  ptin_intf_t          ptin_intf;
-  L7_uint16            intf_idx;
-  ptin_evc_intfCfg_t   intfCfg;
-#endif
   ptin_HwEthMef10Evc_t evcCfg;
 
   /* IGMP instance management already deal with trp rules */
@@ -6551,54 +6440,6 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
       }
     }
   }
-
-#if (!PTIN_SYSTEM_GROUP_VLANS)
-  /* Only for downlink ports, or both */
-  if ( direction == PTIN_DIR_DOWNLINK || direction == PTIN_DIR_BOTH )
-  {
-    /* If unstacked, configure leaf vlans */
-    if ( !(evcCfg.flags & PTIN_EVC_MASK_STACKED) )
-    {
-      /* Run all interfaces, and get its configurations */
-      for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
-      {
-        /* Only leaf interfaces are considered */
-        if (evcCfg.intf[intf_idx].mef_type!=PTIN_EVC_INTF_LEAF)
-          continue;
-
-        /* Get interface configuarions */
-        ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
-        ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-        if (ptin_evc_intfCfg_get(evc_idx, &ptin_intf, &intfCfg)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting interface %u/%u configuration from EVC %u",ptin_intf.intf_type,ptin_intf.intf_id,evc_idx);
-          return L7_FAILURE;
-        }
-        /* Extract internal vlan */
-        vlan = intfCfg.int_vlan;
-        if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-        {
-          /* Verify if this vlan is scheduled to be configured */
-          for (idx=0; idx<vlans_number; idx++)
-          {
-            if (vlan_list[idx]==vlan)  break;
-          }
-          if (idx<vlans_number)  continue;
-
-          /* Can this vlan be configured? */
-          if (vlans_number>=PTIN_SYSTEM_MAX_N_PORTS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Excessive number of vlans to be configured (morte than %u)",PTIN_SYSTEM_MAX_N_PORTS);
-            return L7_FAILURE;
-          }
-
-          /* Schedule this vlan to be configured */
-          vlan_list[vlans_number++] = vlan;
-        }
-      }
-    }
-  }
-#endif
 
   /* Configure vlans */
   for (idx=0; idx<vlans_number; idx++)
