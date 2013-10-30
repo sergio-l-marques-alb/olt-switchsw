@@ -266,6 +266,25 @@ typedef struct {
 
 
 /* Xlate structs **************************************************************/
+
+/* Vlan translation stage */
+typedef enum
+{
+  PTIN_XLATE_STAGE_NONE = 0,
+  PTIN_XLATE_STAGE_INGRESS,
+  PTIN_XLATE_STAGE_EGRESS,
+  PTIN_XLATE_STAGE_ALL
+} ptin_vlanXlate_stage_enum;
+
+/* Vlan translation operation */
+typedef enum
+{
+  PTIN_XLATE_ACTION_NONE = 0,
+  PTIN_XLATE_ACTION_ADD,
+  PTIN_XLATE_ACTION_REPLACE,
+  PTIN_XLATE_ACTION_DELETE
+} ptin_vlanXlate_action_enum;
+
 /* Structure used to configure translation entries */
 typedef struct {
   DAPI_CMD_GET_SET_t oper;                  // Operation: DAPI_CMD_SET add, DAPI_CMD_CLEAR remove, and DAPI_CMD_GET reads.
@@ -369,6 +388,7 @@ typedef struct {
 #define PTIN_EVC_MASK_STACKED           0x00000004
 #define PTIN_EVC_MASK_MACLEARNING       0x00000008
 #define PTIN_EVC_MASK_CPU_TRAPPING      0x00000010
+#define PTIN_EVC_MASK_MC_FLOOD_ALL      0x00000020    /* Added */
 #define PTIN_EVC_MASK_DHCP_PROTOCOL     0x00000100
 #define PTIN_EVC_MASK_IGMP_PROTOCOL     0x00000200
 #define PTIN_EVC_MASK_PPPOE_PROTOCOL    0x00000400
@@ -562,6 +582,17 @@ typedef struct {
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer
 } ptin_bwPolicer_t;
 
+/* Storm control */
+#define PTIN_STORMCONTROL_FLAGS_BCAST_SET 0x0001
+#define PTIN_STORMCONTROL_FLAGS_MCAST_SET 0x0002
+#define PTIN_STORMCONTROL_FLAGS_UCUNK_SET 0x0004
+typedef struct {
+  L7_uint16 flags;              /* Control flags: 0x0000 */
+  L7_uint32 bcast_rate;         /* [flags=0x0001] in bps */
+  L7_uint32 mcast_rate;         /* [flags=0x0002] in bps */
+  L7_uint32 ucunk_rate;         /* [flags=0x0004] in bps */
+} ptin_stormControl_t;
+
 /* EVC statistics */
 
 typedef enum {
@@ -634,6 +665,7 @@ typedef struct {
   L7_int    operation;                  // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
   L7_uint16 vlanId;
   L7_uint16 trafficType;
+  L7_uint32 rate;
 } ptin_pktRateLimit_t;
 
 /* Network Connectivity (inBand) structs **************************************/

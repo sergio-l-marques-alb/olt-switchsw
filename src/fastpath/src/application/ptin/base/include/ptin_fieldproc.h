@@ -185,6 +185,33 @@ extern L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable);
 extern L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
+ * Storm control profile get
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_stormControl_get(ptin_stormControl_t *stormControl);
+
+/**
+ * Storm control profile set
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_stormControl_set(ptin_stormControl_t *stormControl);
+
+/**
+ * Storm control profile clear
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_stormControl_clear(ptin_stormControl_t *stormControl);
+
+/**
  * Apply Rate limit to broadcast traffic
  * 
  * @param enable : enable status
