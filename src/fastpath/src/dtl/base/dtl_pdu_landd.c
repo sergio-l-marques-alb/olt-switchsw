@@ -267,6 +267,8 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   DAPI_FRAME_CMD_t sendData;
   L7_RC_t dr;
 
+  /* PTin added: Default flags */
+  sendData.cmdData.send.flags = 0;
 
   switch (dtlCmd)
   {

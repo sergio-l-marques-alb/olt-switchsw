@@ -1349,13 +1349,14 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   bcm_pkt.cos = hapiBroadTxCosTable[BROAD_TX_PRIO_NORMAL];
 
-  /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
-  bcm_pkt.flags   |= cmdInfo->cmdData.send.flags;
-
 #ifdef L7_CHASSIS
   bcm_pkt.src_mod = 0;
   bcm_pkt.flags   |= BCM_TX_SRC_MOD;
 #endif
+
+  /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
+  bcm_pkt.flags   |= cmdInfo->cmdData.send.flags;
+
   if (bcm_pkt.pkt_data->data == NULL)
   {
     /* Free the frame from the buffer */
