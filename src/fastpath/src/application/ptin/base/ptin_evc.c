@@ -28,13 +28,6 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
-/* Assure PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS is 1024 */
-#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-#if (PTIN_SYSTEM_EVC_QUATTRO_P2P_VLANS!=1024)
-#error "ola"
-#endif
-#endif
-
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -237,9 +230,7 @@ static struct ptin_evc_entry_s  evcs_pool[PTIN_SYSTEM_N_EVCS];  /* Array with al
 static struct ptin_evc_client_s clients[PTIN_SYSTEM_N_CLIENTS]; // sizeof=24*1024=24576
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 
-#if (PTIN_SYSTEM_GROUP_VLANS)
-static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS];
-#endif
+static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS];
 
 /* List of flows */
 #if 0
@@ -258,17 +249,18 @@ static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
 static dl_queue_t queue_free_flows;   /* Flows (busy) queues are mapped on each interface per EVC */
 #endif
 
-#if (PTIN_SYSTEM_GROUP_VLANS)
-static dl_queue_t queue_p2multipoint_freeVlan_queues;
-static dl_queue_t queue_p2p_free_vlans; /* Pool of free internal VLANs */
-static dl_queue_t queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS]; /* Pool of free internal VLANs */
-#else
-static dl_queue_t queue_free_vlans; /* Pool of free internal VLANs */
-#endif
-/* Queue for QUATTRO P2P vlans */
-#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-static dl_queue_t queue_quattro_p2p_free_vlans;
-#endif
+typedef enum
+{
+  PTIN_VLAN_TYPE_BITSTREAM=0,
+  PTIN_VLAN_TYPE_CPU_BCAST,
+  PTIN_VLAN_TYPE_CPU_MCAST,
+  PTIN_VLAN_TYPE_QUATTRO_P2P,
+  PTIN_VLAN_TYPE_MAX         /* Do not change this constant */
+} ptin_evc_type_t;
+
+static dl_queue_t queue_free_vlans[PTIN_VLAN_TYPE_MAX];
+static dl_queue_t queue_free_queues_etree[PTIN_VLAN_TYPE_MAX];
+static dl_queue_t queue_free_vlans_etree[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS];
 
 /* Lookup table to convert extended in internal EVC indexes */
 static L7_uint32 evc_ext2int[PTIN_SYSTEM_N_EXTENDED_EVCS];
@@ -1588,6 +1580,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     pppoe_enabled = L7_TRUE;
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
   }
+  /* If MC is in flood all mode, active flag */
+  if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
+  {
+    evcConf->flags |= PTIN_EVC_MASK_MC_FLOOD_ALL;
+  }
 
   /* Check if this EVC is allowd to be QUATTRO type */
   if (is_quattro)
@@ -1803,7 +1800,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (NO_INSTANCE(evc_id, n_quattro_p2p_evcs))
       #endif
       {
-
         if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
         {
           /* Rate limiter for MC */
@@ -6205,64 +6201,76 @@ static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_e
 static void ptin_evc_vlan_pool_init(void)
 {
   L7_uint i;
-#if (PTIN_SYSTEM_GROUP_VLANS)
   L7_uint block;
 
-  /* Stacked block */
-  dl_queue_init(&queue_p2p_free_vlans);
-  /* Quattro P2P block */
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  dl_queue_init(&queue_quattro_p2p_free_vlans);
-  #endif
-
-  for (i=PTIN_VLAN_MIN; i<PTIN_VLAN_MAX && i<PTIN_SYSTEM_EVC_P2P_VLAN_MAX; i++)
+  /* ELAN vlans */
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]);
+  for (i=PTIN_SYSTEM_EVC_BITSTREAM_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTREAM_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
-    dl_queue_add(&queue_p2p_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&vlans_pool[i]);
   }
 
-  /* Unstacked blocks */
-  for (block=0; block<PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS; block++)
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST]);
+  for (i=PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MAX; i++)
   {
-    dl_queue_init(&queue_p2multipoint_free_vlans[block]);
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t*)&vlans_pool[i]);
+  }
 
-    for (i = PTIN_SYSTEM_EVC_P2MP_VLAN_MIN + block*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
-         i < PTIN_SYSTEM_EVC_P2MP_VLAN_MIN + (block+1)*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST]);
+  for (i=PTIN_SYSTEM_EVC_CPU_MCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_MCAST_VLAN_MAX; i++)
+  {
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&vlans_pool[i]);
+  }
+
+  /* QUATTRO P2P vlans */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P]);
+  for (i=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX; i++)
+  {
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P], (dl_queue_elem_t*)&vlans_pool[i]);
+  }
+  #else
+  memset(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P], 0x00, sizeof(dl_queue_t));
+  #endif
+
+  /* E-Tree blocks */
+  for (block=0; block<PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS; block++)
+  {
+    dl_queue_init(&queue_free_vlans_etree[block]);
+
+    for (i = PTIN_SYSTEM_EVC_ETREE_VLAN_MIN + block*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
+         i < PTIN_SYSTEM_EVC_ETREE_VLAN_MIN + (block+1)*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK;
          i++)
     {
       if (i<PTIN_VLAN_MIN || i>PTIN_VLAN_MAX)  continue;
 
       vlans_pool[i].vid = i;
-      dl_queue_add(&queue_p2multipoint_free_vlans[block], (dl_queue_elem_t*)&vlans_pool[i]);
+      dl_queue_add(&queue_free_vlans_etree[block], (dl_queue_elem_t*)&vlans_pool[i]);
     }
   }
+  /* E-Tree free vlan queues */
+  dl_queue_init(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM]);
+  dl_queue_init(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST]);
+  dl_queue_init(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST]);
+  memset(&queue_free_queues_etree[PTIN_VLAN_TYPE_QUATTRO_P2P], 0x00, sizeof(dl_queue_t)); /* Thre is no Quattro E-TREE EVCs */
 
-  /* Unstacked free vlan queues */
-  dl_queue_init(&queue_p2multipoint_freeVlan_queues);
-
-  for (i=0; i<PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS; i++)
+  for (i=0; i<PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS; i++)
   {
-    queues_pool[i].queue = &queue_p2multipoint_free_vlans[i];
-    dl_queue_add(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t*)&queues_pool[i]);
+    queues_pool[i].queue = &queue_free_vlans_etree[i];
+    /* First block is for IPTV EVCs */
+    if (i < PTIN_SYSTEM_EVC_ETREE_CPU_BC_VLAN_BLOCKS)
+      dl_queue_add(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t*)&queues_pool[i]);
+    /* Second block is Unicast EVCs */
+    else if (i < PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_BLOCKS )
+      dl_queue_add(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&queues_pool[i]);
+    /* Finally there is the Bitstream */
+    else
+      dl_queue_add(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&queues_pool[i]);
   }
-
-  /* QUATTRO P2P vlans */
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  for (i=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX; i++)
-  {
-    vlans_pool[i].vid = i;
-    dl_queue_add(&queue_quattro_p2p_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
-  }
-  #endif
-#else
-  dl_queue_init(&queue_free_vlans);
-
-  for (i=PTIN_VLAN_MIN; i<=PTIN_VLAN_MAX; i++)
-  {
-    vlans_pool[i].vid = i;
-    dl_queue_add(&queue_free_vlans, (dl_queue_elem_t*)&vlans_pool[i]);
-  }
-#endif
 
   /* Reset 'evcId reference from internal vlan' array*/
   memset(evcId_from_internalVlan, 0xff, sizeof(evcId_from_internalVlan));
@@ -6280,9 +6288,7 @@ static void ptin_evc_vlan_pool_init(void)
  */
 static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_flags, dl_queue_t **freeVlan_queue)
 {
- #if (PTIN_SYSTEM_GROUP_VLANS)
   struct ptin_queue_s *fv_queue;
-  L7_uint evc_type;
 
   if (evc_id>PTIN_SYSTEM_N_EVCS)
   {
@@ -6290,51 +6296,83 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
     return L7_FAILURE;
   }
 
-  /* Extract EVC type */
-  evc_type = (L7_uint8) ((evc_flags & PTIN_EVC_MASK_TYPE) >> 16);
-
-  /* If evc is P2P, use apropriate free vlan queue */
-  if (evc_type == PTIN_EVC_TYPE_STD_P2P || evc_type == PTIN_EVC_TYPE_QUATTRO_P2MP)
+  /* E-Tree EVCs */
+  if ((evc_flags & PTIN_EVC_MASK_ETREE))
   {
-    *freeVlan_queue = &queue_p2p_free_vlans;
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
-    return L7_SUCCESS;
+    /* CPU trap */
+    if (evc_flags & PTIN_EVC_MASK_CPU_TRAPPING)
+    {
+      /* MC flooding all: Unicast EVC */
+      if (evc_flags & PTIN_EVC_MASK_MC_FLOOD_ALL)
+      {
+        if (queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST].n_elems == 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "There is no free MC VLAN queues available");
+          return L7_FAILURE;
+        }
+        /* Pop a vlan queue */
+        dl_queue_remove_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t**)&fv_queue);
+      }
+      /* IPTV EVC */
+      else
+      {
+        if (queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST].n_elems == 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "There is no free BC VLAN queues available");
+          return L7_FAILURE;
+        }
+        /* Pop a vlan queue */
+        dl_queue_remove_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t**)&fv_queue);
+      }
+    }
+    /* Bitstream EVC */
+    else
+    {
+      if (queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM].n_elems == 0)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "There is no free Bitstream VLAN queues available");
+        return L7_FAILURE;
+      }
+      /* Pop a vlan queue */
+      dl_queue_remove_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t**)&fv_queue);
+    }
+
+    *freeVlan_queue = fv_queue->queue;
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Allocated free MC vlan queue index=%u",
+              ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_free_vlans_etree)/sizeof(dl_queue_t));
   }
-  else if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  /* Quattro P2P EVCs */
+  else if ((evc_flags & PTIN_EVC_MASK_QUATTRO) &&
+           (evc_flags & PTIN_EVC_MASK_P2P))
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    *freeVlan_queue = &queue_quattro_p2p_free_vlans;
+    *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P];
     LOG_TRACE(LOG_CTX_PTIN_EVC, "QUATTRO Free Vlan Queue selected!");
-    return L7_SUCCESS;
     #else
     LOG_ERR(LOG_CTX_PTIN_EVC, "No QUATTRO vlan available!");
     return L7_ERROR;
     #endif
   }
-
-  /* Port isolation is not demanded, the p2p vlan queue */
-  if (!(evc_flags & PTIN_EVC_MASK_ETREE))
+  /* CPU port is on? */
+  else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING))
   {
-    *freeVlan_queue = &queue_p2p_free_vlans;
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "Stacked Free Vlan Queue selected!");
-    return L7_SUCCESS;
+    if ((evc_flags & PTIN_EVC_MASK_MC_FLOOD_ALL))
+    {
+      *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST];
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "CPU_MCAST Free Vlan Queue selected!");
+    }
+    else
+    {
+      *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST];
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "CPU_BCAST Free Vlan Queue selected!");
+    }
   }
-
-  if (queue_p2multipoint_freeVlan_queues.n_elems == 0)
+  /* Finally Bitstream services */
+  else
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "There is no free VLAN queues available");
-    return L7_FAILURE;
+    *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM];
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "BITSTREAM Free Vlan Queue selected!");
   }
-
-  dl_queue_remove_head(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t**)&fv_queue);
-
-  *freeVlan_queue = fv_queue->queue;
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "Allocated free vlan queue index=%u (%u available)",
-            ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_p2multipoint_free_vlans)/sizeof(dl_queue_t),
-            queue_p2multipoint_freeVlan_queues.n_elems);
- #else
-  *freeVlan_queue = &queue_free_vlans;
- #endif
 
   return L7_SUCCESS;
 }
@@ -6349,7 +6387,6 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
  */
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
 {
- #if (PTIN_SYSTEM_GROUP_VLANS)
   L7_uint32 pool_index;
 
   /* No (free vlan) queue provided */
@@ -6360,9 +6397,11 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
   }
 
   /* If (free vlan) queue is the stacked one, do nothing */
-  if (freeVlan_queue == &queue_p2p_free_vlans
+  if (freeVlan_queue == &queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]
+      || freeVlan_queue == &queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST]
+      || freeVlan_queue == &queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST]
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-      || freeVlan_queue == &queue_quattro_p2p_free_vlans
+      || freeVlan_queue == &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P]
       #endif
      )
   {
@@ -6370,21 +6409,35 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
     return L7_SUCCESS;
   }
 
-  pool_index = ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_p2multipoint_free_vlans[0])/sizeof(dl_queue_t);
+  pool_index = ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_free_vlans_etree[0])/sizeof(dl_queue_t);
 
-  if ((L7_uint32) freeVlan_queue < (L7_uint32) &queue_p2multipoint_free_vlans[0] ||
-      (L7_uint32) freeVlan_queue > (L7_uint32) &queue_p2multipoint_free_vlans[PTIN_SYSTEM_EVC_P2MP_VLAN_BLOCKS-1] ||
-      ( ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_p2multipoint_free_vlans[0])%sizeof(dl_queue_t) ) != 0 )
+  /* Validate pointer address */
+  if ((L7_uint32) freeVlan_queue < (L7_uint32) &queue_free_vlans_etree[0] ||
+      (L7_uint32) freeVlan_queue > (L7_uint32) &queue_free_vlans_etree[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS-1] ||
+      ( ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_free_vlans_etree[0])%sizeof(dl_queue_t) ) != 0 )
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "freeVlan Queue pointer value is invalid (%u)!",pool_index);
     return L7_FAILURE;
   }
 
   /* Index directly to the pool array and add the element to the free queue */
-  dl_queue_add_head(&queue_p2multipoint_freeVlan_queues, (dl_queue_elem_t *) &queues_pool[pool_index]);
-
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)",pool_index,queue_p2multipoint_freeVlan_queues.n_elems);
- #endif
+  if ((L7_uint32) freeVlan_queue <
+      (L7_uint32) &queue_free_vlans_etree[PTIN_SYSTEM_EVC_ETREE_CPU_BC_VLAN_BLOCKS] )
+  {
+    dl_queue_add_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t *) &queues_pool[pool_index]);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)", pool_index, queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST].n_elems);
+  }
+  else if ((L7_uint32) freeVlan_queue <
+           (L7_uint32) &queue_free_vlans_etree[PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_BLOCKS] )
+  {
+    dl_queue_add_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t *) &queues_pool[pool_index]);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)", pool_index, queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST].n_elems);
+  }
+  else
+  {
+    dl_queue_add_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t *) &queues_pool[pool_index]);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)", pool_index, queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM].n_elems);
+  }
 
   return L7_SUCCESS;
 }
