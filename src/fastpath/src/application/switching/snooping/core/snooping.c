@@ -2539,12 +2539,12 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   snoop_eb_t                  *pSnoopEB ;
 
   snoopPTinL3InfoData_t *      avlTreeEntry=L7_NULLPTR;
-//ptin_IgmpProxyCfg_t          igmpCfg;
+  ptin_IgmpProxyCfg_t          igmpCfg;
   L7_uchar8                   *dataPtr = L7_NULL;
   L7_uint32                    ipv4Addr, incomingVersion = 0,timeout=0;
 //L7_in6_addr_t                ipv6Addr;
 //L7_mgmdQueryMsg_t            mgmdMsg;
-  L7_uchar8                    byteVal,robustnessVariable;
+  L7_uchar8                    byteVal,robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS;
   L7_ushort16                  maxRespCode=0,recdChecksum;
 
   L7_uchar8                    dmac[L7_MAC_ADDR_LEN];                 
@@ -2570,14 +2570,16 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
     return L7_ERROR;
   }
 
-#if 0
+
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");        
-    return L7_ERROR;
   }
-#endif 
+  else
+  {    
+    robustnessVariable=igmpCfg.host.robustness;
+  }
 
   /* Get Snoop Control Block */
   pSnoopCB = mcastPacket->cbHandle;
@@ -2661,14 +2663,23 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       }
 #endif
 
-      SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
+    /*4.1.6. QRV (Querier’s Robustness Variable)*/
+    /*...in which case the receivers use the default [Robustness Variable] value specified in
+    section 8.1 or a statically configured value. */
+      SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/  
+#if 0       
       robustnessVariable = byteVal & 0x07;    
       if (robustnessVariable<PTIN_MIN_ROBUSTNESS_VARIABLE)
       {
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid robustness Variable, packet silently discarded");
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Robustness Variable=%u",robustnessVariable);    
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Robustness Variable=%u",robustnessVariable);  
+#else
+      byteVal = byteVal & 0x07;    
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Robustness Variable=%u",byteVal);  
+#endif
+        
       SNOOP_GET_BYTE(byteVal, dataPtr);  /* QQIC */
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"QQIC=%u",byteVal);
       SNOOP_GET_SHORT(noOfSources, dataPtr);  /* Number of sources */
@@ -2691,7 +2702,6 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
         return L7_FAILURE;
       }
       incomingVersion = SNOOP_IGMP_VERSION_1;
-      return L7_SUCCESS;//Fixme: remove me!
     }
     else
     {
@@ -2711,7 +2721,6 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       }
 #endif
       incomingVersion = SNOOP_IGMP_VERSION_2;
-      return L7_SUCCESS;//Fixme: remove me!
     }
   }/* Is IGMP pkt check */
 #if 0//Snooping
@@ -2772,18 +2781,23 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   }/* End of MLD Message check */
 #endif
 
-  /* As the packet has the max-respons-time in 1/10 of secs, convert it to seconds
-      for further processing */
-  maxRespTime = snoopPTinProxy_decode_max_resp_code(mcastPacket->cbHandle->family,maxRespCode);
-  if (maxRespTime==0)
+  /*This only makes sense for IGMPv2 and IGMPv3*/
+  if(incomingVersion==SNOOP_IGMP_VERSION_2 || incomingVersion==SNOOP_IGMP_VERSION_3)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Max Response Time equal to zero, packet silently discarded");
-    return L7_FAILURE;
+    /* As the packet has the max-respons-time in 1/10 of secs, convert it to seconds
+        for further processing */
+    maxRespTime = snoopPTinProxy_decode_max_resp_code(mcastPacket->cbHandle->family,maxRespCode);
+    if (maxRespTime==0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Max Response Time equal to zero, packet silently discarded");
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Response Time=%u",maxRespTime);
+    /* Calculate the Selected delay */
+    selectedDelay = snoopPTinProxy_selected_delay_calculate((L7_int32) maxRespTime); 
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Selected Delay=%d",selectedDelay);
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Response Time=%u",maxRespTime);
-  /* Calculate the Selected delay */
-  selectedDelay = snoopPTinProxy_selected_delay_calculate((L7_int32) maxRespTime); 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Selected Delay=%d",selectedDelay);
+  
 
   if (mcastPacket->cbHandle->family == L7_AF_INET)/*IPv4*/
   {
@@ -2836,7 +2850,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
       }
     case SNOOP_IGMP_VERSION_2:
       {
-#if 0
+#if 1
         /* Check if it is general query address or group specific */
         if (inetIsAddressZero(&groupAddr) == L7_TRUE)
         {
@@ -2849,8 +2863,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             pSnoopCB->counters.controlFramesProcessed++;                    
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 General Query Rec'd");
-          ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 General Query Rec'd");    
+          queryType=L7_IGMP_MEMBERSHIP_QUERY;      
         }
         else /* Should be group specific query */
         {
@@ -2871,9 +2885,17 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             pSnoopCB->counters.controlFramesProcessed++;                    
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 Group Specific Query Rec'd");
-          ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX);
 
+          /*Let us verify if this group is registered by any IGMPv3 Host*/            
+          if ((avlTreeEntry=snoopPTinL3EntryFind(mcastPacket->vlanId,&groupAddr,L7_MATCH_EXACT))==L7_NULLPTR || 
+              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
+              snoopPTinZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].clients)!=L7_ALREADY_CONFIGURED)
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",inetAddrPrint(&groupAddr,debug_buf));
+            return L7_SUCCESS;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv2 Group Specific Query Rec'd");
+          queryType=L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY;  
         }
 #else
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"IGMPv2 Query Rec'd, Packet Silently Ignored");
@@ -2922,8 +2944,17 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
             }
             else
             {
-              LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");              
-              queryType=L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY;             
+              if (noOfSources>PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD)
+              {
+                LOG_WARNING(LOG_CTX_PTIN_IGMP,"noOfSources higher than maximum allowed value changing Group and Source Query to Group Specific Query %u>%u",noOfSources,PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD); 
+                noOfSources=0;
+                queryType=L7_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY;  
+              }
+              else
+              {
+                LOG_DEBUG(LOG_CTX_PTIN_IGMP,"IGMPv3 Group & Source Specific Query Rec'd");              
+                queryType=L7_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY;             
+              }
             }
           }
           else
