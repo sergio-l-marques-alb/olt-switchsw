@@ -497,7 +497,7 @@ L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAd
 *********************************************************************/
 L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uchar8 *buffer, L7_uint32 *length)
 { 
-  L7_uchar8         *dataPtr,*chksumPtr, byteVal;
+  L7_uchar8         *dataPtr,*noRecordsPtr,*chksumPtr, byteVal;
   L7_ushort16       shortVal;
   L7_uint32 i;
 
@@ -531,13 +531,15 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
   shortVal = 0;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
-  /* Reserved = 0x00 */
+  /* Reserved = 0x0000 */
   shortVal = 0x0000;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   /* Number of Records (M)*/
+  noRecordsPtr=dataPtr;//We save this ptr for future use if required
   shortVal=(L7_ushort16) noOfRecords;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
+
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Number of Group Records :%u",(L7_ushort16) noOfRecords);
   groupPtrAux=groupPtr;
@@ -562,6 +564,8 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
 
   if (i!=noOfRecords)
   {
+    shortVal=(L7_ushort16) i;
+    SNOOP_PUT_SHORT(shortVal, noRecordsPtr);
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with groupPrt %u<%u",i,noOfRecords);
   }
 
@@ -579,7 +583,7 @@ L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t
 static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length)
 {
 
-  L7_uchar8         *dataPtr, byteVal;
+  L7_uchar8         *dataPtr,*noSourcesPtr, byteVal;
   L7_ushort16       shortVal;
   L7_uint32         ipv4Addr;
   snoopPTinProxySource_t* sourcePtr;
@@ -610,6 +614,7 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
   SNOOP_PUT_BYTE(byteVal, dataPtr);
 
   /*Number of Sources*/
+  noSourcesPtr=dataPtr;//We save this ptr for future use if required
   shortVal = numberOfSources;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
@@ -643,6 +648,8 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
 
   if (i!=numberOfSources)
   {
+    shortVal = i;
+    SNOOP_PUT_SHORT(shortVal, noSourcesPtr);
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with groupRecord %u<%u",i,numberOfSources);
   }
 
