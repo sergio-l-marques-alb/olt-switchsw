@@ -1308,6 +1308,15 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
         }
       }
 #endif
+      if (ptin_debug_igmp_snooping)
+      {    
+        L7_uint32 i;
+        printf("Rx:PayloadLength:%d\n",mcastPacket.length);
+        for (i=0;i<mcastPacket.length;i++)
+          printf("%02x ",mcastPacket.payLoad[i]);
+        printf("\n");
+      }
+
       if (mcastPacket.ip_payload[0]==L7_IGMP_MEMBERSHIP_QUERY)
       {
         /*Group Address*/

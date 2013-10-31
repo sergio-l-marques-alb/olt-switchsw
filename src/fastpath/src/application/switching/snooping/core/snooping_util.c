@@ -1315,7 +1315,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"Packet transmited intIfNum=%u, with oVlan=%u (intVlan=%u) with payloadLen=%u",intIfNum,extOVlan,vlanId,payloadLen);
     }
     L7_uint32 i;
-    printf("PayloadLength:%d\n",payloadLen);
+    printf("Tx:PayloadLength:%d\n",payloadLen);
     for (i=0;i<payloadLen;i++)
       printf("%02x ",payload[i]);
     printf("\n");
