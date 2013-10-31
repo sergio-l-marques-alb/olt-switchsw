@@ -423,7 +423,7 @@ void timerCallback(void *param)
     L7_uint32 i;
 
     /* Remove every source whose timer has expired */
-    for (i = 0; i < sizeof(interfacePtr->sources); ++i)
+    for (i = 0; interfacePtr->numberOfSources>0 && i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP ; ++i)
     {
       sourcePtr = &interfacePtr->sources[i];
       if ((sourcePtr->status == PTIN_SNOOP_SOURCESTATE_ACTIVE) && (sourcePtr->sourceTimer.isRunning == L7_FALSE) && sourcePtr->isStatic==L7_FALSE)
