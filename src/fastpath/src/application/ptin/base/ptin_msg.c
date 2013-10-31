@@ -187,7 +187,8 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch");
 
   #if 1
-  rc = fdbFlush();
+  //rc = fdbFlush();
+  rc = ptin_l2_mac_table_flush();
   #else 
   rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
 
