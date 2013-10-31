@@ -829,8 +829,12 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
   /* Verify packet size */
   if (*length > L7_MAX_FRAME_SIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Packet Size Invalid (length : %u > L7_MAX_FRAME_SIZE",*length,L7_MAX_FRAME_SIZE);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Packet Size Invalid length : %u > L7_MAX_FRAME_SIZE",*length,L7_MAX_FRAME_SIZE);
     return L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Size length : %u" ,*length);
   }
 
   /* Add IGMP Frame to the end of the new MAC+IP Frame */

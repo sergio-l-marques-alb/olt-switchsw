@@ -1305,11 +1305,15 @@ void snoopPacketSend(L7_uint32 intIfNum,
   ptin_timer_stop(33);
   ptin_timer_stop(32);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u)",
-            intIfNum, extOVlan, vlanId);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u) payloadLen=%u",
+            intIfNum, extOVlan, vlanId,payloadLen);
 
   if (ptin_debug_igmp_snooping)
   {
+    if(payloadLen==0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Packet transmited intIfNum=%u, with oVlan=%u (intVlan=%u) with payloadLen=%u",intIfNum,extOVlan,vlanId,payloadLen);
+    }
     L7_uint32 i;
     printf("PayloadLength:%d\n",payloadLen);
     for (i=0;i<payloadLen;i++)
