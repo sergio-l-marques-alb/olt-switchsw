@@ -3348,7 +3348,7 @@ int main (int argc, char *argv[])
         unsigned int intf, type, mef, vid, ivid;
         for (i=0; i<(argc-(3+1)); i++) {
           printf("argv[%u]=%s  **  ", i+(3+1), argv[i+(3+1)]);
-          sscanf(argv[i], "%d/%d/%d/%d/%d", &type, &intf, &mef, &vid, &ivid);
+          sscanf(argv[i+(3+1)], "%d/%d/%d/%d/%d", &type, &intf, &mef, &vid, &ivid);
           printf("%d/%d/%d/%d/%d\n", type, intf, mef, vid, ivid);
 
           memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
@@ -3397,7 +3397,7 @@ int main (int argc, char *argv[])
         unsigned int intf, type;
         for (i=0; i<(argc-(3+1)); i++) {
           printf("argv[%u]=%s  **  ", i+(3+1), argv[i+(3+1)]);
-          sscanf(argv[i], "%d/%d", &type, &intf);
+          sscanf(argv[i+(3+1)], "%d/%d", &type, &intf);
           printf("%d/%d\n", type, intf);
 
           memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
@@ -5437,6 +5437,20 @@ int main (int argc, char *argv[])
           printf("EVC successfully deleted\n\r");
         else
           printf("Failed to delete EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+        break;
+
+      case 1603:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf("Port successfully added to EVC\n\r");
+        else
+          printf("Failed to add port to EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+        break;
+
+      case 1604:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf("Port successfully removed from EVC\n\r");
+        else
+          printf("Failed to remove port from EVC - error %08X\r\n", *(unsigned int*)resposta.info);
         break;
 
       case 1605:
