@@ -74,8 +74,8 @@
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
 
 #define CCMSG_ETH_STORM_CONTROL_GET         0x9054  // struct msg_HwEthStormControl_t
-#define CCMSG_ETH_STORM_CONTROL_SET         0x9055  // struct msg_HwEthStormControl_t
-#define CCMSG_ETH_STORM_CONTROL_RESET       0x9056  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_RESET       0x9055  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_SET         0x9056  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_CLEAR       0x9057  // struct msg_HwEthStormControl_t
 
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
