@@ -132,6 +132,44 @@ extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *pt
                                            L7_uint16 outer_vlan, L7_uint16 inner_vlan );
 
 /**
+ * Storm control configurations
+ */
+
+/**
+ * Initializes Storm Control configurations for all vlans
+ * 
+ * @return L7_RC_t: L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_stormControl_init(void);
+
+/**
+ * Get storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_stormControl_get(ptin_stormControl_t *stormControl);
+
+/**
+ * Set storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_stormControl_set(L7_BOOL enable, ptin_stormControl_t *stormControl);
+
+/**
+ * Reset storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl);
+
+/**
  * Bandwidth Policers management functions
  */
 
