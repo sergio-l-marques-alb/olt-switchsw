@@ -4073,7 +4073,9 @@ L7_RC_t ptin_stormControl_init(void)
 
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
 
-  stormControl.flags = PTIN_PKT_RATELIMIT_MASK_BCAST | PTIN_PKT_RATELIMIT_MASK_MCAST | PTIN_PKT_RATELIMIT_MASK_UCUNK;
+  /* Initialize storm control for all EVCs, and all traffic types */
+  stormControl.flags =  PTIN_STORMCONTROL_FLAGS_EVC_STD | PTIN_STORMCONTROL_FLAGS_EVC_ETREE | PTIN_STORMCONTROL_FLAGS_EVC_QUATTRO |
+                        PTIN_PKT_RATELIMIT_MASK_BCAST | PTIN_PKT_RATELIMIT_MASK_MCAST | PTIN_PKT_RATELIMIT_MASK_UCUNK;
 
   return ptin_evc_stormControl_reset(&stormControl);
 }
