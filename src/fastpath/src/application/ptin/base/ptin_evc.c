@@ -2312,40 +2312,61 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removing port %u/%u...", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
 
-  /* Do not allow port removal if counters or BW profiles are configured */
-  if ((evcs[evc_idx].intf[ptin_port].counter   != NULL) ||
-      (evcs[evc_idx].intf[ptin_port].bwprofile != NULL) ||
-      (evcs[evc_idx].intf[ptin_port].queue_probes.n_elems > 0))
+  /* If there is only 1 port, EVC will be destroyed */
+  if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) <= 1)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u has counter/BW profiles/Probes configured! Cannot remove it!",
-            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
+    ptin_evc_destroy(evc_ext_id);
   }
-
-  /* If clients/flows are attched to this port, also cannot remove this port */
-  if (evcs[evc_idx].intf[ptin_port].clients.n_elems > 0)
+  else
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u still has clients/flows configured! Cannot remove it!",
-            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-
-  /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-  if (IS_EVC_ETREE(evc_idx))
-  {
-    if (ptin_evc_etree_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
+    /* Remove associated resources */
+    /* Clean service resources */
+    if (ptin_evc_intf_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove multipoint port %u/%u",
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_idx);
+      return L7_FAILURE;
+    }
+    /* Remove all clients/flows */
+    if (ptin_evc_intfclientsflows_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
+      return L7_FAILURE;
+    }
+
+    /* Check if there is allocated resources */
+    if ((evcs[evc_idx].intf[ptin_port].counter   != NULL) ||
+        (evcs[evc_idx].intf[ptin_port].bwprofile != NULL) ||
+        (evcs[evc_idx].intf[ptin_port].queue_probes.n_elems > 0))
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u has counter/BW profiles/Probes configured! Cannot remove it!",
               evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
-  }
-  /* Remove port */
-  if (ptin_evc_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove port %u/%u",
-            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
+    /* If clients/flows are attched to this port, also cannot remove this port */
+    if (evcs[evc_idx].intf[ptin_port].clients.n_elems > 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u still has clients/flows configured! Cannot remove it!",
+              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
+    if (IS_EVC_ETREE(evc_idx))
+    {
+      if (ptin_evc_etree_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove multipoint port %u/%u",
+                evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+        return L7_FAILURE;
+      }
+    }
+    /* Remove port */
+    if (ptin_evc_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove port %u/%u",
+              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removed port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
@@ -5335,17 +5356,23 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
-L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
+L7_RC_t ptin_evc_client_next( L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
 {
+  L7_uint evc_id;
   L7_uint vid_ref;
   L7_uint intf_idx;
   struct ptin_evc_client_s *client_next;
   struct ptin_evc_client_s *pclient;
 
   /* Validate arguments */
-  if (evc_id>=PTIN_SYSTEM_N_EVCS || ptin_intf==L7_NULLPTR)
+  if (evc_id>=PTIN_SYSTEM_N_EXTENDED_EVCS || ptin_intf==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid evc_ext_id %u", evc_ext_id);
     return L7_FAILURE;
   }
 
@@ -5474,7 +5501,7 @@ L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEt
   }
 
   /* Get next client */
-  return ptin_evc_client_next(evc_id, &ptin_intf, clientFlow, clientFlow_next);
+  return ptin_evc_client_next(evcs[evc_id].extended_id, &ptin_intf, clientFlow, clientFlow_next);
 }
 
 /****************************************************************************** 

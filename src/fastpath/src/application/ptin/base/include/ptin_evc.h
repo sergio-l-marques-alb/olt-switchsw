@@ -74,7 +74,14 @@ extern L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *e
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_delete(L7_uint evc_id);
+extern L7_RC_t ptin_evc_delete(L7_uint evc_ext_id);
+
+/**
+ * Destroys all EVCs (except INBAND!)
+ * 
+ * @return L7_RC_t L7_SUCCESS
+ */
+extern L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id);
 
 /**
  * Destroys all EVCs (except INBAND!)
@@ -393,7 +400,7 @@ extern L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_I
  *  L7_FAILURE in case of error
  */
 extern
-L7_RC_t ptin_evc_client_next( L7_uint evc_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
+L7_RC_t ptin_evc_client_next( L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
 /**
  * Configures a root port (unstacked EVCs) 
