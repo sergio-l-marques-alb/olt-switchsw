@@ -84,6 +84,16 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
+  #if 0
+  /* Initialize storm control */
+  rc = ptin_stormControl_init();
+  if (rc != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing storm control CRASH!");
+    PTIN_CRASH();
+  }
+  #endif
+
   /* Load IGMP default config */
   rc = ptin_igmp_proxy_defaultcfg_load();
   if (rc != L7_SUCCESS)

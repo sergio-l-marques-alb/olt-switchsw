@@ -483,8 +483,11 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_stormControl_get(ptin_stormControl_t *stormControl)
+L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 intIfNum, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl)
 {
+  /* NOT IMPLEMENTED */
+  memset(stormControl, 0x00, sizeof(ptin_stormControl_t));
+
   return L7_SUCCESS;
 }
 
@@ -495,20 +498,81 @@ L7_RC_t ptin_stormControl_get(ptin_stormControl_t *stormControl)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_stormControl_set(ptin_stormControl_t *stormControl)
+L7_RC_t ptin_stormControl_config(L7_BOOL enable, L7_uint32 intIfNum, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl)
 {
-  return L7_SUCCESS;
-}
+  ptin_pktRateLimit_t rateLimit;
+  L7_RC_t rc;
 
-/**
- * Storm control profile clear
- * 
- * @param stormControl 
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_stormControl_clear(ptin_stormControl_t *stormControl)
-{
+  /* Validate arguments */
+  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES ||
+      vlanId == 0 || vlanId > 4095 || vlanId_mask == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u or vlan Id %u/0x%3x", intIfNum, vlanId, vlanId_mask);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Going to apply rate limits for vlan %u/0x%3x (enable=%u)", vlanId, vlanId_mask, enable);
+
+  memset(&rateLimit, 0x00, sizeof(ptin_pktRateLimit_t));
+
+  /* Vlan information */
+  rateLimit.vlanId      = vlanId;
+  rateLimit.vlanId_mask = vlanId_mask & 0xfff;
+
+  /* Broadcast rate limit */
+  if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_BCAST)
+  {
+    rateLimit.trafficType = PTIN_PKT_RATELIMIT_MASK_BCAST;
+    rateLimit.rate        = stormControl->bcast_rate;
+
+    rc = dtlPtinRateLimit(intIfNum, enable, &rateLimit);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error setting broadcast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+      return rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"Success setting broadcast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+    }
+  }
+  /* Multicast rate limit */
+  if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_MCAST)
+  {
+    rateLimit.trafficType = PTIN_PKT_RATELIMIT_MASK_MCAST;
+    rateLimit.rate        = stormControl->mcast_rate;
+
+    rc = dtlPtinRateLimit(intIfNum, enable, &rateLimit);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error setting Multicast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+      return rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"Success setting Multicast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+    }
+  }
+  /* Unknown unicast rate limit */
+  if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_UCUNK)
+  {
+    rateLimit.trafficType = PTIN_PKT_RATELIMIT_MASK_UCUNK;
+    rateLimit.rate        = stormControl->ucunk_rate;
+
+    rc = dtlPtinRateLimit(intIfNum, enable, &rateLimit);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error setting unknown unicast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+      return rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"Success setting unknown unicast rate limit for vlan %u/0x%3x to %u", vlanId, vlanId_mask, enable);
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Rate limits applied successfully for vlan %u/0x%3x (enable=%u)", vlanId, vlanId_mask, enable);
+
   return L7_SUCCESS;
 }
 
@@ -534,7 +598,9 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
   memset(&rateLimit,0x00,sizeof(ptin_pktRateLimit_t));
 
   rateLimit.vlanId      = vlanId;
-  rateLimit.trafficType = PACKET_RATE_LIMIT_BROADCAST;
+  rateLimit.vlanId_mask = PTIN_VLAN_MASK(vlanId);
+  rateLimit.trafficType = PTIN_PKT_RATELIMIT_MASK_BCAST;
+  rateLimit.rate        = RATE_LIMIT_BCAST;
 
   rc = dtlPtinRateLimit(L7_ALL_INTERFACES, enable, &rateLimit);
 
@@ -572,7 +638,9 @@ L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
   memset(&rateLimit,0x00,sizeof(ptin_pktRateLimit_t));
 
   rateLimit.vlanId      = vlanId;
-  rateLimit.trafficType = PACKET_RATE_LIMIT_MULTICAST;
+  rateLimit.vlanId_mask = PTIN_VLAN_MASK(vlanId);
+  rateLimit.trafficType = PTIN_PKT_RATELIMIT_MASK_MCAST;
+  rateLimit.rate        = RATE_LIMIT_MCAST;
 
   rc = dtlPtinRateLimit(L7_ALL_INTERFACES, enable, &rateLimit);
 
