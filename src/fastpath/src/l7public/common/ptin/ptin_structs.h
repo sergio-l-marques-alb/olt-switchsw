@@ -582,17 +582,6 @@ typedef struct {
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer
 } ptin_bwPolicer_t;
 
-/* Storm control */
-#define PTIN_STORMCONTROL_FLAGS_BCAST_SET 0x0001
-#define PTIN_STORMCONTROL_FLAGS_MCAST_SET 0x0002
-#define PTIN_STORMCONTROL_FLAGS_UCUNK_SET 0x0004
-typedef struct {
-  L7_uint16 flags;              /* Control flags: 0x0000 */
-  L7_uint32 bcast_rate;         /* [flags=0x0001] in bps */
-  L7_uint32 mcast_rate;         /* [flags=0x0002] in bps */
-  L7_uint32 ucunk_rate;         /* [flags=0x0004] in bps */
-} ptin_stormControl_t;
-
 /* EVC statistics */
 
 typedef enum {
@@ -659,14 +648,30 @@ typedef struct {
 } ptin_evcStats_t;
 
 // Rate limit structure
-#define PACKET_RATE_LIMIT_BROADCAST 0x0001
-#define PACKET_RATE_LIMIT_MULTICAST 0x0002
+#define PTIN_PKT_RATELIMIT_MASK_BCAST 0x0001
+#define PTIN_PKT_RATELIMIT_MASK_MCAST 0x0002
+#define PTIN_PKT_RATELIMIT_MASK_UCUNK 0x0004
+#define PTIN_PKT_RATELIMIT_MASK_ALL   0x000f
 typedef struct {
   L7_int    operation;                  // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
   L7_uint16 vlanId;
+  L7_uint16 vlanId_mask;
   L7_uint16 trafficType;
   L7_uint32 rate;
 } ptin_pktRateLimit_t;
+
+/* Storm control */
+#define PTIN_STORMCONTROL_FLAGS_PKT_MASK    0x00ff
+#define PTIN_STORMCONTROL_FLAGS_EVC_MASK    0xff00
+#define PTIN_STORMCONTROL_FLAGS_EVC_STD     0x0100
+#define PTIN_STORMCONTROL_FLAGS_EVC_QUATTRO 0x0400
+#define PTIN_STORMCONTROL_FLAGS_EVC_ETREE   0x0800
+typedef struct {
+  L7_uint16 flags;              /* Control flags: 0x0000 */
+  L7_uint32 bcast_rate;         /* [flags=0x0001] in bps */
+  L7_uint32 mcast_rate;         /* [flags=0x0002] in bps */
+  L7_uint32 ucunk_rate;         /* [flags=0x0004] in bps */
+} ptin_stormControl_t;
 
 /* Network Connectivity (inBand) structs **************************************/
 #define PTIN_NTWCONN_MASK_INTF          0x00000001
