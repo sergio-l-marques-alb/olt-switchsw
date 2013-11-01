@@ -1581,7 +1581,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
   }
   /* To be removed */
-  #if 1
+  #if 0
   /* If MC is in flood all mode, active flag */
   if (evcConf->mc_flood != PTIN_EVC_MC_FLOOD_ALL)
   {
