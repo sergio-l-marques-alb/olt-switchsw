@@ -126,6 +126,7 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_PPPoE    512
 #define RATE_LIMIT_BCAST    1024
 #define RATE_LIMIT_MCAST    1024
+#define RATE_LIMIT_UCUNK    1024
 #define RATE_LIMIT_APS      512
 #define RATE_LIMIT_CCM      512
 #define RATE_LIMIT_IPDTL0   512

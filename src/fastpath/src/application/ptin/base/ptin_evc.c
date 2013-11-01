@@ -1790,6 +1790,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
     error = L7_FALSE;
 
+    #if 0
     /* Add a broadcast rate limiter for unstacked services */
     if ( cpu_trap )
     {
@@ -1803,7 +1804,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
         {
           /* Rate limiter for MC */
-          if (ptin_multicast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+          if (ptin_multicast_rateLimit(L7_ENABLE, root_vlan)!=L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
             error = L7_TRUE;
@@ -1816,7 +1817,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         else
         {
           /* Rate limiter for BC */
-          if (ptin_broadcast_rateLimit(L7_ENABLE,root_vlan)!=L7_SUCCESS)
+          if (ptin_broadcast_rateLimit(L7_ENABLE, root_vlan)!=L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
             error = L7_TRUE;
@@ -1828,6 +1829,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
       }
     }
+    #endif
 
     LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
 
@@ -1962,6 +1964,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Remove all previously configured interfaces */
       ptin_evc_intf_remove_all(evc_id);
 
+      #if 0
       /* Remove the broadcast rate limiter for unstacked services */
       if ( cpu_trap)
       {
@@ -1970,10 +1973,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         if (NO_INSTANCE(evc_id, n_quattro_p2p_evcs))
         #endif
         {
-          ptin_broadcast_rateLimit(L7_DISABLE,root_vlan);
-          ptin_multicast_rateLimit(L7_DISABLE,root_vlan);
+          ptin_broadcast_rateLimit(L7_DISABLE, root_vlan);
+          ptin_multicast_rateLimit(L7_DISABLE, root_vlan);
         }
       }
+      #endif
 
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* Virtual ports: Destroy multicast group */
@@ -2519,6 +2523,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
     return L7_FAILURE;
   }
 
+  #if 0
   /* Remove BCast rate limit for unstacked services */
   if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
@@ -2532,6 +2537,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
     }
   }
+  #endif
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Virtual ports: Destroy Multicast group */
@@ -2728,6 +2734,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
     return L7_FAILURE;
   }
 
+  #if 0
   /* Remove BCast rate limit for unstacked services */
   if (IS_EVC_WITH_CPU_TRAP(evc_id))
   {
@@ -2741,6 +2748,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Broadcast/Multicast rate limit removed", evc_id);
     }
   }
+  #endif
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Virtual ports: Destroy Multicast group */
@@ -4053,6 +4061,221 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf
 
   return L7_SUCCESS;
 }
+
+/**
+ * Initializes Storm Control configurations for all vlans
+ * 
+ * @return L7_RC_t: L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_stormControl_init(void)
+{
+  ptin_stormControl_t stormControl;
+
+  memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
+
+  stormControl.flags = PTIN_PKT_RATELIMIT_MASK_BCAST | PTIN_PKT_RATELIMIT_MASK_MCAST | PTIN_PKT_RATELIMIT_MASK_UCUNK;
+
+  return ptin_evc_stormControl_reset(&stormControl);
+}
+
+/**
+ * Get storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_evc_stormControl_get(ptin_stormControl_t *stormControl)
+{
+  /* Validate arguments */
+  if (stormControl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid argument");
+    return L7_FAILURE;
+  }
+
+  /* NOT IMPLEMENTED */
+  memset(stormControl, 0x00, sizeof(ptin_stormControl_t));
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_evc_stormControl_set(L7_BOOL enable, ptin_stormControl_t *stormControl)
+{
+  ptin_stormControl_t stormControl_out;
+
+  /* Validate arguments */
+  if (stormControl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid argument");
+    return L7_FAILURE;
+  }
+
+  /* Validate flags */
+  if ((stormControl->flags & PTIN_PKT_RATELIMIT_MASK_ALL) == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "No flags provided (0x%04x)", stormControl->flags);
+    return L7_SUCCESS;
+  }
+
+  /* Rate values: convert to kbps */
+  stormControl_out.flags      = stormControl->flags & PTIN_PKT_RATELIMIT_MASK_ALL;
+  stormControl_out.bcast_rate = stormControl->bcast_rate / 1000;
+  stormControl_out.mcast_rate = stormControl->mcast_rate / 1000;
+  stormControl_out.ucunk_rate = stormControl->ucunk_rate / 1000;
+
+  /* Broadcast and unknown unicast rate limiter */
+  if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_BCAST ||
+      stormControl->flags & PTIN_PKT_RATELIMIT_MASK_UCUNK)
+  {
+    stormControl_out.flags = 0;
+    if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_BCAST)
+      stormControl_out.flags |= PTIN_PKT_RATELIMIT_MASK_BCAST;
+    if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_UCUNK)
+      stormControl_out.flags |= PTIN_PKT_RATELIMIT_MASK_UCUNK;
+
+    /* Standard vlans */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_STD)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_CPU_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_CPU_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Broadcast and unknown unicast rate limits to standard EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Broadcast and unknown unicast rate limits to standard EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_CPU_VLAN_MIN, PTIN_SYSTEM_EVC_CPU_VLAN_MAX, PTIN_SYSTEM_EVC_CPU_VLAN_MASK);
+    }
+    /* Etree vlans */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_ETREE)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Broadcast and unknown unicast rate limits to Etree EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Broadcast and unknown unicast rate limits to Etree EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN, PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MAX, PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK);
+    }
+    /* Quattro EVCs */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_QUATTRO)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Broadcast and unknown unicast rate limits to QUATTRO EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Broadcast and unknown unicast rate limits to quattro EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK);
+    }
+  }
+
+  /* Multicast rate limiter */
+  if (stormControl->flags & PTIN_PKT_RATELIMIT_MASK_MCAST)
+  {
+    stormControl_out.flags = PTIN_PKT_RATELIMIT_MASK_MCAST;
+
+    /* Standard vlans */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_STD)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_MCAST_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_MCAST_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Multicast rate limit to standard EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Multicast rate limit to standard EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, PTIN_SYSTEM_EVC_MCAST_VLAN_MAX, PTIN_SYSTEM_EVC_MCAST_VLAN_MASK);
+    }
+    /* Etree vlans */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_ETREE)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_ETREE_MC_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_ETREE_MC_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Multicast rate limit to Etree EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Multicast rate limit to etree EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_ETREE_MC_VLAN_MIN, PTIN_SYSTEM_EVC_ETREE_MC_VLAN_MAX, PTIN_SYSTEM_EVC_ETREE_MC_VLAN_MASK);
+    }
+    /* Quattro EVCs */
+    if (stormControl->flags & PTIN_STORMCONTROL_FLAGS_EVC_QUATTRO)
+    {
+      if (ptin_stormControl_config(enable,
+                                   L7_ALL_INTERFACES,
+                                   PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN,
+                                   PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK,
+                                   &stormControl_out) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring Multicast rate limit to QUATTRO EVCs");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring Multicast rate limit to quattro EVCs (vlan_min=%u, vlan_max=%u, vlan_mask=%u)",
+                PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK);
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Reset storm control configurations
+ * 
+ * @param stormControl 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl)
+{
+  /* Validate arguments */
+  if (stormControl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid argument");
+    return L7_FAILURE;
+  }
+
+  /* Default Rate values */
+  stormControl->bcast_rate = RATE_LIMIT_BCAST;
+  stormControl->mcast_rate = RATE_LIMIT_MCAST;
+  stormControl->ucunk_rate = RATE_LIMIT_UCUNK;
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Use default rate limits");
+
+  if (ptin_evc_stormControl_set(L7_ENABLE, stormControl)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error configuring default rate limits");
+    return L7_SUCCESS;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Success configuring default rate limits");
+  return L7_SUCCESS;
+}
+
 
 /**
  * Bandwidth Policers management functions
@@ -6205,21 +6428,21 @@ static void ptin_evc_vlan_pool_init(void)
 
   /* ELAN vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]);
-  for (i=PTIN_SYSTEM_EVC_BITSTREAM_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTREAM_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&vlans_pool[i]);
   }
 
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST]);
-  for (i=PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BCAST_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t*)&vlans_pool[i]);
   }
 
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST]);
-  for (i=PTIN_SYSTEM_EVC_CPU_MCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_MCAST_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_MCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&vlans_pool[i]);
