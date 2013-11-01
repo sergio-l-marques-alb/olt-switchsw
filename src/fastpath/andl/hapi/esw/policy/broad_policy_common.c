@@ -58,7 +58,8 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_SRCTRUNK_SIZE,        /* PTin added: FP */
   BROAD_FIELD_PORTCLASS_SIZE,       /* PTin added: FP */
   BROAD_FIELD_DROP_SIZE,            /* PTin added: FP */
-  //BROAD_FIELD_L2_STATION_MOVE_SIZE  /* PTin added: FP */
+  BROAD_FIELD_L2_SRCHIT_SIZE,       /* PTin added: FP */
+  BROAD_FIELD_L2_DSTHIT_SIZE        /* PTin added: FP */
 };
 
 static char *broadFieldNameTable[BROAD_FIELD_LAST] =
@@ -96,7 +97,8 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "SRCTRUNK",         /* PTin added: FP */
     "PORTCLASS",        /* PTin added: FP */
     "DROP_PACKET",      /* PTin added: FP */
-    //"L2_STATION_MOVE"   /* PTin added: FP */
+    "L2_SRCHIT",        /* PTin added: FP */
+    "L2_DSTHIT",        /* PTin added: FP */
 };
 
 static char *broadActionNameTable[BROAD_ACTION_LAST] =
@@ -162,7 +164,7 @@ void hapiBroadPolicyFieldFlagsSet(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POLICY_F
   if (field >= BROAD_FIELD_LAST)
       LOG_ERROR(field);
 
-  if (field >= 32)
+  if (field >= 64)    /* PTin modified: 64 qualifiers */
   {
     /* Need to add another 'flags' field to BROAD_FIELD_ENTRY_t */
     LOG_ERROR(field);
@@ -170,11 +172,11 @@ void hapiBroadPolicyFieldFlagsSet(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POLICY_F
 
   if (value == BROAD_FIELD_SPECIFIED)
   {
-    fieldInfo->flags |= (1 << field);
+    fieldInfo->flags |= ((L7_uint64) 1 << field);     /* PTin modified: 64 qualifiers */
   }
   else
   {
-    fieldInfo->flags &= ~(1 << field);
+    fieldInfo->flags &= ~((L7_uint64) 1 << field);    /* PTin modified: 64 qualifiers */
   }
 }
 
@@ -185,13 +187,13 @@ L7_uchar8 hapiBroadPolicyFieldFlagsGet(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   if (field >= BROAD_FIELD_LAST)
       LOG_ERROR(field);
 
-  if (field >= 32)
+  if (field >= 64)    /* PTin modified: 64 qualifiers */
   {
     /* Need to add another 'flags' field to BROAD_FIELD_ENTRY_t */
     LOG_ERROR(field);
   }
 
-  if (fieldInfo->flags & (1 << field))
+  if (fieldInfo->flags & ((L7_uint64) 1 << field))  /* PTin modified: 64 qualifiers */
   {           
     value = BROAD_FIELD_SPECIFIED;
   }
@@ -310,9 +312,12 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_DROP:
     ptr = fieldInfo->fieldDrop.value;
     break;
-//case BROAD_FIELD_L2_STATION_MOVE:
-//  ptr = fieldInfo->fieldL2StationMove.value;
-//  break;
+  case BROAD_FIELD_L2_SRCHIT:
+    ptr = fieldInfo->fieldL2SrcHit.value;
+    break;
+  case BROAD_FIELD_L2_DSTHIT:
+    ptr = fieldInfo->fieldL2DstHit.value;
+    break;
   // PTin end
   default:
     LOG_ERROR(field);
@@ -417,7 +422,8 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   //case BROAD_FIELD_CLASS_ID:
   case BROAD_FIELD_L2_CLASS_ID:
   case BROAD_FIELD_DROP:            /* PTin added: FP */
-  //case BROAD_FIELD_L2_STATION_MOVE: /* PTin added: FP */
+  case BROAD_FIELD_L2_SRCHIT:       /* PTin added: FP */
+  case BROAD_FIELD_L2_DSTHIT:       /* PTin added: FP */
     break;
   default:
     LOG_ERROR(field);

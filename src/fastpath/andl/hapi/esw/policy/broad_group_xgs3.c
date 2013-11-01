@@ -103,7 +103,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyPortClass,      /* PortClass, PTin added: FP */
 #endif
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
-    //bcmFieldQualifyL2StationMove   /* L2 Station move, PTin added: FP */
+    bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
+    bcmFieldQualifyL2DestHit       /* L2 Destination hit, PTin added: FP */
 };
 
 /* Action Map */
@@ -2885,11 +2886,14 @@ static int _policy_group_add_std_field(int                   unit,
         #endif
         break;
     case BROAD_FIELD_DROP:
-        rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value),1);
+        rv = bcm_field_qualify_Drop(unit,eid,*((uint8*)value), 1);
         break;
-//  case BROAD_FIELD_L2_STATION_MOVE:
-//      rv = bcm_field_qualify_L2StationMove(unit,eid,*((uint8*)value),1);
-//      break;
+    case BROAD_FIELD_L2_SRCHIT:
+        rv = bcm_field_qualify_L2SrcHit(unit,eid,*((uint8*)value), 1);
+        break;
+    case BROAD_FIELD_L2_DSTHIT:
+        rv = bcm_field_qualify_L2DestHit(unit,eid,*((uint8*)value), 1);
+        break;
     // PTin end
     default:
         rv = BCM_E_PARAM;

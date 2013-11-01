@@ -152,7 +152,8 @@ typedef enum
     BROAD_FIELD_SRCTRUNK,         /* PTin added: FP */
     BROAD_FIELD_PORTCLASS,        /* PTin added: FP */
     BROAD_FIELD_DROP,             /* PTin added: FP */
-    //BROAD_FIELD_L2_STATION_MOVE,  /* PTin added: FP */
+    BROAD_FIELD_L2_SRCHIT,        /* PTin added: FP */
+    BROAD_FIELD_L2_DSTHIT,        /* PTin added: FP */
     BROAD_FIELD_LAST,
 
     /* special bit fields */
@@ -380,11 +381,12 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_SRCTRUNK_SIZE                  sizeof(bcm_trunk_t)  /* PTin added: FP */
 #define BROAD_FIELD_PORTCLASS_SIZE                 sizeof(uint32)       /* PTin added: FP */
 #define BROAD_FIELD_DROP_SIZE                      1    /* PTin added: FP */
-//#define BROAD_FIELD_L2_STATION_MOVE_SIZE           1    /* PTin added: FP */
+#define BROAD_FIELD_L2_SRCHIT_SIZE                 1    /* PTin added: FP */
+#define BROAD_FIELD_L2_DSTHIT_SIZE                 1    /* PTin added: FP */
 
 typedef struct 
 {
-  L7_uint32 flags;
+  L7_uint64 flags;    /* PTin modified: 64 qualifiers */
 
   union
   {
@@ -588,10 +590,15 @@ typedef struct
     L7_uchar8  value[BROAD_FIELD_DROP_SIZE];
   } fieldDrop;
 
-//struct
-//{
-//  L7_uchar8  value[BROAD_FIELD_L2_STATION_MOVE_SIZE];
-//} fieldL2StationMove;
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_L2_SRCHIT_SIZE];
+  } fieldL2SrcHit;
+
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_L2_DSTHIT_SIZE];
+  } fieldL2DstHit;
   // PTin end
 
 } BROAD_FIELD_ENTRY_t;
