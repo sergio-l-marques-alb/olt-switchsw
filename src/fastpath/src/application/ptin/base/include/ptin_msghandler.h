@@ -435,7 +435,7 @@ typedef struct
   L7_uint8              doubletag;                      // [Mask=0x0100] (only physical interfaces)
   L7_uint16             outer_tpid;                     // [Mask=0x0200] (only physical interfaces)
   L7_uint16             inner_tpid;                     // [Mask=0x0400] (only physical interfaces)
-  //L7_uint8              egress_type;                    // [Mask=0x0800] (only physical interfaces)
+  L7_uint8              egress_type;                    // [Mask=0x0800] (only physical interfaces)
   L7_uint8              macLearn_enable;                // [Mask=0x1000] Enable Mac Learning (only physical interfaces)
   L7_uint8              macLearn_stationMove_enable;    // [Mask=0x2000] Mac Station Move Enable (physical/LAG interfaces)
   L7_uint8              macLearn_stationMove_prio;      // [Mask=0x4000] Mac Station Move Priority: 1-2 (physical/LAG interfaces)

@@ -792,6 +792,7 @@ int main (int argc, char *argv[])
         ptr->doubletag                    = 1;
         ptr->outer_tpid                   = 0x8100;
         ptr->inner_tpid                   = 0x8100;
+        ptr->egress_type                  = 0;
         ptr->macLearn_enable              = 0;
         ptr->macLearn_stationMove_enable  = 0;
         ptr->macLearn_stationMove_prio    = 0;
@@ -932,7 +933,7 @@ int main (int argc, char *argv[])
               printf("Invalid egress_type value\r\n");
               exit(0);
             }
-            ptr->type /*ptr->egress_type*/ = (uint8) valued;
+            ptr->egress_type = (uint8) valued;
             ptr->Mask |= MSG_HWPORTEXT_MASK_EGRESS_TYPE;
           }
           else if (strcmp(param,"mlen")==0)
@@ -4462,7 +4463,7 @@ int main (int argc, char *argv[])
             if (po[index].Mask & MSG_HWPORTEXT_MASK_INNER_TPID)
               printf("\tInner TPID             = %u\n\r",po[index].inner_tpid);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_EGRESS_TYPE)
-              printf("\tEgress Type            = %u\n\r", 0 /*po[index].egress_type*/);
+              printf("\tEgress Type            = %u\n\r", po[index].egress_type);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_ENABLE)
               printf("\tMAC Learn Enable                = %u\n\r",po[index].macLearn_enable);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)

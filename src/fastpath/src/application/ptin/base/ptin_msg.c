@@ -862,7 +862,7 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     portExt_conf.doubletag                     = portExt[i].doubletag;
     portExt_conf.inner_tpid                    = portExt[i].inner_tpid;
     portExt_conf.outer_tpid                    = portExt[i].outer_tpid;
-    portExt_conf.egress_type                   = portExt[i].type /*portExt[i].egress_type*/;
+    portExt_conf.egress_type                   = portExt[i].egress_type;
     portExt_conf.macLearn_enable               = portExt[i].macLearn_enable;
     portExt_conf.macLearn_stationMove_enable   = portExt[i].macLearn_stationMove_enable;
     portExt_conf.macLearn_stationMove_prio     = portExt[i].macLearn_stationMove_prio;
@@ -961,7 +961,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     portExt[index].doubletag                     = portExt_conf.doubletag;
     portExt[index].inner_tpid                    = portExt_conf.inner_tpid;
     portExt[index].outer_tpid                    = portExt_conf.outer_tpid;
-    //portExt[index].egress_type                   = portExt_conf.egress_type;
+    portExt[index].egress_type                   = portExt_conf.egress_type;
     portExt[index].macLearn_enable               = portExt_conf.macLearn_enable;
     portExt[index].macLearn_stationMove_enable   = portExt_conf.macLearn_stationMove_enable;
     portExt[index].macLearn_stationMove_prio     = portExt_conf.macLearn_stationMove_prio;
