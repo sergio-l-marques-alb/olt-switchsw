@@ -1991,7 +1991,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl_get(stormControl_out))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while Storm Control profile");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -2031,6 +2031,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_STORM_CONTROL_SET */
     }
 
+    /* CCMSG_ETH_STORM_CONTROL_RESET *********************************************/
+    case CCMSG_ETH_STORM_CONTROL_RESET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_STORM_CONTROL_RESET (0x%04X)", CCMSG_ETH_STORM_CONTROL_RESET);
+
+      CHECK_INFO_SIZE(msg_HwEthStormControl_t);
+
+      msg_HwEthStormControl_t *stormControl;
+      stormControl = (msg_HwEthStormControl_t *) inbuffer->info;
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_stormControl_reset(stormControl))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while resetting Storm Control profile");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_STORM_CONTROL_RESET */
+    }
+
     /* CCMSG_ETH_STORM_CONTROL_CLEAR ********************************************/
     case CCMSG_ETH_STORM_CONTROL_CLEAR:
     {
@@ -2047,7 +2074,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if ( L7_SUCCESS != rc )
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while Storm Control profile");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while clearing Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;

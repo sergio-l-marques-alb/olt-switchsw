@@ -73,8 +73,9 @@
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
 
-#define CCMSG_ETH_STORM_CONTROL_GET         0x9055  // struct msg_HwEthStormControl_t
-#define CCMSG_ETH_STORM_CONTROL_SET         0x9056  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_GET         0x9054  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_SET         0x9055  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORM_CONTROL_RESET       0x9056  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_CLEAR       0x9057  // struct msg_HwEthStormControl_t
 
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
@@ -739,6 +740,18 @@ typedef struct {
 
 /* Storm control */
 // Messages CCMSG_ETH_STORM_CONTROL_GET, CCMSG_ETH_STORM_CONTROL_SET and CCMSG_ETH_STORM_CONTROL_CLEAR
+// Rate limit structure
+#define MSG_STORMCONTROL_MASK_BCAST   0x0001
+#define MSG_STORMCONTROL_MASK_MCAST   0x0002
+#define MSG_STORMCONTROL_MASK_UCUNK   0x0004
+#define MSG_STORMCONTROL_MASK_ALL     0x00ff
+
+#define MSG_STORMCONTROL_FLAGS_EVC_ALL      0x0000
+#define MSG_STORMCONTROL_FLAGS_EVC_STD      0x0001
+#define MSG_STORMCONTROL_FLAGS_EVC_QUATTRO  0x0004
+#define MSG_STORMCONTROL_FLAGS_EVC_ETREE    0x0008
+#define MSG_STORMCONTROL_FLAGS_EVC_MASK     0x00ff
+
 typedef struct {
   L7_uint8  SlotId;
   L7_uint32 id;                 /* ID */

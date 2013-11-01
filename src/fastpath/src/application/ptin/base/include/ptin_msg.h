@@ -518,9 +518,18 @@ extern L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormContro
 extern L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl);
 
 /**
- * Clear storm control profile
+ * Reset storm control profile
  * 
  * @param msgStormControl : 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl);
+
+/**
+ * Clear storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */

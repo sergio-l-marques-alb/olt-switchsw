@@ -122,6 +122,9 @@ void help_oltBuga(void)
         "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
         "m 1621 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] cir=[mbps] eir=[mbps] cbs=[bytes] ebs=[bytes] - Create/reconfig bandwidth Policer\r\n"
         "m 1622 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Delete bandwidth Policer\r\n"
+        "m 1624 slot=[0-17] type=[0-All;1-Std;2-Quattro;3-Etree] bc=[BC rate (bps)] mc=[MC rate (bps)] uc=[unknown UC rate (bps)] - Storm control configuration\r\n"
+        "m 1625 slot=[0-17] type=[0-All;1-Std;2-Quattro;3-Etree] - Storm control reset\r\n"
+        "m 1626 slot=[0-17] type=[0-All;1-Std;2-Quattro;3-Etree] - Storm control clear\r\n"
         "m 1630 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Show absolute evc statistics\n\r"
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
@@ -3904,6 +3907,122 @@ int main (int argc, char *argv[])
       }
       break;
 
+    case 1624:
+    case 1625:
+    case 1626:
+      {
+        msg_HwEthStormControl_t *ptr;
+        int index, ret;
+        char param[21], value[21];
+
+        // Validate number of arguments
+        if (argc<3+0)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HwEthStormControl_t *) &(comando.info[0]);
+
+        // Clear structure
+        memset(ptr,0x00,sizeof(msg_HwEthStormControl_t));
+
+        ptr->SlotId = (uint8)-1;
+        ptr->id = 0;
+
+        for (index=(3+0); index<argc; index++)
+        {
+          param[0]='\0';
+          value[0]='\0';
+          if ((ret=sscanf(argv[index],"%20[^ \t:=]=%20s",param,value))!=2)
+          {
+            printf("Invalid syntax: use <param1>=<value1> <param2>=<value2> ... (%d param=\"%s\" value=\"%s\")\r\n",ret,param,value);
+            exit(0);
+          }
+
+          if (strcmp(param,"slot")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid slot id\r\n");
+              exit(0);
+            }
+            ptr->SlotId = (uint8) valued;
+          }
+          else if (strcmp(param,"type")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid evc type value\r\n");
+              exit(0);
+            }
+            switch (valued)
+            {
+              case 0: ptr->flags |= MSG_STORMCONTROL_FLAGS_EVC_ALL;     break;
+              case 1: ptr->flags |= MSG_STORMCONTROL_FLAGS_EVC_STD;     break;
+              case 2: ptr->flags |= MSG_STORMCONTROL_FLAGS_EVC_QUATTRO; break;
+              case 3: ptr->flags |= MSG_STORMCONTROL_FLAGS_EVC_ETREE;   break;
+              default:
+                printf("Invalid evc type: valid values are 0 to 3\r\n");
+                exit(0);
+            }
+          }
+          else if (strcmp(param,"bc")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid Broadcast rate value\r\n");
+              exit(0);
+            }
+            ptr->bcast_rate = (uint32) valued;
+            ptr->mask |= MSG_STORMCONTROL_MASK_BCAST;
+          }
+          else if (strcmp(param,"mc")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid Multicast rate value\r\n");
+              exit(0);
+            }
+            ptr->mcast_rate = (uint32) valued;
+            ptr->mask |= MSG_STORMCONTROL_MASK_MCAST;
+          }
+          else if (strcmp(param,"uc")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid Unknown Unicast rate value\r\n");
+              exit(0);
+            }
+            ptr->ucast_unknown_rate = (uint32) valued;
+            ptr->mask |= MSG_STORMCONTROL_MASK_UCUNK;
+          }
+          else
+          {
+            printf("Invalid param\r\n");
+            exit(0);
+          }
+        }
+
+        switch (msg)
+        {
+        case 1624:
+          comando.msgId = CCMSG_ETH_STORM_CONTROL_SET;
+          break;
+        case 1625:
+          comando.msgId = CCMSG_ETH_STORM_CONTROL_RESET;
+          break;
+        case 1626:
+          comando.msgId = CCMSG_ETH_STORM_CONTROL_CLEAR;
+          break;
+        default:
+          printf("Invalid Message id (%u)\r\n",msg);
+          exit(0);
+        }
+        comando.infoDim = sizeof(msg_HwEthStormControl_t);
+      }
+      break;
+
       // EVC Counters
       case 1630:
       case 1632:
@@ -5407,6 +5526,20 @@ int main (int argc, char *argv[])
           printf(" Switch: BW profile removed successfully\n\r");
         else
           printf(" Switch: BW profile not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1624:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Storm Control configured successfully\n\r");
+        else
+          printf(" Switch: Storm Control NOT configured - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1625:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Storm Control reseted successfully\n\r");
+        else
+          printf(" Switch: Storm Control not reseted - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1630:
