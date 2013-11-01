@@ -1580,11 +1580,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     pppoe_enabled = L7_TRUE;
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
   }
+  /* To be removed */
+  #if 1
   /* If MC is in flood all mode, active flag */
-  if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
+  if (evcConf->mc_flood != PTIN_EVC_MC_FLOOD_ALL)
   {
-    evcConf->flags |= PTIN_EVC_MASK_MC_FLOOD_ALL;
+    evcConf->flags |= PTIN_EVC_MASK_MC_IPTV;
   }
+  #endif
 
   /* Check if this EVC is allowd to be QUATTRO type */
   if (is_quattro)
@@ -6555,7 +6558,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
     if (evc_flags & PTIN_EVC_MASK_CPU_TRAPPING)
     {
       /* MC flooding all: Unicast EVC */
-      if (evc_flags & PTIN_EVC_MASK_MC_FLOOD_ALL)
+      if (!(evc_flags & PTIN_EVC_MASK_MC_IPTV))
       {
         if (queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST].n_elems == 0)
         {
@@ -6565,7 +6568,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
         /* Pop a vlan queue */
         dl_queue_remove_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t**)&fv_queue);
       }
-      /* IPTV EVC */
+      /* IPTV EVCs */
       else
       {
         if (queue_free_queues_etree[PTIN_VLAN_TYPE_CPU_BCAST].n_elems == 0)
@@ -6608,11 +6611,12 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
   /* CPU port is on? */
   else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING))
   {
-    if ((evc_flags & PTIN_EVC_MASK_MC_FLOOD_ALL))
+    if (!(evc_flags & PTIN_EVC_MASK_MC_IPTV))
     {
       *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST];
       LOG_TRACE(LOG_CTX_PTIN_EVC, "CPU_MCAST Free Vlan Queue selected!");
     }
+    /* IPTV EVCs */
     else
     {
       *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST];
