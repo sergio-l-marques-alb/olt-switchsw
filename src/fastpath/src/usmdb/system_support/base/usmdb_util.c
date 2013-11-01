@@ -1429,6 +1429,8 @@ L7_RC_t usmDbVisibleIntIfNumberCheck(L7_uint32 UnitIndex, L7_uint32 intIfNum)
     case L7_TUNNEL_INTF:
     case L7_WIRELESS_INTF: 
     case L7_CAPWAP_TUNNEL_INTF:
+    case L7_VLAN_PORT_INTF:     /* PTin added: virtual ports */
+
       rc = L7_SUCCESS;
       break;
 
@@ -1745,7 +1747,8 @@ L7_RC_t usmDbVisibleInterfaceCheck(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_i
     return L7_FAILURE;
   }
   else if (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS &&
-           (sysIntfType == L7_WIRELESS_INTF || sysIntfType == L7_CAPWAP_TUNNEL_INTF))
+           (sysIntfType == L7_WIRELESS_INTF || sysIntfType == L7_CAPWAP_TUNNEL_INTF ||
+            sysIntfType == L7_VLAN_PORT_INTF))      /* PTin added: virtual ports */
   {
     *retVal = -1;
     return L7_FAILURE;
@@ -2047,6 +2050,11 @@ L7_RC_t usmDbIntIfNumTypeMaskGet(L7_uint32 unit, L7_uint32 intIfNum, L7_uint32 *
 
       case L7_CAPWAP_TUNNEL_INTF:
         *maskIntfType += USM_LOGICAL_L2_TUNNEL_INTF; /* CAPWAP tunnel interface */
+        break;
+
+      /* PTin added: virtual ports */
+      case L7_VLAN_PORT_INTF:
+        *maskIntfType += USM_LOGICAL_VLAN_PORT_INTF; /* Vlan port interface */
         break;
 
       default:

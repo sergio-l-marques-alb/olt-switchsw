@@ -200,6 +200,9 @@
                                                  L7_WIRELESS_MAX_ACCESS_POINTS)
 #define  L7_MAX_NUM_L2TUNNEL_VLANS              min(PROD_MAX_NUM_L2TUNNEL_VLANS, \
                                                     PLAT_MAX_NUM_L2TUNNEL_VLANS)
+/* PTin added: virtual ports */
+#define  L7_MAX_NUM_VLAN_PORT_INTF              min(PROD_MAX_NUM_VLAN_PORT_INTF, \
+                                                    PLAT_MAX_NUM_VLAN_PORT_INTF)
 
 
 /* Maximum number of routing interfaces. */
@@ -350,6 +353,7 @@
 #define L7_TUNNEL_SLOT_NUM                      (L7_LOOPBACK_SLOT_NUM           + 1)
 #define L7_WIRELESS_SLOT_NUM                    (L7_TUNNEL_SLOT_NUM             + 1)
 #define L7_CAPWAP_TUNNEL_SLOT_NUM               (L7_WIRELESS_SLOT_NUM           + 1)
+#define L7_VLAN_PORT_SLOT_NUM                   (L7_CAPWAP_TUNNEL_SLOT_NUM      + 1) /* PTin added: virtual port */
 
 /* Maximum Number of Interfaces:
     Interfaces are referenced as 1-based.
@@ -362,6 +366,7 @@
 #define L7_NUM_WIRELESS_INTFS                    0
 #endif
 
+/* PTin modified: virtual ports */
 #define L7_MAX_INTERFACE_COUNT                  (L7_MAX_PORT_COUNT        \
                                                  + L7_MAX_CPU_SLOTS_PER_UNIT     \
                                                  + L7_MAX_NUM_LAG_INTF     \
@@ -369,6 +374,7 @@
                                                  + L7_MAX_NUM_LOOPBACK_INTF \
                                                  + L7_MAX_NUM_TUNNEL_INTF  \
                                                  + L7_NUM_WIRELESS_INTFS \
+                                                 + L7_MAX_NUM_VLAN_PORT_INTF \
                                                  + L7_MAX_NUM_STACK_INTF + 1)
 
 #define L7_ALL_UNITS                            L7_MAX_UNITS_PER_STACK+1

@@ -264,6 +264,7 @@ typedef struct  nimSystemData_s
 
   NIM_INTF_MASK_t vlanIntfMask;
   NIM_INTF_MASK_t l2tnnlIntfMask;
+  NIM_INTF_MASK_t vlanportIntfMask; /* PTin added: virtual ports */
 
   NIM_INTF_MASK_t presentMask;
 

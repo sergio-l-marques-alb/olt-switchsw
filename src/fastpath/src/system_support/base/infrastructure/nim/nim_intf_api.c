@@ -1683,6 +1683,11 @@ L7_RC_t nimGetIntfLinkState(L7_uint32 intIfNum, L7_uint32 *linkState)
           rc = L7_SUCCESS;
           break;
 
+        /* PTin added: virtual ports */
+        case L7_VLAN_PORT_INTF:
+          *linkState = L7_UP;     /* If interface exists, link is up */
+          break;
+
         default:
           break;
       }

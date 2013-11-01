@@ -5501,7 +5501,8 @@ const L7_char8 *commandShowPort(EwsContext ewsContext, L7_uint32 argc, const L7_
                       sysIntfType != L7_CPU_INTF &&
                       sysIntfType != L7_LOOPBACK_INTF &&
                       sysIntfType != L7_WIRELESS_INTF &&
-                      sysIntfType != L7_TUNNEL_INTF)
+                      sysIntfType != L7_TUNNEL_INTF &&
+                      sysIntfType != L7_VLAN_PORT_INTF)     /* PTin added: virtual ports */
                 {
                     intfStatus = L7_TRUE;
                     break;

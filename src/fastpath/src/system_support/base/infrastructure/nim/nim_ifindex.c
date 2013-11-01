@@ -77,6 +77,7 @@ void nimIfIndexCreate(nimUSP_t usp,L7_INTF_TYPES_t type,L7_uint32 *ifIndex, L7_u
       case L7_TUNNEL_INTF:
       case L7_WIRELESS_INTF:
       case L7_CAPWAP_TUNNEL_INTF:
+      case L7_VLAN_PORT_INTF:     /* PTin added: virtual ports */
         usp.unit = L7_LOGICAL_UNIT;
         break;
       default:

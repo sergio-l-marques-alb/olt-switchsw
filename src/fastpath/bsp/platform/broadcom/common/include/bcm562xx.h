@@ -244,6 +244,9 @@
 
 #define     PLAT_MAX_NUM_WIRELESS_INTF            64
 #define     PLAT_MAX_NUM_L2TUNNEL_VLANS           0
+
+#define     PLAT_MAX_NUM_VLAN_PORT_INTF           1   /* PTin added: virtual ports */
+
 /*********************************************************************
 **  End of L3 parameters
 **********************************************************************/

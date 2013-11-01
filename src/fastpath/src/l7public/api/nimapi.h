@@ -252,6 +252,7 @@ typedef struct
     L7_uint32   tunnelId;
     L7_uint32   wirelessNetId;
     L7_uint32   l2tunnelId;
+    L7_uint32   vlanportId;       /* PTin added: virtual ports */
   }configSpecifier;
 
 } nimConfigID_t;

@@ -469,6 +469,7 @@ typedef enum
   L7_TUNNEL_INTF,
   L7_WIRELESS_INTF,
   L7_CAPWAP_TUNNEL_INTF,
+  L7_VLAN_PORT_INTF,      /* PTin added: Virtual ports */
   L7_MAX_INTF_TYPE_VALUE
 
 }L7_INTF_TYPES_t;
@@ -580,8 +581,12 @@ typedef enum
   L7_IANA_LOGICAL_DESC  = 162,        /* need to find out this ??? */
 #define IANA_LOGICAL_PORT_DESC        "Logical Interface"
 
-  L7_IANA_CAPWAP_TUNNEL = 245         /* CAPWAP tunnel  value is IANA TBD */
+  L7_IANA_CAPWAP_TUNNEL = 245,        /* CAPWAP tunnel  value is IANA TBD */
 #define IANA_CAPWAP_TUNNEL_DESC       "CAPWAP tunnel"
+
+/* PTin added: virtual ports */
+  L7_IANA_VLAN_PORT     = 246         /* VLAN PORT */
+#define IANA_VLAN_PORT_DESC           "VLAN_PORT interface"
 
 }L7_IANA_INTF_TYPE_t;
 
