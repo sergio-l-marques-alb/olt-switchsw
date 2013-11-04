@@ -3535,6 +3535,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
+  #ifdef BCM_ROBO_SUPPORT
   /* Add the address to the non-native devices */
   if (hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
   {
@@ -3544,6 +3545,25 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   {
     rv = BCM_E_NONE;
   }
+  #else
+  rv = BCM_E_NONE;
+  /* If pending flag is active, check if MAC should be learnt */
+  if (bcmx_l2_addr->flags & BCM_L2_PENDING)
+  {
+    #if 1
+    bcmx_l2_addr->flags &= ~((L7_uint32) BCM_L2_PENDING);
+    rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
+    //printf("%s(%d) I was here\r\n",__FUNCTION__,__LINE__);
+    #endif
+    dapiCardRemovalReadLockGive();
+    return;
+  }
+  else
+  {
+    rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
+    //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
+  }
+  #endif
 
   if (rv == BCM_E_NONE)
   {
