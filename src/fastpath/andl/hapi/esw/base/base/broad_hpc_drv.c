@@ -2657,6 +2657,40 @@ void hapiBroadAssert(const L7_char8 *expr, const L7_char8 *file, L7_uint32 line)
    log_error_code (0, (char *) file, line);
 }
 
+/* PTin added: workaround for parity errors */
+#include "soc/trident.h"
+int
+soc_trident_port_cbl_table_parity_set(int unit, int enable)
+{
+  uint32 rval;
+  soc_reg_t enable_reg = PORT_CBL_TABLE_PARITY_CONTROLr;
+  soc_field_t enable_field = PARITY_ENf;
+
+  soc_trident_pipe_select(unit, 0, 0);
+
+  soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
+  soc_reg_field_set(unit, enable_reg, &rval, enable_field, enable);
+  soc_reg32_set(unit, enable_reg, REG_PORT_ANY, 0, rval);
+
+//soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
+//LOG_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
+
+  soc_trident_pipe_select(unit, 0, 1);
+
+  soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
+  soc_reg_field_set(unit, enable_reg, &rval, enable_field, enable);
+  soc_reg32_set(unit, enable_reg, REG_PORT_ANY, 0, rval);
+
+//soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
+//LOG_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
+
+  soc_trident_pipe_select(unit, 0, 0);
+
+  return SOC_E_NONE;
+}
+/* PTin end */
+
+
 L7_RC_t hpcBroadInit()
 {
   L7_uint32                    total_bcom_units, bcom_unit;
@@ -2706,6 +2740,12 @@ L7_RC_t hpcBroadInit()
     (void)bcm_switch_control_set(bcom_unit,bcmSwitchL2McastAllRouterPortsAddEnable,0);
   }
   
+  /* PTin added: workaround for parity errors */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  soc_trident_port_cbl_table_parity_set(0, 0);
+  LOG_NOTICE(LOG_CTX_STARTUP, "port_cbl_table_parity_set(0)");
+#endif
+
   /* 
    * Load post-SDK initialization SOC file.
    * This will allow the user to override properties from driver initialization.
