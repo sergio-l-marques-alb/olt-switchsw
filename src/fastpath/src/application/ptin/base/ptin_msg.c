@@ -1002,7 +1002,7 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
     LOG_DEBUG(LOG_CTX_PTIN_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
               portMac[i].macAddr[0],portMac[i].macAddr[1],portMac[i].macAddr[2],portMac[i].macAddr[3],portMac[i].macAddr[4],portMac[i].macAddr[5]);
 
-    memset(&portMac_conf,0x00,sizeof(ptin_HWPortExt_t));
+    memset(&portMac_conf,0x00,sizeof(ptin_HWPortMac_t));
     portMac_conf.Mask = portMac[i].Mask;
     memcpy(portMac_conf.macAddr, portMac[i].macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
@@ -1078,7 +1078,7 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
       continue;
     }
 
-    memset(&portMac_conf,0x00,sizeof(ptin_HWPortExt_t));
+    memset(&portMac_conf,0x00,sizeof(ptin_HWPortMac_t));
     portMac_conf.Mask = PTIN_HWPORTMAC_MASK_MACADDR;
 
     /* Get MEF parameters */
