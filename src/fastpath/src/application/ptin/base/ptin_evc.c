@@ -1172,7 +1172,8 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
     else
     {
       /* Compare outer vlan: if found, leave cycle */
-      if (evcs[evc_id].intf[ptin_port].out_vlan == extOVlan)
+      if (evcs[evc_id].intf[ptin_port].out_vlan == extOVlan &&
+          (evcs[evc_id].intf[ptin_port].inner_vlan == 0 || evcs[evc_id].intf[ptin_port].inner_vlan == extIVlan))
         break;
     }
   }

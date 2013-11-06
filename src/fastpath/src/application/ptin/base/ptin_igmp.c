@@ -6346,6 +6346,7 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     if ( !(flags & PTIN_EVC_MASK_QUATTRO) || !(flags & PTIN_EVC_MASK_P2P) || (igmp_quattro_p2p_evcs <= 1) )
     #endif
     {
+      #if 0
       /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
       if (enable)
       {
@@ -6358,6 +6359,7 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
         ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
         ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
       }
+      #endif
     }
   }
 

@@ -108,6 +108,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 
   /* Initialize storm control */
+  #if 0
   rc = ptin_stormControl_init();
   if (rc != L7_SUCCESS)
   {
@@ -115,6 +116,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "Storm Control is active with default values.");
+  #endif
 
 #if ( PTIN_BOARD_IS_MATRIX )
   /* Configure InBand bridge if this board is CXP360G */

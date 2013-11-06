@@ -2916,11 +2916,13 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   }
 
   /* Add bandwidth profile */
+  #if 0
   if ((rc=ptin_evc_stormControl_set(L7_ENABLE, &stormControl))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying storm control profile!");
     return rc;
   }
+  #endif
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
   return rc;
@@ -2992,11 +2994,13 @@ L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
   }
 
   /* Add bandwidth profile */
+  #if 0
   if ((rc=ptin_evc_stormControl_set(L7_DISABLE, &stormControl))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling storm control profile!");
     return rc;
   }
+  #endif
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
   return rc;
@@ -3065,11 +3069,13 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
   }
 
   /* Add bandwidth profile */
+  #if 0
   if ((rc=ptin_evc_stormControl_reset(&stormControl))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error clearing storm control profile!");
     return rc;
   }
+  #endif
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
   return rc;
