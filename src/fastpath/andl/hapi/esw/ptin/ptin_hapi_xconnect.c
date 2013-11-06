@@ -24,6 +24,7 @@
 /* Available resources for translation: This is for the 5668x switches */
 L7_uint16 resources_crossconnects = FREE_RESOURCES_CROSSCONNECTS;
 
+#if 0
 typedef struct
 {
   L7_uint8 mac_counter;
@@ -35,6 +36,7 @@ typedef struct
 
 static mac_learn_info_t macLearn_info_vlan[MAX_VLANS+1];
 static mac_learn_info_t macLearn_info_flow[MAX_GPORTS+1];
+#endif
 
 /********************************************************************
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -58,11 +60,13 @@ L7_RC_t ptin_hapi_bridge_init(void)
     return L7_FAILURE;
   }
 
+  #if 0
   if ( (error=ptin_hapi_macaddr_init()) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
+  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_init returned success");
 
@@ -1045,7 +1049,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   return L7_SUCCESS;
 }
 
-
+#if 0
 /************************************
  * MAC Learning Control
  ************************************/
@@ -1229,4 +1233,5 @@ L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlanId, bcm_gport_t gport, L7_uint8 
 
   return L7_SUCCESS;
 }
+#endif
 
