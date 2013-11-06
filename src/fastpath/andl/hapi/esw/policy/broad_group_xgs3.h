@@ -120,6 +120,7 @@ int policy_group_delete_rule(int                  unit,
                              BROAD_POLICY_STAGE_t policyStage,
                              BROAD_GROUP_t        group,
                              BROAD_ENTRY_t        entry,
+                             BROAD_ENTRY_t        srcEntry,           /* PTin added: Policer/Counter */
                              int                  policer_id,         /* PTin added: SDK 6.3.0 */
                              int                  counter_id);
 

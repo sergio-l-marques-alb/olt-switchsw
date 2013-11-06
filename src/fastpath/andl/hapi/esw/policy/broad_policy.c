@@ -712,6 +712,9 @@ L7_RC_t hapiBroadPolicyPriorityRuleAdd(BROAD_POLICY_RULE_t         *rule,
     rulePtr->ruleFlags |= BROAD_RULE_STATUS_ACTIVE;
     rulePtr->priority = priority;
 
+    /* PTin added: Policer/Counter */
+    rulePtr->meterSrcEntry = *rule;
+
     /* Add rule to policy */
     if (policyInfo->ruleInfo == L7_NULL)
     {

@@ -3381,17 +3381,13 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
 
     if (rulePtr->ruleFlags & BROAD_METER_SHARED)
     {
-        bcm_field_entry_t src_eid;
-
-        src_eid = BROAD_ENTRY_TO_BCM_ENTRY(rulePtr->meterSrcEntry);
-
         src_policer_id = rulePtr->src_policerId;
 
         rv = bcm_field_entry_policer_attach(unit, eid, 0, src_policer_id);
 
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          printf("%s(%d) We have an error! policer_id=%d, rv=%d\r\n", __FUNCTION__, __LINE__, src_policer_id, rv);
           return rv;
         }
 
@@ -3403,7 +3399,7 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
         rv = bcm_policer_create(unit, &policer_cfg, &policer_id);
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          printf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
 
@@ -4368,7 +4364,9 @@ int policy_group_add_rule(int                        unit,
       if ( rv != BCM_E_NONE)
       { 
         /* Destroy rule */
-        (void) policy_group_delete_rule(unit, policyStage, gid, eid, rulePtr->policer.policer_id, rulePtr->counter.counter_id);
+        (void) policy_group_delete_rule(unit, policyStage, gid,
+                                        eid, rulePtr->meterSrcEntry,  /* PTin added: Policer/Counter */
+                                        rulePtr->policer.policer_id, rulePtr->counter.counter_id);
       }
       #endif
 
@@ -4740,12 +4738,14 @@ int policy_group_delete_rule(int                  unit,
                              BROAD_POLICY_STAGE_t policyStage,
                              BROAD_GROUP_t        group,
                              BROAD_ENTRY_t        entry,
+                             BROAD_ENTRY_t        srcEntry,     /* PTin added: Policer/Counter */
                              int                  policer_id,   /* PTin added: SDK 6.3.0 */
                              int                  counter_id)
 {
     int               rv;
     group_table_t    *groupPtr;
     bcm_field_entry_t eid;
+    bcm_field_entry_t src_eid;  /* Ptin added: Policer/Counter */
 
     CHECK_GROUP(unit,policyStage,group);
 
@@ -4755,6 +4755,7 @@ int policy_group_delete_rule(int                  unit,
         return BCM_E_NOT_FOUND;
 
     eid = BROAD_ENTRY_TO_BCM_ENTRY(entry);
+    src_eid = BROAD_ENTRY_TO_BCM_ENTRY(srcEntry);   /* PTin added: Policer/Counter */
 
     rv = bcm_field_entry_remove(unit, eid);
 
@@ -4774,26 +4775,30 @@ int policy_group_delete_rule(int                  unit,
     #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
     if (policer_id>0)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removing policer id %u...",policer_id);
       rv = bcm_field_entry_policer_detach(unit, eid, 0);
       if (BCM_E_NONE != rv)
           return rv;
-      rv = bcm_policer_destroy(unit, policer_id);
-      if (BCM_E_NONE != rv)
-          return rv;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed policer id %u!",policer_id);
+      if (eid == src_eid)   /* PTin added: Policer/Counter */
+      {
+        if (bcm_policer_destroy(unit, policer_id) != BCM_E_NONE)
+        {
+          printf("%s(%d) ERROR: Cannot destroy policer\r\n",__FUNCTION__,__LINE__);
+        }
+      }
     }
 
     if (counter_id>0)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removing counter id %u...",counter_id);
       rv = bcm_field_entry_stat_detach(unit, eid, counter_id);
       if (BCM_E_NONE != rv)
           return rv;
-      rv = bcm_field_stat_destroy(unit, counter_id);
-      if (BCM_E_NONE != rv)
-          return rv;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed counter id %u!",counter_id);
+      if (eid == src_eid)   /* PTin added: Policer/Counter */
+      {
+        if (bcm_field_stat_destroy(unit, counter_id) != BCM_E_NONE)
+        {
+          printf("%s(%d) ERROR: Cannot destroy counter\r\n",__FUNCTION__,__LINE__);
+        }
+      }
     }
     #endif
 

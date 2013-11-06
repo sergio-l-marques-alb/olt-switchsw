@@ -37,6 +37,7 @@ typedef struct
 {
     BROAD_GROUP_t        group;
     BROAD_ENTRY_t        entry[BROAD_MAX_RULES_PER_POLICY];
+    BROAD_ENTRY_t        srcEntry[BROAD_MAX_RULES_PER_POLICY];      /* PTin added: Policer/Counter */
     int                  policer_id[BROAD_MAX_RULES_PER_POLICY];    /* PTin added: SDK 6.3.0 */
     int                  counter_id[BROAD_MAX_RULES_PER_POLICY];    /* PTin added: SDK 6.3.0 */
     bcm_pbmp_t           pbm;
@@ -464,6 +465,8 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
           /* convert srcEntry from rule to entry number so lower layer understands */
           srcRule = rulePtr->meterSrcEntry;
           rulePtr->meterSrcEntry = policyPtr->entry[srcRule];
+          rulePtr->src_policerId = policyPtr->policer_id[srcRule];  /* PTin added: policer */
+          rulePtr->src_counterId = policyPtr->counter_id[srcRule];  /* PTin added: counter */
 
           /* PTin modified: SDK 6.3.0 */
           policer_id = counter_id = 0;
@@ -485,6 +488,7 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
                 policyPtr->counter_id[i] = counter_id;
                 #endif
                 policyPtr->entry[i] = entry;
+                policyPtr->srcEntry[i] = policyPtr->entry[srcRule]; /* PTin added: Policer/Counter */
                 policyPtr->entryCount++;
               }
 
@@ -538,7 +542,13 @@ int l7_bcm_cfp_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY
             }
           }
 
+          /* PTin added: SDK 6.3.0 */
+          #if 1
+          policyPtr->policer_id[i] = policer_id;
+          policyPtr->counter_id[i] = counter_id;
+          #endif
           policyPtr->entry[i] = entry;
+          policyPtr->srcEntry[i] = policyPtr->entry[srcRule]; /* PTin added: Policer/Counter */
           policyPtr->entryCount++;
 
           rulePtr = rulePtr->next;
@@ -599,6 +609,7 @@ int l7_bcm_cfp_policy_destroy(int unit, BROAD_POLICY_t policy)
           policyPtr->policer_id[i] = 0;
           policyPtr->counter_id[i] = 0;
           #endif
+          policyPtr->srcEntry[i] = 0;     /* PTin added: Policer/Counter */
           if (BCM_E_NONE != tmprv)
               rv = tmprv;
       }

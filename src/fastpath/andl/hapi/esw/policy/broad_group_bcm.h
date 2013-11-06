@@ -113,6 +113,7 @@ typedef struct
 {
     BROAD_GROUP_t                  group;
     BROAD_ENTRY_t                 *entry;
+    BROAD_ENTRY_t                 *srcEntry;  /* PTin added: Policer/Counter */
     /* PTin added: SDK 6.3.0 */
     #if 1
     int                           *policer_id;

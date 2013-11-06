@@ -2011,17 +2011,13 @@ static int _policy_group_add_policer(int unit, bcm_field_entry_t eid, bcm_field_
 
     if (rulePtr->ruleFlags & BROAD_METER_SHARED)
     {
-        bcm_field_entry_t src_eid;
-
-        src_eid = BROAD_ENTRY_TO_BCM_ENTRY(rulePtr->meterSrcEntry);
-
         src_policer_id = rulePtr->src_policerId;
 
         rv = bcm_field_entry_policer_attach(unit, eid, 0, src_policer_id);
 
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          printf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
 
@@ -2033,7 +2029,7 @@ static int _policy_group_add_policer(int unit, bcm_field_entry_t eid, bcm_field_
         rv = bcm_policer_create(unit, &policer_cfg, &policer_id);
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          printf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
             return rv;
         }
 
@@ -2041,7 +2037,7 @@ static int _policy_group_add_policer(int unit, bcm_field_entry_t eid, bcm_field_
         rv = bcm_field_entry_policer_attach(unit, eid, 0, policer_id);
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          printf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
             return rv;
         }
 
@@ -2049,7 +2045,7 @@ static int _policy_group_add_policer(int unit, bcm_field_entry_t eid, bcm_field_
         rulePtr->src_policerId = policer_id;
     }
 
-    printf("%s(%d) I was here! rv=%d",__FUNCTION__,__LINE__,rv);
+    printf("%s(%d) I was here! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
 
     return rv;
 }

@@ -712,7 +712,9 @@ static int _policy_apply_egress_mask(int unit, BROAD_POLICY_t policy, bcm_pbmp_t
   if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
   {
       /* PTin modified: policer */
-      policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group, globalPolicyPtr->entry, 0, 0); /* PTin modified: SDK 6.3.0 */
+      policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group,
+                               globalPolicyPtr->entry, globalPolicyPtr->entry,  /* PTin modified: Policer/Counter */
+                               0, 0); /* PTin modified: SDK 6.3.0 */
       globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
   }
 
@@ -808,7 +810,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
 
   if (policyData->ruleCount > 0)
   {
-    policyPtr->entry = osapiMalloc(L7_DRIVER_COMPONENT_ID, policyData->ruleCount * sizeof(policyPtr->entry[0]));
+    policyPtr->entry    = osapiMalloc(L7_DRIVER_COMPONENT_ID, policyData->ruleCount * sizeof(policyPtr->entry[0]));
+    /* PTin added: Policer/Counter */
+    policyPtr->srcEntry = osapiMalloc(L7_DRIVER_COMPONENT_ID, policyData->ruleCount * sizeof(policyPtr->entry[0]));
     /* PTin added: SDK 6.3.0 */
     #if 1
     policyPtr->policer_id = osapiMalloc(L7_DRIVER_COMPONENT_ID, policyData->ruleCount * sizeof(policyPtr->policer_id[0]));
@@ -936,7 +940,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
          are put in HW. */
       if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
       {
-        policy_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group, globalPolicyPtr->entry, 0, 0); /* PTin modified: SDK 6.3.0 */
+        policy_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group,
+                                 globalPolicyPtr->entry, globalPolicyPtr->entry, /* PTin modified: Policer/Counter */
+                                 0, 0); /* PTin modified: SDK 6.3.0 */
         globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
       }
     }
@@ -1018,7 +1024,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
 
       /* convert srcEntry from rule to entry number so lower layer understands */
       srcRule = rulePtr->meterSrcEntry;
-      rulePtr->meterSrcEntry = policyPtr->entry[srcRule];
+      rulePtr->meterSrcEntry = policyPtr->entry[srcRule];       /* PTin modified: entry */
+      rulePtr->src_policerId = policyPtr->policer_id[srcRule];  /* PTin added: policer */
+      rulePtr->src_counterId = policyPtr->counter_id[srcRule];  /* PTin added: counter */
 
       /* PTin modified: SDK 6.3.0 */
       policer_id = counter_id = 0;
@@ -1033,6 +1041,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
         policyPtr->counter_id[i] = counter_id;
         #endif
         policyPtr->entry[i] = entry;
+        policyPtr->srcEntry[i] = policyPtr->entry[srcRule]; /* PTin added: Policer/Counter */
         policyPtr->entryCount++;
       }
       if (BCM_E_NONE != rv)
@@ -1208,13 +1217,15 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
     {
       for (i = policyPtr->entryCount - 1; i >= 0 ; --i)
       {
-          tmprv = policy_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i],
+          tmprv = policy_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group,
+                                           policyPtr->entry[i], policyPtr->srcEntry[i],   /* PTin modified: Policer/Counter */
                                            policyPtr->policer_id[i], policyPtr->counter_id[i]);     /* PTin added: SDK 6.3.0 */
           /* PTin added: SDK 6.3.0 */
           #if 1
           policyPtr->policer_id[i] = 0;
           policyPtr->counter_id[i] = 0;
           #endif
+          policyPtr->srcEntry[i] = 0; /* PTin added: Policer/Counter */
           if (BCM_E_NONE != tmprv)
               rv = tmprv;
       }
@@ -1241,7 +1252,9 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
           globalPolicyPtr = &policy_efp_on_ifp_table[unit];
           if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
           {
-              policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group, globalPolicyPtr->entry, 0, 0); /* PTin modified: SDK 6.3.0 */
+              policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group,
+                                       globalPolicyPtr->entry, globalPolicyPtr->entry,  /* PTin modified: Policer/Counter */
+                                       0, 0); /* PTin modified: SDK 6.3.0 */
               globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
           }
         }
@@ -1258,6 +1271,12 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
       osapiFree(L7_DRIVER_COMPONENT_ID, policyPtr->entry);
     }
     policyPtr->entry = L7_NULL;
+    /* PTin added: Policer */
+    if (policyPtr->srcEntry != L7_NULL)
+    {
+      osapiFree(L7_DRIVER_COMPONENT_ID, policyPtr->srcEntry);
+    }
+    policyPtr->srcEntry = L7_NULL;
     /* PTin added: SDK 6.3.0 */
     #if 1
     if (policyPtr->policer_id != L7_NULL)
