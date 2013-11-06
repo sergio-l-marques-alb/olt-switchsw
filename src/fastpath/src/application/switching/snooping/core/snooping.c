@@ -3492,6 +3492,8 @@ L7_uint8 snoopRecordType2IGMPStatField(L7_uint8 recordType,L7_uint8 fieldType)
   }
 }
 #if SNOOP_PTIN_IGMPv3_ROUTER
+
+L7_inet_addr_t      sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]={};  
 /****************************************************************************
 * @purpose Process IGMPv3/MLDv2 Group Membership Report
 *
@@ -3527,9 +3529,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
   L7_uint32 noOfRecords=0, dummy=0,totalRecords=0;
-  L7_BOOL newEntry=L7_FALSE,flagNewGroup=L7_FALSE,flagAddClient=L7_FALSE,flagRemoveClient=L7_FALSE;
-
-  L7_inet_addr_t      sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]={};  
+  L7_BOOL newEntry=L7_FALSE,flagNewGroup=L7_FALSE,flagAddClient=L7_FALSE,flagRemoveClient=L7_FALSE;  
 
 //L7_uint16 mcastRootVlanId;
 
