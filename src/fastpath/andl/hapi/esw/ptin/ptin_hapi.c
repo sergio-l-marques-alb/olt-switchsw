@@ -2160,6 +2160,368 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
   return result;
 }
 
+#if 1
+typedef enum
+{
+  STORM_CONTROL_TRAFFIC_BCAST=0,
+  STORM_CONTROL_TRAFFIC_MCAST,
+  STORM_CONTROL_TRAFFIC_UNKN_UC,
+  STORM_CONTROL_TRAFFIC_MAX
+} storm_control_traffic_enum_t;
+
+static BROAD_POLICY_t policyId_storm[STORM_CONTROL_TRAFFIC_MAX];
+
+L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *control)
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_uchar8               broadcast_mac[]      = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               broadcast_mac_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uchar8               multicast_mac[]      = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               multicast_mac_mask[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               unicast_mac[]        = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uchar8               unicast_mac_mask[]   = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  L7_uint8                l2_srchit = 0, l2_srchit_mask = 1;
+  L7_uint16               vlanId, vlan_match;
+  BROAD_METER_ENTRY_t     meterInfo;
+  static L7_BOOL          first_time = L7_TRUE;
+
+  /* Initialize static variables */
+  if (first_time)
+  {
+    memset(policyId_storm, 0xff, sizeof(policyId_storm));
+    first_time = L7_FALSE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting Storm Control processing");
+
+  /* Init BC storm control */
+  if (control->flags & PTIN_PKT_RATELIMIT_MASK_BCAST)
+  {
+    /* Clean policers */
+    if (policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_BCAST]);
+      policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC storm control deleted");
+    }
+
+    /* Create rules */
+    if (enable)
+    {
+      /* Rate Limit */
+      meterInfo.cir       = control->bcast_rate;
+      meterInfo.cbs       = 256;
+      meterInfo.pir       = control->bcast_rate;
+      meterInfo.pbs       = 256;
+      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+      do
+      {
+        result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+        if (result != L7_SUCCESS)  break;
+
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC Policy created");
+
+        /* For Broadcast traffic, priority rule must be higher than the others */
+        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
+        if (result != L7_SUCCESS)  break;
+
+        /* Broadcast traffic */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, broadcast_mac, broadcast_mac_mask);
+        if (result != L7_SUCCESS)  break;
+
+        /* Configure meter */
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        if (result != L7_SUCCESS)  break;
+
+        /* Drop action */
+        result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+        if (result != L7_SUCCESS)  break;
+
+        /* First: Standard BC Vlans */
+        vlanId = PTIN_SYSTEM_EVC_CPU_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_CPU_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+
+        /* Quattro range */
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+
+        printf("%s(%d) Hello World!\r\n",__FUNCTION__,__LINE__);
+        result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+        if (result != L7_SUCCESS)
+          break;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)
+          break;
+      } while ( 0 );
+
+      printf("%s(%d) Hello World!\r\n",__FUNCTION__,__LINE__);
+
+      /* Commit policy if success */
+      if (result == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting BC policy");
+        if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
+        {
+          policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = policyId;
+          LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC policy commited successfully");
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error committing BC policy: %d", result);
+        }
+      }
+      else
+      {
+        hapiBroadPolicyCreateCancel();
+        policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling BC policy: %d", result);
+      }
+    }
+  }
+
+  /* Init MC storm control */
+  if (control->flags & PTIN_PKT_RATELIMIT_MASK_MCAST)
+  {
+    /* Clean policers */
+    if (policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_MCAST]);
+      policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC storm control deleted");
+    }
+
+    /* Create rules */
+    if (enable)
+    {
+      /* Rate Limit */
+      meterInfo.cir       = control->mcast_rate;
+      meterInfo.cbs       = 256;
+      meterInfo.pir       = control->mcast_rate;
+      meterInfo.pbs       = 256;
+      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+      do
+      {
+        result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+        if (result != L7_SUCCESS)  break;
+
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC Policy created");
+
+        /* For Multicast traffic, priority rule must be higher than the others */
+        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST );
+        if (result != L7_SUCCESS)  break;
+
+        /* Multicast traffic */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, multicast_mac, multicast_mac_mask);
+        if (result != L7_SUCCESS)  break;
+
+        /* Configure meter */
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        if (result != L7_SUCCESS)  break;
+
+        /* Drop action */
+        result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+        if (result != L7_SUCCESS)  break;
+
+        /* Standard MC Vlans */
+        vlanId = PTIN_SYSTEM_EVC_MCAST_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_MCAST_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+
+        /* QUATTRO vlans */
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+        if (result != L7_SUCCESS)  break;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+      } while ( 0 );
+
+      /* Commit policy if success */
+      if (result == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting MC policy");
+        if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
+        {
+          policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = policyId;
+          LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC policy commited successfully");
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error committing MC policy");
+        }
+      }
+      else
+      {
+        hapiBroadPolicyCreateCancel();
+        policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling MC policy", index);
+      }
+    }
+  }
+  /* Init MC+unk UC storm control */
+  if (control->flags & PTIN_PKT_RATELIMIT_MASK_UCUNK)
+  {
+    /* Clean policers */
+    if (policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] != BROAD_POLICY_INVALID)
+    {
+      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC]);
+      policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control deleted");
+    }
+
+    /* Create rules */
+    if (enable)
+    {
+      /* Rate Limit */
+      meterInfo.cir       = control->ucunk_rate;
+      meterInfo.cbs       = 256;
+      meterInfo.pir       = control->ucunk_rate;
+      meterInfo.pbs       = 256;
+      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+      do
+      {
+        result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+        if (result != L7_SUCCESS)  break;
+
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC Policy created");
+
+        /* For Broadcast traffic, priority rule must be higher than the others */
+        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
+        if (result != L7_SUCCESS)  break;
+
+        /* Unicast traffic */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, unicast_mac, unicast_mac_mask);
+        if (result != L7_SUCCESS)  break;
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2_SRCHIT, (L7_uint8 *)&l2_srchit, (L7_uint8 *)&l2_srchit_mask);
+        if (result != L7_SUCCESS)  break;
+
+        /* Configure meter */
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        if (result != L7_SUCCESS)  break;
+
+        /* Drop action */
+        result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+        if (result != L7_SUCCESS)  break;
+
+        /* Standard BC Vlans */
+        vlanId = PTIN_SYSTEM_EVC_BCAST_UNKUC_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_BCAST_UNKUC_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+
+        /* Standard MC vlans */
+        vlanId = PTIN_SYSTEM_EVC_MCAST_UNKUC_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_MCAST_UNKUC_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+        if (result != L7_SUCCESS)  break;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+
+        /* Bitstream vlans */
+        vlanId = PTIN_SYSTEM_EVC_BITSTR_UNKUC_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_BITSTR_UNKUC_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+        if (result != L7_SUCCESS)  break;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+
+        /* QUATTRO vlans */
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+
+        result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+        if (result != L7_SUCCESS)  break;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+        if (result != L7_SUCCESS)  break;
+      } while ( 0 );
+
+      /* Commit policy if success */
+      if (result == L7_SUCCESS)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting Unknown UC policy");
+        if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
+        {
+          policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = policyId;
+          LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC policy commited successfully");
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error committing Unknown UC policy");
+        }
+      }
+      else
+      {
+        hapiBroadPolicyCreateCancel();
+        policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling Unknown UC policy", index);
+      }
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished rate limit processing: rc=%d", result);
+
+  return result;
+}
+
+/**
+ * Dump list of bw policers
+ */
+void ptin_stormcontrol_dump_debug(void)
+{
+  L7_int index, rule;
+  BROAD_GROUP_t group_id;
+  BROAD_ENTRY_t entry_id;
+  int policer_id, counter_id;
+
+  printf("Listing rate limiters list...\r\n");
+
+  for (index=0; index<STORM_CONTROL_TRAFFIC_MAX; index++)
+  {
+    rule = 0;
+    while (policyId_storm[index] != 0 && policyId_storm[index] != BROAD_POLICY_INVALID &&
+           l7_bcm_policy_hwInfo_get(0, policyId_storm[index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    {
+      /* Also print hw group id and entry id*/
+      printf(" TraffType %u, rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
+             index, rule, group_id, entry_id, policer_id, counter_id);
+      rule++;
+    }
+  }
+  printf("Done!\r\n");
+}
+
+L7_RC_t hapi_ptin_stormControl_test(L7_uint enable, L7_uint32 flags, L7_uint32 rate)
+{
+  ptin_stormControl_t control;
+
+  control.flags = flags;
+  control.bcast_rate = rate;
+  control.mcast_rate = rate;
+  control.ucunk_rate = rate;
+
+  return hapi_ptin_stormControl_set(L7_NULLPTR, enable, &control);
+}
+#endif
+
 /**
  * Dump list of bw policers
  */
