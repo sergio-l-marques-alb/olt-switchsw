@@ -5368,7 +5368,7 @@ L7_RC_t ptin_evc_client_next( L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_H
   struct ptin_evc_client_s *pclient;
 
   /* Validate arguments */
-  if (evc_id>=PTIN_SYSTEM_N_EXTENDED_EVCS || ptin_intf==L7_NULLPTR)
+  if (evc_ext_id>=PTIN_SYSTEM_N_EXTENDED_EVCS || ptin_intf==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
