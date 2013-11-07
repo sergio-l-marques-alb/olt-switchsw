@@ -115,7 +115,7 @@ void help_oltBuga(void)
         "m 1604 EVC#[0-64] type[0-Phy;1-Lag]/intf# ... - Remove ports from EVC\r\n"
         "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
-        "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN CVlan flags[01h:DHCP;02h:IGMP;04h:PPPoE] - Add a GEM flow to an EVC\r\n"
+        "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN CVlan flags[01h:DHCP;02h:IGMP;04h:PPPoE] MaxMACs - Add a GEM flow to an EVC\r\n"
         "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN - Delete a GEM flow from an EVC\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
         "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
@@ -3598,6 +3598,16 @@ int main (int argc, char *argv[])
               exit(0);
             }
             ptr->flags = (uint32) valued<<8;
+          }
+
+          // Maximum number of MAC addresses
+          if (argc >= 3+8)
+          {
+            if (StrToLongLong(argv[3+7], &valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->macLearnMax = (uint8) valued;
           }
         }
         break;
