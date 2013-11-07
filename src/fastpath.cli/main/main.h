@@ -623,12 +623,6 @@ typedef struct {
 #define MSG_STORMCONTROL_MASK_UCUNK   0x0004
 #define MSG_STORMCONTROL_MASK_ALL     0x00ff
 
-#define MSG_STORMCONTROL_FLAGS_EVC_ALL      0x0000
-#define MSG_STORMCONTROL_FLAGS_EVC_STD      0x0001
-#define MSG_STORMCONTROL_FLAGS_EVC_QUATTRO  0x0004
-#define MSG_STORMCONTROL_FLAGS_EVC_ETREE    0x0008
-#define MSG_STORMCONTROL_FLAGS_EVC_MASK     0x00ff
-
 typedef struct {
   L7_uint8  SlotId;
   L7_uint32 id;                 /* ID */
