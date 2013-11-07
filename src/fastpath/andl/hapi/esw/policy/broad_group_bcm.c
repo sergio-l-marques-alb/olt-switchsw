@@ -348,7 +348,7 @@ L7_RC_t l7_bcm_policy_hwInfo_get(int unit, BROAD_POLICY_t policy_id, L7_uint rul
   policyPtr = &policy_map_table[unit][policyIdx];
 
   /* Validate rule_id */
-  if (rule_id>policyPtr->entryCount)
+  if (rule_id >= policyPtr->entryCount)
   {
     return BCM_E_NOT_FOUND;
   }

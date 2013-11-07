@@ -4780,6 +4780,7 @@ int policy_group_delete_rule(int                  unit,
           return rv;
       if (eid == src_eid)   /* PTin added: Policer/Counter */
       {
+        printf("%s(%d) Destroying policer %u\r\n",__FUNCTION__,__LINE__, policer_id);
         if (bcm_policer_destroy(unit, policer_id) != BCM_E_NONE)
         {
           printf("%s(%d) ERROR: Cannot destroy policer\r\n",__FUNCTION__,__LINE__);
@@ -4794,6 +4795,7 @@ int policy_group_delete_rule(int                  unit,
           return rv;
       if (eid == src_eid)   /* PTin added: Policer/Counter */
       {
+        printf("%s(%d) Destroying counter %u\r\n",__FUNCTION__,__LINE__, counter_id);
         if (bcm_field_stat_destroy(unit, counter_id) != BCM_E_NONE)
         {
           printf("%s(%d) ERROR: Cannot destroy counter\r\n",__FUNCTION__,__LINE__);
