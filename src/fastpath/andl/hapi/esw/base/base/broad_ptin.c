@@ -170,6 +170,10 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
         portExt->egress_type = port_type;
         portExt->Mask       |= PTIN_HWPORTEXT_MASK_EGRESS_TYPE;
       }
+      else if (rc == L7_NOT_SUPPORTED)
+      {
+        rc = L7_SUCCESS;
+      }
     }
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Result for L2LearnPortSet: %d",rc);
   }

@@ -550,7 +550,7 @@ L7_RC_t hapi_ptin_egress_port_type_get(ptin_dapi_port_t *dapiPort, L7_int *port_
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    return L7_FAILURE;
+    return L7_NOT_SUPPORTED;
   }
 
   /* Get bcm_unit and bcm_port */
