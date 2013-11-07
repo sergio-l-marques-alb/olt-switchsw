@@ -200,8 +200,9 @@ extern L7_RC_t ptin_stormControl_get(L7_BOOL enable, L7_uint32 intIfNum, L7_uint
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_stormControl_config(L7_BOOL enable, L7_uint32 intIfNum, L7_uint16 vlanId, L7_uint16 vlanId_mask, ptin_stormControl_t *stormControl);
+extern L7_RC_t ptin_stormControl_config(L7_BOOL enable, ptin_stormControl_t *stormControl);
 
+#if 0
 /**
  * Apply Rate limit to broadcast traffic
  * 
@@ -221,6 +222,7 @@ extern L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
  * @return L7_RC_t 
  */
 extern L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
+#endif
 
 /**
  * Consult hardware resources
