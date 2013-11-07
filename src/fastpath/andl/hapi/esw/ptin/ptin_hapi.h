@@ -218,6 +218,7 @@ extern L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort);
  */
 extern L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivity);
 
+#if 0
 /**
  * Add/remove a rate limiter to a particular traffic type
  * 
@@ -228,6 +229,18 @@ extern L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *ports
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit);
+#endif
+
+/**
+ * Configures storm control
+ * 
+ * @param dapiPort : port 
+ * @param enable   : Enable or diable
+ * @param stormControl : storm control data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *stormControl);
 
 /**
  * Show trapped packets (to CPU) according to the configured 
