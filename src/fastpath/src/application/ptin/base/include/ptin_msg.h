@@ -1034,6 +1034,32 @@ extern int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n
 extern L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd);
 
 
+/****************************************************************************** 
+ * ACL Configuration
+ ******************************************************************************/
+
+/**
+ * ACL Rule Configuration
+ * 
+ * @author joaom (11/01/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId);
+
+/**
+ * ACL Enable/Disable
+ * 
+ * @author joaom (11/01/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId);
+
 
 extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 //#define msg_wr_802_1x_AdminMode     msg_wr_802_1x_Genrc

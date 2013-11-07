@@ -33,6 +33,9 @@
 #include "ptin_intf.h"
 #include "fdb_api.h"
 
+#include "ptin_acl.h"
+
+
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
 /******************************************************** 
@@ -6890,6 +6893,671 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
 
 
 
+/***************************************************************************** 
+ * ACL Configuration
+ *****************************************************************************/
+
+
+/**
+ * MAC ACL Rule Configuration
+ * 
+ * @author joaom (10/29/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t operation)
+{
+  L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8  *actionStr[] =  {"DENY", "PERMIT"};
+  L7_uint8  *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};  
+
+  if (msgMacAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
+    return L7_FAILURE;
+  }
+
+  if (msgMacAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+  }
+
+  if (msgMacAcl->action > ACL_ACTION_PERMIT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+  }
+  
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgMacAcl->aclType]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgMacAcl->aclId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgMacAcl->name);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgMacAcl->aclRuleId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgMacAcl->action]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgMacAcl->aclRuleMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacAddr[0], 
+                                                                                msgMacAcl->srcMacAddr[1],
+                                                                                msgMacAcl->srcMacAddr[2],
+                                                                                msgMacAcl->srcMacAddr[3],
+                                                                                msgMacAcl->srcMacAddr[4],
+                                                                                msgMacAcl->srcMacAddr[5]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacMask[0], 
+                                                                                msgMacAcl->srcMacMask[1],
+                                                                                msgMacAcl->srcMacMask[2],
+                                                                                msgMacAcl->srcMacMask[3],
+                                                                                msgMacAcl->srcMacMask[4],
+                                                                                msgMacAcl->srcMacMask[5]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacAddr[0], 
+                                                                                msgMacAcl->dstMacAddr[1],
+                                                                                msgMacAcl->dstMacAddr[2],
+                                                                                msgMacAcl->dstMacAddr[3],
+                                                                                msgMacAcl->dstMacAddr[4],
+                                                                                msgMacAcl->dstMacAddr[5]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacMask[0], 
+                                                                                msgMacAcl->dstMacMask[1],
+                                                                                msgMacAcl->dstMacMask[2],
+                                                                                msgMacAcl->dstMacMask[3],
+                                                                                msgMacAcl->dstMacMask[4],
+                                                                                msgMacAcl->dstMacMask[5]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EtherType      0x%.4x",                          msgMacAcl->eType);
+
+  if (msgMacAcl->startVlan == msgMacAcl->endVlan)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Vlan           %d",                            msgMacAcl->startVlan);
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Vlan Range     %d-%d",                         msgMacAcl->startVlan, msgMacAcl->endVlan);
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "COS            %d",                              msgMacAcl->cosVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+
+  ptin_aclMacRuleConfig(msgMacAcl, operation);
+
+  return L7_SUCCESS;
+}
+
+
+
+/**
+ * IP ACL Rule Configuration
+ * 
+ * @author joaom (10/29/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t operation)
+{
+  L7_uint8 *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8 *actionStr[] =  {"DENY", "PERMIT"};
+  L7_uint8 *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
+  L7_uint8 ipAddr[] = "255.255.255.255";
+
+  if (msgIpAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
+    return L7_FAILURE;
+  }
+
+  if (msgIpAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+  }
+
+  if (msgIpAcl->action > ACL_ACTION_PERMIT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+  }
+
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgIpAcl->aclType]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgIpAcl->aclId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgIpAcl->name);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgIpAcl->aclRuleId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgIpAcl->action]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgIpAcl->aclRuleMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Protocol       %d",                              msgIpAcl->protocol);
+
+  usmDbInetNtoa(msgIpAcl->srcIpAddr,  ipAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Addr    %s",                              ipAddr);
+
+  usmDbInetNtoa(msgIpAcl->srcIpMask,  ipAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Mask    %s",                              ipAddr);
+  
+  usmDbInetNtoa(msgIpAcl->dstIpAddr,  ipAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Addr    %s",                              ipAddr);
+  
+  usmDbInetNtoa(msgIpAcl->dstIpMask,  ipAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Mask    %s",                              ipAddr);  
+
+  if (msgIpAcl->srcStartPort == msgIpAcl->srcEndPort)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port    %d",                            msgIpAcl->srcStartPort);
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port Range   %d-%d",                    msgIpAcl->srcStartPort, msgIpAcl->srcEndPort);
+  }
+
+  if (msgIpAcl->dstStartPort == msgIpAcl->dstEndPort)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port    %d",                            msgIpAcl->dstStartPort);
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port Range   %d-%d",                    msgIpAcl->dstStartPort, msgIpAcl->dstEndPort);
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "TOS            0x%.2x",                          msgIpAcl->tosVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "TOS Mask       0x%.2x",                          msgIpAcl->tosMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "DSCP           %d",                              msgIpAcl->dscpVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Prec           %d",                              msgIpAcl->precVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+
+  ptin_aclIpRuleConfig(msgIpAcl, operation);
+
+  return L7_SUCCESS;
+}
+
+
+
+/**
+ * IPv6 ACL Rule Configuration
+ * 
+ * @author joaom (10/29/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_t operation)
+{
+  L7_uint8 *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8 *actionStr[] =  {"DENY", "PERMIT"};
+  L7_uint8 *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
+  L7_uint8 ipAddr[] = "fe80:0000:0206:91ff:fe06:f69e";
+
+  if (msgIpv6Acl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgIpv6Acl->aclType);
+    return L7_FAILURE;
+  }
+
+  if (msgIpv6Acl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid %d", msgIpv6Acl->aclRuleId);
+  }
+
+  if (msgIpv6Acl->action > ACL_ACTION_PERMIT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid %d", msgIpv6Acl->action);
+  }
+
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgIpv6Acl->aclType]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgIpv6Acl->aclId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgIpv6Acl->name);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgIpv6Acl->aclRuleId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgIpv6Acl->action]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgIpv6Acl->aclRuleMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Protocol       %d",                              msgIpv6Acl->protocol);
+
+  if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->src6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->src6PrefixLen);
+  }
+
+  if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->dst6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->dst6PrefixLen);
+  }
+
+  if (msgIpv6Acl->srcStartPort == msgIpv6Acl->srcEndPort)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port    %d",                            msgIpv6Acl->srcStartPort);
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port Range   %d-%d",                    msgIpv6Acl->srcStartPort, msgIpv6Acl->srcEndPort);
+  }
+
+  if (msgIpv6Acl->dstStartPort == msgIpv6Acl->dstEndPort)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port    %d",                            msgIpv6Acl->dstStartPort);
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port Range   %d-%d",                    msgIpv6Acl->dstStartPort, msgIpv6Acl->dstEndPort);
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "DSCP           %d",                              msgIpv6Acl->dscpVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Flow Label     %d",                              msgIpv6Acl->flowLabelVal);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+
+  ptin_aclIpv6RuleConfig(msgIpv6Acl, operation);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * ACL Rule Configuration
+ * 
+ * @author joaom (11/01/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId)
+{
+  L7_uint8 *msg;
+  ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
+
+  msg = (L7_uint8 *) msgAcl;  
+
+  if (msgId == CCMSG_ACL_RULE_ADD)
+  {
+    operation = ACL_OPERATION_CREATE;
+  }
+  else if (msgId == CCMSG_ACL_RULE_DEL)
+  {
+    operation = ACL_OPERATION_REMOVE;
+  }
+
+  if (msg[1] == ACL_TYPE_MAC)
+  {
+    ptin_msg_mac_acl_rule_config((msg_mac_acl_t*) msgAcl, operation);
+  }
+  else if ( (msg[1] == ACL_TYPE_IP_STANDARD) || (msg[1] == ACL_TYPE_IP_EXTENDED) || (msg[1] == ACL_TYPE_IP_NAMED) )
+  {
+    ptin_msg_ip_acl_rule_config((msg_ip_acl_t*) msgAcl, operation);
+  }
+  else if (msg[1] == ACL_TYPE_IPv6_EXTENDED)
+  {
+    ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msgAcl, operation);
+  }
+
+  return L7_SUCCESS;
+}
+
+
+
+/**
+ * Apply ACL Configuration
+ * 
+ * @author joaom (10/29/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L7_uint8 aclType)
+{
+  L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8  *directionStr[] =  {"IN", "OUT"};
+  L7_uint8  *operationStr[] =  {"APPLY ACL", "UNAPPLY ACL"};
+
+  L7_uint16 intRootVlan;
+  L7_RC_t   rc;
+
+  if (msgAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgAcl->aclType);
+    return L7_FAILURE;
+  }
+
+  if (msgAcl->direction > ACL_DIRECTION_OUT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid %d", msgAcl->direction);
+    return L7_FAILURE;
+  }
+
+
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %u",                              msgAcl->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgAcl->aclType]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %u",                              msgAcl->aclId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgAcl->name);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "interface      %u",                              msgAcl->interface);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "vlanId         %u",                              msgAcl->vlanId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "evcId          %u",                              msgAcl->evcId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "direction      %s",                              directionStr[msgAcl->direction]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+
+  if ( (msgAcl->interface == L7_ACL_INVALID_IFACE_ID) && (msgAcl->evcId == L7_ACL_INVALID_EVC_ID) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Neither interface neither evcId is valid");
+    return L7_FAILURE;
+  }
+
+  if (msgAcl->evcId != L7_ACL_INVALID_EVC_ID)
+  {
+    /* Gets the root vlan (internal) for a particular evc */
+    rc = ptin_evc_intRootVlan_get(msgAcl->evcId, &intRootVlan);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error while retrieving VLAN ID(rc=%d)", rc);
+      return rc;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Retrieved VLAN ID %d", (L7_uint32) intRootVlan);
+    msgAcl->vlanId = (L7_uint32) intRootVlan;
+  }
+  else
+  {
+    msgAcl->vlanId = L7_ACL_INVALID_VLAN_ID;
+  }
+
+  
+  if (aclType == ACL_TYPE_MAC)
+  {
+    ptin_aclMacApply(msgAcl, operation);
+  }
+  else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
+  {
+    ptin_aclIpApply(msgAcl, operation);
+  }
+  else if (aclType == ACL_TYPE_IPv6_EXTENDED)
+  {
+    ptin_aclIpv6Apply(msgAcl, operation);
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * ACL Enable/Disable
+ * 
+ * @author joaom (11/01/2013)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
+{
+  L7_uint8 *msg;
+  L7_uint8 aclType;
+  ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
+
+  msg = (L7_uint8 *) msgAcl;  
+
+  if (msgId == CCMSG_ACL_APPLY)
+  {
+    operation = ACL_OPERATION_CREATE;
+  }
+  else if (msgId == CCMSG_ACL_UNAPPLY)
+  {
+    operation = ACL_OPERATION_REMOVE;
+  }
+
+  aclType = msg[1];
+
+  if (aclType == ACL_TYPE_MAC)
+  {
+    ptin_msg_acl_apply(msgAcl, operation, aclType);
+  }
+  else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
+  {
+    ptin_msg_acl_apply(msgAcl, operation, aclType);
+  }
+  else if (aclType == ACL_TYPE_IPv6_EXTENDED)
+  {
+    ptin_msg_acl_apply(msgAcl, operation, aclType);
+  }
+
+
+  return L7_SUCCESS;
+}
+
+/* ************************* MSG Debug Routines **************************** */
+
+/* IP */
+L7_RC_t ptin_msg_DEBUG_ip_acl_rule_config(L7_uint8 operation, L7_uchar8 protocol)
+{
+  msg_ip_acl_t msgIpAcl;
+
+  memset(&msgIpAcl, 0, sizeof(msgIpAcl));
+
+  msgIpAcl.slotId =      0;
+  msgIpAcl.aclType =     ACL_TYPE_IP_NAMED;
+  msgIpAcl.aclId =       1;
+  sprintf(msgIpAcl.name, "ptin_ip_acl_001");
+  msgIpAcl.aclRuleId =   1;
+  msgIpAcl.action =      ACL_ACTION_DENY;
+
+  msgIpAcl.aclRuleMask = ACL_IP_RULE_MASK_protocol | ACL_IP_RULE_MASK_srcIpAddr;
+
+  msgIpAcl.protocol = protocol;
+
+  usmDbInetAton("192.1.1.2", &msgIpAcl.srcIpAddr);
+  usmDbInetAton("255.255.255.255", &msgIpAcl.srcIpMask);
+
+  ptin_msg_acl_rule_config(&msgIpAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+
+  return L7_SUCCESS;
+}
+
+
+L7_RC_t ptin_msg_DEBUG_ip_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_uint8 operation)
+{
+  msg_apply_acl_t msgAcl;
+
+  memset(&msgAcl, 0, sizeof(msgAcl));
+
+  msgAcl.slotId =       0;
+  msgAcl.aclType =      ACL_TYPE_IP_NAMED;
+  msgAcl.aclId =        1;
+  sprintf(msgAcl.name,  "ptin_ip_acl_001");
+
+  msgAcl.interface =    interface;
+  msgAcl.vlanId =       L7_ACL_INVALID_VLAN_ID;
+  msgAcl.evcId =        evcId;
+  msgAcl.direction =    ACL_DIRECTION_IN;
+
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+
+  return L7_SUCCESS;
+}
+
+
+
+/* IPv6 */
+L7_RC_t ptin_msg_DEBUG_ipv6_acl_rule_config(L7_uint8 operation, L7_uchar8 protocol)
+{
+  msg_ipv6_acl_t msgIpv6Acl;
+
+  memset(&msgIpv6Acl, 0, sizeof(msgIpv6Acl));
+
+  msgIpv6Acl.slotId =      0;
+  msgIpv6Acl.aclType =     ACL_TYPE_IPv6_EXTENDED;
+  msgIpv6Acl.aclId =       1;
+  sprintf(msgIpv6Acl.name, "ptin_ipv6_acl_001");
+  msgIpv6Acl.aclRuleId =   1;
+  msgIpv6Acl.action =      ACL_ACTION_DENY;
+
+  msgIpv6Acl.aclRuleMask = ACL_IPv6_RULE_MASK_protocol | ACL_IPv6_RULE_MASK_src6Addr;
+
+  msgIpv6Acl.protocol = protocol;
+
+  /* fe80::250:56ff:fe99:123/64 */
+  msgIpv6Acl.src6Addr[0] =  0xfe;
+  msgIpv6Acl.src6Addr[1] =  0x80;
+
+  msgIpv6Acl.src6Addr[2] =  0x00;
+  msgIpv6Acl.src6Addr[3] =  0x00;
+  msgIpv6Acl.src6Addr[4] =  0x00;
+  msgIpv6Acl.src6Addr[5] =  0x00;
+  msgIpv6Acl.src6Addr[6] =  0x00;
+  msgIpv6Acl.src6Addr[7] =  0x00;
+
+  msgIpv6Acl.src6Addr[8] =  0x02;
+  msgIpv6Acl.src6Addr[9] =  0x50;
+  msgIpv6Acl.src6Addr[10] = 0x56;
+  msgIpv6Acl.src6Addr[11] = 0xff;
+  msgIpv6Acl.src6Addr[12] = 0xfe;
+  msgIpv6Acl.src6Addr[13] = 0x99;
+  msgIpv6Acl.src6Addr[14] = 0x01;
+  msgIpv6Acl.src6Addr[15] = 0x23;
+  
+  msgIpv6Acl.src6PrefixLen = 64;
+
+  ptin_msg_acl_rule_config(&msgIpv6Acl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+
+  return L7_SUCCESS;
+}
+
+
+L7_RC_t ptin_msg_DEBUG_ipv6_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_uint8 operation)
+{
+  msg_apply_acl_t msgAcl;
+
+  memset(&msgAcl, 0, sizeof(msgAcl));
+
+  msgAcl.slotId =       0;
+  msgAcl.aclType =      ACL_TYPE_IPv6_EXTENDED;
+  msgAcl.aclId =        1;
+  sprintf(msgAcl.name,  "ptin_ipv6_acl_001");
+
+  msgAcl.interface =    interface;
+  msgAcl.vlanId =       L7_ACL_INVALID_VLAN_ID;
+  msgAcl.evcId =        evcId;
+  msgAcl.direction =    ACL_DIRECTION_IN;
+
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+
+  return L7_SUCCESS;
+}
+
+
+
+/* MAC */
+L7_RC_t ptin_msg_DEBUG_mac_acl_rule_config(L7_uint8 operation)
+{
+  msg_mac_acl_t msgMacAcl;
+
+
+  /* Rule #1 */
+
+  memset(&msgMacAcl, 0, sizeof(msgMacAcl));
+
+  msgMacAcl.slotId =      0;
+  msgMacAcl.aclType =     ACL_TYPE_MAC;
+  msgMacAcl.aclId =       1;
+  sprintf(msgMacAcl.name, "ptin_mac_acl_001");
+  msgMacAcl.aclRuleId =   1;
+  msgMacAcl.action =      ACL_ACTION_DENY;
+
+  msgMacAcl.aclRuleMask = ACL_MAC_RULE_MASK_srcMacAddr | ACL_MAC_RULE_MASK_srcMacMask;
+
+  msgMacAcl.srcMacAddr[0] = 0x00;
+  msgMacAcl.srcMacAddr[1] = 0x00;
+  msgMacAcl.srcMacAddr[2] = 0xC0;
+  msgMacAcl.srcMacAddr[3] = 0x01;
+  msgMacAcl.srcMacAddr[4] = 0x01;
+  msgMacAcl.srcMacAddr[5] = 0x02;
+
+  msgMacAcl.srcMacMask[0] = 0xFF;
+  msgMacAcl.srcMacMask[1] = 0xFF;
+  msgMacAcl.srcMacMask[2] = 0xFF;
+  msgMacAcl.srcMacMask[3] = 0xFF;
+  msgMacAcl.srcMacMask[4] = 0xFF;
+  msgMacAcl.srcMacMask[5] = 0xFF;
+
+  msgMacAcl.eType =     0;
+  msgMacAcl.startVlan = 0;
+  msgMacAcl.endVlan =   0;
+  msgMacAcl.cosVal =    0;
+
+  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+
+
+  /* Rule #2 */
+
+  memset(&msgMacAcl, 0, sizeof(msgMacAcl));
+
+  msgMacAcl.slotId =      0;
+  msgMacAcl.aclType =     ACL_TYPE_MAC;
+  msgMacAcl.aclId =       1;
+  sprintf(msgMacAcl.name, "ptin_mac_acl_001");
+  msgMacAcl.aclRuleId =   2;
+  msgMacAcl.action =      ACL_ACTION_DENY;
+
+  msgMacAcl.aclRuleMask = ACL_MAC_RULE_MASK_srcMacAddr | ACL_MAC_RULE_MASK_srcMacMask;
+
+  msgMacAcl.srcMacAddr[0] = 0x00;
+  msgMacAcl.srcMacAddr[1] = 0x00;
+  msgMacAcl.srcMacAddr[2] = 0xC0;
+  msgMacAcl.srcMacAddr[3] = 0x01;
+  msgMacAcl.srcMacAddr[4] = 0x01;
+  msgMacAcl.srcMacAddr[5] = 0x03;
+
+  msgMacAcl.srcMacMask[0] = 0xFF;
+  msgMacAcl.srcMacMask[1] = 0xFF;
+  msgMacAcl.srcMacMask[2] = 0xFF;
+  msgMacAcl.srcMacMask[3] = 0xFF;
+  msgMacAcl.srcMacMask[4] = 0xFF;
+  msgMacAcl.srcMacMask[5] = 0xFF;
+
+
+  msgMacAcl.eType =     0;
+  msgMacAcl.startVlan = 0;
+  msgMacAcl.endVlan =   0;
+  msgMacAcl.cosVal =    0;
+
+  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+
+  return L7_SUCCESS;
+}
+
+
+L7_RC_t ptin_msg_DEBUG_mac_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_uint8 operation)
+{
+  msg_apply_acl_t msgAcl;
+
+  memset(&msgAcl, 0, sizeof(msgAcl));
+
+  msgAcl.slotId =       0;
+  msgAcl.aclType =      ACL_TYPE_MAC;
+  msgAcl.aclId =        1;
+  sprintf(msgAcl.name,  "ptin_mac_acl_001");
+
+  msgAcl.interface =    interface;
+  msgAcl.vlanId =       L7_ACL_INVALID_VLAN_ID;
+  msgAcl.evcId =        evcId;
+  msgAcl.direction =    ACL_DIRECTION_IN;
+
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+
+  return L7_SUCCESS;
+}
+
+/* ********************************************************************* */
 
 
 #ifdef __802_1x__

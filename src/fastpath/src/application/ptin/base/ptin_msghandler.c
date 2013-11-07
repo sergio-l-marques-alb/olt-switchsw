@@ -3385,7 +3385,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
-      case CCMSG_ERPS_OPERATOR_CMD:
+    case CCMSG_ERPS_OPERATOR_CMD:
       {
         LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                  "Message received: CCMSG_ERPS_OPERATOR_CMD (0x%04X)", inbuffer->msgId);
@@ -3416,6 +3416,70 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+    /************************************************************************** 
+    * ACL Configuration
+    **************************************************************************/
+
+    case CCMSG_ACL_RULE_ADD:
+    case CCMSG_ACL_RULE_DEL:
+      {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ACL_RULE_ADD/DEL (0x%04X)", inbuffer->msgId);
+    
+      if (inbuffer->info[1] == ACL_TYPE_MAC)
+      {
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_mac_acl_t)); 
+      }
+      else if ( (inbuffer->info[1] == ACL_TYPE_IP_STANDARD) || (inbuffer->info[1] == ACL_TYPE_IP_EXTENDED) || (inbuffer->info[1] == ACL_TYPE_IP_NAMED) )
+      {
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ip_acl_t)); 
+      }
+      else if (inbuffer->info[1] == ACL_TYPE_IPv6_EXTENDED)
+      {
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ipv6_acl_t)); 
+      }
+
+      /* Execute command */
+      rc = ptin_msg_acl_rule_config((void *) inbuffer->info, inbuffer->msgId);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
+    case CCMSG_ACL_APPLY:
+    case CCMSG_ACL_UNAPPLY:
+      {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ACL_APPLY/UNAPPLY (0x%04X)", inbuffer->msgId);
+    
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_apply_acl_t));
+
+      /* Execute command */
+      rc = ptin_msg_acl_enable((void *) inbuffer->info, inbuffer->msgId);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
 
 #ifdef __802_1x__
     case CCMSG_WR_802_1X_ADMINMODE:

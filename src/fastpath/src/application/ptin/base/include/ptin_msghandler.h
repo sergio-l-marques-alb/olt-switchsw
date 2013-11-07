@@ -149,35 +149,44 @@
 
 /* OAM MEPs Configuration */
 
-#define CCMSG_DUMP_MEPs               0x9140  /*Exception - 1 input struct; unknown nr of output structs*/
-#define CCMSG_DUMP_MEs                0x9141  /*Exception - 1 input struct; unknown nr of output structs; input and output structs are the same type*/
-#define CCMSG_DUMP_LUT_MEPs           0x9142  /*Exception - 1 input struct; unknown nr of output structs*/
-#define CCMSG_WR_MEP                  0x9143
-#define CCMSG_RM_MEP                  0x9144
-#define CCMSG_WR_RMEP                 0x9145
-#define CCMSG_RM_RMEP                 0x9146
+#define CCMSG_DUMP_MEPs                     0x9140  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_DUMP_MEs                      0x9141  /*Exception - 1 input struct; unknown nr of output structs; input and output structs are the same type*/
+#define CCMSG_DUMP_LUT_MEPs                 0x9142  /*Exception - 1 input struct; unknown nr of output structs*/
+#define CCMSG_WR_MEP                        0x9143
+#define CCMSG_RM_MEP                        0x9144
+#define CCMSG_WR_RMEP                       0x9145
+#define CCMSG_RM_RMEP                       0x9146
 
-#define CCMSG_FLUSH_MEP               0x9147
-#define CCMSG_FLUSH_RMEP              0x9148
+#define CCMSG_FLUSH_MEP                     0x9147
+#define CCMSG_FLUSH_RMEP                    0x9148
 
 
 /* ERPS Configuration */
 
-#define CCMSG_ERPS_SET                0x9170
-#define CCMSG_ERPS_DEL                0x9171
-#define CCMSG_ERPS_CONF               0x9172
-#define CCMSG_ERPS_STATUS             0x9173
-#define CCMSG_ERPS_STATUS_NEXT        0x9174
-#define CCMSG_ERPS_STATUS_PAGESIZE    16
-#define CCMSG_ERPS_OPERATOR_CMD       0x9175
+#define CCMSG_ERPS_SET                      0x9170
+#define CCMSG_ERPS_DEL                      0x9171
+#define CCMSG_ERPS_CONF                     0x9172
+#define CCMSG_ERPS_STATUS                   0x9173
+#define CCMSG_ERPS_STATUS_NEXT              0x9174
+#define CCMSG_ERPS_STATUS_PAGESIZE          16
+#define CCMSG_ERPS_OPERATOR_CMD             0x9175
 
 
+/* ACL Configuration */
 
-#define CCMSG_WR_802_1X_ADMINMODE     0x9180
-#define CCMSG_WR_802_1X_TRACE         0x9181
-#define CCMSG_WR_802_1X_VLANASSGNMODE 0x9182
-#define CCMSG_WR_802_1X_MONMODE       0x9183
-#define CCMSG_WR_802_1X_DYNVLANMODE   0x9184
+#define CCMSG_ACL_RULE_ADD                  0x9190   /* ACL Type is used to validate msg size */
+#define CCMSG_ACL_RULE_DEL                  0x9191
+#define CCMSG_ACL_APPLY                     0x9192   /* Applies an ACL to an Interface or VLAN ID */
+#define CCMSG_ACL_UNAPPLY                   0x9193
+
+
+/* 802.1X Configuration */
+
+#define CCMSG_WR_802_1X_ADMINMODE                   0x9180
+#define CCMSG_WR_802_1X_TRACE                       0x9181
+#define CCMSG_WR_802_1X_VLANASSGNMODE               0x9182
+#define CCMSG_WR_802_1X_MONMODE                     0x9183
+#define CCMSG_WR_802_1X_DYNVLANMODE                 0x9184
 
 #define CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS   0x91A0
 #define CCMSG_WR_802_1X_PORTCONTROLMODE             0x91A1
@@ -193,7 +202,10 @@
 #define CCMSG_WR_802_1X_MAXUSERS                    0x91AB
 #define CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN         0x91AC
 
-#define CCMSG_WR_802_1X_AUTHSERV    0x91C0
+#define CCMSG_WR_802_1X_AUTHSERV                    0x91C0
+
+
+#define CCMSG_LAST_MSG_ID                           0x91FF
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -309,7 +321,7 @@ typedef struct {
     float             PotenciaOpticaTx;                                           // Potencia Optica Tx (dBm)
     float             PotenciaOpticaRx;                                           // Potencia Optica Rx (dBm)
     float             CorrentePolarizacao;                                        // Corrente de polarizacao
-    int               temperatura;                                                // Temperatura (√Ç¬∫C)
+    int               temperatura;                                                // Temperatura (¬∫C)
     unsigned char     moduleID[64];                                               // SFF Base Id
   } __attribute__ ((packed)) opt;
 
@@ -781,9 +793,9 @@ typedef struct {
 #define MSG_EVC_COUNTERS_MASK_STATS_TX 0x02
 
 typedef struct {
-  L7_uint8 mask_stat;         // M√°scara de contadores
-  msg_counters_t  rx;         // [mask_stat=0x01] Estrutura de estat√≠sticas de recep√ß√£o (RX)
-  msg_counters_t  tx;         // [mask_stat=0x02] Estrutura de estat√≠sticas de transmiss√£o (TX)
+  L7_uint8 mask_stat;         // M·scara de contadores
+  msg_counters_t  rx;         // [mask_stat=0x01] Estrutura de estatÌsticas de recepÁ„o (RX)
+  msg_counters_t  tx;         // [mask_stat=0x02] Estrutura de estatÌsticas de transmiss„o (TX)
 } __attribute__((packed)) msg_evcStats_counters_t;
 
 #define MSG_EVC_COUNTERS_MASK_NONE     0x00
@@ -795,13 +807,13 @@ typedef struct {
 
 typedef struct {
   L7_uint8             SlotId;       // Indice da slot
-  L7_uint16            evc_id;       // Indice do Servi√ßo do OLT
-  L7_uint8             mask;         // M√°scara de campos a utilizar
+  L7_uint16            evc_id;       // Indice do ServiÁo do OLT
+  L7_uint8             mask;         // M·scara de campos a utilizar
   msg_HwEthInterface_t intf;         // [mask=0x01] Interface
   L7_uint16            service_vlan; // [mask=0x02] (reservado para uso futuro)
   L7_uint16            client_vlan;  // [mask=0x04] Inner Vlan que identifica o ONT (apenas para contadores ao ONT)
   L7_uint32            channel_ip;   // [mask=0x08] Destination IP que identifica o canal (contadores ao canal)
-  msg_evcStats_counters_t stats;     // [mask=0x80] Estat√≠sticas
+  msg_evcStats_counters_t stats;     // [mask=0x80] EstatÌsticas
 } __attribute__((packed)) msg_evcStats_t;
 
 /***************************************************** 
@@ -1247,7 +1259,7 @@ typedef struct
   L7_uint8 SlotId;           // Slot id: Slot de destino para a mensagem
   struct {                   // List de port modes para o backplane:
     L7_uint8 slot_config;        // 1 para configurar a respectiva slot; 0, para ignorar este elemento
-    L7_uint8 slot_index;         // √çndice da slot a configurar
+    L7_uint8 slot_index;         // Õndice da slot a configurar
     L7_uint8 slot_mode;          // Modo da slot
   } slot_list[MSG_SLOTMODECFG_NSLOTS];
 } __attribute__((packed)) msg_slotModeCfg_t;
@@ -1462,11 +1474,200 @@ typedef struct {
 
 
 
+/***************************************************************************** 
+ * ACL Configuration
+ *****************************************************************************/
+
+#define L7_MAX_ACL_LISTS            100  /* The maximum number of ACL is 100 */
+
+#define L7_MAX_NUM_RULES_PER_ACL    12  /* The maximum number of rules per ACL is 12 */
+
+
+#define L7_ACL_INVALID_IFACE_ID     0xFFFFFFFF  /* If interfaceId is different than '0', evcId must be invalid and vice-versa */
+#define L7_ACL_INVALID_VLAN_ID      0xFFFF
+#define L7_ACL_INVALID_EVC_ID       0xFFFFFFFF
+
+
+typedef enum
+{
+  ACL_TYPE_MAC            = 0,
+  ACL_TYPE_IP_STANDARD    = 1,
+  ACL_TYPE_IP_EXTENDED    = 2,
+  ACL_TYPE_IP_NAMED       = 3,
+  ACL_TYPE_IPv6_EXTENDED  = 4
+} ACL_TYPE_t;
+
+
+typedef enum
+{
+  ACL_ACTION_DENY      = 0,
+  ACL_ACTION_PERMIT    = 1
+} ACL_ACTION_t;
+
+
+typedef enum
+{
+  ACL_DIRECTION_IN      = 0,
+  ACL_DIRECTION_OUT     = 1
+} ACL_DIRECTION_t;
+
+
+typedef enum
+{
+  ACL_OPERATION_CREATE     = 0,
+  ACL_OPERATION_REMOVE     = 1
+} ACL_OPERATION_t;
 
 
 
+typedef enum
+{
+  ACL_MAC_RULE_MASK_NONE            = 0x0000,
+  ACL_MAC_RULE_MASK_srcMacAddr      = 0x0001,
+  ACL_MAC_RULE_MASK_srcMacMask      = 0x0002,
+  ACL_MAC_RULE_MASK_dstMacAddr      = 0x0004,
+  ACL_MAC_RULE_MASK_dstMacMask      = 0x0008,
+  ACL_MAC_RULE_MASK_eType           = 0x0010,
+  ACL_MAC_RULE_MASK_startVlan       = 0x0020,
+  ACL_MAC_RULE_MASK_endVlan         = 0x0040,
+  ACL_MAC_RULE_MASK_cosVal          = 0x0080,
+  ACL_MAC_RULE_MASK_ALL             = 0x00FF
+} ACL_MAC_RULE_MASK_t;
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+  L7_uint8      aclRuleId;      /* This Rule Number */
+  L7_uint8      action;         /* ACL_ACTION_t */
 
 
+  /* Type MAC ACL */
+
+  L7_uint32     aclRuleMask;
+  L7_uchar8     srcMacAddr[L7_MAC_ADDR_LEN];
+  L7_uchar8     srcMacMask[L7_MAC_ADDR_LEN];
+  L7_uchar8     dstMacAddr[L7_MAC_ADDR_LEN];
+  L7_uchar8     dstMacMask[L7_MAC_ADDR_LEN];
+  L7_ushort16   eType;
+  L7_ushort16   startVlan;      /* Range is for future use                */
+  L7_ushort16   endVlan;        /* Start and End must have the same value */
+  L7_uchar8     cosVal;         /* [0, 7]                                 */
+
+} __attribute__ ((packed)) msg_mac_acl_t;
+
+
+
+typedef enum
+{
+  ACL_IP_RULE_MASK_NONE           = 0x0000,
+  ACL_IP_RULE_MASK_protocol       = 0x0001,
+  ACL_IP_RULE_MASK_srcIpAddr      = 0x0002,
+  ACL_IP_RULE_MASK_srcIpMask      = 0x0004,
+  ACL_IP_RULE_MASK_dstIpAddr      = 0x0008,
+  ACL_IP_RULE_MASK_dstIpMask      = 0x0010,
+  ACL_IP_RULE_MASK_srcStartPort   = 0x0020,
+  ACL_IP_RULE_MASK_srcEndPort     = 0x0040,
+  ACL_IP_RULE_MASK_dstStartPort   = 0x0080,
+  ACL_IP_RULE_MASK_dstEndPort     = 0x0100,
+  ACL_IP_RULE_MASK_tosVal         = 0x0200,
+  ACL_IP_RULE_MASK_tosMask        = 0x0400,
+  ACL_IP_RULE_MASK_dscpVal        = 0x0800,
+  ACL_IP_RULE_MASK_precVal        = 0x1000,
+  ACL_IP_RULE_MASK_ALL            = 0x1FFF,
+} ACL_IP_RULE_MASK_t;
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+  L7_uint8      aclRuleId;      /* This Rule Number */
+  L7_uint8      action;         /* ACL_ACTION_t */
+
+
+  /* used by Type IPv4 ACL */
+
+  L7_uint32     aclRuleMask;
+  L7_uchar8     protocol;       /* [1, 255]     */
+  L7_uint32     srcIpAddr;
+  L7_uint32     srcIpMask;
+  L7_uint32     dstIpAddr;
+  L7_uint32     dstIpMask;
+  L7_ushort16   srcStartPort;   /* [0, 65535]   */
+  L7_ushort16   srcEndPort;
+  L7_ushort16   dstStartPort;
+  L7_ushort16   dstEndPort;
+  L7_uchar8     tosVal;         /* [00h, ffh]   */
+  L7_uchar8     tosMask;
+  L7_uchar8     dscpVal;        /* [0, 63]      */
+  L7_uchar8     precVal;        /* [0, 7]       */
+
+} __attribute__ ((packed)) msg_ip_acl_t;
+
+
+typedef enum
+{
+  ACL_IPv6_RULE_MASK_NONE           = 0x0000,
+  ACL_IPv6_RULE_MASK_protocol       = 0x0001,
+  ACL_IPv6_RULE_MASK_src6Addr       = 0x0002,
+  ACL_IPv6_RULE_MASK_src6PrefixLen  = 0x0004,
+  ACL_IPv6_RULE_MASK_dst6Addr       = 0x0008,
+  ACL_IPv6_RULE_MASK_dst6PrefixLen  = 0x0010,
+  ACL_IPv6_RULE_MASK_srcStartPort   = 0x0020,
+  ACL_IPv6_RULE_MASK_srcEndPort     = 0x0040,
+  ACL_IPv6_RULE_MASK_dstStartPort   = 0x0080,
+  ACL_IPv6_RULE_MASK_dstEndPort     = 0x0100,
+  ACL_IPv6_RULE_MASK_dscpVal        = 0x0200,
+  ACL_IPv6_RULE_MASK_flowLabelVal   = 0x0400,
+  ACL_IPv6_RULE_MASK_ALL            = 0x07FF,
+} ACL_IPv6_RULE_MASK_t;
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+  L7_uint8      aclRuleId;      /* This Rule Number */
+  L7_uint8      action;         /* ACL_ACTION_t */
+
+
+  /* used by Type IPv6 ACL */
+
+  L7_uint32     aclRuleMask;
+  L7_uchar8     protocol;       /* [1, 255]     */
+  L7_uchar8     src6Addr[16];
+  L7_uint32     src6PrefixLen;
+  L7_uchar8     dst6Addr[16];
+  L7_uint32     dst6PrefixLen;
+  L7_ushort16   srcStartPort;   /* [0, 65535]   */
+  L7_ushort16   srcEndPort;
+  L7_ushort16   dstStartPort;
+  L7_ushort16   dstEndPort;
+  L7_uchar8     dscpVal;        /* [0, 63]      */
+  L7_uint32     flowLabelVal;   /* [0, 1048575] */
+
+} __attribute__ ((packed)) msg_ipv6_acl_t;
+
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+
+  L7_uint32     interface;      /* Interface is always physical */
+  L7_uint16     vlanId;         /* unused */
+  L7_uint32     evcId;          /* Service ECV ID. Service Quattro Type is not supported */
+
+  L7_uint8      direction;      /* ACL_DIRECTION_t: Only ACL_DIRECTION_IN is supported */
+} __attribute__ ((packed)) msg_apply_acl_t;
+
+
+/***************************************************************************** 
+ * 802.1x Configuration
+ *****************************************************************************/
 
 typedef struct {
     L7_ulong32 v;
