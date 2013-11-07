@@ -795,21 +795,21 @@ L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
  * 
  * @return L7_RC_t 
  */
-L7_RC_t hapiBroadPtinPktRateLimit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+L7_RC_t hapiBroadStormControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_dapi_port_t    dapiPort;
-  ptin_pktRateLimit_t *rateLimit = (ptin_pktRateLimit_t *) data;
+  ptin_stormControl_t *stormControl = (ptin_stormControl_t *) data;
   L7_RC_t status=L7_SUCCESS;
 
   DAPIPORT_SET(&dapiPort, usp, dapi_g);
 
-  switch (rateLimit->operation)  {
+  switch (stormControl->operation)  {
     case DAPI_CMD_SET:
-      status=hapi_ptin_rateLimit_set(&dapiPort, L7_ENABLE, rateLimit);
+      status=hapi_ptin_stormControl_set(&dapiPort, L7_ENABLE, stormControl);
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_rateLimit_set(&dapiPort, L7_DISABLE, rateLimit);
+      status=hapi_ptin_stormControl_set(&dapiPort, L7_DISABLE, stormControl);
       break;
 
     default:

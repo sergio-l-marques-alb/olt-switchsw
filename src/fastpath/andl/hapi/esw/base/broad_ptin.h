@@ -214,12 +214,12 @@ extern L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
  * 
  * @param usp 
  * @param cmd 
- * @param data : (ptin_pktRateLimit_t)
+ * @param data : (ptin_stormControl_t)
  * @param dapi_g 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t hapiBroadPtinPktRateLimit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+L7_RC_t hapiBroadStormControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
 /**
  * Enable PRBS generator/checker

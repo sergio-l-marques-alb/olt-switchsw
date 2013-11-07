@@ -145,14 +145,14 @@ extern L7_RC_t dtlPtinEvcStats( ptin_evcStats_t *evcStats );
 extern L7_RC_t dtlPtinPacketsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
 
 /**
- * Enable/Disable a Rate Limiter
+ * Storm Control configuration
  *  
  * @param intIfNum : Interface 
  * @param rateLimit: Rate Limit profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinRateLimit( L7_uint32 intIfNum, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit );
+extern L7_RC_t dtlPtinStormControl( L7_uint32 intIfNum, L7_BOOL enable, ptin_stormControl_t *stormControl );
 
 /**
  * PRBS tx/rx

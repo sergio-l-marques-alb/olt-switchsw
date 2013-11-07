@@ -423,14 +423,14 @@ L7_RC_t dtlPtinPacketsTrap( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd )
 }
 
 /**
- * Enable/Disable a Rate Limiter
+ * Storm Control configuration
  *  
  * @param intIfNum : Interface 
  * @param rateLimit: Rate Limit profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinRateLimit( L7_uint32 intIfNum, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit )
+L7_RC_t dtlPtinStormControl( L7_uint32 intIfNum, L7_BOOL enable, ptin_stormControl_t *stormControl )
 {
   DAPI_USP_t ddUsp;
   nimUSP_t usp;
@@ -452,9 +452,9 @@ L7_RC_t dtlPtinRateLimit( L7_uint32 intIfNum, L7_BOOL enable, ptin_pktRateLimit_
     ddUsp.port = usp.port - 1;
   }
 
-  rateLimit->operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  stormControl->operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
 
-  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_PACKET_RATE_LIMIT, (void *) rateLimit);
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_STORM_CONTROL, (void *) stormControl);
 }
 
 /**
