@@ -8,7 +8,7 @@ extern int canal_buga;
 // retirado do ficheiro  u-boot-1.1.x/include/pci_ids.h
 #define PCI_VENDOR_ID_BROADCOM          0x14e4
 
-#define PTIN_SYSTEM_MAX_N_PORTS  36
+#define PTIN_SYSTEM_MAX_N_PORTS  64
 #define PTIN_SYSTEM_MAX_N_LAGS   PTIN_SYSTEM_MAX_N_PORTS
 #define PTIN_SYSTEM_N_PORTS  18
 #define PTIN_SYSTEM_N_LAGS   PTIN_SYSTEM_N_PORTS
