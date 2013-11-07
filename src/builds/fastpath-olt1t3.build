@@ -1,8 +1,0 @@
-#!/bin/sh
-
-export MODULE=fastpath-olt1t3
-export PLATFORMS="CXO640G-MX TG16G"
-
-export APPLICATION=fp
-
-. ./fastpath.build $1
