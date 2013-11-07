@@ -243,7 +243,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_HW_RESOURCES                 ] = (HAPICTLFUNCPTR_t)hapiBroadPtinResourcesGet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_BW_POLICER                   ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBwPolicer;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_FP_COUNTERS                  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinFpCounters;
-  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKET_RATE_LIMIT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinPktRateLimit;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_STORM_CONTROL                ] = (HAPICTLFUNCPTR_t)hapiBroadStormControl;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU          ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPacketTrapConfig;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PCS_PRBS                     ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinPrbs;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_SLOT_MODE                    ] = (HAPICTLFUNCPTR_t)hapiBroadPtinSlotMode;
