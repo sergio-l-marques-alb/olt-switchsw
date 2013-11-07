@@ -35,7 +35,7 @@
 
 /* Global to all platforms */
 #define PTIN_SYSTEM_MAX_N_FULLSLOTS   18
-#define PTIN_SYSTEM_MAX_N_PORTS       36
+#define PTIN_SYSTEM_MAX_N_PORTS       64
 #define PTIN_SYSTEM_MAX_N_LAGS        PTIN_SYSTEM_MAX_N_PORTS
 #define PTIN_SYSTEM_MTU_SIZE          2048
 
