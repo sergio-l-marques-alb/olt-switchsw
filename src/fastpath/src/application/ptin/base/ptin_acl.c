@@ -142,7 +142,7 @@ void  ptin_aclIpv6Clean(L7_BOOL isAclAdded, L7_uint32 aclId, L7_uint32 ruleNum)
 
 
 /**
- * Clean All IP ACL
+ * Clean All IPv6 ACL
  * 
  * @author joaom (11/5/2013)
  * 
@@ -155,7 +155,7 @@ void  ptin_aclIpv6CleanAll(void)
   {
     if (ptin_aclIpv6Db[i].aclId != 0)
     {
-      ptin_aclIpClean(L7_TRUE, ptin_aclIpv6Db[i].aclId, 0);
+      ptin_aclIpv6Clean(L7_TRUE, ptin_aclIpv6Db[i].aclId, 0);
 
       ptin_aclIpv6Db[i].aclId = 0;
       memset(ptin_aclIpv6Db[i].aclRuleNum, 0, L7_MAX_NUM_RULES_PER_ACL);
@@ -219,7 +219,7 @@ void ptin_aclMacCleanAll(void)
   {
     if (ptin_aclMacDb[i].aclId != 0)
     {
-      ptin_aclMacClean(L7_TRUE, ptin_aclIpDb[i].aclId, 0);
+      ptin_aclMacClean(L7_TRUE, ptin_aclMacDb[i].aclId, 0);
 
       ptin_aclMacDb[i].aclId = 0;
       memset(ptin_aclMacDb[i].aclRuleNum, 0, L7_MAX_NUM_RULES_PER_ACL);
@@ -232,9 +232,9 @@ void ptin_aclMacCleanAll(void)
 
 
 /**
- * Clean All MAC ACL
+ * Clean All ACL
  * 
- * @author joaom (11/05/2013)
+ * @author joaom (11/07/2013)
  *
  */
 void ptin_aclCleanAll(void)

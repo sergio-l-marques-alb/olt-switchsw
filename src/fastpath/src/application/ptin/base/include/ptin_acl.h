@@ -14,6 +14,14 @@
 #include "usmdb_qos_acl_api.h"
 
 /**
+ * Clean All ACL
+ * 
+ * @author joaom (11/07/2013)
+ *
+ */
+void ptin_aclCleanAll(void);
+
+/**
  * Create an IP ACL Rule
  * 
  * @author joaom (11/04/2013)

@@ -155,6 +155,8 @@ void ptin_msg_defaults_reset(void)
   ptin_hal_erps_clear();
 #endif
 
+  ptin_aclCleanAll();
+
   return;
 }
 
