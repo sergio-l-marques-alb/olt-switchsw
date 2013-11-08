@@ -582,6 +582,7 @@ typedef struct {
   /* Flow information */
   L7_uint16 nni_cvlan;  // NNI inner vlan
   msg_HwEthIntf_t intf; // outer vlan is the GEM id
+  L7_uint8  macLearnMax;  // Maximum number of Learned MAC addresses
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /***************************************************** 
