@@ -3428,14 +3428,17 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       if (inbuffer->info[1] == ACL_TYPE_MAC)
       {
-        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_mac_acl_t)); 
+        CHECK_INFO_SIZE_MOD(msg_mac_acl_t);
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_mac_acl_t));
       }
       else if ( (inbuffer->info[1] == ACL_TYPE_IP_STANDARD) || (inbuffer->info[1] == ACL_TYPE_IP_EXTENDED) || (inbuffer->info[1] == ACL_TYPE_IP_NAMED) )
       {
+        CHECK_INFO_SIZE_MOD(msg_ip_acl_t);
         memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ip_acl_t)); 
       }
       else if (inbuffer->info[1] == ACL_TYPE_IPv6_EXTENDED)
       {
+        CHECK_INFO_SIZE_MOD(msg_ipv6_acl_t);
         memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ipv6_acl_t)); 
       }
 

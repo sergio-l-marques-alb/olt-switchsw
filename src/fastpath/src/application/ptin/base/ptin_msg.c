@@ -6827,9 +6827,11 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
 {
   L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
   L7_uint8  *actionStr[] =  {"DENY", "PERMIT"};
-  L7_uint8  *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};  
+  L7_uint8  *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
 
-  if (msgMacAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  L7_RC_t rc = L7_FAILURE;
+
+  if (msgMacAcl->aclType != ACL_TYPE_MAC)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
     return L7_FAILURE;
@@ -6838,11 +6840,13 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
   if (msgMacAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+    return L7_FAILURE;
   }
 
   if (msgMacAcl->action > ACL_ACTION_PERMIT)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+    return L7_FAILURE;
   }
   
 
@@ -6895,9 +6899,9 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
 
-  ptin_aclMacRuleConfig(msgMacAcl, operation);
+  rc = ptin_aclMacRuleConfig(msgMacAcl, operation);
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -6918,7 +6922,9 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   L7_uint8 *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
   L7_uint8 ipAddr[] = "255.255.255.255";
 
-  if (msgIpAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  L7_RC_t rc = L7_FAILURE;
+
+  if ( (msgIpAcl->aclType != ACL_TYPE_IP_STANDARD) && (msgIpAcl->aclType != ACL_TYPE_IP_EXTENDED) && (msgIpAcl->aclType != ACL_TYPE_IP_NAMED) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
     return L7_FAILURE;
@@ -6927,11 +6933,13 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   if (msgIpAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+    return L7_FAILURE;
   }
 
   if (msgIpAcl->action > ACL_ACTION_PERMIT)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+    return L7_FAILURE;
   }
 
   
@@ -6984,9 +6992,9 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
 
-  ptin_aclIpRuleConfig(msgIpAcl, operation);
+  rc = ptin_aclIpRuleConfig(msgIpAcl, operation);
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -7007,7 +7015,9 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   L7_uint8 *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
   L7_uint8 ipAddr[] = "fe80:0000:0206:91ff:fe06:f69e";
 
-  if (msgIpv6Acl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  L7_RC_t rc = L7_FAILURE;
+
+  if (msgIpv6Acl->aclType != ACL_TYPE_IPv6_EXTENDED)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgIpv6Acl->aclType);
     return L7_FAILURE;
@@ -7016,11 +7026,13 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   if (msgIpv6Acl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid %d", msgIpv6Acl->aclRuleId);
+    return L7_FAILURE;
   }
 
   if (msgIpv6Acl->action > ACL_ACTION_PERMIT)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid %d", msgIpv6Acl->action);
+    return L7_FAILURE;
   }
 
   
@@ -7069,9 +7081,9 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
 
-  ptin_aclIpv6RuleConfig(msgIpv6Acl, operation);
+  rc = ptin_aclIpv6RuleConfig(msgIpv6Acl, operation);
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -7086,8 +7098,9 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
  */
 L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId)
 {
-  L7_uint8 *msg;
+  L7_uint8        *msg;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
+  L7_RC_t         rc = L7_FAILURE;
 
   msg = (L7_uint8 *) msgAcl;  
 
@@ -7102,18 +7115,18 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId)
 
   if (msg[1] == ACL_TYPE_MAC)
   {
-    ptin_msg_mac_acl_rule_config((msg_mac_acl_t*) msgAcl, operation);
+    rc = ptin_msg_mac_acl_rule_config((msg_mac_acl_t*) msgAcl, operation);
   }
   else if ( (msg[1] == ACL_TYPE_IP_STANDARD) || (msg[1] == ACL_TYPE_IP_EXTENDED) || (msg[1] == ACL_TYPE_IP_NAMED) )
   {
-    ptin_msg_ip_acl_rule_config((msg_ip_acl_t*) msgAcl, operation);
+    rc = ptin_msg_ip_acl_rule_config((msg_ip_acl_t*) msgAcl, operation);
   }
   else if (msg[1] == ACL_TYPE_IPv6_EXTENDED)
   {
-    ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msgAcl, operation);
+    rc = ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msgAcl, operation);
   }
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -7134,7 +7147,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   L7_uint8  *operationStr[] =  {"APPLY ACL", "UNAPPLY ACL"};
 
   L7_uint16 intRootVlan;
-  L7_RC_t   rc;
+  L7_RC_t   rc = L7_FAILURE;
 
   if (msgAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
   {
@@ -7191,18 +7204,18 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   
   if (aclType == ACL_TYPE_MAC)
   {
-    ptin_aclMacApply(msgAcl, operation);
+    rc = ptin_aclMacApply(msgAcl, operation);
   }
   else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
   {
-    ptin_aclIpApply(msgAcl, operation);
+    rc = ptin_aclIpApply(msgAcl, operation);
   }
   else if (aclType == ACL_TYPE_IPv6_EXTENDED)
   {
-    ptin_aclIpv6Apply(msgAcl, operation);
+    rc = ptin_aclIpv6Apply(msgAcl, operation);
   }
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -7217,9 +7230,10 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
  */
 L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
 {
-  L7_uint8 *msg;
-  L7_uint8 aclType;
+  L7_uint8        *msg;
+  L7_uint8        aclType;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
+  L7_RC_t         rc = L7_FAILURE;
 
   msg = (L7_uint8 *) msgAcl;  
 
@@ -7236,19 +7250,18 @@ L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
 
   if (aclType == ACL_TYPE_MAC)
   {
-    ptin_msg_acl_apply(msgAcl, operation, aclType);
+    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
   }
   else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
   {
-    ptin_msg_acl_apply(msgAcl, operation, aclType);
+    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
   }
   else if (aclType == ACL_TYPE_IPv6_EXTENDED)
   {
-    ptin_msg_acl_apply(msgAcl, operation, aclType);
+    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
   }
 
-
-  return L7_SUCCESS;
+  return rc;
 }
 
 /* ************************* MSG Debug Routines **************************** */
