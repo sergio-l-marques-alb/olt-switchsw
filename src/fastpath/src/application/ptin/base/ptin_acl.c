@@ -380,8 +380,8 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   {
     if (!(msgAcl->aclRuleMask & ACL_IP_RULE_MASK_protocol))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Forcing protocol");
-      msgAcl->protocol = 255;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Assuming protocol is IP");
+      msgAcl->protocol = L7_ACL_PROTOCOL_IP;
     }
 
     /* Check the protocol type*/
@@ -465,7 +465,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         srcStartPort = msgAcl->srcStartPort;
         srcEndPort = msgAcl->srcEndPort;
 
-        if(srcPortValue < L7_ACL_MIN_L4PORT_NUM || srcPortValue > L7_ACL_MAX_L4PORT_NUM)
+        if(srcStartPort < L7_ACL_MIN_L4PORT_NUM || srcEndPort > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
           LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE");
@@ -518,7 +518,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         dstStartPort = msgAcl->dstStartPort;
         dstEndPort = msgAcl->dstEndPort;
 
-        if(dstPortValue < L7_ACL_MIN_L4PORT_NUM || dstPortValue > L7_ACL_MAX_L4PORT_NUM)
+        if(dstStartPort < L7_ACL_MIN_L4PORT_NUM || dstEndPort > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
           LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE");
@@ -671,11 +671,12 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* Verify if rule exists */
   if ( ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
   {
-    aclRuleNum = ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId]; 
+    aclRuleNum = ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId];
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL: ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
   /* Get the new rule number */
-  else {
+  else
+  {
     if (usmDbQosAclRuleGetFirst(unit, aclId, &aclRuleNum)!= L7_SUCCESS)
     {
       aclRuleNum = L7_ACL_MIN_RULE_NUM;
@@ -1194,10 +1195,10 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
   if (matchEvery == L7_FALSE)
   {
-    if (!(msgAcl->aclRuleMask & ACL_IP_RULE_MASK_protocol))
+    if (!(msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_protocol))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Forcing protocol");
-      msgAcl->protocol = 255;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Assuming protocol is IPv6");
+      msgAcl->protocol = L7_ACL_PROTOCOL_IP;
     }
 
     /* Check the protocol type*/
@@ -1266,7 +1267,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       srcStartPort = msgAcl->srcStartPort;
       srcEndPort = msgAcl->srcEndPort;
 
-      if (srcPortValue < L7_ACL_MIN_L4PORT_NUM || srcPortValue > L7_ACL_MAX_L4PORT_NUM)
+      if (srcStartPort < L7_ACL_MIN_L4PORT_NUM || srcEndPort > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
         LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE");
@@ -1302,7 +1303,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
 
   /* Check Dst L4 Port */
-  if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_dstStartPort)
+  if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_dstStartPort)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
     if (msgAcl->dstStartPort == msgAcl->dstEndPort)
@@ -1321,7 +1322,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       dstStartPort = msgAcl->dstStartPort;
       dstEndPort = msgAcl->dstEndPort;
 
-      if (dstPortValue < L7_ACL_MIN_L4PORT_NUM || dstPortValue > L7_ACL_MAX_L4PORT_NUM)
+      if (dstStartPort < L7_ACL_MIN_L4PORT_NUM || dstEndPort > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
         LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE");
@@ -1935,7 +1936,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       endVlanVal = msgAcl->endVlan;
 
       /* verify if the specified value is in between 1 to 4094 */
-      if ((endVlanVal < L7_ACL_MIN_VLAN_ID) || (endVlanVal > L7_ACL_MAX_VLAN_ID))
+      if ((startVlanVal < L7_ACL_MIN_VLAN_ID) || (endVlanVal > L7_ACL_MAX_VLAN_ID))
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE");
         return L7_FAILURE;
