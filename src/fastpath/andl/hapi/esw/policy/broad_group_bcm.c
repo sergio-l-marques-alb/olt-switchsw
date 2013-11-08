@@ -1129,6 +1129,12 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
         {
           rv = policy_group_set_pbm(unit, policyPtr->policyStage, group, entry, policyPtr->pbm);
         }
+        else
+        {
+          /* PTin added: save inport data */
+          SOC_PBMP_ASSIGN(policyPtr->pbm, *((bcm_pbmp_t *) rulePtr->fieldInfo.fieldInports.value));
+        }
+
         if (BCM_E_NONE != rv)
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
