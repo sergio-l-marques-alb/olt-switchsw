@@ -64,6 +64,9 @@ bcm_pbmp_t pbm_egress_all_ports;
 bcm_pbmp_t pbm_egress_root_ports;
 bcm_pbmp_t pbm_egress_community_ports;
 
+/* Save storm control rate values */
+ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_MCAST, RATE_LIMIT_UCUNK };
+
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
  ********************************************************************/
@@ -722,6 +725,62 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     }
   }
 
+  #if 0
+  /* Reconfigure storm control */
+  if (stormControl_backup.operation == DAPI_CMD_SET &&
+      stormControl_backup.flags != 0)
+  {
+    if (hapi_ptin_stormControl_set(dapiPort, L7_ENABLE, &stormControl_backup)  == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Storm control reactivated");
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reactivating storm control");
+  }
+  #endif
+
+  #if 1
+  /* Update storm control applied ports */
+  #if (PTIN_BOARD_IS_MATRIX)
+  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
+  {
+    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+  else
+  {
+    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+  //#elif (PTIN_BOARD_IS_LINECARD)
+  #else
+  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
+  {
+    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+  else
+  {
+    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+  #endif
+  #endif
+  
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
             port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
@@ -2116,6 +2175,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
   L7_uint8                l2_srchit = 0, l2_srchit_mask = 1;
   L7_uint16               vlanId, vlan_match;
   BROAD_METER_ENTRY_t     meterInfo;
+  bcm_pbmp_t              portbmp, portbmp_mask;
   static L7_BOOL          first_time = L7_TRUE;
 
   /* Initialize static variables */
@@ -2127,6 +2187,20 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting Storm Control processing: flags=0x%x", control->flags);
 
+  BCM_PBMP_CLEAR(portbmp);
+  BCM_PBMP_CLEAR(portbmp_mask);
+  BCM_PBMP_OR(portbmp_mask, PBMP_E_ALL(bcm_unit));
+
+  #if (PTIN_BOARD_IS_MATRIX)
+  /* Only consider uplink ports in matrix */
+  BCM_PBMP_OR(portbmp, pbm_egress_root_ports);
+  //#elif (PTIN_BOARD_IS_LINECARD)
+  #else
+  /* Only consider downlink ports at LCs */
+  BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
+  BCM_PBMP_REMOVE(portbmp, pbm_egress_root_ports);
+  #endif
+  
   /* Init BC storm control */
   if (control->flags & PTIN_STORMCONTROL_MASK_BCAST)
   {
@@ -2162,6 +2236,12 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         /* For Broadcast traffic, priority rule must be higher than the others */
         result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
         if (result != L7_SUCCESS)  break;
+
+        #if 1
+        /* Ports */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (uint8 *) &portbmp, (uint8 *) &portbmp_mask);
+        if (result != L7_SUCCESS)  break;
+        #endif
 
         /* Broadcast traffic */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, broadcast_mac, broadcast_mac_mask);
@@ -2275,6 +2355,12 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST );
         if (result != L7_SUCCESS)  break;
 
+        #if 1
+        /* Ports */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *) &portbmp, (L7_uint8 *) &portbmp_mask);
+        if (result != L7_SUCCESS)  break;
+        #endif
+
         /* Multicast traffic */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, multicast_mac, multicast_mac_mask);
         if (result != L7_SUCCESS)  break;
@@ -2385,6 +2471,12 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
         if (result != L7_SUCCESS)  break;
 
+        #if 1
+        /* Ports */
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *) &portbmp, (L7_uint8 *) &portbmp_mask);
+        if (result != L7_SUCCESS)  break;
+        #endif
+
         /* Unicast traffic */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, unicast_mac, unicast_mac_mask);
         if (result != L7_SUCCESS)  break;
@@ -2487,10 +2579,220 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     }
   }
 
+  /* Save configuration, if success */
+  if (result == L7_SUCCESS)
+  {
+    stormControl_backup = *control;
+  }
+
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished storm control processing: rc=%d", result);
 
   return result;
 }
+
+#if 1
+/**
+ * Add port to storm control policies
+ * 
+ * @param dapiPort 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
+{
+  L7_int i, policy;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  L7_RC_t       rc;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d}",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  /* Validate dapiPort */
+  if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+  /* Accept only physical and lag interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Physical port */
+  if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    /* Change port of all storm control policys */
+    for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
+    {
+      if (policyId_storm[policy] != 0 ||
+          policyId_storm[policy] != BROAD_POLICY_INVALID)
+      {
+        rc = hapiBroadPolicyApplyToIface(policyId_storm[policy], hapiPortPtr->bcmx_lport);
+        if (rc != L7_SUCCESS && rc != L7_ALREADY_CONFIGURED)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to policy id %u",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to policy id %u",
+                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+        }
+      }
+    }
+  }
+  else
+  {
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g );
+      if (hapiPortPtr_member==L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+        return L7_FAILURE;
+      }
+
+      /* Add physical port to all storm control policys */
+      for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
+      {
+        if (policyId_storm[policy] != 0 ||
+            policyId_storm[policy] != BROAD_POLICY_INVALID)
+        {
+          rc = hapiBroadPolicyApplyToIface(policyId_storm[policy], hapiPortPtr_member->bcmx_lport);
+          if (rc != L7_SUCCESS && rc != L7_ALREADY_CONFIGURED)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding lport 0x%08x to policy id %u",
+                    hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added lport 0x%08x to policy id %u",
+                      hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+          }
+        }
+      } /* policy */
+    } /* LAG members */
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove port to storm control policies
+ * 
+ * @param dapiPort 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
+{
+  L7_int i, policy;
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  L7_RC_t       rc;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d}",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  /* Validate dapiPort */
+  if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+  /* Accept only physical and lag interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Physical port */
+  if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+  {
+    /* Change port of all storm control policys */
+    for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
+    {
+      if (policyId_storm[policy] != 0 ||
+          policyId_storm[policy] != BROAD_POLICY_INVALID)
+      {
+        rc = hapiBroadPolicyRemoveFromIface(policyId_storm[policy], hapiPortPtr->bcmx_lport); 
+        if (rc != L7_SUCCESS && rc != L7_NOT_EXIST)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} to policy id %u",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} to policy id %u",
+                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+        }
+      }
+    }
+  }
+  else
+  {
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g );
+      if (hapiPortPtr_member==L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+        return L7_FAILURE;
+      }
+
+      /* Add physical port to all storm control policys */
+      for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
+      {
+        if (policyId_storm[policy] != 0 ||
+            policyId_storm[policy] != BROAD_POLICY_INVALID)
+        {
+          rc = hapiBroadPolicyRemoveFromIface(policyId_storm[policy], hapiPortPtr_member->bcmx_lport);
+          if (rc != L7_SUCCESS && rc != L7_NOT_EXIST)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing lport 0x%08x from policy id %u",
+                    hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed lport 0x%08x from policy id %u",
+                      hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+          }
+        }
+      } /* policy */
+    } /* LAG members */
+  }
+
+  return L7_SUCCESS;
+}
+#endif
 
 /**
  * Dump list of bw policers
@@ -2511,8 +2813,8 @@ void ptin_stormcontrol_dump_debug(void)
            l7_bcm_policy_hwInfo_get(0, policyId_storm[index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
     {
       /* Also print hw group id and entry id*/
-      printf(" TraffType %u, rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
-             index, rule, group_id, entry_id, policer_id, counter_id);
+      printf(" TraffType %u, policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
+             index, policyId_storm[index], rule, group_id, entry_id, policer_id, counter_id);
       rule++;
     }
   }

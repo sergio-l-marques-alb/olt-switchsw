@@ -242,6 +242,26 @@ extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enabl
  */
 extern L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *stormControl);
 
+#if 1
+/**
+ * Add port to storm control policies
+ * 
+ * @param dapiPort 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort);
+
+/**
+ * Remove port to storm control policies
+ * 
+ * @param dapiPort 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort);
+#endif
+
 /**
  * Show trapped packets (to CPU) according to the configured 
  * trap rule 
