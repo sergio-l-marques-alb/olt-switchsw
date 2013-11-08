@@ -240,6 +240,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.doubletag                    = L7_TRUE;
   mefExt.outer_tpid                   = 0x8100;
   mefExt.inner_tpid                   = 0x8100;
+  mefExt.egress_type                  = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
   mefExt.macLearn_enable              = L7_TRUE;
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
@@ -258,10 +259,12 @@ L7_RC_t ptin_intf_portExt_init(void)
     if (port < PTIN_SYSTEM_N_PONS || port < PTIN_SYSTEM_N_ETH)
     {
       mefExt.macLearn_stationMove_prio = 1;
+      mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_ISOLATED;
     }
     else
     {
       mefExt.macLearn_stationMove_prio = 2;
+      mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
     }
     #endif
 

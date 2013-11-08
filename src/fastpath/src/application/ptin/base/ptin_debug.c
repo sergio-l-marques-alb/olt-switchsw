@@ -13,6 +13,7 @@
 #include "ptin_intf.h"
 #include "ptin_evc.h"
 #include "ptin_msghandler.h"
+#include "dtl_ptin.h"
 #include <unistd.h>
 #include <usmdb_nim_api.h>
 #include <string.h>
@@ -310,15 +311,15 @@ void ptin_intf_dump(void)
   L7_int32  bcm_port;
   L7_uint   admin;
   L7_uint   link;
+  ptin_HWPortExt_t  portExt;
   ptin_HWEthRFC2819_PortStatistics_t portStats;
 
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
-
-  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  printf("| Slot | Port | IntIfNum | bcm_port | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
-  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("| Slot | Port | IntIfNum | bcm_port | MEF Ext.* | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
+  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
@@ -393,6 +394,13 @@ void ptin_intf_dump(void)
     }
 #endif
 
+    /* Apply configuration */
+    if (dtlPtinL2PortExtGet(intIfNum, &portExt) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting MEF Ext of port# %d", port);
+      continue;
+    }
+
     /* bcm_port_t */
     bcm_port = hapiSlotMapPtr[port].bcm_port;
 
@@ -409,11 +417,13 @@ void ptin_intf_dump(void)
             (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 26 : bcm_port - 30);
 #endif
 
-    printf("| %2u/%u |  %2u  |    %2u    | %2u (%-4.4s)| %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
+    printf("| %2u/%u |  %2u  |    %2u    | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
            slot, sport,
            port,
            intIfNum,
            bcm_port, bcm_port_str,
+           (portExt.egress_type == PTIN_PORT_EGRESS_TYPE_ISOLATED) ? "ISO" : ((portExt.egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY) ? "COM" : "PRO"),
+           portExt.macLearn_stationMove_enable, portExt.macLearn_stationMove_samePrio, portExt.macLearn_stationMove_prio,
            admin ? "Ena" : "Dis",
            link == L7_UP ? " Up " : "Down",
            speed,
@@ -422,8 +432,8 @@ void ptin_intf_dump(void)
            portStats.Tx.etherStatsOctets,
            portStats.Tx.Throughput);
   }
-  printf("+------+------+----------+----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
-
+  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
   return;
 }
 
