@@ -4,6 +4,7 @@
 #include <bcmx/multicast.h>
 
 #include "ptin_hapi_xconnect.h"
+#include "ptin_hapi_l2.h"
 #include "logger.h"
 
 /********************************************************************
@@ -23,20 +24,6 @@
 
 /* Available resources for translation: This is for the 5668x switches */
 L7_uint16 resources_crossconnects = FREE_RESOURCES_CROSSCONNECTS;
-
-#if 0
-typedef struct
-{
-  L7_uint8 mac_counter;
-  L7_uint8 mac_maximum;
-} mac_learn_info_t;
-
-#define MAX_VLANS   4096
-#define MAX_GPORTS  8192
-
-static mac_learn_info_t macLearn_info_vlan[MAX_VLANS+1];
-static mac_learn_info_t macLearn_info_flow[MAX_GPORTS+1];
-#endif
 
 /********************************************************************
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -60,13 +47,12 @@ L7_RC_t ptin_hapi_bridge_init(void)
     return L7_FAILURE;
   }
 
-  #if 0
-  if ( (error=ptin_hapi_macaddr_init()) != L7_SUCCESS)
+  /* Initialize L2 module */
+  if ( (error=ptin_hapi_l2_init()) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
-  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_init returned success");
 
@@ -1048,190 +1034,4 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
 
   return L7_SUCCESS;
 }
-
-#if 0
-/************************************
- * MAC Learning Control
- ************************************/
-/**
- * Init MAC learning data structures
- * 
- * @return L7_RC_t : L7_SUCCESS
- */
-L7_RC_t ptin_hapi_macaddr_init(void)
-{
-  L7_uint i;
-
-  /* MAC learning control at vlan level */
-  for (i=0; i<MAX_VLANS; i++)
-  {
-    macLearn_info_vlan[i].mac_counter = 0;
-    macLearn_info_vlan[i].mac_maximum = (L7_uint8)-1; /* Unlimited */
-  }
-
-  /* MAC learning control at virtual port level */
-  for (i=0; i<MAX_GPORTS; i++)
-  {
-    macLearn_info_flow[i].mac_counter = 0;
-    macLearn_info_flow[i].mac_maximum = (L7_uint8)-1; /* Unlimited */
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Increment number of learned MAC addresses
- * 
- * @param bcmx_l2_addr : MAC info
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
-{
-  L7_int vport_id = 0;
-  L7_uint16 vlan_id = 0;
-
-  if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
-  {
-    vport_id = bcmx_l2_addr->lport & 0xffff;
-    /* Vport is valid? */
-    if (vport_id > MAX_GPORTS)
-    {
-      return L7_FAILURE;
-    }
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_maximum < (L7_uint8)-1 &&
-        macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_flow[vport_id].mac_counter++;
-  }
-  else
-  {
-    vlan_id = bcmx_l2_addr->vid;
-    /* Vlan is valid? */
-    if (vlan_id > MAX_VLANS)
-    {
-      return L7_FAILURE;
-    }
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_maximum)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_vlan[vlan_id].mac_counter++;
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Decrement number of learned MAC addresses
- * 
- * @param bcmx_l2_addr : MAC info
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
-{
-  L7_int vport_id = 0;
-  L7_uint16 vlan_id = 0;
-
-  if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
-  {
-    vport_id = bcmx_l2_addr->lport & 0xffff;
-    /* Vport is valid? */
-    if (vport_id > MAX_GPORTS)
-    {
-      return L7_FAILURE;
-    }
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_counter > 0)
-    {
-      macLearn_info_flow[vport_id].mac_counter--;
-    }
-  }
-  else
-  {
-    vlan_id = bcmx_l2_addr->vid;
-    /* Vlan is valid? */
-    if (vlan_id > MAX_VLANS)
-    {
-      return L7_FAILURE;
-    }
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_vlan[vlan_id].mac_counter > 0)
-    {
-      macLearn_info_vlan[vlan_id].mac_counter--;
-    }
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Reset number of learned MAC addresses
- * 
- * @param vlanId : VLAN id 
- * @param gport  : GPort (virtual port)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlanId, bcm_gport_t gport)
-{
-  if (BCM_GPORT_IS_VLAN_PORT(gport))
-  {
-    /* Vport is valid? */
-    if (gport > MAX_GPORTS)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_flow[gport].mac_counter = 0;
-  }
-  else
-  {
-    /* Vlan is valid? */
-    if (vlanId > MAX_VLANS)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_vlan[vlanId].mac_counter = 0;
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * Set maximum number of learned MAC addresses
- * 
- * @param vlanId : VLAN id 
- * @param gport  : GPort (virtual port)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlanId, bcm_gport_t gport, L7_uint8 max_value)
-{
-  if (BCM_GPORT_IS_VLAN_PORT(gport))
-  {
-    /* Vport is valid? */
-    if (gport > MAX_GPORTS)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_flow[gport].mac_maximum = max_value;
-  }
-  else
-  {
-    /* Vlan is valid? */
-    if (vlanId > MAX_VLANS)
-    {
-      return L7_FAILURE;
-    }
-    macLearn_info_vlan[vlanId].mac_maximum = max_value;
-  }
-
-  return L7_SUCCESS;
-}
-#endif
 
