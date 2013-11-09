@@ -579,12 +579,12 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
     }
 
     /* MAc learning flags */
-//  /* PTin modified: MAC learn */
-//  if ((error = usl_bcmx_port_learn_set(vlan_port.vlan_port_id, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING)) != BCM_E_NONE)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with usl_bcmx_port_learn_set: error=%d (\"%s\")", error, bcm_errmsg(error));
-//    break;
-//  }
+    /* PTin modified: MAC learn */
+    if ((error = usl_bcmx_port_learn_set(vlan_port.vlan_port_id, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with usl_bcmx_port_learn_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
 
     /* create egress translation entries for virtual ports to do VLAN tag manipulation 
      * i.e. client -> gem_id + some_c_vlan */
