@@ -2220,9 +2220,9 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   // PTin
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n", __FUNCTION__, __LINE__,
+    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, src_gport=0x%08x, vid=%u\n", __FUNCTION__, __LINE__,
            bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
-           bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan);
+           bcm_pkt->rx_port, bcm_pkt->src_port, bcm_pkt->src_gport, bcm_pkt->vlan);
 
     printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
@@ -2720,8 +2720,8 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   */
   if ((hapiPortPtr->locked == L7_FALSE) && 
       (hapiPortPtr->cpEnabled == L7_FALSE) &&
-      (dot1xStatus == L7_DOT1X_PORT_STATUS_AUTHORIZED) &&
-      (hpcSoftwareLearningEnabled () == L7_TRUE))
+      (dot1xStatus == L7_DOT1X_PORT_STATUS_AUTHORIZED) /*&&
+      (hpcSoftwareLearningEnabled () == L7_TRUE)*/)           /* PTin removed: MAC Learn */
   {
 
 #ifdef L7_STACKING_PACKAGE
