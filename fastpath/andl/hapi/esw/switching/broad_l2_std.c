@@ -81,6 +81,9 @@
 #include "broad_dot1ad.h"
 #endif
 
+/* PTin added: MAc control */
+#include "ptin_hapi_l2.h"
+
 extern int _bcm_esw_l2_from_l2x(int unit, soc_mem_t mem, bcm_l2_addr_t *l2addr, uint32 *l2_entry);
 
 //L7_BOOL ptin_learnEnabled[L7_MAX_INTERFACE_COUNT];    /* PTin added: MAC learning */
@@ -1987,7 +1990,7 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
         if (hpcSoftwareLearningEnabled () == L7_TRUE)
           hapiBroadLearnSet(usp, (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
         else
-          hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+          hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);   /* PTin modified: MAC learn */
       }
     }
   }
@@ -3425,6 +3428,28 @@ void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g)
 
 }
 
+void macaddr_remove(L7_uint16 vlan, L7_uint8 macAddr0, L7_uint8 macAddr1, L7_uint8 macAddr2, L7_uint8 macAddr3, L7_uint8 macAddr4, L7_uint8 macAddr5)
+{
+  bcm_error_t rv;
+  L7_uint8 mac[6];
+
+  mac[0] = macAddr0;
+  mac[1] = macAddr1;
+  mac[2] = macAddr2;
+  mac[3] = macAddr3;
+  mac[4] = macAddr4;
+  mac[5] = macAddr5;
+
+  printf("Trying to remove MAC %02x:%02x:%02x:%02x:%02x:%02x, vlan %u\r\n",
+         mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], vlan);
+
+  rv = bcmx_l2_addr_delete(mac, vlan);
+
+  printf("Trying to remove MAC %02x:%02x:%02x:%02x:%02x:%02x, vlan %u: rv=%d\r\n",
+         mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], vlan, rv);
+}
+
+
 /*********************************************************************
 *
 * @purpose Handle Learn indication from vendor driver
@@ -3535,6 +3560,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
+  /* PTin added: MAC control */
   #ifdef BCM_ROBO_SUPPORT
   /* Add the address to the non-native devices */
   if (hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
@@ -3546,23 +3572,28 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     rv = BCM_E_NONE;
   }
   #else
-  rv = BCM_E_NONE;
+  printf("%s(%d) flags=0x%08x\r\n",__FUNCTION__, __LINE__,bcmx_l2_addr->flags);
   /* If pending flag is active, check if MAC should be learnt */
-  if (bcmx_l2_addr->flags & BCM_L2_PENDING)
+  if ((bcmx_l2_addr->flags & BCM_L2_PENDING))
   {
-    #if 1
-    bcmx_l2_addr->flags &= ~((L7_uint32) BCM_L2_PENDING);
-    rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
-    //printf("%s(%d) I was here\r\n",__FUNCTION__,__LINE__);
-    #endif
-    dapiCardRemovalReadLockGive();
-    return;
+    if (ptin_hapi_l2_macaddr_inc(bcmx_l2_addr) != L7_SUCCESS)
+    {
+      rv = bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
+      dapiCardRemovalReadLockGive();
+      printf("%s(%d) MAC %02x:%02x:%02x:%02x:%02x:%02x not allowed for gport 0x%08x, vlan %u (rv=%d)\r\n",__FUNCTION__, __LINE__,
+             bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5],
+             bcmx_l2_addr->lport, bcmx_l2_addr->vid, rv);
+      return;
+    }
   }
-  else
-  {
-    rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
-    //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
-  }
+
+  /* Clear pending and native flags */
+  bcmx_l2_addr->flags &= ~((L7_uint32) BCM_L2_PENDING);
+  rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
+
+  printf("%s(%d) MAC %02x:%02x:%02x:%02x:%02x:%02x added for gport 0x%08x, vlan %u\r\n", __FUNCTION__, __LINE__,
+         bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5],
+         bcmx_l2_addr->lport, bcmx_l2_addr->vid);
   #endif
 
   if (rv == BCM_E_NONE)
@@ -3710,6 +3741,12 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     /* Make sure that card is not removed while we are processing the callback.
     */
     dapiCardRemovalReadLockTake ();
+
+    /* PTin added: MAC control */
+    ptin_hapi_l2_macaddr_dec(bcmx_l2_addr);
+    printf("%s(%d) MAC %02x:%02x:%02x:%02x:%02x:%02x, gport 0x%08x/vlan %u aged\r\n", __FUNCTION__, __LINE__,
+           bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5],
+           bcmx_l2_addr->lport, bcmx_l2_addr->vid);
 
     if (!(bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER))
     {
@@ -4168,7 +4205,7 @@ L7_RC_t hapiBroadFlushL2LearnModeSet (BROAD_L2ADDR_FLUSH_t portInfo, L7_uint32 l
           } else
           {
             /* enable HW learning on this port */
-            hapiBroadLearnSet(&usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+            hapiBroadLearnSet(&usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);    /* PTin modified: MAC learn */
           }
       }
     }
@@ -5479,7 +5516,7 @@ L7_RC_t hapiBroadIntfCaptivePortalConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
       if (hpcSoftwareLearningEnabled () == L7_TRUE)
         hapiBroadLearnSet(usp, (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
       else
-        hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+        hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);   /* PTin modified: MAC learn */
 
       break;
 
@@ -5508,7 +5545,7 @@ L7_RC_t hapiBroadIntfCaptivePortalConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
         if (hpcSoftwareLearningEnabled () == L7_TRUE)
           hapiBroadLearnSet(usp, (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
         else
-          hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+          hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);   /* PTin modified: MAC learn */
       }
 
       break;
