@@ -130,6 +130,73 @@ STATIC _bcm_tr2_vlan_virtual_bookkeeping_t _bcm_tr2_vlan_virtual_bk_info[BCM_MAX
  * ---------------------------------------------------------------------------- 
  */
 
+/* PTin added: virtual port */
+#if 1
+/*
+ * Function:
+ *      bcm_tr_vlan_port_learn_set
+ * Purpose:
+ *      Set the CML bits for an vlan port.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
+{
+    int vp, cml = 0, rv = BCM_E_NONE;
+    source_vp_entry_t svp;
+
+    if (!VLAN_VIRTUAL_INFO(unit)->vlan_virtual_initialized)
+    {
+      return L7_FAILURE;
+    }
+    #if 0
+    rv = _bcm_tr_mpls_check_init (unit);
+    if (rv < 0) {
+        return rv;
+    }
+    #endif
+
+    cml = 0;
+    if (!(flags & BCM_PORT_LEARN_FWD)) {
+       cml |= (1 << 0);
+    }
+    if (flags & BCM_PORT_LEARN_CPU) {
+       cml |= (1 << 1);
+    }
+    if (flags & BCM_PORT_LEARN_PENDING) {
+       cml |= (1 << 2);
+    }
+    if (flags & BCM_PORT_LEARN_ARL) {
+       cml |= (1 << 3);
+    }
+
+    /* Get the VP index from the gport */
+    vp = BCM_GPORT_VLAN_PORT_ID_GET(vlan_port_id);
+    if (vp == -1) {
+        return BCM_E_PARAM;
+    }
+
+    /* Be sure the entry is used and is set for VPLS */
+    if (!_bcm_vp_used_get(unit, vp, _bcmVpTypeVlan)) {
+        return BCM_E_NOT_FOUND;
+    }
+    rv = READ_SOURCE_VPm(unit, MEM_BLOCK_ANY, vp, &svp);
+    if (rv < 0) {
+        return rv;
+    }
+    #if 0
+    if (soc_SOURCE_VPm_field32_get(unit, &svp, ENTRY_TYPEf) != 1) { /* VPLS */
+        return BCM_E_NOT_FOUND;
+    }
+    #endif
+    soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_MOVEf, cml);
+    soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_NEWf, cml);
+    rv = WRITE_SOURCE_VPm(unit, MEM_BLOCK_ALL, vp, &svp);
+    return rv;
+}
+#endif
+
 /*
  * Function:
  *      _bcm_tr2_vlan_vp_port_cnt_update

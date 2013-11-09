@@ -210,6 +210,11 @@ extern int _bcm_tr2_l3_ecmp_grp_del(int unit, int ecmp_grp, int max_grp_size);
 extern int bcm_tr2_failover_egr_check (int unit, bcm_l3_egress_t  *egr);
 extern int bcm_tr2_failover_mpls_check (int unit, bcm_mpls_port_t  *mpls_port);
 
+/* PTin added: virtual port */
+#if 1
+extern int bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags);
+#endif
+
 extern int bcm_tr2_vlan_virtual_init(int unit);
 extern int bcm_tr2_vlan_virtual_detach(int unit);
 extern int bcm_tr2_vlan_vp_create(int unit, bcm_vlan_port_t *vlan_vp);

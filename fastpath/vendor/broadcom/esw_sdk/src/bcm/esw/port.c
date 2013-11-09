@@ -7172,6 +7172,13 @@ bcm_esw_port_learn_set(int unit, bcm_port_t port, uint32 flags)
     bcm_port_cfg_t      pcfg;
     int                 rv;
 
+/* PTin added: MAC learn */
+#if defined(BCM_TRIUMPH2_SUPPORT)
+    if (BCM_GPORT_IS_VLAN_PORT(port)) {
+        return bcm_tr2_vlan_port_learn_set(unit, (bcm_gport_t) port, flags);
+    }
+#endif
+
 #if defined(BCM_TRX_SUPPORT)  && defined(INCLUDE_L3)
     if (BCM_GPORT_IS_SUBPORT_GROUP(port)) {
         if (SOC_IS_SCORPION(unit)) {
