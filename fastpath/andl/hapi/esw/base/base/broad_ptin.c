@@ -538,7 +538,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   /* MAC learning enable */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN)
   {
-    if (ptin_hapi_bridge_vlan_mode_macLearn_set(mode->vlanId, mode->learn_enable)!=L7_SUCCESS)
+    if (ptin_hapi_bridge_vlan_mode_macLearn_set(mode->vlanId, mode->learn_enable, mode->learn_uc_flood)!=L7_SUCCESS)
       rc = L7_FAILURE;
   }
   /* Cross-connect enable */
@@ -651,6 +651,7 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     rc = ptin_hapi_vp_create(&dapiPort,
                              vport->ext_ovid, vport->ext_ivid,
                              vport->int_ovid, vport->int_ivid,
+                             vport->maclearn_max,
                              &vport->multicast_group,
                              &vport->virtual_gport);
     break;

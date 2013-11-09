@@ -330,6 +330,7 @@ typedef struct
   L7_uint16 inner_tpid;             // Inner TPID (only applicable to mask=0x04)
     #define PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN       0x08
   L7_BOOL   learn_enable;           // Enable MAC learning to this vlan (only applicable to mask=0x08)
+  L7_BOOL   learn_uc_flood;         // In case of failed Source Hit, allow UC traffic to be flooded
     #define PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN   0x10
   L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
     #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
@@ -353,6 +354,7 @@ typedef struct
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
+  L7_int maclearn_max;
   L7_int virtual_gport;
   L7_int multicast_group;
 } ptin_vport_t;
@@ -475,6 +477,7 @@ typedef struct {
   ptin_intf_t ptin_intf;  // PON interface
   L7_uint16   uni_ovid;   // GEM id
   L7_uint16   uni_ivid;   // UNI cvlan
+  L7_int16    macLearnMax;  // Maximum number of Learned MAC addresses
 } ptin_HwEthEvcFlow_t;
 
 /* Client identification */

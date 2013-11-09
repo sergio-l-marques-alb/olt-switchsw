@@ -294,6 +294,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
  * @param int_ovid    : Internal outer vlan 
  * @param int_ivid    : Internal inner vlan  
  * @param mcast_group : Multicast group id. 
+ * @param maclearn_max: Maximum number of learned MAC addresses.
  * @param vport_id    : vport id 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -302,6 +303,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                               L7_int ext_ovid, L7_int ext_ivid,
                               L7_int int_ovid, L7_int int_ivid,
                               L7_int mcast_group,
+                              L7_int maclearn_max,
                               L7_int *vport_id)
 {
   ptin_vport_t vport;
@@ -325,6 +327,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   vport.int_ivid         = int_ivid;
   vport.ext_ovid         = ext_ovid;
   vport.ext_ivid         = ext_ivid;
+  vport.maclearn_max     = maclearn_max;
   vport.virtual_gport    = -1;
   vport.multicast_group  = mcast_group;
 
@@ -439,11 +442,12 @@ L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid,
  * @param vlanId : Outer Vlan Id
  * @param fwdVlanId : Forward vlan (vlan to use for mac 
  *                  learning)
- * @param macLearn : MAc learning on/off
+ * @param macLearn : MAc learning on/off 
+ * @param uc_flood : Allow UC flooding when srcHit fails.
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn)
+L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn, L7_BOOL uc_flood)
 {
   ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -461,6 +465,7 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_i
   mode.vlanId          = vlanId;
   mode.fwdVlanId       = fwdVlanId;
   mode.learn_enable    = macLearn & 1;
+  mode.learn_uc_flood  = uc_flood;
   mode.mask         = PTIN_BRIDGE_VLAN_MODE_MASK_FWDVLAN | PTIN_BRIDGE_VLAN_MODE_MASK_LEARN_EN;
   if (mcast_group > 0)
   {

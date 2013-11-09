@@ -396,7 +396,7 @@ static L7_RC_t switching_p2p_bridge_remove(L7_uint root_intf, L7_uint16 root_int
 
 static L7_RC_t switching_vlan_create(L7_uint16 vid);
 static L7_RC_t switching_vlan_delete(L7_uint16 vid);
-static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap);
+static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 uc_flood, L7_uint8 mc_flood, L7_uint8 cpu_trap);
 
 static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf);
 static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile, void ***bwPolicer_ptr);
@@ -3275,6 +3275,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                               evcFlow->uni_ovid, evcFlow->uni_ivid,
                               int_ovid, evcFlow->int_ivid,
                               multicast_group,
+                              evcFlow->macLearnMax,
                               &vport_id) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
@@ -5768,8 +5769,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     }
   }
 
-  /* Vlan mode configuration */
-  rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap );
+  /* Vlan mode configuration: for quattro vlans, do not allow miss srcHit flooding */
+  rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, !is_quattro, evcs[evc_id].mc_flood, cpu_trap );
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
@@ -8011,14 +8012,15 @@ static L7_RC_t switching_vlan_delete(L7_uint16 vid)
  * 
  * @param vid           VLAN to be configured
  * @param fwr_vid       Forward VLAN
- * @param mac_learning  L7_TRUE/L7_FALSE
+ * @param mac_learning  L7_TRUE/L7_FALSE 
+ * @param uc_flood      L7_TRUE/L7_FALSE 
  * @param mc_flood      L7_FILTER_FORWARD_ALL, 
  *                      L7_FILTER_FORWARD_UNREGISTERED,
  *                      L7_FILTER_FILTER_UNREGISTERED
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap)
+static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 uc_flood, L7_uint8 mc_flood, L7_uint8 cpu_trap)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_FILTER_VLAN_FILTER_MODE_t mcf = 0xff;
@@ -8032,7 +8034,7 @@ static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL m
   }
 
   /* Set Forward VLAN to int_vlan and set Mac Learning state */
-  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, -1, mac_learning);
+  rc = ptin_crossconnect_vlan_learn(vid, fwd_vid, -1, mac_learning, uc_flood);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "VLAN %u: error setting MAC Learning state to %s (w/ Forward VLAN %u) (rc=%d)",

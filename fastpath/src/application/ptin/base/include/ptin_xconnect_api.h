@@ -89,6 +89,7 @@ extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
  * @param int_ovid    : Internal outer vlan 
  * @param int_ivid    : Internal inner vlan  
  * @param mcast_group : Multicast group id. 
+ * @param maclearn_max: Maximum number of learned MAC addresses.
  * @param vport_id    : vport id 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
@@ -97,6 +98,7 @@ extern L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                                      L7_int ext_ovid, L7_int ext_ivid,
                                      L7_int int_ovid, L7_int int_ivid,
                                      L7_int mcast_group,
+                                     L7_int maclearn_max,
                                      L7_int *vport_id);
 
 /**
@@ -129,11 +131,12 @@ extern L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ex
  * @param vlanId : Outer Vlan Id
  * @param fwdVlanId : Forward vlan (vlan to use for mac 
  *                  learning)
- * @param macLearn : MAc learning on/off
+ * @param macLearn : MAc learning on/off 
+ * @param uc_flood : Allow UC flooding when srcHit fails. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn);
+extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_int mcast_group, L7_BOOL macLearn, L7_BOOL uc_flood);
 
 /**
  * Use crossconnects, instead of the MAC+Vlan bridging, for a 

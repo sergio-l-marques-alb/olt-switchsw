@@ -27,11 +27,12 @@ extern L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects);
  * @param fwdVlanId : forward vlan to be used when learning MAC 
  *                    addresses
  * @param cross_connects_apply: Use cross-connects to this vlan?
- * @param mac_learning_apply:   Apply mac learning to this vlan?
+ * @param maclearn: Apply mac learning to this vlan? 
+ * @param uc_flood: Flood UC when srcHit fails
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL mac_learning_apply, L7_int mc_group);
+extern L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_BOOL cross_connects_apply, L7_BOOL maclearn, L7_BOOL uc_flood, L7_int mc_group);
 
 /**
  * Define forward vlanId for a specific vlan for bridging 
@@ -71,11 +72,12 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_outerTpId_set(L7_uint16 vlanId, L7_uin
  * (Dis)Enable MAC learning for a specific vlan
  * 
  * @param vlanId :    vlan to be configured
- * @param mac_learning_apply:   Apply mac learning to this vlan?
+ * @param mac_learning_apply:   Apply mac learning to this vlan? 
+ * @param maclearn_uc_flood: Allow UC flooding when srcHit fails
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL mac_learning_apply);
+extern L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL mac_learning_apply, L7_BOOL maclearn_uc_flood);
 
 /**
  * Change bridging vlan mode (cross-connects enabler)
@@ -123,14 +125,17 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
  * @param match_ovid  : GEM id (outer vlan)
  * @param match_ivid  : inner vlan after GEM id
  * @param egress_ovid : outer vlan inside switch
- * @param egress_ivid : inner vlan inside switch
+ * @param egress_ivid : inner vlan inside switch 
+ * @param maclearn_max  : Max number of learned macs. 
  * @param mcast_group : mc group (-1 to create) 
  * @param virtual_gport : vport id (to be returned)  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
-                                   L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                   L7_uint16 match_ovid, L7_uint16 match_ivid,
+                                   L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                   L7_int  maclearn_max,
                                    L7_int *mcast_group,
                                    L7_int *virtual_gport);
 

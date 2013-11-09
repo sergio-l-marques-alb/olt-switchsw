@@ -2447,6 +2447,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
   ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.macLearnMax         = (msgEvcFlow->macLearnMax == (L7_uint8)-1) ? -1 : (L7_int16) msgEvcFlow->macLearnMax;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
@@ -2455,6 +2456,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " #MACs = %u", ptinEvcFlow.macLearnMax);
 
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
