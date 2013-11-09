@@ -6837,6 +6837,12 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
     return L7_FAILURE;
   }
 
+  if (msgMacAcl->aclId >= L7_MAX_ACL_LISTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+    return L7_FAILURE;
+  }
+
   if (msgMacAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
@@ -6930,6 +6936,23 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     return L7_FAILURE;
   }
 
+  if (msgIpAcl->aclType == ACL_TYPE_IP_STANDARD)
+  {
+    if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+      return L7_FAILURE;
+    }
+  }
+  else if ( (msgIpAcl->aclType == ACL_TYPE_IP_EXTENDED) || (msgIpAcl->aclType == ACL_TYPE_IP_NAMED) )
+  {
+    if ( (msgIpAcl->aclId < 100) || (msgIpAcl->aclId > 199) ) /* [100..199] */
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+      return L7_FAILURE;
+    }
+  }
+
   if (msgIpAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
@@ -7020,6 +7043,12 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   if (msgIpv6Acl->aclType != ACL_TYPE_IPv6_EXTENDED)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgIpv6Acl->aclType);
+    return L7_FAILURE;
+  }
+
+  if (msgIpv6Acl->aclId >= L7_MAX_ACL_LISTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
     return L7_FAILURE;
   }
 

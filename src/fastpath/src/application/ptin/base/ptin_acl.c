@@ -30,7 +30,7 @@ struct {
 struct {
   L7_uint32 aclId;
   L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL];
-} ptin_aclIpDb[L7_MAX_ACL_LISTS];
+} ptin_aclIpDb[2*L7_MAX_ACL_LISTS]; /* Standard [1..99] and Extended [100..199]*/
 
 struct {
   L7_uint32 aclId;
