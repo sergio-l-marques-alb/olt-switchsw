@@ -1340,7 +1340,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 						(BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
 	  else
             hapiBroadLearnSet(&cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry], 
-							  (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+							  (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);    /* PTin modified: MAC learn */
     }
   }
 
@@ -2082,7 +2082,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 						  (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
 		else
 			hapiBroadLearnSet(&cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry], 
-							  (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+							  (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);    /* PTin modified: MAC learn */
     }
   }
 

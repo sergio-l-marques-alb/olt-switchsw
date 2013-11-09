@@ -1067,7 +1067,7 @@ L7_RC_t hapiBroadIntfDot1xAuthModeUpdate( DAPI_USP_t *usp, BROAD_PORT_t *hapiPor
 		  if (hpcSoftwareLearningEnabled () == L7_TRUE)
               hapiBroadLearnSet(usp, (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
           else
-              hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+              hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);   /* PTin modified: MAC learn */
           
 
       }
@@ -1367,7 +1367,7 @@ L7_RC_t hapiBroadIntfDot1xStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 		  if (hpcSoftwareLearningEnabled () == L7_TRUE)
               hapiBroadLearnSet(usp, (BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_FWD), dapi_g);
           else
-              hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD), dapi_g);
+              hapiBroadLearnSet(usp, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING), dapi_g);   /* PTin modified: MAC learn */
       }
     }
 

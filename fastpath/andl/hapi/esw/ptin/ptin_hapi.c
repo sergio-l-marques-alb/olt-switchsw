@@ -812,7 +812,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
   /* L2 Station move */
   if (stationMove_enable>=0)
   {
-    flags = (stationMove_enable) ? (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD) : 0x00;
+    flags = (stationMove_enable) ? (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING) : 0x00;   /* PTin modified: MAC learn */
 
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {

@@ -1718,7 +1718,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
     }
     else
     {
-      learnMode = (BCM_PORT_LEARN_ARL |  BCM_PORT_LEARN_FWD);
+      learnMode = (BCM_PORT_LEARN_ARL |  BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_PENDING);    /* PTin modified: MAC learn */
     }
 
     rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
