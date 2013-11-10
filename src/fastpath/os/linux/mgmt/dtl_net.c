@@ -926,6 +926,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
             info->dtlCmdInfo.priority = 0;
             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
             info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+            info->dtlCmdInfo.cmdType.L2.flags = 0;
             info->dtlCmd = DTL_CMD_TX_L2;
             info->discard = L7_FALSE;
 
@@ -969,6 +970,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
              info->dtlCmdInfo.priority = 0;
              info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
              info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+             info->dtlCmdInfo.cmdType.L2.flags = 0;
              info->dtlCmd = DTL_CMD_TX_L2;
              info->discard = L7_FALSE;
 
@@ -1008,6 +1010,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
             info->dtlCmdInfo.priority = 0;
             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
             info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+            info->dtlCmdInfo.cmdType.L2.flags = 0;
             info->dtlCmd = DTL_CMD_TX_L2;
             info->discard = L7_FALSE;
             goto dtlSendCmdExit;
@@ -1072,6 +1075,7 @@ if (nimCheckIfNumber(intIfNum) != L7_SUCCESS) {
    dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
 
    dtlCmd.cmdType.L2.domainId = vlanId;
+   dtlCmd.cmdType.L2.flags = 0;
 
 
    SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, datalen);

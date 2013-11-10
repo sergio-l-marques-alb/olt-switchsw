@@ -138,6 +138,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
       dtlCmd.cmdType.L2.domainId = 0;
 
    }
+   dtlCmd.cmdType.L2.flags = 0;
 
    SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, datalen);
 

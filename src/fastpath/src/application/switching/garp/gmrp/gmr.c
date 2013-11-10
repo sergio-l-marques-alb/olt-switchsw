@@ -1078,6 +1078,7 @@ void SendGMRPPktToDtl(L7_ushort16 length,
 
         /*Now in vlan context we need to allow egress processing*/
         dtlCmd.cmdType.L2.domainId = vlanId;
+        dtlCmd.cmdType.L2.flags    = 0;
 
         rc = dtlPduTransmit(bufHandle, DTL_CMD_TX_L2, &dtlCmd);
         if(rc==L7_SUCCESS)

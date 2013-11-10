@@ -1352,6 +1352,7 @@ L7_RC_t dhcpPacketBroadcast(L7_uint32 intIfNum, L7_uint32 clientPort,
   dtlCmd.priority = 0;
   dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
   dtlCmd.cmdType.L2.domainId = vlanId;
+  dtlCmd.cmdType.L2.flags    = 0;
 
   /* Limit broadcast to client's port */
   return dtlPduTransmit(pBufHandle, DTL_CMD_TX_L2, &dtlCmd);
@@ -1439,6 +1440,7 @@ L7_RC_t dhcpPacketUnicast(L7_uint32 intIfNum, L7_uint32 clientPort,
   dtlCmd.priority = 0;
   dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
   dtlCmd.cmdType.L2.domainId = vlanId;
+  dtlCmd.cmdType.L2.flags    = 0;
 
   /* Limit broadcast to client's port */
   return dtlPduTransmit(pBufHandle, DTL_CMD_TX_L2, &dtlCmd);

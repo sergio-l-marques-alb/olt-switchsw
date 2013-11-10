@@ -655,6 +655,7 @@ L7_RC_t wioFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dtlCmd.priority = 0;
   dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
   dtlCmd.cmdType.L2.domainId = vlanId;
+  dtlCmd.cmdType.L2.flags    = 0;
 
   /* Allocate an mbuf to copy frame into */
   SYSAPI_NET_MBUF_GET(bufHandle);
@@ -1099,6 +1100,7 @@ SYSNET_PDU_RC_t wioPacketInterceptOut(L7_uint32 hookId,
     dtlCmd.priority = 0;
     dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
     dtlCmd.cmdType.L2.domainId = client->clientVlan;
+    dtlCmd.cmdType.L2.flags    = 0;
     dtlPduTransmit(bufHandle, DTL_CMD_TX_L2, &dtlCmd);   /* takes ownership of mbuf */
 
     osapiSemaGive(wioInfo->wioLock);

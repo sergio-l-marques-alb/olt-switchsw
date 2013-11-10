@@ -709,6 +709,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
   dtlCmd.typeToSend          = (intfNum == L7_ALL_INTERFACES)? DTL_VLAN_MULTICAST : DTL_NORMAL_UNICAST;
   dtlCmd.cmdType.L2.domainId = vlanId;
   dtlCmd.cmdType.L2.vlanId   = vlanId;
+  dtlCmd.cmdType.L2.flags    = 0;
 
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 

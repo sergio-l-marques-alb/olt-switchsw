@@ -1370,6 +1370,7 @@ void snoopFrameTransmit(L7_uint32 intIfNum, L7_uint32 vlanId,
     dtlCmd.intfNum             = intIfNum;
   }
   dtlCmd.cmdType.L2.domainId = vlanId;
+  dtlCmd.cmdType.L2.flags    = 0;
 
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
