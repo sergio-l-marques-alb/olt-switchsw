@@ -2067,7 +2067,6 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
   snoopPTinProxyGroup_t*  groupPtr,*groupPtrAux;
   L7_uint32 i=0;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};  
-//L7_BOOL             newEntry=L7_FALSE;
 
 
   /* Argument validation */
@@ -2076,58 +2075,24 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
   }
-//*newEntryFlag=newEntry;
 
-#if 0
-  /*Let us check if this group record was already created*/
-  if ((groupPtr=snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId,groupAddr,recordType,L7_MATCH_EXACT))!=L7_NULLPTR)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Existing Group Record (vlanId:%u groupAddr:%s recordType:%u)",interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType);
-
-    groupPtr->retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS;    
-    groupPtr->robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS;
-
-    if (groupPtr->interfacePtr != interfacePtr)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Fixing interfacePtr");
-      groupPtr->interfacePtr=interfacePtr;
-    }
-  }
-#endif
-
-#if 0
-  /*Let us check if this group record was previouly saved with a different record type*/
-  else if ((groupPtr=snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId,groupAddr,MGMD_GROUP_REPORT_TYPE_MAX,L7_MATCH_EXACT))!=L7_NULLPTR)
-  {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Re-using Group Record (vlanId:%u groupAddr:%s recordType:%u)",interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType);
-
-    groupPtr->retransmissions=PTIN_IGMP_DEFAULT_ROBUSTNESS;    
-    groupPtr->robustnessVariable=PTIN_IGMP_DEFAULT_ROBUSTNESS;
-    groupPtr->interfacePtr=interfacePtr;
-    groupPtr->recordType=recordType;
-
-    if (groupPtr->nextGroupRecord!=L7_NULLPTR || groupPtr->previousGroupRecord!=L7_NULLPTR)
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Resetting SourcePtr->NextSrc & SourcePtr->PreviousSrc");
-      groupPtr->nextGroupRecord=L7_NULLPTR;    
-      groupPtr->previousGroupRecord=L7_NULLPTR;
-    }
-  }
-#endif
-  /*else*/if ((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,newEntryFlag, robustnessVariable))==L7_NULLPTR)
+  if ((groupPtr=snoopPTinProxyGroupEntryAdd(interfacePtr,groupAddr,recordType,newEntryFlag, robustnessVariable))==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryAdd()");
     return L7_NULLPTR;
   }
 
-#if 1
   if (*newEntryFlag==L7_TRUE)
   {
     if ((groupPtrAux=interfacePtr->groupRecord)==L7_NULLPTR || interfacePtr->numberOfGroupRecords==0)
     {
+      if(groupPtrAux!=L7_NULLPTR || interfacePtr->numberOfGroupRecords!=0)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Problems with Pointer or number of Group Records. Resetting both");
+      }
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This is the first group record added to this interface");
       interfacePtr->groupRecord=groupPtr;
-      interfacePtr->numberOfGroupRecords++; 
+      interfacePtr->numberOfGroupRecords=1; 
     }
     else
     {
@@ -2135,7 +2100,6 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
       {
         if (groupPtrAux->nextGroupRecord==L7_NULLPTR)
         {
-          //if (groupPtrAux!=groupPtr)
           if (groupPtrAux!=groupPtr)
           {
             LOG_TRACE(LOG_CTX_PTIN_IGMP, "There are %u group records in this interface (previous groupAddr:%s recordType:%u)",i+1,  inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
@@ -2150,26 +2114,6 @@ snoopPTinProxyGroup_t* snoopPTinGroupRecordAdd(snoopPTinProxyInterface_t* interf
     }
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record (vlanId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", groupPtr->interfacePtr->key.vlanId, inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, interfacePtr->numberOfGroupRecords );
   }
-#else
-  i=0;
-  groupPtrAux=groupPtr;
-  while (groupPtrAux!=L7_NULLPTR)
-  {
-    if (groupPtrAux->nextGroupRecord==L7_NULLPTR)
-    {
-      if (groupPtrAux!=groupPtr)
-      {
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "There are %u group records in this interface (previous groupAddr:%s recordType:%u)",i+1,  inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
-        groupPtr->previousGroupRecord=groupPtrAux;
-        groupPtrAux->nextGroupRecord=groupPtr;
-        interfacePtr->numberOfGroupRecords++; 
-      }
-      break;        
-    }
-    groupPtrAux=groupPtrAux->nextGroupRecord;
-    i++;
-  }
-#endif
   return groupPtr;
 }
 
@@ -2483,10 +2427,6 @@ L7_RC_t snoopPTinProxyInterfaceRemove(snoopPTinProxyInterface_t* interfacePtr)
 L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {
   snoopPTinProxyGroup_t*    groupPtr;
-//snoopPTinProxyGroup_t*    groupPtrAux;
-  L7_BOOL                   isRunning=L7_FALSE;
-
-//char                      debug_buf[IPV6_DISP_ADDR_LEN]={};
 
   /* Argument validation */
   if (interfacePtr == L7_NULLPTR || interfacePtr->key.vlanId<PTIN_IGMP_MIN_VLAN_ID || interfacePtr->key.vlanId>PTIN_IGMP_MAX_VLAN_ID ||  groupAddr==L7_NULLPTR)
@@ -2505,53 +2445,18 @@ L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_i
   if (snoopPTinGroupRecordSourceRemoveAll(groupPtr)!= L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDeleteAll()");
-    return L7_FAILURE;
+//  return L7_FAILURE;
   }
-  isRunning=snoop_ptin_proxytimer_isRunning(&groupPtr->timer);
-  if (isRunning)
+  
+  if (snoop_ptin_proxytimer_isRunning(&groupPtr->timer)==L7_TRUE)
   {
     if (snoop_ptin_proxytimer_stop(&groupPtr->timer)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_stop()");
-      return L7_FAILURE;
+//    return L7_FAILURE;
     }
   }
 
-#if 0
-  groupPtrAux=interfacePtr->groupRecord;
-  while (groupPtrAux !=L7_NULLPTR)
-  {
-    if (groupPtrAux==groupPtr)
-    {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group record found within interface!");
-      if (groupPtrAux->previousGroupRecord==L7_NULLPTR)/*First Element*/
-      {
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "First group record of this interface");
-        interfacePtr->groupRecord=groupPtrAux->nextGroupRecord;
-      }
-      else
-      {
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This is not the first group record of this interface");        
-        groupPtrAux->previousGroupRecord->nextGroupRecord=groupPtrAux->nextGroupRecord;
-      }      
-      if (groupPtrAux->nextGroupRecord!=L7_NULLPTR)
-        groupPtrAux->nextGroupRecord->previousGroupRecord=groupPtrAux->previousGroupRecord;
-      break;
-    }
-    groupPtrAux=groupPtrAux->nextGroupRecord;
-  }   
-
-  if (groupPtrAux==L7_NULLPTR)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Unable to find group record (groupAddr:%s recordType:%u) within interface (vlanId:%u)",inetAddrPrint(groupAddr, debug_buf),recordType,interfacePtr->key.vlanId);
-    return L7_SUCCESS;
-  }
-
-  groupPtr->nextGroupRecord=L7_NULLPTR;
-  groupPtr->previousGroupRecord=L7_NULLPTR;
-  groupPtr->retransmissions=0;
-  groupPtr->interfacePtr=L7_NULLPTR;
-#else
   if (groupPtr->previousGroupRecord!=L7_NULLPTR && groupPtr->nextGroupRecord!=L7_NULLPTR)
   {
     groupPtr->previousGroupRecord->nextGroupRecord=groupPtr->nextGroupRecord;
@@ -2567,43 +2472,24 @@ L7_RC_t snoopPTinGroupRecordRemove(snoopPTinProxyInterface_t* interfacePtr, L7_i
     groupPtr->previousGroupRecord->nextGroupRecord=L7_NULLPTR;
   }
 
-
-#endif
-
-#if 1 
   if (snoopPTinProxyGroupEntryDelete(interfacePtr->key.vlanId,groupAddr,recordType)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryDelete()");      
     return L7_FAILURE;
   }
-//LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record Removed (groupAddr:%s recordType:%u) from interface (vlanId:%u)",inetAddrPrint(groupAddr, debug_buf),recordType,interfacePtr->key.vlanId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record Removed");
-#else 
-//We do not remove the Group Entry
-//Instead we change the record type to MGMD_GROUP_REPORT_TYPE_MAX
-  if (snoopPTinProxyGroupEntryFind(interfacePtr->key.vlanId,groupAddr,MGMD_GROUP_REPORT_TYPE_MAX,L7_MATCH_EXACT)==L7_NULLPTR)
+
+
+  if (interfacePtr->numberOfGroupRecords>0)
   {
-    groupPtr->recordType=MGMD_GROUP_REPORT_TYPE_MAX;  
-//Should we change also the VLAN ID to MAX VLANs?
-//  groupPtr->key.vlanId=L7_MAX_VLANS;
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Group Record Saved (groupAddr:%s recordType:%u) from interface (vlanId:%u)",inetAddrPrint(&groupPtr->key.groupAddr, debug_buf),groupPtr->key.recordType,groupPtr->key.vlanId);
+    if((--interfacePtr->numberOfGroupRecords)==0)
+      interfacePtr->groupRecord=L7_NULLPTR;
+//  return(snoopPTinProxyInterfaceRemove(interfacePtr));
   }
   else
   {
-    if (snoopPTinProxyGroupEntryDelete(interfacePtr,groupAddr,recordType)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryDelete()");      
-      return L7_FAILURE;
-    }
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Group Record Removed (groupAddr:%s recordType:%u) from interface (vlanId:%u)",inetAddrPrint(groupAddr, debug_buf),recordType,interfacePtr->key.vlanId);
-  }
-#endif
-
-
-  if ((--interfacePtr->numberOfGroupRecords)<=0)
-  {
-    interfacePtr->numberOfGroupRecords=0;    
-//  return(snoopPTinProxyInterfaceRemove(interfacePtr));
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "Number of Group Records was already equal to zero");   
+    interfacePtr->groupRecord=L7_NULLPTR;
   }
 
   return L7_SUCCESS;

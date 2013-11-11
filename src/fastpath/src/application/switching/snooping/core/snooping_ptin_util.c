@@ -457,7 +457,7 @@ L7_RC_t snoopPTinScheduleReportMessage(L7_uint32 vlanId, L7_inet_addr_t* groupAd
     if (newNoOfRecords>0)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Re-Scheduling Membership Report Message with timeout: %u ",igmpCfg.host.unsolicited_report_interval);  
-      if (snoop_ptin_proxytimer_start(proxyTimer,igmpCfg.host.unsolicited_report_interval,reportType, L7_FALSE,newNoOfRecords,newgroupPtr,robustnessVariable)!=L7_SUCCESS)
+      if (snoop_ptin_proxytimer_start(proxyTimer,igmpCfg.host.unsolicited_report_interval,reportType, isInterface,newNoOfRecords,newgroupPtr,robustnessVariable)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
         return L7_FAILURE;
@@ -1279,7 +1279,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
 
   /* Argument validation */
   if (groupPtr == L7_NULLPTR || newNoOfRecords==L7_NULLPTR || noOfRecords==0 ||
-       (interfacePtr=groupPtr->interfacePtr)==L7_NULLPTR || groupPtr->interfacePtr->key.vlanId<PTIN_IGMP_MIN_VLAN_ID || groupPtr->interfacePtr->key.vlanId>PTIN_IGMP_MAX_VLAN_ID)
+      (interfacePtr=groupPtr->interfacePtr)==L7_NULLPTR || groupPtr->interfacePtr->key.vlanId<PTIN_IGMP_MIN_VLAN_ID || groupPtr->interfacePtr->key.vlanId>PTIN_IGMP_MAX_VLAN_ID)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return L7_NULLPTR;
@@ -1518,33 +1518,30 @@ static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *inter
       //Verify is this Group Record was created before
       if (newEntry==L7_FALSE)
       {
-        //Verify if there is any pending response to this Group Address        
+       //Verify if the timer is running for this Group Record. If so, stop it.
         if (snoop_ptin_proxytimer_isRunning(&groupPtr->timer)==L7_TRUE)
         {
-          continue;
-        }
-        else //Remove Group Record and Add it again
-        {
-          if (snoopPTinGroupRecordRemove(interfacePtr,&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, recordType)!=L7_SUCCESS)
+          if (snoop_ptin_proxytimer_stop(&groupPtr->timer)!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");        
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_stop()");
+          }
+        }
+        //Remove Group Record and Add it again
+        if (snoopPTinGroupRecordRemove(interfacePtr,&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, recordType)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");        
+          return L7_NULLPTR;
+        }
+        else
+        {
+          if ((groupPtr=snoopPTinGroupRecordAdd(interfacePtr,recordType,&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,&newEntry,robustnessVariable))== L7_NULLPTR)
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
             return L7_NULLPTR;
           }
-          else
-          {
-            if ((groupPtr=snoopPTinGroupRecordAdd(interfacePtr,recordType,&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,&newEntry,robustnessVariable))== L7_NULLPTR)
-            {
-              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
-              return L7_NULLPTR;
-            }
-          }
-          ++noOfRecords;
         }
       }
-      else
-      {
-        ++noOfRecords;
-      }
+      ++noOfRecords;           
 
       if (firstGroupPtr==L7_NULLPTR)
       {
