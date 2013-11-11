@@ -6833,25 +6833,25 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
 
   if (msgMacAcl->aclType != ACL_TYPE_MAC)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgMacAcl->aclType);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->aclId >= L7_MAX_ACL_LISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgMacAcl->aclId);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgMacAcl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->action > ACL_ACTION_PERMIT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgMacAcl->action);
     return L7_FAILURE;
   }
   
@@ -6932,7 +6932,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
 
   if ( (msgIpAcl->aclType != ACL_TYPE_IP_STANDARD) && (msgIpAcl->aclType != ACL_TYPE_IP_EXTENDED) && (msgIpAcl->aclType != ACL_TYPE_IP_NAMED) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgIpAcl->aclType);
     return L7_FAILURE;
   }
 
@@ -6940,7 +6940,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   {
     if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
@@ -6948,20 +6948,20 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   {
     if ( (msgIpAcl->aclId < 100) || (msgIpAcl->aclId > 199) ) /* [100..199] */
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
 
   if (msgIpAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgIpAcl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgIpAcl->action > ACL_ACTION_PERMIT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpAcl->action);
     return L7_FAILURE;
   }
 
@@ -7042,25 +7042,25 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
 
   if (msgIpv6Acl->aclType != ACL_TYPE_IPv6_EXTENDED)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgIpv6Acl->aclType);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgIpv6Acl->aclType);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->aclId >= L7_MAX_ACL_LISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpv6Acl->aclId);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid %d", msgIpv6Acl->aclRuleId);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgIpv6Acl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->action > ACL_ACTION_PERMIT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid %d", msgIpv6Acl->action);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpv6Acl->action);
     return L7_FAILURE;
   }
 
@@ -7180,13 +7180,13 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
 
   if (msgAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid %d", msgAcl->aclType);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgAcl->aclType);
     return L7_FAILURE;
   }
 
   if (msgAcl->direction > ACL_DIRECTION_OUT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid %d", msgAcl->direction);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid (%d)", msgAcl->direction);
     return L7_FAILURE;
   }
 
