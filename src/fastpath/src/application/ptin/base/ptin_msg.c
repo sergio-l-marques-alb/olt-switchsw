@@ -7227,7 +7227,14 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   }
   else
   {
+    L7_uint32 intIfNum;
+
     msgAcl->vlanId = L7_ACL_INVALID_VLAN_ID;
+
+    ptin_intf_port2intIfNum(msgAcl->interface, &intIfNum);
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Converting Interface %d to intIfNum %d", msgAcl->interface, intIfNum);
+    msgAcl->interface = intIfNum;
   }
 
   
