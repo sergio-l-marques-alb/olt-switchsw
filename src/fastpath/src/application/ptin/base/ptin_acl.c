@@ -411,7 +411,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Check Src IP */
     if ( (aclType != ACL_STANDARD) && !(msgAcl->aclRuleMask & ACL_IP_RULE_MASK_srcIpAddr) )
     {
-      if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID) == L7_TRUE)
+      if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID) == L7_FALSE)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID");
         return L7_FAILURE;
@@ -479,6 +479,8 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
           return L7_FAILURE;
         }
       }
+
+      matchOther = L7_TRUE;
     }
 
 
@@ -501,7 +503,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
 
     /* Check Dst L4 Port */
     if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_dstStartPort)
-    {   
+    {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
       if (msgAcl->dstStartPort == msgAcl->dstEndPort)
       {
@@ -532,6 +534,8 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
           return L7_FAILURE;
         }
       }
+
+      matchOther = L7_TRUE;
     }
 
 
@@ -1255,7 +1259,6 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* Check Src L4 Port */
   if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_srcStartPort)
   {
-
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port");
     if (msgAcl->srcStartPort == msgAcl->srcEndPort)
     {
@@ -1286,6 +1289,8 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
         return L7_FAILURE;
       }
     }
+
+    matchOther = L7_TRUE;
   }
 
 
@@ -1341,6 +1346,8 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
         return L7_FAILURE;
       }
     }
+
+    matchOther = L7_TRUE;
   }
 
 
