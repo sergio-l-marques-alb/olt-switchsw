@@ -21,20 +21,20 @@
 
 struct {
   L7_uint32 aclId;
-  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL];
+  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
   #ifdef __VLAN_XLATE__
-  L7_uint32 aclRuleXlated[L7_MAX_NUM_RULES_PER_ACL];
+  L7_uint32 aclRuleXlated[L7_MAX_NUM_RULES_PER_ACL+1];
   #endif
 } ptin_aclMacDb[L7_MAX_ACL_LISTS];
 
 struct {
   L7_uint32 aclId;
-  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL];
-} ptin_aclIpDb[2*L7_MAX_ACL_LISTS]; /* Standard [1..99] and Extended [100..199]*/
+  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
+} ptin_aclIpDb[2*L7_MAX_ACL_LISTS];                         /* Standard [1..99] and Extended [100..199]*/
 
 struct {
   L7_uint32 aclId;
-  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL];
+  L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
 } ptin_aclIpv6Db[L7_MAX_ACL_LISTS];
 
 

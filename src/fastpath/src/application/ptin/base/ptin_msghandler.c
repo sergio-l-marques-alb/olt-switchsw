@@ -3464,7 +3464,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ACL_APPLY/UNAPPLY (0x%04X)", inbuffer->msgId);
-    
+
+      CHECK_INFO_SIZE_MOD(msg_apply_acl_t);
+
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_apply_acl_t));
 
       /* Execute command */
