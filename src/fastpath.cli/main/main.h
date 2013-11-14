@@ -35,6 +35,7 @@ extern int canal_buga;
 #define CCMSG_DEFAULTS_RESET                0x9003  // No struct
 #define CCMSG_APPLICATION_RESOURCES         0x9004  // struct msg_ptin_policy_resources
 #define CCMSG_MULTICAST_MACHINE_RESET       0x9005  // struct msg_HwGenReq_t
+#define CCMSG_HW_BOARD_ACTION               0x9007	// struct msg_HwGenReq_t
 
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t

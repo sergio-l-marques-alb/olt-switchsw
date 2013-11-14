@@ -5714,10 +5714,18 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   {
     int_vlan = root_vlan;   /* Vroot is the same for all the root interfaces */
 
+    #if (PTIN_BOARD_IS_GPON)
     rc = switching_root_add(ptin_port, intf_cfg->vid,
                             ((is_stacked) ? intf_cfg->vid_inner : 0),
                             int_vlan,
-                            (is_quattro && !is_stacked));
+                            !is_stacked);
+    #else
+    rc = switching_root_add(ptin_port, intf_cfg->vid,
+                            ((is_stacked) ? intf_cfg->vid_inner : 0),
+                            int_vlan,
+                            L7_FALSE);
+    #endif
+
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding root interface [ptin_port=%u Vs=%u Vi=%u Vr=%u]",

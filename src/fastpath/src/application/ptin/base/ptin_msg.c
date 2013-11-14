@@ -212,6 +212,41 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   return L7_SUCCESS;
 }
 
+/**
+ * Apply linkscan procedure
+ * 
+ * @param msg : message
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
+{
+  L7_RC_t rc;
+
+  LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_hw_proc");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask       = 0x%02x", msg->mask);
+
+  /* To insertion action, execute a linkscan to all slot ports */
+  if (msg->type == 0x03)
+  {
+    /* Apply linkscan to all ports of slot */
+    rc = ptin_intf_linkscan(msg->generic_id, -1); 
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan returns %d", rc);
+    }
+  }
+  else
+  {
+    rc = L7_SUCCESS;
+    LOG_WARNING(LOG_CTX_PTIN_MSG, "Unknown operation: %u", msg->type);
+  }
+
+  return rc;
+}
 
 /**
  * Reset alarms state

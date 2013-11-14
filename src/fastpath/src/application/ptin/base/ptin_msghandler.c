@@ -489,6 +489,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
+    case CCMSG_HW_BOARD_ACTION:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_HW_BOARD_ACTION (0x%04X)", CCMSG_HW_BOARD_ACTION);
+
+      CHECK_INFO_SIZE(msg_HwGenReq_t);
+
+      msg_HwGenReq_t *ptr = (msg_HwGenReq_t *) &inbuffer->info[0];
+
+      /* Hwardware procedure */
+      rc = ptin_msg_board_action(ptr);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      break;  /* CCMSG_HW_BOARD_ACTION */
+    }
+
     /************************************************************************** 
      * SLOT MODE CONFIGURATION
      **************************************************************************/

@@ -207,10 +207,30 @@ L7_RC_t ptin_hapi_phy_init(void)
       break;
     }
 
-    /* Init 40G ports at KR4 mode */
-    if (hapiWCMapPtr[i].wcSpeedG == 40)
+    /* 10G ports: disable linkscan */
+    if (hapiWCMapPtr[i-1].wcSpeedG == 10)
     {
-      if (ptin_hapi_kr4_set(i)!=L7_SUCCESS)
+      rv = bcm_linkscan_mode_set(0, i, BCM_LINKSCAN_MODE_NONE);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for port %u", i);
+        rc = L7_FAILURE;
+        break;
+      }
+      /* Force links to be up: bit 6 of register 0x8012 */
+      rv = bcm_port_phy_modify(0, i, BCM_PORT_PHY_INTERNAL, BCM_PORT_PHY_REG_INDIRECT_ADDR(0,0x8010,0x12), 0x40, 0x40);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error forcoing link up for port %u", i);
+        rc = L7_FAILURE;
+        break;
+      }
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Linkscan disabled for port %u", i);
+    }
+    /* Init 40G ports at KR4 mode */
+    else if (hapiWCMapPtr[i-1].wcSpeedG == 40)
+    {
+      if (ptin_hapi_kr4_set(i-1)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u in KR4", i);
         rc = L7_FAILURE;
@@ -219,6 +239,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
     }
   }
+
   #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
   int i;
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
@@ -517,6 +538,99 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
     intf_desc->bcm_port   = bcm_port;
     intf_desc->class_port = class_port;
   }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Apply a linkscan to this port
+ * 
+ * @param dapiPort: Port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_linkscan_set(ptin_dapi_port_t *dapiPort)
+{
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Linkscan procedure to usp {%d,%d,%d}", dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+
+  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  L7_int ptin_port;
+  bcm_pbmp_t pbmp;
+
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+
+  /* Validate dapiPort */
+  if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_NOT_SUPPORTED;
+  }
+
+  /* Validate bcm port */
+  if (hapi_ptin_port_get(hapiPortPtr->bcm_port, &ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u is not valid",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Get WC port map */
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
+
+  /* Speed of this interface should be 10G */
+  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries || hapiWCMapPtr[ptin_port].wcSpeedG != 10)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port, ptin_port);
+    return L7_NOT_SUPPORTED;
+  }
+
+  /* Execute linkscan */
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_PORT_SET(pbmp, hapiPortPtr->bcm_port);
+
+  if (bcm_linkscan_mode_set(0, hapiPortPtr->bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for port {%d,%d,%d}/bcm_port %u/port %u",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port, ptin_port);
+    return L7_FAILURE;
+  }
+
+  if (bcm_linkscan_update(bcm_unit, pbmp) != BCM_E_NONE)
+  {
+    bcm_linkscan_mode_set(0, hapiPortPtr->bcm_port, BCM_LINKSCAN_MODE_NONE);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to port {%d,%d,%d}/bcm_port %u/port %u",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port, ptin_port);
+    return L7_FAILURE;
+  }
+
+  if (bcm_linkscan_mode_set(0, hapiPortPtr->bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for port {%d,%d,%d}/bcm_port %u/port %u",
+            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port, ptin_port);
+    return L7_FAILURE;
+  }
+
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Linkscan applied to port {%d,%d,%d}/bcm_port %u/port %u",
+          dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, hapiPortPtr->bcm_port, ptin_port);
+#endif
 
   return L7_SUCCESS;
 }

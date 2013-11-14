@@ -173,6 +173,16 @@ extern L7_RC_t dtlPtinPcsPrbs( L7_uint32 intIfNum, DAPI_SYSTEM_CMD_t *dapiCmd );
 extern L7_RC_t dtlPtinSlotMode( ptin_slotmode_t *dapiCmd );
 
 /**
+ * Hardware procedure
+ *  
+ * @param intIfNum : interface
+ * @param dapiCmd : data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinHwProc( L7_uint32 intIfNum,  ptin_hwproc_t *dapiCmd );
+
+/**
  * Consult available hardware resources
  *  
  * @param resources: Available resources

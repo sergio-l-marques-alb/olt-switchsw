@@ -143,6 +143,15 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
 extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp);
 
 /**
+ * Apply a linkscan to this port
+ * 
+ * @param dapiPort: Port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_linkscan_set(ptin_dapi_port_t *dapiPort);
+
+/**
  * Get Egress port type definition
  * 
  * @param dapiPort  : Physical interface

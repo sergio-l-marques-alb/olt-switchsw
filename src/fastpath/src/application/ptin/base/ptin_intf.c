@@ -3331,6 +3331,111 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 }
 
 /**
+ * Apply linkscan procedure
+ *  
+ * @param slot_id : slot id 
+ * @param slot_port : slot port index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_linkscan(L7_int slot_id, L7_int slot_port)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+
+  L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  ptin_hwproc_t hw_proc;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
+      slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_LINKSCAN;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = 0;
+  hw_proc.param2 = 0;
+
+  /* Apply to only one port of the slot */
+  if ( slot_port >= 0)
+  {
+    port_idx = slot_port;
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* Validate port */
+    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      return L7_FAILURE;
+    }
+
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum, &hw_proc);
+
+    if (rc != L7_SUCCESS)
+      LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+    else
+      LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
+  }
+  /* Apply to all slot ports */
+  else
+  {
+    /* Run all slot ports */
+    for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+    {
+      ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+      /* If not used, skip */
+      if (ptin_port < 0)
+        continue;
+
+      /* Validate port */
+      if (ptin_port >= ptin_sys_number_of_ports ||
+          ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        return L7_FAILURE;
+      }
+
+      /* Apply procedure */
+      rc = dtlPtinHwProc(intIfNum, &hw_proc);
+
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        break;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        /* Next port */
+      }
+    }
+  }
+
+  if (rc != L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_API,"Terminated with error %d", rc);
+  else
+    LOG_TRACE(LOG_CTX_PTIN_API,"Finished successfully");
+
+  /* Return execution state */
+  return rc;
+
+  #else
+  return L7_SUCCESS;
+  #endif
+}
+
+/**
  * Get slot mode list
  *  
  * @param slotmodes 

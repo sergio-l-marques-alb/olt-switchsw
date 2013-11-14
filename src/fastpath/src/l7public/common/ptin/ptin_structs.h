@@ -47,6 +47,18 @@ typedef struct
   L7_uint32 slotMode[PTIN_SYS_SLOTS_MAX];       /* List of slot modes */
 } ptin_slotmode_t;
 
+/* Hardware procedure */
+#define PTIN_HWPROC_NONE      0
+#define PTIN_HWPROC_LINKSCAN  1
+typedef struct
+{
+  DAPI_CMD_GET_SET_t  operation;
+  L7_uint8  procedure;
+  L7_uint8  mask;
+  L7_uint8  param1;
+  L7_uint8  param2;
+} ptin_hwproc_t;
+
 
 /* Switch Port PHY configurations *********************************************/
 #define PTIN_PHYCONF_MASK_SPEED         0x0001

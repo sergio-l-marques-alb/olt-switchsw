@@ -49,6 +49,7 @@ void help_oltBuga(void)
         "m 1010 port[0-17] enable[0,1] speed[1G=3,2.5G=4] fullduplex[0,1] framemax(bytes) lb[0,1] macLearn[0,1] - switch port configuration\n\r"
         "m 1011 port[0-17] - get switch port configuration\n\r"
         "m 1012 port[0-17] - Get Phy states\n\r"
+        "m 1013 slot[2-19] - Apply linkscan procedure\n\r"
         "m 1015 [0-Phy,1-Lag]/[intf#] - Get port type definitions\r\n"
         "m 1016 slot=[0-17] intf=<[0-Phy;1-Lag]/intf#> defvid=[1-4095] defprio=[0-7] aftypes=[0/1] ifilter=[0/1] rvlanreg=[0/1] vlanaware=[0/1] type=[0/1/2]\r\n"
         "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] - Set port type definitions\r\n"
@@ -724,6 +725,39 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_PHY_STATE_GET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
+        }
+        break;
+
+      /* m 1013 slot[2-19] - Apply linkscan procedure */
+      case 1013:
+        {
+          msg_HwGenReq_t *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          comando.msgId = CCMSG_HW_BOARD_ACTION;
+          comando.infoDim = sizeof(msg_HwGenReq_t);
+
+          // Pointer to data array
+          ptr = (msg_HwGenReq_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HwGenReq_t));
+
+          // Slot id
+          ptr->slot_id = (uint8)-1;
+          ptr->generic_id = 0;
+          ptr->type = 3;
+          ptr->mask = 0;
+
+          // Slot id
+          if (StrToLongLong(argv[3+0], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->generic_id = (uint8) valued;
         }
         break;
 
@@ -4422,6 +4456,13 @@ int main (int argc, char *argv[])
             printf(" Switch: Error reading phy states\n\r");
         }
         break;
+
+    case 1013:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" Linkscan applied successfully\n\r");
+      else
+        printf(" Linkscan not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+      break;
 
     case 1015:
       {

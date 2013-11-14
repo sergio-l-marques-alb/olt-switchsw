@@ -30,6 +30,18 @@ extern L7_RC_t hapiBroadPtinDataInit(void);
 extern L7_RC_t hapiBroadPtinInit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
 /**
+ * Apply hardware procedure
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
+/**
  * Get slot mode list
  * 
  * @param usp 

@@ -61,6 +61,8 @@
 #endif
 #endif
 
+#include "logger.h"
+
 void *hapiLinkStatusQueue = L7_NULL;
 
 /*********************************************************************
@@ -266,6 +268,8 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
 {
  portLinkStatus_t link_msg;
 
+ LOG_NOTICE(LOG_CTX_PTIN_HAPI,"LPort 0x%08x link=%d", lport, portInfo->linkstatus);
+
  link_msg.lport = lport;
  link_msg.linkstatus = portInfo->linkstatus;
 
@@ -327,12 +331,14 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
   if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_FALSE) && (linkstatus == TRUE))
   {
     /* link is up */
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI,"LPort 0x%08x link is up", lport);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_TRUE;
     hapiBroadPortLinkUp(&usp, dapi_g);
   }
   else if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_TRUE) && (linkstatus == FALSE))
   {
     /* link is down */
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI,"LPort 0x%08x link is down", lport);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_FALSE;
     hapiBroadPortLinkDown(&usp, dapi_g);
   }

@@ -78,6 +78,15 @@ extern L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg);
 extern L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg);
 
 /**
+ * Apply linkscan procedure
+ * 
+ * @param msg : message
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg);
+
+/**
  * Reset alarms state
  *  
  */

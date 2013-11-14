@@ -247,6 +247,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PACKETS_TRAP_TO_CPU          ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPacketTrapConfig;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_PCS_PRBS                     ] = (HAPICTLFUNCPTR_t)hapiBroadSystemPTinPrbs;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_SLOT_MODE                    ] = (HAPICTLFUNCPTR_t)hapiBroadPtinSlotMode;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_HW_PROCEDURE                 ] = (HAPICTLFUNCPTR_t)hapiBroadHwApply;
   /* PTin end */
 
 
