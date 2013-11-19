@@ -75,7 +75,6 @@ L7_RC_t hapiBroadPtinInit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *d
  */
 L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  ptin_dapi_port_t dapiPort;
   ptin_hwproc_t *hwproc = (ptin_hwproc_t *) data;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -89,21 +88,29 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     return L7_FAILURE;
   }
 
-  /* Prepare dapiPort structure */
-  DAPIPORT_SET(&dapiPort, usp, dapi_g);
-
   if (hwproc->procedure == PTIN_HWPROC_NONE)
   {
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Nothing to do");
     return L7_SUCCESS;
   }
 
+  /* Validate operation */
+  if (hwproc->operation != DAPI_CMD_SET && hwproc->operation != DAPI_CMD_CLEAR)
+  {
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+    return L7_SUCCESS;
+  }
+
   switch (hwproc->procedure)
   {
   case PTIN_HWPROC_LINKSCAN:
-    rc = ptin_hapi_linkscan_set(&dapiPort);
+    rc = ptin_hapi_linkscan_set(usp, dapi_g, (hwproc->operation==DAPI_CMD_SET));
     if (rc != L7_SUCCESS)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set");
+    break; 
+
+  case PTIN_HWPROC_BOARDACTION:
+    /* TODO */
     break; 
 
   default:

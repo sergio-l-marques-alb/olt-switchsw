@@ -25,7 +25,6 @@ typedef enum {
   PTIN_PHASE_UNCONFIG_2,
 } ptinCnfgrState_t;
 
-
 L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
                                     L7_CNFGR_ERR_RC_t   *pReason );
 L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,

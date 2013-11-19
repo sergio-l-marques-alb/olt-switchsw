@@ -432,7 +432,18 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return L7_FAILURE;
 #endif
 
-  #if ( !PTIN_BOARD_IS_MATRIX )
+/* Only make interface state management, if CXO board */
+#ifdef PTIN_LINKSCAN_CONTROL
+  if (ptin_control_intf_init() != L7_SUCCESS)
+  {
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_FATAL;
+    return L7_ERROR;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_control_intf_init initialized!");
+#endif
+
+#if ( !PTIN_BOARD_IS_MATRIX )
   if (ptin_packet_init() != L7_SUCCESS)
   {
     *pResponse = 0;
@@ -440,7 +451,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_ERROR;
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
-  #endif
+#endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 

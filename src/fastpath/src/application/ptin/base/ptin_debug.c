@@ -21,6 +21,7 @@
 #include <dapi_db.h>
 extern L7_uint32 hpcLocalCardIdGet(int slotNum);
 
+
 /*************************** 
  * EXTERNAL FUNCTIONS
  ***************************/
@@ -36,6 +37,7 @@ typedef struct
 } ptin_debug_timer_t;
 
 ptin_debug_timer_t processing_timer[TIMERS_MAX];
+
 
 void ptin_timer_start(L7_uint16 timer_id, char *str)
 {

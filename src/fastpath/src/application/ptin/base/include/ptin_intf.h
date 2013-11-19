@@ -461,12 +461,22 @@ extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
 /**
  * Apply linkscan procedure
  *  
+ * @param intIfNum : Interface
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable);
+
+/**
+ * Apply linkscan procedure
+ *  
  * @param slot_id : slot id 
  * @param slot_port : slot port index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkscan(L7_int slot_id, L7_int slot_port);
+extern L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enable);
 
 /**
  * Get the current slot mode list

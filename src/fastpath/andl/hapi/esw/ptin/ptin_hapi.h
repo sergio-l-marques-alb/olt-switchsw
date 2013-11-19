@@ -149,7 +149,7 @@ extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, p
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_linkscan_set(ptin_dapi_port_t *dapiPort);
+extern L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable);
 
 /**
  * Get Egress port type definition

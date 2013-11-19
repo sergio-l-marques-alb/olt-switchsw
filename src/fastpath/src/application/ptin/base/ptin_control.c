@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 #include "ptin_include.h"
+#include "ptin_control.h"
 #include "ptin_cnfgr.h"
 #include "ptin_intf.h"
 #include "ptin_xlate_api.h"
@@ -22,6 +23,7 @@
 #include "ipc.h"
 #include "nimapi.h"
 #include "usmdb_dot3ad_api.h"
+#include "usmdb_nim_api.h"
 #include "ptin_fieldproc.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE )
@@ -30,6 +32,9 @@
 
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_ISLOADING;
+
+L7_BOOL ptin_slot_present[PTIN_SYS_SLOTS_MAX+1];
+L7_BOOL ptin_remote_link[PTIN_SYSTEM_N_INTERF];
 
 static L7_uint32 ptin_loop_handle = 0;  /* periodic timer handle */
 
@@ -42,6 +47,24 @@ static void startup_trap_send(void);
 static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
+
+/******************************** 
+ * Interface events 
+ ********************************/
+
+/* Interface events */
+typedef struct
+{
+  L7_uint32 intIfNum;
+  L7_uint32 event;
+  L7_uint32 type;
+} ptinIntfEventMsg_t;
+
+/* Queue to manage interface events */
+void *ptin_intf_event_queue = L7_NULLPTR;
+
+static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg);
+
 
 /**
  * Task that runs part of the PTin initialization and further periodic 
@@ -573,5 +596,266 @@ static void monitor_matrix_commutation(void)
     matrix_send_queries = L7_FALSE;
   }
 #endif
+}
+
+/**
+ * Register board insertion/remotion
+ *  
+ * @param slot_id : slot id 
+ * @param enable : slot port index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_boardaction_set(L7_int slot_id, L7_uint8 enable)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  ptin_slot_present[slot_id] = enable & 1;
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Initialize interface changes notifier
+ * 
+ * @author mruas (11/18/2013)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_control_intf_init(void)
+{
+  /* create queue for VLAN and initialization events */
+  ptin_intf_event_queue = osapiMsgQueueCreate("PTin event queue",
+                                         L7_ALL_INTERFACES * 2,
+                                         sizeof(ptinIntfEventMsg_t));
+  if (ptin_intf_event_queue == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error creating queue to process interface events");
+    return L7_FAILURE;
+  }
+
+  /* Create PTinIntf task */
+  if (osapiTaskCreate("PTinIntf task", ptinIntfTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to create PTinIntf task!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task created");
+
+  /* Wait for task to be launched */
+  if (osapiWaitForTaskInit (L7_PTIN_INTF_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to start PTin task!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task launch OK");
+
+  /* Interface changes */
+  if (nimRegisterIntfChange(L7_PTIN_COMPONENT_ID, ptinIntfChangeCallback,
+                            ptinIntfStartupCallback, 10050) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to register with interface change callback with NIM");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "nimRegisterIntfChange Executed");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Task that checks for Interface changes
+ * 
+ * @param numArgs 
+ * @param unit 
+ */
+void ptinIntfTask(L7_uint32 numArgs, void *unit)
+{
+  L7_RC_t rc;
+  ptinIntfEventMsg_t eventMsg;
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTinIntf running!");
+
+  rc = osapiTaskInitDone(L7_PTIN_INTF_TASK_SYNC);
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTinIntf task will now start!");
+
+  #if 0
+  /* Wait for a signal indicating that all other modules
+   * configurations were executed */
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task waiting for other modules to boot up...");
+  rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTinIntf task will now start!");
+  #endif
+
+  while (1)
+  {
+    /* Check if queue is valid */
+    if (ptin_intf_event_queue == L7_NULLPTR)
+    {
+      osapiSleep(1);
+      continue;
+    }
+
+    if (osapiMessageReceive(ptin_intf_event_queue, &eventMsg, sizeof(ptinIntfEventMsg_t), L7_WAIT_FOREVER) == L7_SUCCESS)
+    {
+      /* Process interface events: only a maximum of 10 per loop */
+      rc = ptinIntfUpdate(&eventMsg);
+      LOG_INFO(LOG_CTX_PTIN_CNFGR, "Event processed: rc=%d", rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_CNFGR, "Error receiving queue messages");
+    }
+  }
+}
+
+/*********************************************************************
+* @purpose  Update the current state of a given interface.
+*
+* @param    intIfNum   @b((input)) internal interface number
+*
+* @returns  L7_SUCCESS
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
+                               L7_uint32 event,
+                               NIM_CORRELATOR_t correlator)
+{
+  NIM_EVENT_COMPLETE_INFO_t status;
+  ptinIntfEventMsg_t eventMsg;
+
+  status.intIfNum     = intIfNum;
+  status.component    = L7_PTIN_COMPONENT_ID;
+  status.response.rc  = L7_SUCCESS;
+  status.event        = event;
+  status.correlator   = correlator;
+  status.response.reason = NIM_ERR_RC_UNUSED;
+
+  //LOG_INFO(LOG_CTX_PTIN_CONTROL, "Event received: event=%u, intIfNum=%u",event, intIfNum);
+
+  if (nimPhaseStatusCheck() != L7_TRUE)
+  {
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+    LOG_ERR(LOG_CTX_PTIN_CONTROL,
+            "DHCP snooping received an interface change callback for event %s"
+            " on interface %s during invalid initialization phase.",
+            nimGetIntfEvent(event), ifName);
+    nimEventStatusCallback(status);
+    return L7_SUCCESS;
+  }
+
+  /* Send event to queue */
+  /* For CXO, check if slot have an inserted card */
+  #if (PTIN_BOARD_IS_MATRIX)
+  L7_uint16 slot_id;
+
+  /* Get slot associated to this interface */
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot_id, L7_NULLPTR) != L7_SUCCESS || slot_id > PTIN_SYS_SLOTS_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error getting slot for intIfNum %u", intIfNum);
+    nimEventStatusCallback(status);
+    return L7_SUCCESS;
+  }
+  /* Only disable linkscan if slot have an inserted board */
+  if (!ptin_slot_present[slot_id])
+  {
+    LOG_WARNING(LOG_CTX_PTIN_CONTROL, "Slot %u (intIfNum %u) not present", slot_id, intIfNum);
+    nimEventStatusCallback(status);
+    return L7_SUCCESS;
+  }
+  #endif
+
+  eventMsg.event    = event; 
+  eventMsg.intIfNum = intIfNum;
+  if (osapiMessageSend(ptin_intf_event_queue, &eventMsg, sizeof(ptinIntfEventMsg_t),
+                       L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
+
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error sending message to queue: event=%u, intIfNum=%u",event, intIfNum);
+  }
+  else
+  {
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Message sent to queue: event=%u, intIfNum=%u",event, intIfNum);
+  }
+
+  nimEventStatusCallback(status);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Process interface events
+ * 
+ * @param eventMsg 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (eventMsg == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  #ifdef PTIN_LINKSCAN_CONTROL
+  if ( eventMsg->event == L7_UP ) /* No need to process any other NIM event than these  */
+  {
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
+
+    /* Disable linkscan */
+    rc = ptin_intf_linkscan(eventMsg->intIfNum, L7_DISABLE);
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled: rc=%d, intIfNum=%u", rc, eventMsg->intIfNum);
+  }
+  #endif
+
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Handle NIM startup callback
+*
+* @param    startupPhase     create or activate
+*
+* @returns  void
+*
+* @notes
+*
+* @end
+*********************************************************************/
+void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
+{
+  PORTEVENT_MASK_t portEvent_mask;
+
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "Startup executed");
+
+  memset(&portEvent_mask, 0x00, sizeof(portEvent_mask));
+
+  /* Now ask NIM to send any future changes for these event types */
+  PORTEVENT_SETMASKBIT(portEvent_mask, L7_UP);
+  PORTEVENT_SETMASKBIT(portEvent_mask, L7_DOWN);
+
+  /* Event types to be received */
+  nimRegisterIntfEvents(L7_PTIN_COMPONENT_ID, portEvent_mask);
+
+  nimStartupEventDone(L7_PTIN_COMPONENT_ID);
 }
 
