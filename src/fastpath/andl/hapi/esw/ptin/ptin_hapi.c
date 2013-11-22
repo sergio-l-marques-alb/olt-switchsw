@@ -282,12 +282,16 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 {
   int fault;
   bcm_pbmp_t pbmp;
+  bcm_port_info_t port_info;
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
 
   /* Execute linkscan */
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_PORT_SET(pbmp, bcm_port);
+
+  memset(&port_info, 0x00, sizeof(bcm_port_info_t));
+  port_info.action_mask = BCM_PORT_ATTR_LINKSCAN_MASK;
 
   if (enable)
   {
@@ -297,13 +301,24 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error clearing faults for bcm_port %u", bcm_port);
     }
+
     /* Enable linkscan */
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
-    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
+    #if 1
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=1 to bcm_port %u", bcm_port); 
+    port_info.linkscan = BCM_LINKSCAN_MODE_SW;
+    if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
+    #else
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
+    if (bcm_port_linkscan_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
+      return L7_FAILURE;
+    }
+    #endif
     #if 0
     /* Execute a linkscan update */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", bcm_port);
@@ -318,12 +333,22 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   if (!enable)
   {
     /* Disable linkscan */
+    #if 1
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=0 to bcm_port %u", bcm_port); 
+    port_info.linkscan = BCM_LINKSCAN_MODE_NONE;
+    if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for bcm_port %u", bcm_port);
+      return L7_FAILURE;
+    }
+    #else
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:0 to bcm_port %u", bcm_port); 
-    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
+    if (bcm_port_linkscan_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
+    #endif
   }
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);

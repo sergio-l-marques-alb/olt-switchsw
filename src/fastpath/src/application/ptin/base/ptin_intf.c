@@ -20,7 +20,7 @@
 #include "ptin_xlate_api.h"
 #include "fw_shm.h"
 
-static L7_BOOL linkscan_update_control = L7_TRUE;
+L7_BOOL linkscan_update_control = L7_TRUE;
 void ptin_control_linkscan_update(L7_BOOL enable)
 {
   linkscan_update_control = enable & 1;

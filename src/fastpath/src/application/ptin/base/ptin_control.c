@@ -670,7 +670,7 @@ L7_RC_t ptin_control_intf_init(void)
 }
 
 
-static void ptin_control_switchover_monitor(void);
+void ptin_control_switchover_monitor(void);
 
 /**
  * Task that checks for Matrix Switchovers
@@ -699,7 +699,10 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
   while (1)
   {
     osapiSleep(10);
-    ptin_control_switchover_monitor();
+    if (linkscan_update_control)
+    {
+      ptin_control_switchover_monitor();
+    }
   }
 }
 
@@ -710,7 +713,7 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
  * 
  * @return L7_RC_t 
  */
-static void ptin_control_switchover_monitor(void)
+void ptin_control_switchover_monitor(void)
 {
   #ifdef PTIN_LINKSCAN_CONTROL
   #if (PTIN_BOARD_IS_MATRIX)

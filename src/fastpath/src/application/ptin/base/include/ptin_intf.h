@@ -20,6 +20,8 @@
 #define PHY_PORT_40_GBPS              7   /* PTin added: Speed 40G */
 #define PHY_PORT_100_GBPS             8   /* PTin added: Speed 100G */
 
+extern L7_BOOL linkscan_update_control;
+
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
  * related configurations.
