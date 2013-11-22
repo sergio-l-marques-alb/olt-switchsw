@@ -639,8 +639,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptr = (msg_HwIntfInfo_t *) outbuffer->info;
 
       /* Execute command */
-      //rc = ptin_msg_slotMode_get(ptr);
-      rc = L7_SUCCESS;
+      rc = ptin_msg_intfInfo_get(ptr);
 
       if (L7_SUCCESS != rc)
       {

@@ -221,6 +221,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
  */
 L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
 {
+  L7_uint16 board_type;
   L7_RC_t rc = L7_SUCCESS;
 
   LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_board_action");
@@ -264,7 +265,19 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   if (msg->type == 0x00)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
-    /* Apply linkscan to all ports of slot */
+
+    rc = ptin_slot_boardtype_get(msg->generic_id, &board_type);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot %u (rc=%d)", msg->generic_id, rc);
+      return L7_FAILURE;
+    }
+    if (board_type == 0 || board_type == (L7_uint16)-1)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "No card present at slot %u", msg->generic_id);
+      return L7_SUCCESS;
+    }
+    /* reset board id */
     rc = ptin_slot_boardtype_set(msg->generic_id, L7_NULL);
     if (rc != L7_SUCCESS)
     {
@@ -272,7 +285,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
     #ifdef PTIN_LINKSCAN_CONTROL
     /* Enable linkscan for uplink boards */
-    if (PTIN_BOARD_IS_UPLINK(msg->param))
+    if (PTIN_BOARD_IS_UPLINK(board_type))
     {
       rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_DISABLE); 
       if (rc != L7_SUCCESS)
