@@ -1995,6 +1995,8 @@ if_esw_port(int u, args_t *a)
     char                *eee_enable=NULL, *stats=NULL, *str=NULL;
     uint32              flags;
 
+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
+
     if (!sh_check_attached(ARG_CMD(a), u)) {
         return CMD_FAIL;
     }
@@ -2417,6 +2419,8 @@ if_esw_port(int u, args_t *a)
      * causing it to return info in flux (e.g. suddenly go half duplex).
      */
 
+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
+
     DPORT_BCM_PBMP_ITER(u, pbm, dport, p) {
         port_info_init(u, p, &info_all[p], parsed_adj);
         if ((r = bcm_port_selective_get(u, p, &info_all[p])) < 0) {
@@ -2427,6 +2431,8 @@ if_esw_port(int u, args_t *a)
             return (CMD_FAIL);
         }
     }
+
+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
 
     /*
      * Loop through all the specified ports, changing whatever field
@@ -2480,6 +2486,8 @@ if_esw_port(int u, args_t *a)
                 }
             }
         }
+
+        printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
 
         if ((r = bcm_port_selective_set(u, p, &info_all[p])) < 0) {
             printk("%s: Error: Could not set port %s information: %s\n",

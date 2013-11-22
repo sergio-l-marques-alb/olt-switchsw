@@ -66,24 +66,19 @@
 extern int ptin_sys_number_of_ports;
 
 #define PTIN_BOARD_TYPE_NONE      0
-#define PTIN_BOARD_TYPE_TU40G     1
-#define PTIN_BOARD_TYPE_TOLTU20G  2
-#define PTIN_BOARD_TYPE_TG16G     3
-#define PTIN_BOARD_TYPE_TOLT8G    4
-#define PTIN_BOARD_TYPE_TA24GE    5
-#define PTIN_BOARD_TYPE_TA48GE    6
-#define PTIN_BOARD_TYPE_CXO360G   7
-#define PTIN_BOARD_TYPE_CXO640G   8
+#define PTIN_BOARD_TYPE_TU40G     0x21
+#define PTIN_BOARD_TYPE_TU40GR    0x2D
+#define PTIN_BOARD_TYPE_TOLTU20G  0x18
+#define PTIN_BOARD_TYPE_TR32R     0x2E
+#define PTIN_BOARD_TYPE_TG16G     0x1C
+#define PTIN_BOARD_TYPE_TOLT8G    0x19
+#define PTIN_BOARD_TYPE_TA48GE    0x28
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
 #define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TU40G))
-#define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TG16G) || \
-                                       (board)==(PTIN_BOARD_TYPE_TA24GE) || (board)==(PTIN_BOARD_TYPE_TA48GE))
-#define PTIN_BOARD_IS_OLT360(board)   ((board)==(PTIN_BOARD_TYPE_CXO360G) || \
-                                       (board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLT8G))
-#define PTIN_BOARD_IS_OLT1T3(board)   ((board)==(PTIN_BOARD_TYPE_CXO640G) || \
-                                       (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TG16G) ||\
-                                       (board)==(PTIN_BOARD_TYPE_TA24GE) || (board)==(PTIN_BOARD_TYPE_TA48GE))
+#define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE))
+#define PTIN_BOARD_IS_OLT360(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLT8G))
+#define PTIN_BOARD_IS_OLT1T3(board)   ((board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE))
 
 /* OLT7-8CH */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)

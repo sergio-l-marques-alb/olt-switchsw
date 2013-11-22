@@ -212,18 +212,9 @@ L7_RC_t ptin_hapi_phy_init(void)
     /* 10G ports: disable linkscan */
     if (hapiWCMapPtr[i-1].wcSpeedG == 10)
     {
-      #if 0
-      /* Force links to be up: bit 6 of register 0x8012 */
-      rv = bcm_port_phy_modify(0, i, BCM_PORT_PHY_INTERNAL, BCM_PORT_PHY_REG_INDIRECT_ADDR(0,0x8010,0x12), 0x40, 0x40);
-      if (rv != BCM_E_NONE)
-      {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error forcoing link up for port %u", i);
-        rc = L7_FAILURE;
-        break;
-      }
-
+      #ifdef PTIN_LINKSCAN_CONTROL
       /* Enable linkscan */
-      if (ptin_hapi_linkscan_execute(i) != L7_SUCCESS)
+      if (ptin_hapi_linkscan_execute(i, L7_DISABLE) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for port %u", i);
         rc = L7_FAILURE;
@@ -282,7 +273,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 {
   int fault;
   bcm_pbmp_t pbmp;
-  bcm_port_info_t port_info;
+  //bcm_port_info_t port_info;
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
 
@@ -290,8 +281,15 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_PORT_SET(pbmp, bcm_port);
 
+  #if 0
   memset(&port_info, 0x00, sizeof(bcm_port_info_t));
-  port_info.action_mask = BCM_PORT_ATTR_LINKSCAN_MASK;
+  if (bcm_port_selective_get(0, bcm_port, &port_info) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting port_info for bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  port_info.action_mask |= BCM_PORT_ATTR_LINKSCAN_MASK;
+  #endif
 
   if (enable)
   {
@@ -303,7 +301,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     }
 
     /* Enable linkscan */
-    #if 1
+    #if 0
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=1 to bcm_port %u", bcm_port); 
     port_info.linkscan = BCM_LINKSCAN_MODE_SW;
     if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
@@ -313,7 +311,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     }
     #else
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
-    if (bcm_port_linkscan_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
+    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
@@ -333,7 +331,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   if (!enable)
   {
     /* Disable linkscan */
-    #if 1
+    #if 0
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=0 to bcm_port %u", bcm_port); 
     port_info.linkscan = BCM_LINKSCAN_MODE_NONE;
     if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
@@ -343,7 +341,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     }
     #else
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:0 to bcm_port %u", bcm_port); 
-    if (bcm_port_linkscan_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
+    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
