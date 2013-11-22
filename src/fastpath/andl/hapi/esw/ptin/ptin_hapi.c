@@ -304,6 +304,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
+    #if 0
     /* Execute a linkscan update */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", bcm_port);
     if (bcm_linkscan_update(bcm_unit, pbmp) != BCM_E_NONE)
@@ -311,6 +312,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
+    #endif
   }
 
   if (!enable)
@@ -670,7 +672,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port;
 
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -701,7 +703,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
@@ -749,7 +751,7 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   L7_int ptin_port, i, link_status;
   bcm_pbmp_t pbmp;
 
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -780,7 +782,7 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;

@@ -3647,7 +3647,7 @@ L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable)
 L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -3742,7 +3742,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;

@@ -174,7 +174,7 @@ typedef union
     L7_uint8  slot_id;          /* 0x0F (1 byte)  */
     L7_uint8  empty3[0x1E - 0x10];
     L7_uint8  mx_is_active;     /* 0x1E (1 byte)  */
-    L7_uint8  empty3[PTIN_CPLD_MAP_SIZE - 0x1F];
+    L7_uint8  empty4[PTIN_CPLD_MAP_SIZE - 0x1F];
   } reg;
 } st_cpld_map_t;
 
