@@ -86,7 +86,8 @@
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
-                                                    //
+#define CCMSG_HW_INTF_INFO_GET              0x91E4  // struct msg_HwIntfInfo_t
+
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)
 #define CCMSG_APP_LOGGER_OUTPUT             0x91F2  // (To be used with fastpath.cli)
@@ -218,7 +219,7 @@ typedef struct {
   L7_uint8  slot_id;    // Slot ID
   L7_uint8  generic_id; // ID used for any purpose (context of each message)
   L7_uint8  type;       // Field used for any purpose
-  L7_uint8  mask;       // Generic 8 bit mask
+  L7_uint8  param;      // Parameter
 } __attribute__((packed)) msg_HwGenReq_t;
 
 typedef struct {
@@ -277,6 +278,19 @@ typedef struct {
   L7_char8   tty[TTY_MAX_LEN];
 } __attribute__((packed)) msg_Debug_t;
 #endif
+
+typedef struct {
+  L7_uint8  slot_id;          // Slot ID
+  L7_uint16 generic_id;       // ID used for any purpose (context of each message)
+  L7_uint8  number_of_ports;  // Number of used ports
+  struct                      // Information of each port
+  {
+    L7_uint8 board_id;
+    L7_uint8 enable;
+    L7_uint8 link;
+  } __attribute__((packed)) port[PTIN_SYSTEM_MAX_N_PORTS];
+} __attribute__((packed)) msg_HwIntfInfo_t;
+
 
 /* Misc structs ***************************************************************/
 

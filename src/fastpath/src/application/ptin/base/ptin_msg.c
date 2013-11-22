@@ -227,39 +227,69 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," param       = 0x%02x", msg->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
-  /* To insertion action, execute a linkscan to all slot ports */
+  /* insertion action */
   if (msg->type == 0x03)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u)", msg->generic_id);
     /* Apply linkscan to all ports of slot */
-    rc = ptin_intf_boardaction_set(msg->generic_id, L7_ENABLE);
+    rc = ptin_slot_boardtype_set(msg->generic_id, msg->param);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error inserting card (%d)", rc);
     }
-    rc = ptin_intf_linkscan_slot(msg->generic_id, -1, L7_DISABLE); 
-    if (rc != L7_SUCCESS)
+    #ifdef PTIN_LINKSCAN_CONTROL
+    /* Enable linkscan for uplink boards */
+    if (PTIN_BOARD_IS_UPLINK(msg->param))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling linkscan (%d)", rc);
+      rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_ENABLE); 
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling linkscan (%d)", rc);
+      }
     }
+    /* Force linkup for downlink boards */
+    else
+    {
+      rc = ptin_slot_linkup_force(msg->generic_id, -1, L7_ENABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling force linkup (%d)", rc);
+      }
+    }
+    #endif
   }
   /* Board removed */
   if (msg->type == 0x00)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
     /* Apply linkscan to all ports of slot */
-    rc = ptin_intf_boardaction_set(msg->generic_id, L7_DISABLE);
+    rc = ptin_slot_boardtype_set(msg->generic_id, L7_NULL);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
     }
-    rc = ptin_intf_linkscan_slot(msg->generic_id, -1, L7_ENABLE);
-    if (rc != L7_SUCCESS)
+    #ifdef PTIN_LINKSCAN_CONTROL
+    /* Enable linkscan for uplink boards */
+    if (PTIN_BOARD_IS_UPLINK(msg->param))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
+      rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_DISABLE); 
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling linkscan (%d)", rc);
+      }
     }
+    /* Disable force linkup for downlink boards */
+    else
+    {
+      rc = ptin_slot_linkup_force(msg->generic_id, -1, L7_DISABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
+      }
+    }
+    #endif
   }
 
   return rc;
@@ -280,31 +310,31 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask       = 0x%02x", msg->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
+  #if 0
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->mask);
-    #if 0
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->param);
     /* Apply linkscan to all ports of slot */
     rc = ptin_intf_linkscan(msg->generic_id, msg->mask, L7_DISABLE);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
     }
-    #endif
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->param);
     /* Apply linkscan to all ports of slot */
-    rc = ptin_intf_linkscan_slot(msg->generic_id, msg->mask, L7_ENABLE);
+    rc = ptin_slot_linkscan_set(msg->generic_id, msg->param, L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
     }
   }
+  #endif
 
   return rc;
 }
@@ -827,7 +857,46 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
   return L7_SUCCESS;
 }
 
+
 /* Slot mode configuration ****************************************************/
+
+/**
+ * Get all interfaces info
+ * 
+ * @param intf_info 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
+{
+  #if (PTIN_BOARD_IS_MATRIX)
+  L7_int ptin_port;
+  ptin_intf_t ptin_intf;
+  L7_uint16 admin, link, board_id;
+
+  /* Run all physical ports */
+  for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+  {
+    ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+    ptin_intf.intf_id   = ptin_port;
+
+    /* Get intf data */
+    if (ptin_intf_info_get(&ptin_intf, &admin, &link, &board_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading info for ptin_port %d", ptin_port);
+      return L7_FAILURE;
+    }
+
+    intf_info->port[ptin_port].board_id = board_id;
+    intf_info->port[ptin_port].enable   = admin;
+    intf_info->port[ptin_port].link     = link;
+  }
+  /* Number of ports */
+  intf_info->number_of_ports = ptin_sys_number_of_ports;
+  #endif
+
+  return L7_SUCCESS;
+}
 
 /**
  * Get slot mode configuration

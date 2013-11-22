@@ -627,6 +627,35 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    case CCMSG_HW_INTF_INFO_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_ATLEAST(L7_uint32);
+      msg_HwIntfInfo_t *ptr;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwIntfInfo_t));
+      ptr = (msg_HwIntfInfo_t *) outbuffer->info;
+
+      /* Execute command */
+      //rc = ptin_msg_slotMode_get(ptr);
+      rc = L7_SUCCESS;
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error reading slot map");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_slotModeCfg_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /************************************************************************** 
      * PHY CONFIG Processing
      **************************************************************************/
@@ -3607,6 +3636,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
   }
 
+  #if 0
   /* Save slot id parameter */
   if (inbuffer->infoDim>=1 &&
       inbuffer->info[0]!=(L7_uint8)-1 &&
@@ -3614,6 +3644,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     ptin_board_slotId = inbuffer->info[0];
   }
+  #endif
 
   /* Save final time */
   time_end = osapiTimeMicrosecondsGet();

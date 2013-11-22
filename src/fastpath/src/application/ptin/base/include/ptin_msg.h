@@ -182,6 +182,15 @@ extern L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msg
 /* Slot mode configuration ****************************************************/
 
 /**
+ * Get all interfaces info
+ * 
+ * @param intf_info 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info);
+
+/**
  * Get slot mode configuration
  * 
  * @param slotMode 

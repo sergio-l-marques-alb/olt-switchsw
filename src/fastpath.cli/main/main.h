@@ -153,7 +153,7 @@ typedef struct {
   L7_uint8  slot_id;    // Slot ID
   L7_uint8  generic_id; // ID used for any purpose (context of each message)
   L7_uint8  type;       // Field used for any purpose
-  L7_uint8  mask;       // Generic 8 bit mask
+  L7_uint8  param;      // Generic 8 bit mask
 } __attribute__((packed)) msg_HwGenReq_t;
 
 typedef struct {
