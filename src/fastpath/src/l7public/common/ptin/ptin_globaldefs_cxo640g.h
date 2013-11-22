@@ -4,7 +4,7 @@
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 /* To manage linkscan, uncomment this line */
-//#define PTIN_LINKSCAN_CONTROL
+#define PTIN_LINKSCAN_CONTROL
 
 #define __Y1731_802_1ag_OAM_ETH__
 

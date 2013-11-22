@@ -762,20 +762,30 @@ static void ptin_control_switchover_monitor(void)
 
       /* Disable force linkup for all ports */
       for (port=0; port<ptin_sys_number_of_ports; port++)
-        ptin_slot_linkup_force(slot_id, -1, L7_DISABLE);
+      {
+        /* For passive board, update force link states */
+        if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          ptin_intf_linkup_force(intIfNum, L7_DISABLE);
+      }
 
       /* Enable linkscan for all ports (links will go down) */
       for (port=0; port<ptin_sys_number_of_ports; port++)
-        ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
+      {
+        if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+      }
 
       /* Wait 3 seconds */
       osapiSleep(2);
 
       /* Disable linkscan for all ports */
       for (port=0; port<ptin_sys_number_of_ports; port++)
-        ptin_slot_linkscan_set(slot_id, -1, L7_DISABLE);
+      {
+        if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
+      }
 
-      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled for slot %u", slot_id);
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled for all ports");
     }
 
     /* End of procedure */
