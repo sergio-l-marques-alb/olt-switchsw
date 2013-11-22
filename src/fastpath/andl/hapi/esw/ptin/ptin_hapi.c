@@ -865,6 +865,7 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
     if (soc_phyctrl_loopback_set(0, hapiPortPtr->bcm_port, L7_DISABLE) != SOC_E_NONE)
     {
+      bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u",
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
       return L7_FAILURE;

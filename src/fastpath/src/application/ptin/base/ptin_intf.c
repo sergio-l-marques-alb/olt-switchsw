@@ -3541,7 +3541,6 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
 L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 {
   ptin_hwproc_t hw_proc;
-  L7_uint32 linkState;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate interface */
@@ -3564,21 +3563,6 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
   hw_proc.mask = 0xff;
   hw_proc.param1 = enable;
   hw_proc.param2 = 0;
-
-  /* To disable linkscan, link must be up */
-  if (!enable)
-  {
-    if (nimGetIntfLinkState(intIfNum, &linkState)!=L7_SUCCESS)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_API,"Error reading link state for intIfNum %u", intIfNum);
-      return L7_FAILURE;
-    }
-    if (linkState != L7_UP)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_API,"Link down in intIfNum %u", intIfNum);
-      return L7_SUCCESS;
-    }
-  }
 
   /* Apply procedure */
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
