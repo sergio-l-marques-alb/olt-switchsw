@@ -3874,7 +3874,7 @@ L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 
 
   /* Output data */
   if (enable    != L7_NULLPTR)  *enable = adminState;
-  if (link      != L7_NULLPTR)  *link   = linkState;
+  if (link      != L7_NULLPTR)  *link   = (linkState == L7_UP);
   if (board_type!= L7_NULLPTR)  *board_type = board_id;
 
   return L7_SUCCESS;
