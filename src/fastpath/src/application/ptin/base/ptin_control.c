@@ -744,7 +744,14 @@ void ptin_control_switchover_monitor(void)
     LOG_ERR(LOG_CTX_PTIN_CONTROL, "Failed to send interfaces query!");
     return;
   }
-
+  #if 0
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
+  for (port=0; port<ports_info.number_of_ports; port++)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "port=%u: boardId=%u admin=%u link=%u", port,
+              ports_info.port[port].board_id, ports_info.port[port].enable, ports_info.port[port].link);
+  }
+  #endif
   printf("Other board active ports: { ");
   for (port=0; port<ports_info.number_of_ports; port++)
   {

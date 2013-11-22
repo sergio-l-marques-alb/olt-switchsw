@@ -339,8 +339,11 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
     return ret;
   }
 
-  if (resposta.infoDim < infoDim)
-    infoDim = resposta.infoDim;
+  if (resposta.infoDim != infoDim)
+  {
+    LOG_ERR(LOG_CTX_IPC,"Wrong infodim (received %u bytes VS expected %u bytes)", infoDim, resposta.infoDim);
+    return ret;
+  }
 
   /* Return answer */
   memcpy(answer, resposta.info, infoDim);

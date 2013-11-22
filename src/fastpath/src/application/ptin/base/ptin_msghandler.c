@@ -643,13 +643,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error reading slot map");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error interface status");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_slotModeCfg_t);
+      outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }

@@ -773,6 +773,7 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port, i, link_status;
   bcm_pbmp_t pbmp;
+  bcm_error_t rv;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
@@ -830,10 +831,11 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     /* Apply Phy loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to enable PHY loopback (official) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if (bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_PHY) != SOC_E_NONE)
+    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_PHY)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
 
@@ -842,11 +844,11 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     do
     {
       osapiSleepUSec(10000);
-      if (bcm_port_link_status_get(0, hapiPortPtr->bcm_port, &link_status) != L7_SUCCESS)
+      if ((rv = bcm_port_link_status_get(0, hapiPortPtr->bcm_port, &link_status)) != BCM_E_NONE)
       {
         bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading link status for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading link status for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
         return L7_FAILURE;
       }
       i++;
@@ -863,11 +865,11 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     /* Disable loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable loopback (special) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if (soc_phyctrl_loopback_set(0, hapiPortPtr->bcm_port, L7_DISABLE) != SOC_E_NONE)
+    if ((rv = soc_phyctrl_loopback_set(0, hapiPortPtr->bcm_port, L7_DISABLE)) != SOC_E_NONE)
     {
       bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
 
@@ -879,10 +881,10 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     /* Undo Loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable loopback (special) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if (bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE) != L7_SUCCESS)
+    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
 

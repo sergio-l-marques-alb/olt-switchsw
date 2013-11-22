@@ -903,6 +903,8 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
     intf_info->port[ptin_port].board_id = board_id;
     intf_info->port[ptin_port].enable   = admin;
     intf_info->port[ptin_port].link     = link;
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "port=%u: boardId=%u admin=%u link=%u", ptin_port, board_id, admin, link);
   }
   /* Number of ports */
   intf_info->number_of_ports = ptin_sys_number_of_ports;
