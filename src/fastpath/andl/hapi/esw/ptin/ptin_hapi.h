@@ -143,6 +143,17 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
 extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp);
 
 /**
+ * get linkscan state
+ * 
+ * @param dapiPort: Port 
+ * @param dapi_g 
+ * @param enable: linkscan state (output) 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable);
+
+/**
  * Apply a linkscan to this port
  * 
  * @param dapiPort: Port
@@ -150,6 +161,18 @@ extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, p
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable);
+
+/**
+ * Force link in an interface 
+ * It is assumed linkscan is disabled for that interface 
+ * 
+ * @param usp 
+ * @param dapi_g 
+ * @param link_state 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable);
 
 /**
  * Get Egress port type definition

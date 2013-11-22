@@ -50,7 +50,7 @@ typedef struct
 /* Hardware procedure */
 #define PTIN_HWPROC_NONE        0
 #define PTIN_HWPROC_LINKSCAN    1
-#define PTIN_HWPROC_BOARDACTION 2
+#define PTIN_HWPROC_FORCE_LINK 2
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;

@@ -104,13 +104,33 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
   switch (hwproc->procedure)
   {
   case PTIN_HWPROC_LINKSCAN:
-    rc = ptin_hapi_linkscan_set(usp, dapi_g, (hwproc->operation==DAPI_CMD_SET));
-    if (rc != L7_SUCCESS)
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set");
+    if (hwproc->operation == DAPI_CMD_GET)
+    {
+      rc = ptin_hapi_linkscan_get(usp, dapi_g, &hwproc->param1); 
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_get");
+    }
+    else if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_linkscan_set(usp, dapi_g, hwproc->param1);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set (%u)", hwproc->param1);
+    }
     break; 
 
-  case PTIN_HWPROC_BOARDACTION:
-    /* TODO */
+  case PTIN_HWPROC_FORCE_LINK:
+    if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_linkup_force(usp, dapi_g, L7_ENABLE);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (%u)", hwproc->param1);
+    }
+    else if (hwproc->operation == DAPI_CMD_CLEAR)
+    {
+      rc = ptin_hapi_linkup_force(usp, dapi_g, L7_DISABLE);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (%u)", hwproc->param1);
+    }
     break; 
 
   default:
