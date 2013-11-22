@@ -702,7 +702,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   L7_uint16 slot, intf;
 
   /* Convert port to slot/intf */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR)!=L7_SUCCESS)
   {
     //if (ssm_debug_enable)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
@@ -1032,7 +1032,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   L7_uint16 slot, intf;
 
   /* Convert port to slot/intf */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR)!=L7_SUCCESS)
   {
     //if (ssm_debug_enable)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);

@@ -25,6 +25,7 @@
 #include "usmdb_dot3ad_api.h"
 #include "usmdb_nim_api.h"
 #include "ptin_fieldproc.h"
+#include "ptin_msghandler.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE )
 #include "fw_shm.h"
@@ -32,9 +33,6 @@
 
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_ISLOADING;
-
-L7_BOOL ptin_slot_present[PTIN_SYS_SLOTS_MAX+1];
-L7_BOOL ptin_remote_link[PTIN_SYSTEM_N_INTERF];
 
 static L7_uint32 ptin_loop_handle = 0;  /* periodic timer handle */
 
@@ -599,32 +597,6 @@ static void monitor_matrix_commutation(void)
 }
 
 /**
- * Register board insertion/remotion
- *  
- * @param slot_id : slot id 
- * @param enable : slot port index
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_intf_boardaction_set(L7_int slot_id, L7_uint8 enable)
-{
-  /* Only applied to CXO640G boards */
-  #if (PTIN_BOARD_IS_MATRIX)
-
-  /* Validate input params */
-  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
-  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
-    return L7_FAILURE;
-  }
-
-  ptin_slot_present[slot_id] = enable & 1;
-  #endif
-
-  return L7_SUCCESS;
-}
-
-/**
  * Initialize interface changes notifier
  * 
  * @author mruas (11/18/2013)
@@ -633,6 +605,28 @@ L7_RC_t ptin_intf_boardaction_set(L7_int slot_id, L7_uint8 enable)
  */
 L7_RC_t ptin_control_intf_init(void)
 {
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Create ptinSwitchoverTask */
+  if (osapiTaskCreate("PTinSwitchover task", ptinSwitchoverTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to create ptinSwitchoverTask!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask created");
+
+  /* Wait for task to be launched */
+  if (osapiWaitForTaskInit (L7_PTIN_SWITCHOVER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to start ptinSwitchoverTask!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
+  #endif
+
+  #if 0
   /* create queue for VLAN and initialization events */
   ptin_intf_event_queue = osapiMsgQueueCreate("PTin event queue",
                                          L7_ALL_INTERFACES * 2,
@@ -670,9 +664,201 @@ L7_RC_t ptin_control_intf_init(void)
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "nimRegisterIntfChange Executed");
+  #endif
 
   return L7_SUCCESS;
 }
+
+
+static void ptin_control_switchover_monitor(void);
+
+/**
+ * Task that checks for Matrix Switchovers
+ * 
+ * @param numArgs 
+ * @param unit 
+ */
+void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
+{
+  L7_RC_t rc;
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover running!");
+
+  rc = osapiTaskInitDone(L7_PTIN_SWITCHOVER_TASK_SYNC);
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover task will now start!");
+
+  #if 0
+  /* Wait for a signal indicating that all other modules
+   * configurations were executed */
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task waiting for other modules to boot up...");
+  rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTinIntf task will now start!");
+  #endif
+
+  while (1)
+  {
+    osapiSleep(10);
+    ptin_control_switchover_monitor();
+  }
+}
+
+/**
+ * Monitor switchover process
+ * 
+ * @author mruas (11/21/2013)
+ * 
+ * @return L7_RC_t 
+ */
+static void ptin_control_switchover_monitor(void)
+{
+  #ifdef PTIN_LINKSCAN_CONTROL
+  #if (PTIN_BOARD_IS_MATRIX)
+  #ifdef MAP_CPLD
+  L7_uint8  port;
+  L7_uint32 intIfNum;
+  L7_uint8  slot_id;
+  L7_uint16 board_id;
+
+  static L7_uint8 interfaces_active_h[PTIN_SYSTEM_MAX_N_PORTS];
+  L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
+
+  static L7_uint8 matrix_is_active_h = (L7_uint8) -1;
+  L7_uint8 matrix_is_active;
+
+  matrix_is_active = cpld_map->reg.mx_is_active;
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Task started");
+
+  /* First time procedure (after switchover) */
+  if (matrix_is_active != matrix_is_active_h)
+  {
+    matrix_is_active_h = matrix_is_active;
+    
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (active=%d)", matrix_is_active);
+
+    /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
+    if (matrix_is_active)
+    {
+      /* Run all slots */
+      for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
+      {
+        /* Nothing to do for non uplink boards */
+        if (ptin_slot_boardtype_get(slot_id, &board_id)!=L7_SUCCESS ||
+            !PTIN_BOARD_IS_UPLINK(board_id))
+          continue;
+
+        /* Disable force link-up, and enable linkscan for uplink boards */
+        ptin_slot_linkup_force(slot_id, -1, L7_DISABLE);
+        ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
+        LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan enabled for slot %u", slot_id);
+      }
+    }
+    /* For passive matrix, reset all ports, and disable linkscan for all of them */
+    else
+    {
+      /* Clear historic values of active interfaces */
+      memset(interfaces_active_h, 0x00, sizeof(interfaces_active_h));
+
+      /* Disable force linkup for all ports */
+      for (port=0; port<ptin_sys_number_of_ports; port++)
+        ptin_slot_linkup_force(slot_id, -1, L7_DISABLE);
+
+      /* Enable linkscan for all ports (links will go down) */
+      for (port=0; port<ptin_sys_number_of_ports; port++)
+        ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
+
+      /* Wait 3 seconds */
+      osapiSleep(2);
+
+      /* Disable linkscan for all ports */
+      for (port=0; port<ptin_sys_number_of_ports; port++)
+        ptin_slot_linkscan_set(slot_id, -1, L7_DISABLE);
+
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled for slot %u", slot_id);
+    }
+
+    /* End of procedure */
+    return;
+  }
+
+  /* Do nothing for active matrix */
+  if (matrix_is_active)
+  {
+    return;
+  }
+
+  /* --- Only for Passive matrix --- */
+
+  /* Query active matrix, abot active ports */
+  msg_HwIntfInfo_t ports_info;
+
+  memset(interfaces_active, 0x00, sizeof(interfaces_active));
+  memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
+
+  ports_info.slot_id    = (ptin_board_slotId <= 1) ? 20 : 1;
+  ports_info.generic_id = 0;
+  ports_info.generic_id = ptin_sys_number_of_ports;
+
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT,
+                       ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
+                       CCMSG_HW_INTF_INFO_GET,
+                       (char *) &ports_info,
+                       (char *) &ports_info,
+                       sizeof(msg_HwIntfInfo_t)) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Failed to send interfaces query!");
+    return;
+  }
+
+  printf("Other board active ports: { ");
+  for (port=0; port<ports_info.number_of_ports; port++)
+  {
+    if (ports_info.port[port].enable &&
+        ports_info.port[port].link &&
+        ports_info.port[port].board_id != 0)
+    {
+      interfaces_active[port] = 1;
+      printf("%2u ", port);
+    }
+  }
+  printf("}\r\n");
+
+  /* Update port state */
+  for (port = 0; port < PTIN_SYSTEM_MAX_N_PORTS; port++)
+  {
+    /* Skip unchanged ports */
+    if (interfaces_active[port] == interfaces_active_h[port])
+      continue;
+
+    /* Update new changes */
+    interfaces_active_h[port] = interfaces_active[port];
+
+    /* For active matrix, do nothing */
+    if (matrix_is_active)
+      continue;
+
+    /* --- Passive board --- */
+
+    /* For passive board, update force link states */
+    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
+      continue;
+    }
+    /* Enable/Disable force linkup */
+    if (ptin_intf_linkup_force(intIfNum, interfaces_active[port])!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error setting force linkup to %u for ptin_port %d!", interfaces_active[port], port);
+      continue;
+    }
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkup forced for port%u", port);
+  }
+  #endif
+  #endif
+  #endif
+}
+
 
 /**
  * Task that checks for Interface changes
@@ -764,16 +950,17 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   /* For CXO, check if slot have an inserted card */
   #if (PTIN_BOARD_IS_MATRIX)
   L7_uint16 slot_id;
+  L7_uint16 board_id;
 
   /* Get slot associated to this interface */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot_id, L7_NULLPTR) != L7_SUCCESS || slot_id > PTIN_SYS_SLOTS_MAX)
+  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS || slot_id > PTIN_SYS_SLOTS_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error getting slot for intIfNum %u", intIfNum);
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
   /* Only disable linkscan if slot have an inserted board */
-  if (!ptin_slot_present[slot_id])
+  if (board_id == L7_NULL)
   {
     LOG_WARNING(LOG_CTX_PTIN_CONTROL, "Slot %u (intIfNum %u) not present", slot_id, intIfNum);
     nimEventStatusCallback(status);
@@ -821,7 +1008,7 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
     LOG_INFO(LOG_CTX_PTIN_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
 
     /* Disable linkscan */
-    rc = ptin_intf_linkscan(eventMsg->intIfNum, L7_DISABLE);
+    rc = ptin_intf_linkscan_set(eventMsg->intIfNum, L7_DISABLE);
 
     LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled: rc=%d, intIfNum=%u", rc, eventMsg->intIfNum);
   }

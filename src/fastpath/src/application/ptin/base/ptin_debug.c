@@ -389,7 +389,7 @@ void ptin_intf_dump(void)
     /* Get slot and port id */
     slot = sport = 0;
 #if (PTIN_BOARD_IS_MATRIX)
-    if (ptin_intf_port2SlotPort(port, &slot, &sport)!=L7_SUCCESS)
+    if (ptin_intf_port2SlotPort(port, &slot, &sport, L7_NULLPTR)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get slot and port ids for port# %d", port);
       continue;

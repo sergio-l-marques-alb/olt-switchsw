@@ -346,6 +346,7 @@ typedef enum
   L7_DHCP_CLIENT_TASK_SYNC,
   L7_PTIN_TASK_SYNC,            /* PTin added: ptin task */
   L7_PTIN_INTF_TASK_SYNC,       /* PTin added: ptin task */
+  L7_PTIN_SWITCHOVER_TASK_SYNC, /* PTin added: ptin task */
   L7_PTIN_IGMP_TASK_SYNC,       /* PTin added: ptin task */
   L7_PTIN_PACKET_TASK_SYNC,     /* PTin added: ptin task */
   L7_SSM_RX_TASK_SYNC,          /* PTin added: ssm task  */

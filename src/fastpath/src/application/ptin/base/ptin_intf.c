@@ -14,6 +14,7 @@
 #include "usmdb_mib_vlan_api.h"
 
 #include "ptin_include.h"
+#include "ptin_control.h"
 #include "ptin_intf.h"
 #include "ptin_evc.h"
 #include "ptin_xlate_api.h"
@@ -60,6 +61,9 @@ static L7_uint32 map_port2intIfNum[PTIN_SYSTEM_N_INTERF];
 /* Map: intIfNum => ptin_port */
 static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
 
+#if (PTIN_BOARD_IS_MATRIX)
+static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
+#endif
 
 /**
  * MACROS
@@ -874,6 +878,135 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
   return dtlPtinCountersActivityGet(portActivity);
 }
 
+/****************************************************************************** 
+ * Board management
+ ******************************************************************************/
+
+/**
+ * Get board type for a particular interface
+ *  
+ * @param ptin_port
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_boardtype_get(L7_int ptin_port, L7_uint16 *board_id)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  L7_uint16 slot_id;
+
+  if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    return L7_FAILURE;
+  }
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  if (board_id != L7_NULLPTR)
+  {
+    *board_id = ptin_slot_boardid[slot_id]; 
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set board type for a particular interface (will override 
+ * board_id of other interfaces, if they belong to the same 
+ * slot) 
+ *  
+ * @param ptin_port
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  L7_uint16 slot_id;
+
+  if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    return L7_FAILURE;
+  }
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  ptin_slot_boardid[slot_id] = board_id;
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get board type for a particular slot
+ *  
+ * @param slot_id
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_slot_boardtype_get(L7_int slot_id, L7_uint16 *board_id)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  if (board_id != L7_NULLPTR)
+  {
+    *board_id = ptin_slot_boardid[slot_id]; 
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set board type for a particular slot
+ *  
+ * @param slot_id
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  ptin_slot_boardid[slot_id] = board_id;
+  #endif
+
+  return L7_SUCCESS;
+}
 
 /****************************************************************************** 
  * Port, LAGs and Interfaces convertion functions
@@ -919,7 +1052,7 @@ L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 port, L7_uint32 *i
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint16 *port)
+L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint16 *port, L7_uint16 *board_type)
 {
   ptin_intf_t ptin_intf;
 
@@ -930,7 +1063,7 @@ L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint
   }
 
   /* Get slot and port */
-  if (ptin_intf_ptintf2SlotPort(&ptin_intf, slot, port)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2SlotPort(&ptin_intf, slot, port, board_type)!=L7_SUCCESS)
   {
     return L7_FAILURE;
   }
@@ -996,9 +1129,10 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret)
+L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
 {
   L7_uint slot, port;
+  L7_uint16 board_id;
 
   /* Validate arguments */
   if (ptin_port >= ptin_sys_number_of_ports)
@@ -1020,7 +1154,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   slot = ptin_sys_intf_to_slot_map[ptin_port];
   port = ptin_sys_intf_to_port_map[ptin_port];
 
-  #else
+  #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
   slot = ptin_port + 2;
   port = 0;
   if (ptin_port >= (PTIN_SYSTEM_N_PORTS-1)/2 )
@@ -1028,6 +1162,9 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
     slot -= (PTIN_SYSTEM_N_PORTS-1)/2;
     port  = 1;
   }
+  #else
+  LOG_ERR(LOG_CTX_PTIN_SSM,"Not in a matrix board");
+  return L7_FAILURE;
   #endif
 
   /* Validate slot and port */
@@ -1037,8 +1174,15 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
     return L7_FAILURE;
   }
 
-  if (slot_ret!=L7_NULLPTR)  *slot_ret = slot;
-  if (port_ret!=L7_NULLPTR)  *port_ret = port;
+  /* Get board_id */
+  if (ptin_slot_boardtype_get(slot, &board_id) != L7_SUCCESS)
+  {
+    board_id = L7_NULL;
+  }
+
+  if (slot_ret  != L7_NULLPTR)  *slot_ret   = slot;
+  if (port_ret  != L7_NULLPTR)  *port_ret   = port;
+  if (board_type!= L7_NULLPTR)  *board_type = board_id;
 
   return L7_SUCCESS;
 }
@@ -1091,7 +1235,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret)
+L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
 {
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
@@ -1114,7 +1258,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
     return L7_FAILURE;
   }
 
-  return ptin_intf_port2SlotPort(ptin_intf->intf_id, slot_ret, port_ret);
+  return ptin_intf_port2SlotPort(ptin_intf->intf_id, slot_ret, port_ret, board_type);
 }
 
 
@@ -3342,6 +3486,51 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 }
 
 /**
+ * read linkscan status
+ *  
+ * @param intIfNum : Interface
+ * @param enable : enable (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
+{
+  ptin_hwproc_t hw_proc;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate interface */
+  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = DAPI_CMD_GET;
+  hw_proc.procedure = PTIN_HWPROC_LINKSCAN;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = 0;
+  hw_proc.param2 = 0;
+
+  /* Apply procedure */
+  rc = dtlPtinHwProc(intIfNum, &hw_proc);
+
+  if (rc != L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
+  else
+  {
+    if (enable != L7_NULLPTR)
+    {
+      *enable = hw_proc.param1;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_API,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
+  }
+
+  return rc;
+}
+
+/**
  * Apply linkscan procedure
  *  
  * @param intIfNum : Interface
@@ -3349,11 +3538,8 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable)
+L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 {
-  /* Only applied to CXO640G boards */
-#ifdef PTIN_LINKSCAN_CONTROL
-
   ptin_hwproc_t hw_proc;
   L7_uint32 linkState;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3373,10 +3559,10 @@ L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable)
 
   memset(&hw_proc,0x00,sizeof(hw_proc));
 
-  hw_proc.operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  hw_proc.operation = DAPI_CMD_SET;
   hw_proc.procedure = PTIN_HWPROC_LINKSCAN;
   hw_proc.mask = 0xff;
-  hw_proc.param1 = 0;
+  hw_proc.param1 = enable;
   hw_proc.param2 = 0;
 
   /* To disable linkscan, link must be up */
@@ -3403,9 +3589,51 @@ L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable)
     LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to intIfNum=%u", intIfNum);
 
   return rc;
-#else
-  return L7_SUCCESS;
-#endif
+}
+
+/**
+ * Apply linkscan procedure
+ *  
+ * @param intIfNum : Interface
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable)
+{
+  ptin_hwproc_t hw_proc;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate interface */
+  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  if (!linkscan_update_control)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_API,"Linkscan control disabled");
+    return L7_SUCCESS;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  hw_proc.procedure = PTIN_HWPROC_FORCE_LINK;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = 0;
+  hw_proc.param2 = 0;
+
+  /* Apply procedure */
+  rc = dtlPtinHwProc(intIfNum, &hw_proc);
+
+  if (rc != L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
+  else
+    LOG_TRACE(LOG_CTX_PTIN_API,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+
+  return rc;
 }
 
 /**
@@ -3416,10 +3644,10 @@ L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
+L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#ifdef PTIN_LINKSCAN_CONTROL
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -3448,7 +3676,7 @@ L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enabl
     }
 
     /* Linkscan procedure */
-    rc = ptin_intf_linkscan(intIfNum, enable);
+    rc = ptin_intf_linkscan_set(intIfNum, enable);
 
     if (rc != L7_SUCCESS)
       LOG_ERR(LOG_CTX_PTIN_API,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
@@ -3476,7 +3704,7 @@ L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enabl
       }
 
       /* Linkscan procedure */
-      rc = ptin_intf_linkscan(intIfNum, enable);
+      rc = ptin_intf_linkscan_set(intIfNum, enable);
 
       if (rc != L7_SUCCESS)
       {
@@ -3501,6 +3729,155 @@ L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enabl
 #else
   return L7_SUCCESS;
 #endif
+}
+
+/**
+ * Force link to all slot ports
+ *  
+ * @param slot_id : slot id 
+ * @param slot_port : slot port index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
+{
+  /* Only applied to CXO640G boards */
+#if (PTIN_BOARD_IS_MATRIX)
+
+  L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
+      slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    return L7_FAILURE;
+  }
+
+  /* Apply to only one port of the slot */
+  if ( slot_port >= 0)
+  {
+    port_idx = slot_port;
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* Validate port */
+    if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      return L7_FAILURE;
+    }
+
+    /* Linkscan procedure */
+    rc = ptin_intf_linkup_force(intIfNum, enable);
+
+    if (rc != L7_SUCCESS)
+      LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+    else
+      LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+  }
+  /* Apply to all slot ports */
+  else
+  {
+    /* Run all slot ports */
+    for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+    {
+      ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+      /* If not used, skip */
+      if (ptin_port < 0)
+        continue;
+
+      /* Validate port */
+      if (ptin_port >= ptin_sys_number_of_ports ||
+          ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        return L7_FAILURE;
+      }
+
+      /* Linkscan procedure */
+      rc = ptin_intf_linkup_force(intIfNum, enable);
+
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        break;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
+        /* Next port */
+      }
+    }
+  }
+
+  if (rc != L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_API,"Terminated with error %d", rc);
+  else
+    LOG_TRACE(LOG_CTX_PTIN_API,"Finished successfully");
+
+  /* Return execution state */
+  return rc;
+#else
+  return L7_SUCCESS;
+#endif
+}
+
+/**
+ * Get interface status
+ * 
+ * @param ptin_intf : interface (input)
+ * @param enable    : admin state (out)
+ * @param link      : link state (out)
+ * @param board_type: board_id (out)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type)
+{
+  L7_uint32 intIfNum;
+  L7_uint32 adminState, linkState;
+  L7_uint16 slot_id, slot_port, board_id;
+
+  /* Validate arguments */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Get slot information (do not look to an eventual error) */
+  if (ptin_intf_ptintf2SlotPort(ptin_intf, &slot_id, &slot_port, &board_id) != L7_SUCCESS)
+  {
+    slot_id   = 0;
+    slot_port = 0;
+    board_id  = 0;
+    LOG_WARNING(LOG_CTX_PTIN_API,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+  }
+
+  /* Admin state */
+  if (nimGetIntfAdminState(intIfNum, &adminState) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error getting admin state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Link state */
+  if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error getting link state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  if (enable    != L7_NULLPTR)  *enable = adminState;
+  if (link      != L7_NULLPTR)  *link   = linkState;
+  if (board_type!= L7_NULLPTR)  *board_type = board_id;
+
+  return L7_SUCCESS;
 }
 
 /**

@@ -172,7 +172,9 @@ typedef union
     L7_uint8  chassis_id;       /* 0x0C (1 byte)  */
     L7_uint8  empty2[0x0F - 0x0D];
     L7_uint8  slot_id;          /* 0x0F (1 byte)  */
-    L7_uint8  empty3[PTIN_CPLD_MAP_SIZE - 0x10];
+    L7_uint8  empty3[0x1E - 0x10];
+    L7_uint8  mx_is_active;     /* 0x1E (1 byte)  */
+    L7_uint8  empty3[PTIN_CPLD_MAP_SIZE - 0x1F];
   } reg;
 } st_cpld_map_t;
 
@@ -193,6 +195,11 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
 # define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
 # define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
+
+// MX IP address
+# define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
+# define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
+# define IPC_MX_IPADDR              IPC_MX_IPADDR_WORKING  /* Default ip address */
 
 #endif /* _PTIN_GLOBALDEFS_CXO360G_H */
 

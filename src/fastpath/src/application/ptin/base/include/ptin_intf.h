@@ -136,6 +136,51 @@ extern L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *port
  */
 extern L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity);
 
+/*
+ * Board management
+ */ 
+
+/**
+ * Get board type for a particular interface
+ *  
+ * @param ptin_port
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_boardtype_get(L7_int ptin_port, L7_uint16 *board_id);
+
+/**
+ * Set board type for a particular interface (will override 
+ * board_id of other interfaces, if they belong to the same 
+ * slot) 
+ *  
+ * @param ptin_port
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id);
+
+/**
+ * Get board type for a particular slot
+ *  
+ * @param slot_id
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_slot_boardtype_get(L7_int slot_id, L7_uint16 *board_id);
+
+/**
+ * Set board type
+ *  
+ * @param slot_id
+ * @param board_id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id);
 
 /*
  * Port, LAGs and Interfaces convertion functions
@@ -161,7 +206,7 @@ extern L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret);
+extern L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
 
 /**
  * Get the ptin_port from the slot and port location in the 
@@ -186,7 +231,7 @@ extern L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret);
+extern L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
 
 /**
  * Get the ptin_intf from the slot and port location in the 
@@ -211,7 +256,7 @@ extern L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_in
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_ret, L7_uint16 *intf_ret);
+extern L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot_ret, L7_uint16 *intf_ret, L7_uint16 *board_type);
 
 /**
  * Get the intIfNum from the slot and port location in the 
@@ -459,6 +504,16 @@ extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
 extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
 
 /**
+ * read linkscan status
+ *  
+ * @param intIfNum : Interface
+ * @param enable : enable (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable);
+
+/**
  * Apply linkscan procedure
  *  
  * @param intIfNum : Interface
@@ -466,7 +521,17 @@ extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable);
+extern L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable);
+
+/**
+ * Apply linkscan procedure
+ *  
+ * @param intIfNum : Interface
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable);
 
 /**
  * Apply linkscan procedure
@@ -476,7 +541,17 @@ extern L7_RC_t ptin_intf_linkscan(L7_uint32 intIfNum, L7_uint8 enable);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkscan_slot(L7_int slot_id, L7_int slot_port, L7_uint8 enable);
+extern L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable);
+
+/**
+ * Force link to all slot ports
+ *  
+ * @param slot_id : slot id 
+ * @param slot_port : slot port index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable);
 
 /**
  * Get the current slot mode list
@@ -495,6 +570,18 @@ extern L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
+
+/**
+ * Get interface status
+ * 
+ * @param ptin_intf : interface (input)
+ * @param enable    : admin state (out)
+ * @param link      : link state (out)
+ * @param board_type: board_id (out)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
 
 #endif  /* _PTIN_INTERFACE_H */
 
