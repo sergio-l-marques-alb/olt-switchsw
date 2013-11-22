@@ -17,6 +17,161 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+int ptin_link_notify(bcm_port_t bcm_port)
+{
+  int link_status;
+  bcmx_lport_t lport;
+  bcm_port_info_t info;
+  bcm_error_t rv;
+
+  lport = bcmx_unit_port_to_lport(0, bcm_port);
+  if (lport < 0)
+  {
+    printf("%s(%d) Invalid bcm_port %d\r\n", __FUNCTION__, __LINE__, bcm_port);
+    return -1;
+  }
+
+  rv = bcm_port_link_status_get(0, bcm_port, &link_status);
+  if (rv != BCM_E_NONE)
+  {
+    printf("%s(%d) bcm_port_link_status_get: rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+    return rv;
+  }
+
+  info.linkstatus = link_status;
+  hapiBroadPortLinkStatusChange(lport, &info);
+
+  printf("%s(%d) Notification sent: lport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, lport, link_status);
+
+  return 0;
+}
+
+bcm_error_t ptin_linkscan_update(bcm_port_t bcm_port)
+{
+  bcm_error_t rv;
+  bcm_pbmp_t pbmp;
+
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_PORT_ADD(pbmp, bcm_port);
+    
+  rv = bcm_linkscan_update(0, pbmp);
+
+  printf("Executed linkscan to port %u: rv=%d -> \"%s\")\r\n", bcm_port, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+bcm_error_t ptin_link_change(bcm_port_t bcm_port)
+{
+  bcm_error_t rv;
+  bcm_pbmp_t pbmp;
+
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_PORT_ADD(pbmp, bcm_port);
+    
+  rv = bcm_link_change(0, pbmp);
+
+  printf("Executed bcm_link_change to port %u: rv=%d -> \"%s\")\r\n", bcm_port, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+bcm_error_t ptin_port_link_status_get(bcm_port_t bcm_port)
+{
+  int status;
+  bcm_error_t rv;
+    
+  rv = bcm_port_link_status_get(0, bcm_port, &status);
+
+  printf("status=%d   (rv=%d -> \"%s\")\r\n", status, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+bcm_error_t ptin_port_link_state_get(bcm_port_t bcm_port, uint32 flags)
+{
+  bcm_port_link_state_t link_state;
+  bcm_error_t rv;
+    
+  rv = bcm_port_link_state_get(0, bcm_port, flags, &link_state);
+
+  printf("status=%d, latch_down=%d   (rv=%d -> \"%s\")\r\n", link_state.status, link_state.latch_down, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+bcm_error_t ptin_port_fault_get(bcm_port_t bcm_port)
+{
+  uint32 flags;
+  bcm_error_t rv;
+
+  rv = bcm_port_fault_get(0, bcm_port, &flags);
+
+  printf("bcm_port_fault_get: flags=%u   (rv=%d -> \"%s\")\r\n", flags, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+#include "bcm_int/esw/link.h"
+
+bcm_error_t ptin_link_fault_get(bcm_port_t bcm_port)
+{
+  uint32 flags;
+  bcm_error_t rv;
+
+  rv = _ptin_esw_link_fault_get(0, bcm_port, &flags);
+
+  printf("_bcm_esw_link_fault_get: flags=%u   (rv=%d -> \"%s\")\r\n", flags, rv, bcm_errmsg(rv));
+
+  return rv;
+}
+
+
+bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
+{
+  int status;
+  bcm_error_t rv;
+  L7_uint32 time_start, time_end[3];
+
+  time_start = osapiTimeMillisecondsGet();
+
+  rv = bcm_port_link_status_get(0, bcm_port, &status);
+  if (rv != BCM_E_NONE)
+  {
+    printf("%s(%d) bcm_port_link_status_get: rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+    return rv;
+  }
+
+  time_end[0] = osapiTimeMillisecondsGet();
+
+  rv = bcm_port_update(0, bcm_port, status);
+  if (rv != BCM_E_NONE)
+  {
+    printf("%s(%d) bcm_port_update: rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+    return rv;
+  }
+
+  time_end[1] = osapiTimeMillisecondsGet();
+
+  #if 0
+  rv = _soc_link_update(0);
+  if (rv != SOC_E_NONE)
+  {
+    printf("%s(%d) bcm_port_update: rv=%u\r\n", __FUNCTION__, __LINE__, rv);
+    return rv;
+  }
+  #endif
+
+  time_end[2] = osapiTimeMillisecondsGet();
+
+  printf("%s(%d) link=%d -> Time taken: t1=%u, t2=%u, t3=%u, total=%u\r\n", __FUNCTION__, __LINE__,
+         status,
+         time_end[0]-time_start, time_end[1]-time_end[0], time_end[2]-time_end[1],
+         time_end[2]-time_start);
+
+  return rv;
+}
+
 // Ingress Translations (single tagged packets)
 
 int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan_t newOVlanId)

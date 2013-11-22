@@ -6097,7 +6097,12 @@ bcm_esw_port_loopback_set(int unit, bcm_port_t port, int loopback)
     PORT_UNLOCK(unit);                  /* unlock before link call */
 
     if ((loopback == BCM_PORT_LOOPBACK_NONE) || !BCM_SUCCESS(rv)) {
-        _bcm_esw_link_force(unit, port, FALSE, DONT_CARE);
+      /* PTin modified: linkscan */
+      #if 0
+      _bcm_esw_link_force(unit, port, FALSE, DONT_CARE);
+      #else
+      _ptin_esw_link_force(unit, port, FALSE, DONT_CARE, TRUE);
+      #endif
     } else {
         /* Enable only MAC instead of calling bcm_port_enable_set so
          * that this API doesn't silently enable the port if the 

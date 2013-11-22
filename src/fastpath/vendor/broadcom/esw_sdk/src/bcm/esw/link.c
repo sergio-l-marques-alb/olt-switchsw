@@ -168,6 +168,7 @@
 #include <bcm_int/esw/switch.h>
 #endif /* BCM_WARM_BOOT_SUPPORT */
 
+#include <stdio.h>
 
 typedef struct ls_handler_s {
     struct ls_handler_s         *lh_next;
@@ -988,6 +989,14 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
     return BCM_E_NONE;
 }
+
+/* PTin added: linkscan */
+#if 1
+int _ptin_esw_link_fault_get(int unit, int port, int *fault)
+{
+  return _bcm_esw_link_fault_get(unit, port, fault);
+}
+#endif
 #endif /* HERC15, FIREBOLT */  
 
 
@@ -1254,6 +1263,9 @@ _bcm_esw_link_failover_port_disable(int unit, int port)
  *      BCM_E_XXX
  */
 
+/* PTin added: linkscan */
+//#define PTIN_OPTIMIZE
+
 STATIC int
 _bcm_esw_linkscan_update_port(int unit, int port)
 {
@@ -1264,7 +1276,10 @@ _bcm_esw_linkscan_update_port(int unit, int port)
     ls_handler_t	*lh, *lh_next = NULL;
     int			rv, cur_fault, new_fault = FALSE,
                         unforced = FALSE, notify = FALSE, 
-                        logical_link, asf_link, info_skip = 0;
+                        logical_link;
+    #ifndef PTIN_OPTIMIZE
+    int asf_link, info_skip = 0;
+    #endif /* PTIN_OPTIMIZE */
     int                 cur_failed, new_failed = FALSE;
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
     sal_usecs_t         time_start = 0;
@@ -1279,10 +1294,15 @@ _bcm_esw_linkscan_update_port(int unit, int port)
     bcm_port_ability_t local_advert;
 #endif /* BCM_HAWKEYE_SUPPORT */
 #if defined(BCM_HURRICANE_SUPPORT) || defined(BCM_TRIDENT_SUPPORT) || defined(BCM_HAWKEYE_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
-    int eee_en = 0, mac_val;
+    int eee_en = 0;
+    #ifndef PTIN_OPTIMIZE
+    int mac_val;
+    #endif /* PTIN_OPTIMIZE */
     sal_time_t  current_time = 0;
     _bcm_port_info_t *port_info;
+    #ifndef PTIN_OPTIMIZE
     bcm_port_ability_t remote_advert;
+    #endif /* PTIN_OPTIMIZE */
 #endif
 
     assert(SOC_PORT_VALID(unit, port)); 
@@ -1452,6 +1472,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                          unit, SOC_PORT_NAME(unit, port), bcm_errmsg(rv));
             return rv;
         }
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
         if (new_fault && soc_feature(unit, soc_feature_port_lag_failover)
             && SOC_PBMP_MEMBER(sop->lc_pbm_failover, port)) {
@@ -1471,6 +1492,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
             }
         }
 #endif /* BCM_TRX_SUPPORT || BCM_BRADLEY_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
     }
 #endif /* HERC15, FIREBOLT */  
 
@@ -1497,6 +1519,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
             SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link, port);
             SOC_PBMP_PORT_REMOVE(sop->lc_pbm_remote_fault, port);
 
+#ifndef PTIN_OPTIMIZE
             rv = soc_link_fwd_set(unit, sop->lc_pbm_link);
 
             if (BCM_FAILURE(rv)) {
@@ -1505,6 +1528,8 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                              SOC_PORT_NAME(unit, port), bcm_errmsg(rv));
                 return rv;
             }
+#endif /* PTIN_OPTIMIZE */
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HAWKEYE_SUPPORT)
 	    if(SOC_IS_HAWKEYE(unit)) {
 	        SOC_IF_ERROR_RETURN
@@ -1528,7 +1553,8 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                     (WRITE_CMIC_RX_PAUSE_CAPABILITYr(unit, mac_data));
             }
 #endif /* BCM_HAWKEYE_SUPPORT */
-
+#endif /* PTIN_OPTIMIZE */
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HURRICANE_SUPPORT) || defined(BCM_TRIDENT_SUPPORT) || defined(BCM_HAWKEYE_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
             if (SOC_IS_HURRICANE (unit) || SOC_IS_TD_TT (unit) ||
                 SOC_IS_HAWKEYE (unit) || SOC_IS_KATANAX(unit) ||
@@ -1547,6 +1573,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                 } 
             }
 #endif /* BCM_HURRICANE_SUPPORT || BCM_HAWKEYE_SUPORT || BCM_TRIDENT_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
         }
 
         /* Program MACs
@@ -1565,6 +1592,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                              SOC_PORT_NAME(unit, port), bcm_errmsg(rv));
                 return rv;
             }
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_TRIUMPH2_SUPPORT) || defined(BCM_APOLLO_SUPPORT) || \
     defined(BCM_VALKYRIE2_SUPPORT)
             /* Enable clock recovery */   
@@ -1602,6 +1630,8 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                 }
             }
 #endif /* TRIUMPH2, APOLLO, VALKYRIE2 */
+#endif /* PTIN_OPTIMIZE */
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HERCULES15_SUPPORT) || defined(BCM_FIREBOLT_SUPPORT)
             /* Physical link completed, now we can check fault */
             if (soc_feature(unit, soc_feature_bigmac_fault_stat) &&
@@ -1621,6 +1651,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                 }
             }
 #endif /* HERC15, FIREBOLT */  
+#endif /* PTIN_OPTIMIZE */
         }
 
 
@@ -1636,6 +1667,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
 
             if (!new_fault) {
                 SOC_PBMP_PORT_REMOVE(sop->lc_pbm_remote_fault, port);
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
                 if (SOC_PBMP_MEMBER(sop->lc_pbm_failed_clear, port)) {
                     /* Previously failed port completing recovery */
@@ -1649,12 +1681,14 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                     SOC_PBMP_PORT_REMOVE(sop->lc_pbm_failed_clear, port);
                 }
 #endif /* BCM_TRX_SUPPORT || BCM_BRADLEY_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
             } else {
                 SOC_PBMP_PORT_ADD(sop->lc_pbm_remote_fault, port);
             }
 
             SOC_PBMP_REMOVE(pbm_link_fwd, sop->lc_pbm_remote_fault);
 
+#ifndef PTIN_OPTIMIZE
             rv = soc_link_fwd_set(unit, pbm_link_fwd);
 
             if (BCM_FAILURE(rv)) {
@@ -1663,7 +1697,9 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                              SOC_PORT_NAME(unit, port), bcm_errmsg(rv));
                 return rv;
             }
+#endif /* PTIN_OPTIMIZE */
 
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HURRICANE_SUPPORT) || defined(BCM_TRIDENT_SUPPORT) || defined(BCM_HAWKEYE_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
             if (new_fault) {
                 if (soc_feature(unit, soc_feature_xmac)) {
@@ -1673,8 +1709,10 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                 }
             }
 #endif /* BCM_HURRICANE_SUPPORT || BCM_TRIDENT_SUPPORT || BCM_HAWKEYE_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
         }
 
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HAWKEYE_SUPPORT)
         if(SOC_IS_HAWKEYE(unit) && new_link) {
             uint32 val;
@@ -1987,6 +2025,8 @@ _bcm_esw_linkscan_update_port(int unit, int port)
             }
         }
 #endif /* BCM_HAWKEYE_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
+#ifndef PTIN_OPTIMIZE
 #if defined(BCM_HURRICANE_SUPPORT) || defined(BCM_TRIDENT_SUPPORT) || defined(BCM_HAWKEYE_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
         if (SOC_IS_HURRICANE (unit) || SOC_IS_TD_TT (unit) ||
             SOC_IS_HAWKEYE (unit) || SOC_IS_KATANAX(unit) ||
@@ -2011,6 +2051,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
             }
         }
 #endif /* BCM_HURRICANE_SUPPORT || BCM_HAWKEYE_SUPORT || BCM_TRIDENT_SUPPORT */
+#endif /* PTIN_OPTIMIZE */
     }
 
     /*
@@ -2051,7 +2092,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                   "fault" :
                  (logical_link ? "up" : "down")));
     
-
+#ifndef PTIN_OPTIMIZE
     if (notify) {
         if (!new_link) {
             BCM_IF_ERROR_RETURN(
@@ -2085,6 +2126,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
             info.linkstatus = BCM_PORT_LINK_STATUS_DOWN;
         }
     }
+#endif /* PTIN_OPTIMIZE */
 
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
     time_end = sal_time_usecs();
@@ -2104,6 +2146,7 @@ _bcm_esw_linkscan_update_port(int unit, int port)
 
     if (cur_link != new_link) {
         if (new_link) {
+#ifndef PTIN_OPTIMIZE
             soc_cm_debug(DK_LINK,
                          "Port %s: link up (%dMb %s %s)\n",
                          SOC_PORT_NAME(unit, port),
@@ -2111,19 +2154,26 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                          info.duplex ? "Full Duplex" : "Half Duplex",
                          PHY_FIBER_MODE(unit, port) ?
                          "Fiber" : "Copper");
+#endif /* PTIN_OPTIMIZE */
+            printf("Port %d/%s: link up\n", port, SOC_PORT_NAME(unit, port));
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
-            soc_cm_debug(DK_LINK, "Link up processing took %d usecs\n",
-                         SAL_USECS_SUB(time_end, time_start));
+            soc_cm_debug(DK_LINK, "Link up processing took %d usecs (port=%d)\n",
+                         SAL_USECS_SUB(time_end, time_start), port);
+            printf("Link up processing took %d usecs (port %d)\n",
+                    SAL_USECS_SUB(time_end, time_start), port);
 #endif /* BCM_LINK_CHANGE_BENCHMARK */
  
         } else {
             soc_cm_debug(DK_LINK,
                          "Port %s: link down\n",
                          SOC_PORT_NAME(unit, port));
-
+            printf("Port %s: link down\n",
+                    SOC_PORT_NAME(unit, port));
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
             soc_cm_debug(DK_LINK, "Link down processing took %d usecs\n",
                          SAL_USECS_SUB(time_end, time_start));
+            printf("Link down processing took %d usecs (port=%d)\n",
+                         SAL_USECS_SUB(time_end, time_start), port);
 #endif /* BCM_LINK_CHANGE_BENCHMARK */
         }
     }
@@ -2484,6 +2534,70 @@ _bcm_esw_link_force(int unit, bcm_port_t port, int force, int link)
 
     return(BCM_E_NONE);
 }
+
+/* PTin added: linkscan */
+#if 1
+int
+_ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_linkchange)
+{
+    soc_persist_t	*sop = SOC_PERSIST(unit);
+    ls_cntl_t		*lc = link_control[unit];
+    pbmp_t		pbm;
+
+    LC_CHECK_INIT(unit);
+
+    if (!SOC_PORT_VALID(unit, port) || !IS_PORT(unit, port)) {
+	return BCM_E_PORT;
+    }
+
+    LC_LOCK(unit);
+
+    if (force) {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+	if (link) {
+            if (lc->lc_warm_boot) {
+                /* Don't update ports when recovering from Warm Boot. */
+                SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+                SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+            }
+	    SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
+	}
+        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_ports, port);
+    } else {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_ports, port);
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+        if (no_linkchange)
+        {
+          //SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+          SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+        }
+        else
+        {
+          SOC_PBMP_PORT_ADD(sop->lc_pbm_link_change, port);
+        }
+    }
+
+    /*
+     * Force immediate update to just this port - this allows loopback 
+     * forces to take effect immediately.
+     */
+    SOC_PBMP_CLEAR(pbm);
+    SOC_PBMP_PORT_ADD(pbm, port);
+    _bcm_esw_linkscan_update(unit, pbm);
+
+    LC_UNLOCK(unit);
+
+    /*
+     * Wake up master thread to notice changes - required if using hardware
+     * link scanning.
+     */
+    if (lc->lc_sema != NULL) {
+        sal_sem_give(lc->lc_sema);
+    }
+
+    return(BCM_E_NONE);
+}
+#endif
 
 /*
  * Function:    
