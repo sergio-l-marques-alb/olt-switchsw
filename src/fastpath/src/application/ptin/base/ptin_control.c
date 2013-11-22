@@ -46,6 +46,8 @@ static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
 
+void ptin_control_switchover_monitor(void);
+
 /******************************** 
  * Interface events 
  ********************************/
@@ -596,81 +598,6 @@ static void monitor_matrix_commutation(void)
 #endif
 }
 
-/**
- * Initialize interface changes notifier
- * 
- * @author mruas (11/18/2013)
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ptin_control_intf_init(void)
-{
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  /* Create ptinSwitchoverTask */
-  if (osapiTaskCreate("PTinSwitchover task", ptinSwitchoverTask, 0, 0,
-                      L7_DEFAULT_STACK_SIZE,
-                      L7_DEFAULT_TASK_PRIORITY,
-                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to create ptinSwitchoverTask!");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask created");
-
-  /* Wait for task to be launched */
-  if (osapiWaitForTaskInit (L7_PTIN_SWITCHOVER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to start ptinSwitchoverTask!");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
-  #endif
-
-  #if 0
-  /* create queue for VLAN and initialization events */
-  ptin_intf_event_queue = osapiMsgQueueCreate("PTin event queue",
-                                         L7_ALL_INTERFACES * 2,
-                                         sizeof(ptinIntfEventMsg_t));
-  if (ptin_intf_event_queue == L7_NULLPTR)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error creating queue to process interface events");
-    return L7_FAILURE;
-  }
-
-  /* Create PTinIntf task */
-  if (osapiTaskCreate("PTinIntf task", ptinIntfTask, 0, 0,
-                      L7_DEFAULT_STACK_SIZE,
-                      L7_DEFAULT_TASK_PRIORITY,
-                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to create PTinIntf task!");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task created");
-
-  /* Wait for task to be launched */
-  if (osapiWaitForTaskInit (L7_PTIN_INTF_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to start PTin task!");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task launch OK");
-
-  /* Interface changes */
-  if (nimRegisterIntfChange(L7_PTIN_COMPONENT_ID, ptinIntfChangeCallback,
-                            ptinIntfStartupCallback, 10050) != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to register with interface change callback with NIM");
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "nimRegisterIntfChange Executed");
-  #endif
-
-  return L7_SUCCESS;
-}
-
-
-void ptin_control_switchover_monitor(void);
 
 /**
  * Task that checks for Matrix Switchovers
@@ -683,26 +610,20 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
   L7_RC_t rc;
 
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover running!");
-
   rc = osapiTaskInitDone(L7_PTIN_SWITCHOVER_TASK_SYNC);
 
-  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover task will now start!");
-
-  #if 0
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "PTinIntf task waiting for other modules to boot up...");
-  rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
-  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTinIntf task will now start!");
-  #endif
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchover task waiting for other modules to boot up...");
+  rc = osapiSemaTake(ptin_switchover_sem, L7_WAIT_FOREVER);
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover task will now start!");
 
   while (1)
   {
-    osapiSleep(10);
     if (linkscan_update_control)
-    {
       ptin_control_switchover_monitor();
-    }
+
+    osapiSleep(10);
   }
 }
 

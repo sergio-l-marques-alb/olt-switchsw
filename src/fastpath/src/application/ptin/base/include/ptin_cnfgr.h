@@ -43,5 +43,6 @@ L7_RC_t ptinCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
 
 /* Semaphore to synchronize PTin task execution */
 extern void *ptin_ready_sem;
+extern void *ptin_switchover_sem;
 
 #endif /* _PTIN_CNFGR_H */

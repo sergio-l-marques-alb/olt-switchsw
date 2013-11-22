@@ -54,6 +54,7 @@
 
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
+void *ptin_switchover_sem = L7_NULLPTR;
 
 static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
 
@@ -86,6 +87,7 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
 
   /* After this point, PTin task must start execution */
   osapiSemaGive(ptin_ready_sem);
+  osapiSemaGive(ptin_switchover_sem);
 
   return L7_SUCCESS;
 }
@@ -434,13 +436,36 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
 /* Only make interface state management, if CXO board */
 #ifdef PTIN_LINKSCAN_CONTROL
-  if (ptin_control_intf_init() != L7_SUCCESS)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  ptin_switchover_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
+  if (ptin_switchover_sem == L7_NULLPTR)
   {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_switchover_sem semaphore!");
+
     *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_FATAL;
-    return L7_ERROR;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_control_intf_init initialized!");
+
+  /* Create ptinSwitchoverTask */
+  if (osapiTaskCreate("PTinSwitchover task", ptinSwitchoverTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to create ptinSwitchoverTask!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask created");
+
+  /* Wait for task to be launched */
+  if (osapiWaitForTaskInit (L7_PTIN_SWITCHOVER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Failed to start ptinSwitchoverTask!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
+#endif
 #endif
 
 #if ( !PTIN_BOARD_IS_MATRIX )
