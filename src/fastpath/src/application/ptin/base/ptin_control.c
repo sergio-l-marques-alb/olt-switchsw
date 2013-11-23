@@ -652,14 +652,16 @@ void ptin_control_switchover_monitor(void)
 
   matrix_is_active = cpld_map->reg.mx_is_active;
 
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Task started");
-
   /* First time procedure (after switchover) */
   if (matrix_is_active != matrix_is_active_h)
   {
     matrix_is_active_h = matrix_is_active;
     
-    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (active=%d)", matrix_is_active);
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (to active=%d)", matrix_is_active);
+
+    osapiSleep(10);
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Goig to process switchover init (active=%d)", matrix_is_active);
 
     /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
     if (matrix_is_active)
@@ -673,7 +675,6 @@ void ptin_control_switchover_monitor(void)
           continue;
 
         /* Disable force link-up, and enable linkscan for uplink boards */
-        ptin_slot_linkup_force(slot_id, -1, L7_DISABLE);
         ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
         LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan enabled for slot %u", slot_id);
       }
@@ -687,9 +688,11 @@ void ptin_control_switchover_monitor(void)
       /* Disable force linkup for all ports */
       for (port=0; port<ptin_sys_number_of_ports; port++)
       {
-        /* For passive board, update force link states */
+        /* For passive board, disable force linkup */
         if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
-          ptin_intf_linkup_force(intIfNum, L7_DISABLE);
+        {
+          ptin_intf_link_force(intIfNum, L7_FALSE, 0);            /* Cause link down */
+        }
       }
 
       /* Enable linkscan for all ports (links will go down) */
@@ -788,12 +791,24 @@ void ptin_control_switchover_monitor(void)
       continue;
     }
     /* Enable/Disable force linkup */
-    if (ptin_intf_linkup_force(intIfNum, interfaces_active[port])!=L7_SUCCESS)
+    if (interfaces_active[port])
     {
-      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error setting force linkup to %u for ptin_port %d!", interfaces_active[port], port);
-      continue;
+      if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
+      {
+        LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
+        continue;
+      }
     }
-    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkup forced for port%u", port);
+    else
+    {
+      /* Cause a linkdown */
+      if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
+        continue;
+      }
+    }
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
   }
   #endif
   #endif

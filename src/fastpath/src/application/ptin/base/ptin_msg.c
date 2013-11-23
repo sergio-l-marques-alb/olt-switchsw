@@ -253,7 +253,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     /* Force linkup for downlink boards */
     else
     {
-      rc = ptin_slot_linkup_force(msg->generic_id, -1, L7_ENABLE);
+      rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling force linkup (%d)", rc);
@@ -296,7 +296,8 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     /* Disable force linkup for downlink boards */
     else
     {
-      rc = ptin_slot_linkup_force(msg->generic_id, -1, L7_DISABLE);
+      /* Cause link-down */
+      rc = ptin_slot_link_force(msg->generic_id, -1, L7_FALSE, 0);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);

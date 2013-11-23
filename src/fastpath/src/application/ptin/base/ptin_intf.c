@@ -3578,12 +3578,13 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface
+ * @param intIfNum : Interface 
+ * @param link : link status
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable)
+L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 {
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3606,14 +3607,14 @@ L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable)
   hw_proc.operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   hw_proc.procedure = PTIN_HWPROC_FORCE_LINK;
   hw_proc.mask = 0xff;
-  hw_proc.param1 = 0;
+  hw_proc.param1 = link;
   hw_proc.param2 = 0;
 
   /* Apply procedure */
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_API,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
   else
     LOG_TRACE(LOG_CTX_PTIN_API,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
@@ -3719,11 +3720,12 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
  * Force link to all slot ports
  *  
  * @param slot_id : slot id 
+ * @param link : link status 
  * @param slot_port : slot port index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
+L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
@@ -3755,7 +3757,7 @@ L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     }
 
     /* Linkscan procedure */
-    rc = ptin_intf_linkup_force(intIfNum, enable);
+    rc = ptin_intf_link_force(intIfNum, link, enable);
 
     if (rc != L7_SUCCESS)
       LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
@@ -3783,7 +3785,7 @@ L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       }
 
       /* Linkscan procedure */
-      rc = ptin_intf_linkup_force(intIfNum, enable);
+      rc = ptin_intf_link_force(intIfNum, link, enable);
 
       if (rc != L7_SUCCESS)
       {

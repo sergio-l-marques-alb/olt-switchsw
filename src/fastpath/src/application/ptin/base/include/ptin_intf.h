@@ -518,7 +518,7 @@ extern L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable);
 /**
  * Apply linkscan procedure
  *  
- * @param intIfNum : Interface
+ * @param intIfNum : Interface 
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -529,11 +529,12 @@ extern L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable);
  * Apply linkscan procedure
  *  
  * @param intIfNum : Interface
+ * @param link : link_status 
  * @param enable : enable
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_linkup_force(L7_uint32 intIfNum, L7_uint8 enable);
+extern L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable);
 
 /**
  * Apply linkscan procedure
@@ -549,11 +550,12 @@ extern L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8
  * Force link to all slot ports
  *  
  * @param slot_id : slot id 
+ * @param link : link status  
  * @param slot_port : slot port index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_slot_linkup_force(L7_int slot_id, L7_int slot_port, L7_uint8 enable);
+extern L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7_uint8 enable);
 
 /**
  * Get the current slot mode list
