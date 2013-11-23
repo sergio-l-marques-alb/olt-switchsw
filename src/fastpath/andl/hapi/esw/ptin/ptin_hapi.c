@@ -271,9 +271,8 @@ L7_RC_t ptin_hapi_phy_init(void)
  */
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 {
-  int fault;
+  int fault, linkStatus;
   bcm_pbmp_t pbmp;
-  //bcm_port_info_t port_info;
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
 
@@ -281,72 +280,45 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_PORT_SET(pbmp, bcm_port);
 
-  #if 0
-  memset(&port_info, 0x00, sizeof(bcm_port_info_t));
-  if (bcm_port_selective_get(0, bcm_port, &port_info) != BCM_E_NONE)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting port_info for bcm_port %u", bcm_port);
-    return L7_FAILURE;
-  }
-  port_info.action_mask |= BCM_PORT_ATTR_LINKSCAN_MASK;
-  #endif
-
   if (enable)
   {
-    /* Clear faults */
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "_ptin_esw_link_fault_get to bcm_port %u", bcm_port);
+    /* Clear link faults */
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "_ptin_esw_link_fault_get from bcm_port %u", bcm_port);
     if (_ptin_esw_link_fault_get(0, bcm_port, &fault) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error clearing faults for bcm_port %u", bcm_port);
     }
-
-    /* Enable linkscan */
-    #if 0
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=1 to bcm_port %u", bcm_port); 
-    port_info.linkscan = BCM_LINKSCAN_MODE_SW;
-    if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
+    /* Read link status once, to update its real value */
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_link_status_get from bcm_port %u", bcm_port);
+    if (bcm_port_link_status_get(0, bcm_port, &linkStatus) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
-      return L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading link status for bcm_port %u", bcm_port);
     }
-    #else
+    /* Enable linkscan */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
     if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
-    #endif
-    #if 0
-    /* Execute a linkscan update */
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", bcm_port);
-    if (bcm_linkscan_update(bcm_unit, pbmp) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", bcm_port);
-      return L7_FAILURE;
-    }
-    #endif
+  }
+
+  /* Execute a linkscan update */
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", bcm_port);
+  if (bcm_linkscan_update(bcm_unit, pbmp) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", bcm_port);
   }
 
   if (!enable)
   {
     /* Disable linkscan */
-    #if 0
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port_selective_set: linkscan=0 to bcm_port %u", bcm_port); 
-    port_info.linkscan = BCM_LINKSCAN_MODE_NONE;
-    if (bcm_port_selective_set(0, bcm_port, &port_info) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for bcm_port %u", bcm_port);
-      return L7_FAILURE;
-    }
-    #else
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_mode_set:0 to bcm_port %u", bcm_port); 
     if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
       return L7_FAILURE;
     }
-    #endif
   }
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
@@ -765,9 +737,9 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
+L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_uint8 enable)
 {
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Force link procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Force link procedure (enable=%u) for usp {%d,%d,%d}", enable, usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -825,6 +797,19 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_PORT_SET(pbmp, hapiPortPtr->bcm_port);
 
+  /* If link is to be down, only */
+  if (!link)
+  {
+    /* Disable loopback */
+    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback, with link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+      return L7_FAILURE;
+    }
+    return L7_SUCCESS;
+  }
+
   /* If is to force link up */
   if (enable)
   {
@@ -862,6 +847,7 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
       return L7_FAILURE;
     }
 
+    #if 0
     /* Disable loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable loopback (special) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
@@ -872,6 +858,14 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
+    #else
+    if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+      return L7_FAILURE;
+    }
+    #endif
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
@@ -881,9 +875,9 @@ L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     /* Undo Loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable loopback (special) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE)
+    if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling PHY loopback, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }

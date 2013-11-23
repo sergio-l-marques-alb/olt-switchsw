@@ -172,7 +172,7 @@ extern L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_linkup_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable);
+extern L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_uint8 enable);
 
 /**
  * Get Egress port type definition

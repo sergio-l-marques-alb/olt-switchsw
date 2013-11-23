@@ -172,6 +172,84 @@ bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
   return rv;
 }
 
+void teste(bcm_port_t bcm_port, int linkscan_mode)
+{
+  bcm_port_info_t info_apply;
+  bcm_error_t rv;
+
+  memset(&info_apply, 0x00, sizeof(bcm_port_info_t));
+
+  info_apply.action_mask = BCM_PORT_ATTR_LINKSCAN_MASK /*| BCM_PORT_ATTR_LINKSTAT_MASK*/;
+
+  if ((rv = bcm_port_selective_get(0, bcm_port, &info_apply)) < 0) {
+    printf("%s(%d) error: rv=%d!\r\n",__FUNCTION__,__LINE__, rv);
+    return;
+  }
+
+  info_apply.linkscan = linkscan_mode;
+
+  if ((rv = bcm_port_selective_set(0, bcm_port, &info_apply)) < 0) {
+    printf("%s(%d) error: rv=%d!\r\n",__FUNCTION__,__LINE__, rv);
+    return;
+  }
+
+  printf("%s(%d) Done (V2)!\r\n",__FUNCTION__,__LINE__);
+  return;
+}
+
+void ptin_port_selective_get_all(bcm_port_t bcm_port)
+{
+  bcm_port_info_t info;
+  bcm_error_t rv;
+
+  memset(&info, 0x00, sizeof(bcm_port_info_t));
+
+  info.action_mask = BCM_PORT_ATTR_ALL_MASK;
+
+  if ((rv = bcm_port_selective_get(0, bcm_port, &info)) < 0) {
+    printf("%s(%d) error: rv=%d!\r\n",__FUNCTION__,__LINE__, rv);
+    return;
+  }
+
+  printf("%s(%d) Done!\r\n",__FUNCTION__,__LINE__);
+}
+
+void ptin_port_selective_get_link(bcm_port_t bcm_port)
+{
+  bcm_port_info_t info;
+  bcm_error_t rv;
+
+  memset(&info, 0x00, sizeof(bcm_port_info_t));
+
+  info.action_mask = BCM_PORT_ATTR_LINKSTAT_MASK;
+
+  if ((rv = bcm_port_selective_get(0, bcm_port, &info)) < 0) {
+    printf("%s(%d) error: rv=%d!\r\n",__FUNCTION__,__LINE__, rv);
+    return;
+  }
+
+  printf("%s(%d) link=%u!\r\n",__FUNCTION__,__LINE__, info.linkstatus);
+}
+
+void ptin_port_selective_set(bcm_port_t bcm_port, int linkscan_mode)
+{
+  bcm_port_info_t info_apply;
+  bcm_error_t rv;
+
+  memset(&info_apply, 0x00, sizeof(bcm_port_info_t));
+
+  info_apply.action_mask = BCM_PORT_ATTR_LINKSCAN_MASK /*| BCM_PORT_ATTR_LINKSTAT_MASK*/;
+  info_apply.linkscan = linkscan_mode;
+
+  if ((rv = bcm_port_selective_set(0, bcm_port, &info_apply)) < 0) {
+    printf("%s(%d) error: rv=%d!\r\n",__FUNCTION__,__LINE__, rv);
+    return;
+  }
+
+  printf("%s(%d) ptin_port_selective_set executed!\r\n",__FUNCTION__,__LINE__);
+}
+
+
 // Ingress Translations (single tagged packets)
 
 int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan_t newOVlanId)
