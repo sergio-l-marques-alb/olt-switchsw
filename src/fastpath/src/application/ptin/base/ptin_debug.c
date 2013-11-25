@@ -419,7 +419,7 @@ void ptin_intf_dump(void)
             (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 26 : bcm_port - 30);
 #endif
 
-    printf("| %2u/%u |  %2u  |    %2u    | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
+    printf("| %2u/%u |  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
            slot, sport,
            port,
            intIfNum,
@@ -434,7 +434,7 @@ void ptin_intf_dump(void)
            portStats.Tx.etherStatsOctets,
            portStats.Tx.Throughput);
   }
-  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
   return;
 }
