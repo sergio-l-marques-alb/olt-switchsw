@@ -43,6 +43,10 @@ L7_RC_t ptinCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
 
 /* Semaphore to synchronize PTin task execution */
 extern void *ptin_ready_sem;
+
+#if (PTIN_BOARD_IS_MATRIX)
 extern void *ptin_switchover_sem;
+extern void *ptin_boardaction_sem;
+#endif
 
 #endif /* _PTIN_CNFGR_H */

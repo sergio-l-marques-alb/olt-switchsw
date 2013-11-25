@@ -26,6 +26,7 @@
 #include "tty_ptin.h"
 #include "ipc.h"
 #include "ptin_msghandler.h"
+#include "ptin_cnfgr.h"
 #include "nimapi.h"
 #include <ptin_prot_oam_eth.h>
 #include "ptin_prot_erps.h"
@@ -221,7 +222,6 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
  */
 L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
 {
-  L7_uint16 board_type;
   L7_RC_t rc = L7_SUCCESS;
 
   LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_board_action");
@@ -230,16 +230,47 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
+  #if (PTIN_BOARD_IS_MATRIX)
+  #ifdef MAP_CPLD
+
+  L7_uint16 board_type;
+
+  /* Only active matrix will process these messages */
+  if (!cpld_map->reg.mx_is_active)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
+    return L7_SUCCESS;
+  }
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  rc = ptin_slot_boardtype_get(msg->generic_id, &board_type);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot %u (rc=%d)", msg->generic_id, rc);
+    return L7_FAILURE;
+  }
+
   /* insertion action */
   if (msg->type == 0x03)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u)", msg->generic_id);
+    /* If board is already present, do nothing */
+    if (board_type != 0)
+    {
+      osapiSemaGive(ptin_boardaction_sem);
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "Card already present at slot %u", msg->generic_id);
+      return L7_SUCCESS;
+    }
     /* Apply linkscan to all ports of slot */
     rc = ptin_slot_boardtype_set(msg->generic_id, msg->param);
     if (rc != L7_SUCCESS)
     {
+      osapiSemaGive(ptin_boardaction_sem);
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error inserting card (%d)", rc);
+      return L7_FAILURE;
     }
+
     #ifdef PTIN_LINKSCAN_CONTROL
     /* Enable linkscan for uplink boards */
     if (PTIN_BOARD_IS_UPLINK(msg->param))
@@ -262,18 +293,13 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     #endif
   }
   /* Board removed */
-  if (msg->type == 0x00)
+  else if (msg->type == 0x00)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
 
-    rc = ptin_slot_boardtype_get(msg->generic_id, &board_type);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot %u (rc=%d)", msg->generic_id, rc);
-      return L7_FAILURE;
-    }
     if (board_type == 0 || board_type == (L7_uint16)-1)
     {
+      osapiSemaGive(ptin_boardaction_sem);
       LOG_WARNING(LOG_CTX_PTIN_MSG, "No card present at slot %u", msg->generic_id);
       return L7_SUCCESS;
     }
@@ -281,7 +307,9 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     rc = ptin_slot_boardtype_set(msg->generic_id, L7_NULL);
     if (rc != L7_SUCCESS)
     {
+      osapiSemaGive(ptin_boardaction_sem);
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
+      return L7_FAILURE;
     }
     #ifdef PTIN_LINKSCAN_CONTROL
     /* Enable linkscan for uplink boards */
@@ -296,6 +324,12 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     /* Disable force linkup for downlink boards */
     else
     {
+      /* Disable force link-up */
+      rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_DISABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
+      }
       /* Cause link-down */
       rc = ptin_slot_link_force(msg->generic_id, -1, L7_FALSE, 0);
       if (rc != L7_SUCCESS)
@@ -305,6 +339,9 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
     #endif
   }
+  osapiSemaGive(ptin_boardaction_sem);
+  #endif
+  #endif
 
   return rc;
 }
@@ -327,6 +364,18 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
   #if 0
+  #if (PTIN_BOARD_IS_MATRIX)
+  #if MAP_CPLD
+
+  /* Only active matrix will process these messages */
+  if (!cpld_map->reg.mx_is_active)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
+    return L7_SUCCESS;
+  }
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
@@ -348,6 +397,10 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
       LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
     }
   }
+
+  osapiSemaGive(ptin_boardaction_sem);
+  #endif
+  #endif
   #endif
 
   return rc;
@@ -909,6 +962,14 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
   }
   /* Number of ports */
   intf_info->number_of_ports = ptin_sys_number_of_ports;
+
+  #ifdef MAP_CPLD
+  if (!cpld_map->reg.mx_is_active)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "I am inactive matrix");
+    return L7_FAILURE;
+  }
+  #endif
   #endif
 
   return L7_SUCCESS;

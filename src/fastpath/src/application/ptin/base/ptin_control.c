@@ -46,7 +46,11 @@ static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
 
+#if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
 void ptin_control_switchover_monitor(void);
+#endif
+#endif
 
 /******************************** 
  * Interface events 
@@ -598,6 +602,11 @@ static void monitor_matrix_commutation(void)
 #endif
 }
 
+#if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
+
+/* List of active interfaces */
+static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
 
 /**
  * Task that checks for Matrix Switchovers
@@ -636,24 +645,20 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
  */
 void ptin_control_switchover_monitor(void)
 {
-  #ifdef PTIN_LINKSCAN_CONTROL
-  #if (PTIN_BOARD_IS_MATRIX)
   #ifdef MAP_CPLD
   L7_uint8  port;
   L7_uint32 intIfNum;
   L7_uint8  slot_id;
   L7_uint16 board_id;
 
-  static L7_uint8 interfaces_active_h[PTIN_SYSTEM_MAX_N_PORTS];
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
-
-  static L7_uint8 matrix_is_active_h = (L7_uint8) -1;
+  static L7_uint8 matrix_is_active_h = L7_TRUE;
   L7_uint8 matrix_is_active;
 
   matrix_is_active = cpld_map->reg.mx_is_active;
 
   /* First time procedure (after switchover) */
-  if (matrix_is_active != matrix_is_active_h)
+  if (cpld_map->reg.mx_is_active != matrix_is_active_h)
   {
     matrix_is_active_h = matrix_is_active;
     
@@ -662,6 +667,8 @@ void ptin_control_switchover_monitor(void)
     osapiSleep(10);
 
     LOG_INFO(LOG_CTX_PTIN_CONTROL, "Goig to process switchover init (active=%d)", matrix_is_active);
+
+    osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
     /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
     if (matrix_is_active)
@@ -675,6 +682,7 @@ void ptin_control_switchover_monitor(void)
           continue;
 
         /* Disable force link-up, and enable linkscan for uplink boards */
+        ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
         ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
         LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan enabled for slot %u", slot_id);
       }
@@ -683,7 +691,7 @@ void ptin_control_switchover_monitor(void)
     else
     {
       /* Clear historic values of active interfaces */
-      memset(interfaces_active_h, 0x00, sizeof(interfaces_active_h));
+      memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
 
       /* Disable force linkup for all ports */
       for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -691,6 +699,7 @@ void ptin_control_switchover_monitor(void)
         /* For passive board, disable force linkup */
         if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
         {
+          ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);       /* Disable force link-up */
           ptin_intf_link_force(intIfNum, L7_FALSE, 0);            /* Cause link down */
         }
       }
@@ -716,11 +725,12 @@ void ptin_control_switchover_monitor(void)
     }
 
     /* End of procedure */
+    osapiSemaGive(ptin_boardaction_sem);
     return;
   }
 
   /* Do nothing for active matrix */
-  if (matrix_is_active)
+  if (cpld_map->reg.mx_is_active)
   {
     return;
   }
@@ -736,6 +746,8 @@ void ptin_control_switchover_monitor(void)
   ports_info.slot_id    = (ptin_board_slotId <= 1) ? 20 : 1;
   ports_info.generic_id = 0;
   ports_info.generic_id = ptin_sys_number_of_ports;
+
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "quering for active interfaces");
 
   if (send_ipc_message(IPC_HW_FASTPATH_PORT,
                        ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
@@ -755,32 +767,57 @@ void ptin_control_switchover_monitor(void)
               ports_info.port[port].board_id, ports_info.port[port].enable, ports_info.port[port].link);
   }
   #endif
+
+  /* Do nothing for active matrix */
+  if (cpld_map->reg.mx_is_active)
+  {
+    return;
+  }
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
   printf("Other board active ports: { ");
   for (port=0; port<ports_info.number_of_ports; port++)
   {
-    if (ports_info.port[port].enable &&
-        ports_info.port[port].link &&
-        ports_info.port[port].board_id != 0)
+    if (ports_info.port[port].board_id != 0)
     {
-      interfaces_active[port] = 1;
-      printf("%2u ", port);
+      if (ports_info.port[port].enable &&
+          ports_info.port[port].link)
+      {
+        interfaces_active[port] = 1;
+        printf("%2u ", port);
+      }
+    }
+    /* Save board_id */
+    ptin_intf_boardtype_get(port, &board_id);
+    if (board_id != ports_info.port[port].board_id )
+    {
+      ptin_intf_boardtype_set(port, ports_info.port[port].board_id);
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
     }
   }
   printf("}\r\n");
+
+  /* Do nothing for active matrix */
+  if (cpld_map->reg.mx_is_active)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    return;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "Updating Port status");
 
   /* Update port state */
   for (port = 0; port < PTIN_SYSTEM_MAX_N_PORTS; port++)
   {
     /* Skip unchanged ports */
-    if (interfaces_active[port] == interfaces_active_h[port])
+    if (interfaces_active[port] == switchover_intf_active_h[port])
       continue;
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
 
     /* Update new changes */
-    interfaces_active_h[port] = interfaces_active[port];
-
-    /* For active matrix, do nothing */
-    if (matrix_is_active)
-      continue;
+    switchover_intf_active_h[port] = interfaces_active[port];
 
     /* --- Passive board --- */
 
@@ -801,6 +838,12 @@ void ptin_control_switchover_monitor(void)
     }
     else
     {
+      /* Disable force link-up */
+      if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
+        continue;
+      }
       /* Cause a linkdown */
       if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
       {
@@ -810,11 +853,12 @@ void ptin_control_switchover_monitor(void)
     }
     LOG_INFO(LOG_CTX_PTIN_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
   }
-  #endif
-  #endif
+
+  osapiSemaGive(ptin_boardaction_sem);
   #endif
 }
-
+#endif
+#endif
 
 /**
  * Task that checks for Interface changes

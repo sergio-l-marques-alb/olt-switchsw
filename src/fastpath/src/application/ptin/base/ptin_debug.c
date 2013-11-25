@@ -319,9 +319,9 @@ void ptin_intf_dump(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
-  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  printf("| Slot | Port | IntIfNum | bcm_port | MEF Ext.* | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
-  printf("+------+------+----------+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("| Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
+  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */

@@ -339,10 +339,18 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
     return ret;
   }
 
+  /* Check if ACK */
+  if (resposta.flags != IPCLIB_FLAGS_ACK)
+  {
+    LOG_ERR(LOG_CTX_IPC,"NACK (%u)", resposta.flags);
+    return -1;
+  }
+
+  /* Check info */
   if (resposta.infoDim != infoDim)
   {
     LOG_ERR(LOG_CTX_IPC,"Wrong infodim (received %u bytes VS expected %u bytes)", infoDim, resposta.infoDim);
-    return ret;
+    return -1;
   }
 
   /* Return answer */

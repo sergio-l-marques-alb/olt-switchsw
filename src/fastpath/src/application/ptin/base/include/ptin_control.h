@@ -29,6 +29,8 @@ extern L7_RC_t ptin_control_intf_init(void);
  */
 extern void ptinTask(L7_uint32 numArgs, void *unit);
 
+#if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
 /**
  * Task that checks for Matrix Switchovers
  * 
@@ -36,6 +38,8 @@ extern void ptinTask(L7_uint32 numArgs, void *unit);
  * @param unit 
  */
 extern void ptinSwitchoverTask(L7_uint32 numArgs, void *unit);
+#endif
+#endif
 
 /**
  * Task that checks for Interface changes

@@ -54,7 +54,11 @@
 
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
-void *ptin_switchover_sem = L7_NULLPTR;
+
+#if (PTIN_BOARD_IS_MATRIX)
+void *ptin_switchover_sem  = L7_NULLPTR;
+void *ptin_boardaction_sem = L7_NULLPTR;
+#endif
 
 static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
 
@@ -87,7 +91,10 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
 
   /* After this point, PTin task must start execution */
   osapiSemaGive(ptin_ready_sem);
+
+  #if (PTIN_BOARD_IS_MATRIX)
   osapiSemaGive(ptin_switchover_sem);
+  #endif
 
   return L7_SUCCESS;
 }
@@ -434,8 +441,22 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return L7_FAILURE;
 #endif
 
+#if (PTIN_BOARD_IS_MATRIX)
+  /* Semaphore to control board insertion/remotion */
+  ptin_boardaction_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
+  if (ptin_boardaction_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_boardaction_sem semaphore!");
+
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
+  }
+#endif
+
 /* Only make interface state management, if CXO board */
 #ifdef PTIN_LINKSCAN_CONTROL
+#if (PTIN_BOARD_IS_MATRIX)
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   ptin_switchover_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_switchover_sem == L7_NULLPTR)
@@ -465,6 +486,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
+#endif
 #endif
 #endif
 
