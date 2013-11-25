@@ -958,6 +958,10 @@ L7_RC_t ptin_aclIpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
 
     isNamedAcl = L7_TRUE;
   }
+  else
+  {
+    aclId = msgAcl->aclId;
+  }
 
 
   if ((isNamedAcl == L7_FALSE) && ((aclId < L7_MIN_ACL_ID ) || (aclId > L7_MAX_ACL_ID)))
