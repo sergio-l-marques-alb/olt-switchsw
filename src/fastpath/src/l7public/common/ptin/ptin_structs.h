@@ -575,6 +575,7 @@ typedef struct {
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)
   L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
+  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
   ptin_bw_meter_t meter;                // Meter data
   L7_int     policy_id;                 // Policer rule id (must be a positive value)
 } ptin_bw_policy_t;
@@ -586,6 +587,7 @@ typedef struct {
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)               
   L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
+  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
   ptin_bw_meter_t meter;                // Meter data
 } ptin_bw_profile_t;
 

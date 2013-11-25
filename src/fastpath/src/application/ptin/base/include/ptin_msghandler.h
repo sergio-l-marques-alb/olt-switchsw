@@ -74,6 +74,8 @@
 #define CCMSG_ETH_BW_PROFILE_SET            0x9050  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
+#define CCMSG_ETH_BW_PROFILE_SET_II            0x9053  // struct msg_HwEthBwProfileData_t
+#define CCMSG_ETH_BW_PROFILE_DELETE_II         0x905F  // struct msg_HwEthBwProfileData_t
 
 #define CCMSG_ETH_STORM_CONTROL_GET         0x9054  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_RESET       0x9055  // struct msg_HwEthStormControl_t
@@ -766,6 +768,18 @@ typedef struct {
   msg_HwEthInterface_t intf_dst;      // [mask=0x08] Destination Interface to apply profile
   msg_HwEthBwProfileData_t profile;   // [mask=0x80] Profile to be applied
 } __attribute__((packed)) msg_HwEthBwProfile_t;
+
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint16 evcId;                    // EVC index
+  L7_uint8  mask;                     // Configuration mask 
+  L7_uint16 service_vlan;             // [mask=0x01] External Outer Vlan
+  L7_uint16 client_vlan;              // [mask=0x02] Client (Inner) Vlan
+  msg_HwEthInterface_t intf_src;      // [mask=0x04] Source Interface to apply profile
+  msg_HwEthInterface_t intf_dst;      // [mask=0x08] Destination Interface to apply profile
+  msg_HwEthBwProfileData_t profile;   // [mask=0x80] Profile to be applied
+  L7_uchar8  cos;                     // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
+} __attribute__((packed)) msg_HwEthBwProfile_II_t;
 
 /* Storm control */
 // Messages CCMSG_ETH_STORM_CONTROL_GET, CCMSG_ETH_STORM_CONTROL_SET and CCMSG_ETH_STORM_CONTROL_CLEAR

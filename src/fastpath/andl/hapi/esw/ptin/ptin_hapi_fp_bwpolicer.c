@@ -97,6 +97,7 @@ L7_RC_t hapi_ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *po
   profile->outer_vlan_out = policer->outer_vlan_out;
   profile->inner_vlan_in  = policer->inner_vlan_in;
   profile->inner_vlan_out = policer->inner_vlan_out;
+  profile->cos            = policer->cos;
   profile->meter          = policer->meter;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " ddUsp_src= {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
@@ -105,6 +106,7 @@ L7_RC_t hapi_ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *po
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " IVID_out    = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, " COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " {CIR,CBS}= %u",profile->meter.cir,profile->meter.cbs);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " {EIR,EBS}= %u",profile->meter.eir,profile->meter.ebs);
 
@@ -123,7 +125,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
 {
   ptin_bw_policy_t *policer_ptr;
   BROAD_POLICY_t      policyId;
-  BROAD_POLICY_RULE_t ruleId  = BROAD_POLICY_RULE_INVALID;
+  BROAD_POLICY_RULE_t ruleId  = BROAD_POLICY_RULE_INVALID, pcp_ruleId[8];
   BROAD_METER_ENTRY_t meterInfo;
   BROAD_POLICY_TYPE_t policyType = BROAD_POLICY_TYPE_PTIN;
   L7_uint8            drop = 0;
@@ -136,7 +138,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Starting processing...");
 
   /* Check if policer is pointing to a valid database entry, and if it is, use it */
-  policer_ptr = L7_NULLPTR;
   if (policer!=L7_NULLPTR && FP_POLICY_VALID_PTR(*policer,bwp_db))
   {
     policer_ptr = *policer;
@@ -144,6 +145,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   }
   else
   {
+    policer_ptr = L7_NULLPTR;
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer has a null pointer");
   }
 
@@ -157,6 +159,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out =%u",policer_ptr->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in  =%u",policer_ptr->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out =%u",policer_ptr->inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OCOS     =%u",policer_ptr->cos);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," meter: cir=%u eir=%u cbs=%u ebs=%u",policer_ptr->meter.cir,policer_ptr->meter.eir,policer_ptr->meter.cbs,policer_ptr->meter.ebs);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," policy_id    =%d",policer_ptr->policy_id);
   }
@@ -174,6 +177,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out =%u",profile->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in  =%u",profile->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out =%u",profile->inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OCOS     =%u",profile->cos);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," meter: cir=%u eir=%u cbs=%u ebs=%u",profile->meter.cir,profile->meter.eir,profile->meter.cbs,profile->meter.ebs);
   }
   else
@@ -249,6 +253,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
          /*( policer_ptr->outer_vlan_out != profile->outer_vlan_out) ||*/
          ( policer_ptr->inner_vlan_in  != profile->inner_vlan_in ) ||
          /*( policer_ptr->inner_vlan_out != profile->inner_vlan_out) ||*/
+         ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
+         ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
+         ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->meter.cir      != profile->meter.cir     ) ||
          ( policer_ptr->meter.eir      != profile->meter.eir     ) ||
          ( policer_ptr->meter.cbs      != profile->meter.cbs     ) ||
@@ -382,6 +389,41 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Meter added");
 
+  if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT) {
+   L7_uint8 i, cos, n_pcps;
+   L7_uchar8 v;
+   //ptin_intf_t ptin_intf;
+   //ptin_Qos_intf_t intfQos;//msg_QoSConfiguration_t qos;
+   BROAD_PORT_t *hapiPortPtr;
+
+      //ptin_QoS_intf_config_get(&ptin_intf, &intfQos)//ptin_msg_CoS_get(&qos);
+      hapiPortPtr = HAPI_PORT_GET(&profile->ddUsp_src, dapi_g);
+
+      for (i=0, n_pcps=0; i<=L7_DOT1P_MAX_PRIORITY; i++) {
+          cos=  hapiPortPtr->dot1pMap[i];//intfQos.pktprio.cos[i];
+          if (cos!=profile->cos) continue;//L7_COS_INTF_QUEUE_MAX_COUNT
+
+          if (0==n_pcps) {
+              pcp_ruleId[0]=ruleId;
+          }
+          else {
+              pcp_ruleId[n_pcps]=BROAD_POLICY_RULE_INVALID;
+              hapiBroadPolicyRuleCopy(pcp_ruleId[n_pcps-1], &pcp_ruleId[n_pcps]);
+          }
+
+          v=i;
+          if ((result=hapiBroadPolicyRuleQualifierAdd(pcp_ruleId[n_pcps], BROAD_FIELD_OCOS, (L7_uint8 *)&v, (L7_uint8 *) mask))!=L7_SUCCESS)
+          {
+            hapiBroadPolicyCreateCancel();
+            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OCOS)");
+            return result;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OCOS (cos(pcp=%u)=%u) qualifier added", i, cos);
+
+          n_pcps++;
+      }
+  }//if
+
   if ((result=hapiBroadPolicyCommit(&policyId))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
@@ -398,6 +440,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   policer_ptr->outer_vlan_out = profile->outer_vlan_out;
   policer_ptr->inner_vlan_in  = profile->inner_vlan_in;
   policer_ptr->inner_vlan_out = profile->inner_vlan_out;
+  policer_ptr->cos            = profile->cos;
   policer_ptr->meter          = profile->meter;
   policer_ptr->policy_id      = policyId;
                               
@@ -531,6 +574,7 @@ static void bwPolicy_clear_data(void *policy_ptr)
   ptr->outer_vlan_out = 0;
   ptr->inner_vlan_in  = 0;
   ptr->inner_vlan_out = 0;
+  ptr->cos            = -1;
   ptr->meter.cir = ptr->meter.cbs = 0;
   ptr->meter.eir = ptr->meter.ebs = 0;
 }
@@ -564,6 +608,8 @@ static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
   if (profile->inner_vlan_in !=ptr->inner_vlan_in )  return L7_FALSE;
   //if (profile->inner_vlan_out!=ptr->inner_vlan_out)  return L7_FALSE;
 
+  if (profile->cos !=ptr->cos)  return L7_FALSE;
+
   return L7_TRUE;
 }
 
@@ -594,6 +640,7 @@ void ptin_bwpolicer_dump_debug(void)
     printf("  OVID_out = %u\r\n",ptr->outer_vlan_out);
     printf("  IVID_in  = %u\r\n",ptr->inner_vlan_in);
     printf("  IVID_out = %u\r\n",ptr->inner_vlan_out);
+    printf("  COS      = %u\r\n",ptr->cos);
     printf("  meter: cir=%u eir=%u cbs=%u ebs=%u\r\n",ptr->meter.cir,ptr->meter.eir,ptr->meter.cbs,ptr->meter.ebs);
     printf("  policy_id = %u\r\n",ptr->policy_id);
     /* Also print hw group id and entry id*/

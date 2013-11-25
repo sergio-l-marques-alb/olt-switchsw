@@ -2841,7 +2841,7 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile)
+L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId)
 {
   L7_uint16 evcId;
   ptin_bw_profile_t profile;
@@ -2876,11 +2876,38 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile)
   }
 
   /* Add bandwidth profile */
-  if ((rc=ptin_evc_bwProfile_set(evcId,&profile))!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
-    return rc;
-  }
+  switch (msgId) {
+  case CCMSG_ETH_BW_PROFILE_SET:
+      profile.cos=-1;   //Set to ignore
+      if ((rc=ptin_evc_bwProfile_set(evcId,&profile))!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
+        return rc;
+      }
+      break;
+  case CCMSG_ETH_BW_PROFILE_SET_II:
+      {
+       //L7_uint16 i;
+       msg_HwEthBwProfile_II_t *msgBwProfile_II;
+       ptin_bw_profile_t p;
+
+       msgBwProfile_II = (msg_HwEthBwProfile_II_t *) msgBwProfile;
+
+       profile.cos = msgBwProfile_II->cos;
+       //profile.meter.cir/=8;
+       //profile.meter.eir/=8;
+       //for (i=0; i<8; i++) {
+           //profile.cos=i;
+           p=profile;
+           if ((rc=ptin_evc_bwProfile_set(evcId,&p))!=L7_SUCCESS)
+           {
+             LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
+             return rc;
+           }
+       //}
+      }
+      break;
+  }//switch
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
   return L7_SUCCESS;
@@ -2893,7 +2920,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile)
+L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId)
 {
   L7_uint16 evcId;
   ptin_bw_profile_t profile;
@@ -2925,14 +2952,38 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile)
     return L7_FAILURE;
   }
 
-  /* Add bandwidth profile */
-  rc = ptin_evc_bwProfile_delete(evcId,&profile);
+  switch (msgId) {
+  case CCMSG_ETH_BW_PROFILE_DELETE:
+      profile.cos=-1;   //Set to ignore
+      if ((rc=ptin_evc_bwProfile_delete(evcId,&profile))!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
+        return rc;
+      }
+      break;
+  case CCMSG_ETH_BW_PROFILE_DELETE_II:
+      {
+       //L7_uint16 i;
+       msg_HwEthBwProfile_II_t *msgBwProfile_II;
+       ptin_bw_profile_t p;
 
-  if ( rc != L7_SUCCESS )
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
-    return rc;
-  }
+       msgBwProfile_II = (msg_HwEthBwProfile_II_t *) msgBwProfile;
+
+       profile.cos = msgBwProfile_II->cos;
+       //profile.meter.cir/=8;
+       //profile.meter.eir/=8;
+       //for (i=0; i<8; i++) {
+           //profile.cos=i;
+           p=profile;
+           if ((rc=ptin_evc_bwProfile_delete(evcId,&p))!=L7_SUCCESS)
+           {
+             LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
+             return rc;
+           }
+       //}
+      }
+      break;
+  }//switch
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
   return L7_SUCCESS;

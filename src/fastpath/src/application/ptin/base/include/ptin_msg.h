@@ -515,7 +515,7 @@ extern L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile);
+extern L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId);
 
 /**
  * Remove an existent bandwidth profile
@@ -524,7 +524,7 @@ extern L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile);
+extern L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId);
 
 /**
  * Get data of an existent storm control profile

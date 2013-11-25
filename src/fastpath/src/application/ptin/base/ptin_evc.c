@@ -55,7 +55,7 @@ struct ptin_evc_client_s {
 
   /* Counters/Profiles per client on stacked EVCs (S+C) */
   void      *counter[2];    /* Pointer to a counter struct entry */
-  void      *bwprofile[2];  /* Pointer to a BW profile struct entry */
+  void      *bwprofile[2][L7_COS_INTF_QUEUE_MAX_COUNT];  /* Pointer to a BW profile struct entry */
 };  // sizeof=24
 
 #if 0
@@ -106,7 +106,7 @@ struct ptin_evc_intf_s {
 
   /* Counters/Profiles per client on unstacked EVCs (counter per leaf port) */
   void      *counter;       /* Pointer to a counter struct entry */
-  void      *bwprofile;     /* Pointer to a BW profile struct entry */
+  void      *bwprofile[L7_COS_INTF_QUEUE_MAX_COUNT];     /* Pointer to a BW profile struct entry */
 
   /* Clients queue */
   dl_queue_t clients;
@@ -2087,11 +2087,16 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing interface# %u...", evc_id, i);
 
         /* Do not allow port removal if counters or BW profiles are configured */
+        {
+         unsigned long j;
+         for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
+             if (evcs[evc_id].intf[i].bwprofile[j]!= NULL) goto _ptin_evc_create1;
+        }
         if ((evcs[evc_id].intf[i].counter  != NULL) ||
-            (evcs[evc_id].intf[i].bwprofile!= NULL) ||
             (evcs[evc_id].intf[i].queue_probes.n_elems > 0) ||
             (evcs[evc_id].intf[i].clients.n_elems > 0))
         {
+_ptin_evc_create1:
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u has counter/BW profiles or flows configured! Cannot remove it!",
                   evc_id,
                   i < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
@@ -2347,10 +2352,15 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
     }
 
     /* Check if there is allocated resources */
+    {
+     unsigned long j;
+     for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
+         if (evcs[evc_idx].intf[ptin_port].bwprofile[j]!= NULL) goto _ptin_evc_port_remove1;
+    }
     if ((evcs[evc_idx].intf[ptin_port].counter   != NULL) ||
-        (evcs[evc_idx].intf[ptin_port].bwprofile != NULL) ||
         (evcs[evc_idx].intf[ptin_port].queue_probes.n_elems > 0))
     {
+_ptin_evc_port_remove1:
       LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u has counter/BW profiles/Probes configured! Cannot remove it!",
               evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
@@ -2975,8 +2985,10 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
   /* No vlans to be flooded */
   memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
-  pclient->bwprofile[PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
-  pclient->bwprofile[PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
+  for (i=0; i<L7_COS_INTF_QUEUE_MAX_COUNT; i++) {
+      pclient->bwprofile[PTIN_EVC_INTF_ROOT][i] = L7_NULLPTR;
+      pclient->bwprofile[PTIN_EVC_INTF_LEAF][i] = L7_NULLPTR;
+  }
   pclient->counter  [PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
   pclient->counter  [PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
   dl_queue_add_tail(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
@@ -3112,10 +3124,12 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
   /* Check if there are bw profiles attached */
   #ifdef EVC_BWPROFILES_REQUIRE_CLEANUP_BEFORE_REMOVAL
-  if ( pclient->bwprofile[PTIN_EVC_INTF_ROOT]!=NULL || pclient->bwprofile[PTIN_EVC_INTF_LEAF]!=NULL )
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have profiles attached... please, remove them first!", evc_id);
-    return L7_FAILURE;
+  for (i=0; i<L7_COS_INTF_QUEUE_MAX_COUNT; i++) {
+      if ( pclient->bwprofile[PTIN_EVC_INTF_ROOT][i]!=NULL || pclient->bwprofile[PTIN_EVC_INTF_LEAF][i]!=NULL )
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u have profiles attached... please, remove them first!", evc_id);
+        return L7_FAILURE;
+      }
   }
   #endif
 
@@ -5168,10 +5182,13 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_i
   /* Remove bw profile on this interface */
   if (force /*ptin_clean_force*/ || ptin_clean_profiles)
   {
-    if (evcs[evc_id].intf[intf_idx].bwprofile != L7_NULL)
+   unsigned long j;
+
+   for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
+    if (evcs[evc_id].intf[intf_idx].bwprofile[j] != L7_NULL)
     {
-      ptin_bwPolicer_delete(evcs[evc_id].intf[intf_idx].bwprofile);
-      evcs[evc_id].intf[intf_idx].bwprofile = L7_NULL;
+      ptin_bwPolicer_delete(evcs[evc_id].intf[intf_idx].bwprofile[j]);
+      evcs[evc_id].intf[intf_idx].bwprofile[j] = L7_NULL;
       if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
       LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from intf=%u/%u",evc_id,ptin_intf.intf_type,ptin_intf.intf_id);
     }
@@ -5462,15 +5479,19 @@ static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, struct ptin_evc_clien
   /* Remove BW Profiles */
   if (force /*ptin_clean_force*/ || ptin_clean_profiles)
   {
-    for (i=0; i<(sizeof(pclientFlow->bwprofile)/sizeof(pclientFlow->bwprofile[0])); i++)
+    for (i=0; i<(sizeof(pclientFlow->bwprofile)/sizeof(pclientFlow->bwprofile[0])); i++) 
     {
-      if (pclientFlow->bwprofile[i] != L7_NULL)
-      {
-        ptin_bwPolicer_delete(pclientFlow->bwprofile[i]);
-        pclientFlow->bwprofile[i] = L7_NULL;
-        if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
-        LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from client of cvlan=%u (outerVlan=%u)", evc_id, pclientFlow->int_ivid, pclientFlow->uni_ovid);
-      }
+     L7_uint j;
+
+     for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++) {
+          if (pclientFlow->bwprofile[i][j] != L7_NULL)
+          {
+            ptin_bwPolicer_delete(pclientFlow->bwprofile[i][j]);
+            pclientFlow->bwprofile[i][j] = L7_NULL;
+            if (evcs[evc_id].n_bwprofiles>0)  evcs[evc_id].n_bwprofiles--;
+            LOG_TRACE(LOG_CTX_PTIN_EVC,"EVC #%u: Profile removed from client of cvlan=%u (outerVlan=%u)", evc_id, pclientFlow->int_ivid, pclientFlow->uni_ovid);
+          }
+     }
     }
   }
 
@@ -5808,7 +5829,11 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   }
 
   evcs[evc_id].intf[ptin_port].counter   = L7_NULLPTR;
-  evcs[evc_id].intf[ptin_port].bwprofile = L7_NULLPTR;
+  {
+   unsigned long j;
+
+   for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++) evcs[evc_id].intf[ptin_port].bwprofile[j] = L7_NULLPTR;
+  }
 
   evcs[evc_id].intf[ptin_port].clients.head    = L7_NULLPTR;
   evcs[evc_id].intf[ptin_port].clients.tail    = L7_NULLPTR;
@@ -8167,6 +8192,8 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
   return L7_SUCCESS;
 }
 
+#define BWPROFILE_INDX(cos) ((cos)>=L7_COS_INTF_QUEUE_MAX_COUNT?0:(cos))
+
 /**
  * Verify bandwidth profile parameters
  * 
@@ -8202,6 +8229,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
@@ -8283,7 +8311,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
       /* If inner_vlan is null, use the general policer for the interface */
       if (profile->inner_vlan_in==0)
       {
-        *bwPolicer_ptr = &(evcs[evc_id].intf[ptin_port].bwprofile);
+        *bwPolicer_ptr = &(evcs[evc_id].intf[ptin_port].bwprofile[BWPROFILE_INDX(profile->cos)]);
       } /* if (profile->inner_vlan_in==0) */
       /* If valid, find the specified client, and provide the policer location */
       else
@@ -8319,11 +8347,11 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
           }
           profile->outer_vlan_out = pclientFlow->uni_ovid;
           profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
-          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF]);
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF][BWPROFILE_INDX(profile->cos)]);
         }
         else
         {
-          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT]);
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][BWPROFILE_INDX(profile->cos)]);
         }
       } /* else (profile->inner_vlan_in==0) */
     } /* if (bwPolicer_ptr!=L7_NULLPTR) */
@@ -8385,6 +8413,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
   LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
@@ -9286,7 +9315,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       #endif
       printf("\r\n");
       printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
-      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile != NULL ? "Active":"Disabled");
+      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile[0] != NULL ? "Active":"Disabled");
       #ifdef PTIN_ERPS_EVC
       printf("    Port State    = %s\n", evcs[evc_id].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
       #endif
@@ -9309,14 +9338,14 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
                    j, pclientFlow->flags & 0xffff,
                    pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff,
                    pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
-                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }
           else
           #endif
           {
             printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
                    pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
-                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
           }
 
           pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);

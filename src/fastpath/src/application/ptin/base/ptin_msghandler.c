@@ -2001,17 +2001,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     /* CCMSG_ETH_BW_PROFILE_SET ***********************************************/
     case CCMSG_ETH_BW_PROFILE_SET:
+    case CCMSG_ETH_BW_PROFILE_SET_II:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_BW_PROFILE_SET (0x%04X)", CCMSG_ETH_BW_PROFILE_SET);
 
-      CHECK_INFO_SIZE(msg_HwEthBwProfile_t);
+      if (CCMSG_ETH_BW_PROFILE_SET==inbuffer->msgId)    CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
+      else                                              CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
 
       msg_HwEthBwProfile_t *bwProfile;
       bwProfile = (msg_HwEthBwProfile_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_bwProfile_set(bwProfile))
+      if (L7_SUCCESS != ptin_msg_bwProfile_set(bwProfile, inbuffer->msgId))
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting BW profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
@@ -2029,16 +2031,18 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     /* CCMSG_ETH_BW_PROFILE_DELETE ********************************************/
     case CCMSG_ETH_BW_PROFILE_DELETE:
+    case CCMSG_ETH_BW_PROFILE_DELETE_II:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_BW_PROFILE_DELETE (0x%04X)", CCMSG_ETH_BW_PROFILE_DELETE);
 
-      CHECK_INFO_SIZE(msg_HwEthBwProfile_t);
+      if (CCMSG_ETH_BW_PROFILE_DELETE==inbuffer->msgId) CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
+      else                                              CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
 
       msg_HwEthBwProfile_t *bwProfile;
       bwProfile = (msg_HwEthBwProfile_t *) inbuffer->info;
 
-      rc = ptin_msg_bwProfile_delete(bwProfile);
+      rc = ptin_msg_bwProfile_delete(bwProfile, inbuffer->msgId);
 
       /* Execute command */
       if ( L7_SUCCESS != rc )
