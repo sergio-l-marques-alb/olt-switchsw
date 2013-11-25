@@ -175,15 +175,15 @@ void log_help(void) {
 
     printf("\nContext mask\n");
     for ( i=0; i<LOG_CONTEXT_LAST; i++ )
-        printf("  bit# %02d - %s\n", i, log_ctx_str[i]);
+        printf("  0x%08X - %s\n", 1<<i, log_ctx_str[i]);
 
     printf("\nSeverity levels\n");
     for ( i=0; i<LOG_SEV_LAST; i++ )
-        printf("  #%02d - %s\n", i, log_sev_str[i]);
+        printf("  %02d - %s\n", i, log_sev_str[i]);
 
     printf("\nColors list\n");
     for ( i=0; i<LOG_COLOR_LAST; i++ )
-        printf("  #%02d - %s%s%s\n", i, log_colors[i], log_colors_str[i], log_colors[LOG_COLOR_DEFAULT]);
+        printf("  %02d - %s%s%s\n", i, log_colors[i], log_colors_str[i], log_colors[LOG_COLOR_DEFAULT]);
 }
 
 /**
