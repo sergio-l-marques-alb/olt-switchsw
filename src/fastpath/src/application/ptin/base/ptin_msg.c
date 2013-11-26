@@ -273,22 +273,25 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
 
     #ifdef PTIN_LINKSCAN_CONTROL
-    /* Enable linkscan for uplink boards */
-    if (PTIN_BOARD_IS_UPLINK(msg->param))
+    if (linkscan_update_control)
     {
-      rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_ENABLE); 
-      if (rc != L7_SUCCESS)
+      /* Enable linkscan for uplink boards */
+      if (PTIN_BOARD_IS_UPLINK(msg->param))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling linkscan (%d)", rc);
+        rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_ENABLE); 
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling linkscan (%d)", rc);
+        }
       }
-    }
-    /* Force linkup for downlink boards */
-    else
-    {
-      rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_ENABLE);
-      if (rc != L7_SUCCESS)
+      /* Force linkup for downlink boards */
+      else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling force linkup (%d)", rc);
+        rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_ENABLE);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error enabling force linkup (%d)", rc);
+        }
       }
     }
     #endif
@@ -312,30 +315,34 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
       return L7_FAILURE;
     }
+
     #ifdef PTIN_LINKSCAN_CONTROL
-    /* Enable linkscan for uplink boards */
-    if (PTIN_BOARD_IS_UPLINK(board_type))
+    if (linkscan_update_control)
     {
-      rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_DISABLE); 
-      if (rc != L7_SUCCESS)
+      /* Enable linkscan for uplink boards */
+      if (PTIN_BOARD_IS_UPLINK(board_type))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling linkscan (%d)", rc);
+        rc = ptin_slot_linkscan_set(msg->generic_id, -1, L7_DISABLE); 
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling linkscan (%d)", rc);
+        }
       }
-    }
-    /* Disable force linkup for downlink boards */
-    else
-    {
-      /* Disable force link-up */
-      rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_DISABLE);
-      if (rc != L7_SUCCESS)
+      /* Disable force linkup for downlink boards */
+      else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
-      }
-      /* Cause link-down */
-      rc = ptin_slot_link_force(msg->generic_id, -1, L7_FALSE, 0);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
+        /* Disable force link-up */
+        rc = ptin_slot_link_force(msg->generic_id, -1, L7_TRUE, L7_DISABLE);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
+        }
+        /* Cause link-down */
+        rc = ptin_slot_link_force(msg->generic_id, -1, L7_FALSE, 0);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error disabling force linkup (%d)", rc);
+        }
       }
     }
     #endif
@@ -358,13 +365,13 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  #if 0
   LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_link_action");
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
-  #if 0
   #if (PTIN_BOARD_IS_MATRIX)
   #if MAP_CPLD
 
@@ -380,22 +387,28 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->param);
-    /* Apply linkscan to all ports of slot */
-    rc = ptin_intf_linkscan(msg->generic_id, msg->mask, L7_DISABLE);
-    if (rc != L7_SUCCESS)
+    if (linkscan_update_control)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->param);
+      /* Apply linkscan to all ports of slot */
+      rc = ptin_intf_linkscan(msg->generic_id, msg->mask, L7_DISABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+      }
     }
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->param);
-    /* Apply linkscan to all ports of slot */
-    rc = ptin_slot_linkscan_set(msg->generic_id, msg->param, L7_ENABLE);
-    if (rc != L7_SUCCESS)
+    if (linkscan_update_control)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->param);
+      /* Apply linkscan to all ports of slot */
+      rc = ptin_slot_linkscan_set(msg->generic_id, msg->param, L7_ENABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+      }
     }
   }
 

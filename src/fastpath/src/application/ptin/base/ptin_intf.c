@@ -18,14 +18,30 @@
 #include "ptin_intf.h"
 #include "ptin_evc.h"
 #include "ptin_xlate_api.h"
+#include "ptin_cnfgr.h"
 #include "fw_shm.h"
 
 L7_BOOL linkscan_update_control = L7_TRUE;
-void ptin_control_linkscan_update(L7_BOOL enable)
+void ptin_linkscan_control_global(L7_BOOL enable)
 {
-  linkscan_update_control = enable & 1;
-
 #ifdef PTIN_LINKSCAN_CONTROL
+  L7_uint port;
+
+  printf("Applying linkscan state to all ports...\r\n");
+
+  if (!enable)  linkscan_update_control = L7_FALSE;
+
+  /* Apply configuration to all ports */
+  for (port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (ptin_intf_linkscan_control(port, enable) != L7_SUCCESS)
+    {
+      printf("Error applying linkscan state to port %u\r\n", port);
+    }
+  }
+
+  if (enable)  linkscan_update_control = L7_TRUE;
+
   printf("Linkscan management state changed to %u\r\n", enable);
 #else
   printf("Linkscan management is not active for this board\r\n");
@@ -1007,6 +1023,44 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
 
   return L7_SUCCESS;
 }
+
+L7_RC_t ptin_intf_boardtype_dump(void)
+{
+  /* Only applied to CXO640G boards */
+  #if (PTIN_BOARD_IS_MATRIX)
+
+  L7_uint i;
+  L7_uint16 board_id;
+
+  printf("Boards at slots:\r\n");
+  for (i=PTIN_SYS_LC_SLOT_MIN; i<=PTIN_SYS_LC_SLOT_MAX; i++)
+  {
+    printf("   Slot %2u: ", i);
+    if (ptin_slot_boardtype_get(i, &board_id) != L7_SUCCESS)
+      printf("Error!\r\n");
+    else if (board_id == 0)
+      printf("empty\r\n");
+    else 
+      printf("%u\r\n", board_id);
+  }
+  printf("Boards at interfaces:\r\n");
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
+    printf("   Port %2u: ", i);
+    if (ptin_intf_boardtype_get(i, &board_id) != L7_SUCCESS)
+      printf("Error!\r\n");
+    else if (board_id == 0)
+      printf("empty\r\n");
+    else 
+      printf("%u\r\n", board_id);
+  }
+  #else
+  printf("Not supported!\r\n");
+  #endif
+
+  return L7_SUCCESS;
+}
+
 
 /****************************************************************************** 
  * Port, LAGs and Interfaces convertion functions
@@ -3486,6 +3540,136 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 }
 
 /**
+ * Enable or disable linkscan control for a particular port
+ * 
+ * @param port 
+ * @param enable 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  #ifdef PTIN_LINKSCAN_CONTROL
+  #if (PTIN_BOARD_IS_MATRIX)
+  #ifdef MAP_CPLD
+  L7_uint16 board_id;
+  L7_uint32 intIfNum;
+
+  if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from port %u", port);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  /* Get board id for this interface */
+  if (ptin_intf_boardtype_get(port, &board_id) != L7_SUCCESS)
+  {
+    board_id = 0;
+  }
+
+  do
+  {
+    /* Enable linkscan control: */
+    if (enable) 
+    {
+      /* For uplink ports, enable linkscan (only for active matrix) */
+      if (cpld_map->reg.mx_is_active && PTIN_BOARD_IS_UPLINK(board_id))
+      {
+        /* Disable force link-up */
+        if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error disabling force link-up", port);
+          break;
+        }
+        /* Force link-down */
+        if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error forcing link-down", port);
+          break;
+        }
+        /* Enable linkscan */
+        if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error enabling linkscan", port);
+          break;
+        }
+      }
+      /* For other ports disable linkscan */
+      else
+      {
+        /* Disable linkscan */
+        if ((rc=ptin_intf_linkscan_set(intIfNum, L7_DISABLE)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error disabling linkscan", port);
+          break;
+        }
+        /* Disable force link-up */
+        if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error disabling force link-up", port);
+          break;
+        }
+        /* Force link-down */
+        if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error forcing link-down", port);
+          break;
+        }
+
+        /* If a card is present, force link-up */
+        if (PTIN_BOARD_IS_PRESENT(board_id))
+        {
+          /* Force link-up */
+          if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE)) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error enabling force link-up", port);
+            break;
+          }
+        }
+      }
+    }
+    /* Disable linkscan control: */
+    else
+    {
+      /* Disable force link-up */
+      if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error disabling link-up force", port);
+        break;
+      }
+      /* Force link-down */
+      if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error forcing link-down force", port);
+        break;
+      }
+      /* Enable linkscan */
+      if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error enabling linkscan", port);
+        break;
+      }
+    }
+  } while (0);
+
+  osapiSemaGive(ptin_boardaction_sem);
+
+  if (rc == L7_SUCCESS)
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Success setting linkscan to %u of port %u", enable, port); 
+  else
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error setting linkscan to %u of port %u", enable, port);
+  #endif
+  #endif
+  #endif
+
+  return rc;
+}
+
+/**
  * read linkscan status
  *  
  * @param intIfNum : Interface
@@ -3550,12 +3734,6 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-  if (!linkscan_update_control)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_API,"Linkscan control disabled");
-    return L7_SUCCESS;
-  }
-
   memset(&hw_proc,0x00,sizeof(hw_proc));
 
   hw_proc.operation = DAPI_CMD_SET;
@@ -3594,12 +3772,6 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
-  }
-
-  if (!linkscan_update_control)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_API,"Linkscan control disabled");
-    return L7_SUCCESS;
   }
 
   memset(&hw_proc,0x00,sizeof(hw_proc));

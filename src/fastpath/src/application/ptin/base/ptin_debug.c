@@ -145,7 +145,10 @@ void ptin_debug(void)
   printf("  ptin_debug_dhcp_enable <enable>     - Show more debugging logs for the DHCP module\r\n");
   printf("  ptin_debug_xlate_enable <enable>    - Show more debugging logs for the XLATE module\r\n");
   printf("\r\n");
-  printf("  ptin_erps_dump <id>                 - prints info about ERPS (use -1 to display all)\r\n");
+  printf("  ptin_erps_dump <id>                         - prints info about ERPS (use -1 to display all)\r\n");
+  printf("  ptin_intf_boardtype_dump                    - prints board ids information\r\n");
+  printf("  ptin_linkscan_control_global <enable>       - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
+  printf("  ptin_intf_linkscan_control <port> <enable>  - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
   printf("\r\n");
   printf("  log_help                            - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity> - use log_help for more info\r\n");
