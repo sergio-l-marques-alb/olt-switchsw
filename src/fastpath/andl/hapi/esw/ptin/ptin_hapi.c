@@ -195,6 +195,13 @@ L7_RC_t ptin_hapi_phy_init(void)
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
+  /* Set linkscan interval to 10 ms */
+  if (bcm_linkscan_enable_set(0, 10000) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing linkscan interval");
+    return L7_FAILURE;
+  }
+
   for (i=1; i<=ptin_sys_number_of_ports; i++)
   {
     /* Use these settings for all slots */
@@ -802,7 +809,6 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   /* If link is to be down, only */
   if (!link)
   {
-    #if 0
     /* Disable loopback */
     if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE) 
     {
@@ -810,7 +816,6 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
-    #endif
     return L7_SUCCESS;
   }
 
@@ -851,7 +856,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
       return L7_FAILURE;
     }
 
-    #if 1
+    #if 0
     /* Disable loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable physical loopback to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
@@ -876,6 +881,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   }
   else
   {
+    #if 0
     /* Undo Loopback */
     LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to disable force link-up (with no link change) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
@@ -888,6 +894,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disable force link-up (with no link change) applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+    #endif
   }
 
   return L7_SUCCESS;
