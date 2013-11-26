@@ -247,6 +247,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   rc = ptin_slot_boardtype_get(msg->generic_id, &board_type);
   if (rc != L7_SUCCESS)
   {
+    osapiSemaGive(ptin_boardaction_sem);
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot %u (rc=%d)", msg->generic_id, rc);
     return L7_FAILURE;
   }
