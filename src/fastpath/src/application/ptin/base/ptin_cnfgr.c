@@ -92,10 +92,6 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
   /* After this point, PTin task must start execution */
   osapiSemaGive(ptin_ready_sem);
 
-  #if (PTIN_BOARD_IS_MATRIX)
-  osapiSemaGive(ptin_switchover_sem);
-  #endif
-
   return L7_SUCCESS;
 }
 
@@ -443,7 +439,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
 #if (PTIN_BOARD_IS_MATRIX)
   /* Semaphore to control board insertion/remotion */
-  ptin_boardaction_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
+  ptin_boardaction_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_boardaction_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_boardaction_sem semaphore!");
