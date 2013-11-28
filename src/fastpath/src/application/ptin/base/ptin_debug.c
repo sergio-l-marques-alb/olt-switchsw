@@ -426,6 +426,9 @@ void ptin_intf_dump(void)
       case PTIN_BOARD_TYPE_TOLTU20G:
         sprintf(board_id_str,"TU20G");
         break;
+      case PTIN_BOARD_TYPE_TOLTU20GR:
+        sprintf(board_id_str,"TU20GR");
+        break;
       case PTIN_BOARD_TYPE_TR32R:
         sprintf(board_id_str,"TR32R");
         break;
@@ -434,6 +437,9 @@ void ptin_intf_dump(void)
         break;
       case PTIN_BOARD_TYPE_TOLT8G:
         sprintf(board_id_str,"TG8G");
+        break;
+      case PTIN_BOARD_TYPE_TOLT8GR:
+        sprintf(board_id_str,"TG8GR");
         break;
       case PTIN_BOARD_TYPE_TA48GE:
         sprintf(board_id_str,"TA48G");
