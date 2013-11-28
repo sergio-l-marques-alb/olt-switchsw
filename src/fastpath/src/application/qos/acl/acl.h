@@ -1103,7 +1103,8 @@ L7_RC_t aclTlvRuleIpv6DenyAllBuild(L7_uint32 vlan, L7_tlvHandle_t tlvHandle);
 L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
                            aclTlvMatchEvery_t *matchEveryFlags,
                            aclIntfDirInfo_t *pDirInfo,
-                           L7_uint32 vlan, L7_tlvHandle_t tlvHandle);
+                           L7_uint32 vlan, L7_tlvHandle_t tlvHandle,
+                           L7_uint8 *actionFlag);
 
 /*********************************************************************
 *
@@ -5182,7 +5183,8 @@ L7_RC_t aclMacUpdateExceptIntf(L7_uint32 aclIndex, L7_uint32 op, L7_uint32 intIf
 L7_RC_t aclMacTlvRuleDefBuild(L7_uint32 aclIndex, L7_uint32 *ruleCount,
                               aclTlvMatchEvery_t *matchEveryFlags,
                               aclIntfDirInfo_t *pDirInfo,
-                              L7_uint32 vlan, L7_tlvHandle_t tlvHandle);
+                              L7_uint32 vlan, L7_tlvHandle_t tlvHandle,
+                              L7_uint8 *actionFlag);
 
 /*********************************************************************
 *

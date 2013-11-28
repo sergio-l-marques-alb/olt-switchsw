@@ -4508,6 +4508,9 @@ L7_RC_t aclImpBuildTLVCreate(L7_uint32 intf, L7_uint32 vlan, L7_uint32 aclDir,
   aclIntfDirInfo_t    tempDirInfo;
   aclIntfTRInfo_t     *trInfo = L7_NULLPTR;
 
+  /* PTIn Added */
+  L7_uint8 actionFlag = 0;
+
   rc2 = L7_SUCCESS;
 
   totalListCount = 0;
@@ -4637,21 +4640,21 @@ L7_RC_t aclImpBuildTLVCreate(L7_uint32 intf, L7_uint32 vlan, L7_uint32 aclDir,
     {
     case L7_ACL_TYPE_IP:
       rc = aclTlvRuleDefBuild(pList->id.aclId, &aclRuleCount, &matchEveryFlags,
-                              pDirInfo, vlan, tlvHandle);
+                              pDirInfo, vlan, tlvHandle, &actionFlag);
       if (aclRuleCount > 0)
         ipv4RuleSeen = L7_TRUE;
       break;
 
     case L7_ACL_TYPE_IPV6:
       rc = aclTlvRuleDefBuild(pList->id.aclId, &aclRuleCount, &matchEveryFlags,
-                              pDirInfo, vlan, tlvHandle);
+                              pDirInfo, vlan, tlvHandle, &actionFlag);
       if (aclRuleCount > 0)
         ipv6RuleSeen = L7_TRUE;         /* at least one IPv6 rule required for implicit deny all */
       break;
 
     case L7_ACL_TYPE_MAC:
       rc = aclMacTlvRuleDefBuild(pList->id.aclId, &aclRuleCount, &matchEveryFlags,
-                                 pDirInfo, vlan, tlvHandle);
+                                 pDirInfo, vlan, tlvHandle, &actionFlag);
       if (aclRuleCount > 0)
         macRuleSeen = L7_TRUE;          /* now need to deny all MAC instead */
       break;
@@ -4740,7 +4743,7 @@ L7_RC_t aclImpBuildTLVCreate(L7_uint32 intf, L7_uint32 vlan, L7_uint32 aclDir,
    * NOTE:  A previously written deny all IPv4/IPv6 still needs the deny all MAC
    *        when any MAC ACL is used
    */
-  if ((matchEveryFlags & ACL_TLV_MATCH_EVERY_MAC) == 0)
+  if ( ((matchEveryFlags & ACL_TLV_MATCH_EVERY_MAC) == 0) && (actionFlag == 0) )
   {
     memset(&rule, 0, sizeof(rule));
     rule.denyFlag = L7_TRUE;
@@ -5255,7 +5258,8 @@ L7_RC_t aclTlvRuleIpv6DenyAllBuild(L7_uint32 vlan, L7_tlvHandle_t tlvHandle)
 L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
                            aclTlvMatchEvery_t *matchEveryFlags,
                            aclIntfDirInfo_t *pDirInfo,
-                           L7_uint32 vlan, L7_tlvHandle_t tlvHandle)
+                           L7_uint32 vlan, L7_tlvHandle_t tlvHandle,
+                           L7_uint8 *actionFlag)
 {
   L7_BOOL                     needDenyAll = L7_TRUE;
   L7_BOOL                     loggingValid;
@@ -5351,6 +5355,10 @@ L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
 
     memset((L7_char8 *)&rule, 0, sizeof(rule));
     rule.denyFlag = (L7_uchar8)p->action;
+
+    /* PTIn Added */
+    *actionFlag |= rule.denyFlag;
+
     if (loggingValid == L7_TRUE)
       val = aclCorrEncode(aclType, aclnum, rulenum, p->action);
     else

@@ -7558,6 +7558,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     rc = ptin_aclIpv6Apply(msgAcl, operation);
   }
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "rc=%d", rc);
   return rc;
 }
 

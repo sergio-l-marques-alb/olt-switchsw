@@ -1893,7 +1893,8 @@ L7_RC_t aclMacUpdateExceptIntf(L7_uint32 aclIndex, L7_uint32 op, L7_uint32 intIf
 L7_RC_t aclMacTlvRuleDefBuild(L7_uint32 aclIndex, L7_uint32 *ruleCount,
                               aclTlvMatchEvery_t *matchEveryFlags,
                               aclIntfDirInfo_t *pDirInfo,
-                              L7_uint32 vlan, L7_tlvHandle_t tlvHandle)
+                              L7_uint32 vlan, L7_tlvHandle_t tlvHandle,
+                              L7_uint8 *actionFlag)
 {
   L7_BOOL                 needDenyAll = L7_TRUE;
   L7_uchar8               nullMac[L7_MAC_ADDR_LEN] = {0,0,0,0,0,0};
@@ -1978,6 +1979,10 @@ L7_RC_t aclMacTlvRuleDefBuild(L7_uint32 aclIndex, L7_uint32 *ruleCount,
 
     memset(&rule, 0, sizeof(rule));
     rule.denyFlag = (L7_uchar8)p->action;
+
+    /* PTIn Added */
+    *actionFlag |= rule.denyFlag;
+
     if (loggingValid == L7_TRUE)
       val = aclCorrEncode(L7_ACL_TYPE_MAC, aclIndex, rulenum, p->action);
     else

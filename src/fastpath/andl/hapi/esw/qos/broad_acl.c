@@ -822,16 +822,6 @@ static void hapiBroadQosAclRuleCount(L7_tlv_t *pListTLV, L7_uint32 *l2v4RuleCoun
 
     classDefLen -= (osapiNtohl(pRuleTLV->length) + sizeof(pRuleTLV->type) + sizeof(pRuleTLV->length));
 
-    /* PTIN added */
-    {
-        L7_int32 classDefLenTemp = classDefLen - (osapiNtohl(pRuleTLV->length) + sizeof(pRuleTLV->type) + sizeof(pRuleTLV->length));
-        //printf("\n\n Last Rule is invalid! Do not use it. classDefLenTemp %d! \n\n", classDefLenTemp);
-        if (classDefLenTemp <= 0)
-        {
-            break; 
-        }
-    }
-
     /* get next rule */
     pRuleTLV = GET_NEXT_TLV(pRuleTLV);
   }
@@ -1335,16 +1325,6 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
         }
 
         classDefLen -= (osapiNtohl(pRuleTLV->length) + sizeof(pRuleTLV->type) + sizeof(pRuleTLV->length));
-
-        /* PTIN added */
-        {
-            L7_int32 classDefLenTemp = classDefLen - (osapiNtohl(pRuleTLV->length) + sizeof(pRuleTLV->type) + sizeof(pRuleTLV->length));
-            //printf("\n\n Last Rule is invalid! Do not use it. classDefLenTemp %d! \n\n", classDefLenTemp);
-            if (classDefLenTemp <= 0)
-            {
-                break; 
-            }
-        }
 
         /* get next rule */
         pRuleTLV = GET_NEXT_TLV(pRuleTLV);
