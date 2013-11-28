@@ -308,7 +308,7 @@ void ptin_intf_dump(void)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
   L7_uint   port;
-  L7_uint16 slot, sport, board_type;
+  L7_uint16 slot, sport;
   L7_uint32 intIfNum = -1;
   L7_uint32 speed_mode;
   L7_char8  speed[8];
@@ -411,6 +411,8 @@ void ptin_intf_dump(void)
     bcm_port = hapiSlotMapPtr[port].bcm_port;
 
 #if (PTIN_BOARD_IS_MATRIX)
+    L7_uint16 board_type;
+
     if (ptin_intf_boardtype_get(port, &board_type) == L7_SUCCESS && board_type != 0)
     {
       switch (board_type)
