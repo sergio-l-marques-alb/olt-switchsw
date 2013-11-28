@@ -308,11 +308,12 @@ void ptin_intf_dump(void)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
   L7_uint   port;
-  L7_uint16 slot, sport;
+  L7_uint16 slot, sport, board_type;
   L7_uint32 intIfNum = -1;
   L7_uint32 speed_mode;
   L7_char8  speed[8];
   L7_char8  bcm_port_str[8];
+  L7_char8  board_id_str[8];
   L7_int32  bcm_port;
   L7_uint   admin;
   L7_uint   link;
@@ -322,9 +323,9 @@ void ptin_intf_dump(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
-  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
-  printf("| Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
-  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("| Board | Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed |                 RX                |                 TX                |\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
@@ -409,6 +410,43 @@ void ptin_intf_dump(void)
     /* bcm_port_t */
     bcm_port = hapiSlotMapPtr[port].bcm_port;
 
+#if (PTIN_BOARD_IS_MATRIX)
+    if (ptin_intf_boardtype_get(port, &board_type) == L7_SUCCESS && board_type != 0)
+    {
+      switch (board_type)
+      {
+      case PTIN_BOARD_TYPE_TU40G:
+        sprintf(board_id_str,"TU40G");
+        break;
+      case PTIN_BOARD_TYPE_TU40GR:
+        sprintf(board_id_str,"TU40GR");
+        break;
+      case PTIN_BOARD_TYPE_TOLTU20G:
+        sprintf(board_id_str,"TU20G");
+        break;
+      case PTIN_BOARD_TYPE_TR32R:
+        sprintf(board_id_str,"TR32R");
+        break;
+      case PTIN_BOARD_TYPE_TG16G:
+        sprintf(board_id_str,"TG16G");
+        break;
+      case PTIN_BOARD_TYPE_TOLT8G:
+        sprintf(board_id_str,"TG8G");
+        break;
+      case PTIN_BOARD_TYPE_TA48GE:
+        sprintf(board_id_str,"TA48G");
+        break;
+      default:
+        sprintf(board_id_str," 0x%02x", board_type);
+        break;
+      }
+    }
+    else
+#endif
+    {
+      sprintf(board_id_str," ---");
+    }
+
     /* Switch port: ge/xe (indexes changed according to the board) */
 #if (PTIN_BOARD_IS_MATRIX)
     sprintf(bcm_port_str, "xe%u", bcm_port - 1);
@@ -422,8 +460,8 @@ void ptin_intf_dump(void)
             (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 26 : bcm_port - 30);
 #endif
 
-    printf("| %2u/%u |  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
-           slot, sport,
+    printf("| %-6.6s| %2u/%u |  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
+           board_id_str, slot, sport,
            port,
            intIfNum,
            bcm_port, bcm_port_str,
@@ -437,7 +475,7 @@ void ptin_intf_dump(void)
            portStats.Tx.etherStatsOctets,
            portStats.Tx.Throughput);
   }
-  printf("+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
   return;
 }
