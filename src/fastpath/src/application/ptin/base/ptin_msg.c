@@ -273,7 +273,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
 
     #ifdef PTIN_LINKSCAN_CONTROL
-    if (linkscan_update_control)
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
     {
       /* Enable linkscan for uplink boards */
       if (PTIN_BOARD_IS_UPLINK(msg->param))
@@ -317,7 +317,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
 
     #ifdef PTIN_LINKSCAN_CONTROL
-    if (linkscan_update_control)
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
     {
       /* Enable linkscan for uplink boards */
       if (PTIN_BOARD_IS_UPLINK(board_type))
@@ -374,6 +374,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 
   #if (PTIN_BOARD_IS_MATRIX)
   #if MAP_CPLD
+  L7_uint16 board_type;
 
   /* Only active matrix will process these messages */
   if (!cpld_map->reg.mx_is_active)
@@ -384,10 +385,19 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
+  /* Get board id for this interface */
+  rc = ptin_slot_boardtype_get(msg->slot_id, &board_type);
+  if (rc != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->slot_id, rc);
+    return L7_FAILURE;
+  }
+
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
-    if (linkscan_update_control)
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->param);
       /* Apply linkscan to all ports of slot */
@@ -400,7 +410,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
   else
   {
-    if (linkscan_update_control)
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->param);
       /* Apply linkscan to all ports of slot */

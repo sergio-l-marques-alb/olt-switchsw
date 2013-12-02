@@ -684,7 +684,8 @@ void ptin_control_switchover_monitor(void)
         for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
         {
           /* Nothing to do for non uplink boards */
-          if (ptin_slot_boardtype_get(slot_id, &board_id)!=L7_SUCCESS ||
+          if (ptin_slot_boardtype_get(slot_id, &board_id) != L7_SUCCESS ||
+              !PTIN_BOARD_LS_CTRL(board_id) ||
               !PTIN_BOARD_IS_UPLINK(board_id))
             continue;
 
@@ -708,7 +709,8 @@ void ptin_control_switchover_monitor(void)
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
           /* For passive board, disable force linkup */
-          if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
+              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
           {
             ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);       /* Disable force link-up */
             ptin_intf_link_force(intIfNum, L7_FALSE, 0);            /* Cause link down */
@@ -720,7 +722,8 @@ void ptin_control_switchover_monitor(void)
         /* Enable linkscan for all ports (links will go down) */
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
-          if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
+              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
             ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
         }
 
@@ -732,7 +735,8 @@ void ptin_control_switchover_monitor(void)
         /* Disable linkscan for all ports */
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
-          if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
+              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
             ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
         }
 
@@ -840,7 +844,12 @@ void ptin_control_switchover_monitor(void)
       /* --- Passive board --- */
 
       /* For passive board, update force link states */
-      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+      if (ptin_intf_boardtype_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_LS_CTRL(board_id))
+      {
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "ptin_port %d is not under linkscan control.", port);
+        continue;
+      }
+      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS) 
       {
         LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
         continue;
