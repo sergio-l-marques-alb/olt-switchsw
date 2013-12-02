@@ -37,6 +37,8 @@
 
 #include "ipc.h"
 
+#include <signal.h>
+
 #if ( !PTIN_BOARD_IS_MATRIX )
 #include "ptin_packet.h"
 #endif
@@ -61,6 +63,30 @@ void *ptin_boardaction_sem = L7_NULLPTR;
 #endif
 
 static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
+
+
+/**
+ * Signal trap callback
+ * 
+ * @param signum 
+ */
+void main_sig_caught(int signum)
+{
+  LOG_INFO(LOG_CTX_STARTUP, "firmware recebeu o sinal %d",signum);
+
+  /* Close IPC channel */
+  CloseIPC();
+
+  /* Initialize IPC message runtime measurements */
+  CHMessage_runtime_meter_init((L7_uint) -1);
+
+  /* Open channel to communicate with the Manager */
+  if (OpenIPC() != S_OK)
+  {
+    LOG_ERR(LOG_CTX_PTIN_CNFGR, "Error opening IPC channel!");
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "IPC Communications channel OK");
+}
 
 
 /*********************************************************************
@@ -379,6 +405,12 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "IPC Communications channel OK");
 
+  /* Define signal trap callback */
+  if ( signal(SIGUSR1, main_sig_caught)==SIG_ERR )
+  {
+    LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
+    PTIN_CRASH();
+  }
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 
