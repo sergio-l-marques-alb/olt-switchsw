@@ -271,6 +271,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error inserting card (%d)", rc);
       return L7_FAILURE;
     }
+    board_type = msg->param;
 
     #ifdef PTIN_LINKSCAN_CONTROL
     if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
