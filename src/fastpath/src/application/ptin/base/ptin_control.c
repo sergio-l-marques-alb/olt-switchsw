@@ -709,8 +709,9 @@ void ptin_control_switchover_monitor(void)
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
           /* For passive board, disable force linkup */
-          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
-              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if ( ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS &&
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
+               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS )
           {
             ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);       /* Disable force link-up */
             ptin_intf_link_force(intIfNum, L7_FALSE, 0);            /* Cause link down */
@@ -722,8 +723,9 @@ void ptin_control_switchover_monitor(void)
         /* Enable linkscan for all ports (links will go down) */
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
-          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
-              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if ( ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS &&
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
+               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS )
             ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
         }
 
@@ -735,8 +737,9 @@ void ptin_control_switchover_monitor(void)
         /* Disable linkscan for all ports */
         for (port=0; port<ptin_sys_number_of_ports; port++)
         {
-          if (ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS && PTIN_BOARD_LS_CTRL(board_id) &&
-              ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          if ( ptin_intf_boardtype_get(port, &board_id) == L7_SUCCESS &&
+              (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
+               ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
             ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
         }
 
