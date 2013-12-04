@@ -615,9 +615,10 @@ static void monitor_matrix_commutation(void)
   lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
   lagInfo.members_pbmp64=   cx_work_slot?   1ULL<<(PTIN_SYSTEM_N_ETH+1):   1ULL<<PTIN_SYSTEM_N_ETH;
   //ptin_intf_LagConfig_get(&lagInfo);
-  LOG_INFO(LOG_CTX_PTIN_CONTROL, "in %s, %s(%d):\tptin_intf_Lag_create()=%u", __FILE__, __FUNCTION__, __LINE__,
-           ptin_intf_Lag_create(&lagInfo)
-           );
+  ptin_intf_Lag_create(&lagInfo);
+  //LOG_INFO(LOG_CTX_PTIN_CONTROL, "in %s, %s(%d):\tptin_intf_Lag_create()=%u", __FILE__, __FUNCTION__, __LINE__,
+  //         ptin_intf_Lag_create(&lagInfo)
+  //         );
   #else
   L7_uint             port;
 
