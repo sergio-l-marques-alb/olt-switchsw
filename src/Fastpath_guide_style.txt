@@ -498,6 +498,98 @@ The above is by no means a complete list. Be careful out there.
 
 
 
+Inline Documentation
+--------------------
+
+Emphasizing Logical Blocks
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Organization and readability are improved by putting extra newlines around
+blocks of code that perform a single task. These are typically blocks that
+begin with a C keyword, but not always.
+
+Furthermore, you should put a single comment (not necessarily one line, just
+one comment) before the block, rather than commenting each and every line.
+There is an optimal amount of commenting that a program can have; you can
+comment too much as well as too little.
+
+A picture is really worth a thousand words here, the following example
+illustrates how to emphasize logical blocks:
+
+	while (line = xmalloc_fgets(fp))
+	{
+	  /* eat the newline, if any */
+	  chomp(line);
+
+	  /* ignore blank lines */
+	  if (strlen(file_to_act_on) == 0)
+	  {
+	    continue;
+	  }
+
+	  /* if the search string is in this line, print it,
+	   * unless we were told to be quiet */
+	  if (strstr(line, search) && !be_quiet)
+	  {
+	    puts(line);
+	  }
+
+	  /* clean up */
+	  free(line);
+	}
+
+
+Libraries and functions description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+At the beginning of each .c and .h file, please add a comment section to describe
+the library purpose, and other usefull information:
+
+This is an example:
+
+/*********************************************************************
+*
+* (C) Copyright PT Inovacao 2013
+*
+**********************************************************************
+*
+* @filename  ptin_intf.c
+*
+* @purpose   This file contains interface management functions
+*
+* @component ptin
+*
+* @comments  My comment.
+*
+* @create    1/01/2011
+*
+* @author    me
+*
+* @end
+*
+**********************************************************************/
+
+Also at the beginning of functions, include a description with the function
+purpose, the input/output parameters, and return values. This should be done
+to both .c and .h files.
+Slickedit has an automatic procedure, where you just have to type the
+characters '/**'+Enter before the function to get a template:
+
+/**
+ * Get board type for a particular interface
+ *  
+ * @param in  : input parameter
+ * @param out : output value (out)
+ * 
+ * @return int : 0 (success), -1 (failure).
+ */
+int foo(int in, int *out)
+{
+  ...
+}
+
+
+
 Miscellaneous Coding Guidelines
 -------------------------------
 
@@ -578,91 +670,6 @@ The only time you would ever need to use the old declaration syntax is to
 support ancient, antediluvian compilers. To our good fortune, we have access
 to more modern compilers and the old declaration syntax is neither necessary
 nor desired.
-
-
-Emphasizing Logical Blocks
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Organization and readability are improved by putting extra newlines around
-blocks of code that perform a single task. These are typically blocks that
-begin with a C keyword, but not always.
-
-Furthermore, you should put a single comment (not necessarily one line, just
-one comment) before the block, rather than commenting each and every line.
-There is an optimal amount of commenting that a program can have; you can
-comment too much as well as too little.
-
-A picture is really worth a thousand words here, the following example
-illustrates how to emphasize logical blocks:
-
-	while (line = xmalloc_fgets(fp))
-	{
-	  /* eat the newline, if any */
-	  chomp(line);
-
-	  /* ignore blank lines */
-	  if (strlen(file_to_act_on) == 0)
-	  {
-	    continue;
-	  }
-
-	  /* if the search string is in this line, print it,
-	   * unless we were told to be quiet */
-	  if (strstr(line, search) && !be_quiet)
-	  {
-	    puts(line);
-	  }
-
-	  /* clean up */
-	  free(line);
-	}
-
-
-Libraries and functions documentation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-At the beginning of each .c and .h file, please add a comment section to describe
-the library purpose, and other usefull information:
-
-/*********************************************************************
-*
-* (C) Copyright PT Inovacao 2013
-*
-**********************************************************************
-*
-* @filename  ptin_intf.c
-*
-* @purpose   This file contains interface management functions
-*
-* @component ptin
-*
-* @comments
-*
-* @create    1/01/2011
-*
-* @author    me
-*
-* @end
-*
-**********************************************************************/
-
-Also at the beginning of functions, include a description with the function
-purpose, the input parameters, and return values.
-For this, you just have to type the characters '/**'+Enter to get a template
-and complete the description:
-
-/**
- * Get board type for a particular interface
- *  
- * @param ptin_port : interface
- * @param board_id  : board code
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_intf_boardtype_get(L7_int ptin_port, L7_uint16 *board_id)
-{
-  ...
-}
 
 
 
