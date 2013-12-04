@@ -175,18 +175,18 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
 
   /* Create PTin task */
-  if (osapiTaskCreate("10ms task", _10msTask, 0, 0,
+  if (osapiTaskCreate("10MS task", _10msTask, 0, 0,
                       L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10ms task!");
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10MS task!");
     PTIN_CRASH();
   }
-  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10ms task launch OK");
+  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10MS task launch OK");
 
-  if (osapiWaitForTaskInit (L7_10ms_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10ms task()\n");
+  if (osapiWaitForTaskInit (L7_PTIN_10MS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10MS task()\n");
     PTIN_CRASH();
   }
 
@@ -217,9 +217,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
 void _10msTask(void)
 {
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10MS Task started");
 
-  if (osapiTaskInitDone(L7_10ms_TASK_SYNC)!=L7_SUCCESS) {
+  if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error syncing task");
     PTIN_CRASH();
   }
@@ -231,7 +231,7 @@ void _10msTask(void)
     PTIN_CRASH();
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10ms task will now start!");
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10MS task will now start!");
 
   /* Loop */
   while (1) {

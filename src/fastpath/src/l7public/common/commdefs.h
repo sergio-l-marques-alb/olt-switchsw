@@ -357,7 +357,7 @@ typedef enum
   L7_PTIN_APS_PACKET_TASK_SYNC, /* PTin added: ptin task */
   L7_PTIN_OAM_ETH_TASK_SYNC,    /* PTin added: ptin task */
   L7_PTIN_IPDTL0_TASK_SYNC,     /* PTin added: ptin task */
-  L7_10ms_TASK_SYNC,            /* PTin added */
+  L7_PTIN_10MS_TASK_SYNC,       /* PTin added: 10ms task */
   L7_TASK_SYNC_LAST
 } L7_TASK_SYNCS_t;
 
