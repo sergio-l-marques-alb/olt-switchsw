@@ -2122,6 +2122,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #endif
 
       /* Add member */
+      //if (1 & lagConf_data[lag_idx].members_pbmp64>>port) {}//no need to add already added members
+      //else
       if (usmDbDot3adMemberAddSet(1, lag_intf, intIfNum) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: could not add member port# %u", lag_idx, port);
