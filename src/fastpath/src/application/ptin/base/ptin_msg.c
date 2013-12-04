@@ -184,30 +184,25 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
  */
 L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 {
-  #if 0
   L7_uint32 lag_idx;
   L7_uint32 intIfNum;
-  #endif
   L7_RC_t   rc;
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d)", msg->slot);
 
-  #if 1
-  //rc = fdbFlush();
-  rc = ptin_l2_mac_table_flush();
-  #else 
   rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
-
-  if (rc==L7_SUCCESS) {
+  if (rc==L7_SUCCESS)
+  {
     rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
-    if (rc==L7_SUCCESS) {
-      rc = fdbFlushByPort(intfNum):
+    if (rc==L7_SUCCESS)
+    {
+      rc = fdbFlushByPort(intIfNum);
     }
   }
-  #endif
 
-  if (rc!=L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "fdbFlush returns %d", rc);
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "return %d", rc);
   }
 
   return L7_SUCCESS;

@@ -1642,9 +1642,9 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
 
   aux = slot + (PTIN_SYSTEM_INTERNAL_LAGID_BASE-PTIN_SYS_LC_SLOT_MIN);
 
-  if (*lag_idx >= PTIN_SYSTEM_N_LAGS)
+  if (aux >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", aux, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
