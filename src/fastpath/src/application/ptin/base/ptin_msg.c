@@ -184,6 +184,7 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
  */
 L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 {
+  #if (PTIN_BOARD_IS_MATRIX)
   L7_uint32 lag_idx;
   L7_uint32 intIfNum;
   L7_RC_t   rc;
@@ -204,6 +205,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "return %d", rc);
   }
+  #endif
 
   return L7_SUCCESS;
 }
