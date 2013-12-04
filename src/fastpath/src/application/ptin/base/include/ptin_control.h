@@ -29,6 +29,8 @@ extern L7_RC_t ptin_control_intf_init(void);
  */
 extern void ptinTask(L7_uint32 numArgs, void *unit);
 
+extern void _10msTask(void);
+
 #if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_LINKSCAN_CONTROL
 /**

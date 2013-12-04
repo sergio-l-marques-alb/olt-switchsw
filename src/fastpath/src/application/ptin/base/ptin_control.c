@@ -34,7 +34,7 @@
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_ISLOADING;
 
-static L7_uint32 ptin_loop_handle = 0;  /* periodic timer handle */
+static L7_uint32 ptin_loop_handle = 0, _10ms_loop_handle=0;  /* periodic timer handle */
 
 static L7_int    linkStatus[PTIN_SYSTEM_N_INTERF];        /* Link status of each interface */
 static L7_BOOL   lagActiveMembers[PTIN_SYSTEM_N_PORTS];   /* Port is an active Lag member? */
@@ -170,6 +170,29 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Send startup trap */
   startup_trap_send();
 
+
+
+
+
+  /* Create PTin task */
+  if (osapiTaskCreate("10ms task", _10msTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10ms task!");
+    PTIN_CRASH();
+  }
+  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10ms task launch OK");
+
+  if (osapiWaitForTaskInit (L7_10ms_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10ms task()\n");
+    PTIN_CRASH();
+  }
+
+
+
+
   /* Loop */
   while (1) {
 //    LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task is Sleeping (%us)...", PTIN_LOOP_TICK/1000);
@@ -179,10 +202,43 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     monitor_throughput();
 
     /* Port commutation process for TOLT8G boards */
-    monitor_matrix_commutation();
+    //monitor_matrix_commutation();
 
     /* Monitor alarms */
     monitor_alarms();
+  }
+}
+
+
+
+
+
+
+
+void _10msTask(void)
+{
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
+
+  if (osapiTaskInitDone(L7_10ms_TASK_SYNC)!=L7_SUCCESS) {
+    LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error syncing task");
+    PTIN_CRASH();
+  }
+
+  /* Register a period timer */
+  if (osapiPeriodicUserTimerRegister(10, &_10ms_loop_handle) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error registering period timer! CRASH!");
+    PTIN_CRASH();
+  }
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10ms task will now start!");
+
+  /* Loop */
+  while (1) {
+    osapiPeriodicUserTimerWait(_10ms_loop_handle);
+    //usleep(10000);
+
+    monitor_matrix_commutation();
   }
 }
 
@@ -549,6 +605,20 @@ static void monitor_matrix_commutation(void)
     }
   }
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  #if 1
+  ptin_LACPLagConfig_t lagInfo;
+
+  lagInfo.lagId=            0;
+  lagInfo.admin=            1;
+  lagInfo.stp_enable=       0;
+  lagInfo.static_enable=    1;
+  lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+  lagInfo.members_pbmp64=   cx_work_slot?   1ULL<<(PTIN_SYSTEM_N_ETH+1):   1ULL<<PTIN_SYSTEM_N_ETH;
+  //ptin_intf_LagConfig_get(&lagInfo);
+  LOG_INFO(LOG_CTX_PTIN_CONTROL, "in %s, %s(%d):\tptin_intf_Lag_create()=%u", __FILE__, __FUNCTION__, __LINE__,
+           ptin_intf_Lag_create(&lagInfo)
+           );
+  #else
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
@@ -567,6 +637,7 @@ static void monitor_matrix_commutation(void)
       rc = L7_FAILURE;
     }
   }
+  #endif
   #endif
 
   /* Any error? */

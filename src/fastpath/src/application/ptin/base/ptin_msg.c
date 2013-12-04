@@ -1753,6 +1753,8 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
 {
   ptin_LACPLagConfig_t ptinLagConf;
 
+  if (0==lagInfo->id && ptin_intf_lag_exists(lagInfo->id)) return L7_SUCCESS;   //Allow just initialization, for iLag 0
+
   /* Copy data from msg to ptin structure */
   ptinLagConf.lagId            = (L7_uint32) lagInfo->id;
   ptinLagConf.admin            = lagInfo->admin;
