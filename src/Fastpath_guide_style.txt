@@ -284,6 +284,13 @@ distinguish them from variable names. A good idea is to use the '_t' suffix:
 	typedef unsigned char var_t;
 	var_t var;
 
+For struct data types you should use the _s suffix:
+
+	typedef struct my_structtype_s
+	{
+	  int a, b;
+	} my_structtype_t;
+
 This way, you can reuse the data type name for the variables.
 
 
@@ -337,8 +344,32 @@ The same is applied to #define and enum constants, using the PTIN_ prefix
 Constant (#defines and enums), variable and function names accessible to all
 libraries (external) should have names which are easily associated to its
 belonging library. It is a good rule to prefix their names with the library
-name. Examples are ptin_intf_init() and ptin_intf_portExt_set(...), which are
-part of the ptin_intf.h library.
+name.
+
+Examples for ptin_intf.h library:
+
+	L7_RC_t ptin_intf_init();
+	L7_RC_t ptin_intf_portExt_set(...);
+
+t is well common to use the following keywords to make initializations,
+set or remove configurations, or to get status of some module:
+
+ - init / deinit     - initializations
+ - config / unconfig - configurations
+ - get / set         - get status or set configurations
+ - remove / delete   - remove/delete configurations
+ - clear             - clear configurations or state machines
+ - dump              - dump information about something.
+
+Please make your preference to use these specific keywords for such purposes,
+to maintain homogeneity.
+These particular words should be located at the end of the function name.
+
+Here are some examples:
+	int ptin_lib_init();
+	int ptin_lib_procedure_get(...);
+	int ptin_lib_procedure_set(...);
+	int ptin_lib_procedure_remove(...);
 
 
 
@@ -501,6 +532,52 @@ The above is by no means a complete list. Be careful out there.
 Inline Documentation
 --------------------
 
+Documentation of code blocks should have the same priority as feature development,
+mainly because you will not have the time to do this task later.
+So, as important it is to use to correct formatting and name syntax, is also to
+comment properly the code. It is not necessary to comment each line, but at least
+each code block with a small, but human understandable, description.
+
+
+General rules for comments
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the // or the /* ... */ characters to add comments, but it is
+preferably to use always the latter one, also because you can write multiple lines.
+
+Also, comments should have human friendly language, with the only purpose to
+explain what does the code block.
+This is an example, what is wrong to be done:
+
+	/* For loop: port=[0,MX_PORTS[ */
+	for (port = 0; port < MAX_PORTS; port++)
+	{
+	  ptin_intf_init(port);
+	}
+
+The correct way:
+
+	/* Initialize all ports configuration
+	for (port = 0; port < MAX_PORTS; port++)
+	{
+	  ptin_intf_init(port);
+	}
+
+
+Hiding code
+~~~~~~~~~~~
+
+To hide code sections for not being compiled, it is preferable to not comment them,
+mainly because they are not comments. Instead, use the '#if 0'+'#endif' statements,
+with a proper comment before, explaining why the code section was removed.
+
+	/* Reason to comment the following lines */
+	#if 0
+	...
+	#endif
+
+
+
 Emphasizing Logical Blocks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -539,8 +616,8 @@ illustrates how to emphasize logical blocks:
 	}
 
 
-Libraries and functions description
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Libraries description
+~~~~~~~~~~~~~~~~~~~~~
 
 At the beginning of each .c and .h file, please add a comment section to describe
 the library purpose, and other usefull information:
@@ -569,15 +646,22 @@ This is an example:
 *
 **********************************************************************/
 
+
+Functions description
+~~~~~~~~~~~~~~~~~~~~
+
 Also at the beginning of functions, include a description with the function
 purpose, the input/output parameters, and return values. This should be done
-to both .c and .h files.
+to both .c and .h files. This is required for extern functions!
+
 Slickedit has an automatic procedure, where you just have to type the
 characters '/**'+Enter before the function to get a template:
 
 /**
- * Get board type for a particular interface
+ * Function description
  *  
+ * @author mruas (12/5/2013)
+ *
  * @param in  : input parameter
  * @param out : output value (out)
  * 
@@ -587,6 +671,10 @@ int foo(int in, int *out)
 {
   ...
 }
+
+For module internal functions (static), it is only necessary to do this at the
+function implementation. The prototype can only have a single comment line with
+a small description of its purpose.
 
 
 

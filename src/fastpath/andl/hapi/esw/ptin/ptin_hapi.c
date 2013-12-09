@@ -344,6 +344,8 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
 {
   int i, unit=0;
   bcm_port_t bcm_port;
+  bcmx_lport_t lport_cpu;
+  bcm_port_t bcm_port_cpu;
 
   /* Validate arguments */
   if (port_frontier>=ptin_sys_number_of_ports)
@@ -363,6 +365,23 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   BCM_PBMP_CLEAR(pbm_egress_all_ports);
   BCM_PBMP_CLEAR(pbm_egress_root_ports);
   BCM_PBMP_CLEAR(pbm_egress_community_ports);
+
+  /* Add CPU to port bitmaps */
+  if (bcmx_lport_local_cpu_get(0, &lport_cpu) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_lport_local_cpu_get");
+    return L7_FAILURE;
+  }
+  bcm_port_cpu = bcmx_lport_bcm_port(lport_cpu);
+  if (bcm_port_cpu < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_lport_bcm_port");
+    return L7_FAILURE;
+  }
+  BCM_PBMP_PORT_ADD(pbm_egress_all_ports, bcm_port_cpu);
+  BCM_PBMP_PORT_ADD(pbm_egress_root_ports, bcm_port_cpu);
+  BCM_PBMP_PORT_ADD(pbm_egress_community_ports, bcm_port_cpu);
+
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
