@@ -174,21 +174,23 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
 
 
-  /* Create PTin task */
-  if (osapiTaskCreate("10MS task", _10msTask, 0, 0,
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  /* Create 10ms task */
+  if (osapiTaskCreate("10ms task", _10msTask, 0, 0,
                       L7_DEFAULT_STACK_SIZE,
-                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_MEDIUM_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10MS task!");
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10ms task!");
     PTIN_CRASH();
   }
-  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10MS task launch OK");
+  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10ms task launch OK");
 
   if (osapiWaitForTaskInit (L7_PTIN_10MS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10MS task()\n");
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10ms task()\n");
     PTIN_CRASH();
   }
+#endif
 
 
 
@@ -202,7 +204,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     monitor_throughput();
 
     /* Port commutation process for TOLT8G boards */
-    //monitor_matrix_commutation();
+#if ( PTIN_BOARD != PTIN_BOARD_TA48GE )
+    monitor_matrix_commutation();
+#endif
 
     /* Monitor alarms */
     monitor_alarms();
@@ -217,7 +221,23 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
 void _10msTask(void)
 {
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10MS Task started");
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
+
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  {
+      ptin_LACPLagConfig_t lagInfo;
+
+      lagInfo.lagId=            0;
+      lagInfo.admin=            1;
+      lagInfo.stp_enable=       0;
+      lagInfo.static_enable=    1;
+      lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+      //ptin_intf_LagConfig_get(&lagInfo);
+
+      lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
+      ptin_intf_Lag_create(&lagInfo);
+  }
+#endif
 
   if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error syncing task");
@@ -231,14 +251,17 @@ void _10msTask(void)
     PTIN_CRASH();
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10MS task will now start!");
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10ms task will now start!");
+
+  //nice(-1);
 
   /* Loop */
   while (1) {
     osapiPeriodicUserTimerWait(_10ms_loop_handle);
     //usleep(10000);
-
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
     monitor_matrix_commutation();
+#endif
   }
 }
 
@@ -606,6 +629,21 @@ static void monitor_matrix_commutation(void)
   }
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   #if 1
+  {
+   L7_uint32 lag_intf, intIfNum, intIfNum_del;
+      ptin_intf_lag2intIfNum(0, &lag_intf);
+      if (cx_work_slot) {
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum);
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del);
+      }
+      else {
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum);
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del);
+      }
+      dtlDot3adPortAdd(lag_intf, 1, &intIfNum, 1);       // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+      dtlDot3adPortDelete(lag_intf, 1, &intIfNum_del, 1);
+  }
+  #else
   ptin_LACPLagConfig_t lagInfo;
 
   lagInfo.lagId=            0;
@@ -622,7 +660,8 @@ static void monitor_matrix_commutation(void)
   //LOG_INFO(LOG_CTX_PTIN_CONTROL, "in %s, %s(%d):\tptin_intf_Lag_create()=%u", __FILE__, __FUNCTION__, __LINE__,
   //         ptin_intf_Lag_create(&lagInfo)
   //         );
-  #else
+
+  //#else
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
