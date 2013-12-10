@@ -117,6 +117,7 @@ void ptin_debug(void)
   printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
   printf("\r\n");
+  printf("  ptin_stormcontrol_dump_debug        - Dump storm control configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug           - Dump configured bandwidth policers\r\n");
   printf("  ptin_fpcounters_dump_debug          - Dump configured EVC/client counters (at request)\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
@@ -124,12 +125,13 @@ void ptin_debug(void)
   printf("  ssm_debug_dump                      - prints info about SSM operation\r\n");
   printf("  ptin_dhcp_dump                      - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                      - prints info about IGMP instances\r\n");
-  printf("  ptin_igmp_clients_dump              - prints info about IMGP clients\r\n");
   printf("  ptin_igmp_assoc_dump                - prints info about MC service associations\r\n");
   printf("  ptin_igmp_mfdb_dump                 - prints MFDB table entries\r\n");
   printf("  ptin_igmp_snoop_dump <id>           - prints IGMP snooping entries (use -1 to display all)\r\n");
   printf("  ptin_igmp_proxy_dump                - prints IGMP proxy configuration\r\n");
   printf("  ptin_igmp_querier_dump <evc_idx>    - prints IGMP querier configuration (none/0/-1 for all)\r\n");
+  printf("  ptin_igmp_clients_dump              - prints info about IMGP device clients\r\n");
+  printf("  ptin_igmp_clientGroups_dump         - prints info about IMGP group of clients\r\n");
   printf("  ptin_igmptimer_show                 - Show IGMP packet processing time data\r\n");
   printf("  ptin_igmptimer_clear                - Initializes IGMP packet processing time data\r\n");
   printf("  ptin_timers_clear                   - Inializes all processing timers\r\n");
