@@ -555,7 +555,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 
   /* Validate client index */
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client_idx = (L7_uint) -1;
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client not provided!");
@@ -642,7 +642,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                      &client_idx) != L7_SUCCESS)
     #else
     /* For Linecard only: If client was not recognized, add it as dynamic */
-    if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
+    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS &&
         ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                      pduInfo->vlanId, pduInfo->innerVlanId,
                                      &data[L7_MAC_ADDR_LEN],
@@ -3245,7 +3245,7 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
     return L7_FAILURE;
   }
 #else
-  if (mcastPacket->client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (mcastPacket->client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family,"snoopMgmdMembershipReportProcess: Client not provided");
     return L7_FAILURE;
@@ -3627,7 +3627,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   }
 
   /* Validate client index */
-  if (mcastPacket->client_idx >= PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (mcastPacket->client_idx >= PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Client not provided  :%d",mcastPacket->client_idx);
     return L7_FAILURE;
@@ -4309,7 +4309,7 @@ L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket)
     return L7_FAILURE;
   }
 #else
-  if (mcastPacket->client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (mcastPacket->client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family,"Client not provided");
     return L7_FAILURE;

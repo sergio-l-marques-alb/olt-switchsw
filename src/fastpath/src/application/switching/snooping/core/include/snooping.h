@@ -257,7 +257,7 @@ typedef struct
   L7_uint8  number_of_ports;    /* Number of interfaces being used */
   L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */
   L7_uint16 number_of_clients;  /* Number of clients using this channel */
-  L7_uint32 clients_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/(sizeof(L7_uint32)*8)+1]; /* List of (index) clients */
+  L7_uint32 clients_list[PTIN_SYSTEM_IGMP_MAXCLIENTS/(sizeof(L7_uint32)*8)+1]; /* List of (index) clients */
   L7_uint16 intf_number_of_clients[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
 } ptinSnoopChannelInfo_t;
 
@@ -369,7 +369,7 @@ typedef struct
 typedef struct
 {
   L7_uint8                filtermode;//snoop_ptin_filtermode_t
-  snoopPTinL3Source_t     sources[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+  snoopPTinL3Source_t     sources[PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
   snoopPTinL3Grouptimer_t groupTimer;
   L7_uint8                numberOfSources;
   L7_uint8                active;
@@ -547,7 +547,7 @@ typedef struct snoopPTinQueryData_s
   L7_BOOL           sFlag;
   L7_uint16         vlanId;
   L7_inet_addr_t    groupAddr;
-  L7_inet_addr_t    sourceList[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+  L7_inet_addr_t    sourceList[PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
   L7_uint8          sourcesCnt;
   osapiTimerDescr_t *queryTimer;
 }snoopPTinQueryData_t;

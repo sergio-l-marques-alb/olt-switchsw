@@ -306,7 +306,7 @@ L7_RC_t snoopPTinClientNoSourcesSubscribed(snoopPTinL3Interface_t* interfacePtr,
   }
 
   /* Count the number of sources this client has */
-  for (i = 0; i < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++i)
+  for (i = 0; i < PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP; ++i)
   {
     if (interfacePtr->sources[i].status==PTIN_SNOOP_SOURCESTATE_ACTIVE && 
         interfacePtr->sources[i].sourceTimer.isRunning==L7_TRUE &&
@@ -463,7 +463,7 @@ L7_RC_t snoopPTinSourceAdd(snoopPTinL3Interface_t* interfacePtr, L7_inet_addr_t*
     return L7_FAILURE;
   }
 
-  for (idx = 0; idx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++idx)
+  for (idx = 0; idx < PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP; ++idx)
   {
     if (interfacePtr->sources[idx].status == PTIN_SNOOP_SOURCESTATE_INACTIVE)
     {
@@ -638,7 +638,7 @@ L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t* sou
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Source Address: %s", inetAddrPrint(sourceAddr, debug_buf));
-  for (sourceIdx = 0; sourceIdx < PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP; ++sourceIdx)
+  for (sourceIdx = 0; sourceIdx < PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP; ++sourceIdx)
   {
     if (sourceList[sourceIdx].status != PTIN_SNOOP_SOURCESTATE_INACTIVE)
     {
@@ -651,7 +651,7 @@ L7_RC_t snoopPTinSourceFind(snoopPTinL3Source_t *sourceList, L7_inet_addr_t* sou
       return L7_SUCCESS;
     }
   }
-  *foundIdx=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
+  *foundIdx=PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;
   return L7_NO_VALUE;
 }
 
@@ -800,7 +800,7 @@ L7_RC_t snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTree
 
   L7_uint32           noOfRecords=0;
   L7_inet_addr_t*     sourceAddr;
-  L7_uint16           sourceIdx=PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;  
+  L7_uint16           sourceIdx=PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;  
   L7_RC_t             rc; 
   L7_BOOL flagSourceAdded=L7_FALSE;
   L7_BOOL flagnoOfSources=L7_FALSE;
@@ -1168,7 +1168,7 @@ L7_RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTree
 L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_inet_addr_t* sourceList,L7_uint32 *noOfRecordsPtr, snoopPTinProxyGroup_t* groupPtr)
 {
 #if SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT
-  L7_inet_addr_t      sources2Query[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP]={}; //List of sources with source-timer active  
+  L7_inet_addr_t      sources2Query[PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP]={}; //List of sources with source-timer active  
   L7_uint16           sources2QueryCnt = 0;  
 #endif    
 
@@ -1177,7 +1177,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
 
   L7_uint32 noOfRecords=0;
 
-  L7_uint16            sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;   
+  L7_uint16            sourceIdx = PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;   
   L7_inet_addr_t* sourceAddr;   
   L7_BOOL  flagInterfaceRemoved=L7_FALSE, flagSourceRemoved=L7_FALSE;
   L7_RC_t rc;
@@ -1386,13 +1386,13 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
 L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_inet_addr_t* sourceList,L7_uint32 *noOfRecordsPtr, snoopPTinProxyGroup_t* groupPtr)
 {
 #if SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT
-  L7_inet_addr_t           sources2Query[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP]={}; //List of sources 2 Query
+  L7_inet_addr_t           sources2Query[PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP]={}; //List of sources 2 Query
   L7_uint16                sources2QueryCnt = 0;
 #endif
   char                debug_buf[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};
   ptin_IgmpProxyCfg_t igmpCfg;
   L7_RC_t             rc;
-  L7_uint16            sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;   
+  L7_uint16            sourceIdx = PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;   
   L7_uint32 noOfRecords=0;
   L7_uint32 group_timer;        
 
@@ -1707,7 +1707,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
 
   L7_uint32           noOfRecords=0; 
   L7_inet_addr_t*     sourceAddr;
-  L7_uint16           sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;    
+  L7_uint16           sourceIdx = PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;    
 
   L7_RC_t             rc;
 
@@ -1830,13 +1830,13 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
 L7_RC_t snoopPTinMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntry, L7_uint32 intIfNum, L7_uint32 clientIdx, L7_ushort16 noOfSources, L7_inet_addr_t* sourceList,L7_uint32 *noOfRecordsPtr, snoopPTinProxyGroup_t* groupPtr)
 {
 #if SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT
-  L7_inet_addr_t      sources2Query[PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP]={}; //List of sources 2 Query
+  L7_inet_addr_t      sources2Query[PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP]={}; //List of sources 2 Query
   L7_uint16           sources2QueryCnt = 0;  
 #endif
 
   L7_uint32           group_timer;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};
-  L7_uint16           sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;   
+  L7_uint16           sourceIdx = PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;   
   L7_inet_addr_t*     sourceAddr;
   ptin_IgmpProxyCfg_t igmpCfg;  
   L7_uint32           noOfRecords=0;  
@@ -2947,7 +2947,7 @@ snoopPTinProxyGroup_t* snoopPTinGroupSourceSpecifcQueryProcess(snoopPTinL3InfoDa
   L7_uint32                   timeLeft;    
   L7_BOOL                     pendingReport=L7_FALSE;
   L7_inet_addr_t*             sourceAddr;   
-  L7_uint16                   sourceIdx = PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
+  L7_uint16                   sourceIdx = PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;
   L7_RC_t                     rc;
 
 //Initialize Output Variables  
@@ -3394,7 +3394,7 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
   }
 
 
-  clientIdx=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE-1;  
+  clientIdx=PTIN_SYSTEM_IGMP_MAXCLIENTS-1;  
   rc=snoopPTinAddStaticSource(snoopEntry, intIfNum, clientIdx, noOfSources,sourceAddr,&noOfRecords,groupPtr);
   if (rc!=L7_SUCCESS)
   {
@@ -3799,7 +3799,7 @@ L7_RC_t snoopPTinRemoveStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_
     }
 
     /*Set the ClientIdx as the Last One*/
-    clientIdx=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE-1;    
+    clientIdx=PTIN_SYSTEM_IGMP_MAXCLIENTS-1;    
     rc=snoopPTinRemoveStaticSource(snoopEntry, intIfNum, clientIdx, noOfSources,sourceAddr,&noOfRecords,groupPtr);
     if (rc!=L7_SUCCESS)
     {

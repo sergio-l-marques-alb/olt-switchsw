@@ -106,7 +106,7 @@ typedef struct
 {
   L7_uint16 number_of_clients;                                  /* Total number of clients */
   L7_uint16 number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
-  ptinIgmpClientInfoData_t  *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
+  ptinIgmpClientInfoData_t  *clients_in_use[PTIN_SYSTEM_IGMP_MAXCLIENTS];
 
   ptinIgmpClientsAvlTree_t  avlTree;
   L7_APP_TMR_CTRL_BLK_t     timerCB;       /* Entry App Timer Control Block */
@@ -234,16 +234,16 @@ inline L7_int igmp_clientIndex_get_new(L7_uint8 igmp_idx)
   L7_uint i;
 
   /* Search for the first free client index */
-  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE && igmpClients_unified.clients_in_use[i]!=L7_NULLPTR; i++);
+  for (i=0; i<PTIN_SYSTEM_IGMP_MAXCLIENTS && igmpClients_unified.clients_in_use[i]!=L7_NULLPTR; i++);
 
-  if (i>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (i>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
     return -1;
   return i;
 }
 
 inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
 {
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
     return L7_FALSE;
 
   /* Return client existence status */
@@ -252,18 +252,18 @@ inline L7_BOOL igmp_clientIndex_is_marked(L7_uint8 igmp_idx, L7_uint client_idx)
 
 inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port, ptinIgmpClientInfoData_t *infoData)
 {
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
     return;
 
   /* Update number of clients */
   if (igmpClients_unified.clients_in_use[client_idx]==L7_NULLPTR)
   {
-    if (igmpClients_unified.number_of_clients < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+    if (igmpClients_unified.number_of_clients < PTIN_SYSTEM_IGMP_MAXCLIENTS)
       igmpClients_unified.number_of_clients++;
 
     if (ptin_port<PTIN_SYSTEM_N_INTERF)
     {
-      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+      if (igmpClients_unified.number_of_clients_per_intf[ptin_port] < PTIN_SYSTEM_IGMP_MAXCLIENTS )
         igmpClients_unified.number_of_clients_per_intf[ptin_port]++;
     }
   }
@@ -273,7 +273,7 @@ inline void igmp_clientIndex_mark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint
 
 inline void igmp_clientIndex_unmark(L7_uint8 igmp_idx, L7_uint client_idx, L7_uint ptin_port)
 {
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     return;
   }
@@ -430,8 +430,8 @@ L7_RC_t ptin_igmp_proxy_init(void)
   /* AVL tree pointer to unified list of clients */
   avlTree = &igmpClients_unified.avlTree;
 
-  avlTree->igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(avlTreeTables_t)); 
-  avlTree->igmpClientsDataHeap = (ptinIgmpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE * sizeof(ptinIgmpClientInfoData_t)); 
+  avlTree->igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXCLIENTS * sizeof(avlTreeTables_t)); 
+  avlTree->igmpClientsDataHeap = (ptinIgmpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXCLIENTS * sizeof(ptinIgmpClientInfoData_t)); 
 
   if ((avlTree->igmpClientsTreeHeap == L7_NULLPTR) ||
       (avlTree->igmpClientsDataHeap == L7_NULLPTR))
@@ -442,14 +442,14 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   /* Initialize the storage for all the AVL trees */
   memset (&avlTree->igmpClientsAvlTree, 0x00, sizeof(avlTree_t));
-  memset (avlTree->igmpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
-  memset (avlTree->igmpClientsDataHeap, 0x00, sizeof(ptinIgmpClientInfoData_t)*PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
+  memset (avlTree->igmpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_IGMP_MAXCLIENTS);
+  memset (avlTree->igmpClientsDataHeap, 0x00, sizeof(ptinIgmpClientInfoData_t)*PTIN_SYSTEM_IGMP_MAXCLIENTS);
 
   // AVL Tree creations - snoopIpAvlTree
   avlCreateAvlTree(&(avlTree->igmpClientsAvlTree),
                    avlTree->igmpClientsTreeHeap,
                    avlTree->igmpClientsDataHeap,
-                   PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE, 
+                   PTIN_SYSTEM_IGMP_MAXCLIENTS, 
                    sizeof(ptinIgmpClientInfoData_t),
                    0x10,
                    sizeof(ptinIgmpClientDataKey_t));
@@ -541,7 +541,7 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   avlTree = &igmpClients_unified.avlTree;
 
   // AVL Tree creations - snoopIpAvlTree
-  avlPurgeAvlTree(&(avlTree->igmpClientsAvlTree),PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE);
+  avlPurgeAvlTree(&(avlTree->igmpClientsAvlTree),PTIN_SYSTEM_IGMP_MAXCLIENTS);
 
   osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsTreeHeap); 
   osapiFree(L7_PTIN_COMPONENT_ID, avlTree->igmpClientsDataHeap); 
@@ -1801,7 +1801,7 @@ L7_RC_t ptin_igmp_all_clients_flush(void)
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 static L7_uint16             channelList_size=0;
-static ptin_igmpChannelInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP];
+static ptin_igmpChannelInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
 
 L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client,
                                   L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
@@ -1890,7 +1890,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
     memset(channelList,0x00,sizeof(channelList));
     channelList_size = 0;
 
-    n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_MAXSOURCES_PER_IGMP_GROUP;
+    n_channels = L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP;
     if (ptin_snoop_activeChannels_get(McastRootVlan,intIfNum, client_idx, channelList, &n_channels) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting channels list");
@@ -1944,7 +1944,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 static L7_uint16 clientList_size=0;
-static ptin_client_id_t clientList[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE];
+static ptin_client_id_t clientList[PTIN_SYSTEM_IGMP_MAXCLIENTS];
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
 
 L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel,
@@ -1956,7 +1956,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
   L7_uint         igmp_idx, client_idx;
   L7_inet_addr_t  channel;
   L7_uint16       n_clients, max_clients;
-  L7_uint32       clientIdx_bmp_list[PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE/UINT32_BITSIZE+1];
+  L7_uint32       clientIdx_bmp_list[PTIN_SYSTEM_IGMP_MAXCLIENTS/UINT32_BITSIZE+1];
   ptinIgmpClientsAvlTree_t *avl_tree;
   ptinIgmpClientDataKey_t   key;
   ptinIgmpClientInfoData_t *infoData;
@@ -2017,7 +2017,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 
     n_clients=0;
     memset(&key,0x00,sizeof(ptinIgmpClientDataKey_t));
-    while (n_clients<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE &&
+    while (n_clients<PTIN_SYSTEM_IGMP_MAXCLIENTS &&
            (infoData=(ptinIgmpClientInfoData_t *) avlSearchLVL7(&(avl_tree->igmpClientsAvlTree),&key,L7_MATCH_GETNEXT))!=L7_NULLPTR)
     {
       /* Update key */
@@ -2222,7 +2222,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
   if (ptin_igmp_clientIntfVlan_validate(intIfNum, intOVlan) &&
-      (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE))
+      (client_idx>=0 && client_idx<PTIN_SYSTEM_IGMP_MAXCLIENTS))
   {
     /* Get pointer to client structure in AVL tree */
     clientInfo = igmpClients_unified.clients_in_use[client_idx];
@@ -2554,7 +2554,7 @@ L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+  if ( client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS )
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2677,7 +2677,7 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
 L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan, L7_uint client_idx)
 {
   /* Validate arguments */
-  if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+  if ( client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS )
   {
     //if (ptin_debug_igmp_snooping)
     //  LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -2747,7 +2747,7 @@ L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
   ptinIgmpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS )
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -3533,7 +3533,7 @@ L7_RC_t ptin_igmp_timersMng_init(void)
 
   /* Queue that will process timer events */
   clientsMngmt_queue = (void *) osapiMsgQueueCreate("PTin_IGMP_Timer_Queue",
-                                PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE, PTIN_IGMP_TIMER_MSG_SIZE);
+                                PTIN_SYSTEM_IGMP_MAXCLIENTS, PTIN_IGMP_TIMER_MSG_SIZE);
   if (clientsMngmt_queue == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"PTIN Timer msgQueue creation error.");
@@ -3567,7 +3567,7 @@ L7_RC_t ptin_igmp_timersMng_init(void)
   /* Timer Initializations */
 
   /* Control block buffer pool */
-  if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+  if(bufferPoolInit(PTIN_SYSTEM_IGMP_MAXCLIENTS,
                     sizeof(timerNode_t) /*L7_APP_TMR_NODE_SIZE*/,
                     "PTin_IGMP_CtrlBlk_Timer_Bufs",
                     &bufferPoolId) != L7_SUCCESS)
@@ -3578,7 +3578,7 @@ L7_RC_t ptin_igmp_timersMng_init(void)
   igmpClients_unified.ctrlBlkBufferPoolId = bufferPoolId;
 
   /* Timers buffer pool */
-  if(bufferPoolInit(PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+  if(bufferPoolInit(PTIN_SYSTEM_IGMP_MAXCLIENTS,
                     sizeof(igmpTimerData_t),
                     "PTin_IGMP_Timer_Bufs",
                     &bufferPoolId) != L7_SUCCESS)
@@ -3601,7 +3601,7 @@ L7_RC_t ptin_igmp_timersMng_init(void)
 
   /* Create timer handles */
   /* Allocate memory for the Handle List */
-  handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE*sizeof(handle_member_t));
+  handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXCLIENTS*sizeof(handle_member_t));
   if (handleListMemHndl == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Error allocating Handle List Buffers");
@@ -3609,7 +3609,7 @@ L7_RC_t ptin_igmp_timersMng_init(void)
   }
   LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Allocated memory for handle list");
   /* Create timers handle list for this IGMP instance  */
-  if(handleListInit(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE,
+  if(handleListInit(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXCLIENTS,
                     &handle_list, handleListMemHndl) != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to create timer handle list");
@@ -3722,7 +3722,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to start timer for client_idx=%u",client_idx);
 
   /* Validate arguments */
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
@@ -3792,7 +3792,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint igmp_idx, L7_uint32 client_idx)
   else
   {
     /* Check if there is room for one more timer */
-    if (igmpClients_unified.number_of_clients >= PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+    if (igmpClients_unified.number_of_clients >= PTIN_SYSTEM_IGMP_MAXCLIENTS)
     {
       osapiSemaGive(ptin_igmp_timers_sem);
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not start timer. There is no room for more timers!");
@@ -3890,7 +3890,7 @@ L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to update an existent timer (client_idx=%u)",client_idx);
 
   /* Validate arguments */
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
@@ -3960,7 +3960,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint igmp_idx, L7_uint32 client_idx)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to stop a timer (client_idx=%u)",client_idx);
 
   /* Validate arguments */
-  if (client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u",client_idx);
     return L7_FAILURE;
@@ -5965,7 +5965,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint igmp_idx, L7_uint client_idx, L7_B
   ptinIgmpClientsAvlTree_t *avl_tree;
   L7_RC_t rc;
 
-  if ( client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE )
+  if ( client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS )
   {
     //if (ptin_debug_igmp_snooping)
     //  LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
@@ -7550,7 +7550,7 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   #endif
 
   /* If client index is valid... */
-  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
@@ -8036,7 +8036,7 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
   #endif
 
   /* If client index is valid... */
-  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
@@ -8506,7 +8506,7 @@ L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   #endif
 
   /* If client index is valid... */
-  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR && (ptin_port<PTIN_SYSTEM_N_PONS || ptin_port<PTIN_SYSTEM_N_ETH))
@@ -9012,7 +9012,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   #endif
 
   /* If client index is valid... */
-  if (client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE)
+  if (client_idx<PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client = igmpClients_unified.clients_in_use[client_idx];
     if (client!=L7_NULLPTR)
