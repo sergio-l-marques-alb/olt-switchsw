@@ -48,7 +48,8 @@ static NIM_CORRELATOR_t     *correlatorInUse = 0;
 ** because when routing is enabled an interface event can trigger a long operation,
 ** such as clearing the ARP cache.
 */
-#define NIM_EVENT_TIMEOUT 600
+/* PTin modified: from 600 */
+#define NIM_EVENT_TIMEOUT 60
 #define MASK_STRING_LENGTH  (((L7_LAST_COMPONENT_ID/32)+1)*15)
 
 /* semaphore for the event transaction creation */
@@ -1360,7 +1361,8 @@ L7_RC_t nimEventHdlrInit()
     lastCorrelatorTaken = 0;
 
     /* create queue for receiving responses from sync messages */
-    pNimEventStatusQueue = osapiMsgQueueCreate("NIM EVENT RESPONSE QUEUE", 1, sizeof(NIM_EVENT_STATUS_MSG_t));
+    /* PTin modified: allow 100 events to be stored, instead of only 1 */
+    pNimEventStatusQueue = osapiMsgQueueCreate("NIM EVENT RESPONSE QUEUE", 100 /*1*/, sizeof(NIM_EVENT_STATUS_MSG_t));
 
     if (pNimEventStatusQueue == L7_NULLPTR)
     {
