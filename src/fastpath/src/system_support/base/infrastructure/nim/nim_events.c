@@ -1059,7 +1059,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
   L7_BOOL   done = L7_FALSE;
   NIM_EVENT_STATUS_MSG_t msg = { 0 };
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback: Event=%u, intIfNum=%u", status.event, status.intIfNum);
+  LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
 
   osapiSemaTake(nimEventSema,L7_WAIT_FOREVER);
 
@@ -1082,7 +1082,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
     msg.intIfNum   = status.intIfNum;
     msg.response   = correlatorTable.response;
 
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Sending event: Event=%u, intIfNum=%u", status.event, status.intIfNum);
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Sending event: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
 
     rc = osapiMessageSend(pNimEventStatusQueue,
                           &msg,
@@ -1093,7 +1093,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
     if (rc != L7_SUCCESS)
     {
       NIM_LOG_MSG("failed to put status on queue");
-      LOG_ERR(LOG_CTX_PTIN_INTF, "failed to put status on queue: Event=%u, intIfNum=%u", status.event, status.intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "failed to put status on queue: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
     }
 
   }
@@ -1493,10 +1493,8 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
 
     *complete = (mask == 0)?L7_TRUE:L7_FALSE;
 
-    if (mask != 0)
-    {
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Not complete: mask=0x%08x", mask);
-    }
+    LOG_INFO(LOG_CTX_PTIN_INTF, "component=%u, event=%u, intIfNum=%u: mask=0x%08x",
+             status.component, status.event, status.intIfNum, mask);
 
     if (status.response.rc != L7_SUCCESS)
     {
