@@ -118,6 +118,7 @@ void ptin_debug(void)
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
   printf("\r\n");
   printf("  ptin_stormcontrol_dump_debug        - Dump storm control configurations\r\n");
+  printf("  ptin_ratelimit_dump_debug           - Dump rate limit configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug           - Dump configured bandwidth policers\r\n");
   printf("  ptin_fpcounters_dump_debug          - Dump configured EVC/client counters (at request)\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>  - Enable policy management debug messages (minimum level should be 3)\r\n");
