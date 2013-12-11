@@ -31,6 +31,8 @@
 #ifdef L7_NSF_PACKAGE
  #include "dot3ad_nsf.h"
 #endif
+#include "logger.h"
+
 dot3ad_stats_t dot3ad_stats[L7_MAX_INTERFACE_COUNT];
 dot3ad_system_t dot3adSystem;
 
@@ -92,6 +94,8 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
   event       = eventInfo.event;
   correlator  = eventInfo.correlator;
 
+  LOG_INFO(LOG_CTX_PTIN_INTF, "dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", event, intIfNum);
+
   if (dot3adIsValidIntf(intIfNum) == L7_FALSE)
   {
     /* 
@@ -99,6 +103,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
      * set the return code for the callback 
      */
     rc = L7_SUCCESS;
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Not Valid interface: intIfNum=%u", intIfNum);
   }
   else
   {
@@ -106,15 +111,18 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
     if (tempRc != L7_SUCCESS)
     {
 	 rc = L7_SUCCESS;
+     LOG_INFO(LOG_CTX_PTIN_INTF, "Error: intIfNum=%u", intIfNum);
     }
     tempRc = nimGetIntfLinkState(intIfNum, &linkState);
     if (tempRc != L7_SUCCESS)
     {
 	  rc = L7_SUCCESS;
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Error: intIfNum=%u", intIfNum);
     }
 
     if (tempRc == L7_SUCCESS)
     {
+    LOG_INFO(LOG_CTX_PTIN_INTF, "switch: event=%u, intIfNum=%u", event, intIfNum);
     dot3adIntfEventTrace(intIfNum,event);
     switch (event)
     {
@@ -233,13 +241,23 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
 
   } /* valid interface */
 
+  LOG_INFO(LOG_CTX_PTIN_INTF, "finishing: rc=%u, performNimCallback=%u", rc, performNimCallback);
+
   if (performNimCallback == L7_TRUE)
   {
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Going to call nimEventStatusCallback: intIfNum=%u", intIfNum);
+
     eventInfo.response.rc = rc;
     eventInfo.response.reason = NIM_ERR_RC_UNUSED;
 
     /* tell NIM that we are done processing the event */
     nimEventStatusCallback(eventInfo);
+
+    LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback called: intIfNum=%u", intIfNum);
+  }
+  else
+  {
+    LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback NOT called: intIfNum=%u", intIfNum);
   }
 
   return L7_SUCCESS;
@@ -265,7 +283,7 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
 
 
 
-  
+  LOG_INFO(LOG_CTX_PTIN_INTF, "dot3adIntfChangeCallBack: event=%u, intIfNum=%u", event, intIfNum);
 
   if (event != L7_PORT_ENABLE &&
       event != L7_UP &&
@@ -284,6 +302,8 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
     status.event        = event;
     status.correlator   = correlator;
 
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Error: event=%u, intIfNum=%u", event, intIfNum);
+
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
@@ -299,6 +319,8 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
   msg.intfData.nimInfo.component    = L7_DOT3AD_COMPONENT_ID;
   msg.intfData.nimInfo.event        = event;
   msg.intfData.nimInfo.correlator   = correlator;
+
+  LOG_INFO(LOG_CTX_PTIN_INTF, "Going to send message: event=%u, intIfNum=%u", event, intIfNum);
 
   rc = osapiMessageSend(dot3ad_queue, &msg, (L7_uint32)DOT3AD_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
@@ -997,6 +1019,7 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
     break;
 
     case lacNimIntfChange:
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Going to call dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", msg.intfData.nimInfo.event, msg.intfData.nimInfo.intIfNum);
       rc = dot3adIntfChangeCallBackProcess(msg.intfData.nimInfo);
       break;
 
