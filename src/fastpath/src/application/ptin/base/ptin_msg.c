@@ -1791,6 +1791,8 @@ L7_RC_t ptin_msg_Lag_destroy(msg_LACPLagInfo_t *lagInfo)
 {
   ptin_LACPLagConfig_t ptinLagConf;
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u", (L7_uint32) lagInfo->id);
+
   ptinLagConf.lagId = (L7_uint32) lagInfo->id;
 
   if (ptin_intf_Lag_delete(&ptinLagConf) != L7_SUCCESS)
