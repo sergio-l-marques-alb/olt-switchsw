@@ -57,8 +57,10 @@ void *dot3ad_timer_queue; /* reference to the timer message queue */
 extern L7_uint32 dot3adBufferPoolId;
 extern dot3adOperPort_t dot3adOperPort[L7_MAX_PORT_COUNT + 1];
 
-extern int interface_is_TA48boards_protection_LAG_member(L7_uint32 intIfNum);// PTin added
-
+/* PTin added */
+#if 1
+#include "ptin_intf.h"
+#endif
 
 /* prototype for cnfgr processor */
 void dot3adApiCnfgrCommandProcess( L7_CNFGR_CMD_DATA_t *pCmdData );
@@ -140,10 +142,13 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
             }
     case L7_UP:
             /* PTin added */
-            if (interface_is_TA48boards_protection_LAG_member(intIfNum)) {//do nothing
+            #if 1
+            if (ptin_intf_is_internal_lag_member(intIfNum))
+            {
               rc = L7_SUCCESS;
               break;
-            }/* PTin added */
+            }
+            #endif
 
              /* Only care about physical interface */
             if (dot3adIsLag(intIfNum) == L7_TRUE)
@@ -187,10 +192,13 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
             }
     case L7_DOWN:
         /* PTin added */
-        if (interface_is_TA48boards_protection_LAG_member(intIfNum)) {//do nothing
+        #if 1
+        if (ptin_intf_is_internal_lag_member(intIfNum))
+        {
           rc = L7_SUCCESS;
           break;
-        }/* PTin added */
+        }
+        #endif
 
         /* only process DOWN events on Physical intf that are part of a LAG */
         if (dot3adIsLagMember(intIfNum) == L7_FALSE)

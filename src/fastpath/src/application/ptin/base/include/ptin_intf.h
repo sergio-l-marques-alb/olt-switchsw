@@ -597,6 +597,16 @@ extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
  */
 extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
 
+/**
+ * Check if this interface should be changed, when related 
+ * events are received 
+ * 
+ * @param intIfNum 
+ * 
+ * @return int 
+ */
+extern L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum);
+
 #endif  /* _PTIN_INTERFACE_H */
 
 

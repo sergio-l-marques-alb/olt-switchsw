@@ -4093,6 +4093,41 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
   return L7_SUCCESS;
 }
 
+/**
+ * Check if this interface should be changed, when related 
+ * events are received 
+ * 
+ * @param intIfNum 
+ * 
+ * @return int : L7_TRUE or L7_FALSE
+ */
+L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
+{
+  /* Only applicable to TA48GE boards */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  L7_uint32 i, port, _intIfNum;
+
+  /* We have 4 backplane ports */
+  for (i=0; i<4; i++)
+  {
+    port = PTIN_SYSTEM_N_ETH+i;
+    if (ptin_intf_port2intIfNum(port, &_intIfNum) != L7_SUCCESS)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_INTF, "Error getting intIfNum from port %u", port);
+      return L7_FALSE;
+    }
+
+    /* Check if interface is backplane */
+    if (intIfNum == _intIfNum)
+    {
+      return L7_TRUE;
+    }
+  }
+#endif
+
+  return L7_FALSE;
+}
+
 #if 0
 /**
  * Reads a LAGs configuration from FP
