@@ -52,6 +52,9 @@ void ptin_control_switchover_monitor(void);
 #endif
 #endif
 
+/* 10ms task */
+void _10msTask(void);
+
 /******************************** 
  * Interface events 
  ********************************/
