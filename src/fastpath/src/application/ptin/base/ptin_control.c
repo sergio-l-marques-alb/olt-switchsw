@@ -170,10 +170,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Send startup trap */
   startup_trap_send();
 
-
-
-
-
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   /* Create 10ms task */
   if (osapiTaskCreate("10ms task", _10msTask, 0, 0,
@@ -184,20 +180,21 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create 10ms task!");
     PTIN_CRASH();
   }
-  else LOG_INFO(LOG_CTX_PTIN_CNFGR, "10ms task launch OK");
+  else
+  {
+    LOG_INFO(LOG_CTX_PTIN_CNFGR, "10ms task launch OK");
+  }
 
-  if (osapiWaitForTaskInit (L7_PTIN_10MS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
+  if (osapiWaitForTaskInit (L7_PTIN_10MS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize 10ms task()\n");
     PTIN_CRASH();
   }
 #endif
 
-
-
-
   /* Loop */
-  while (1) {
-//    LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task is Sleeping (%us)...", PTIN_LOOP_TICK/1000);
+  while (1)
+  {
     osapiPeriodicUserTimerWait(ptin_loop_handle);
 
     /* Monitor throughput */
@@ -215,31 +212,29 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
 
 
-
-
-
-
+/**
+ * Task for processing 10ms periodicity events
+ */
 void _10msTask(void)
 {
   LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  {
-      ptin_LACPLagConfig_t lagInfo;
+  ptin_LACPLagConfig_t lagInfo;
 
-      lagInfo.lagId=            0;
-      lagInfo.admin=            1;
-      lagInfo.stp_enable=       0;
-      lagInfo.static_enable=    1;
-      lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-      //ptin_intf_LagConfig_get(&lagInfo);
+  lagInfo.lagId=            0;
+  lagInfo.admin=            1;
+  lagInfo.stp_enable=       0;
+  lagInfo.static_enable=    1;
+  lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+  //ptin_intf_LagConfig_get(&lagInfo);
 
-      lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
-      ptin_intf_Lag_create(&lagInfo);
-  }
+  lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
+  ptin_intf_Lag_create(&lagInfo);
 #endif
 
-  if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS) {
+  if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS)
+  {
     LOG_FATAL(LOG_CTX_PTIN_CONTROL, "Error syncing task");
     PTIN_CRASH();
   }
@@ -256,9 +251,11 @@ void _10msTask(void)
   //nice(-1);
 
   /* Loop */
-  while (1) {
+  while (1)
+  {
     osapiPeriodicUserTimerWait(_10ms_loop_handle);
     //usleep(10000);
+
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
     monitor_matrix_commutation();
 #endif
@@ -628,22 +625,44 @@ static void monitor_matrix_commutation(void)
       rc = L7_FAILURE;
     }
   }
+
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   #if 1
+  L7_uint32 lag_intf, intIfNum, intIfNum_del;
+
+  rc = ptin_intf_lag2intIfNum(0, &lag_intf);
+
+  if (rc == L7_SUCCESS)
   {
-   L7_uint32 lag_intf, intIfNum, intIfNum_del;
-      ptin_intf_lag2intIfNum(0, &lag_intf);
-      if (cx_work_slot) {
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum);
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del);
+    if (cx_work_slot)
+    {
+      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
+      {
+        rc = L7_FAILURE;
       }
-      else {
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum);
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del);
+    }
+    else
+    {
+      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
+      {
+        rc = L7_FAILURE;
       }
-      dtlDot3adPortAdd(lag_intf, 1, &intIfNum, 1);       // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-      dtlDot3adPortDelete(lag_intf, 1, &intIfNum_del, 1);
+    }
+
+    /* Only proceed to switchover, if intIfNum values were successfully retrieved */
+    if (rc == L7_SUCCESS)
+    {
+      // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+      if (dtlDot3adPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
+          dtlDot3adPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
+      {
+        rc = L7_FAILURE;
+      }
+    }
   }
+
   #else
   ptin_LACPLagConfig_t lagInfo;
 
