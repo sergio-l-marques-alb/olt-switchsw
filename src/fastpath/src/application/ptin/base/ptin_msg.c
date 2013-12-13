@@ -1751,7 +1751,7 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   ptin_LACPLagConfig_t ptinLagConf;
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  if (0==lagInfo->id) return L7_SUCCESS; //&& ptin_intf_lag_exists(lagInfo->id)) return L7_SUCCESS;   //For iLag 0 allow just initialization, otherwise it'll mess with protection. Only monitor_matrix_commutation() can touch it.
+  if (0==lagInfo->id && ptin_intf_lag_exists(lagInfo->id)) return L7_SUCCESS;   //For iLag 0 allow just initialization, otherwise it'll mess with protection. Only monitor_matrix_commutation() can touch it.
 #endif
 
   /* Copy data from msg to ptin structure */

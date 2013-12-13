@@ -580,6 +580,18 @@ void schedule_matrix_query_send(void)
   matrix_send_queries = L7_TRUE;
 }
 
+int interface_is_TA48boards_protection_LAG_member(L7_uint32 intIfNum) {
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+L7_uint32 intIfNum_=-1;
+
+ ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_);
+ if (intIfNum==intIfNum_) return 1;
+ ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_);
+ if (intIfNum==intIfNum_) return 1;
+#endif
+ return 0;
+}
+
 /**
  * Matrix Commutation process 
  *  
@@ -661,7 +673,7 @@ static void monitor_matrix_commutation(void)
   //         ptin_intf_Lag_create(&lagInfo)
   //         );
 
-  //#else
+  #if 0
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
@@ -682,6 +694,7 @@ static void monitor_matrix_commutation(void)
   }
   #endif
   #endif
+  #endif    //#elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
 
   /* Any error? */
   if (rc!=L7_SUCCESS)
