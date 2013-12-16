@@ -4252,9 +4252,9 @@ L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl)
   }
 
   /* Default Rate values */
-  stormControl->bcast_rate = RATE_LIMIT_BCAST;
-  stormControl->mcast_rate = RATE_LIMIT_MCAST;
-  stormControl->ucunk_rate = RATE_LIMIT_UCUNK;
+  stormControl->bcast_rate = (L7_uint32) RATE_LIMIT_BCAST * 1000;
+  stormControl->mcast_rate = (L7_uint32) RATE_LIMIT_MCAST * 1000;
+  stormControl->ucunk_rate = (L7_uint32) RATE_LIMIT_UCUNK * 1000;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "Use default rate limits");
 
