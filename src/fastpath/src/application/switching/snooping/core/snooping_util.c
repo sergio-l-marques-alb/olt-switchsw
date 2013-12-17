@@ -1811,7 +1811,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
             ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_LEAVES_SENT);
             break;
           }
-          ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_SENT);
+//        ptin_igmp_stat_increment_field(intf, mcastPacket->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_SENT);
           //#endif
 
           if (ptin_debug_igmp_snooping)
@@ -2940,8 +2940,8 @@ L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
       return SNOOP_STAT_FIELD_LEAVES_SENT;   
 //  case SNOOP_STAT_FIELD_TOTAL_RX:
 //    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
-  case SNOOP_STAT_FIELD_VALID_RX:
-    return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
+    case SNOOP_STAT_FIELD_VALID_RX:
+      return SNOOP_STAT_FIELD_LEAVES_RECEIVED;
     case SNOOP_STAT_FIELD_INVALID_RX:
       return SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID;
     case SNOOP_STAT_FIELD_DROPPED_RX:

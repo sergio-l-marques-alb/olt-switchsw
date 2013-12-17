@@ -4319,7 +4319,9 @@ L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket)
   /* Update stats */
   pSnoopCB->counters.controlFramesProcessed++;
 
+#if 0 //This is performed by the snoopPacketProcess() routine.
   ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_LEAVES_RECEIVED);
+#endif
 
 #if 0
   /* Does an entry with the same MAC addr and VLAN ID already exist? */
