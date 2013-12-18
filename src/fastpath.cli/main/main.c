@@ -750,7 +750,7 @@ int main (int argc, char *argv[])
           ptr->slot_id = (uint8)-1;
           ptr->generic_id = 0;
           ptr->type = 3;
-          ptr->mask = 0;
+          ptr->param = 0;
 
           // Slot id
           if (StrToLongLong(argv[3+0], &valued)<0)  {
