@@ -2481,7 +2481,7 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
-  if (ptin_dhcp_is_intfTrusted(intIfNum, intOVlan) &&
+  if (/*ptin_dhcp_is_intfTrusted(intIfNum, intOVlan) &&*/
       ptin_evc_check_is_stacked_fromIntVlan(intOVlan, &evc_is_stacked) == L7_SUCCESS && !evc_is_stacked)
   {
     ivid = 0;
