@@ -6075,6 +6075,7 @@ static L7_RC_t ptin_igmp_rm_all_clientGroups(L7_uint igmp_idx)
  */
 static L7_RC_t ptin_igmp_clean_deviceClients(ptinIgmpClientGroupInfoData_t *clientGroup)
 {
+  L7_uint client_idx;
   ptinIgmpClientDevice_t *client_device;
 
   /* Validate arguments */
@@ -6093,12 +6094,15 @@ static L7_RC_t ptin_igmp_clean_deviceClients(ptinIgmpClientGroupInfoData_t *clie
     if (client_device->client == L7_NULLPTR || client_device->client->client_index >= PTIN_SYSTEM_IGMP_MAXCLIENTS)
       continue;
 
-    if (ptin_igmp_rm_clientIdx(0 /*Not used*/, client_device->client->client_index, L7_FALSE, L7_TRUE) != L7_TRUE)
+    /* Client index */
+    client_idx = client_device->client->client_index;
+
+    if (ptin_igmp_rm_clientIdx(0 /*Not used*/, client_idx, L7_FALSE, L7_TRUE) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client index %u", client_device->client->client_index);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client index %u", client_idx);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index %u removed", client_device->client->client_index);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index %u removed", client_idx);
   }
 
   return L7_SUCCESS;
