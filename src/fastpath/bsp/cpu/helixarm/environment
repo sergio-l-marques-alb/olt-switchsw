@@ -1,0 +1,2 @@
+# Directly set CROSS_COMPILE and KERNEL_SRC for Linux 2.6 views
+include bsp/cpu/helixArm/environment_linux_3.0
