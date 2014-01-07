@@ -2445,7 +2445,7 @@ L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin
     {
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, unicast_mac, unicast_mac_mask);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2_SRCHIT, &l2_srchit, &l2_srchit_mask);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2_DSTHIT, &l2_srchit, &l2_srchit_mask);
       if (result != L7_SUCCESS)  break;
     }
     else
@@ -2879,7 +2879,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         /* Unicast traffic */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, unicast_mac, unicast_mac_mask);
         if (result != L7_SUCCESS)  break;
-        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2_SRCHIT, (L7_uint8 *)&l2_srchit, (L7_uint8 *)&l2_srchit_mask);
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2_DSTHIT, (L7_uint8 *)&l2_srchit, (L7_uint8 *)&l2_srchit_mask);
         if (result != L7_SUCCESS)  break;
 
         /* Configure meter */
