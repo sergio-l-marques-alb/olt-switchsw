@@ -1033,7 +1033,7 @@ static void ipc_server_ipaddr_init(void)
     /* Slot id */
     ptin_board_slotId = 20;
   }
-  #else
+  #elif (PTIN_BOARD_IS_LINECARD)
   ptin_board_slotId = cpld_map->reg.slot_id + 2;
   #endif
 #endif
