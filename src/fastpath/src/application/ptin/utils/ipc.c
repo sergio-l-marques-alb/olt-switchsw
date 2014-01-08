@@ -1017,6 +1017,7 @@ static void ipc_server_ipaddr_init(void)
 {
   server_ipaddr = IPC_SERVER_IPADDR;
 
+#ifdef MAP_CPLD
   #if (PTIN_BOARD_IS_MATRIX)
   if (cpld_map->reg.slot_id==0)
   {
@@ -1032,6 +1033,9 @@ static void ipc_server_ipaddr_init(void)
     /* Slot id */
     ptin_board_slotId = 20;
   }
+  #else
+  ptin_board_slotId = cpld_map->reg.slot_id + 2;
   #endif
+#endif
 }
 
