@@ -1537,7 +1537,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint   evc_type;
   L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
-  L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled;
+  L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled, iptv_enabled;
   L7_BOOL   cpu_trap;
   L7_BOOL   error = L7_FALSE;
   L7_uint   n_roots;
@@ -1588,6 +1588,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL ) == PTIN_EVC_MASK_DHCP_PROTOCOL;
   igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  iptv_enabled  = (evcConf->flags & PTIN_EVC_MASK_MC_IPTV)        == PTIN_EVC_MASK_MC_IPTV;
   cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
 
   /* To be changed in the future */
@@ -1953,7 +1954,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
+                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                 ) != L7_SUCCESS)
       {
         error = L7_TRUE;
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
@@ -1983,7 +1986,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
       if (igmp_enabled)
       {
-        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs));
+        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)));
       }
       #endif
 
@@ -2183,7 +2187,9 @@ _ptin_evc_create1:
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
+                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                  ) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
       }
@@ -2530,7 +2536,9 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                               ) != L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
@@ -2707,7 +2715,9 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
+    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                               ) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
@@ -3385,7 +3395,9 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     /* Configure trap rule (only at addition - this should not activate IGMP flag) */
     if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE, NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)) != L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
+                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                 ) != L7_SUCCESS)
       {
         #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
         ptin_igmp_client_delete(evc_ext_id, &clientId);
@@ -3640,7 +3652,9 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
       /* Remove trap rule */
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE, UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))!=L7_SUCCESS)
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE,
+                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                 ) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
         return L7_FAILURE;

@@ -2,7 +2,8 @@
 #define _PTIN_GLOBALDEFS_TA48GE_H
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
-#define IGMP_QUERIER_IN_UC_EVC
+/* Querier will be active for Multicast services */
+#define IGMP_QUERIER_IN_MC_EVC
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2

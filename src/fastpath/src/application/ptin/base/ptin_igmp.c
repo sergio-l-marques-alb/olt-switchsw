@@ -336,9 +336,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#ifdef IGMP_QUERIER_IN_UC_EVC
 static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
-#endif
 #endif
 static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx);
 
@@ -5338,6 +5336,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
     }
   }
 
+  /* Only activate queriers if is allowed for UC services */
   #ifdef IGMP_QUERIER_IN_UC_EVC
   /* Configure querier */
   if (ptin_igmp_evc_querier_configure(evc_idx,enable)!=L7_SUCCESS)
@@ -7490,7 +7489,6 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
 
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#ifdef IGMP_QUERIER_IN_UC_EVC
 /**
  * Configure an IGMP vlan trapping rule (most essentally for the
  * UC services) 
@@ -7594,10 +7592,11 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
   return L7_SUCCESS;
 }
 #endif
-#endif
 
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
 {
+  L7_RC_t rc = L7_SUCCESS;
+
   /* Validate argument */
   if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
@@ -7611,15 +7610,24 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-  /* If querier is using MC service */
-  #if (!defined IGMP_QUERIER_IN_UC_EVC)
-  return ptin_igmp_evc_querier_configure(igmpInstances[igmp_idx].McastEvcId, enable);
-  /* If querier uses UC service, but Multi-MC is disabled */
-  #elif (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  return ptin_igmp_evc_querier_configure(igmpInstances[igmp_idx].UcastEvcId, enable);
-  #else
-  return L7_SUCCESS;
+  /* Only configure MC querier, if no specific querier is provided */
+  //#if (PTIN_BOARD_IS_MATRIX || (!defined (IGMP_QUERIER_IN_MC_EVC) && !defined (IGMP_QUERIER_IN_UC_EVC)))
+  #if (PTIN_BOARD_IS_MATRIX || (defined (IGMP_QUERIER_IN_MC_EVC) || !defined (IGMP_QUERIER_IN_UC_EVC)))
+  if ((rc = ptin_igmp_evc_querier_configure(igmpInstances[igmp_idx].McastEvcId, enable)) != L7_SUCCESS)
+  {
+    return rc;
+  }
   #endif
+
+  /* If querier uses UC service, and Multi-MC is disabled */
+  #if (defined (IGMP_QUERIER_IN_UC_EVC) && !defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  if ((rc = ptin_igmp_evc_querier_configure(igmpInstances[igmp_idx].UcastEvcId, enable)) != L7_SUCCESS)
+  {
+    return rc;
+  }
+  #endif
+
+  return rc;
 }
 
 
