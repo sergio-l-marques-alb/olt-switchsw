@@ -26,6 +26,8 @@
 #include "usmdb_nim_api.h"
 #include "ptin_fieldproc.h"
 #include "ptin_msghandler.h"
+#include "ptin_msg.h"
+
 
 #if ( PTIN_BOARD_IS_STANDALONE )
 #include "fw_shm.h"
@@ -223,17 +225,42 @@ void _10msTask(void)
   LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  ptin_LACPLagConfig_t lagInfo;
+  {
+   ptin_LACPLagConfig_t lagInfo;
 
-  lagInfo.lagId=            0;
-  lagInfo.admin=            1;
-  lagInfo.stp_enable=       0;
-  lagInfo.static_enable=    1;
-  lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-  //ptin_intf_LagConfig_get(&lagInfo);
+   lagInfo.lagId=            0;
+   lagInfo.admin=            1;
+   lagInfo.stp_enable=       0;
+   lagInfo.static_enable=    1;
+   lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+   //ptin_intf_LagConfig_get(&lagInfo);
 
-  lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
-  ptin_intf_Lag_create(&lagInfo);
+   lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
+   ptin_intf_Lag_create(&lagInfo);
+  }
+
+
+  //{
+  // ptin_msg_ShellCommand_run("fp.shell port xe0 STP=Forward");
+  // ptin_msg_ShellCommand_run("fp.shell port xe1 STP=Forward");
+  // ptin_msg_ShellCommand_run("fp.shell port xe2 STP=Forward");
+  // ptin_msg_ShellCommand_run("fp.shell port xe3 STP=Forward");
+  //}
+
+
+  //{
+  // ptin_HWEthPhyConf_t phyConf;
+  //
+  // memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
+  // phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
+  // phyConf.PortEnable  = L7_TRUE;
+  // for (phyConf.Port=PTIN_SYSTEM_N_ETH; phyConf.Port<PTIN_SYSTEM_N_ETH+4; phyConf.Port++) {
+  //     if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS) {
+  //        LOG_ERR(LOG_CTX_PTIN_CONTROL,"Error setting port %u to enable=%u",phyConf.Port,phyConf.PortEnable);
+  //        //continue;//rc = L7_FAILURE;
+  //     }
+  // }//for
+  //}
 #endif
 
   if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS)
@@ -630,7 +657,7 @@ static void monitor_matrix_commutation(void)
   }
 
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  #if 1
+  #if 0
   L7_uint32 lag_intf, intIfNum, intIfNum_del;
 
   rc = ptin_intf_lag2intIfNum(0, &lag_intf);
@@ -666,7 +693,7 @@ static void monitor_matrix_commutation(void)
     }
   }
 
-  #else
+  #elif 1
   ptin_LACPLagConfig_t lagInfo;
 
   lagInfo.lagId=            0;
@@ -684,7 +711,7 @@ static void monitor_matrix_commutation(void)
   //         ptin_intf_Lag_create(&lagInfo)
   //         );
 
-  #if 0
+  #else
   L7_uint             port;
 
   /* Run all internal ports to change its admin state */
@@ -703,7 +730,6 @@ static void monitor_matrix_commutation(void)
       rc = L7_FAILURE;
     }
   }
-  #endif
   #endif
   #endif    //#elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
 

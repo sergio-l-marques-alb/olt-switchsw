@@ -4103,6 +4103,7 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
  */
 L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
 {
+#if 0
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   L7_uint32 i, port, _intIfNum;
@@ -4124,9 +4125,31 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
     }
   }
 #endif
+#endif
 
   return L7_FALSE;
 }
+
+
+
+
+
+int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
+  /* Only applicable to TA48GE boards */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if 0
+L7_uint32 intIfNum;
+   if (L7_SUCCESS==usmDbIntIfNumFromUSPGet(dusp->unit, dusp->slot, dusp->port+1, &intIfNum)
+       &&
+       L7_TRUE==ptin_intf_is_internal_lag_member(intIfNum)) return 1;
+#else
+   if (1==dusp->unit && 0==dusp->slot && dusp->port>=PTIN_SYSTEM_N_ETH && dusp->port<PTIN_SYSTEM_N_ETH+4) return 1;
+   // (check usmDbIntIfNumFromUSPGet() call in ptin_intf_init())
+#endif
+#endif
+ return 0;
+}
+
 
 #if 0
 /**

@@ -1753,20 +1753,28 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   /* Only for TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   /* For iLag 0 allow just initialization, otherwise it'll mess with protection. Only monitor_matrix_commutation() can touch it. */
-  if (0==lagInfo->id && ptin_intf_lag_exists(lagInfo->id))
+  if (0==lagInfo->id)
   {
-    return L7_SUCCESS;
+    if (ptin_intf_lag_exists(lagInfo->id)) return L7_SUCCESS;
+    ptinLagConf.stp_enable       = 0;//DISABLED;
+    ptinLagConf.members_pbmp64   = 1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;;
   }
+  else
 #endif
+  {
+   ptinLagConf.stp_enable       = lagInfo->stp_enable;
+   ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
+   ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
+  }
 
   /* Copy data from msg to ptin structure */
   ptinLagConf.lagId            = (L7_uint32) lagInfo->id;
   ptinLagConf.admin            = lagInfo->admin;
   ptinLagConf.static_enable    = lagInfo->static_enable;
-  ptinLagConf.stp_enable       = lagInfo->stp_enable;
+  //ptinLagConf.stp_enable       = lagInfo->stp_enable;
   ptinLagConf.loadBalance_mode = lagInfo->loadBalance_mode;
-  ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
-  ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
+  //ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
+  //ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u",                    (L7_uint32)lagInfo->id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .admin            = %u",     lagInfo->admin);
