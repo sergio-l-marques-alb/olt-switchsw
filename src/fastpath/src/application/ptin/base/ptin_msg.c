@@ -7380,11 +7380,13 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
     return L7_FAILURE;
   }
 
+  #if 0
   if (msgIpv6Acl->aclId >= L7_MAX_ACL_LISTS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpv6Acl->aclId);
     return L7_FAILURE;
   }
+  #endif
 
   if (msgIpv6Acl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
