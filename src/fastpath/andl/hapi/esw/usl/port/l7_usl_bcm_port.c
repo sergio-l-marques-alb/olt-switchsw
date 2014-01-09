@@ -853,12 +853,10 @@ int usl_bcm_port_cosq_sched_set(int unit,
     {
       for (cosq = 0; cosq < BCM_COS_COUNT; cosq++)
       {
-        printf("%s(%d) bcm_port=%u cosq=%u min=%u max=%u\r\n",__FUNCTION__,__LINE__,port,cosq,cosqSchedConfig->minKbps[cosq],cosqSchedConfig->maxKbps[cosq]);
-
         rv = bcm_cosq_port_bandwidth_set(unit, 
                                          port, 
                                          cosq, 
-                                         0 /*cosqSchedConfig->minKbps[cosq]*/, 
+                                         cosqSchedConfig->minKbps[cosq], 
                                          cosqSchedConfig->maxKbps[cosq], 
                                          0);
         if (rv == BCM_E_UNAVAIL)
