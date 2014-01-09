@@ -6352,6 +6352,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client,
     /* If not found the client group, return error */
     if (clientGroup == L7_NULLPTR)
     {
+      osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Client Group not found!");
       return L7_FAILURE;
@@ -6360,6 +6361,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client,
     /* Check if can be added more devices */
     if (igmp_clientDevice_get_devices_number(clientGroup) >= PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU)
     {
+      osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot be added more than %u devices!", PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU);
       return L7_FAILURE;
@@ -6369,6 +6371,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client,
     /* Check if there is free clients to be allocated (look to free clients queue) */
     if (igmpClients_unified.queue_free_clientDevices.n_elems == 0)
     {
+      osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free clients available!");
       return L7_FAILURE;
@@ -6377,6 +6380,7 @@ static L7_RC_t ptin_igmp_new_client(L7_uint igmp_idx, ptin_client_id_t *client,
     /* Get new client index */
     if ((client_idx=igmp_clientIndex_get_new()) >= PTIN_SYSTEM_IGMP_MAXCLIENTS)
     {
+      osapiSemaGive(ptin_igmp_clients_sem);
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index");
       return L7_FAILURE;
     }
