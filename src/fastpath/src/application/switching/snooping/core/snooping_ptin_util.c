@@ -35,12 +35,12 @@
 /*********************************************************************
 * Static Methods
 *********************************************************************/
-static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
+//static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt);
 static L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxyGroup_t* groupPtr, L7_uchar8 *buffer, L7_uint32 *length);
 static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length);
 static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t* destIp, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType);
 
-static void     snoopPTinQuerySend        (L7_uint32 arg1);
+//static void     snoopPTinQuerySend        (L7_uint32 arg1);
 static L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPtr, L7_uint32 noOfGroupRecords, ptin_IgmpProxyCfg_t* igmpCfg);
 
 static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords,snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
@@ -203,6 +203,7 @@ L7_RC_t snoopPTinQuerySchedule(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_B
 * @todo     Fix Max Resp Code
 *
 *********************************************************************/
+#if 0 /* Avoid Warning: defined but not used */
 static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFlag, L7_uchar8 *buffer, L7_uint32 *length, snoopOperData_t *pSnoopOperEntry, L7_inet_addr_t *sources, L7_uint8 sourcesCnt)
 {
   L7_uchar8         *dataPtr, *chksumPtr, byteVal, i;
@@ -268,6 +269,7 @@ static L7_RC_t snoopPTinQueryFrameV3Build(L7_inet_addr_t* groupAddr, L7_BOOL sFl
 
   return L7_SUCCESS;
 }
+#endif
 
 /*********************************************************************
  * @purpose Method responsible for scheduling Group-Specific or
@@ -849,6 +851,7 @@ L7_RC_t snoopPTinPacketBuild(L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_add
  * @param   arg1  Pointer to a snoopPTinQueryData_t structure
  *
  *********************************************************************/
+#if 0 /* Avoid Warning: defined but not used */
 void snoopPTinQuerySend(L7_uint32 arg1)
 {
   L7_uchar8             igmpFrame[L7_MAX_FRAME_SIZE]={0};
@@ -953,6 +956,7 @@ void snoopPTinQuerySend(L7_uint32 arg1)
     // snoopPTinQueryQueuePop(queryData->queuePos);
   }
 }
+#endif
 
 
 
