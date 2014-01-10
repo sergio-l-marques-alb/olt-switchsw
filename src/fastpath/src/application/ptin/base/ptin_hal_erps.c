@@ -492,7 +492,7 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
                 }
               }
 
-              if (tbl_halErps[erps_idx].hwFdbFlush) {
+              if ( (tbl_halErps[erps_idx].hwFdbFlush) || (tbl_halErps[erps_idx].hwSync) ) {
                 switching_fdbFlushByVlan(internalVlan);
               }
 
