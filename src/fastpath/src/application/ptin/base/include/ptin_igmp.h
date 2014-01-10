@@ -819,6 +819,34 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan,
                                      L7_uint32 client_idx);
 
 /**
+ * Add a new Multicast client group
+ * 
+ * @param client      : client group identification parameters 
+ * @param intVid      : Internal vlan
+ * @param uni_ovid    : External Outer vlan 
+ * @param uni_ivid    : External Inner vlan 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid);
+
+/**
+ * Remove a Multicast client group
+ * 
+ * @param client      : client group identification parameters
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroup_remove(ptin_client_id_t *client);
+
+/**
+ * Remove all Multicast client groups
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroup_clean(void);
+
+/**
  * Add a dynamic client
  *  
  * @param intIfNum    : interface number  

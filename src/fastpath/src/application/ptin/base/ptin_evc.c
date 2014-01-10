@@ -48,6 +48,8 @@ struct ptin_evc_client_s {
   L7_uint16  uni_ovid;      /* S' -> Translated S-VLAN (depends on S+C) */
   L7_uint16  uni_ivid;      /* Inner S' -> Translated C-VLAN */
 
+  L7_uint16  client_vid;   /* Vlan identifying client (usually is the inner vlan) */
+
   /* GEM ids which will be flooded the ARP packets */
   L7_uint16  flood_vlan[PTIN_FLOOD_VLANS_MAX];
   L7_int     virtual_gport;
@@ -3032,10 +3034,11 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 
   /* Add client to the EVC struct */
   dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pclient);  /* get a free client entry */
-  pclient->in_use   = L7_TRUE;                                              /* update it */
-  pclient->int_ivid = evcBridge->inn_vlan;
-  pclient->uni_ovid = evcBridge->intf.vid;
-  pclient->uni_ivid = 0;
+  pclient->in_use     = L7_TRUE;                                            /* update it */
+  pclient->int_ivid   = evcBridge->inn_vlan;
+  pclient->uni_ovid   = evcBridge->intf.vid;
+  pclient->uni_ivid   = 0;
+  pclient->client_vid = evcBridge->inn_vlan;
   /* Save protocol enable flags */
   pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
   /* No vlans to be flooded */
@@ -3230,11 +3233,13 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
   /* Delete client from the EVC struct */
   dl_queue_remove(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient);
-  pclient->in_use   = L7_FALSE;
-  pclient->int_ivid = 0;
-  pclient->uni_ovid = 0;
-  pclient->int_ivid = 0;
-  pclient->flags    = 0;
+  pclient->in_use     = L7_FALSE;
+  pclient->int_ovid   = 0;
+  pclient->int_ivid   = 0;
+  pclient->uni_ovid   = 0;
+  pclient->uni_ivid   = 0;
+  pclient->client_vid = 0;
+  pclient->flags      = 0;
   dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pclient);
   evcs[evc_id].n_clients--;
 
@@ -3352,12 +3357,13 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
     /* Add client to the EVC struct */
     dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
-    pflow->in_use   = L7_TRUE;                                              /* update it */
-    pflow->int_ovid = int_ovid;
-    pflow->int_ivid = evcFlow->int_ivid;
-    pflow->uni_ovid = evcFlow->uni_ovid;
-    pflow->uni_ivid = evcFlow->uni_ivid;
-    pflow->flags    = evcFlow->flags;
+    pflow->in_use     = L7_TRUE;                                              /* update it */
+    pflow->int_ovid   = int_ovid;
+    pflow->int_ivid   = evcFlow->int_ivid;
+    pflow->uni_ovid   = evcFlow->uni_ovid;
+    pflow->uni_ivid   = evcFlow->uni_ivid;
+    pflow->client_vid = evcFlow->uni_ivid;
+    pflow->flags      = evcFlow->flags;
     pflow->virtual_gport= vport_id;
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clients++;
@@ -3372,7 +3378,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* IGMP / DHCP / PPPoE instance management */
   if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
     /* Always add client */
     ptin_client_id_t clientId;
 
@@ -3380,17 +3385,16 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
-    clientId.outerVlan            = 0;      /* Will be determined during client addition */
-    clientId.innerVlan            = evcFlow->uni_ovid;
+    clientId.outerVlan            = pflow->int_ovid;
+    clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
     /* Add client */
-    if (ptin_igmp_client_add(evc_ext_id, &clientId, evcFlow->uni_ovid, evcFlow->uni_ivid) != L7_SUCCESS)
+    if (ptin_igmp_clientGroup_add(&clientId, pflow->uni_ovid, pflow->uni_ivid) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
       return L7_FAILURE;
     }
-    #endif
 
     /* Configure trap rule (only at addition - this should not activate IGMP flag) */
     if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
@@ -3399,9 +3403,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                                   (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
                                  ) != L7_SUCCESS)
       {
-        #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-        ptin_igmp_client_delete(evc_ext_id, &clientId);
-        #endif
+        ptin_igmp_clientGroup_remove(&clientId);
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
         return L7_FAILURE;
       }
@@ -3605,7 +3607,6 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   /* IGMP / DHCP / PPPoE instance management */
   if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    #ifndef IGMP_DYNAMIC_CLIENTS_SUPPORTED
     /* Always remove client */
     ptin_client_id_t clientId;
 
@@ -3613,16 +3614,22 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     memset(&clientId, 0x00, sizeof(clientId));
     clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
     clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
-    clientId.outerVlan            = 0;      /* Will be determined during client addition */
-    clientId.innerVlan            = pflow->uni_ovid;
+    clientId.outerVlan            = pflow->int_ovid;
+    clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    #endif
+
+    /* Add client */
+    if (ptin_igmp_clientGroup_remove(&clientId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
+      return L7_FAILURE;
+    }
   }
 
   /* Multicast group */
   multicast_group = evcs[evc_id].multicast_group;
 
-  /* Get client vlan */
+  /* Get client inner vlan */
   client_vlan = pflow->int_ivid;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Going to remove flow related to client %u", evc_id, client_vlan);
