@@ -24,9 +24,10 @@ KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
-export COMPILER		= /opt/broadcom/usr/bin/arm-linux-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.6.5
-export LD_LIBRARY_PATH	= /opt/broadcom/usr/lib
+export COMPILER		= /opt/eb-broadcom/usr/bin/armeb-linux-
+export KERNEL_PATH      = /home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5
+#export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.6.5
+export LD_LIBRARY_PATH	= /opt/eb-broadcom/usr/lib
 
 BOARD = OLT7-8CH_B
 CARD_FOLDER = FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$(BOARD)
