@@ -69,7 +69,7 @@ andl: welcome
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
 	echo "";\
 	fi;
-	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) andl
+	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -120,6 +120,6 @@ clean cleanall: welcome
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean-emweb:
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-emweb
+clean-andl clean-emweb:
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)

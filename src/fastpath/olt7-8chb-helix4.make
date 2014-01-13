@@ -24,10 +24,11 @@ KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
-export COMPILER		= /opt/eb-broadcom/usr/bin/armeb-linux-
-export KERNEL_PATH      = /home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5
-#export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.6.5
-export LD_LIBRARY_PATH	= /opt/eb-broadcom/usr/lib
+export COMPILER		= /opt/broadcom/usr/bin/arm-linux-
+#/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
+#/opt/broadcom/usr/bin/arm-linux-
+export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.6.5
+export LD_LIBRARY_PATH	= /opt/broadcom/usr/lib
 
 BOARD = OLT7-8CH_B
 CARD_FOLDER = FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$(BOARD)
@@ -39,6 +40,8 @@ export FP_VIEWNAME	:= .
 export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
+
+CMD_DISPLAY_MODE:=verbose
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
@@ -53,7 +56,7 @@ all: welcome
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg;\
 		echo "";\
 	fi;
-	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -64,14 +67,14 @@ all: welcome
 	fi;
 	@echo ""
 
-andl: welcome
+andl os: welcome
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
 	echo "";\
 	fi;
-	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) andl
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -122,6 +125,6 @@ clean cleanall: welcome
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean-emweb:
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-emweb
+clean-andl clean-os clean-emweb:
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)

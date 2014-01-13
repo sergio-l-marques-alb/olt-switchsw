@@ -43,14 +43,14 @@
 
 # User must select one platform from below.By default WR_LINUX is selected. .
 ifeq (,$(BUILD_PLATFORM))
-@error
+#Executed
 #BUILD_PLATFORM=ELDK
 BUILD_PLATFORM=WR_LINUX
 endif
 
 # Specify the ELDK version you want to use for building SDK.
 ifeq (,$(ELDK_VERSION))
-@error
+#Executed
 ifeq (ELDK,$(BUILD_PLATFORM))
 @error
 ELDK_VERSION=4.0
@@ -59,10 +59,10 @@ endif
 
 # Specify the KERNEL VERSION  you want to use for building SDK.
 ifeq (,$(KERN_VER))
-@error
+#Executed
 ifeq (ELDK,$(BUILD_PLATFORM))
 @error
-KERN_VER=3.6.1
+KERN_VER=3.6.5
 #2.6.21.7
 endif
 endif
@@ -70,9 +70,9 @@ endif
 
 # Specify the Windriver Linux version here.For example '2.0' as shown below.
 ifeq (WR_LINUX,$(BUILD_PLATFORM))
-@error
+#Executed
 ifeq (,$(WRS_LINUX_VERSION))
-@error
+#Executed
 WRS_LINUX_VERSION=2.0
 #WRS_LINUX_VERSION=2.6.27
 endif
@@ -84,10 +84,9 @@ endif
 #WRL_GLIBC_SMALL=TRUE
 
 ifeq (2.0,$(WRS_LINUX_VERSION))
-@error
+#Executed
 ifeq ($(WRL_GLIBC_SMALL),TRUE)
 @error
-
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
@@ -96,14 +95,13 @@ endif
 KERNDIR ?=/home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
 
 else
-@error
-
+#Executed
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
 endif
-
-KERNDIR ?= /home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
+#Executed
+KERNDIR ?= /home/mruas/repositorio/svn/lib/kernel/linux-3.6.5
 
 endif 
 
@@ -125,23 +123,21 @@ ifeq (3.0,$(WRS_LINUX_VERSION))
 @error
 ifeq ($(WRL_GLIBC_SMALL),TRUE)
 @error
-
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
 endif
-
+@error
 KERNDIR ?= /home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
 KERNDIR_STD ?= /home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
 
 else
-
 @error
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
 endif
-
+@error
 KERNDIR ?= /home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
 KERNDIR_STD ?= /home/mruas/repositorio/svn/lib/kernel/linux-2.6.35_gcc_4.2.2
 
@@ -167,7 +163,6 @@ ifeq (ELDK,$(BUILD_PLATFORM))
 @error
 ifeq (2.6.21.7, $(KERN_VER))
 @error
-
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
@@ -180,6 +175,7 @@ else
 @error
 override PATH := /tools/eldk/4.1/usr/bin:$(PATH)
 endif
+@error
 KERNDIR ?= /projects/ntsw-sw/linux/eldk/gto_eldk/linux-2.6.21.7
 endif
 endif
@@ -188,7 +184,6 @@ ifeq (ELDK,$(BUILD_PLATFORM))
 @error
 ifeq (2.6.24.4, $(KERN_VER))
 @error
-
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
@@ -198,8 +193,10 @@ ifeq (4.0, $(ELDK_VERSION))
 @error
 override PATH := /tools/eldk/4.0/usr/bin:$(PATH)
 else
+@error
 override PATH := /tools/eldk/4.1/usr/bin:$(PATH)
 endif
+@error
 KERNDIR ?= /projects/ntsw-sw/linux/eldk/gto_eldk/linux-2.6.24.4
 endif
 endif
@@ -209,7 +206,6 @@ ifeq (ELDK,$(BUILD_PLATFORM))
 @error
 ifeq (2.6.25, $(KERN_VER))
 @error
-
 ifeq (,$(CROSS_COMPILE))
 @error
 CROSS_COMPILE := /opt/eldk/usr/bin/ppc_85xxDP-
@@ -219,8 +215,10 @@ ifeq (4.0, $(ELDK_VERSION))
 @error
 override PATH := /tools/eldk/4.0/usr/bin:$(PATH)
 else
+@error
 override PATH := /tools/eldk/4.1/usr/bin:$(PATH)
 endif
+@error
 KERNDIR ?= /projects/ntsw-sw/linux/eldk/gto_eldk/linux-2.6.25
 endif
 endif
@@ -235,7 +233,7 @@ endif
 CFGFLAGS += -DSYS_BE_PIO=1 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=1
 ENDIAN = BE_HOST=1
 CFGFLAGS += -D$(ENDIAN) 
-CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_MPC8544\"
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_HELIXARM\"
 
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
@@ -276,8 +274,8 @@ endif
 endif
 
 ifeq (2.0,$(WRS_LINUX_VERSION))
-@error
-KFLAG_INCLD = /opt/eldk/usr/lib/gcc/powerpc-linux/4.2.2/include
+#Executed
+KFLAG_INCLD = /opt/broadcom/usr/lib/gcc/arm-broadcom-linux-uclibcgnueabi/4.7.2/include
 endif
 
 ifeq (3.0,$(WRS_LINUX_VERSION))
@@ -291,7 +289,7 @@ CFLAGS += -DBCM_PLX9656_LOCAL_BUS -DBDE_LINUX_NON_INTERRUPTIBLE
 endif
 
 ifeq (,$(KFLAGS))
-@error
+#Executed
 KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/arm -I$(KERNDIR)/arch/arm/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
 endif
 
@@ -305,6 +303,6 @@ KFLAGS += -I$(LINUX_INCLUDE_STD) -I$(KERNDIR_STD)/arch/arm -I$(KERNDIR_STD)/arch
 endif
 
 ifneq ($(targetplat),user)
-@error
+#Executed
 include ${SDK}/make/Makefile.linux-kernel-2_6
 endif
