@@ -238,7 +238,7 @@ CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_HELIXARM\"
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
 EXTRA_CFLAGS+= -Wno-unused-but-set-variable -Wno-enum-compare -Wno-address -Wno-uninitialized -Wno-sequence-point -Wno-switch
-EXTRA_CFLAGS+= -mcpu=cortex-a9 -m32 -mhard-float --sysroot=/opt/eb-broadcom/usr/armeb-broadcom-linux-uclibcgnueabi/sysroot/
+EXTRA_CFLAGS+= -mcpu=cortex-a9 -m32 -mhard-float --sysroot=/opt/broadcom/usr/arm-broadcom-linux-uclibcgnueabi/sysroot/
 
 ARCH = arm
 KBUILD_VERBOSE = 1

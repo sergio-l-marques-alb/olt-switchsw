@@ -25,8 +25,8 @@ BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
 export COMPILER		= /opt/broadcom/usr/bin/arm-linux-
+#/opt/eldk/usr/bin/ppc_85xxDP-
 #/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-#/opt/broadcom/usr/bin/arm-linux-
 export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.6.5
 export LD_LIBRARY_PATH	= /opt/broadcom/usr/lib
 
