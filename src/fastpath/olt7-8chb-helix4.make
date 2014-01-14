@@ -27,7 +27,10 @@ BIN_FILE	= switchdrvr
 export COMPILER		= /opt/broadcom/usr/bin/arm-linux-
 #/opt/eldk/usr/bin/ppc_85xxDP-
 #/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.6.5
+export KERNEL_PATH      = /home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5
+#$(OLT_DIR)/../lib/kernel/3.6.5
+#/home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5/
+#$(OLT_DIR)/../lib/kernel/linux-3.0.53-e500mc
 export LD_LIBRARY_PATH	= /opt/broadcom/usr/lib
 
 BOARD = OLT7-8CH_B
@@ -41,7 +44,8 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
-CMD_DISPLAY_MODE:=verbose
+export LVL7_MAKEFILE_LOGGING := N
+export LVL7_MAKEFILE_DISPLAY_MODE := V
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
