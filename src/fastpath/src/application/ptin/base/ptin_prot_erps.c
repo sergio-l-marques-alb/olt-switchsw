@@ -33,7 +33,7 @@
 tblErps_t               tbl_erps[MAX_PROT_PROT_ERPS];
 erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
 
-static const char *stateToString[]  = {"FRZ", "Z_Init", "A_Idle", "B_Protection", "C_ManualSwitch", "D_ForceSwitch", "E_Pending"};
+static const char *stateToString[]  = {"FRZ", "Z_Init", "A_Idle", "B_Protection", "C_ManualSwitch", "D_ForcedSwitch", "E_Pending"};
 static const char *locReqToString[] = {"0", "WTBRun", "WTBExp", "WTRRun", "WTRExp", "MS", "SFc", "SF", "FS", "CLEAR", "NONE", "11", "12"};
 static const char *remReqToString[] = {"NR", "1", "2", "3", "4", "5", "6", "MS", "8", "9", "10", "SF", "12", "FS", "EVENT", "NONE"};
 static const char *strPortState[]   = {"FLUSHING", "BLOCKING"};
@@ -1532,6 +1532,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       //b) a local Ethernet Ring Node is an RPL Owner Node and top priority request is neither R-APS (FS) nor R-APS (MS) (Clear operation  b) or  c) described in clause 8).
 
       // *** Verification of a) is done when command is received ***
+      localRequest = LReq_CLEAR;
+      reqPort = tbl_erps[erps_idx].operator_cmd_port;
 
       // *** Verification of b) ***
       if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPL) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPL) ) {
