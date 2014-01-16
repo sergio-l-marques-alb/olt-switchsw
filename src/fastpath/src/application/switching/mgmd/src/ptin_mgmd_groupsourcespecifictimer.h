@@ -1,0 +1,30 @@
+/*********************************************************************
+*
+* (C) Copyright PT Inovação S.A. 2013-2013
+*
+**********************************************************************
+*
+* @create    21/10/2013
+*
+* @author    Daniel Filipe Figueira
+* @author    Marcio Daniel Melo
+*
+**********************************************************************/
+#ifndef _L7_MGMD_GROUPSPECIFIC_TIMER_H
+#define _L7_MGMD_GROUPSPECIFIC_TIMER_H
+
+#include "ptin_timer_api.h"
+#include "ptin_mgmd_specificquery.h"
+#include "snooping.h"
+
+RC_t   ptin_mgmd_groupsourcespecifictimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
+RC_t   ptin_mgmd_groupsourcespecifictimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);
+
+RC_t   ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId);       //Start a Q(G)
+RC_t   ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId); //Start a Q(G,S)
+RC_t   ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* sourceAddr);
+RC_t   ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* sourceAddr);
+
+RC_t   ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t* eventData);
+
+#endif //_L7_MGMD_GROUPSPECIFIC_TIMER_H

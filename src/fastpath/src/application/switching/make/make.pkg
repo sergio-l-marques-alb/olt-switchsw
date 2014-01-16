@@ -55,6 +55,7 @@ MASTERINC += \
         $(src_switching)/vlan/dot1q/include \
         $(src_switching)/voice_vlan/core/include \
 		$(src_switching)/pppoe/include \
+		$(src_switching)/mgmd/src \
         $(src_ptin)/base/include
 
 

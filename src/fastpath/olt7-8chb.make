@@ -1,9 +1,9 @@
 ################################################
 #                                              #
-#	FastPath Makefile for the OLT7-8CHB card   #
+#  FastPath Makefile for the OLT7-8CHB card    #
 #                                              #
-#	Daniel Figueira, 2013                      #
-#	daniel-f-figueira@ext.ptinovacao.pt        #
+#  Daniel Figueira, 2013                       #
+#  daniel-f-figueira@ext.ptinovacao.pt         #
 #                                              #
 ################################################
 
