@@ -38,7 +38,7 @@ struct {
   L7_uint32 aclId;
   L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
   L7_uint8  aclRuleCount;
-} ptin_aclIpv6Db[L7_MAX_ACL_LISTS];
+} ptin_aclIpv6Db[L7_MAX_ACL_LISTS];                         /* IPv6 [1..99] */
 
 
 
@@ -964,7 +964,14 @@ L7_RC_t ptin_aclIpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
         (usmDbQosAclNamedIndexRangeCheck(unit, L7_ACL_TYPE_IP, aclId) != L7_SUCCESS))
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
-      return L7_FAILURE;
+      if (operation == ACL_OPERATION_CREATE)
+      {
+        return L7_FAILURE;
+      }
+      else
+      {
+        return L7_SUCCESS;
+      }
     }
 
     isNamedAcl = L7_TRUE;
@@ -1432,7 +1439,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
 
   /* Verify if rule exists */
-  if ( ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
+  if (ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
   {
     aclRuleNum = ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId]; 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
@@ -1645,7 +1652,14 @@ L7_RC_t ptin_aclIpv6Apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
         (usmDbQosAclNamedIndexRangeCheck(unit, L7_ACL_TYPE_IPV6, aclId) != L7_SUCCESS))
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
-      return L7_FAILURE;
+      if (operation == ACL_OPERATION_CREATE)
+      {
+        return L7_FAILURE;
+      }
+      else
+      {
+        return L7_SUCCESS;
+      }
     }
   }
   else
@@ -2186,7 +2200,14 @@ L7_RC_t ptin_aclMacApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
   if (usmDbQosAclMacNameToIndex(0, macAclName, &aclId) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
-    return L7_FAILURE;
+    if (operation == ACL_OPERATION_CREATE)
+    {
+      return L7_FAILURE;
+    }
+    else
+    {
+      return L7_SUCCESS;
+    }
   }
 
   if (usmDbQosAclMacIndexCheckValid(0, aclId) == L7_ERROR)
