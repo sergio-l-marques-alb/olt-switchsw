@@ -2306,6 +2306,7 @@ L7_BOOL ptin_dhcp_vlan_validate(L7_uint16 intVlanId)
 L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/)
 {
   L7_uint dhcp_idx;
+  L7_uint32 evc_id_ext;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t intfCfg;
   st_DhcpInstCfg_t *dhcpInst;
@@ -2320,27 +2321,43 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   }
 
   /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u",intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u", intIfNum);
     return L7_FALSE;
   }
 
   /* DHCP instance, from internal vlan */
-  if (ptin_dhcp_inst_get_fromIntVlan(intVlanId,&dhcpInst,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlanId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(dhcpInst->evc_idx,&ptin_intf,&intfCfg)!=L7_SUCCESS)
+  /* DHCP instance, from internal vlan */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+    return L7_FALSE;
+  }
+
+  /* Check if EVCs are in use */
+  if (!ptin_evc_is_in_use(evc_id_ext))
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+    return L7_FAILURE;
+  }
+
+  /* Get interface configuration */
+  if (ptin_evc_intfCfg_get(evc_id_ext, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, evc_id_ext);
     return L7_FALSE;
   }
 
@@ -2348,23 +2365,10 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for EVC %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
     return L7_FALSE;
   }
-
-  #if 0
-  /* For untrusted interfaces, we must have an inner vlan (for non CXP360G) */
-  #if ( PTIN_BOARD != PTIN_BOARD_CXP360G )
-  if ( intfCfg.type==PTIN_EVC_INTF_LEAF && (innerVlanId==0 || innerVlanId>=4095) )
-  {
-    if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"For unstrusted interface %u/%u (evc=%u) inner vlan must be used",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
-    return L7_FALSE;
-  }
-  #endif
-  #endif
 
   return L7_TRUE;
 }
@@ -2380,6 +2384,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
 L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
 {
   L7_uint dhcp_idx;
+  L7_uint32 evc_id_ext;
   ptin_intf_t ptin_intf;
   ptin_evc_intfCfg_t intfCfg;
   st_DhcpInstCfg_t *dhcpInst;
@@ -2393,27 +2398,43 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   }
 
   /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u",intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u", intIfNum);
     return L7_FALSE;
   }
 
   /* DHCP instance, from internal vlan */
-  if (ptin_dhcp_inst_get_fromIntVlan(intVlanId,&dhcpInst,&dhcp_idx)!=L7_SUCCESS)
+  if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlanId);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(dhcpInst->evc_idx,&ptin_intf,&intfCfg)!=L7_SUCCESS)
+  /* DHCP instance, from internal vlan */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from EVC id %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,dhcpInst->evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+    return L7_FALSE;
+  }
+
+  /* Check if EVCs are in use */
+  if (!ptin_evc_is_in_use(evc_id_ext))
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+    return L7_FAILURE;
+  }
+
+  /* Get interface configuration */
+  if (ptin_evc_intfCfg_get(evc_id_ext, &ptin_intf, &intfCfg)!=L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, evc_id_ext);
     return L7_FALSE;
   }
 
@@ -2421,8 +2442,8 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for EVC %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,dhcpInst->evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
+              ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
     return L7_FALSE;
   }
 

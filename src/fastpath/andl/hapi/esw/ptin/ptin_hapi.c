@@ -2618,9 +2618,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->bcast_rate;
-      meterInfo.cbs       = 256;
+      meterInfo.cbs       = 64;
       meterInfo.pir       = control->bcast_rate;
-      meterInfo.pbs       = 256;
+      meterInfo.pbs       = 64;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding BC storm control to %u kbps", meterInfo.cir);
@@ -2736,9 +2736,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->mcast_rate;
-      meterInfo.cbs       = 256;
+      meterInfo.cbs       = 64;
       meterInfo.pir       = control->mcast_rate;
-      meterInfo.pbs       = 256;
+      meterInfo.pbs       = 64;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding MC storm control to %u kbps", meterInfo.cir);
@@ -2852,9 +2852,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->ucunk_rate;
-      meterInfo.cbs       = 256;
+      meterInfo.cbs       = 64;
       meterInfo.pir       = control->ucunk_rate;
-      meterInfo.pbs       = 256;
+      meterInfo.pbs       = 64;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding Unknown UC storm control to %u kbps", meterInfo.cir);
