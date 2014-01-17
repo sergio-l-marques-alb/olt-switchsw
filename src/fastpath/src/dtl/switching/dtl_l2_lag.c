@@ -375,6 +375,140 @@ L7_RC_t dtlDot3adHashModeSet (L7_uint32 lagIfNum, L7_uint32 hashMode)
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* PTin added */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+//#include "dapi_struct.h"
+//extern DAPI_t *dapi_g;
+//Please check dtlDot3adPort*() in "dtl_l2_lag.c"
+L7_RC_t dtlDot3adInternalPortAdd(L7_uint32 lagIfNum,
+                         L7_uint32 numPort, 
+                         L7_uint32 portIntf[],
+                         L7_uint32 hashMode)
+{
+  DAPI_LAG_MGMT_CMD_t dapiCmd;
+  DAPI_USP_t ddUsp;
+  DAPI_USP_t addUSP[L7_MAX_MEMBERS_PER_LAG];
+  nimUSP_t usp;
+  L7_RC_t rc;
+  L7_uint32 i,maxFrameSize;
+
+  if (nimGetUnitSlotPort(lagIfNum, &usp) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* get lag max frame size */
+  nimGetIntfConfigMaxFrameSize(lagIfNum, &maxFrameSize);
+
+  ddUsp.unit = usp.unit;
+  ddUsp.slot = usp.slot;
+  ddUsp.port = usp.port - 1;
+
+  for (i = 0; i < numPort; i++)
+  {
+    if (nimGetUnitSlotPort(portIntf[i], &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    addUSP[i].unit = usp.unit;
+    addUSP[i].slot = usp.slot;
+    addUSP[i].port = usp.port-1;
+  }
+
+  dapiCmd.cmdData.lagPortAdd.getOrSet = DAPI_CMD_SET;
+  dapiCmd.cmdData.lagPortAdd.numOfMembers = numPort;
+  dapiCmd.cmdData.lagPortAdd.maxFrameSize = maxFrameSize;
+  dapiCmd.cmdData.lagPortAdd.hashMode = hashMode;
+  dapiCmd.cmdData.lagPortAdd.memberSet = 
+  (numPort != 0) ? addUSP:(DAPI_USP_t *)L7_NULLPTR;
+
+  rc = dapiCtl(&ddUsp,DAPI_CMD_INTERNAL_LAG_PORT_ADD,&dapiCmd); //hapiBroadLagPortAsyncAdd(&ddUsp, DAPI_CMD_INTERNAL_LAG_PORT_ADD, &dapiCmd, dapi_g);  //dapiCtl(&ddUsp,DAPI_CMD_INTERNAL_LAG_PORT_ADD,&dapiCmd);
+
+  return rc;
+  
+}
+L7_RC_t dtlDot3adInternalPortDelete(L7_uint32 lagIfNum, 
+                            L7_uint32 numPort, 
+                            L7_uint32 portIntf[],
+                            L7_uint32 hashMode)
+{
+  DAPI_LAG_MGMT_CMD_t dapiCmd;
+  DAPI_USP_t ddUsp;
+  DAPI_USP_t deleteUSP[L7_MAX_MEMBERS_PER_LAG];
+  nimUSP_t usp;
+  L7_RC_t rc;
+  L7_uint32 i, maxFrameSize;
+
+  if (nimGetUnitSlotPort(lagIfNum, &usp) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  ddUsp.unit = usp.unit;
+  ddUsp.slot = usp.slot;
+  ddUsp.port = usp.port - 1;
+
+  for (i = 0; i < numPort; i++)
+  {
+    if (nimGetUnitSlotPort(portIntf[i], &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    deleteUSP[i].unit = usp.unit;
+    deleteUSP[i].slot = usp.slot;
+    deleteUSP[i].port = usp.port-1;
+    /* get port max frame size */
+    nimGetIntfConfigMaxFrameSize(portIntf[i], &maxFrameSize);
+  }
+
+  dapiCmd.cmdData.lagPortDelete.getOrSet = DAPI_CMD_SET;
+  dapiCmd.cmdData.lagPortDelete.numOfMembers = numPort;
+  dapiCmd.cmdData.lagPortDelete.maxFrameSize = maxFrameSize; /* rhelbaoui */
+  dapiCmd.cmdData.lagPortDelete.hashMode = hashMode;
+  dapiCmd.cmdData.lagPortDelete.memberSet = 
+  (numPort != 0) ? deleteUSP:(DAPI_USP_t *)L7_NULLPTR;
+
+  rc = dapiCtl(&ddUsp,DAPI_CMD_INTERNAL_LAG_PORT_DELETE,&dapiCmd); //hapiBroadLagPortAsyncDelete(&ddUsp, DAPI_CMD_INTERNAL_LAG_PORT_DELETE, &dapiCmd, dapi_g);  //dapiCtl(&ddUsp,DAPI_CMD_INTERNAL_LAG_PORT_DELETE,&dapiCmd);
+
+  return rc;
+}
+#endif  //( PTIN_BOARD == PTIN_BOARD_TA48GE )
+
 /*
 **********************************************************************
 *                           PRIVATE FUNCTIONS 

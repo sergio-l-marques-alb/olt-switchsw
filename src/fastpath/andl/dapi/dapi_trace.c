@@ -893,6 +893,14 @@ L7_char8 *dapiCommandToStringGet(DAPI_CMD_t cmd)
     case DAPI_CMD_LAG_PORT_DELETE:
       str = "DAPI_CMD_LAG_PORT_DELETE";
       break;
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )         /* PTin added */
+  case DAPI_CMD_INTERNAL_LAG_PORT_ADD:
+    str = "DAPI_CMD_INTERNAL_LAG_PORT_ADD";
+    break;
+  case DAPI_CMD_INTERNAL_LAG_PORT_DELETE:
+    str = "DAPI_CMD_INTERNAL_LAG_PORT_DELETE";
+    break;
+#endif
     case DAPI_CMD_LAG_DELETE:
       str = "DAPI_CMD_LAG_DELETE";
       break;

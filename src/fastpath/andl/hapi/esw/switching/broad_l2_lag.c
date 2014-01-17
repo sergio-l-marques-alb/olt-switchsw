@@ -98,6 +98,13 @@ extern L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp, DAPI_USP_t *toUs
                                     L7_BOOL add, L7_uint32 probeType);
 L7_RC_t hapiBroadLagHashToPsc(L7_uint32 hashMode, L7_int32 *bcmPsc);
 
+/* PTin added */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+extern int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp);
+#define ACCESS_LAG_AT_SDK_LEVEL(command)    ((command)==cmd || !dapi_usp_is_internal_lag_member(usp))
+#else
+#define ACCESS_LAG_AT_SDK_LEVEL(command)    (1)
+#endif
 
 
 /*********************************************************************
@@ -787,6 +794,11 @@ L7_RC_t hapiBroadL2LagPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_CREATE       ] = (HAPICTLFUNCPTR_t)hapiBroadLagCreate;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_PORT_ADD     ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAdd;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_PORT_DELETE  ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortDelete;
+/* PTin added */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  dapiPortPtr->cmdTable[DAPI_CMD_INTERNAL_LAG_PORT_ADD     ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAsyncAdd;
+  dapiPortPtr->cmdTable[DAPI_CMD_INTERNAL_LAG_PORT_DELETE  ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAsyncDelete;
+#endif
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_DELETE       ] = (HAPICTLFUNCPTR_t)hapiBroadLagDelete;
   dapiPortPtr->cmdTable[DAPI_CMD_AD_TRUNK_MODE_SET] = (HAPICTLFUNCPTR_t)hapiBroadADTrunkModeSet;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_HASHMODE_SET ] = (HAPICTLFUNCPTR_t)hapiBroadLagHashModeSet;
@@ -1424,11 +1436,14 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
                           &bcmTrunkInfo.psc);
 
     /* then add the member ports */
-    rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
-    if (L7_BCMX_OK(rc) != L7_TRUE)
-    {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set info for trunk ID %d, rv = %d", tid, rc);
+    /* PTin modified */
+    if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_ADD)) {
+        rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
+        if (L7_BCMX_OK(rc) != L7_TRUE) {
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set info for trunk ID %d, rv = %d", tid, rc);
+        }
     }
+    /* PTin modified */
   }
 
   hapiLagPortPtr->hapiModeparm.lag.numMembers = memberCount;
@@ -1897,25 +1912,25 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 //#ifdef L7_WIRELESS_PACKAGE
 //       (void)hapiBroadL2TunnelLagDeleteNotify(usp, dapi_g);
 //#endif
-      rc = usl_bcmx_trunk_destroy(usp->port, tid);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
+      if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE)) {     /* PTin modified */
+          rc = usl_bcmx_trunk_destroy(usp->port, tid);
+          if (L7_BCMX_OK(rc) != L7_TRUE) {
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
+          }
+    
+          /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
+          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
+          rc = usl_bcmx_trunk_create(usp->port, &tid);
+          if (L7_BCMX_OK(rc) != L7_TRUE) {
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
+          }
+          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
+          hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
+          BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
+    
+          /* Need to apply learn mode now that we have a tgid */
+          usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
       }
-
-      /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
-      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
-      rc = usl_bcmx_trunk_create(usp->port, &tid);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
-      }
-      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
-      hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
-      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
-
-      /* Need to apply learn mode now that we have a tgid */
-      usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
 
       /* PTin end */
 
@@ -1928,10 +1943,9 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     }
     /* otherwise set the membership to the remaining members */
     else
-    {
+    if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE)) {       /* PTin modified */
       rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
+      if (L7_BCMX_OK(rc) != L7_TRUE) {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set trunk info for ID %d, rv = %d", tid, rc);
       }
     }

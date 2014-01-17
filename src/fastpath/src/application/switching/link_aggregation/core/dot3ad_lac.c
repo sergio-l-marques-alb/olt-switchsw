@@ -142,7 +142,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
             }
     case L7_UP:
             /* PTin added */
-            #if 1
+            #if 0
             if (ptin_intf_is_internal_lag_member(intIfNum))
             {
               rc = L7_SUCCESS;
@@ -192,7 +192,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
             }
     case L7_DOWN:
         /* PTin added */
-        #if 1
+        #if 0
         if (ptin_intf_is_internal_lag_member(intIfNum))
         {
           rc = L7_SUCCESS;
