@@ -1648,6 +1648,19 @@ EXT_API L7_RC_t dtlDot3adPortAdd(L7_uint32 lagIfNum,
                                  L7_uint32 numPort,
                                  L7_uint32 portIntf[],
                                  L7_uint32 hashMode);
+/* PTin added */
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+// "*InternalPort*" are similar to "*Port*", only difference being a shortcut to FP's layers, so we can still aim for the 50ms on TA48 matrix plane switching
+EXT_API L7_RC_t dtlDot3adInternalPortAdd(L7_uint32 lagIfNum,
+                         L7_uint32 numPort, 
+                         L7_uint32 portIntf[],
+                         L7_uint32 hashMode);
+
+EXT_API L7_RC_t dtlDot3adInternalPortDelete(L7_uint32 lagIfNum, 
+                            L7_uint32 numPort, 
+                            L7_uint32 portIntf[],
+                            L7_uint32 hashMode);
+#endif
 /*********************************************************************
 * @purpose  Enables or disables LACP PDU and Marker Response PDU
 *           to be sent to the CPU from an interface

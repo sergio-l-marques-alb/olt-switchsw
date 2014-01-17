@@ -598,12 +598,16 @@ extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
 extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
 
 /**
- * Check if this interface should be changed, when related 
- * events are received 
- * 
- * @param intIfNum 
- * 
- * @return int 
+ The following 2 functions identify, respectively
+ @application/DTL level and @ANDL/hapi level the (static)
+             interfaces constituing the internal (stati) LAG
+             between TA48 and CXO/matrix.
+ A LAG is a P2P structure. That's not exactly what we have, but
+ TA48 "sees" a LAG with an (in future 2) interface to CXO slot1
+ and another (interface) to CXO slot20. Every circuit/EVC
+ enclosing CXOs uses this LAG. Manipulation of this LAG is done
+ exclusively by TA48's matrix protection mechanism (so, no LACP
+ nor any other one whatsoever).
  */
 extern L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum);
 extern int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp);

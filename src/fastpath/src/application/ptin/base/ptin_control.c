@@ -276,6 +276,8 @@ void _10msTask(void)
     PTIN_CRASH();
   }
 
+  sleep(5);     //Allow ANDL/HAPI layer to create the trunk before manipulating it in "monitor_matrix_commutation()"
+
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10ms task will now start!");
 
   //nice(-1);
@@ -657,7 +659,7 @@ static void monitor_matrix_commutation(void)
   }
 
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  #if 0
+  #if 1
   L7_uint32 lag_intf, intIfNum, intIfNum_del;
 
   rc = ptin_intf_lag2intIfNum(0, &lag_intf);
@@ -685,8 +687,8 @@ static void monitor_matrix_commutation(void)
     if (rc == L7_SUCCESS)
     {
       // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-      if (dtlDot3adPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
-          dtlDot3adPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
+      if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
+          dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
       {
         rc = L7_FAILURE;
       }
