@@ -5036,21 +5036,21 @@ int main (int argc, char *argv[])
             printf( "   Packets Forwarded    = %lu\r\n",po->stats.dhcp_tx_forwarded );
             printf( "   Transmissions Failed = %lu\r\n",po->stats.dhcp_tx_failed );
             printf( "   Received Client Requests without Options    = %lu\r\n",po->stats.dhcp_rx_client_requests_without_options );
+            printf( "   Transmitted Client Requests without Options = %lu\r\n",po->stats.dhcp_tx_client_requests_without_options );
             printf( "   Transmitted Client Requests with Option82   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option82 );
             printf( "   Transmitted Client Requests with Option37   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option37 );
             printf( "   Transmitted Client Requests with Option18   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option18 );
             printf( "   Received Server Replies with Option82       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option82 );
             printf( "   Received Server Replies with Option37       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option37 );
             printf( "   Received Server Replies with Option18       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option18 );
+            printf( "   Received Server Replies without Options     = %lu\r\n",po->stats.dhcp_rx_server_replies_without_options );
             printf( "   Transmitted Server Replies without Options  = %lu\r\n",po->stats.dhcp_tx_server_replies_without_options );
             printf( "   Received Client Packets on Trusted Interface                 = %lu\r\n",po->stats.dhcp_rx_client_pkts_onTrustedIntf );
             printf( "   Received Client Packets with Options on Untrusted Interface  = %lu\r\n",po->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf );
             printf( "   Received Server Packets on Untrusted Interface               = %lu\r\n",po->stats.dhcp_rx_server_pkts_onUntrustedIntf );
-            printf( "   Received Server Packets without Options on Trusted Interface = %lu\r\n",po->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf );
-            printf( "Done!\r\n");
           }
           else  {
-            printf(" Switch: Error reading DHCP statistics\n\r");
+            printf(" Switch: Error reading DHCP statistics - error %08x\n\r", *(unsigned int*)resposta.info);
           }
         }
         break;
