@@ -1129,16 +1129,19 @@ L7_uint32 sysNetDataOffsetGet(L7_uchar8 *data)
   L7_char8    *pEtype;
   L7_uint32   offset= 0;
   L7_ushort16 temp16;
+
   /* Determine the protocol type */
-  pEtype = data + L7_ENET_HDR_SIZE;
+  data += L7_ENET_HDR_SIZE;
+  pEtype = data;
   bcopy (pEtype, (L7_uchar8 *) &protocol_type, sizeof(L7_ushort16)); /*Endian*/
 
   temp16 = osapiNtohs(protocol_type);
   protocol_type = temp16;
-  if (protocol_type == L7_ETYPE_8021Q)
+  while (protocol_type == L7_ETYPE_8021Q)
   {
     /* This is an Vlan tagged Frame */
-    pEtype = data + L7_ENET_HDR_SIZE + L7_8021Q_ENCAPS_HDR_SIZE;
+    pEtype = data + L7_8021Q_ENCAPS_HDR_SIZE;
+    data += L7_8021Q_ENCAPS_HDR_SIZE;
     bcopy (pEtype, (L7_uchar8 *) &protocol_type, sizeof(L7_ushort16)); /*Endian*/
 
     temp16 = osapiNtohs(protocol_type);

@@ -54,9 +54,11 @@ typedef enum  {
   DHCP_STAT_FIELD_TX_FAILED,
 
   DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS,
+  DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTIONS,
   DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82,
   DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION37,
   DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION18,
+  DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS,
   DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS,
   DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82,
   DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION37,
@@ -65,7 +67,6 @@ typedef enum  {
   DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF,
   DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF,
   DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF,
-  DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF,
 
   DHCP_STAT_FIELD_ALL
 } ptin_dhcp_stat_enum_t;
@@ -79,18 +80,19 @@ typedef struct _ptin_DHCP_Statistics_t
   L7_uint32 dhcp_tx_failed;
 
   L7_uint32 dhcp_rx_client_requests_without_options;
+  L7_uint32 dhcp_tx_client_requests_without_options;
   L7_uint32 dhcp_tx_client_requests_with_option82;
   L7_uint32 dhcp_tx_client_requests_with_option37;
   L7_uint32 dhcp_tx_client_requests_with_option18;
   L7_uint32 dhcp_rx_server_replies_with_option82;
   L7_uint32 dhcp_rx_server_replies_with_option37;
   L7_uint32 dhcp_rx_server_replies_with_option18;
+  L7_uint32 dhcp_rx_server_replies_without_options;
   L7_uint32 dhcp_tx_server_replies_without_options;
 
   L7_uint32 dhcp_rx_client_pkts_onTrustedIntf;
   L7_uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
-  L7_uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__ ((packed)) ptin_DHCP_Statistics_t;
 
 extern L7_BOOL ptin_debug_dhcp_snooping;

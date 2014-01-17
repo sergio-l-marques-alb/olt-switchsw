@@ -934,25 +934,26 @@ typedef struct {
 //          CCMSG_ETH_DHCP_INTF_STATS_GET and CCMSG_ETH_DHCP_INTF_STATS_CLEAR
 typedef struct _st_DHCP_Statistics_t
 {
-  uint32 dhcp_rx_intercepted;
-  uint32 dhcp_rx;
-  uint32 dhcp_rx_filtered;
-  uint32 dhcp_tx_forwarded;
-  uint32 dhcp_tx_failed;
+  L7_uint32 dhcp_rx_intercepted;
+  L7_uint32 dhcp_rx;
+  L7_uint32 dhcp_rx_filtered;
+  L7_uint32 dhcp_tx_forwarded;
+  L7_uint32 dhcp_tx_failed;
 
-  uint32 dhcp_rx_client_requests_without_options;
-  uint32 dhcp_tx_client_requests_with_option82;
-  uint32 dhcp_tx_client_requests_with_option37;
-  uint32 dhcp_tx_client_requests_with_option18;
-  uint32 dhcp_rx_server_replies_with_option82;
-  uint32 dhcp_rx_server_replies_with_option37;
-  uint32 dhcp_rx_server_replies_with_option18;
-  uint32 dhcp_tx_server_replies_without_options;
+  L7_uint32 dhcp_rx_client_requests_without_options;
+  L7_uint32 dhcp_tx_client_requests_without_options;
+  L7_uint32 dhcp_tx_client_requests_with_option82;
+  L7_uint32 dhcp_tx_client_requests_with_option37;
+  L7_uint32 dhcp_tx_client_requests_with_option18;
+  L7_uint32 dhcp_rx_server_replies_with_option82;
+  L7_uint32 dhcp_rx_server_replies_with_option37;
+  L7_uint32 dhcp_rx_server_replies_with_option18;
+  L7_uint32 dhcp_rx_server_replies_without_options;
+  L7_uint32 dhcp_tx_server_replies_without_options;
 
   L7_uint32 dhcp_rx_client_pkts_onTrustedIntf;
   L7_uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
-  L7_uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
 } __attribute__((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics

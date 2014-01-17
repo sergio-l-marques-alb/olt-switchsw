@@ -3117,6 +3117,18 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_client_requests_without_options++;
     break;
 
+  case DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITHOUT_OPTIONS:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_client_requests_without_options++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_client_requests_without_options++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_tx_client_requests_without_options++;
+    break;
+
+  case DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_replies_without_options++;
+    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_replies_without_options++;
+    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_replies_without_options++;
+    break;
+
   case DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_tx_server_replies_without_options++;
     if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_tx_server_replies_without_options++;
@@ -3139,12 +3151,6 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_onUntrustedIntf++;
     if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_onUntrustedIntf++;
     if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_onUntrustedIntf++;
-    break;
-
-  case DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOPS_ON_TRUSTED_INTF:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
-    if (stat_port  !=L7_NULLPTR)  stat_port  ->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
-    if (stat_client!=L7_NULLPTR)  stat_client->dhcp_rx_server_pkts_withoutOps_onTrustedIntf++;
     break;
 
   default:
