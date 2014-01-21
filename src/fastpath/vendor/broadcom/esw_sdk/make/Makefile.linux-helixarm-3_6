@@ -105,5 +105,5 @@ KFLAGS := -D__LINUX_ARM_ARCH__=7 -D__KERNEL__ -nostdinc  -isystem $(KFLAG_INCLD)
 endif
 
 ifneq ($(targetplat),user)
-include ${SDK}/make/Makefile.linux-kernel-2_6
+include ${SDK}/make/Makefile.linux-kernel-3_6
 endif

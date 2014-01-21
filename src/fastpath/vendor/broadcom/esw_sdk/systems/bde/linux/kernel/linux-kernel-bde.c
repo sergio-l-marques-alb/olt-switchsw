@@ -3590,8 +3590,10 @@ _interrupt_connect(int d,
 
     /* PTin added: Kernel */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
+#ifndef __arm__
     struct device_node *np = NULL;
     unsigned int eirq;
+#endif
 #endif
 
     gprintk("Setting IRQ...\n");
@@ -3641,6 +3643,7 @@ _interrupt_connect(int d,
 
     /* PTin added: Kernel */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
+#ifndef __arm__
     np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
 	  if (np == NULL){
       gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
@@ -3653,6 +3656,7 @@ _interrupt_connect(int d,
       return -1;
     }
     ctrl->iLine = eirq;
+#endif
 #endif
     gprintk("irq to be used: %d\n",ctrl->iLine);
     /* PTin end */

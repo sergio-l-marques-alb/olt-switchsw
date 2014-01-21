@@ -31,6 +31,10 @@ ifeq (1,$(BLD_L7_TARGETOS_LINUX))
   ifeq (1,$(BLD_L7_TARGETOS_LINUX_26))
     vend_sdk_arc := $(vend_sdk_arc)-2_6
   endif
+
+  ifeq (1,$(BLD_L7_TARGETOS_LINUX_36))
+    vend_sdk_arc := $(vend_sdk_arc)-3_6
+  endif
 endif
 
 ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))

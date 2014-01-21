@@ -24,14 +24,12 @@ KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
-export COMPILER		= /opt/broadcom/usr/bin/arm-linux-
-#/opt/eldk/usr/bin/ppc_85xxDP-
-#/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-export KERNEL_PATH      = /home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5
-#$(OLT_DIR)/../lib/kernel/3.6.5
-#/home/devtools/dev-ARM/dev-BCM56340/ldk/3.4.0/iproc/kernel/linux-3.6.5/
-#$(OLT_DIR)/../lib/kernel/linux-3.0.53-e500mc
-export LD_LIBRARY_PATH	= /opt/broadcom/usr/lib
+export TOOLCHAIN_BASE_DIR = /opt/broadcom
+export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
+export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
+
+export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
+export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
 
 BOARD = OLT7-8CH_B
 CARD_FOLDER = FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$(BOARD)
@@ -45,7 +43,7 @@ export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
 export LVL7_MAKEFILE_LOGGING := N
-export LVL7_MAKEFILE_DISPLAY_MODE := V
+export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
