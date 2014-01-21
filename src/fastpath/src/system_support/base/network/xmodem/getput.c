@@ -363,11 +363,14 @@ void setmodes(void)
   newSignal.sa_flags = 0;
   sigaction(SIGTERM, &newSignal, NULL);
 #else
+/* Ptin TODO: signal */
+#if 0
   sigvec(SIGTERM, (struct sigvec *) NULL,  &origSignal);
   newSignal.sv_handler = onintr;
   newSignal.sv_mask = 0;
   newSignal.sv_flags = 0;
   sigvec(SIGTERM, &newSignal, NULL);
+#endif
 #endif
 }
 
@@ -392,7 +395,10 @@ void restoremodes(int errcall )
 #ifdef _L7_OS_ECOS_
   sigaction(SIGTERM, &origSignal, NULL);
 #else
+/* PTin TODO: signal */
+#if 0
   sigvec(SIGTERM, &origSignal, NULL);
+#endif
 #endif
   return;
 }

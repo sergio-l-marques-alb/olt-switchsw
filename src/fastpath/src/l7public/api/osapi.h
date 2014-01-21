@@ -4273,7 +4273,7 @@ typedef struct
 
 #else /* not Linux above, Linux below */
 
-#ifdef L7_LINUX_24
+#if defined L7_LINUX_24
 #define osapiGetpid()  (unsigned long) getpid()
 #else
 #ifdef __powerpc__
@@ -4285,7 +4285,12 @@ typedef struct
 #ifdef __i386__
 #define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
 #else
+/* PTin added: ARM processor */
+#ifdef __arm__
+#define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
+#else
 #define osapiGetpid()  (unsigned long) gettid()
+#endif /* arm */
 #endif /* i386 */
 #endif /* mips */
 #endif /* powerpc */

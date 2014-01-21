@@ -1567,7 +1567,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     return L7_SUCCESS;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add evc %u from igmp_idx=%u",evc_idx, igmp_idx);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add evc %u",evc_idx);
 
   /* Check if there is an instance with the same NNI outer vlan: use it! */
   /* Otherwise, create a new instance */
