@@ -5599,15 +5599,15 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
-    if (igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
-                                &groupAddr , channel_list[i].channel_dstmask,
-                                &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE ) != L7_SUCCESS )
+    if ((rc=igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
+                                    &groupAddr , channel_list[i].channel_dstmask,
+                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE )) != L7_SUCCESS )
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
               channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
               channel_list[i].evcid_mc);
-      return L7_FAILURE;
+      return rc;
     }
 #else
     rc = L7_NOT_SUPPORTED;
