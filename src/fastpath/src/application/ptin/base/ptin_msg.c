@@ -832,8 +832,13 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   }
 
   msgPhyStatus->phy.alarmes_mask =  HW_ETHERNET_STATUS_MASK_SPEED100_BIT | HW_ETHERNET_STATUS_MASK_TX_BIT | HW_ETHERNET_STATUS_MASK_RX_BIT | 
-                                    HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | HW_ETHERNET_STATUS_MASK_AUTONEG_BIT |
+                                    HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | /* HW_ETHERNET_STATUS_MASK_AUTONEG_BIT | */
                                     HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
+
+  if ((phyConf.Speed == PHY_PORT_AUTONEG) || (phyConf.Speed == PHY_PORT_1000AN_GBPS))
+  {
+    msgPhyStatus->phy.alarmes_mask |= HW_ETHERNET_STATUS_MASK_AUTONEG_BIT;
+  }
 
   /* Output info read */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",                   msgPhyStatus->Port);
