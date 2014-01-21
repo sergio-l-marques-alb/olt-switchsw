@@ -449,6 +449,8 @@ static void monitor_alarms(void)
       ptin_intf.intf_id   = 0;
       adminState = L7_DISABLE;
 
+      ptin_intf_port2ptintf(port,&ptin_intf);
+
       interface_is_valid = L7_FALSE;
     }
     else
@@ -477,8 +479,7 @@ static void monitor_alarms(void)
       #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
         #if (PTIN_BOARD_IS_MATRIX)
         /* For CXP360G There is only alarms for external LAGs */
-        if (interface_is_valid &&
-            ptin_intf.intf_type==PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id<PTIN_SYSTEM_N_LAGS_EXTERNAL)
+        if (ptin_intf.intf_type==PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id<PTIN_SYSTEM_N_LAGS_EXTERNAL)
         #else
         /* There is only alarms for non PON interfaces */
         if (port >= PTIN_SYSTEM_N_PONS)
