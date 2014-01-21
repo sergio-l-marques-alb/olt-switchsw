@@ -3369,7 +3369,7 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
   if (rc==L7_SUCCESS)
   {
     /* Restart client timer */
-    ptin_igmp_client_timer_start(mcastPacket->vlanId, mcastPacket->client_idx);
+    ptin_igmp_client_timer_start(mcastPacket->intIfNum, mcastPacket->client_idx);
 //  ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS);
   }
   else

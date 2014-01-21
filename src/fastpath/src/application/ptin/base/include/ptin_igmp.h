@@ -797,25 +797,24 @@ extern L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
  * Get client type from its index. 
  * 
  * @param intIfNum      : interface number 
- * @param intVlan       : internal vlan
  * @param client_index  : Client index
  * @param isDynamic     : client type (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_type(L7_uint16 intVlan,
+extern L7_RC_t ptin_igmp_client_type(L7_uint32 intIfNum,
                                      L7_uint client_idx,
                                      L7_BOOL *isDynamic);
 
 /**
  * (Re)start the timer for this client
  *  
- * @param intVlan     : Internal vlan
+ * @param intIfNum    : Interface Number
  * @param client_idx  : client index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_timer_start(L7_uint16 intVlan,
+L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
                                      L7_uint32 client_idx);
 
 /**
@@ -864,33 +863,31 @@ extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
 /**
  * Remove a particular client
  * 
- * @param intVlan       : internal vlan
+ * @param intIfNum      : Interface Number
  * @param client_index  : Client index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint16 intVlan,
+extern L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint32 intIfNum,
                                               L7_uint client_idx);
 
 /**
  * Remove all dynamic client
  * 
- * @param intVlan       : internal vlan
- * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_all_clients_flush(L7_uint16 intVlan);
+extern L7_RC_t ptin_igmp_dynamic_all_clients_flush(void);
 
 /**
  * Get client information from its index. 
  * 
- * @param intVlan       : internal vlan
+ * @param intIfNum      : Interface Number
  * @param client_index  : Client index
  * @param client        : Client information (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientData_get(L7_uint16 intVlan,
+extern L7_RC_t ptin_igmp_clientData_get(L7_uint32 intIfNum,
                                         L7_uint client_idx,
                                         ptin_client_id_t *client);
 
