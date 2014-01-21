@@ -999,15 +999,15 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS \
 	uninstall-pkgincludeHEADERS uninstall-sbinPROGRAMS
 
 .EXPORT_ALL_VARIABLES:
-export DESTDIR                           = /home/mruas/repositorio/svn/v2.7/fastpath/src/application/switching/mgmd/rfs
-export SYSROOTDIR                        = /home/mruas/repositorio/svn/v2.7/fastpath/src/application/switching/mgmd/rfs
+export DESTDIR                           = /home/daniel/olt-switchsw/trunk/src/fastpath/src/application/switching/mgmd/rfs
+export SYSROOTDIR                        = /home/daniel/olt-switchsw/trunk/src/fastpath/src/application/switching/mgmd/rfs
 export PREFIXDIR                         = /usr/local/ptin
 export ETCDIR                            = /usr/local/ptin/etc
-export PKG_CONFIG_PATH                   = /home/mruas/repositorio/svn/v2.7/fastpath/src/application/switching/mgmd/rfs/usr/local/ptin/lib/pkgconfig
+export PKG_CONFIG_PATH                   = /home/daniel/olt-switchsw/trunk/src/fastpath/src/application/switching/mgmd/rfs/usr/local/ptin/lib/pkgconfig
 export TARGET_PPC                        = ppc_85xxDP
 export CROSS_COMPILE                     = ppc_85xxDP-
 export COMPILER_DIR                      = /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin
-export PATH                              = /home/mruas/bin:/usr/sbin/cmake/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/home/mruas/bin:/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin
+export PATH                              = /usr/sbin/cmake/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.1-wrlinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/mti_malta32_be-glibc_small/x86-linux2:/opt/broadlight/toolchain/4.4-wrslinux-2.0/x86-linux2/bin:/opt/broadlight/sysroot/broadlight_lilac-glibc_small/x86-linux2:/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin
 export COMPILER_PREFIX                   = powerpc-e300c3-linux-
 export CROSSOPTS                         = --host=ppc-linux --build=i486-pc-linux-gnu
 export CFLAGS                            = 
