@@ -19,7 +19,7 @@ svn_rev=`svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 version=$1-r$svn_rev
 
 image_tgz=$MODULE.image-v$version.tgz
-backup_tgz=$MODULE.backup-v$version.tgz
+backup_7z=$MODULE.backup-v$version.7z
 relnotes_file=$MODULE.releasenotes-v$version.txt
 
 colorNotice="\033[1m\033[34m"
@@ -106,21 +106,6 @@ tar czpvf $image_tgz $PLATFORMS --owner=root --group=root
 cd -
 mv $APPS_PATH/image/$image_tgz $BUILDS_FOLDER
 
-# Only if backup exists
-if [ -e $APPS_PATH/backup ]; then
-  rm -f $BUILDS_FOLDER/$backup_tgz
-  for plat in $PLATFORMS; do
-    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
-    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
-  done
-  sync
-  cd $APPS_PATH/backup
-  rm -f *.tgz
-  tar czvf $backup_tgz $PLATFORMS
-  cd -
-  mv $APPS_PATH/backup/$backup_tgz $BUILDS_FOLDER
-fi
-
 echo -en $colorNotice
 echo "Saving release notes..."
 echo -en $colorReset
@@ -129,12 +114,7 @@ rm -f $BUILDS_FOLDER/$relnotes_file
 cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
 
 echo -en $colorNotice
-echo "Cleaning..."
-echo -en $colorReset
-rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
-
-echo -en $colorNotice
-echo "Transferring tarballs to final destination..."
+echo "Transferring image tarball to final destination..."
 echo -en $colorReset
 echo -en $colorReq
 echo -en "What is your username on $DST_IPADDR machine?"
@@ -148,8 +128,55 @@ if [ -z $USERNAME ]; then
   echo -en $colorReset
 fi
 
-scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$backup_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
 echo -en $colorReset
+
+
+# Only if backup exists
+if [ -e $APPS_PATH/backup ]; then
+  echo -en $colorNotice
+  echo "Saving unstripped binaries..."
+  echo -en $colorReset
+
+  rm -f $BUILDS_FOLDER/$backup_7z
+  for plat in $PLATFORMS; do
+    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
+    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
+  done
+  sync
+  cd $APPS_PATH/backup
+  rm -f *.tgz
+  7z a $backup_7z $PLATFORMS
+  cd -
+  mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
+fi
+
+echo -en $colorNotice
+echo "Cleaning..."
+echo -en $colorReset
+rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
+
+echo -en $colorNotice
+echo "Transferring backup tarball to final destination..."
+echo -en $colorReset
+echo -en $colorReq
+echo -en "What is your username on $DST_IPADDR machine?"
+echo -en $colorReset
+echo -en " "
+read USERNAME
+if [ -z $USERNAME ]; then
+  USERNAME=`whoami`
+  echo -en $colorReq
+  echo "Using '$USERNAME' user name."
+  echo -en $colorReset
+fi
+
+scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
+
