@@ -27,6 +27,7 @@ FASTPATH_ROOT_DIR=$1
 SWITCHING_COMPILE_TARGET=$2
 
 MGMD_ROOT_DIR=$FASTPATH_ROOT_DIR/src/application/switching/mgmd/
+FASTPATH_PUBLIC_API_DIR=$FASTPATH_ROOT_DIR/src/l7public/api
 
 # 1 - Configuration
 cd $MGMD_ROOT_DIR
@@ -47,6 +48,7 @@ fi
 # 2 - Compilation
 if [ "$SWITCHING_COMPILE_TARGET" = "switching" ]; then
 	make -j1 all && make install >/dev/null 2>&1
+	cp rfs/usr/local/ptin/include/mgmd/* $FASTPATH_PUBLIC_API_DIR
 elif [ "$SWITCHING_COMPILE_TARGET" = "clean-switching" ]; then
 	make clean distclean >/dev/null 2>&1
 fi
