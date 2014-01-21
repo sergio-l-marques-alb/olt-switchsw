@@ -5511,7 +5511,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   if ( !ptin_evc_is_in_use(evc_mc) )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u is not in use!", evc_mc);
-    return L7_FAILURE;
+    return L7_DEPENDENCY_NOT_MET;
   }
   /* MC EVC should be part of an IGMP instance */
   if (ptin_igmp_instance_find_fromMcastEvcId( evc_mc, &igmpInst_idx ) != L7_SUCCESS)
