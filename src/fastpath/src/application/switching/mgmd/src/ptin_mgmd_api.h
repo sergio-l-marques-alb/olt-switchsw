@@ -42,6 +42,8 @@ typedef struct
 {
   RC_t (*igmp_admin_set) (uint8 admin);
   RC_t (*mld_admin_set)  (uint8 admin);
+
+  RC_t (*cos_set)        (uint8 cos);
                          
   RC_t (*portList_get)   (uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
   RC_t (*portType_get)   (uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);

@@ -1391,7 +1391,7 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
   }
 
    /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
@@ -2076,7 +2076,7 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
 
 
   /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;

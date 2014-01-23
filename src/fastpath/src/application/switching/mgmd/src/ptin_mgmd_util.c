@@ -105,7 +105,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   mgmdProxyInterfaceTimer_t *proxyTimer;
   snoopPTinL3InfoData_t     *avlTreeEntry;
   
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
   if (groupAddr==PTIN_NULLPTR || ptr == PTIN_NULLPTR )
   {
@@ -261,7 +261,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     }
   }   
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
 
   return SUCCESS;
 }

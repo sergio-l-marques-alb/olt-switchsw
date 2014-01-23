@@ -57,6 +57,9 @@
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
 
+/* MGMD TxQueueId */
+L7_int32 ptinMgmdTxQueueId = -1;
+
 #if (PTIN_BOARD_IS_MATRIX)
 void *ptin_switchover_sem  = L7_NULLPTR;
 void *ptin_boardaction_sem = L7_NULLPTR;
@@ -411,6 +414,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
     PTIN_CRASH();
   }
+
+  /* Create a new TxQueue to handle responses from MGMD */
+  ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 

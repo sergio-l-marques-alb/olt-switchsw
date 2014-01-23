@@ -117,14 +117,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
-  /* Load IGMP default config */
-  rc = ptin_igmp_proxy_defaultcfg_load();
-  if (rc != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error load IGMP default config! CRASH!");
-    PTIN_CRASH();
-  }
-
   /* By default enable global DHCP trapping */
   if (ptin_dhcp_enable(L7_ENABLE) != L7_SUCCESS)
   {

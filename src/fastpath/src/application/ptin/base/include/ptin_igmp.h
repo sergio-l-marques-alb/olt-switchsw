@@ -13,6 +13,7 @@
 
 #include "ptin_include.h"
 #include "l3_addrdefs.h"
+#include "ptin_mgmd_ctrl.h"
 
 #define PTIN_IGMP_STATS_IN_EVCS 0
 
@@ -404,20 +405,14 @@ extern L7_RC_t ptin_igmp_proxy_init(void);
 extern L7_RC_t ptin_igmp_proxy_deinit(void);
 
 /**
- * Load IGMP proxy default configuraion parameters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_proxy_defaultcfg_load(void);
-
-/**
  * Applies IGMP Proxy configuration
  * 
  * @param igmpProxy Structure with config parameters
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy);
+L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
+extern L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy);
 
 /**
  * Gets IGMP Proxy configuration
@@ -426,7 +421,8 @@ extern L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy);
+L7_RC_t ptin_igmp_proxy_config_get__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
+extern L7_RC_t ptin_igmp_proxy_config_get(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy);
 
 /**
  * Configure an IGMP evc with the necessary procedures 

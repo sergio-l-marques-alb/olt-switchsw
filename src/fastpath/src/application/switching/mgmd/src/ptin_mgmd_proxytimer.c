@@ -28,7 +28,7 @@ static RC_t  ptin_mgmd_proxytimer_init(PTIN_MGMD_TIMER_t *timerPtr);
 
 void* ptin_mgmd_proxytimer_callback(void *param)
 {
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   mgmdProxyInterfaceTimer_t *timerData = (mgmdProxyInterfaceTimer_t*) param;
   PTIN_MGMD_EVENT_t         eventMsg = {0};
 
@@ -40,7 +40,7 @@ void* ptin_mgmd_proxytimer_callback(void *param)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add event to the message queue");
   }
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   return PTIN_NULLPTR;
 }
 
@@ -183,7 +183,7 @@ RC_t ptin_mgmd_event_proxytimer(mgmdProxyInterfaceTimer_t *timerData)
   uint32                    noOfRecords;
   void                      *groupData; 
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   if (timerData->isInterface)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Proxy Interface timer expired (vlan:%u)",
@@ -236,7 +236,7 @@ RC_t ptin_mgmd_event_proxytimer(mgmdProxyInterfaceTimer_t *timerData)
     return FAILURE;
   } 
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   return SUCCESS;
 }
 

@@ -72,6 +72,11 @@
 static snoop_eb_t  snoopEB;   /* Snoop execution block holder */
 static snoop_cb_t *snoopCB;   /* Snoop Control blocks holder */
 
+//PTin Added: MGMD
+#include "snooping_mgmd_api.h"
+
+extern ptin_mgmd_externalapi_t mgmd_external_api;
+
 #define L7_MIN_GROUP_REGISTRATION_ENTRIES L7_MAX_GROUP_REGISTRATION_ENTRIES/4
 /*********************************************************************
 * @purpose  CNFGR System Initialization for Snooping component
@@ -708,6 +713,15 @@ L7_RC_t snoopCnfgrInitPhase3Process(L7_BOOL warmRestart,
     }
   }
   SNOOP_TRACE(SNOOP_DEBUG_CHECKPOINT, 0, "Apply of Config Data done");
+
+  /* After snooping init phase is complete, start MGMD */
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting MGMD...");
+  if (ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT))
+  {
+    LOG_FATAL(LOG_CTX_PTIN_IGMP,"Huge, CATASTROPHIC failure on MGMD! Run as fast as you can and don't look back!");
+    return L7_FAILURE;
+  }
+  ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_TRACE);
 
   snoopEB.snoopCnfgrState = SNOOP_PHASE_INIT_3;
   return snoopRC;

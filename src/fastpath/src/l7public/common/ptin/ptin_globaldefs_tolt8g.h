@@ -114,7 +114,7 @@
 # define PTIN_SYSTEM_IGMP_MAXCLIENTS              PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP    5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
-# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
+# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         1   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
@@ -122,6 +122,7 @@
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512 
 
+#define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
 #define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule

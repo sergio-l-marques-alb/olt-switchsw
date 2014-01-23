@@ -69,7 +69,7 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
   RC_t                res      = SUCCESS;
   ptin_IgmpProxyCfg_t igmpCfg; 
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
   //Get proxy configurations
   if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
   {
@@ -132,7 +132,7 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
       break;
   }              
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
   return res;
 }
 
@@ -509,34 +509,46 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   static mgmdSnoopControlPkt_t mcastPacket;
   RC_t                         res         = SUCCESS;
   uchar8                       version; 
+  ptin_mgmd_externalapi_t      externalApi;
+  ptin_mgmd_port_type_t        portType;
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+
+  if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Unable to get external API");    
+    return FAILURE;
+  }
+
   //Validate packet
   if ( (PTIN_NULLPTR == payload) || (0 == payloadLength) )
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
     return FAILURE;
   }
 
-  //Validate clientId
-  if (clientId >= PTIN_MGMD_MAX_CLIENTS)
-  {    
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid clientID [%u]", clientId);
-    return FAILURE;
-  }
-
-   //Validate portId
+  //Validate portId
   if ( (portId==0) || (portId >= PTIN_MGMD_MAX_PORTS) )
   {   
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid portID [%u]", portId);    
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid portID [%u]", portId);    
     return FAILURE;
   }
 
   //Validate serviceId
   if (serviceId > PTIN_MGMD_MAX_SERVICE_ID)
   {    
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid serviceID [%u]", serviceId);    
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid serviceID [%u]", serviceId);    
     return FAILURE;
+  }
+
+  //Validate clientId (only for leaf ports)
+  if( (SUCCESS == externalApi.portType_get(serviceId, portId, &portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == portType) )
+  {
+    if (clientId >= PTIN_MGMD_MAX_CLIENTS)
+    {    
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
+      return FAILURE;
+    }
   }
 
   //If advanced debugging is enabled, dump packet in output
@@ -568,6 +580,8 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
       {
         ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
       }
+
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
       return SUCCESS;
     }
     
@@ -577,11 +591,13 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   {
     res = ptin_mgmd_mld_packet_parse(payload, payloadLength, &mcastPacket);
     res = ptin_mgmd_mld_packet_process();
+
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
     return SUCCESS;
   }
   else
   {
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unknown IP header version");
+    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Unknown IP header version");
     return SUCCESS;
   }
 
@@ -598,7 +614,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket.ip_payload[0],SNOOP_STAT_FIELD_DROPPED_RX));
   }
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   return res;
 }
 
@@ -1299,7 +1315,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   ptin_mgmd_externalapi_t   externalApi; 
   mgmd_eb_t                *pMgmdEB;
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
 
   memset(&sourceList, 0x00, sizeof(sourceList));
 
@@ -1778,7 +1794,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx,SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
   }  
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
   return SUCCESS;
 }
 
@@ -2049,7 +2065,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   RC_t res = SUCCESS;
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Payload length: %u", eventData->payloadLength);
@@ -2059,7 +2075,7 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 
   res = ptin_mgmd_packet_process(eventData->payload, eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   return res;
 }
 

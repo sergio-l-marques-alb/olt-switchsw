@@ -39,8 +39,15 @@ ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
  */
 RC_t ptin_mgmd_externalapi_set(ptin_mgmd_externalapi_t* externalApi)
 {
+  if(PTIN_NULLPTR == externalApi)
+  {
+    return FAILURE;
+  }
+
   ptin_mgmd_externalapi.igmp_admin_set = externalApi->igmp_admin_set;
   ptin_mgmd_externalapi.mld_admin_set  = externalApi->mld_admin_set;
+
+  ptin_mgmd_externalapi.cos_set        = externalApi->cos_set;
 
   ptin_mgmd_externalapi.portList_get   = externalApi->portList_get;
   ptin_mgmd_externalapi.portType_get   = externalApi->portType_get;
@@ -71,6 +78,7 @@ RC_t ptin_mgmd_externalapi_get(ptin_mgmd_externalapi_t* externalApi)
 
   if( (PTIN_NULLPTR == ptin_mgmd_externalapi.igmp_admin_set) ||
       (PTIN_NULLPTR == ptin_mgmd_externalapi.mld_admin_set)  ||
+      (PTIN_NULLPTR == ptin_mgmd_externalapi.cos_set)        ||
       (PTIN_NULLPTR == ptin_mgmd_externalapi.portList_get)   ||
       (PTIN_NULLPTR == ptin_mgmd_externalapi.portType_get)   ||
       (PTIN_NULLPTR == ptin_mgmd_externalapi.clientList_get) ||
@@ -84,6 +92,8 @@ RC_t ptin_mgmd_externalapi_get(ptin_mgmd_externalapi_t* externalApi)
 
   externalApi->igmp_admin_set = ptin_mgmd_externalapi.igmp_admin_set; 
   externalApi->mld_admin_set  = ptin_mgmd_externalapi.mld_admin_set; 
+
+  externalApi->cos_set        = ptin_mgmd_externalapi.cos_set; 
    
   externalApi->portList_get   = ptin_mgmd_externalapi.portList_get;   
   externalApi->portType_get   = ptin_mgmd_externalapi.portType_get;   
@@ -224,8 +234,16 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_COS
       && igmpProxyCfg.igmp_cos != igmpProxy->igmp_cos)
   {
-    igmpProxyCfg.igmp_cos = igmpProxy->igmp_cos;
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMP COS:                                %u", igmpProxyCfg.igmp_cos);
+    if( (igmpProxy->igmp_cos >= PTIN_IGMP_COS_MIN) || ( igmpProxy->igmp_cos <= PTIN_IGMP_COS_MAX) )
+    {
+      igmpProxyCfg.igmp_cos = igmpProxy->igmp_cos;
+      externalApi.cos_set(igmpProxyCfg.igmp_cos); 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMP COS:                                %u", igmpProxyCfg.igmp_cos);
+    }
+    else
+    {
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  Invalid CoS Value:                       %u", igmpProxyCfg.igmp_cos);
+    } 
   }
 
   /* Fast-Leave mode */

@@ -40,8 +40,9 @@
 /* PTin added: IGMP Snooping */
 #if 1
 #include "ptin_globaldefs.h"
-
 #endif
+
+#include <pthread.h>
 
 #define SNOOP_MAC_ADDR_PREFIX_LEN 2
 #define SNOOP_MAC_ADDR_SUFFIX_LEN 4
@@ -602,6 +603,8 @@ typedef struct snoopCkptOperData_s
 /* Snooping Execution block */
 typedef struct snoop_eb_s
 {
+  pthread_t mgmdThreadId;
+
   snoopIntfAcqInfo_t *snoopIntfInfo;    /* component acquire list */
   L7_uint32          *snoopIntfMapTbl;  /* interface map table */
   L7_VLAN_MASK_t      routingVlanVidMask; /* Routing VLANs List */
