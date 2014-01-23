@@ -1117,10 +1117,10 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
 #endif
 
   pSnoopEB->snoopPTinL3TreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+      1*sizeof(avlTreeTables_t));
   
   pSnoopEB->snoopPTinL3DataHeap = (snoopPTinL3InfoData_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
+      1*sizeof(snoopPTinL3InfoData_t));
 
   if ((pSnoopEB->snoopPTinL3TreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinL3DataHeap == L7_NULLPTR))
   {
@@ -1131,12 +1131,12 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
 
   /* Initialize the storage for all the AVL trees */
   memset(&pSnoopEB->snoopPTinL3AvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinL3TreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
-  memset(pSnoopEB->snoopPTinL3DataHeap, 0x00, sizeof(snoopPTinL3InfoData_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinL3TreeHeap, 0x00, sizeof(avlTreeTables_t) * 1);
+  memset(pSnoopEB->snoopPTinL3DataHeap, 0x00, sizeof(snoopPTinL3InfoData_t) * 1);
 
   /* AVL Tree creations - snoopAvlTree*/
   avlCreateAvlTree(&(pSnoopEB->snoopPTinL3AvlTree), pSnoopEB->snoopPTinL3TreeHeap, pSnoopEB->snoopPTinL3DataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
+                   1, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
 
 
 #if 0
@@ -1190,10 +1190,10 @@ L7_RC_t snoopPtinProxySourceAVLTreeInit(void)
   pSnoopEB = &snoopEB;
 
   pSnoopEB->snoopPTinProxySourceTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+      1*sizeof(avlTreeTables_t));
   
   pSnoopEB->snoopPTinProxySourceDataHeap = (snoopPTinProxySource_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+      1*sizeof(snoopPTinProxySource_t));
 
   if ((pSnoopEB->snoopPTinProxySourceTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxySourceDataHeap == L7_NULLPTR))
   {
@@ -1204,12 +1204,12 @@ L7_RC_t snoopPtinProxySourceAVLTreeInit(void)
 
   /* Initialize the storage for all the AVL trees */
   memset(&pSnoopEB->snoopPTinProxySourceAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxySourceTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
-  memset(pSnoopEB->snoopPTinProxySourceDataHeap, 0x00, sizeof(snoopPTinProxySource_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinProxySourceTreeHeap, 0x00, sizeof(avlTreeTables_t) * 1);
+  memset(pSnoopEB->snoopPTinProxySourceDataHeap, 0x00, sizeof(snoopPTinProxySource_t) * 1);
 
   /* AVL Tree creations - snoopAvlTree*/
   avlCreateAvlTree(&(pSnoopEB->snoopPTinProxySourceAvlTree), pSnoopEB->snoopPTinProxySourceTreeHeap, pSnoopEB->snoopPTinProxySourceDataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxySource_t), 0x10, sizeof(snoopPTinProxySourceKey_t));
+                   1, sizeof(snoopPTinProxySource_t), 0x10, sizeof(snoopPTinProxySourceKey_t));
   return L7_SUCCESS;
 }
 
@@ -1232,10 +1232,10 @@ L7_RC_t snoopPtinProxyGroupAVLTreeInit(void)
   pSnoopEB = &snoopEB;
 
   pSnoopEB->snoopPTinProxyGroupTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+      1*sizeof(avlTreeTables_t));
   
   pSnoopEB->snoopPTinProxyGroupDataHeap = (snoopPTinProxyGroup_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
+      1*sizeof(snoopPTinProxyGroup_t));
 
   if ((pSnoopEB->snoopPTinProxyGroupTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyGroupDataHeap == L7_NULLPTR))
   {
@@ -1246,12 +1246,12 @@ L7_RC_t snoopPtinProxyGroupAVLTreeInit(void)
 
   /* Initialize the storage for all the AVL trees */
   memset(&pSnoopEB->snoopPTinProxyGroupAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxyGroupTreeHeap, 0x00, sizeof(avlTreeTables_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
-  memset(pSnoopEB->snoopPTinProxyGroupDataHeap, 0x00, sizeof(snoopPTinProxyGroup_t) * L7_MAX_GROUP_REGISTRATION_ENTRIES);
+  memset(pSnoopEB->snoopPTinProxyGroupTreeHeap, 0x00, sizeof(avlTreeTables_t) * 1);
+  memset(pSnoopEB->snoopPTinProxyGroupDataHeap, 0x00, sizeof(snoopPTinProxyGroup_t) * 1);
 
   /* AVL Tree creations - snoopAvlTree*/
   avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyGroupAvlTree), pSnoopEB->snoopPTinProxyGroupTreeHeap, pSnoopEB->snoopPTinProxyGroupDataHeap,
-                   L7_MAX_GROUP_REGISTRATION_ENTRIES, sizeof(snoopPTinProxyGroup_t), 0x10, sizeof(snoopPTinProxyGroupKey_t));
+                   1, sizeof(snoopPTinProxyGroup_t), 0x10, sizeof(snoopPTinProxyGroupKey_t));
   return L7_SUCCESS;
 }
 
@@ -1275,10 +1275,10 @@ L7_RC_t snoopPtinProxyInterfaceAVLTreeInit(void)
   pSnoopEB = &snoopEB;
 
   pSnoopEB->snoopPTinProxyInterfaceTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      PTIN_IGMP_MAX_ROOT_PORTS*sizeof(avlTreeTables_t));
+      1*sizeof(avlTreeTables_t));
   
   pSnoopEB->snoopPTinProxyInterfaceDataHeap = (snoopPTinProxyInterface_t *) osapiMalloc(L7_SNOOPING_COMPONENT_ID,
-      PTIN_IGMP_MAX_ROOT_PORTS*sizeof(snoopPTinProxyInterface_t));
+      1*sizeof(snoopPTinProxyInterface_t));
 
   if ((pSnoopEB->snoopPTinProxyInterfaceTreeHeap == L7_NULLPTR) || (pSnoopEB->snoopPTinProxyInterfaceDataHeap == L7_NULLPTR))
   {
@@ -1289,12 +1289,12 @@ L7_RC_t snoopPtinProxyInterfaceAVLTreeInit(void)
 
   /* Initialize the storage for all the AVL trees */
   memset(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, 0x00, sizeof(avlTree_t));
-  memset(pSnoopEB->snoopPTinProxyInterfaceTreeHeap, 0x00, sizeof(avlTreeTables_t) * PTIN_IGMP_MAX_ROOT_PORTS);
-  memset(pSnoopEB->snoopPTinProxyInterfaceDataHeap, 0x00, sizeof(snoopPTinProxyInterface_t) * PTIN_IGMP_MAX_ROOT_PORTS);
+  memset(pSnoopEB->snoopPTinProxyInterfaceTreeHeap, 0x00, sizeof(avlTreeTables_t) * 1);
+  memset(pSnoopEB->snoopPTinProxyInterfaceDataHeap, 0x00, sizeof(snoopPTinProxyInterface_t) * 1);
 
   /* AVL Tree creations - snoopAvlTree*/
   avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyInterfaceAvlTree), pSnoopEB->snoopPTinProxyInterfaceTreeHeap, pSnoopEB->snoopPTinProxyInterfaceDataHeap,
-                   PTIN_IGMP_MAX_ROOT_PORTS, sizeof(snoopPTinProxyInterface_t), 0x10, sizeof(snoopPTinProxyInterfaceKey_t));
+                   1, sizeof(snoopPTinProxyInterface_t), 0x10, sizeof(snoopPTinProxyInterfaceKey_t));
   return L7_SUCCESS;
 }
 

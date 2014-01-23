@@ -411,7 +411,7 @@ extern L7_RC_t ptin_igmp_proxy_deinit(void);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
+extern L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
 extern L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy);
 
 /**
@@ -421,7 +421,7 @@ extern L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProx
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_proxy_config_get__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
+extern L7_RC_t ptin_igmp_proxy_config_get__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy);
 extern L7_RC_t ptin_igmp_proxy_config_get(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy);
 
 /**

@@ -14,7 +14,7 @@
 
 #include <unistd.h>
 
-#define TIMER_COUNT L7_MAX_GROUP_REGISTRATION_ENTRIES*(L7_MAX_PORT_COUNT+L7_MAX_NUM_LAG_INTF)*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP
+#define TIMER_COUNT 1
 
 /* Message placed in CB queue */
 typedef struct snoopPtinSourcetimerParams_s

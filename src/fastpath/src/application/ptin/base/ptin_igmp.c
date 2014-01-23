@@ -724,71 +724,71 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
 *
 * @end
 *********************************************************************/
-//static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
-//{
-//  L7_int32 exp, mant;
-//  L7_uchar8 *codev4;
-//  L7_ushort16 *codev6;
-//
-//  if (family == L7_AF_INET)
-//  {
-//    codev4 = (L7_uchar8 *)code;
-//    if (num < 128)
-//    {
-//      *codev4 = num;
-//    }
-//    else
-//    {
-//      mant = num >> 3;
-//      exp = 0;
-//      for (;;)
-//      {
-//        if ((mant & 0xfffffff0) == 0x00000010)
-//          break;
-//        mant = mant >> 1;
-//        exp++;
-//        /* Check for out of range */
-//        if (exp > 7)
-//        {
-//          *codev4 = 0;
-//          return;
-//        }
-//      }
-//
-//      mant = mant & 0x0f;
-//      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
-//    }
-//  }
-//  else if (family == L7_AF_INET6)
-//  {
-//    codev6 = (L7_ushort16 *)code;
-//    if (num < 32768)
-//    {
-//      *codev6 = num;
-//    }
-//    else
-//    {
-//      mant = num >> 3;
-//      exp = 0;
-//      for (;;)
-//      {
-//        if ((mant & 0xfffffff0) == 0x00000010)
-//          break;
-//        mant = mant >> 1;
-//        exp++;
-//        /* Check for out of range */
-//        if (exp > 7)
-//        {
-//          *codev6 = 0;
-//          return;
-//        }
-//      }
-//
-//      mant = mant & 0x0f;
-//      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
-//    }
-//  }
-//}
+static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
+{
+  L7_int32 exp, mant;
+  L7_uchar8 *codev4;
+  L7_ushort16 *codev6;
+
+  if (family == L7_AF_INET)
+  {
+    codev4 = (L7_uchar8 *)code;
+    if (num < 128)
+    {
+      *codev4 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev4 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
+    }
+  }
+  else if (family == L7_AF_INET6)
+  {
+    codev6 = (L7_ushort16 *)code;
+    if (num < 32768)
+    {
+      *codev6 = num;
+    }
+    else
+    {
+      mant = num >> 3;
+      exp = 0;
+      for (;;)
+      {
+        if ((mant & 0xfffffff0) == 0x00000010)
+          break;
+        mant = mant >> 1;
+        exp++;
+        /* Check for out of range */
+        if (exp > 7)
+        {
+          *codev6 = 0;
+          return;
+        }
+      }
+
+      mant = mant & 0x0f;
+      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
+    }
+  }
+}
 
 /**
  * Applies IGMP Proxy configuration
@@ -1120,14 +1120,6 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
     igmpProxyCfg.admin = igmpProxy->admin;
   }
 
-  /* Global configuration */
-  if (ptin_igmp_global_configuration()!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error applying configurations");
-    osapiSemaGive(igmp_sem);
-    return L7_FAILURE;
-  }
-
   osapiSemaGive(igmp_sem);
 
   return L7_SUCCESS;
@@ -1209,8 +1201,8 @@ L7_RC_t ptin_igmp_proxy_config_get(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
   PTIN_MGMD_EVENT_t      inEventMsg = {0}, outEventMsg = {0};
   PTIN_MGMD_EVENT_CTRL_t ctrlResMsg = {0};
 
-  /* Create and send a PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET event to MGMD */
-  ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET, 1, 0, ptinMgmdTxQueueId, (void*) igmpProxy, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
+  /* Create and send a PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET event to MGMD */
+  ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET, 1, 0, ptinMgmdTxQueueId, (void*) igmpProxy, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
   ptin_mgmd_sendCtrlEvent(&inEventMsg, &outEventMsg);
 
   /* Parse the received reply */

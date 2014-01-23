@@ -12,7 +12,7 @@
 
 #include <unistd.h>
 
-#define TIMER_COUNT L7_MAX_GROUP_REGISTRATION_ENTRIES*(L7_MAX_PORT_COUNT+L7_MAX_NUM_LAG_INTF) //@todo I am still not sure of how many of these we will need
+#define TIMER_COUNT 1
 
 /* Message placed in CB queue */
 typedef struct snoopPtinQuerytimerParams_s
