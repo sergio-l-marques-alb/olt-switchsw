@@ -6397,6 +6397,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   {
   case 0:    r=S_OK;
     ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
   case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
