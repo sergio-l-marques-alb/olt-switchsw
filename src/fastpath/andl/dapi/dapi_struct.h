@@ -376,6 +376,7 @@
 #define  DAPI_CMD_PTIN_PCS_PRBS_NAME                     "DAPI_CMD_PTIN_PCS_PRBS"
 #define  DAPI_CMD_PTIN_SLOT_MODE_NAME                    "DAPI_CMD_PTIN_SLOT_MODE"
 #define  DAPI_CMD_PTIN_HW_PROCEDURE_NAME                 "DAPI_CMD_PTIN_HW_PROCEDURE"
+#define  DAPI_CMD_PTIN_L3_NAME                           "DAPI_CMD_PTIN_L3"
 /* PTin end */
 
 #define DAPI_PORT_GET(_pDapiUsp,_dapi_g)     (_dapi_g->unit[(_pDapiUsp)->unit]->slot[(_pDapiUsp)->slot]->port[(_pDapiUsp)->port])

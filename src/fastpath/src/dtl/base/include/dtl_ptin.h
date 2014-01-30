@@ -218,4 +218,52 @@ extern L7_RC_t dtlPtinMulticastEgressPort(L7_uint32 intIfNum, ptin_bridge_vlan_m
  */
 extern L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport );
 
+/**
+ * L3 Host Add
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t dtlPtinL3HostAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_char8 *mac);
+
+/**
+ * L3 Host Remove
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t dtlPtinL3HostRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_char8 *mac);
+
+/**
+ * L3 Route Add
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t dtlPtinL3RouteAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac);
+
+/**
+ * L3 Route Remove
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac);
+
 #endif

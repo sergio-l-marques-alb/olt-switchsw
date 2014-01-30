@@ -916,5 +916,44 @@ typedef enum
 
 #define HW_ERPS_MASK_FULL 0x7FFF
 
+typedef enum
+{
+  PTIN_L3_MANAGE_NONE=0,
+  PTIN_L3_MANAGE_HOST,
+  PTIN_L3_MANAGE_ROUTE
+} enum_ptin_l3_oper;
+
+/* Policy Resources */
+typedef struct
+{
+  DAPI_CMD_GET_SET_t cmd;                  // Operation: DAPI_CMD_SET add, DAPI_CMD_CLEAR remove, and DAPI_CMD_GET reads.
+
+  enum_ptin_l3_oper oper;
+
+  L7_int     l3_intf;
+
+  L7_uint32  dstIpAddr;
+  L7_uint32  dstIpMask;
+  L7_char8   dstMacAddr[L7_MAC_ADDR_LEN];
+  L7_char8   srcMacAddr[L7_MAC_ADDR_LEN];
+
+  L7_uint16 vlanId;
+  L7_uint16 innerVlanId;
+
+  L7_int  pri;
+  L7_int  vrf;
+  L7_int  lookup_class;
+
+  L7_BOOL rpe;
+  L7_BOOL host_as_route;
+  L7_BOOL hits;
+  L7_BOOL untag;
+  L7_BOOL replace;
+  L7_BOOL l2ToCpu;
+
+  ptin_dapi_port_t *dapiPort
+
+} st_ptin_l3;
+
 #endif /* _PTIN_STRUCTS_H */
 

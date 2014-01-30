@@ -652,3 +652,186 @@ L7_RC_t dtlPtinVirtualPort(L7_uint32 intIfNum, ptin_vport_t *vport )
   return rc;
 }
 
+
+/**
+ * L3 Host Add
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t dtlPtinL3HostAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_char8 *mac)
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+  st_ptin_l3 dapiCmd;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  memset(&dapiCmd, 0x00, sizeof(st_ptin_l3));
+
+  dapiCmd.cmd   = DAPI_CMD_SET;
+  dapiCmd.oper  = PTIN_L3_MANAGE_HOST;
+
+  dapiCmd.l3_intf    = l3_intf;
+  dapiCmd.dstIpAddr  = ipAddr;
+  memcpy(dapiCmd.dstMacAddr, mac, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_L3, (void *) &dapiCmd);
+}
+
+/**
+ * L3 Host Remove
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t dtlPtinL3HostRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_char8 *mac)
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+  st_ptin_l3 dapiCmd;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  memset(&dapiCmd, 0x00, sizeof(st_ptin_l3));
+
+  dapiCmd.cmd   = DAPI_CMD_CLEAR;
+  dapiCmd.oper  = PTIN_L3_MANAGE_HOST;
+
+  dapiCmd.l3_intf    = l3_intf;
+  dapiCmd.dstIpAddr  = ipAddr;
+  memcpy(dapiCmd.dstMacAddr, mac, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_L3, (void *) &dapiCmd);
+}
+
+/**
+ * L3 Route Add
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t dtlPtinL3RouteAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac)
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+  st_ptin_l3 dapiCmd;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  memset(&dapiCmd, 0x00, sizeof(st_ptin_l3));
+
+  dapiCmd.cmd   = DAPI_CMD_SET;
+  dapiCmd.oper  = PTIN_L3_MANAGE_ROUTE;
+
+  dapiCmd.l3_intf    = l3_intf;
+  dapiCmd.dstIpAddr  = ipAddr;
+  dapiCmd.dstIpMask  = ipMask;
+  memcpy(dapiCmd.dstMacAddr, mac, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_L3, (void *) &dapiCmd);
+}
+
+/**
+ * L3 Route Remove
+ * 
+ * @param intIfNum 
+ * @param l3_intf 
+ * @param ipAddr 
+ * @param mac 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac)
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+  st_ptin_l3 dapiCmd;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  memset(&dapiCmd, 0x00, sizeof(st_ptin_l3));
+
+  dapiCmd.cmd   = DAPI_CMD_CLEAR;
+  dapiCmd.oper  = PTIN_L3_MANAGE_ROUTE;
+
+  dapiCmd.l3_intf    = l3_intf;
+  dapiCmd.dstIpAddr  = ipAddr;
+  dapiCmd.dstIpMask  = ipMask;
+  memcpy(dapiCmd.dstMacAddr, mac, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_L3, (void *) &dapiCmd);
+}
+

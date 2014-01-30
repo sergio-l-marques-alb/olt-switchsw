@@ -267,5 +267,17 @@ L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *
  */
 L7_RC_t hapiBroadPtinResourcesGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
+/**
+ * Add L3 Host IP
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data :
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPtinL3Manage(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
+
 #endif  /* _BROAD_PTIN_H */
 

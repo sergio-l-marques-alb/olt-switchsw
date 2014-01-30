@@ -1,6 +1,7 @@
 #include "broad_ptin.h"
 #include "logger.h"
 #include "ptin_hapi.h"
+#include "ptin_hapi_l3.h"
 #include "ptin_hapi_xlate.h"
 #include "ptin_hapi_xconnect.h"
 #include "ptin_hapi_fp_bwpolicer.h"
@@ -1009,6 +1010,83 @@ L7_RC_t hapiBroadPtinResourcesGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   st_ptin_policy_resources *resources = (st_ptin_policy_resources *) data;
 
   return ptin_hapi_policy_resources_get(resources);
+}
+
+
+/**
+ * Add L3 Host IP
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data :
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPtinL3Manage(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  st_ptin_l3 *ptr = (st_ptin_l3 *) data;
+  ptin_dapi_port_t dapiPort;
+  L7_RC_t rc = L7_SUCCESS;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
+
+  /* Validate interface */
+  if ( usp->unit<0 || usp->slot<0 || usp->port<0 )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"USP not provided");
+    return L7_FAILURE;
+  }
+
+  /* Prepare dapiPort structure */
+  DAPIPORT_SET(&dapiPort, usp, dapi_g);
+
+  if (ptr->oper == PTIN_L3_MANAGE_HOST)
+  {
+    switch (ptr->cmd) 
+    {
+      case DAPI_CMD_SET:
+        rc = ptin_hapi_l3_host_add(&dapiPort, ptr);
+        break;
+
+      case DAPI_CMD_CLEAR:
+        rc = ptin_hapi_l3_host_remove(&dapiPort, ptr);
+        break;
+
+      default:
+        rc = L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Command not handled (%u)", ptr->cmd);
+    }
+  }
+  else if (ptr->oper == PTIN_L3_MANAGE_ROUTE)
+  {
+    switch (ptr->cmd) 
+    {
+      case DAPI_CMD_SET:
+        rc = ptin_hapi_l3_route_add(&dapiPort, ptr);
+        break;
+
+      case DAPI_CMD_CLEAR:
+        rc = ptin_hapi_l3_route_remove(&dapiPort, ptr);
+        break;
+
+      default:
+        rc = L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Command not handled (%u)", ptr->cmd);
+    }
+  }
+  else
+  {
+    rc = L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Operation not implemented (%u)", ptr->oper);
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error: rc=%u", rc);
+  }
+
+  return rc;
 }
 
 /*
