@@ -94,6 +94,9 @@
  *     don't bother starting DVs, nor queuing input pkts into cos queues.
  */
 
+/* PTIN Added */
+#include <stdio.h>
+
 #include <shared/alloc.h>
 #include <sal/core/libc.h>
 
@@ -4228,11 +4231,21 @@ rx_intr_process_packet(int unit, dv_t *dv, dcb_t *dcb, bcm_pkt_t *pkt)
         if (soc_feature(unit, soc_feature_rx_timestamp)) {
            /* Get time stamp value for TS protocol packets or OAM DM */
             pkt->rx_timestamp = SOC_DCB_RX_TIMESTAMP_GET(unit, dcb); 
+
+            // PTin
+            //printf("%s: rx_timestamp %d\n\r", __FUNCTION__, pkt->rx_timestamp);
         }
 
         if (soc_feature(unit, soc_feature_rx_timestamp_upper)) {
             /* Get upper 32-bit of time stamp value for OAM DM */
             pkt->rx_timestamp_upper = SOC_DCB_RX_TIMESTAMP_UPPER_GET(unit, dcb);
+
+            // PTin
+            //printf("%s: rx_timestamp_upper %d\n\r", __FUNCTION__, pkt->rx_timestamp_upper);
+        }
+        else
+        {
+//          printf("%s: !soc_feature_rx_timestamp_upper\n\r", __FUNCTION__);
         }
     } else if (SOC_IS_XGS12_FABRIC(unit)) {
         soc_higig_hdr_t *xgh;
