@@ -413,6 +413,7 @@ L7_RC_t ptin_ipdtl0_deinit(void)
 }
 
 
+
 /**
  * Enables/Disables IP/ARP packets through dtl0
  * 
@@ -481,6 +482,34 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 int
     return rc;
 }
 
+/**
+ * Enables/Disables IP/ARP packets through dtl0
+ * 
+ * @author joaom (10/01/2013)
+ * 
+ * @param dtl0Vid 
+ * @param outerVid 
+ * @param lag_idx 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, L7_BOOL enable)
+{
+    L7_uint32   intIfNum;
+    L7_RC_t     rc = L7_SUCCESS;
+
+    rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
+    if (rc != L7_SUCCESS)
+    {
+        LOG_ERR(LOG_CTX_PTIN_API,"Error Enabling IP dtl0");
+        return rc;
+    }
+
+    ptin_ipdtl0_control(dtl0Vid, outerVid, intfNum, enable);
+
+    return rc;
+}
 
 /**
  * Get Internal VLAN ID from dtl0 VLAN ID

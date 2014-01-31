@@ -2512,7 +2512,7 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
   {
 
     /* PTP: Workaround */
-    if ( (msgEvcConf->intf[i].intf_id >= 36) && (msgEvcConf->intf[i].vid >= 1065) )
+    if ( (msgEvcConf->intf[i].intf_id == 52) && (msgEvcConf->intf[i].vid >= 1065) )
     {
 
       ptinEvcConf.flags = 0x18;

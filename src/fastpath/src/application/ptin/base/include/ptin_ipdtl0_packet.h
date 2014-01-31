@@ -90,6 +90,20 @@ L7_RC_t ptin_ipdtl0_deinit(void);
 L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 intfNum, L7_BOOL enable);
 
 /**
+ * Enables/Disables IP/ARP packets through dtl0
+ * 
+ * @author joaom (01/31/2014)
+ * 
+ * @param dtl0Vid 
+ * @param outerVid 
+ * @param lag_idx 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, L7_BOOL enable);
+
+/**
  * Get Internal VLAN ID from dtl0 VLAN ID
  * 
  * @author joaom (10/3/2013)

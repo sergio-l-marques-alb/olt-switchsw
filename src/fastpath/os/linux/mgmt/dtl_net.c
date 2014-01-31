@@ -311,6 +311,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       L7_ushort16 vlan_id;
       L7_int l3_intf;
       L7_char8 mac[6];
+      L7_uint32 intIfNum;
 
       headerOffset = sysNetDataOffsetGet(data);
       arp_header = (L7_ether_arp_t *)(data + headerOffset);
@@ -379,24 +380,37 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       }
 
       /* Update the L3 Table for a MAC addr in the network. This is equivalent to the OS ARP Table */
+      if ( dtlFind ( data+6, &intIfNum ) == L7_FAILURE )
+      {
+        /* IP.Interface VID will be used as L3Intf Identifier */
+        memcpy(&vlan_id, &data[14], sizeof(vlan_id));
+        vlan_id = osapiNtohs(vlan_id);
+        vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
+        l3_intf = vlan_id;
 
-      /* IP.Interface VID will be used as L3Intf Identifier */
-      memcpy(&vlan_id, &data[14], sizeof(vlan_id));
-      vlan_id = osapiNtohs(vlan_id);
-      vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
-      l3_intf = vlan_id;
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): l3_intf=%d \n\r", __LINE__, l3_intf);
+        if (dtlNetPtinDebug)
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): l3_intf=%d \n\r", __LINE__, l3_intf);
 
-      bcopy (arp_header->arp_spa, (char *) &ip_address, 4);
-      ip_address = osapiNtohl(ip_address);
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ip_address=%d \n\r", __LINE__, ip_address);
+        bcopy (arp_header->arp_spa, (char *) &ip_address, 4);
+        ip_address = osapiNtohl(ip_address);
 
-      bcopy (arp_header->arp_sha, (char *) mac, 6);
-//    memcpy(mac, &data[6], 6); /* Src MAC Addr */
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): mac[]=0x%.2x%.2x%.2x%.2x%.2x%.2x \n\r", __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        if (dtlNetPtinDebug)
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ip_address=%d \n\r", __LINE__, ip_address);
 
-      dtlPtinL3HostAdd(pduInfo->intIfNum, l3_intf, ip_address, mac);
+        bcopy (arp_header->arp_sha, (char *) mac, 6);
 
+        if (dtlNetPtinDebug)
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): mac[]=0x%.2x%.2x%.2x%.2x%.2x%.2x \n\r", __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+        dtlPtinL3HostAdd(pduInfo->intIfNum, l3_intf, ip_address, mac);
+      }
+      else if (intIfNum  != pduInfo->intIfNum)
+      {
+        bcopy (arp_header->arp_sha, (char *) mac, 6);
+
+        if (dtlNetPtinDebug)
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): MAC 0x%.2x%.2x%.2x%.2x%.2x%.2x changed from intIfNum %d -> %d \n\r", __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], pduInfo->intIfNum, intIfNum);
+      }
     }
 
     /* Always update the physical interface for a MAC addr in the network port fdb. */
