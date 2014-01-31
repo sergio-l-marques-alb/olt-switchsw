@@ -951,8 +951,6 @@ typedef struct
   L7_BOOL replace;
   L7_BOOL l2ToCpu;
 
-  ptin_dapi_port_t *dapiPort
-
 } st_ptin_l3;
 
 #endif /* _PTIN_STRUCTS_H */
