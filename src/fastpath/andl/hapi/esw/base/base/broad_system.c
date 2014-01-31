@@ -4794,7 +4794,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
   static BROAD_POLICY_t   policyId[IPDTL0_TRAP_MAX_VLANS];
   static L7_uint16        vlan_list[IPDTL0_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-//L7_ushort16             ipdtl0_ethtype  = L7_ETYPE_IP;
+  L7_ushort16             ipdtl0_ethtype  = L7_ETYPE_ARP;
 
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_ALL, FIELD_MASK_ALL, FIELD_MASK_ALL};
@@ -4951,8 +4951,8 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
 
-//    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
-//    if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
+      if (result != L7_SUCCESS)  break;
 
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
       if (result != L7_SUCCESS)  break;

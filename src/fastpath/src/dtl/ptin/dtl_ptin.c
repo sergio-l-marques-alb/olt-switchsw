@@ -669,6 +669,9 @@ L7_RC_t dtlPtinL3HostAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L
   nimUSP_t usp;
   st_ptin_l3 dapiCmd;
 
+  printf("dtlPtinL3HostAdd(intIfNum=0x%x, l3_intf=0x%x, ipAddr=0x%.2x, mac=0x%.2x%.2x%.2x%.2x%.2x%.2x)\n", intIfNum, l3_intf, ipAddr, 
+         (unsigned int) mac[0], (unsigned int) mac[1], (unsigned int) mac[2], (unsigned int) mac[3], (unsigned int) mac[4], (unsigned int) mac[5]);
+
   /* First interface */
   if ( intIfNum == L7_ALL_INTERFACES )
   {

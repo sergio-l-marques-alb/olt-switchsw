@@ -2510,6 +2510,19 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
+
+    /* PTP: Workaround */
+    if ( (msgEvcConf->intf[i].intf_id >= 36) && (msgEvcConf->intf[i].vid >= 1065) )
+    {
+
+      ptinEvcConf.flags = 0x18;
+      ptinEvcConf.n_intf--;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
+      
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "PTP EVC (%u)",              ptinEvcConf.index);
+      break;
+    }
+
     ptinEvcConf.intf[i].intf_id   = msgEvcConf->intf[i].intf_id;
     ptinEvcConf.intf[i].intf_type = msgEvcConf->intf[i].intf_type;
     ptinEvcConf.intf[i].mef_type  = msgEvcConf->intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;

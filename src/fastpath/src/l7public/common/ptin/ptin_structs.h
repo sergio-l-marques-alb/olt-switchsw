@@ -940,6 +940,9 @@ typedef struct
   L7_uint16 vlanId;
   L7_uint16 innerVlanId;
 
+
+  /* _l3_cmd_host_add */
+
   L7_int  pri;
   L7_int  vrf;
   L7_int  lookup_class;

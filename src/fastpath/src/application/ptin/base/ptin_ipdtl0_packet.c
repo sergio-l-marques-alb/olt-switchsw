@@ -24,6 +24,7 @@
 
 #include "sysnet_api_ipv4.h"
 
+//#define _PAYLOAD_DEBUG_
 
 /***************************************
  * GLOBAL VARIABLES
@@ -131,6 +132,8 @@ static void ptin_ipdtl0_task(void)
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
                 msg.payload[14] = (ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId] >> 8) & 0xFF;
                 msg.payload[15] = (ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId])      & 0xFF;
+
+                LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId]);
 
                 dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo);
             }
@@ -263,7 +266,7 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
         PTIN_CRASH();
     }    
 
-    /* HW Rule Creation */
+    /* HW Rule Creation: Note that only ARP packets (etype) are beeing trapped */
     {
         dapiCmd.cmdData.ipDtl0Config.getOrSet              = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
         dapiCmd.cmdData.ipDtl0Config.family                = L7_AF_INET;
