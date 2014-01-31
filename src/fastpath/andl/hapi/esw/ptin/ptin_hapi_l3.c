@@ -18,32 +18,20 @@
  */
 L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 {
-    bcm_l3_host_t   host_info;
-    bcm_mac_t       mac;
-    int             rv = L7_SUCCESS;
-    int             host_as_route = 0;
-    int             interface = 0;
-    bcm_ip_t        ip_addr = 0;
-    int		        module = 0;
-    int             trunk = -1;
-    int             untag = 0;
-    int             port = 0;
-    int             hits = 0;
-    int             replace = 0;
-#ifdef BCM_XGS_SWITCH_SUPPORT
-    int             l2tocpu = 0;
-#endif /* BCM_XGS_SWITCH_SUPPORT */ 
-#if defined(BCM_XGS3_SWITCH_SUPPORT)
-    int             rpe = 0;
-    int             v6  = 0;
-    int             pri = 0;
-    int             vrf = 0;
-    int             lookup_class = 0;
-    bcm_ip6_t       ip6_addr;
-#endif
+
     int           unit;
     DAPI_PORT_t  *dapiPortPtr;
     BROAD_PORT_t *hapiPortPtr;
+
+    bcm_module_t      module = 0;
+    bcm_port_t        port = 0;
+    bcm_trunk_t       trunk = -1;
+    bcm_mac_t         mac;
+    bcm_if_t          interface = -1;
+    int               l2tocpu = 0;
+    int               rv = L7_SUCCESS;
+
+
     /* Input parameters */
 
     /* Input port/trunk */
@@ -78,6 +66,82 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
       return L7_FAILURE;
     }
 
+
+
+    /* _l3_cmd_egress_object_create */
+
+    bcm_l3_egress_t   egress_object;             
+    int               copytocpu = 0;
+    int               drop = 0;
+    int               mpls_label = BCM_MPLS_LABEL_INVALID;
+    int               object_id = -1;
+    uint32            flags = 0;
+
+    bcm_l3_egress_t_init(&egress_object);
+    sal_memset(mac, 0, sizeof(bcm_mac_t));
+
+    /* DMAC */
+    sal_memcpy(mac, data->dstMacAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
+    /* Intf id */
+    interface = data->l3_intf;
+
+    egress_object.intf   = interface;
+    egress_object.mpls_label = mpls_label;
+    sal_memcpy(egress_object.mac_addr, mac, sizeof(mac));
+
+    if (BCM_GPORT_IS_SET(port)) {
+        egress_object.port = port;
+    } else {
+        egress_object.module = module;
+    if (trunk >= 0) {
+        egress_object.flags |= BCM_L3_TGID;
+        egress_object.trunk = trunk;
+    } else {
+        egress_object.port = port;
+    }
+    }
+
+    if (l2tocpu) {
+        egress_object.flags |= BCM_L3_L2TOCPU;
+    }
+
+    if (copytocpu) {
+        egress_object.flags |= (BCM_L3_COPY_TO_CPU);
+    }
+
+    if (drop) {
+        egress_object.flags |= (BCM_L3_DST_DISCARD);
+    }
+
+    if (object_id >= 0) {
+        flags = (BCM_L3_WITH_ID | BCM_L3_REPLACE);
+    }
+
+
+    rv = bcm_l3_egress_create(unit, flags, &egress_object, &object_id);
+    if (BCM_FAILURE(rv)) {
+        printk("Error creating egress object entry: %s\n", bcm_errmsg(rv));
+        return L7_FAILURE;
+    }
+
+
+    /* _l3_cmd_host_add */
+
+    bcm_l3_host_t   host_info;
+    int             host_as_route = 0;
+    bcm_ip_t        ip_addr = 0;
+    int             untag = 0;
+    int             hits = 0;
+    int             replace = 0;
+    int             rpe = 0;
+    int             v6  = 0;
+    int             pri = 0;
+    int             vrf = 0;
+    int             lookup_class = 0;
+    bcm_ip6_t       ip6_addr;
+
+
     /* Init struct */
     bcm_l3_host_t_init(&host_info);
 
@@ -85,8 +149,11 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     host_info.l3a_pri     = pri;
     host_info.l3a_lookup_class = lookup_class;
 
+    /* Intf id */
+    interface = object_id;  /* Object ID from _l3_cmd_egress_object_create */
+
     host_as_route = data->host_as_route;
-    ip_addr       = data->dstIpAddr;
+    ip_addr       = data->dstIpAddr;    /* IP address */
     untag         = data->untag;
     hits          = data->hits;
     replace       = data->replace;
@@ -96,15 +163,6 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     pri           = data->pri;
     vrf           = data->vrf;
     lookup_class  = data->lookup_class;
-
-    /* Intf id */
-    interface = data->l3_intf;
-
-    /* IP address */
-    ip_addr = data->dstIpAddr;
-
-    /* DMAC */
-    sal_memcpy(mac, data->dstMacAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
     if (rpe)
     {
