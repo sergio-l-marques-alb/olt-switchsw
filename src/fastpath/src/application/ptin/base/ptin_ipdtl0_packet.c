@@ -267,6 +267,8 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
     }    
 
     /* HW Rule Creation: Note that only ARP packets (etype) are beeing trapped */
+    /* HW Rule Creation replaced by L3 Table entry with IP/MAC/Port */
+    #if 1
     {
         dapiCmd.cmdData.ipDtl0Config.getOrSet              = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
         dapiCmd.cmdData.ipDtl0Config.family                = L7_AF_INET;
@@ -282,6 +284,7 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
         }
         LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
     }
+    #endif
 
     /* Register IP dtl0 packets */
     {
@@ -476,7 +479,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 int
         ptin_ipdtl0_dtl0Vid2intVid[dtl0Vid] =       internalVid;
         ptin_ipdtl0_dtl0Vid2outerVid[dtl0Vid] =     outerVid;
 
-        LOG_TRACE(LOG_CTX_PTIN_API,"(dtl0Vid=%d, outerVid=%d, intfNum%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, enable, internalVid);
+        LOG_TRACE(LOG_CTX_PTIN_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, enable, internalVid);
     }
 
     return rc;
@@ -496,10 +499,10 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 int
  */
 L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, L7_BOOL enable)
 {
-    L7_uint32   intIfNum;
+    L7_uint32   intfNum;
     L7_RC_t     rc = L7_SUCCESS;
 
-    rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
+    rc = ptin_intf_lag2intIfNum(lag_idx, &intfNum);
     if (rc != L7_SUCCESS)
     {
         LOG_ERR(LOG_CTX_PTIN_API,"Error Enabling IP dtl0");
