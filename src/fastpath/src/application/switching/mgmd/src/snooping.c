@@ -70,10 +70,11 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
   ptin_IgmpProxyCfg_t igmpCfg; 
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
+
   //Get proxy configurations
   if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
     return FAILURE;
   }
 
@@ -87,7 +88,7 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
       ((igmpType == PTIN_IGMP_MEMBERSHIP_QUERY  || igmpType == PTIN_IGMP_V2_MEMBERSHIP_REPORT || igmpType == PTIN_IGMP_V1_MEMBERSHIP_REPORT) && (mcastPacket->length < IGMP_PKT_MIN_LENGTH)))
   {
     ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket->ip_payload[0], SNOOP_STAT_FIELD_INVALID_RX));
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid IGMP header length[%u]", mcastPacket->length);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Invalid IGMP header length[%u]", mcastPacket->length);
     return FAILURE;
   }
 
@@ -97,7 +98,7 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
     // @todo: Currently this field is not supported on the GL, Therefore we need to decide in compile time wether we check it or not
     if (((mcastPacket->tosByte) & (MGMD_IP_TOS)) != MGMD_IP_TOS)
     {
-      PTIN_MGMD_LOG_DEBUG (PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid ToS - %u", mcastPacket->tosByte);
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Invalid ToS - %u", mcastPacket->tosByte);
       return FAILURE;
     }
   }
@@ -209,11 +210,11 @@ static int32  ptinMgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_cod
   max_resp_time= max_resp_code;
 #endif
 
-  if (family == AF_INET)
+  if (family == PTIN_MGMD_AF_INET)
   {
     max_resp_time = max_resp_time/10;
   }
-  else if (family == AF_INET6)
+  else if (family == PTIN_MGMD_AF_INET6)
   {
     max_resp_time = max_resp_time/1000;
   }
@@ -245,18 +246,18 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
   uchar8        *startPtr;
   uchar8        *buffPtr;
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Started IGMP packet parse");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
 
   memset(mcastPacket->payLoad, 0x00, PTIN_MGMD_EVENT_PACKET_DATA_SIZE_MAX * sizeof(uchar8));
   memcpy(mcastPacket->payLoad, payLoad, payloadLength);
   mcastPacket->length = payloadLength;
   buffPtr             = payLoad;
-  mcastPacket->family  = AF_INET;
+  mcastPacket->family  = PTIN_MGMD_AF_INET;
   startPtr            = buffPtr;
 
   if (mcastPacket->length < PTIN_IP_HDR_LEN + MGMD_IGMPv1v2_HEADER_LENGTH)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Packet length too small [%u]", mcastPacket->length);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Packet length too small [%u]", mcastPacket->length);
     return FAILURE;
   }
   
@@ -275,7 +276,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
   //Required as per RFC 3376
   if (ip_header.iph_ttl != PTIN_TTL_VALID_VALUE)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid TTL[%u]", ip_header.iph_ttl);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid TTL[%u]", ip_header.iph_ttl);
     return FAILURE;
   }
 
@@ -298,16 +299,16 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
   buffPtr += (ipHdrLen - PTIN_IP_HDR_LEN);
   mcastPacket->ip_payload = buffPtr;    
 
-  ptin_mgmd_inetAddressSet(AF_INET, &ip_header.iph_src, &(mcastPacket->srcAddr));
-  ptin_mgmd_inetAddressSet(AF_INET, &ip_header.iph_dst, &(mcastPacket->destAddr));
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ip_header.iph_src, &(mcastPacket->srcAddr));
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ip_header.iph_dst, &(mcastPacket->destAddr));
   if ((PTIN_MGMD_INET_IS_ADDR_BROADCAST(&(mcastPacket->srcAddr))) || (PTIN_MGMD_INET_IS_ADDR_EXPERIMENTAL(&(mcastPacket->srcAddr))) || ptin_mgmd_inetIsInMulticast(&(mcastPacket->srcAddr)) == TRUE)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid src_addr[%s]", mcastPacket->srcAddr);      
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid src_addr[%s]", mcastPacket->srcAddr);      
     return FAILURE;
   }
   if ( ((ip_header.iph_dst & PTIN_MGMD_CLASS_D_ADDR_NETWORK) != PTIN_MGMD_CLASS_D_ADDR_NETWORK) || (ip_header.iph_dst <= PTIN_MGMD_IP_MCAST_BASE_ADDR) )
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid dst_addr[%s]", ip_header.iph_dst);      
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid dst_addr[%s]", ip_header.iph_dst);      
     return FAILURE;
   }
 
@@ -317,20 +318,20 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
     //Validate IP total length value
     if ((ip_header.iph_len - ipHdrLen) < MGMD_IGMPv1v2_HEADER_LENGTH)
     {
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid IP header length [%u]", ip_header.iph_len - ipHdrLen);      
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid IP header length [%u]", ip_header.iph_len - ipHdrLen);      
       return FAILURE;
     }
 
     //Verify IGMP checksum
     if (ptinMgmdCheckSum((ushort16 *)buffPtr, ip_header.iph_len - ipHdrLen, 0) != 0)
     {
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid IGMP header checksum");      
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid IGMP header checksum");      
       return FAILURE;
     }
   }
   else
   {
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Received an Invalid packet: [%u]",mcastPacket->msgType);      
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Received an Invalid packet: [%u]",mcastPacket->msgType);      
     return FAILURE;
   }
   mcastPacket->ip_payload_length = ip_header.iph_len - ipHdrLen;
@@ -338,18 +339,18 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
   //Validate IP header checksum
   if (ptinMgmdCheckSum((ushort16 *)startPtr, ipHdrLen, 0) != 0)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Invalid IP header checksum");      
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid IP header checksum");      
     return FAILURE;
   }
 
    /* Get Snoop Control Block */
-  if ((mcastPacket->cbHandle = mgmdCBGet(AF_INET)) == PTIN_NULLPTR)
+  if ((mcastPacket->cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting pMgmdCB");
     return FAILURE;
   }
   
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Finished IGMP packet parse");
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   return SUCCESS;
 }
 
@@ -394,7 +395,7 @@ static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, mg
 
   buffPtr=payLoad;
 
-  mcastPacket.family=AF_INET6;
+  mcastPacket.family=PTIN_MGMD_AF_INET6;
   
   /* Check for invalid IPv6 MCAST address */
   if (memcmp(mcastPacket->destMac+2, tempArr, sizeof(tempArr)) == 0)
@@ -432,9 +433,9 @@ static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, mg
     return FAILURE;
   }
 
-  inetAddressSet(AF_INET6, &ipv6Addr, &(mcastPacket->srcAddr));
+  inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &(mcastPacket->srcAddr));
   SNOOP_GET_ADDR6(&ipv6Addr, buffPtr);
-  inetAddressSet(AF_INET6, &ipv6Addr, &(mcastPacket->destAddr));
+  inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &(mcastPacket->destAddr));
 
   xtenHdrLen = 0;
   mcastPacket->routerAlert = FALSE;
@@ -453,8 +454,8 @@ static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, mg
     SNOOP_GET_BYTE(mcastPacket->msgType, buffPtr);
     SNOOP_UNUSED_PARAM(buffPtr);
     /* Verify ICMPv6 checksum */
-    inetAddressGet(AF_INET6, &(mcastPacket->srcAddr), &(ipv6pkt.srcAddr));
-    inetAddressGet(AF_INET6, &(mcastPacket->destAddr), &(ipv6pkt.dstAddr));
+    inetAddressGet(PTIN_MGMD_AF_INET6, &(mcastPacket->srcAddr), &(ipv6pkt.srcAddr));
+    inetAddressGet(PTIN_MGMD_AF_INET6, &(mcastPacket->destAddr), &(ipv6pkt.dstAddr));
     lenIcmpData = ip6_header.paylen - xtenHdrLen;
     /*datalen should be in big endian for snoopcheckSum to succeed*/
     if (snoopGetEndianess() == SNOOP_LITTLE_ENDIAN)
@@ -514,6 +515,16 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
 
+  //If advanced debugging is enabled, dump packet in output
+  if(ptin_mgmd_extendedDebug)
+  {
+    uint32 i;
+    printf("Rx (%u bytes):\n", payloadLength);
+    for (i=0; i<payloadLength; ++i)
+      printf("%02x ", payload[i]);
+    printf("\n");
+  }
+
   if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Unable to get external API");    
@@ -549,16 +560,6 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
       return FAILURE;
     }
-  }
-
-  //If advanced debugging is enabled, dump packet in output
-  if(ptin_mgmd_extendedDebug)
-  {
-    uint32 i;
-    printf("Rx (%u bytes):\n", payloadLength);
-    for (i=0; i<payloadLength; ++i)
-      printf("%02x ", payload[i]);
-    printf("\n");
   }
 
   memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
@@ -653,16 +654,18 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   ptin_mgmd_inet_addr_t        groupAddr, sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]     = {};
   ptin_mgmd_externalapi_t externalApi; 
 
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Unable to get external API");
     return FAILURE;
   }
 
   /* Port must be root */  
   if (externalApi.portType_get(mcastPacket->serviceId,mcastPacket->portId, &portType)!=SUCCESS || portType!=PTIN_MGMD_PORT_TYPE_ROOT)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"This is not a root port (ServiceId=%u portId=%u portType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,portType);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,portType);
     return ERROR;
   }
 
@@ -671,29 +674,29 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
 
   if ((pMgmdEB= mgmdEBGet())== PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to snoopEBGet()");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to snoopEBGet()");
     return ERROR;
   }
 
   if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting MGMD Proxy configurations");
     return FAILURE;
   }
 
-  if (mcastPacket->family == AF_INET) /* IGMP Message */
+  if (mcastPacket->family == PTIN_MGMD_AF_INET) /* IGMP Message */
   {
     SNOOP_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
     SNOOP_GET_BYTE(maxRespCode, dataPtr);   /* Max Response Code - 8 Bits IGMP*/
     SNOOP_GET_SHORT(recdChecksum, dataPtr); /* Checksum */
     SNOOP_GET_ADDR(&ipv4Addr, dataPtr);     /* Group Address */
 
-    ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &groupAddr);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Dst Addr:[%s], Group Addr:[%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf), ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf2));
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Dst Addr:[%s], Group Addr:[%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf), ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf2));
 
     if (mcastPacket->ip_payload==PTIN_NULLPTR ||  mcastPacket->ip_payload_length==0)
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Either the IP payload is a null pointer or the ip payload length is 0");
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Either the IP payload is a null pointer or the ip payload length is 0");
       return ERROR;      
     }
 
@@ -705,13 +708,13 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         if (mcastPacket->tosByte != PTIN_TOS_VALID_VALUE)
         {
           ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX);
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet rec'd with TOS invalid, packet silently discarded");
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Packet rec'd with TOS invalid, packet silently discarded");
           return FAILURE;
         }
 
         if (mcastPacket->routerAlert != TRUE)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet rec'd with Router Alert Option not Active, packet silently discarded");
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Packet rec'd with Router Alert Option not Active, packet silently discarded");
           return FAILURE;
         }
       }
@@ -721,7 +724,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       robustnessVariable = byteVal & 0x07;    
       if (robustnessVariable<PTIN_MIN_ROBUSTNESS_VARIABLE)
       {
-        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid robustness Variable[%u], packet silently discarded", robustnessVariable);
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid robustness Variable[%u], packet silently discarded", robustnessVariable);
         return FAILURE;
       }
 
@@ -732,7 +735,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
 
       if (mcastPacket->ip_payload_length != (MGMD_IGMPV3_HEADER_MIN_LENGTH + noOfSources * sizeof(ptin_mgmd_in_addr_t)))
       {
-        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv2 Membership Query Message Length %u, packet silently discarded", mcastPacket->ip_payload_length);
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length %u, packet silently discarded", mcastPacket->ip_payload_length);
         return FAILURE;
       }
       incomingVersion = PTIN_IGMP_VERSION_3;
@@ -743,7 +746,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       {
         if (mcastPacket->ip_payload_length != MGMD_IGMPv1v2_HEADER_LENGTH)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv1 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv1 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
           return FAILURE;
         }
         incomingVersion = PTIN_IGMP_VERSION_1;   
@@ -755,7 +758,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       {
         if (mcastPacket->ip_payload_length != MGMD_IGMPv1v2_HEADER_LENGTH)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv2 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
           return FAILURE;
         }
   #ifdef PTIN_MGMD_ROUTER_ALERT_CHECK
@@ -763,7 +766,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         {
           if (mcastPacket->routerAlert != TRUE)
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv2 Membership Query Message rec'd with Router Alert Option not Active, packet silently discarded");
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} IGMPv2 Membership Query Message rec'd with Router Alert Option not Active, packet silently discarded");
             return FAILURE;
           }
         }
@@ -790,7 +793,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
     SNOOP_GET_SHORT(mgmdMsg.mgmdReserved, dataPtr);               /* rserved */
 
     SNOOP_GET_ADDR6(&ipv6Addr, dataPtr); /* Group Address */
-    inetAddressSet(AF_INET6, &ipv6Addr, &mgmdMsg.mgmdGroupAddr);
+    inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &mgmdMsg.mgmdGroupAddr);
   }
 #else//Proxy
   else /* MLD Message */
@@ -808,7 +811,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
     SNOOP_GET_SHORT(mgmdMsg.mgmdReserved, dataPtr);/* rserved */
 
     SNOOP_GET_ADDR6(&ipv6Addr, dataPtr); /* Group Address */
-    inetAddressSet(AF_INET6, &ipv6Addr, &groupAddr);
+    inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &groupAddr);
     if (mcastPacket->ip_payload_length > SNOOP_MLDV1_HEADER_LENGTH) /* MIN MLD qry length */
     {
       SNOOP_GET_BYTE(mgmdMsg.qqic, dataPtr);  /* QQIC */
@@ -839,7 +842,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   /*Let us verify if we do have any MGMD Host*/
   if (ptin_mgmd_avlTreeCount(&pMgmdEB->snoopPTinL3AvlTree)==0)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Membership Query Packet silently ignored: We do not have active MGMD Hosts");
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Membership Query Packet silently ignored: We do not have active MGMD Hosts");
     return SUCCESS;
   }
    
@@ -847,7 +850,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   maxRespTime = ptinMgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
   if (maxRespTime == 0)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Max Response Time equal to zero, packet silently discarded");
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Max Response Time equal to zero, packet silently discarded");
     return FAILURE;
   } 
 
@@ -855,7 +858,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   selectedDelay = ptinMgmd_generate_random_response_delay((int32)maxRespTime);
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Max_Response_Time:[%u], Selected_Delay:[%u]", maxRespTime, selectedDelay);
  
-  if (mcastPacket->family == AF_INET)
+  if (mcastPacket->family == PTIN_MGMD_AF_INET)
   {
     switch (incomingVersion)
     {
@@ -899,7 +902,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
                    }
                    }
 #else
-        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv1 Query Rec'd, Packet Silently Ignored");
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} IGMPv1 Query Rec'd, Packet Silently Ignored");
         return NOT_SUPPORTED;
 #endif
         break;
@@ -915,7 +918,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
                          &ipv4Addr);
           if (ipv4Addr != PTIN_MGMD_IGMP_ALL_HOSTS_ADDR)
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv2 General Query Rec'd:: IPv4 dest addr %s!=224.0.0.1, packet silently discarded",ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf));                        
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 General Query Rec'd:: IPv4 dest addr %s!=224.0.0.1, packet silently discarded",ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf));                        
             return FAILURE;
           }
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv2 General Query Rec'd");    
@@ -927,14 +930,14 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
           {
             if (PTIN_MGMD_INET_IS_ADDR_EQUAL(&mcastPacket->destAddr, &groupAddr) == TRUE)
             {
-              PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv2 Group Specific Query Rec'd: IPv4 dst addr != Group Addr %s!=%s, packet silently discarded",
+              PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Group Specific Query Rec'd: IPv4 dst addr != Group Addr %s!=%s, packet silently discarded",
                           ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf),ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));                        
               return FAILURE;
             }
           }
           else
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv2 Group Specific Query Rec'd: Multicast IPv4 Group Addr Invalid =%s, packet silently discarded",
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Group Specific Query Rec'd: Multicast IPv4 Group Addr Invalid =%s, packet silently discarded",
                         ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));            
             return FAILURE;
           }
@@ -943,7 +946,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
               avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE ||
               ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==TRUE)
           {
-            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
+            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
             return SUCCESS;
           }
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv2 Group Specific Query Rec'd");
@@ -961,7 +964,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         {          
           if (noOfSources!=0)
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv3 General Query Rec'd: MGroupAddr=0 & NSources=%d, packet silently discarded",noOfSources);            
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv3 General Query Rec'd: MGroupAddr=0 & NSources=%d, packet silently discarded",noOfSources);            
             return FAILURE;
           }
           /* Check if IPv4 destination address is same as 224.0.0.1 */
@@ -969,7 +972,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
                          &ipv4Addr);
           if (ipv4Addr != PTIN_MGMD_IGMP_ALL_HOSTS_ADDR)
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv3 General Query Rec'd: IPv4 dest addr %s!=224.0.0.1, packet silently discarded",ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf));            
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv3 General Query Rec'd: IPv4 dest addr %s!=224.0.0.1, packet silently discarded",ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf));            
             return FAILURE;
           }
           PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv3 General Query Rec'd" );
@@ -981,7 +984,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
           {
             if (PTIN_MGMD_INET_IS_ADDR_EQUAL(&mcastPacket->destAddr, &groupAddr) == TRUE)
             {
-              PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv3 Group Specific Query Rec'd: Ipv4 dst addr != Group Addr - %s!=%s, packet silently discarded",
+              PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv3 Group Specific Query Rec'd: Ipv4 dst addr != Group Addr - %s!=%s, packet silently discarded",
                           ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf),ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));              
               return FAILURE;
             }
@@ -998,7 +1001,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
           }
           else
           {
-            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid IGMPv3 Group Specific Query Rec'd: Multicast Ipv4 Group Addr Invalid =%s, packet silently discarded",
+            PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv3 Group Specific Query Rec'd: Multicast Ipv4 Group Addr Invalid =%s, packet silently discarded",
                         ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));            
             return FAILURE;
           }
@@ -1008,7 +1011,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
               avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE ||
               ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==TRUE)
           {
-            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
+            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
             return SUCCESS;
           }
         }
@@ -1026,10 +1029,10 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       uchar8 ipBuf[L7_IP6_ADDR_LEN];
 
       memset(mldQryAddr, 0x00, L7_IP6_ADDR_LEN);
-      osapiInetPton(AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, mldQryAddr);
+      osapiInetPton(PTIN_MGMD_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, mldQryAddr);
 
       /* Check if it is equal to the all hosts address FF02::1 */
-      inetAddressGet(AF_INET6, &mcastPacket->destAddr, ipBuf);
+      inetAddressGet(PTIN_MGMD_AF_INET6, &mcastPacket->destAddr, ipBuf);
       if (memcmp(ipBuf, mldQryAddr, L7_IP6_ADDR_LEN) != 0)
       {
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid Packet");
@@ -1059,7 +1062,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
 #endif
   }
 
-  if (mcastPacket->family == AF_INET)
+  if (mcastPacket->family == PTIN_MGMD_AF_INET)
   {
     /* Add new source */
     for (sourceIdx=0;sourceIdx<noOfSources;sourceIdx++)
@@ -1067,10 +1070,10 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
       {
         SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
-        ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &sourceList[sourceIdx]);
-        if (ptin_mgmd_inetIpAddressValidityCheck(AF_INET,&sourceList[sourceIdx])!=SUCCESS)
+        ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[sourceIdx]);
+        if (ptin_mgmd_inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[sourceIdx])!=SUCCESS)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid Source IP Address %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&sourceList[sourceIdx], debug_buf));
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Source IP Address %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&sourceList[sourceIdx], debug_buf));
           return FAILURE;
         }
       }
@@ -1085,9 +1088,9 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_inet_addr_t));
       /* IPv6 MCAST Address */
       SNOOP_GET_ADDR6(&ipv6Addr, dataPtr);
-      inetAddressSet(AF_INET6, &ipv6Addr, &sourceList[sourceIdx]);
+      inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &sourceList[sourceIdx]);
 
-      if (inetIpAddressValidityCheck(AF_INET,&sourceList[sourceIdx])!=SUCCESS)
+      if (inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[sourceIdx])!=SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_IGMP, "Invalid Source IP Address %s",inetAddrPrint(&sourceList[sourceIdx], debug_buf));
         return FAILURE;
@@ -1104,7 +1107,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         {        
           if (mgmdBuildIgmpv2CSR(mcastPacket->serviceId,maxRespTime)!=SUCCESS)
           {
-            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed mgmdBuildIgmpv2CSR() ");
+            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed mgmdBuildIgmpv2CSR() ");
             return ERROR;
           }
           sendReport=FALSE;
@@ -1130,7 +1133,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       }
     default:
     {      
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid Query type");    
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Query type");    
       return FAILURE;
     }   
   }  
@@ -1141,7 +1144,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
 
     if (ptinMgmdScheduleReportMessage(mcastPacket->serviceId,&groupAddr,queryType,selectedDelay,isInterface,1, ptr)!=SUCCESS)
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed snoopPTinReportSchedule()");
       return FAILURE;
     }
   }
@@ -1158,7 +1161,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sendReport Flag is equal to FALSE");      
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopMgmdSrcSpecificMembershipQueryProcess: Query was processed");         
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} snoopMgmdSrcSpecificMembershipQueryProcess: Query was processed");         
   return SUCCESS;
 }
 
@@ -1347,7 +1350,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   //Validate destination address
-  ptin_mgmd_inetAddressGet(AF_INET, &mcastPacket->destAddr, &ipv4Addr);
+  ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipv4Addr);
   if (ipv4Addr != PTIN_MGMD_IGMPV3_REPORT_ADDR && ipv4Addr!=igmpGlobalCfg.ipv4_addr)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid destination address [%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf));
@@ -1382,7 +1385,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
     SNOOP_GET_BYTE(auxDataLen, dataPtr);   //AuxData Len
     SNOOP_GET_SHORT(noOfSources, dataPtr); //Number of sources 
     SNOOP_GET_ADDR(&ipv4Addr, dataPtr);    //Multicast Address
-    ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &groupAddr);    
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);    
     
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Group Record: recordType:[%u] auxDataLen:[%u] numberOfSources:[%u] groupAddr:[%s]", recType,auxDataLen, noOfSources, ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf));
 
@@ -1452,7 +1455,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       {
         memset(&sourceList[i], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
         SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
-        ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &sourceList[srcIdx]);
+        ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[srcIdx]);
 
         //If the white-list filtering is enabled, we must ensure that this is a valid channel
         if(igmpCfg.whitelist == PTIN_MGMD_ENABLE)
@@ -1472,7 +1475,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
 
         //I'm not sure that the parsing of the packet should end here if the sourceIp is invalid..
         //However, if in the future we decide to just continue to the next source, we have to ensure that the INVALID counter only increments once for the group-record
-        if (ptin_mgmd_inetIpAddressValidityCheck(AF_INET,&sourceList[i])!=SUCCESS)
+        if (ptin_mgmd_inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[i])!=SUCCESS)
         {
           ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX)); 
           PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid Source IP Address [%s]", ptin_mgmd_inetAddrPrint(&sourceList[srcIdx], debug_buf));
@@ -1733,7 +1736,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
 
     /* Point to the next record */
     /* RFC 3376 4.2.6, RFC 3810 5.2.6 */
-    if (mcastPacket->family == AF_INET)
+    if (mcastPacket->family == PTIN_MGMD_AF_INET)
     {
       dataPtr += (auxDataLen * 4);
     }
@@ -1857,7 +1860,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   //Validate destination address (224.0.0.2 for Leave reports; group address for others)
   dataPtr = mcastPacket->ip_payload + 4;
   SNOOP_GET_ADDR(&groupAddr, dataPtr);
-  ptin_mgmd_inetAddressGet(AF_INET, &mcastPacket->destAddr, &ipDstAddr);
+  ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipDstAddr);
   if(PTIN_IGMP_V2_LEAVE_GROUP == igmpType)
   {
     if( (PTIN_MGMD_IGMP_ALL_ROUTERS_ADDR != ipDstAddr) && (groupAddr != ipDstAddr) && (ipDstAddr!=igmpGlobalCfg.ipv4_addr))
@@ -1891,7 +1894,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
        */
       recordType=PTIN_MGMD_CHANGE_TO_INCLUDE_MODE;
 
-      ptin_mgmd_inetAddressSet(AF_INET, &groupAddr, &groupInetAddr);
+      ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &groupAddr, &groupInetAddr);
       if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr, AVL_EXACT)))
       {
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report for a non-existing group[%s]. Silently ignored", ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf));
@@ -2065,14 +2068,10 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   RC_t res = SUCCESS;
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Payload length: %u", eventData->payloadLength);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Service Id    : %u", eventData->serviceId);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Port Id       : %u", eventData->portId);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Client Id     : %u", eventData->clientId);
-
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Context [Length:%u ServiceId:%u PortId:%u ClientId:%u]", eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
   res = ptin_mgmd_packet_process(eventData->payload, eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
@@ -2377,6 +2376,22 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
       if(SUCCESS == res)
       {        
         res = ptin_mgmd_ctrl_whitelist_remove(eventData);
+      }
+      break;
+    } 
+    case PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE:
+    {
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+
+      //Validate message size
+      if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received message[%u bytes] does not have the expected size[%u bytes]", eventData->dataLength, sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t));
+        res = FAILURE;
+      }
+      if(SUCCESS == res)
+      {        
+        res = ptin_mgmd_ctrl_service_remove(eventData);
       }
       break;
     } 

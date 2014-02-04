@@ -205,7 +205,7 @@ RC_t ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData)
         else  
         {
            /* Get Mgmd Control Block */
-           if (( pMmgmdCB = mgmdCBGet(AF_INET)) == PTIN_NULLPTR)
+           if (( pMmgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
            {
              PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
              return FAILURE;

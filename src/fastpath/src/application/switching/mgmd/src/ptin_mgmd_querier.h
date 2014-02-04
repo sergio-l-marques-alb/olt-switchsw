@@ -31,7 +31,7 @@ typedef struct mgmdPtinQuerierInfoDataKey_s
 
 typedef struct mgmdPTinL3Querytimer_s
 {
-  uint8         family; //AF_INET/AF_INET6
+  uint8         family; //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
   uchar8        startUpQueryCount;//This value has only meaning if the startUpQueryFlag is active. In the remaining cases it is a don't care
   void*         queryData;//mgmdPTinQuerierInfoData_t
 
@@ -43,7 +43,7 @@ typedef struct mgmdPTinL3Querytimer_s
 #ifdef PTIN_MGMD_GENERAL_QUERY_PER_INTERFACE  
 typedef struct mgmdPTinQuerierInterface_s
 {
-  uchar8                        family;//AF_INET/AF_INET6
+  uchar8                        family;//PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
   uchar8                        version;//SNOOP_IGMP_VERSION_3 | SNOOP_MLD_VERSION_2
   uchar8                        queryType;//Do we need this field?
   uchar8                        startUpQueryFlag;//True if Query is in the StartUp Mode          

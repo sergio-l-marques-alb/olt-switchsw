@@ -76,10 +76,7 @@ RC_t ptin_mgmd_proxycmtimer_init(snoopPTinCMtimer_t* pTimer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exist(pTimer->timer))
-  {
-    ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timer), ptin_mgmd_proxycmtimer_callback);
-  }
+  ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timer), ptin_mgmd_proxycmtimer_callback);
   return ret;
 }
 
@@ -102,16 +99,19 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId)
     return FAILURE;
   }
 
-  if((pMgmdCB=mgmdCBGet(AF_INET))==PTIN_NULLPTR)
+  if((pMgmdCB=mgmdCBGet(PTIN_MGMD_AF_INET))==PTIN_NULLPTR)
   {   
-    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get pMgmdCB family:%u", AF_INET);   
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get pMgmdCB family:%u", PTIN_MGMD_AF_INET);   
     return FAILURE;
   }
 
   if(FALSE == ptin_mgmd_timer_exist(pMgmdCB->proxyCM[serviceId].timer))
   {
-    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Uninitialized proxy timer for service=%u", serviceId);   
-    return FAILURE;
+    if(SUCCESS != ptin_mgmd_proxycmtimer_init(&(pMgmdCB->proxyCM[serviceId])))
+    {
+      PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to initialize a new proxy timer for service=%u", serviceId);   
+      return FAILURE;
+    }
   }
 
   if(TRUE == ptin_mgmd_proxycmtimer_isRunning(&(pMgmdCB->proxyCM[serviceId])))

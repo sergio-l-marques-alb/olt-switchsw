@@ -442,14 +442,14 @@ typedef struct snoop_eb_s
 typedef struct ptinMgmd_cb_s
 {
   uint8                     cbIndex; // Assigned at runtime 0 or 1
-  uint8                     family;  //AF_INET/AF_INET6
+  uint8                     family;  //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
 
   /* AVL Tree data */
-  ptin_mgmd_avlTree_t                 mgmdPTinQuerierAvlTree;
-  ptin_mgmd_avlTreeTables_t           *mgmdPTinQuerierTreeHeap;
+  ptin_mgmd_avlTree_t       mgmdPTinQuerierAvlTree;
+  ptin_mgmd_avlTreeTables_t *mgmdPTinQuerierTreeHeap;
   mgmdPTinQuerierInfoData_t *mgmdPTinQuerierDataHeap; 
 
-  snoopPTinCMtimer_t        proxyCM[PTIN_MGMD_MAX_SERVICES]; //proxy compatibility-mode (per service)
+  snoopPTinCMtimer_t        proxyCM[PTIN_MGMD_MAX_SERVICE_ID]; //proxy compatibility-mode (per service)
 }mgmd_cb_t;
 
 #ifdef PTIN_MGMD_MLD_SUPPORT

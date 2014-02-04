@@ -49,7 +49,7 @@ static void ptin_mgmd_fp_encode(uchar8 family,int32 num, uint32* code)
 {
   int32 exp, mant;
 
-  if (family == AF_INET)
+  if (family == PTIN_MGMD_AF_INET)
   {
     if (num < 128)
     {
@@ -77,7 +77,7 @@ static void ptin_mgmd_fp_encode(uchar8 family,int32 num, uint32* code)
       *code = (uchar8)(0x80 | (exp<<4) | mant);
     }
   }
-  else if (family == AF_INET6)
+  else if (family == PTIN_MGMD_AF_INET6)
   {
     if (num < 32768)
     {
@@ -195,13 +195,13 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   tempPtr = dataPtr;
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
-  querierAddr.family=AF_INET;
+  querierAddr.family=PTIN_MGMD_AF_INET;
   querierAddr.addr.ipv4.s_addr=igmpGlobalCfg.ipv4_addr;
-  ptin_mgmd_inetAddressGet(AF_INET, &querierAddr, &ipv4Addr);
+  ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &querierAddr, &ipv4Addr);
   memcpy(dataPtr, &ipv4Addr, PTIN_IP_ADDR_LEN); dataPtr += PTIN_IP_ADDR_LEN;
 
   /* Destination Address */
-  ptin_mgmd_inetAddressGet(AF_INET, destIp, &ipv4Addr);
+  ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, destIp, &ipv4Addr);
   memcpy(dataPtr, &ipv4Addr, PTIN_IP_ADDR_LEN); dataPtr += PTIN_IP_ADDR_LEN;
 
   if (version >= PTIN_IGMP_VERSION_2)
@@ -231,7 +231,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
 #if 0 //This value was previouly encoded to fp
     if (version == SNOOP_IGMP_VERSION_3 && igmpGlobalCfg.querier.query_response_interval >= 128)
     {
-      ptin_mgmd_fp_encode(AF_INET, igmpGlobalCfg.querier.query_response_interval, &byteVal);        
+      ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &byteVal);        
     }
     else
 #endif
@@ -249,7 +249,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   /* Group Address */
-  ptin_mgmd_inetAddressGet(AF_INET, groupAddr, &ipv4Addr);
+  ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, groupAddr, &ipv4Addr);
   memcpy(dataPtr, &ipv4Addr, PTIN_IP_ADDR_LEN);
   dataPtr += PTIN_IP_ADDR_LEN;
 
@@ -264,7 +264,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     byteVal=igmpGlobalCfg.querier.query_interval;
 #else
     val=igmpGlobalCfg.querier.query_interval;
-    ptin_mgmd_fp_encode(AF_INET,val,&val);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,val,&val);
 #endif
     SNOOP_PUT_BYTE(val, dataPtr);
 
@@ -391,7 +391,7 @@ RC_t ptinMgmdMLDFrameBuild(uint32       intIfNum,
   ipv6Header.hoplim = SNOOP_IP6_HOP_LIMIT;
 
   /* Destination IP Address */
-  osapiInetPton(AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, ipv6Header.dst);
+  osapiInetPton(PTIN_MGMD_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, ipv6Header.dst);
 
   /* Source Address - Snooping Switches send it with null source address */
   vlanId = pSnoopOperEntry->vlanId;
@@ -403,17 +403,17 @@ RC_t ptinMgmdMLDFrameBuild(uint32       intIfNum,
     {
       /* Invalid state - Disable querier operationally */
       snoopQuerierSMProcessEvent(pSnoopOperEntry, snoopQuerierDisable, pSnoopCB);
-      inetAddressZeroSet(AF_INET6, &querierAddr);
+      inetAddressZeroSet(PTIN_MGMD_AF_INET6, &querierAddr);
     }
   }
   else
   {
     /* When in non-querier mode if we have to send out a general query
        send it with a null source IP */
-    inetAddressZeroSet(AF_INET6, &querierAddr);
+    inetAddressZeroSet(PTIN_MGMD_AF_INET6, &querierAddr);
   }
 
-  inetAddressGet(AF_INET6, &querierAddr, ipv6Header.src);
+  inetAddressGet(PTIN_MGMD_AF_INET6, &querierAddr, ipv6Header.src);
 
   /* Construct ipv6 pseudo header to calculate icmpv6 checksum field */
   memset(&ipv6PseudoHdr, 0x00, sizeof(mgmdIpv6PseudoHdr_t));
@@ -473,7 +473,7 @@ RC_t ptinMgmdMLDFrameBuild(uint32       intIfNum,
     uintVal = snoopCheckPrecedenceParamGet(vlanId, intIfNum,
                                            SNOOP_PARAM_MAX_RESPONSE_TIME,
                                            pSnoopCB->family);
-    snoop_fp_encode(AF_INET6, uintVal, &shortVal);
+    snoop_fp_encode(PTIN_MGMD_AF_INET6, uintVal, &shortVal);
 #endif
   }
   SNOOP_PUT_SHORT(shortVal, dataPtr);
@@ -483,7 +483,7 @@ RC_t ptinMgmdMLDFrameBuild(uint32       intIfNum,
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   /* Group Address */
-  inetAddressGet(AF_INET6, groupAddr, dataPtr);
+  inetAddressGet(PTIN_MGMD_AF_INET6, groupAddr, dataPtr);
   dataPtr += L7_IP6_ADDR_LEN;
 
   if (version == SNOOP_MLD_VERSION_2)
@@ -567,6 +567,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
                          groupAddr;  
   mgmdSnoopControlPkt_t  mcastPacket; 
   RC_t                   rc = SUCCESS;
+  uint32 ipAddr;
 
 #ifdef PTIN_MGMD_MLD_SUPPORT
   ptin_mgmd_inet_addr_t    ipv6Addr;
@@ -575,7 +576,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Inside ptinMgmdGeneralQuerySend");  
 
  /* Get Snoop Control Block */
-  if (( mcastPacket.cbHandle = mgmdCBGet(AF_INET)) == PTIN_NULLPTR)
+  if (( mcastPacket.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
     return;
@@ -589,12 +590,12 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 
   version  = igmpGlobalCfg.clientVersion;
 
-  if (family == AF_INET)
+  if (family == PTIN_MGMD_AF_INET)
   {
 
     memset((void *)dataStart, 0x00, IGMP_FRAME_SIZE);
     ipv4Addr = PTIN_MGMD_IGMP_ALL_HOSTS_ADDR;
-    ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &destIp);
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &destIp);
     type = PTIN_IGMP_MEMBERSHIP_QUERY;       
   }
 #ifdef PTIN_MGMD_MLD_SUPPORT
@@ -603,18 +604,18 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
     memset((void *)dataStart, 0x00, MLD_FRAME_SIZE);
     memset(&ipv6Addr, 0x00, sizeof(ptin_mgmd_in6_addr_t));
 
-    osapiInetPton(AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, (uchar8 *)&ipv6Addr);
+    osapiInetPton(PTIN_MGMD_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, (uchar8 *)&ipv6Addr);
 
     /* MLD */
-    ptin_mgmd_inetAddressSet(AF_INET6, &ipv6Addr, &destIp);
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &destIp);
     type = L7_MLD_MEMBERSHIP_QUERY;    
   }
 #endif
 
-  if (family == AF_INET)
+  if (family == PTIN_MGMD_AF_INET)
   {
     ipv4Addr = 0;
-    ptin_mgmd_inetAddressSet(AF_INET, &ipv4Addr, &groupAddr);
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);
 
     rc = ptinMgmdIGMPFrameBuild(&destIp,/* 224.0.0.1 */
                                 type,       /* 0x11 or 130*/
@@ -628,7 +629,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   else
   {
     memset(&ipv6Addr, 0x00, sizeof(ptin_mgmd_in6_addr_t));
-    ptin_mgmd_inetAddressSet(AF_INET6, &ipv6Addr, &groupAddr);
+    ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &groupAddr);
     rc = ptinMgmdMLDFrameBuild(PTIN_NULL,
                                &destIp,     /* FF02::01 */
                                type,       /* 130 */
@@ -648,7 +649,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 
 
   /* General Query will be sent on all active ports of the vlan*/
-  if (family == AF_INET)
+  if (family == PTIN_MGMD_AF_INET)
   {
     if (version == PTIN_IGMP_VERSION_3)
     {
@@ -693,6 +694,9 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   mcastPacket.client_idx  = (uint32)-1;
   mcastPacket.length      = frameLength;
   mcastPacket.family      = family;
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &igmpGlobalCfg.ipv4_addr, &mcastPacket.srcAddr);
+  ipAddr = PTIN_MGMD_IGMP_ALL_HOSTS_ADDR;
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipAddr, &mcastPacket.destAddr);
   memcpy(mcastPacket.payLoad,dataStart,frameLength);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (vlanId=%u)",serviceId);
@@ -706,7 +710,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 *
 * @param    mode      @b{(input)} PTIN_ENABLE/PTIN_DISABLE
 * @param    sId       @b{(input)} Service Identifier
-* @param    family       @b{(input)} AF_INET/AF_INET6
+* @param    family       @b{(input)} PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
 *
 * @returns  SUCCESS
 * @returns  FAILURE
@@ -1070,11 +1074,11 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
   //Max Resp Code
   if(ptin_mgmd_inetIsAddressZero(groupAddr)) //For general queries, max response time is QRI
   {
-    ptin_mgmd_fp_encode(AF_INET, igmpCfg.querier.query_response_interval, &value32);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.query_response_interval, &value32);
   }
   else  //For group-source specific queries, max response time is LMQI
   {
-    ptin_mgmd_fp_encode(AF_INET, igmpCfg.querier.last_member_query_interval, &value32);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.last_member_query_interval, &value32);
   }
   value8 = value32;
   SNOOP_PUT_BYTE(value8, queryHeader);
@@ -1102,7 +1106,7 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
   *headerLength += 1;
 
   //QQIC
-  ptin_mgmd_fp_encode(AF_INET, igmpCfg.querier.query_interval, &value32);
+  ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.query_interval, &value32);
   value8 = value32;
   SNOOP_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;

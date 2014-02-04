@@ -29,6 +29,8 @@ SWITCHING_COMPILE_TARGET=$2
 MGMD_ROOT_DIR=$FASTPATH_ROOT_DIR/src/application/switching/mgmd/
 FASTPATH_PUBLIC_API_DIR=$FASTPATH_ROOT_DIR/src/l7public/api
 
+NEW_CONFIGURATION="no"
+
 # 1 - Configuration
 cd $MGMD_ROOT_DIR
 if [ -f "configure" ]; then
@@ -37,20 +39,24 @@ if [ -f "configure" ]; then
 	MGMD_CURRENT_VERSION=`cat configure | grep "PACKAGE_VERSION=" -m 1 | sed "s/[^0-9]*//; s/'//"`
 	if [ "$MGMD_PACKAGE_VERSION" != "$MGMD_CURRENT_VERSION" ]; then
 		echo "MGMD upgrade detected! Reconfiguring..."
+		NEW_CONFIGURATION="yes"
 		sh build/autogen.sh && sh build/configure-ud.sh
 	fi
 else
 	#MGMD not yet configured. To reduce Fastpath's compilation verbosity, we skip the configuration output
 	echo "Starting MGMD configuration..."
+	NEW_CONFIGURATION="yes"
 	sh build/autogen.sh >/dev/null 2>&1 && sh build/configure-ud.sh >/dev/null 2>&1
 fi
 
 # 2 - Compilation
 if [ "$SWITCHING_COMPILE_TARGET" = "switching" ]; then
 	make -j1 all && make install >/dev/null 2>&1
-	cp rfs/usr/local/ptin/include/mgmd/* $FASTPATH_PUBLIC_API_DIR
 elif [ "$SWITCHING_COMPILE_TARGET" = "clean-switching" ]; then
 	make clean distclean >/dev/null 2>&1
 fi
-cd -
 
+if [ "$NEW_CONFIGURATION" = "yes" ]; then
+	cp rfs/usr/local/ptin/include/mgmd/* $FASTPATH_PUBLIC_API_DIR
+fi
+cd -

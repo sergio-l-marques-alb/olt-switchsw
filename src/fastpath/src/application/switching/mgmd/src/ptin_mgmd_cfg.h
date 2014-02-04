@@ -175,20 +175,19 @@ typedef struct {
 
 /* Proxy's config structure */
 #define PTIN_IGMP_PROXY_MASK_ADMIN           0x0001
-#define PTIN_IGMP_PROXY_MASK_WHITELIST       0x0002
-#define PTIN_IGMP_PROXY_MASK_NETWORKVERSION  0x0004
-#define PTIN_IGMP_PROXY_MASK_CLIENTVERSION   0x0008
-#define PTIN_IGMP_PROXY_MASK_IPV4            0x0010
-#define PTIN_IGMP_PROXY_MASK_COS             0x0020
-#define PTIN_IGMP_PROXY_MASK_FASTLEAVE       0x0040
-#define PTIN_IGMP_PROXY_MASK_QUERIER         0x0080
-#define PTIN_IGMP_PROXY_MASK_HOST            0x0100
+#define PTIN_IGMP_PROXY_MASK_NETWORKVERSION  0x0002
+#define PTIN_IGMP_PROXY_MASK_CLIENTVERSION   0x0004
+#define PTIN_IGMP_PROXY_MASK_IPV4            0x0008
+#define PTIN_IGMP_PROXY_MASK_COS             0x0010
+#define PTIN_IGMP_PROXY_MASK_FASTLEAVE       0x0020
+#define PTIN_IGMP_PROXY_MASK_QUERIER         0x0040
+#define PTIN_IGMP_PROXY_MASK_HOST            0x0080
+#define PTIN_IGMP_PROXY_MASK_WHITELIST       0x0100
 
 typedef struct {
   uint16     mask;                           /* PTIN_IGMP_PROXY_MASK_xxxx */
 
   uint8      admin;                          /* Global admin for both host and querier */
-  uint8      whitelist;                      /* Channels white-list admin [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE] */
   uint8      networkVersion;                 /* defines maximum working version - overrides query/host version */
   uint8      clientVersion;                  /* defines maximum working version - overrides query/host version */
   uint32     ipv4_addr;                      /* Proxy IP (for both host and querier) */
@@ -196,7 +195,9 @@ typedef struct {
   uint8      fast_leave;                     /* TRUE/FALSE */
 
   ptin_IgmpV3QuerierCfg_t querier;          
-  ptin_IgmpV3HostCfg_t    host;             
+  ptin_IgmpV3HostCfg_t    host;        
+         
+  uint8      whitelist;                      /* Channels white-list admin [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE] */
 
 } ptin_IgmpProxyCfg_t;
 

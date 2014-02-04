@@ -4591,7 +4591,6 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   /* Copy data */
   ptinMgmdProxy.mask                                   = msgIgmpProxy->mask;
   ptinMgmdProxy.admin                                  = msgIgmpProxy->admin;
-  ptinMgmdProxy.whiteList                              = PTIN_MGMD_ENABLE;
   ptinMgmdProxy.networkVersion                         = msgIgmpProxy->networkVersion;
   ptinMgmdProxy.clientVersion                          = msgIgmpProxy->clientVersion;
   ptinMgmdProxy.ipv4Addr                               = msgIgmpProxy->ipv4_addr.s_addr;
@@ -4617,6 +4616,10 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinMgmdProxy.host.unsolicitedReportInterval         = msgIgmpProxy->host.unsolicited_report_interval;
   ptinMgmdProxy.host.olderQuerierPresentTimeout        = msgIgmpProxy->host.older_querier_present_timeout;
   ptinMgmdProxy.host.maxRecordsPerReport               = msgIgmpProxy->host.max_records_per_report;
+
+  //Force the whitelist feauture to ENABLE
+  ptinMgmdProxy.whiteList                              = PTIN_MGMD_ENABLE;
+  ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
@@ -4942,9 +4945,9 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
  */
 L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 {
-  ptin_client_id_t client;
-  ptin_IGMP_Statistics_t stats;
-  L7_RC_t rc;
+  ptin_client_id_t                client;
+  PTIN_MGMD_CTRL_STATS_RESPONSE_t stats;
+  L7_RC_t                         rc;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -4991,7 +4994,6 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   /* Get statistics */
   rc = ptin_igmp_stat_client_get(igmp_stats->mcEvcId,&client,&stats);
-
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting client statistics");
@@ -5002,87 +5004,50 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting client statistics");
   }
 
-#if 0
-  /* Return data */
-  igmp_stats->stats.active_groups             = stats.active_groups;            
-  igmp_stats->stats.active_clients            = stats.active_clients;           
-  igmp_stats->stats.igmp_sent                 = stats.igmp_sent;                
-  igmp_stats->stats.igmp_tx_failed            = stats.igmp_tx_failed;           
-  igmp_stats->stats.igmp_intercepted          = stats.igmp_intercepted;         
-  igmp_stats->stats.igmp_dropped              = stats.igmp_dropped;             
-  igmp_stats->stats.igmp_received_valid       = stats.igmp_received_valid;      
-  igmp_stats->stats.igmp_received_invalid     = stats.igmp_received_invalid;    
-  igmp_stats->stats.joins_sent                = stats.joins_sent;               
-  igmp_stats->stats.joins_received_success    = stats.joins_received_success;   
-  igmp_stats->stats.joins_received_failed     = stats.joins_received_failed;    
-  igmp_stats->stats.leaves_sent               = stats.leaves_sent;              
-  igmp_stats->stats.leaves_received           = stats.leaves_received;          
-  igmp_stats->stats.membership_report_v3      = stats.membership_report_v3;     
-  igmp_stats->stats.general_queries_sent      = stats.general_queries_sent;     
-  igmp_stats->stats.general_queries_received  = stats.general_queries_received; 
-  igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
-  igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
-#else
-  /* Return data */
-  igmp_stats->stats.active_groups                                                       = stats.active_groups;            
-  igmp_stats->stats.active_clients                                                      = stats.active_clients;           
-  igmp_stats->stats.igmp_tx                                                             = /*stats.igmp_sent+*/ stats.joins_sent+stats.leaves_sent+stats.igmpv3.membership_report_tx+
-                                                                                              stats.igmpquery.general_query_tx+stats.igmpquery.group_query_tx+stats.igmpquery.source_query_tx;
-
-  igmp_stats->stats.igmp_valid_rx                                                       = /*stats.igmp_received_valid+*/ stats.igmpv3.membership_report_valid_rx+
-                                                                                          stats.leaves_received+stats.joins_received_success+stats.igmpquery.general_query_valid_rx+
-                                                                                          +stats.igmpquery.group_query_valid_rx+stats.igmpquery.source_query_valid_rx;
-
-  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.joins_received_failed+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
-
-  igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
-
-  igmp_stats->stats.igmp_total_rx                                                       = /*stats.igmp_intercepted +*/igmp_stats->stats.igmp_valid_rx+igmp_stats->stats.igmp_invalid_rx+igmp_stats->stats.igmp_dropped_rx;                                         
-
-  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
-  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                                  = stats.joins_received_failed;    
-
-  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
-
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx                 =stats.igmpv3.group_record.block_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx           =stats.igmpv3.group_record.block_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx         =stats.igmpv3.group_record.block_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx            =stats.igmpv3.group_record.is_include_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx      =stats.igmpv3.group_record.is_include_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx    =stats.igmpv3.group_record.is_include_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx            =stats.igmpv3.group_record.is_exclude_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx      =stats.igmpv3.group_record.is_exclude_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx    =stats.igmpv3.group_record.is_exclude_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx            =stats.igmpv3.group_record.to_include_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx      =stats.igmpv3.group_record.to_include_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx    =stats.igmpv3.group_record.to_include_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx            =stats.igmpv3.group_record.to_exclude_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx      =stats.igmpv3.group_record.to_exclude_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx    =stats.igmpv3.group_record.to_exclude_invalid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.general_query_tx                                  =stats.igmpquery.general_query_tx;
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                            =stats.igmpquery.general_query_valid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.group_query_tx                                    =stats.igmpquery.group_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.source_query_valid_rx; 
-#endif
+  igmp_stats->stats.active_groups                                                    = stats.activeGroups;            
+  igmp_stats->stats.active_clients                                                   = stats.activeClients; 
+            
+  igmp_stats->stats.igmp_tx                                                          = stats.igmpTx;
+  igmp_stats->stats.igmp_valid_rx                                                    = stats.igmpValidRx;
+  igmp_stats->stats.igmp_invalid_rx                                                  = stats.igmpInvalidRx;    
+  igmp_stats->stats.igmp_dropped_rx                                                  = stats.igmpDroppedRx; 
+  igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
+  
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinValidRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveValidRx;    
+  
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportValidRx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
+  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
+         
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryValidRx;
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryValidRx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryValidRx; 
 
   return L7_SUCCESS;
 }
@@ -5167,9 +5132,9 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
  */
 L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 {
-  ptin_intf_t ptin_intf;
-  ptin_IGMP_Statistics_t stats;
-  L7_RC_t rc;
+  ptin_intf_t                     ptin_intf;
+  PTIN_MGMD_CTRL_STATS_RESPONSE_t stats;
+  L7_RC_t                         rc;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -5227,88 +5192,50 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     }
   }
 
-#if 0
-  /* Return data */
-  igmp_stats->stats.active_groups             = stats.active_groups;            
-  igmp_stats->stats.active_clients            = stats.active_clients;           
-  igmp_stats->stats.igmp_sent                 = stats.igmp_sent;                
-  igmp_stats->stats.igmp_tx_failed            = stats.igmp_tx_failed;           
-  igmp_stats->stats.igmp_intercepted          = stats.igmp_intercepted;         
-  igmp_stats->stats.igmp_dropped              = stats.igmp_dropped;             
-  igmp_stats->stats.igmp_received_valid       = stats.igmp_received_valid;      
-  igmp_stats->stats.igmp_received_invalid     = stats.igmp_received_invalid;    
-  igmp_stats->stats.joins_sent                = stats.joins_sent;               
-  igmp_stats->stats.joins_received_success    = stats.joins_received_success;   
-  igmp_stats->stats.joins_received_failed     = stats.joins_received_failed;    
-  igmp_stats->stats.leaves_sent               = stats.leaves_sent;              
-  igmp_stats->stats.leaves_received           = stats.leaves_received;          
-  igmp_stats->stats.membership_report_v3      = stats.membership_report_v3;     
-  igmp_stats->stats.general_queries_sent      = stats.general_queries_sent;     
-  igmp_stats->stats.general_queries_received  = stats.general_queries_received; 
-  igmp_stats->stats.specific_queries_sent     = stats.specific_queries_sent;    
-  igmp_stats->stats.specific_queries_received = stats.specific_queries_received;
-#else
-  igmp_stats->stats.active_groups                                                       = stats.active_groups;            
-  igmp_stats->stats.active_clients                                                      = stats.active_clients;           
-  igmp_stats->stats.igmp_tx                                                             = /*stats.igmp_sent+*/ stats.joins_sent+stats.leaves_sent+stats.igmpv3.membership_report_tx+
-                                                                                              stats.igmpquery.general_query_tx+stats.igmpquery.group_query_tx+stats.igmpquery.source_query_tx;
-
-  igmp_stats->stats.igmp_valid_rx                                                       = /*stats.igmp_received_valid+*/ stats.igmpv3.membership_report_valid_rx+
-                                                                                          stats.leaves_received+stats.joins_received_success+stats.igmpquery.general_query_valid_rx+
-                                                                                          +stats.igmpquery.group_query_valid_rx+stats.igmpquery.source_query_valid_rx;
-
-  igmp_stats->stats.igmp_invalid_rx                                                     = stats.igmp_received_invalid+stats.joins_received_failed+stats.igmpv3.membership_report_invalid_rx+stats.igmpquery.generic_query_invalid_rx;    
-
-  igmp_stats->stats.igmp_dropped_rx                                                     = stats.igmp_dropped+stats.igmpv3.membership_report_dropped_rx+stats.igmpquery.generic_query_dropped_rx; 
-
-  igmp_stats->stats.igmp_total_rx                                                       = /*stats.igmp_intercepted +*/igmp_stats->stats.igmp_valid_rx+igmp_stats->stats.igmp_invalid_rx+igmp_stats->stats.igmp_dropped_rx;                                         
-
-  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                          = stats.joins_sent;               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                    = stats.joins_received_success;   
-  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                                  = stats.joins_received_failed;    
-
-  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                         = stats.leaves_sent;              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                   = stats.leaves_received;        
-
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                             =stats.igmpv3.membership_report_tx; 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                       =stats.igmpv3.membership_report_valid_rx;      
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                     =stats.igmpv3.membership_report_invalid_rx;           
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx                 =stats.igmpv3.group_record.allow_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx           =stats.igmpv3.group_record.allow_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx         =stats.igmpv3.group_record.allow_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx                 =stats.igmpv3.group_record.block_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx           =stats.igmpv3.group_record.block_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx         =stats.igmpv3.group_record.block_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx            =stats.igmpv3.group_record.is_include_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx      =stats.igmpv3.group_record.is_include_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx    =stats.igmpv3.group_record.is_include_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx            =stats.igmpv3.group_record.is_exclude_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx      =stats.igmpv3.group_record.is_exclude_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx    =stats.igmpv3.group_record.is_exclude_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx            =stats.igmpv3.group_record.to_include_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx      =stats.igmpv3.group_record.to_include_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx    =stats.igmpv3.group_record.to_include_invalid_rx;
-
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx            =stats.igmpv3.group_record.to_exclude_tx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx      =stats.igmpv3.group_record.to_exclude_valid_rx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx    =stats.igmpv3.group_record.to_exclude_invalid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.general_query_tx                                  =stats.igmpquery.general_query_tx;
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                            =stats.igmpquery.general_query_valid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.group_query_tx                                    =stats.igmpquery.group_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                              =stats.igmpquery.group_query_valid_rx;
-
-  igmp_stats->stats.HWQueryStatistics.source_query_tx                                   =stats.igmpquery.source_query_tx;   
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                             =stats.igmpquery.source_query_valid_rx; 
-#endif
-
-
+  igmp_stats->stats.active_groups                                                    = stats.activeGroups;            
+  igmp_stats->stats.active_clients                                                   = stats.activeClients; 
+            
+  igmp_stats->stats.igmp_tx                                                          = stats.igmpTx;
+  igmp_stats->stats.igmp_valid_rx                                                    = stats.igmpValidRx;
+  igmp_stats->stats.igmp_invalid_rx                                                  = stats.igmpInvalidRx;    
+  igmp_stats->stats.igmp_dropped_rx                                                  = stats.igmpDroppedRx; 
+  igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
+  
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinValidRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveValidRx;    
+  
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportValidRx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
+  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
+         
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryValidRx;
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryValidRx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryValidRx; 
 
   return L7_SUCCESS;
 }
@@ -5704,7 +5631,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
  */
 L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
 {
-  L7_in_addr_t in_addr;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
   L7_RC_t rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition");
@@ -5713,34 +5640,12 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
             (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
 
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  /* Add this channel to associations list */
-  L7_inet_addr_t groupAddr, sourceAddr;
+  staticGroup.serviceId = channel->evc_id;
+  staticGroup.groupIp   = channel->channelIp.s_addr;
 
-  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
-  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
-  groupAddr.family = L7_AF_INET;
-  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
-
-  /* Add channel */
-  rc=igmp_assoc_channel_add(0, channel->evc_id, &groupAddr, 32, &sourceAddr, 32, L7_TRUE);
-
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding group 0x%08x to association list (MC EVC id %u)",groupAddr.addr.ipv4.s_addr,channel->evc_id);
-    return rc;
-  }
-#endif
-
-  in_addr.s_addr = channel->channelIp.s_addr;
-
-  rc = ptin_igmp_static_channel_add(channel->evc_id,&in_addr);
-
+  rc = ptin_igmp_static_channel_add(&staticGroup);
   if (rc!=L7_SUCCESS)
   {
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);    /* Undo */
-#endif
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
     return rc;
   }
@@ -5757,7 +5662,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
  */
 L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
 {
-  L7_in_addr_t in_addr;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
   L7_RC_t rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion");
@@ -5766,34 +5671,15 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
             (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
 
-  in_addr.s_addr = channel->channelIp.s_addr;
+  staticGroup.serviceId = channel->evc_id;
+  staticGroup.groupIp   = channel->channelIp.s_addr;
 
-  rc = ptin_igmp_channel_remove(channel->evc_id,&in_addr);
-
+  rc = ptin_igmp_channel_remove(&staticGroup);
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
     return rc;
   }
-
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  /* Remove this channel from association list */
-  L7_inet_addr_t groupAddr, sourceAddr;
-
-  memset(&groupAddr , 0x00, sizeof(sizeof(L7_inet_addr_t)));
-  memset(&sourceAddr, 0x00, sizeof(sizeof(L7_inet_addr_t)));
-  groupAddr.family = L7_AF_INET;
-  groupAddr.addr.ipv4.s_addr = channel->channelIp.s_addr;
-
-  /* Remove channel */
-  rc = igmp_assoc_channel_remove(0, &groupAddr, 32, &sourceAddr, 32);
-
-  if ( rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group 0x%08x from association list",groupAddr.addr.ipv4.s_addr);
-    return rc;
-  }
-#endif
 
   return L7_SUCCESS;
 }
@@ -5858,7 +5744,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {
       LOG_TRACE(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
-      outputPtr[i].entryId = i;
+      outputPtr[i].entryId = i + inputPtr->entryId;
       outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
       outputPtr[i].chType  = clist[i].static_type;
@@ -5903,21 +5789,21 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
   rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, &total_clients);
-
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {
     /* Copy channels to message */
     for (i=0; i<MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX && i<number_of_clients; i++)
     {
-      client_list->clients_list[i].mask       = clist[i].mask;
-      client_list->clients_list[i].outer_vlan = clist[i].outerVlan;
-      client_list->clients_list[i].inner_vlan = clist[i].innerVlan;
+      client_list->clients_list[i].mask           = clist[i].mask;
+      client_list->clients_list[i].outer_vlan     = clist[i].outerVlan;
+      client_list->clients_list[i].inner_vlan     = clist[i].innerVlan;
       client_list->clients_list[i].intf.intf_type = clist[i].ptin_intf.intf_type;
       client_list->clients_list[i].intf.intf_id   = clist[i].ptin_intf.intf_id;
     }
-    client_list->n_pages_total = (total_clients==0) ? 1 : ((total_clients-1)/MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX+1);
+    client_list->n_pages_total   = (total_clients==0) ? 1 : ((total_clients-1)/MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX+1);
     client_list->n_clients_total = total_clients;
-    client_list->n_clients_msg = number_of_clients;
+    client_list->n_clients_msg   = number_of_clients;
   }
   else if (rc==L7_NOT_EXIST)
   {

@@ -295,7 +295,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
 #if 0 //We have moved the fp encoding to when the general is required to be sent.         
       if (igmpProxyCfg.networkVersion == PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval >= 128)
       {
-        snoop_fp_encode(AF_INET, igmpProxy->querier.query_interval, &igmpProxyCfg.querier.query_interval);        
+        snoop_fp_encode(PTIN_MGMD_AF_INET, igmpProxy->querier.query_interval, &igmpProxyCfg.querier.query_interval);        
       }
       else
 #endif

@@ -28,7 +28,7 @@ RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, uint8 *clientList)
 RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
 RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
 
-RC_t snooping_tx_packet(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
 
 #endif /* SNOOPING_MGMD_API_H */
 

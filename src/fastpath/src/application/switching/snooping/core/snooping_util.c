@@ -1229,6 +1229,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   */
   if (snoopIntfCanBeEnabled(intIfNum, vlanId) != L7_TRUE)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
     return;
   }
 
@@ -1236,6 +1237,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
        (sysIntfType == L7_CPU_INTF) )
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
     return;
   }
 
@@ -1295,6 +1297,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if (snoopPacketModifyInnerTag(intIfNum, vlanId,
                                 innerVIDUntagged, bufHandle) != L7_SUCCESS)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to modify inner tag intIfNum:%u vlanId:%u innerVIDUntagged:%u bufHandle:%p", intIfNum, vlanId,innerVIDUntagged, bufHandle);
     return;
   }
 #endif

@@ -123,14 +123,14 @@ BOOL ptin_mgmd_inetIsValidHostAddress_track(ptin_mgmd_inet_addr_t * inetAddr,
     {
         return FALSE;
     }
-    if (inetAddr->family == AF_INET)
+    if (inetAddr->family == PTIN_MGMD_AF_INET)
     {
       if (ptin_mgmd_inetIsValidIpv4HostAddress(inetAddr->addr.ipv4.s_addr))
       {
         return TRUE;
       }
     }
-    else if (inetAddr->family == AF_INET6)
+    else if (inetAddr->family == PTIN_MGMD_AF_INET6)
     {
       /* Broadcast is not checked in IPv6, as the same is represented
          using multicast itself.*/
@@ -172,14 +172,14 @@ BOOL ptin_mgmd_inetIsInMulticast_track(ptin_mgmd_inet_addr_t *addr,
     {
         return FALSE;
     }
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
         if (PTIN_MGMD_IP4_IN_MULTICAST(addr->addr.ipv4.s_addr))
         {
             return TRUE;
         }
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
         return PTIN_MGMD_IP6_IS_ADDR_MULTICAST(&addr->addr.ipv6);
     }
@@ -220,9 +220,9 @@ RC_t ptin_mgmd_inetMaskToMaskLen(ptin_mgmd_inet_addr_t *mask, uchar8 *masklen)
     }
 
     *masklen =  0;
-    if (mask->family == AF_INET)
+    if (mask->family == PTIN_MGMD_AF_INET)
     {
-        if(ptin_mgmd_inetAddressGet(AF_INET, mask, (void*)&maskval) != SUCCESS)
+        if(ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, mask, (void*)&maskval) != SUCCESS)
         {
           return FAILURE;
         }
@@ -235,10 +235,10 @@ RC_t ptin_mgmd_inetMaskToMaskLen(ptin_mgmd_inet_addr_t *mask, uchar8 *masklen)
         }
        *masklen= tempMaskLen;
     }
-    else if (mask->family == AF_INET6)
+    else if (mask->family == PTIN_MGMD_AF_INET6)
     {
         memset(&Ipv6Addr,0,sizeof(ptin_mgmd_in6_addr_t));
-        if(ptin_mgmd_inetAddressGet(AF_INET6,mask,(void *)&Ipv6Addr) != SUCCESS)
+        if(ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET6,mask,(void *)&Ipv6Addr) != SUCCESS)
         {
           return FAILURE;
         }
@@ -275,7 +275,7 @@ RC_t ptin_mgmd_inetMaskToMaskLen(ptin_mgmd_inet_addr_t *mask, uchar8 *masklen)
 /*********************************************************************
 * @purpose  Convert masklen to mask
 *
-* @param    family  @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param    family  @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 * @param    masklen @b{(input)} masklen
 * @param    mask    @b{(input)} mask
 *
@@ -301,7 +301,7 @@ RC_t ptin_mgmd_inetMaskLenToMask(uchar8 family, uchar8 masklen,
         return FAILURE;
     }
     ptin_mgmd_inetAddressZeroSet(family, mask);
-    if (family == AF_INET)
+    if (family == PTIN_MGMD_AF_INET)
     {
         if (masklen > 32)
         {
@@ -314,10 +314,10 @@ RC_t ptin_mgmd_inetMaskLenToMask(uchar8 family, uchar8 masklen,
             tmp_masklen = sizeof((maskAddr)) << 3;
             tmp_masklen -= masklen;
             maskAddr = (~0 << tmp_masklen);
-            ptin_mgmd_inetAddressSet(AF_INET, (void *)&maskAddr, mask);
+            ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, (void *)&maskAddr, mask);
         }
     }
-    else if (family == AF_INET6)
+    else if (family == PTIN_MGMD_AF_INET6)
     {
       if (masklen > 128)
       {
@@ -337,7 +337,7 @@ RC_t ptin_mgmd_inetMaskLenToMask(uchar8 family, uchar8 masklen,
         mod = 32 - mod;
         Ipv6Addr.in6.addr32[ii] = ((~0)<< mod);
       }
-      ptin_mgmd_inetAddressSet(AF_INET6, (void *)&Ipv6Addr, mask);
+      ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET6, (void *)&Ipv6Addr, mask);
     }
     else
     {
@@ -369,13 +369,13 @@ RC_t ptin_mgmd_inetAddrHtop(ptin_mgmd_inet_addr_t *addr, char8 *string)
     {
         return FAILURE;
     }
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
-        inet_ntop(AF_INET,(uchar8 *)&addr->addr.ipv4,string,IP4_STR_LEN);
+        inet_ntop(PTIN_MGMD_AF_INET,(uchar8 *)&addr->addr.ipv4,string,IP4_STR_LEN);
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
-        inet_ntop(AF_INET6,(uchar8 *)&addr->addr.ipv6,string,IP6_LEN);
+        inet_ntop(PTIN_MGMD_AF_INET6,(uchar8 *)&addr->addr.ipv6,string,IP6_LEN);
     }
     else {
       snprintf(string, IP6_LEN, "Wrong-family-addr");
@@ -406,12 +406,12 @@ RC_t ptin_mgmd_inetAddrNtoh(ptin_mgmd_inet_addr_t * addr, ptin_mgmd_inet_addr_t 
     }
 
     ptin_mgmd_inetAddressReset(addr_h);
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
-        addr_h->family = AF_INET;
+        addr_h->family = PTIN_MGMD_AF_INET;
         addr_h->addr.ipv4.s_addr = ntohl(addr->addr.ipv4.s_addr);
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
         /*In case of IPv6 ,nothing has to be done  */
         ptin_mgmd_inetCopy(addr_h, addr);
@@ -446,12 +446,12 @@ RC_t ptin_mgmd_inetAddrHton(ptin_mgmd_inet_addr_t * addr, ptin_mgmd_inet_addr_t 
         return FAILURE;
     }
     ptin_mgmd_inetAddressReset(addr_n);
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
-        addr_n->family = AF_INET;
+        addr_n->family = PTIN_MGMD_AF_INET;
         addr_n->addr.ipv4.s_addr = ntohl(addr->addr.ipv4.s_addr);
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
         /*In case of IPv6 ,nothing has to be done  */
        ptin_mgmd_inetCopy(addr_n, addr);
@@ -491,7 +491,7 @@ RC_t ptin_mgmd_inetAddressReset(ptin_mgmd_inet_addr_t * inetAddr)
 * @purpose  Get an IPV4/IPV6 address field
 *
 * @param    inetAddr @b{(input)} inetAddress
-* @param    family   @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param    family   @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 *   @param    addr     @b{(input)} (uint32  in addr for ipv4 ,
                                   uchar8* in addr for ipv6)
 * @returns   FAILURE
@@ -509,12 +509,12 @@ RC_t ptin_mgmd_inetAddressGet(uchar8 family, ptin_mgmd_inet_addr_t *inetAddr, vo
     {
         return FAILURE;
     }
-    if (family == AF_INET)
+    if (family == PTIN_MGMD_AF_INET)
     {
         value = (uint32*) addr;
         *value = (inetAddr->addr.ipv4.s_addr);
     }
-    else if (family == AF_INET6)
+    else if (family == PTIN_MGMD_AF_INET6)
     {
         memcpy((ptin_mgmd_in6_addr_t *)addr,&inetAddr->addr.ipv6,
                sizeof(ptin_mgmd_in6_addr_t));
@@ -531,7 +531,7 @@ RC_t ptin_mgmd_inetAddressGet(uchar8 family, ptin_mgmd_inet_addr_t *inetAddr, vo
 /*********************************************************************
 * @purpose  Set an IPV4/IPV6 address field
 *
-* @param    family  @b{(input)}Address family (AF_INET, AF_INET6, etc.)
+* @param    family  @b{(input)}Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 *   @param    addr    @b{(input)}(uint32*  in addr for ipv4 ,
 * @param                               uchar8* in addr for ipv6)
 * @param    inetAddr @b{(input)}InetAddress
@@ -552,15 +552,15 @@ RC_t ptin_mgmd_inetAddressSet(uchar8 family,void *addr, ptin_mgmd_inet_addr_t *i
         return FAILURE;
     }
     ptin_mgmd_inetAddressReset(inetAddr);
-    if (family == AF_INET)
+    if (family == PTIN_MGMD_AF_INET)
     {
         value = addr;
         memcpy(&(inetAddr->addr.ipv4.s_addr),value,sizeof(uint32));
-        inetAddr->family = AF_INET;
+        inetAddr->family = PTIN_MGMD_AF_INET;
     }
-    else if (family == AF_INET6)
+    else if (family == PTIN_MGMD_AF_INET6)
     {
-        inetAddr->family = AF_INET6;
+        inetAddr->family = PTIN_MGMD_AF_INET6;
         memcpy(&inetAddr->addr.ipv6,(ptin_mgmd_in6_addr_t *)addr,
                   sizeof(ptin_mgmd_in6_addr_t));
     }
@@ -595,10 +595,10 @@ RC_t ptin_mgmd_inetAddressZeroSet(uchar8 family, ptin_mgmd_inet_addr_t *inetAddr
     if (inetAddr == PTIN_NULLPTR) {
         return FAILURE;
     }
-    if (family == AF_INET) {
+    if (family == PTIN_MGMD_AF_INET) {
       addripv4 = 0;
       ptin_mgmd_inetAddressSet(family,(void *) &addripv4, inetAddr);
-    } else if (family == AF_INET6) {
+    } else if (family == PTIN_MGMD_AF_INET6) {
        memset(&addripv6, 0, sizeof(ptin_mgmd_in6_addr_t));
        ptin_mgmd_inetAddressSet(family, (void *)&addripv6, inetAddr);
     }
@@ -631,7 +631,7 @@ RC_t ptin_mgmd_inetCopy_track(ptin_mgmd_inet_addr_t *dest, ptin_mgmd_inet_addr_t
     {
         return FAILURE;
     }
-    if(src->family != AF_INET  && src->family != AF_INET6)
+    if(src->family != PTIN_MGMD_AF_INET  && src->family != PTIN_MGMD_AF_INET6)
     {
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\n INET_ADDR:Invalid FamilyType - %d from %s(%d)", src->family, fileName, lineNum);
     }
@@ -642,7 +642,7 @@ RC_t ptin_mgmd_inetCopy_track(ptin_mgmd_inet_addr_t *dest, ptin_mgmd_inet_addr_t
 /*********************************************************************
 * @purpose  Set addr to INADDR_ANY
 *
-* @param   family @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param   family @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 * @param     addr   @b{(input)} InetAddress
 *
 * @returns   FAILURE
@@ -660,14 +660,14 @@ RC_t ptin_mgmd_inetInAddressAnyInit(uchar8 family, ptin_mgmd_inet_addr_t *addr)
         return FAILURE;
     }
     ptin_mgmd_inetAddressReset(addr);
-    if (family == AF_INET)
+    if (family == PTIN_MGMD_AF_INET)
     {
-        addr->family = AF_INET;
+        addr->family = PTIN_MGMD_AF_INET;
         addr->addr.ipv4.s_addr = INET_IPV4_INADDR_ANY;
     }
-    else if (family == AF_INET6)
+    else if (family == PTIN_MGMD_AF_INET6)
     {
-      addr->family = AF_INET6;
+      addr->family = PTIN_MGMD_AF_INET6;
       memset(&addr->addr.ipv6 ,0,sizeof(ptin_mgmd_in6_addr_t));
     }
     else
@@ -697,14 +697,14 @@ BOOL ptin_mgmd_inetIsInAddressAny(ptin_mgmd_inet_addr_t *addr)
     {
         return FALSE;
     }
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
         if (addr->addr.ipv4.s_addr == INET_IPV4_INADDR_ANY)
         {
             return TRUE;
         }
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
       if(PTIN_MGMD_IP6_IS_ADDR_UNSPECIFIED(&addr->addr.ipv6))
         return TRUE;
@@ -748,13 +748,13 @@ BOOL ptin_mgmd_inetIsAddressZero_track(ptin_mgmd_inet_addr_t *addr,
   }
 
   memset(&zeroaddr, 0, sizeof(ptin_mgmd_inet_addr_t));
-  if(addr->family == AF_INET)
+  if(addr->family == PTIN_MGMD_AF_INET)
   {
     if(addr->addr.ipv4.s_addr == 0)
       return TRUE;
     return FALSE;
   }
-  else if(addr->family == AF_INET6)
+  else if(addr->family == PTIN_MGMD_AF_INET6)
   {
     if(memcmp(&(addr->addr.ipv6), &(zeroaddr.addr.ipv6), sizeof(struct ptin_mgmd_in6_addr_s)) == 0)
     {
@@ -791,7 +791,7 @@ BOOL ptin_mgmd_inetIsLANScopedAddress(ptin_mgmd_inet_addr_t *addr)
     return FALSE;
    }
 
-  if(addr->family == AF_INET)
+  if(addr->family == PTIN_MGMD_AF_INET)
   {
 
     if((addr->addr.ipv4.s_addr >= PTIN_MGMD_INET_IPV4_ALL_MCAST_GROUPS_ADDR ) &&
@@ -800,7 +800,7 @@ BOOL ptin_mgmd_inetIsLANScopedAddress(ptin_mgmd_inet_addr_t *addr)
       return TRUE;
     }
   }
-  else if(addr->family == AF_INET6)
+  else if(addr->family == PTIN_MGMD_AF_INET6)
   {
     if(PTIN_MGMD_IP6_IS_ADDR_MULTICAST_LOC_SCOPE(&addr->addr.ipv6))
     return TRUE;
@@ -866,7 +866,7 @@ BOOL ptin_mgmd_inetIsLinkLocalMulticastAddress(ptin_mgmd_inet_addr_t *addr)
     {
         return FALSE;
     }
-    if (addr->family == AF_INET)
+    if (addr->family == PTIN_MGMD_AF_INET)
     {
         ipAddr = addr->addr.ipv4.s_addr;
         ipAddr = ntohl(ipAddr);
@@ -875,7 +875,7 @@ BOOL ptin_mgmd_inetIsLinkLocalMulticastAddress(ptin_mgmd_inet_addr_t *addr)
             return TRUE;
 
     }
-    else if (addr->family == AF_INET6)
+    else if (addr->family == PTIN_MGMD_AF_INET6)
     {
        if(PTIN_MGMD_IP6_IS_ADDR_MULTICAST_LOC_SCOPE(&addr->addr.ipv6))
         return TRUE;
@@ -909,7 +909,7 @@ BOOL ptin_mgmd_inetIsMaskValid(ptin_mgmd_inet_addr_t *pMask)
     return FALSE;
 
   /* Which Family is it? */
-  if(pMask->family == AF_INET)
+  if(pMask->family == PTIN_MGMD_AF_INET)
   {
     if(~((((pMask->addr.ipv4.s_addr) & -(pMask->addr.ipv4.s_addr)) - 1) | (pMask->addr.ipv4.s_addr)) != 0)
     {
@@ -918,7 +918,7 @@ BOOL ptin_mgmd_inetIsMaskValid(ptin_mgmd_inet_addr_t *pMask)
     }
     return TRUE;
   }
-  else if(pMask->family == AF_INET6)
+  else if(pMask->family == PTIN_MGMD_AF_INET6)
   {
     uint32 ii;
     for(ii=0;ii<4;ii++)
@@ -961,18 +961,18 @@ RC_t ptin_mgmd_inetAddressAnd(ptin_mgmd_inet_addr_t *src1, ptin_mgmd_inet_addr_t
   if(src1 == PTIN_NULLPTR || src2 == PTIN_NULLPTR || dest == PTIN_NULLPTR)
     return FAILURE;
 
-  if(src1->family == AF_INET6)
+  if(src1->family == PTIN_MGMD_AF_INET6)
   {
     dest->addr.ipv6.in6.addr32[0] = src1->addr.ipv6.in6.addr32[0] & src2->addr.ipv6.in6.addr32[0];
     dest->addr.ipv6.in6.addr32[1] = src1->addr.ipv6.in6.addr32[1] & src2->addr.ipv6.in6.addr32[1];
     dest->addr.ipv6.in6.addr32[2] = src1->addr.ipv6.in6.addr32[2] & src2->addr.ipv6.in6.addr32[2];
     dest->addr.ipv6.in6.addr32[3] = src1->addr.ipv6.in6.addr32[3] & src2->addr.ipv6.in6.addr32[3];
-    dest->family = AF_INET6;
+    dest->family = PTIN_MGMD_AF_INET6;
   }
-  else if(src1->family == AF_INET)
+  else if(src1->family == PTIN_MGMD_AF_INET)
   {
     dest->addr.ipv4.s_addr = src1->addr.ipv4.s_addr & src2->addr.ipv4.s_addr;
-    dest->family = AF_INET;
+    dest->family = PTIN_MGMD_AF_INET;
   }
   else
   {
@@ -1003,18 +1003,18 @@ RC_t ptin_mgmd_inetAddressOr(ptin_mgmd_inet_addr_t *src1, ptin_mgmd_inet_addr_t 
   if(src1 == PTIN_NULLPTR || src2 == PTIN_NULLPTR || dest == PTIN_NULLPTR)
     return FAILURE;
 
-  if(src1->family == AF_INET6)
+  if(src1->family == PTIN_MGMD_AF_INET6)
   {
     dest->addr.ipv6.in6.addr32[0] = src1->addr.ipv6.in6.addr32[0] | src2->addr.ipv6.in6.addr32[0];
     dest->addr.ipv6.in6.addr32[1] = src1->addr.ipv6.in6.addr32[1] | src2->addr.ipv6.in6.addr32[1];
     dest->addr.ipv6.in6.addr32[2] = src1->addr.ipv6.in6.addr32[2] | src2->addr.ipv6.in6.addr32[2];
     dest->addr.ipv6.in6.addr32[3] = src1->addr.ipv6.in6.addr32[3] | src2->addr.ipv6.in6.addr32[3];
-    dest->family = AF_INET6;
+    dest->family = PTIN_MGMD_AF_INET6;
   }
-  else if(src1->family == AF_INET)
+  else if(src1->family == PTIN_MGMD_AF_INET)
   {
     dest->addr.ipv4.s_addr = src1->addr.ipv4.s_addr | src2->addr.ipv4.s_addr;
-    dest->family = AF_INET;
+    dest->family = PTIN_MGMD_AF_INET;
   }
   else
   {
@@ -1044,18 +1044,18 @@ RC_t ptin_mgmd_inetAddressNot(ptin_mgmd_inet_addr_t *src, ptin_mgmd_inet_addr_t 
   if(src == PTIN_NULLPTR || dest == PTIN_NULLPTR)
     return FAILURE;
 
-  if(src->family == AF_INET6)
+  if(src->family == PTIN_MGMD_AF_INET6)
   {
     dest->addr.ipv6.in6.addr32[0] = ~(src->addr.ipv6.in6.addr32[0]);
     dest->addr.ipv6.in6.addr32[1] = ~(src->addr.ipv6.in6.addr32[1]);
     dest->addr.ipv6.in6.addr32[2] = ~(src->addr.ipv6.in6.addr32[2]);
     dest->addr.ipv6.in6.addr32[3] = ~(src->addr.ipv6.in6.addr32[3]);
-    dest->family = AF_INET6;
+    dest->family = PTIN_MGMD_AF_INET6;
   }
-  else if(src->family == AF_INET)
+  else if(src->family == PTIN_MGMD_AF_INET)
   {
     dest->addr.ipv4.s_addr = ~(src->addr.ipv4.s_addr);
-    dest->family = AF_INET;
+    dest->family = PTIN_MGMD_AF_INET;
   }
   else
   {
@@ -1121,12 +1121,12 @@ BOOL ptin_mgmd_inetIsAddrMulticastScope(ptin_mgmd_inet_addr_t *addr)
   if(addr == PTIN_NULLPTR)
     return FAILURE;
 
-  if(addr->family == AF_INET)
+  if(addr->family == PTIN_MGMD_AF_INET)
   {
     /*There is no concept of scoping in IPv4.Hence returning FALSE*/
       return FALSE;
   }
-  else if(addr->family == AF_INET6)
+  else if(addr->family == PTIN_MGMD_AF_INET6)
   {
     if((addr->addr.ipv6.in6.addr8[0] == 0xFF)
        && ((addr->addr.ipv6.in6.addr8[1]) & 0x0f) != 0xe)
@@ -1213,7 +1213,7 @@ int32   ptin_mgmd_inetAddrCompareAddrWithMaskIndividual(ptin_mgmd_inet_addr_t *a
 *********************************************************************/
 int32 ptin_mgmd_inetAddrGetMulticastScopeId(ptin_mgmd_inet_addr_t *addr)
 {
-  if(addr->family == AF_INET6)
+  if(addr->family == PTIN_MGMD_AF_INET6)
   {
     if(addr->addr.ipv6.in6.addr8[0] == 0xFF)
     {
@@ -1242,12 +1242,12 @@ int32 ptin_mgmd_inetAddrGetMulticastScopeId(ptin_mgmd_inet_addr_t *addr)
 BOOL  ptin_mgmd_inetAddrIsScopedInsideAnother(ptin_mgmd_inet_addr_t *addr1, uint32 mask1,
                                        ptin_mgmd_inet_addr_t *addr2, uint32 mask2)
 {
-  if(addr1->family == AF_INET)
+  if(addr1->family == PTIN_MGMD_AF_INET)
   {
     if(ptin_mgmd_inetAddrCompareAddrWithMask(addr1,mask1,addr2,mask2) >= 0)
       return TRUE;
   }
-  else if(addr1->family == AF_INET6)
+  else if(addr1->family == PTIN_MGMD_AF_INET6)
   {
     if(ptin_mgmd_inetAddrGetMulticastScopeId(addr1) < ptin_mgmd_inetAddrGetMulticastScopeId(addr2))
       return TRUE;
@@ -1309,7 +1309,7 @@ RC_t ptin_mgmd_inet6AddressGet(ptin_mgmd_inet_addr_t *inetAddr, ptin_mgmd_in6_ad
     {
         return FAILURE;
     }
-    if (inetAddr->family == AF_INET6)
+    if (inetAddr->family == PTIN_MGMD_AF_INET6)
     {
         memcpy(in6Addr, &inetAddr->addr.ipv6, sizeof(ptin_mgmd_in6_addr_t));
     }
@@ -1368,7 +1368,7 @@ BOOL ptin_mgmd_inetAddrIsHostBitSet(ptin_mgmd_inet_addr_t *inetAddr, ptin_mgmd_i
 RC_t ptin_mgmd_inetIpAddressValidityCheck (uchar8 addrFamily,
                                                                  ptin_mgmd_inet_addr_t *inetAddr)
 {
-  if (addrFamily == AF_INET)
+  if (addrFamily == PTIN_MGMD_AF_INET)
   {
     /* reject the class A net 0 address */
     if ((( (inetAddr->addr.ipv4.s_addr) & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == 0)
@@ -1397,7 +1397,7 @@ RC_t ptin_mgmd_inetIpAddressValidityCheck (uchar8 addrFamily,
      /* reject everything else (class D, E, etc.) */
     return FAILURE;
   }
-  else if (addrFamily == AF_INET6)
+  else if (addrFamily == PTIN_MGMD_AF_INET6)
   {
     if(PTIN_MGMD_IP6_IS_ADDR_LOOPBACK(inetAddr->addr.ipv6.in6. addr32))
     {

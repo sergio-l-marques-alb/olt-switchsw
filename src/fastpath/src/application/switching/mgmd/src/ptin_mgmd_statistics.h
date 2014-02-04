@@ -277,6 +277,9 @@ typedef struct
 
 typedef struct
 {
+  BOOL   used;
+  uint16 serviceId;
+
   uint32 active_groups;
   uint32 active_clients;
 
@@ -319,7 +322,7 @@ typedef struct
  * 
  * @return RC_t 
  */
-RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint16 serviceId, uint32 clientId, ptin_snoop_stat_enum_t field);
+RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clientId, ptin_snoop_stat_enum_t field);
 
 /**
  * Increment client MGMD statistics
@@ -342,7 +345,7 @@ RC_t ptin_mgmd_stat_increment_clientOnly(uint32 portId, uint32 clientId, ptin_sn
  * 
  * @return RC_t 
  */
-RC_t ptin_mgmd_stat_decrement_field(uint32 portId, uint16 serviceId, uint32 clientId, ptin_snoop_stat_enum_t field);
+RC_t ptin_mgmd_stat_decrement_field(uint32 portId, uint32 serviceId, uint32 clientId, ptin_snoop_stat_enum_t field);
 
 
 /**
@@ -375,7 +378,7 @@ RC_t ptin_mgmd_stat_client_clear(uint32 portId, uint32 clientId);
  * 
  * @return RC_t
  */
-RC_t ptin_mgmd_stat_intf_get(uint16 serviceId, uint32 clientId, ptin_IGMP_Statistics_t *interfaceStats);
+RC_t ptin_mgmd_stat_intf_get(uint32 serviceId, uint32 clientId, ptin_IGMP_Statistics_t *interfaceStats);
 
 /**
  * Clear IGMP statistics for a given interface/service
@@ -386,7 +389,16 @@ RC_t ptin_mgmd_stat_intf_get(uint16 serviceId, uint32 clientId, ptin_IGMP_Statis
  * 
  * @return RC_t
  */
-RC_t ptin_mgmd_stat_intf_clear(uint16 serviceId, uint32 interfaceId);
+RC_t ptin_mgmd_stat_intf_clear(uint32 serviceId, uint32 interfaceId);
+
+/**
+ * Reset statistics for the requested service and "remove" it from the statistics array
+ * 
+ * @param serviceId : Service ID
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_stats_service_clear(uint32 serviceId);
 
 
 #endif //_PTIN_MGMD_STATS_H     

@@ -29,6 +29,7 @@
 #include "cnfgr.h"
 
 #include "snooping.h"
+#include "logger.h"
 
 /*********************************************************************
 * @purpose  Determine if the interface type is valid for Snooping
@@ -225,6 +226,7 @@ L7_BOOL snoopIntfCanBeEnabled(L7_uint32 intIfNum, L7_uint32 vlanId)
                             currAcquired);
   if (currAcquired == L7_TRUE)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
     return L7_FALSE;
   }
 
@@ -232,6 +234,7 @@ L7_BOOL snoopIntfCanBeEnabled(L7_uint32 intIfNum, L7_uint32 vlanId)
   if ((ipMapRtrIntfModeGet(intIfNum, &routingEnabled) == L7_SUCCESS) &&
       (routingEnabled == L7_ENABLE))
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
      return L7_FALSE;
   }
    
@@ -243,6 +246,7 @@ L7_BOOL snoopIntfCanBeEnabled(L7_uint32 intIfNum, L7_uint32 vlanId)
     if (dot1sMstiPortStateGet(mstID, intIfNum) != L7_DOT1S_FORWARDING &&
         dot1sMstiPortStateGet(mstID, intIfNum) != L7_DOT1S_MANUAL_FWD)
     {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
        return L7_FALSE;
     }
   }
@@ -252,7 +256,10 @@ L7_BOOL snoopIntfCanBeEnabled(L7_uint32 intIfNum, L7_uint32 vlanId)
     /* configured but not enabled */
     if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || 
          (activeState != L7_ACTIVE) )
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
       return L7_FALSE;
+    }
   }
 
   return L7_TRUE;
