@@ -77,6 +77,7 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
   L7_INTF_MASK_t interfaceBitmap = {{0}};
   L7_uint16      mcastRootVlan;
   L7_RC_t        res = SUCCESS;
+  L7_int32       i;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
 
@@ -86,6 +87,7 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
     return FAILURE;
   } 
 
+  /* Request portList to FP */
   if(PTIN_MGMD_PORT_TYPE_LEAF == portType)
   {
     res = ptin_igmp_clientIntfs_getList(mcastRootVlan, &interfaceBitmap);
@@ -98,6 +100,25 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
     return FAILURE;
+  }
+
+  /* We need to shift the bitmap returned by FP to the left by 1 position to ensure compatibility with MGMD */
+  for(i=0; i < L7_INTF_INDICES; ++i)
+  {
+    L7_uchar8 current_byte;
+
+    current_byte = interfaceBitmap.value[i];
+
+    //'OR' the "lost" bit in the previous position if this is not the first index of the array
+    if(i != 0) 
+    {
+      L7_uchar8 lost_bit;
+
+      lost_bit = (current_byte & 0x80) >> 7;
+      interfaceBitmap.value[i-1] |= lost_bit;
+    }
+
+    interfaceBitmap.value[i] = current_byte << 1;
   }
 
   if(SUCCESS != res)
@@ -206,7 +227,6 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   L7_uint32 packetLength = payloadLength;
   L7_uint32 dstIpAddr;
   L7_inet_addr_t destIp;
-  L7_uint32 i;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
@@ -255,14 +275,6 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
 
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
-
-  printf("\nTx:PayloadLength:%d\n",packetLength);
-  for (i=0;i<packetLength;i++)
-    printf("%02x ",packet[i]);
-  printf("\n");
-
-  //Since the intfNum notation starts with port 1 and MGMD with port 0, we need to convert the portId
-  ++portId;
 
   //Send packet
   LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Sending portId:%u mcastRootVlan:%u packet:%p packetLength:%u family:%u clientId:%u", portId, mcastRootVlan, packet, packetLength, family, clientId);

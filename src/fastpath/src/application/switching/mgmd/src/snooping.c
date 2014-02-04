@@ -2071,7 +2071,7 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
   RC_t res = SUCCESS;
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Context [Length:%u ServiceId:%u PortId:%u ClientId:%u]", eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a packet event type [Length:%u ServiceId:%u PortId:%u ClientId:%u]", eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
   res = ptin_mgmd_packet_process(eventData->payload, eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
