@@ -248,8 +248,8 @@ static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
 static dl_queue_t queue_free_flows;   /* Flows (busy) queues are mapped on each interface per EVC */
 #endif
 
-#if (!PTIN_BOARD_IS_MATRIX)
-
+#if (1)   /* EVCid extended feature */
+/* Vlan Queues */
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS];
 
@@ -353,14 +353,14 @@ static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 //static L7_RC_t ptin_evc_int2ext(L7_uint32 evc_id, L7_uint32 *evc_ext_id);
 
 static void    ptin_evc_vlan_pool_init(void);
-#if (PTIN_BOARD_IS_MATRIX)
-static L7_RC_t ptin_evc_matrix_vlan_allocate(L7_uint16 *vlan, L7_uint16 ext_evc_id, L7_uint32 evc_flags);
-static L7_RC_t ptin_evc_matrix_vlan_free(L7_uint16 vlan);
-#else
+#if (1)   /* EVCid extended feature */
 static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_flags, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
 static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
+#else
+static L7_RC_t ptin_evc_matrix_vlan_allocate(L7_uint16 *vlan, L7_uint16 ext_evc_id, L7_uint32 evc_flags);
+static L7_RC_t ptin_evc_matrix_vlan_free(L7_uint16 vlan);
 #endif
 
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg);
@@ -1736,7 +1736,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
-    #if (!PTIN_BOARD_IS_MATRIX)
+    #if (1)   /* EVCid extended feature */
     if (ptin_evc_freeVlanQueue_allocate(evc_id, evcConf->flags, &freeVlan_queue)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error allocating free vlan queue", evc_id);
@@ -1753,7 +1753,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (switching_vlan_create(PTIN_VLAN_INBAND) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error creating VLAN ID %u for inBand management purposes", evc_id, PTIN_VLAN_INBAND);
-        #if (!PTIN_BOARD_IS_MATRIX)
+        #if (1)   /* EVCid extended feature */
         ptin_evc_freeVlanQueue_free(freeVlan_queue);
         #endif
         ptin_evc_entry_free(evc_ext_id);
@@ -1763,7 +1763,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
     else
     {
-      #if (!PTIN_BOARD_IS_MATRIX)
+      #if (1)   /* EVCid extended feature */
       /* Check if there are enough internal VLANs on the pool
        *  P2P:  only one internal VLAN is needed (shared among all the ports)
        *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
@@ -2042,7 +2042,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         switching_vlan_delete(PTIN_VLAN_INBAND);
       else
       {
-      #if (!PTIN_BOARD_IS_MATRIX)
+      #if (1)   /* EVCid extended feature */
         ptin_evc_vlan_free(root_vlan, freeVlan_queue);
       #else
         ptin_evc_matrix_vlan_free(root_vlan);
@@ -2649,7 +2649,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
     switching_vlan_delete(PTIN_VLAN_INBAND);
   else
   {
-  #if (!PTIN_BOARD_IS_MATRIX)
+  #if (1)   /* EVCid extended feature */
     ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
   #else
     ptin_evc_matrix_vlan_free(evcs[evc_id].rvlan);
@@ -2868,7 +2868,7 @@ L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
     switching_vlan_delete(PTIN_VLAN_INBAND);
   else
   {
-  #if (!PTIN_BOARD_IS_MATRIX)
+  #if (1)   /* EVCid extended feature */
     ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
   #else
     ptin_evc_matrix_vlan_free(evcs[evc_id].rvlan);
@@ -5728,7 +5728,7 @@ static void ptin_evc_entry_init(L7_uint evc_id)
 {
   L7_uint i;
 
-  #if (!PTIN_BOARD_IS_MATRIX)
+  #if (1)   /* EVCid extended feature */
   /* Release free vlan queue */
   ptin_evc_freeVlanQueue_free(evcs[evc_id].queue_free_vlans);
   #endif
@@ -5851,7 +5851,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding leaf [ptin_port=%u Vl=%u]",
               evc_id, ptin_port, int_vlan);
 
-      #if (!PTIN_BOARD_IS_MATRIX)
+      #if (1)   /* EVCid extended feature */
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans);       /* free VLAN */
       #else
       ptin_evc_matrix_vlan_free(int_vlan);
@@ -6044,7 +6044,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     /* Remove vlan */
     if (IS_EVC_ETREE(evc_id))
     {
-      #if (!PTIN_BOARD_IS_MATRIX)
+      #if (1)   /* EVCid extended feature */
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans); /* free VLAN */
       #else
       ptin_evc_matrix_vlan_free(int_vlan);
@@ -6478,7 +6478,7 @@ static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_e
  */
 static void ptin_evc_vlan_pool_init(void)
 {
-#if (!PTIN_BOARD_IS_MATRIX)
+#if (1)   /* EVCid extended feature */
   L7_uint i;
   L7_uint block;
 
@@ -6589,7 +6589,8 @@ static void ptin_evc_vlan_pool_init(void)
   memset(evcId_from_internalVlan, 0xff, sizeof(evcId_from_internalVlan));
 }
 
-#if (PTIN_BOARD_IS_MATRIX)
+/* EVCid extended feature disabled */
+#if (0)
 /**
  * Allocate new internal vlan for matrix board
  * 
