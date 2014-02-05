@@ -59,6 +59,9 @@ all: welcome mgmdconfig
 		echo "Stripping $(BIN_FILE) binary...";\
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
+	@echo "Copying mgmd.cli to ipl directory..."
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/emulator $(OUTPATH)/ipl/mgmd.cli
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
 
 mgmdconfig:
