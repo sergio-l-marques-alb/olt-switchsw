@@ -46,6 +46,8 @@
 #include "logger.h"
 #endif
 
+#include "ptin_evc.h"
+
 /*****************************************************************************
   Local Functions
  ****************************************************************************/
@@ -102,7 +104,11 @@ L7_RC_t snoopL3McastAddNotifyProcess(L7_inet_addr_t *mcastGroupAddr,
 static L7_RC_t snoopL3McastDeleteNotifyProcess(L7_inet_addr_t *mcastGroupAddr,
                                                L7_inet_addr_t *mcastSrcAddr);
 static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode);
+/* PTin Added: MGMD integration */
 #endif
+
+static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr);
+static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr);
 
 static L7_uchar8 snoopMsgQueueSchedule();
 
@@ -398,6 +404,15 @@ void snoopTask(void)
         break;
     case snoopActivateStartupDone:
         break;
+
+    case snoopMgmdSwitchPortOpen:
+        snoopMgmdSwitchPortOpenProcess(pduMsg.vlanId, pduMsg.intIfNum, pduMsg.groupAddress, pduMsg.sourceAddress);
+        break;
+
+    case snoopMgmdSwitchPortClose:
+        snoopMgmdSwitchPortCloseProcess(pduMsg.vlanId, pduMsg.intIfNum, pduMsg.groupAddress, pduMsg.sourceAddress);
+        break;
+
     default:
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
              "snoopTask(): invalid message type:%d.", msg.msgId);
@@ -3280,3 +3295,42 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
   }/* CB iterations */
 }
 #endif /* L7_MCAST_PACKAGE */
+
+static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr)
+{
+  L7_uint16      mcastRootVlan;
+  L7_inet_addr_t groupIp;
+
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to open a new port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+
+  if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+  }
+
+  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
+  if(L7_SUCCESS != snoopGroupIntfAdd(mcastRootVlan, &groupIp, portId, L7_TRUE))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to open port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+  }
+}
+
+static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr)
+{
+  L7_uint16      mcastRootVlan;
+  L7_inet_addr_t groupIp;
+
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to close an existing port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+
+  if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+  }
+
+  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
+  if(L7_SUCCESS != snoopGroupIntfRemove(mcastRootVlan, &groupIp, portId))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to close port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+  }
+}
+

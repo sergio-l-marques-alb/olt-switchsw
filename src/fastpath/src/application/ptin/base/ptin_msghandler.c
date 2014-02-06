@@ -15,6 +15,7 @@
 #include "tty_ptin.h"
 #include "sirerrors.h"
 #include "ptin_control.h"
+#include "ptin_mgmd_api.h"
 
 /* Message processing time measuring */
 
@@ -287,18 +288,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (inbuffer->infoDim==0)
       {
         log_redirect(LOG_OUTOUT_STDOUT, L7_NULLPTR);
+        ptin_mgmd_logredirect(MGMD_LOG_STDOUT, L7_NULLPTR);
         LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to stdout :-)");
       }
       /* Else if null length, use default filename */
       else if (inbuffer->info[0]=='\0')
       {
         log_redirect(LOG_OUTPUT_FILE, L7_NULLPTR);
+        ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT);
         LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
       }
       /* Otherwise, use the specified filename */
       else
       {
         log_redirect(LOG_OUTPUT_FILE, (char *) &inbuffer->info[0]);
+        ptin_mgmd_logredirect(MGMD_LOG_FILE, (char *) &inbuffer->info[0]);
         LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", (char *) &inbuffer->info[0]);
       }
 

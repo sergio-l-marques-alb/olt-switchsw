@@ -91,5 +91,17 @@ RC_t ptin_mgmd_deinit(pthread_t thread_id);
  */
 RC_t ptin_mgmd_logseverity_set(uint8 context, uint8 severity);
 
+/**
+ * Used to set MGMD log level
+ * 
+ * @param logOutput[in]: Output stream [MGMD_LOG_STDERR; MGMD_LOG_STDOUT; MGMD_LOG_FILE]
+ * @param logFile[in]  : System path plus file name for the log file
+ *  
+ * @return none 
+ *  
+ * @note 'logFile' defaults to /var/log/mgmd.log if passed as PTIN_NULLPTR.
+ * @note 'logFile' is ignored if 'logOutput' is not LOG_FILE 
+ */
+void ptin_mgmd_logredirect(uint8 logOutput, char8* logFile);
 
 #endif //_PTIN_MGMD_API_H
