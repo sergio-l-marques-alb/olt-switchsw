@@ -577,7 +577,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   uchar8                             queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
   uint32                             queryHeaderLength = 0;
   ptin_mgmd_externalapi_t            externalApi;
-  mgmdSnoopControlPkt_t              queryPckt         = {0};
+  ptinMgmdControlPkt_t              queryPckt         = {0};
   groupSourceSpecificQueriesAvl_t    *timerData;
   groupSourceSpecificQueriesSource_t *iterator, *auxSourcePtr;
   uint32                             sourcesToSend = 0;
@@ -634,11 +634,11 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
     }
 
     //Build the IGMP Query frame
-    buildIgmpFrame(queryPckt.payLoad, &queryPckt.length, queryHeader, queryHeaderLength);
+    buildIgmpFrame(queryPckt.framePayload, &queryPckt.frameLength, queryHeader, queryHeaderLength);
 
     //Send Group-Source specific query to all leaf ports for this service
     queryPckt.serviceId  = timerData->key.serviceId;  
-    queryPckt.client_idx = (uint32)-1;
+    queryPckt.clientId = (uint32)-1;
     queryPckt.family     = PTIN_MGMD_AF_INET;
     if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, timerData->key.portId))
     {

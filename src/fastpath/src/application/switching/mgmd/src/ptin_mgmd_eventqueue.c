@@ -12,6 +12,8 @@
 **********************************************************************/
 
 #include "ptin_mgmd_eventqueue.h"
+#include "ptin_timer_api.h"
+#include "ptin_mgmd_defs.h"
 #include "logger.h"
 
 #include <errno.h>
@@ -19,12 +21,53 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <signal.h>
+#include <pthread.h>
 
 
-static int32  rxMessageQueueId = -1;
-static uint32 maxRxEventQueueSize = 1000000;
+static int32                rxMessageQueueId = -1;
+static uint32               maxRxEventQueueSize = 1000000;
+static PTIN_MGMD_TIMER_CB_t ctrlTimerCB;
+static PTIN_MGMD_TIMER_t    ctrlTimer;
+static pthread_t            currentThreadId;
+static BOOL                 ctrlTimerHasExpired = FALSE;
 
-static RC_t ptin_mgmd_event_create(PTIN_MGMD_EVENT_t* eventMsg, PTIN_MGMD_EVENT_CODE_t type, void* data, uint32 dataLength);
+static RC_t  ptin_mgmd_event_create(PTIN_MGMD_EVENT_t* eventMsg, PTIN_MGMD_EVENT_CODE_t type, void* data, uint32 dataLength);
+static void* ptin_mgmd_ctrlTimer_timeout(void* param);
+
+
+/**
+* @purpose This method is called if the ctrlTimer expires before the sendCtrlEvent receives a response from MGMD
+*  
+* @return none
+*/
+void* ptin_mgmd_ctrlTimer_timeout(void* param)
+{
+  _UNUSED_(param);
+
+  //Send an interrupt signal to the current thread to cancel the msgrcv call
+  pthread_kill(currentThreadId, SIGINT);
+
+  return PTIN_NULLPTR;
+}
+
+
+/**
+* @purpose This method is called if the ctrlTimer expires before the sendCtrlEvent receives a response from MGMD
+*  
+* @return none
+*/
+void ptin_mgmd_sigint_handler(int sig)
+{
+  if(sig != SIGINT)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Caught an unexpected signal that I don't know how to handle...");
+    return;
+  }
+
+  //Send an interrupt signal to the current thread to cancel the msgrcv call
+  ctrlTimerHasExpired = TRUE;
+}
 
 
 /**
@@ -40,6 +83,7 @@ RC_t ptin_mgmd_eventqueue_init(void)
   struct msqid_ds msgQueueStats = {{0}};
 #endif //_COMPILE_AS_BINARY_
 
+  //Init message queues
   if(-1 == rxMessageQueueId)
   {
     //Ensure that we are the first process to create this message queue
@@ -75,6 +119,21 @@ RC_t ptin_mgmd_eventqueue_init(void)
       return FAILURE;
     }
 #endif //_COMPILE_AS_BINARY_
+  }
+
+  //Init the ctrlTimer used by sendCtrlEvent (We only need to create one timer)
+  if (SUCCESS != ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, 1, 0, &ctrlTimerCB))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to create a new CB for the ctrlTimer");
+    return FAILURE;
+  }
+  ptin_mgmd_timer_init(ctrlTimerCB, &ctrlTimer, &ptin_mgmd_ctrlTimer_timeout);
+
+  //Register the signal handler for SIGINT
+  if ( signal(SIGINT, &ptin_mgmd_sigint_handler)==SIG_ERR )
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to register SIGINT handler");
+    return FAILURE;
   }
 
   return SUCCESS;
@@ -304,11 +363,27 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
     msgrcv(inCtrlMsg.msgQueueId, &auxEvent, PTIN_MGMD_EVENT_MSG_SIZE_MAX, 0, MSG_NOERROR | IPC_NOWAIT);
   } while(errno != ENOMSG);
 
+  //Save the current threadId so we can sendit a SIGINT in case of a timeout
+  currentThreadId = pthread_self();
+  ctrlTimerHasExpired = FALSE;
+  ptin_mgmd_timer_start(ctrlTimer, PTIN_MGMD_CTRL_TIMEOUT*1000, PTIN_NULLPTR);
+
   //Send event to the MGMD
   ptin_mgmd_eventQueue_tx(inEventMsg);
 
   //Wait for response
   ptin_mgmd_messageQueue_receive(inCtrlMsg.msgQueueId, outEventMsg);
+
+  //Have we received a response or did we timeout?
+  if(ctrlTimerHasExpired == TRUE)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Timed out while waiting for MGMD response...");
+    return FAILURE;
+  }
+  else
+  {
+    ptin_mgmd_timer_stop(ctrlTimer);
+  }
 
   //Check event_type, ctrl_code, msg_id for a match and res for 0
   ptin_mgmd_event_ctrl_parse(outEventMsg, &outCtrlMsg);

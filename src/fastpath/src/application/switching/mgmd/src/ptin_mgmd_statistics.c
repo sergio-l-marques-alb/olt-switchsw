@@ -162,41 +162,18 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
     ++mgmd_stat_service[arrayIdx][portId].active_clients;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].active_clients;
     break;
-
-  case SNOOP_STAT_FIELD_IGMP_SENT:
-    ++mgmd_stat_port[portId].igmp_sent;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_sent;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_sent;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_TX_FAILED:
-    ++mgmd_stat_port[portId].igmp_tx_failed;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_tx_failed;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_tx_failed;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_INTERCEPTED:
-    ++mgmd_stat_port[portId].igmp_intercepted;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_intercepted;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_intercepted;
-    break;
+  
 
   case SNOOP_STAT_FIELD_IGMP_DROPPED:
-    ++mgmd_stat_port[portId].igmp_dropped;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_dropped;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_dropped;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID:
-    ++mgmd_stat_port[portId].igmp_received_valid;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_received_valid;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_received_valid;
+    ++mgmd_stat_port[portId].igmp_dropped_rx;
+    ++mgmd_stat_service[arrayIdx][portId].igmp_dropped_rx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
-    ++mgmd_stat_port[portId].igmp_received_invalid;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_received_invalid;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_received_invalid;
+    ++mgmd_stat_port[portId].igmp_invalid_rx;
+    ++mgmd_stat_service[arrayIdx][portId].igmp_invalid_rx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:  
@@ -277,34 +254,34 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.source_query_dropped_rx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_SENT:
-    ++mgmd_stat_port[portId].joins_sent;
-    ++mgmd_stat_service[arrayIdx][portId].joins_sent;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].joins_sent;
+  case SNOOP_STAT_FIELD_JOIN_TX:
+    ++mgmd_stat_port[portId].igmpv2.join_tx;
+    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_tx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_tx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS:
-    ++mgmd_stat_port[portId].joins_received_success;
-    ++mgmd_stat_service[arrayIdx][portId].joins_received_success;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].joins_received_success;
+  case SNOOP_STAT_FIELD_JOIN_VALID_RX:
+    ++mgmd_stat_port[portId].igmpv2.join_valid_rx;
+    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_valid_rx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_valid_rx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
-    ++mgmd_stat_port[portId].joins_received_failed;
-    ++mgmd_stat_service[arrayIdx][portId].joins_received_failed;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].joins_received_failed;
+  case SNOOP_STAT_FIELD_JOIN_INVALID_RX:
+    ++mgmd_stat_port[portId].igmpv2.join_invalid_rx;
+    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_invalid_rx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_invalid_rx;
     break;
 
-  case SNOOP_STAT_FIELD_LEAVES_SENT:
-    ++mgmd_stat_port[portId].leaves_sent;
-    ++mgmd_stat_service[arrayIdx][portId].leaves_sent;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].leaves_sent;
+  case SNOOP_STAT_FIELD_LEAVE_TX:
+    ++mgmd_stat_port[portId].igmpv2.leave_tx;
+    ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_tx ;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.leave_tx ;
     break;
 
-  case SNOOP_STAT_FIELD_LEAVES_RECEIVED:
-    ++mgmd_stat_port[portId].leaves_received;
-    ++mgmd_stat_service[arrayIdx][portId].leaves_received;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].leaves_received;
+  case SNOOP_STAT_FIELD_LEAVE_VALID_RX:
+    ++mgmd_stat_port[portId].igmpv2.leave_valid_rx;
+    ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_valid_rx;
+    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.leave_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
@@ -551,28 +528,12 @@ RC_t ptin_mgmd_stat_increment_clientOnly(uint32 portId, uint32 clientId, ptin_sn
     ++mgmd_stat_client[portId][clientId].active_clients;
     break;
 
-  case SNOOP_STAT_FIELD_IGMP_SENT:
-    ++mgmd_stat_client[portId][clientId].igmp_sent;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_TX_FAILED:
-    ++mgmd_stat_client[portId][clientId].igmp_tx_failed;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_INTERCEPTED:
-    ++mgmd_stat_client[portId][clientId].igmp_intercepted;
-    break;
-
   case SNOOP_STAT_FIELD_IGMP_DROPPED:
-    ++mgmd_stat_client[portId][clientId].igmp_dropped;
-    break;
-
-  case SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID:
-    ++mgmd_stat_client[portId][clientId].igmp_received_valid;
+    ++mgmd_stat_client[portId][clientId].igmp_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
-    ++mgmd_stat_client[portId][clientId].igmp_received_invalid;
+    ++mgmd_stat_client[portId][clientId].igmp_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:  
@@ -627,24 +588,24 @@ RC_t ptin_mgmd_stat_increment_clientOnly(uint32 portId, uint32 clientId, ptin_sn
     ++mgmd_stat_client[portId][clientId].igmpquery.source_query_dropped_rx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_SENT:
-    ++mgmd_stat_client[portId][clientId].joins_sent;
+  case SNOOP_STAT_FIELD_JOIN_TX:
+    ++mgmd_stat_client[portId][clientId].igmpv2.join_tx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS:
-    ++mgmd_stat_client[portId][clientId].joins_received_success;
+  case SNOOP_STAT_FIELD_JOIN_VALID_RX:
+    ++mgmd_stat_client[portId][clientId].igmpv2.join_valid_rx;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
-    ++mgmd_stat_client[portId][clientId].joins_received_failed;
+  case SNOOP_STAT_FIELD_JOIN_INVALID_RX:
+    ++mgmd_stat_client[portId][clientId].igmpv2.join_invalid_rx;
     break;
 
-  case SNOOP_STAT_FIELD_LEAVES_SENT:
-    ++mgmd_stat_client[portId][clientId].leaves_sent;
+  case SNOOP_STAT_FIELD_LEAVE_TX:
+    ++mgmd_stat_client[portId][clientId].igmpv2.leave_tx ;
     break;
 
-  case SNOOP_STAT_FIELD_LEAVES_RECEIVED:
-    ++mgmd_stat_client[portId][clientId].leaves_received;
+  case SNOOP_STAT_FIELD_LEAVE_VALID_RX:
+    ++mgmd_stat_client[portId][clientId].igmpv2.leave_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:

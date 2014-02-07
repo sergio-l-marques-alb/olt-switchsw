@@ -155,6 +155,8 @@ BOOL ptin_mgmd_proxycmtimer_isRunning(snoopPTinCMtimer_t* pTimer)
 
 RC_t ptin_mgmd_event_proxycmtimer(snoopPTinCMtimer_t **timerData)
 {
+  ptin_IgmpProxyCfg_t igmpGlobalCfg;
+
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Proxy compatibility-mode timer expired");
   
   //Validations
@@ -164,7 +166,13 @@ RC_t ptin_mgmd_event_proxycmtimer(snoopPTinCMtimer_t **timerData)
     return ERROR;
   }
 
-  (*timerData)->compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; //Restore compatibility-mode
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
+    return ERROR;
+  }
+
+  (*timerData)->compatibilityMode = igmpGlobalCfg.networkVersion; //Restore compatibility-mode
 
   return SUCCESS;
 }

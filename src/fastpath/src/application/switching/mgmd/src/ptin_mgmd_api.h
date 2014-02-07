@@ -53,7 +53,7 @@ typedef struct
   RC_t (*port_open)      (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
   RC_t (*port_close)     (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
                          
-  RC_t (*tx_packet)      (uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+  RC_t (*tx_packet)      (uchar8 *framePayload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
 } ptin_mgmd_externalapi_t;
 
 

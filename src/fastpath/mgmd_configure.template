@@ -30,12 +30,15 @@ if test -f configure; then
    export OBJCOPY="$COMPILER_DIR"/"$COMPILER_PREFIX"objcopy
    export OBJDUMP="$COMPILER_DIR"/"$COMPILER_PREFIX"objdump
    export INSTALL=/usr/bin/install
+   #export PTIN_MGMD_PLATFORM_CTRL_TIMEOUT=
+   #export PTIN_MGMD_PLATFORM_STACK_SIZE=
    #export PTIN_MGMD_PLATFORM_MAX_CHANNELS=
    #export PTIN_MGMD_PLATFORM_MAX_WHITELIST=
    #export PTIN_MGMD_PLATFORM_MAX_CLIENTS=
    #export PTIN_MGMD_PLATFORM_MAX_PORTS=
    #export PTIN_MGMD_PLATFORM_MAX_SERVICES=
    #export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=
+   #export PTIN_MGMD_PLATFORM_MAX_FRAME_SIZE=
 
    rm -rf ./build/export.var
    echo '.EXPORT_ALL_VARIABLES:' > ./build/export.var
@@ -68,6 +71,7 @@ if test -f configure; then
    echo "export OBJCOPY                           = $OBJCOPY"                              >> ./build/export.var
    echo "export OBJDUMP                           = $OBJDUMP"                              >> ./build/export.var
    echo "export INSTALL                           = $INSTALL"                              >> ./build/export.var
+   echo "export PTIN_MGMD_PLATFORM_CTRL_TIMEOUT   = $PTIN_MGMD_PLATFORM_CTRL_TIMEOUT"      >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_STACK_SIZE     = $PTIN_MGMD_PLATFORM_STACK_SIZE"        >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_CHANNELS   = $PTIN_MGMD_PLATFORM_MAX_CHANNELS"      >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_WHITELIST  = $PTIN_MGMD_PLATFORM_MAX_WHITELIST"     >> ./build/export.var

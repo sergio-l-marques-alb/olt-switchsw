@@ -79,7 +79,7 @@ RC_t      mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime);
 int32     ptinMgmd_generate_random_response_delay (int32 maxResponseTime);
 
 RC_t      ptinMgmdPacketSend(struct mgmdSnoopControlPkt_s *mcastPacket, uchar8 igmp_type, uchar8 portType);
-RC_t      ptinMgmdPacketPortSend(mgmdSnoopControlPkt_t *mcastPacket, uint8 igmp_type, uint16 portId);
+RC_t      ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, uint16 portId);
 
 ushort16  ptinMgmdCheckSum(ushort16 *addr, ushort16 len, ushort16 csum);
 

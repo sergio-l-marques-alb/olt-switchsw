@@ -559,13 +559,13 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 {
   uchar8                 mgmdFrame[PTIN_MGMD_MAX_FRAME_SIZE]={0}; 
   uchar8                *dataStart=mgmdFrame, 
-                         type,
+                         type = PTIN_IGMP_MEMBERSHIP_QUERY,
                          version; 
   uint32                 ipv4Addr,                          
                          frameLength = 0;  
   ptin_mgmd_inet_addr_t       destIp,  
                          groupAddr;  
-  mgmdSnoopControlPkt_t  mcastPacket; 
+  ptinMgmdControlPkt_t  mcastPacket; 
   RC_t                   rc = SUCCESS;
   uint32 ipAddr;
 
@@ -618,7 +618,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);
 
     rc = ptinMgmdIGMPFrameBuild(&destIp,/* 224.0.0.1 */
-                                type,       /* 0x11 or 130*/
+                                type,       /* 0x11*/
                                 &groupAddr,   /* Group address for General query */      
                                 dataStart,    
                                 version);
@@ -688,16 +688,17 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   }
 #endif
 
+  mcastPacket.msgType     = type;
   mcastPacket.cbHandle    = mgmdCBGet(family);;
   mcastPacket.portId      = PTIN_NULL;
   mcastPacket.serviceId   = serviceId;  
-  mcastPacket.client_idx  = (uint32)-1;
-  mcastPacket.length      = frameLength;
+  mcastPacket.clientId  = (uint32)-1;
+  mcastPacket.frameLength      = frameLength;
   mcastPacket.family      = family;
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &igmpGlobalCfg.ipv4_addr, &mcastPacket.srcAddr);
   ipAddr = PTIN_MGMD_IGMP_ALL_HOSTS_ADDR;
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipAddr, &mcastPacket.destAddr);
-  memcpy(mcastPacket.payLoad,dataStart,frameLength);
+  memcpy(mcastPacket.framePayload,dataStart,frameLength);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (vlanId=%u)",serviceId);
 

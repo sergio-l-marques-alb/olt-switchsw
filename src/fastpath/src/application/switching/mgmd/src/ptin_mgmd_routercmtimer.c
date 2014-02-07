@@ -82,7 +82,7 @@ RC_t ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer)
 
 RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 portId)
 {
-  RC_t ret = SUCCESS;
+  RC_t rc = SUCCESS;
   ptin_IgmpProxyCfg_t       igmpGlobalCfg;
 
   if (PTIN_NULLPTR == __controlBlock)
@@ -110,9 +110,9 @@ RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 port
     ptin_mgmd_timer_stop(groupData->interfaces[portId].groupCMTimer.timer);
   }
 
-  ret = ptin_mgmd_timer_start(groupData->interfaces[portId].groupCMTimer.timer, igmpGlobalCfg.querier.older_host_present_timeout*1000, &groupData->interfaces[portId].groupCMTimer);
+  rc = ptin_mgmd_timer_start(groupData->interfaces[portId].groupCMTimer.timer, igmpGlobalCfg.querier.older_host_present_timeout*1000, &groupData->interfaces[portId].groupCMTimer);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
-  return ret;
+  return rc;
 }
 
 
@@ -146,15 +146,23 @@ BOOL ptin_mgmd_routercmtimer_isRunning(snoopPTinCMtimer_t* pTimer)
 
 RC_t ptin_mgmd_event_routercmtimer(snoopPTinCMtimer_t **timerData)
 {
+  ptin_IgmpProxyCfg_t igmpGlobalCfg;
+
   if (PTIN_NULLPTR == ptinMgmdL3EntryFind((*timerData)->groupKey.serviceId, &(*timerData)->groupKey.groupAddr, AVL_EXACT))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Router Compatibility Mode Timer to process (serviceId:[%u] groupAddr:[0x%X]), but we were unable to find the entry in the AVL tree",(*timerData)->groupKey.serviceId,(*timerData)->groupKey.groupAddr.addr.ipv4.s_addr);
     return SUCCESS;
   }   
-
+  
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Router compatibility-mode timer expired");
 
-  (*timerData)->compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; //Restore compatibility-mode
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
+    return ERROR;
+  }
+
+  (*timerData)->compatibilityMode = igmpGlobalCfg.clientVersion; //Restore compatibility-mode
 
   return SUCCESS;
 }

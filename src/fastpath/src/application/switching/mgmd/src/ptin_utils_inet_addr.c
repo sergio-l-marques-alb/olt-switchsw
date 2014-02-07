@@ -368,14 +368,14 @@ RC_t ptin_mgmd_inetAddrHtop(ptin_mgmd_inet_addr_t *addr, char8 *string)
     if (addr == PTIN_NULLPTR || string == PTIN_NULLPTR)
     {
         return FAILURE;
-    }
+    }    
     if (addr->family == PTIN_MGMD_AF_INET)
     {
-        inet_ntop(PTIN_MGMD_AF_INET,(uchar8 *)&addr->addr.ipv4,string,IP4_STR_LEN);
+        inet_ntop(AF_INET,(uchar8 *)&addr->addr.ipv4,string,IP4_STR_LEN);
     }
     else if (addr->family == PTIN_MGMD_AF_INET6)
     {
-        inet_ntop(PTIN_MGMD_AF_INET6,(uchar8 *)&addr->addr.ipv6,string,IP6_LEN);
+        inet_ntop(AF_INET6,(uchar8 *)&addr->addr.ipv6,string,IP6_LEN);
     }
     else {
       snprintf(string, IP6_LEN, "Wrong-family-addr");
