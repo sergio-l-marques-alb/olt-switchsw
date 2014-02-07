@@ -667,14 +667,34 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
+  if (newInnerVlanId == 0)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_NONE;
+  }
+  else if (newInnerVlanId > 4095)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  /* Valid new inner vlan */
+  else if (innerVlanId == 0)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_ADD;
+  }
+  else
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_REPLACE;
+  }
+
+  #if 0
   if (innerVlanId!=0)
   {
-    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
+    xlate.innerAction = (newInnerVlanId != 0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE; 
   }
   else
   {
     xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
   }
+  #endif
 #endif
 
   /* DTL call */
@@ -1098,13 +1118,18 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  if (newInnerVlanId==0)
+  if (newInnerVlanId == 0) 
   {
     xlate.innerAction = PTIN_XLATE_ACTION_NONE;
   }
-  else if (newInnerVlanId>4095)
+  else if (newInnerVlanId > 4095)
   {
     xlate.innerAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  /* Valid new inner vlan id */
+  else if (innerVlanId == 0)
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_ADD;
   }
   else
   {

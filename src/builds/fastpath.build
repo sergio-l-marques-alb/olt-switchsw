@@ -148,7 +148,7 @@ if [ -e $APPS_PATH/backup ]; then
   done
   sync
   cd $APPS_PATH/backup
-  rm -f *.tgz
+  rm -f *.tgz *.7z
   7z a $backup_7z $PLATFORMS
   cd -
   mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
