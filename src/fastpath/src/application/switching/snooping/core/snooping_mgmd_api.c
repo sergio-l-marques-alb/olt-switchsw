@@ -163,9 +163,11 @@ RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_
   return SUCCESS;
 }
 
-RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, uint8 *clientList)
+RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+
+  memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
 
   return SUCCESS;
 }
@@ -177,7 +179,7 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
   snoopPDU_Msg_t msg;
 
   /*
-   * We were forced to implement this method assynchonous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
+   * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
@@ -213,7 +215,7 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
   snoopPDU_Msg_t msg;
 
   /*
-   * We were forced to implement this method assynchonous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
+   * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
@@ -302,7 +304,6 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
   //Send packet
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Sending portId:%u mcastRootVlan:%u packet:%p packetLength:%u family:%u clientId:%u", portId, mcastRootVlan, packet, packetLength, family, clientId);
   snoopPacketSend(portId, mcastRootVlan, 0, packet, packetLength, family, clientId);
 
   return SUCCESS;

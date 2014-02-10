@@ -1460,21 +1460,21 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   {
     case PTIN_IGMP_MEMBERSHIP_QUERY:
     {
-      uint8  clientBitmap[PTIN_MGMD_CLIENT_BITMAP_SIZE] = {0};
-      uint32 clientIdx;
+      PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
+      uint32                  clientIdx;
 
       //Increment port and service statistics
       ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
       
       //Increment client statistics for this port
-      if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, clientBitmap)))
+      if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
       {
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
         return rc;
       }
       for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
       {
-        if (PTIN_MGMD_IS_MASKBITSET(clientBitmap, clientIdx))
+        if (PTIN_MGMD_IS_MASKBITSET(clientBitmap.value, clientIdx))
         {
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
         }

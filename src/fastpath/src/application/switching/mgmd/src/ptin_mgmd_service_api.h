@@ -62,13 +62,13 @@ RC_t ptin_mgmd_port_getType(uint32 serviceId, uint32 portId, ptin_mgmd_port_type
  * 
  * @param serviceId  : Service Identifier
  * @param portId     : Port Identifier
- * @param clientList : Client bitmap (with size PTIN_MGMD_CLIENT_BITMAP_SIZE) 
+ * @param clientList : Client bitmap
  * 
  * @return RC_t 
  *  
  * @notes: none 
  */
-RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, uint8 *clientList);
+RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
  
 /**
  *  Open Port Id for a given Multicast IP Address and Source IP
