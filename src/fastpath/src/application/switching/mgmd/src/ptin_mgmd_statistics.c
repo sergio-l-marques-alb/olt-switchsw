@@ -12,7 +12,7 @@
 **********************************************************************/
 
 #include "ptin_mgmd_statistics.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_service_api.h"
 #include "ptin_mgmd_defs.h"
 #include "ptin_mgmd_osapi.h"

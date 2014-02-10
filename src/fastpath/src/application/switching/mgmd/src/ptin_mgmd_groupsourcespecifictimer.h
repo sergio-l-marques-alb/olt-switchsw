@@ -15,7 +15,7 @@
 
 #include "ptin_timer_api.h"
 #include "ptin_mgmd_specificquery.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 
 RC_t   ptin_mgmd_groupsourcespecifictimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
 RC_t   ptin_mgmd_groupsourcespecifictimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);

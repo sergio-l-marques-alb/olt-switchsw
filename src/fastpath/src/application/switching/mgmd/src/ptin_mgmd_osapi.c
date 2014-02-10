@@ -6,7 +6,7 @@
  */
 
 #include "ptin_mgmd_osapi.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 #include <pthread.h>
 #include <stdlib.h>

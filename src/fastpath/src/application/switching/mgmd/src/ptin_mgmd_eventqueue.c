@@ -14,7 +14,7 @@
 #include "ptin_mgmd_eventqueue.h"
 #include "ptin_timer_api.h"
 #include "ptin_mgmd_defs.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 #include <errno.h>
 #include <string.h>

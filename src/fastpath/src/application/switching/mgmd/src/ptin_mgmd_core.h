@@ -26,7 +26,7 @@
 #ifndef SNOOPING_H
 #define SNOOPING_H
 
-#include "avl_api.h"
+#include "ptin_mgmd_avl_api.h"
 #include "ptin_timer_api.h"
 #include "ptin_mgmd_querier.h"
 #include "ptin_mgmd_features.h"

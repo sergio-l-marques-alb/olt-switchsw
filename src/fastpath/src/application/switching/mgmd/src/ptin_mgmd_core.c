@@ -21,12 +21,11 @@
 * @end
 *
 **********************************************************************/
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_util.h"
 
 #include "ptin_mgmd_db.h"
-#include "snooping_ptin_defs.h"
-#include "logger.h" 
+#include "ptin_mgmd_logger.h" 
 #include "ptin_mgmd_osapi.h"
 #include "ptin_mgmd_features.h"
 
@@ -81,9 +80,9 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
   }
 
   buffPtr = mcastPacket->ipPayload;
-  SNOOP_GET_BYTE(igmpType, buffPtr);
+  PTIN_MGMD_GET_BYTE(igmpType, buffPtr);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMP Type:[0x%X] NetworkVersion:[%u] ClientVersion:[%u]", igmpType, igmpCfg.networkVersion, igmpCfg.clientVersion);
-  SNOOP_UNUSED_PARAM(buffPtr);  
+  PTIN_MGMD_UNUSED_PARAM(buffPtr);  
 
   //Validate total length value
   if ((igmpType == PTIN_IGMP_V3_MEMBERSHIP_REPORT && mcastPacket->ipPayloadLength < IGMP_V3_PKT_MIN_LENGTH) ||
@@ -271,16 +270,16 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
   }
   
   //Parse IP header
-  SNOOP_GET_BYTE(ip_header.iph_versLen, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_tos, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_len, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_ident, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_flags_frag, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_ttl, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_prot, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_csum, buffPtr);
-  SNOOP_GET_ADDR(&ip_header.iph_src, buffPtr);
-  SNOOP_GET_ADDR(&ip_header.iph_dst, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_versLen, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_tos, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_len, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_ident, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_flags_frag, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_ttl, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_prot, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_csum, buffPtr);
+  PTIN_MGMD_GET_ADDR(&ip_header.iph_src, buffPtr);
+  PTIN_MGMD_GET_ADDR(&ip_header.iph_dst, buffPtr);
 
   //Required as per RFC 3376
   if (ip_header.iph_ttl != PTIN_TTL_VALID_VALUE)
@@ -708,10 +707,10 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
 
   if (mcastPacket->family == PTIN_MGMD_AF_INET) /* IGMP Message */
   {
-    SNOOP_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
-    SNOOP_GET_BYTE(maxRespCode, dataPtr);   /* Max Response Code - 8 Bits IGMP*/
-    SNOOP_GET_SHORT(recdChecksum, dataPtr); /* Checksum */
-    SNOOP_GET_ADDR(&ipv4Addr, dataPtr);     /* Group Address */
+    PTIN_MGMD_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
+    PTIN_MGMD_GET_BYTE(maxRespCode, dataPtr);   /* Max Response Code - 8 Bits IGMP*/
+    PTIN_MGMD_GET_SHORT(recdChecksum, dataPtr); /* Checksum */
+    PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);     /* Group Address */
 
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Dst Addr:[%s], Group Addr:[%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf), ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf2));
@@ -742,7 +741,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
       }
 #endif
 
-      SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
+      PTIN_MGMD_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
       robustnessVariable = byteVal & 0x07;    
       if (robustnessVariable<PTIN_MIN_ROBUSTNESS_VARIABLE)
       {
@@ -750,10 +749,10 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
         return FAILURE;
       }
 
-      SNOOP_GET_BYTE(byteVal, dataPtr);       /* QQIC */
-      SNOOP_GET_SHORT(noOfSources, dataPtr);  /* Number of sources */
+      PTIN_MGMD_GET_BYTE(byteVal, dataPtr);       /* QQIC */
+      PTIN_MGMD_GET_SHORT(noOfSources, dataPtr);  /* Number of sources */
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Robustness:[%u], QQIC:[%u], noOfSources:[%u]", robustnessVariable, byteVal, noOfSources);
-      SNOOP_UNUSED_PARAM(dataPtr);
+      PTIN_MGMD_UNUSED_PARAM(dataPtr);
 
       if (mcastPacket->ipPayloadLength != (MGMD_IGMPV3_HEADER_MIN_LENGTH + noOfSources * sizeof(ptin_mgmd_in_addr_t)))
       {
@@ -1105,7 +1104,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
     {
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
       {
-        SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
+        PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[sourceIdx]);
         if (ptin_mgmd_inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[sourceIdx])!=SUCCESS)
         {
@@ -1395,7 +1394,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
 
   //Move dataPtr to the 'Number of Group Records' field (6 bytes offset)
   dataPtr = mcastPacket->ipPayload + 6;
-  SNOOP_GET_SHORT(noOfGroups, dataPtr);
+  PTIN_MGMD_GET_SHORT(noOfGroups, dataPtr);
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Number of Group records [%u]", noOfGroups);
 
   //We need to fix this in the near future: since it can be used to prevent DOS attacks
@@ -1416,11 +1415,11 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
   {
     ptin_mgmd_inet_addr_t groupAddr = {0}; 
 
-    SNOOP_GET_BYTE(recType, dataPtr); //Record type    
+    PTIN_MGMD_GET_BYTE(recType, dataPtr); //Record type    
       
-    SNOOP_GET_BYTE(auxDataLen, dataPtr);   //AuxData Len
-    SNOOP_GET_SHORT(noOfSources, dataPtr); //Number of sources 
-    SNOOP_GET_ADDR(&ipv4Addr, dataPtr);    //Multicast Address
+    PTIN_MGMD_GET_BYTE(auxDataLen, dataPtr);   //AuxData Len
+    PTIN_MGMD_GET_SHORT(noOfSources, dataPtr); //Number of sources 
+    PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);    //Multicast Address
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);    
     
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Group Record: recordType:[%u] auxDataLen:[%u] numberOfSources:[%u] groupAddr:[%s]", recType,auxDataLen, noOfSources, ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf));
@@ -1490,7 +1489,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
       for (i=0, srcIdx=0; i<noOfSources; ++i)
       {
         memset(&sourceList[i], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
-        SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
+        PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[srcIdx]);
 
         //If the white-list filtering is enabled, we must ensure that this is a valid channel
@@ -1902,7 +1901,7 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
 
   //Validate destination address (224.0.0.2 for Leave reports; group address for others)
   dataPtr = mcastPacket->ipPayload + 4;
-  SNOOP_GET_ADDR(&groupAddr, dataPtr);
+  PTIN_MGMD_GET_ADDR(&groupAddr, dataPtr);
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipDstAddr);
   if(PTIN_IGMP_V2_LEAVE_GROUP == igmpType)
   {

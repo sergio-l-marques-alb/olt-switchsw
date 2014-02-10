@@ -14,7 +14,7 @@
 #ifdef _COMPILE_AS_BINARY_ //All methods in this file should not be compiled if we are compiling as a lib
 
 #include "ptin_mgmd_cfg_api.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 /**
 * @purpose Enable/Disable IGMP packets to be captures by the HW

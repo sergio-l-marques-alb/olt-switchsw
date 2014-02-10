@@ -11,11 +11,10 @@
 *
 **********************************************************************/
 #include "ptin_utils_inet_addr_api.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_util.h"
 #include "ptin_mgmd_db.h"
-#include "logger.h"
-#include "snooping_ptin_defs.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_service_api.h"
 #include "ptin_mgmd_util.h"
 #include "ptin_mgmd_grouptimer.h"
@@ -23,7 +22,7 @@
 #include "ptin_mgmd_proxytimer.h"
 #include "ptin_mgmd_routercmtimer.h"
 #include "ptin_mgmd_proxycmtimer.h"
-#include "avl_api.h"
+#include "ptin_mgmd_avl_api.h"
 #include "ptin_mgmd_service_api.h"
 #include "ptin_mgmd_cnfgr.h"
 
@@ -302,24 +301,24 @@ static RC_t snoopPTinReportFrameV3Build(uint32 noOfRecords, mgmdGroupRecord_t* g
 
   /* Type = 0x22 */
   byteVal = 0x22;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Reserved = 0x00 */
   byteVal = 0x00;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Checksum = 0*/
   chksumPtr = dataPtr;
   shortVal = 0;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Reserved = 0x00 */
   shortVal = 0x0000;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Number of Records (M)*/
   shortVal=(ushort16) noOfRecords;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Number of Group Records :%u",(ushort16) noOfRecords);
   groupPtrAux=groupPtr;
@@ -353,7 +352,7 @@ static RC_t snoopPTinReportFrameV3Build(uint32 noOfRecords, mgmdGroupRecord_t* g
 
   /* Determine Checksum */
   shortVal = ptinMgmdCheckSum((ushort16 *) buffer, *length, 0);
-  SNOOP_PUT_SHORT(shortVal, chksumPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, chksumPtr);
 
   return SUCCESS;
 }
@@ -390,20 +389,20 @@ static RC_t ptinIgmpV2FrameBuild(uint8 igmpType,mgmdGroupRecord_t* groupPtr, uch
 
   /* Type */
   byteVal = igmpType;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Max Resp Time = 0x00 */
   byteVal = 0x00;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Checksum = 0*/
   chksumPtr = dataPtr;
   shortVal = 0;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Group Address*/
   ipv4Addr=groupPtr->key.groupAddr.addr.ipv4.s_addr;
-  SNOOP_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
+  PTIN_MGMD_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
   
   /* Update frame length */
   *length = MGMD_IGMPv1v2_HEADER_LENGTH;
@@ -411,7 +410,7 @@ static RC_t ptinIgmpV2FrameBuild(uint8 igmpType,mgmdGroupRecord_t* groupPtr, uch
 
   /* Determine Checksum */
   shortVal = ptinMgmdCheckSum((ushort16 *) buffer, *length, 0);
-  SNOOP_PUT_SHORT(shortVal, chksumPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, chksumPtr);
 
   return SUCCESS;
 }
@@ -449,15 +448,15 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
 
   /* Record Type */
   byteVal = recordType;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Aux Data Len */
   byteVal = 0x00;;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /*Number of Sources*/
   shortVal = numberOfSources;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /*Multicast Address*/
   if (groupAddr->family!=PTIN_MGMD_AF_INET)
@@ -467,7 +466,7 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   }
 
   ipv4Addr=groupAddr->addr.ipv4.s_addr;
-  SNOOP_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
+  PTIN_MGMD_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Number of Sources :%u", numberOfSources);
   sourcePtr=source;  
@@ -482,7 +481,7 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source (sourceAddr: %s)", ptin_mgmd_inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
 
     ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &sourcePtr->key.sourceAddr,  &ipv4Addr );  
-    SNOOP_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
+    PTIN_MGMD_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
 
     sourcePtr=sourcePtr->nextSource;
   }
@@ -557,39 +556,39 @@ static RC_t  snoopPTinPacketBuild(uint32 serviceId, ptinMgmdControlPkt_t* mcastP
 
     /* IP Version */
     byteVal = (PTIN_IP_VERSION << 4) | (PTIN_IP_HDR_VER_LEN + (IGMP_IP_ROUTER_ALERT_LENGTH / 4));
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* TOS */
     byteVal = MGMD_IP_TOS;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* Payload Length */
     shortVal = PTIN_IP_HDR_LEN + IGMP_IP_ROUTER_ALERT_LENGTH + igmpFrameLength;
-    SNOOP_PUT_SHORT(shortVal, dataPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
     /* Identified */
     shortVal = iph_ident++;
-    SNOOP_PUT_SHORT(shortVal, dataPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
     /* Fragment flags */
     shortVal = 0;
-    SNOOP_PUT_SHORT(shortVal, dataPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
     /* TTL */
     byteVal = MGMD_IP_TTL;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* Protocol */
     byteVal = IGMP_PROT;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* Checksum = 0*/
     chksumPtr = dataPtr;
     shortVal = 0;
-    SNOOP_PUT_SHORT(shortVal, dataPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
     /* Source Address - Proxy source address */    
-    SNOOP_PUT_DATA(&mcastPacket->srcAddr.addr.ipv4.s_addr, PTIN_IP_ADDR_LEN, dataPtr);
+    PTIN_MGMD_PUT_DATA(&mcastPacket->srcAddr.addr.ipv4.s_addr, PTIN_IP_ADDR_LEN, dataPtr);
 
     /* Destination Address */  
     switch(packetType)
@@ -620,20 +619,20 @@ static RC_t  snoopPTinPacketBuild(uint32 serviceId, ptinMgmdControlPkt_t* mcastP
         return FAILURE;
       }
     }    
-    SNOOP_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
+    PTIN_MGMD_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
 
     /* IP Options */
     byteVal = IGMP_IP_ROUTER_ALERT_TYPE;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
     byteVal = IGMP_IP_ROUTER_ALERT_LENGTH;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
     byteVal = 0;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* Determine Checksum */
     shortVal = ptinMgmdCheckSum((ushort16 *) ipHdrStartPtr, PTIN_IP_HDR_LEN + IGMP_IP_ROUTER_ALERT_LENGTH, 0);
-    SNOOP_PUT_SHORT(shortVal, chksumPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, chksumPtr);
   }
 
   /* Update frame length */
@@ -648,7 +647,7 @@ static RC_t  snoopPTinPacketBuild(uint32 serviceId, ptinMgmdControlPkt_t* mcastP
   }
 
   /* Add IGMP Frame to the end of the new MAC+IP Frame */
-  SNOOP_PUT_DATA(igmpFrameBuffer, igmpFrameLength, dataPtr);
+  PTIN_MGMD_PUT_DATA(igmpFrameBuffer, igmpFrameLength, dataPtr);
 
   return SUCCESS;
 }

@@ -12,9 +12,9 @@
 **********************************************************************/
 
 #include "ptin_mgmd_api.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_cnfgr.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_specificquery.h"
 #include "ptin_mgmd_db.h"
 #include "ptin_utils_inet_addr_api.h"

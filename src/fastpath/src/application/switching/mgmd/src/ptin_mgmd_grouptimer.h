@@ -14,7 +14,7 @@
 #define _PTIN_MGMD_GROUPTIMER_H
 
 #include "ptin_timer_api.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 
 
 RC_t   ptin_mgmd_grouptimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);

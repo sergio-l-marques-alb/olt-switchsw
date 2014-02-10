@@ -15,7 +15,7 @@
 #include "ptin_mgmd_eventqueue.h"
 #include "ptin_utils_inet_addr_api.h"
 #include "ptin_mgmd_db.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_cnfgr.h"
 
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;

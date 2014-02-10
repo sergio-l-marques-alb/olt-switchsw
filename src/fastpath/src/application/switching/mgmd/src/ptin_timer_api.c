@@ -16,7 +16,7 @@
 #include <signal.h>
 
 #include "ptin_timer_api.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 static unsigned short numCBs=0;
 

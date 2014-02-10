@@ -15,7 +15,7 @@
 #include "ptin_mgmd_cnfgr.h"
 #include "ptin_mgmd_osapi.h"
 #include "ptin_utils_inet_addr_api.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 
 /**

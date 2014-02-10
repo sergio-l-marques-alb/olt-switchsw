@@ -1,5 +1,5 @@
 /**
- * logger.h 
+ * ptin_mgmd_logger.h 
  *  
  * Provides logging features 
  *  

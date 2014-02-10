@@ -14,7 +14,7 @@
 #include "ptin_mgmd_routercmtimer.h"
 #include "ptin_mgmd_eventqueue.h"
 #include "ptin_mgmd_db.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;
 

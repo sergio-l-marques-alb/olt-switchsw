@@ -13,10 +13,10 @@
 
 #include "ptin_mgmd_groupsourcespecifictimer.h"
 #include "ptin_mgmd_eventqueue.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_grouptimer.h"
 #include "ptin_mgmd_sourcetimer.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_cfg.h"
 #include "ptin_mgmd_db.h"
 #include "ptin_mgmd_util.h"

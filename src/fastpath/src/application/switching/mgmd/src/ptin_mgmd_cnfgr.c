@@ -12,8 +12,8 @@
 **********************************************************************/
 #include "ptin_mgmd_cnfgr.h"
 #include "ptin_mgmd_util.h"
-#include "snooping.h"
-#include "logger.h"
+#include "ptin_mgmd_core.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_defs.h"
 #include "ptin_mgmd_cfg.h"
 #include "ptin_mgmd_osapi.h"

@@ -20,10 +20,10 @@
 
 #include "ptin_mgmd_util.h"
 #include "ptin_mgmd_db.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_cnfgr.h"
 
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 /*********************Static Variables******************/
 ptin_IgmpProxyCfg_t igmpGlobalCfg;
@@ -154,11 +154,11 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   {
     byteVal    = (PTIN_IP_VERSION<<4) | PTIN_IP_HDR_VER_LEN;
   }
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* TOS */
   byteVal     = MGMD_IP_TOS;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
   /* Payload Length */
   ipHeaderLen = PTIN_IP_HDR_LEN;
   if (version > PTIN_IGMP_VERSION_2)
@@ -175,25 +175,25 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     shortVal   += IGMP_IP_ROUTER_ALERT_LENGTH;
     ipHeaderLen += IGMP_IP_ROUTER_ALERT_LENGTH;
   }
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Identified */
   shortVal = iph_ident++;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Fragment flags */
   shortVal = 0;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
   /* TTL */
   byteVal = MGMD_IP_TTL;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
   /* Protocol */
   byteVal = IGMP_PROT;
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
   /* Checksum = 0*/
   shortVal = 0;
   tempPtr = dataPtr;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   querierAddr.family=PTIN_MGMD_AF_INET;
   querierAddr.addr.ipv4.s_addr=igmpGlobalCfg.ipv4_addr;
@@ -207,23 +207,23 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   if (version >= PTIN_IGMP_VERSION_2)
   {
     byteVal     = IGMP_IP_ROUTER_ALERT_TYPE;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
     byteVal     = IGMP_IP_ROUTER_ALERT_LENGTH;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
     byteVal = 0;
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
   }
   shortVal = ptinMgmdCheckSum((ushort16 *)startPtr, ipHeaderLen, 0);
-  SNOOP_PUT_SHORT(shortVal, tempPtr);
-  SNOOP_UNUSED_PARAM(tempPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, tempPtr);
+  PTIN_MGMD_UNUSED_PARAM(tempPtr);
   /* End of IP Header */
 
   /* Start IGMP Header */
   startPtr = dataPtr;
   /* IGMP Type */
   byteVal = type;  
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Max response code */
   if (version >= PTIN_IGMP_VERSION_2)
@@ -241,12 +241,12 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   {
     byteVal = 0;
   }
-  SNOOP_PUT_BYTE(byteVal, dataPtr);
+  PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
   /* Checksum = 0*/
   shortVal = 0;
   tempPtr = dataPtr;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);
+  PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   /* Group Address */
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, groupAddr, &ipv4Addr);
@@ -257,7 +257,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   {
     /* QRV */
     byteVal=igmpGlobalCfg.querier.robustness;  
-    SNOOP_PUT_BYTE(byteVal, dataPtr);
+    PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
 #if 0//Since we do require the Query Interval to Re-Schedule the Timer, the value is not previously encoded 
@@ -266,24 +266,24 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     val=igmpGlobalCfg.querier.query_interval;
     ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,val,&val);
 #endif
-    SNOOP_PUT_BYTE(val, dataPtr);
+    PTIN_MGMD_PUT_BYTE(val, dataPtr);
 
     /*Number of Sources*/
     shortVal = 0;
-    SNOOP_PUT_SHORT(shortVal, dataPtr);
-    SNOOP_UNUSED_PARAM(dataPtr);
+    PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
+    PTIN_MGMD_UNUSED_PARAM(dataPtr);
 
     shortVal = ptinMgmdCheckSum((ushort16 *)startPtr, MGMD_IGMPV3_HEADER_MIN_LENGTH, 0);
-    SNOOP_PUT_SHORT(shortVal, tempPtr);/* Copy the calculated checksum
+    PTIN_MGMD_PUT_SHORT(shortVal, tempPtr);/* Copy the calculated checksum
                                           to stored checksum ptr */
   }
   else
   {
     shortVal = ptinMgmdCheckSum((ushort16 *)startPtr, MGMD_IGMPv1v2_HEADER_LENGTH, 0);
-    SNOOP_PUT_SHORT(shortVal, tempPtr); /* Copy the calculated checksum
+    PTIN_MGMD_PUT_SHORT(shortVal, tempPtr); /* Copy the calculated checksum
                                           to stored checksum ptr */
   }
-  SNOOP_UNUSED_PARAM(tempPtr);
+  PTIN_MGMD_UNUSED_PARAM(tempPtr);
 
   return SUCCESS;
 }
@@ -851,32 +851,32 @@ RC_t addGroupRecordToMembershipReport(uchar8* reportHeader, uint32* headerLength
 
   //Increase the number of group records
   tempPtr = reportHeader + 6;
-  SNOOP_GET_SHORT(numberOfRecords, tempPtr);
+  PTIN_MGMD_GET_SHORT(numberOfRecords, tempPtr);
   tempPtr = reportHeader + 6;
   ++numberOfRecords;
-  SNOOP_PUT_SHORT(numberOfRecords, tempPtr);
+  PTIN_MGMD_PUT_SHORT(numberOfRecords, tempPtr);
 
   //Place the pointer in the last position of the IGMP header
   reportHeader += *headerLength;
 
   //Record Type
   value8 = recordType;
-  SNOOP_PUT_BYTE(value8, reportHeader);
+  PTIN_MGMD_PUT_BYTE(value8, reportHeader);
   *headerLength += 1;
 
   //Aux Data Length
   value8 = 0x00;
-  SNOOP_PUT_BYTE(value8, reportHeader);
+  PTIN_MGMD_PUT_BYTE(value8, reportHeader);
   *headerLength += 1;
 
   //Number of Sources
   value16 = 0x0000;
-  SNOOP_PUT_SHORT(value16, reportHeader);
+  PTIN_MGMD_PUT_SHORT(value16, reportHeader);
   *headerLength += 2;
 
   //Multicast Address
   ptin_mgmd_inetAddressGet(multicastAddr->family, multicastAddr, (void*) &value32);
-  SNOOP_PUT_ADDR(value32, reportHeader);
+  PTIN_MGMD_PUT_ADDR(value32, reportHeader);
   *headerLength += 4;
 
   return SUCCESS;
@@ -927,29 +927,29 @@ RC_t addSourceToGroupRecord(uchar8* reportHeader, uint32* headerLength, ptin_mgm
 
   //Get the current number of group records
   tempPtr = reportHeader + 6;
-  SNOOP_GET_SHORT(numberOfRecords, tempPtr);
+  PTIN_MGMD_GET_SHORT(numberOfRecords, tempPtr);
 
   //Increase the number of sources
   tempPtr = reportHeader + 8; //Point to the first group record
   while(--numberOfRecords)
   {
     tempPtr += 2;
-    SNOOP_GET_SHORT(numberOfSources, tempPtr);
+    PTIN_MGMD_GET_SHORT(numberOfSources, tempPtr);
 
     tempPtr += 4 + numberOfSources*4;
   }
   tempPtr += 2;
-  SNOOP_GET_SHORT(numberOfSources, tempPtr);
+  PTIN_MGMD_GET_SHORT(numberOfSources, tempPtr);
   tempPtr -= 2;
   ++numberOfSources;
-  SNOOP_PUT_SHORT(numberOfSources, tempPtr);
+  PTIN_MGMD_PUT_SHORT(numberOfSources, tempPtr);
 
   //Place the pointer in the last position of the IGMP header
   reportHeader += *headerLength;
 
   //Source Address
   ptin_mgmd_inetAddressGet(sourceAddr->family, sourceAddr, (void*) &value32);
-  SNOOP_PUT_ADDR(value32, reportHeader);
+  PTIN_MGMD_PUT_ADDR(value32, reportHeader);
   *headerLength += 4;
 
   return SUCCESS;
@@ -992,27 +992,27 @@ RC_t buildMembershipReportHeader(uchar8* reportHeader, uint32* headerLength)
 
   //Type
   value8 = PTIN_IGMP_V3_MEMBERSHIP_REPORT;
-  SNOOP_PUT_BYTE(value8, reportHeader);
+  PTIN_MGMD_PUT_BYTE(value8, reportHeader);
   *headerLength += 1;
 
   //Reserved
   value8 = 0x00;
-  SNOOP_PUT_BYTE(value8, reportHeader);
+  PTIN_MGMD_PUT_BYTE(value8, reportHeader);
   *headerLength += 1;
 
   //Checksum
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, reportHeader);
+  PTIN_MGMD_PUT_SHORT(value16, reportHeader);
   *headerLength += 2;
 
   //Reserved
   value16 = 0x0000;
-  SNOOP_PUT_BYTE(value16, reportHeader);
+  PTIN_MGMD_PUT_BYTE(value16, reportHeader);
   *headerLength += 2;
 
   //Number of group records
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, reportHeader);
+  PTIN_MGMD_PUT_SHORT(value16, reportHeader);
   *headerLength += 2;
 
   return SUCCESS;
@@ -1069,7 +1069,7 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
 
   //Type
   value8 = PTIN_IGMP_MEMBERSHIP_QUERY;
-  SNOOP_PUT_BYTE(value8, queryHeader);
+  PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
 
   //Max Resp Code
@@ -1082,17 +1082,17 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
     ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.last_member_query_interval, &value32);
   }
   value8 = value32;
-  SNOOP_PUT_BYTE(value8, queryHeader);
+  PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
 
   //Checksum
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, queryHeader);
+  PTIN_MGMD_PUT_SHORT(value16, queryHeader);
   *headerLength += 2;
 
   //Group Address
   ptin_mgmd_inetAddressGet(groupAddr->family, groupAddr, &value32);
-  SNOOP_PUT_ADDR(value32, queryHeader);
+  PTIN_MGMD_PUT_ADDR(value32, queryHeader);
   *headerLength += 4;
 
   //IGMPv2 Query header ends here..
@@ -1103,18 +1103,18 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
 
   //Resv | S | QRV
   value8 = 0 | (sFlag << 3) | igmpCfg.querier.robustness;
-  SNOOP_PUT_BYTE(value8, queryHeader);
+  PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
 
   //QQIC
   ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.query_interval, &value32);
   value8 = value32;
-  SNOOP_PUT_BYTE(value8, queryHeader);
+  PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
 
   //Number of sources
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, queryHeader);
+  PTIN_MGMD_PUT_SHORT(value16, queryHeader);
   *headerLength += 2;
 
   return SUCCESS;
@@ -1166,18 +1166,18 @@ RC_t addSourceToQuery(uchar8* queryHeader, uint32* headerLength, ptin_mgmd_inet_
 
   //Get current number of sources
   tempHeaderPtr = queryHeader + 10;
-  SNOOP_GET_SHORT(numberOfSources, tempHeaderPtr);
+  PTIN_MGMD_GET_SHORT(numberOfSources, tempHeaderPtr);
 
   //Add source to the Query header
   tempHeaderPtr = queryHeader + 12 + (4*numberOfSources);
   ptin_mgmd_inetAddressGet(sourceAddr->family, sourceAddr, &value32);
-  SNOOP_PUT_ADDR(value32, tempHeaderPtr);
+  PTIN_MGMD_PUT_ADDR(value32, tempHeaderPtr);
   *headerLength += 4;
 
   //Increase the number of sources in the Query header
   tempHeaderPtr = queryHeader + 10;
   ++numberOfSources;
-  SNOOP_PUT_SHORT(numberOfSources, tempHeaderPtr);
+  PTIN_MGMD_PUT_SHORT(numberOfSources, tempHeaderPtr);
 
   return SUCCESS;
 }
@@ -1230,15 +1230,15 @@ RC_t buildIgmpFrame(uchar8* queryFrame, uint32* frameLength, uchar8* igmpHeader,
   //Compute IGMP Query header checksum
   chksmPtr = igmpHeader+2;
   value16 = ptinMgmdCheckSum((ushort16*)igmpHeader, igmpHeaderLength, 0);
-  SNOOP_PUT_SHORT(value16, chksmPtr);
+  PTIN_MGMD_PUT_SHORT(value16, chksmPtr);
 
   //Determine IP destination address
   igmpTypePtr = igmpHeader;
-  SNOOP_GET_BYTE(igmpHeaderType, igmpTypePtr);
+  PTIN_MGMD_GET_BYTE(igmpHeaderType, igmpTypePtr);
 
   //Determine IGMP header type
   ipdstPtr = igmpHeader + 4;
-  SNOOP_GET_ADDR(&value32, ipdstPtr);
+  PTIN_MGMD_GET_ADDR(&value32, ipdstPtr);
   if(igmpHeaderType == PTIN_IGMP_V3_MEMBERSHIP_REPORT)
   {
     destAddr = PTIN_MGMD_IGMPV3_REPORT_ADDR; //Membership reports are set with IP.dst = PTIN_IGMPV3_REPORT_ADDR
@@ -1260,12 +1260,12 @@ RC_t buildIgmpFrame(uchar8* queryFrame, uint32* frameLength, uchar8* igmpHeader,
 
   //Version | IHL
   value8 = (PTIN_IP_VERSION<<4) | (PTIN_IP_HDR_VER_LEN + (IGMP_IP_ROUTER_ALERT_LENGTH / 4));
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   *frameLength += 1;
 
   //TOS
   value8 = MGMD_IP_TOS;
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   *frameLength += 1;
 
   //Total length
@@ -1275,56 +1275,56 @@ RC_t buildIgmpFrame(uchar8* queryFrame, uint32* frameLength, uchar8* igmpHeader,
 
   //Identification
   value16 = ipIdentification++;
-  SNOOP_PUT_SHORT(value16, queryFrame);
+  PTIN_MGMD_PUT_SHORT(value16, queryFrame);
   *frameLength += 2;
 
   //Flags (+offset)
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, queryFrame);
+  PTIN_MGMD_PUT_SHORT(value16, queryFrame);
   *frameLength += 2;
 
   //TTL
   value8 = MGMD_IP_TTL;
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   *frameLength += 1;
 
   //Protocol
   value8 = IGMP_PROT;
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   *frameLength += 1;
 
   //Set checksum to 0. We will compute it as soon as the Query frame is finished
   value16 = 0;
-  SNOOP_PUT_SHORT(value16, queryFrame);
+  PTIN_MGMD_PUT_SHORT(value16, queryFrame);
   *frameLength += 2;
 
   //Source Address
   value32 = igmpCfg.ipv4_addr;
-  SNOOP_PUT_ADDR(value32, queryFrame);
+  PTIN_MGMD_PUT_ADDR(value32, queryFrame);
   *frameLength += 4;
 
   //Destination Address
-  SNOOP_PUT_ADDR(destAddr, queryFrame);
+  PTIN_MGMD_PUT_ADDR(destAddr, queryFrame);
   *frameLength += 4;
 
   //Router Alert option
   value8 = IGMP_IP_ROUTER_ALERT_TYPE;
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   value8 = IGMP_IP_ROUTER_ALERT_LENGTH;
-  SNOOP_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
   value8 = 0;
-  SNOOP_PUT_BYTE(value8, queryFrame);
-  SNOOP_PUT_BYTE(value8, queryFrame); 
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame);
+  PTIN_MGMD_PUT_BYTE(value8, queryFrame); 
   *frameLength += 4;
 
   //Set IP length
   value16 = *frameLength + igmpHeaderLength;
-  SNOOP_PUT_SHORT(value16, iplengthPtr);
+  PTIN_MGMD_PUT_SHORT(value16, iplengthPtr);
 
   //Compute IP header checksum
   value16 = ptinMgmdCheckSum((ushort16*)chksmPtr, *frameLength, 0);
   chksmPtr += 10; //Offset to the checksum field in the IP header
-  SNOOP_PUT_SHORT(value16, chksmPtr);
+  PTIN_MGMD_PUT_SHORT(value16, chksmPtr);
 
   //Place Query header after the IP header
   memcpy(queryFrame, igmpHeader, igmpHeaderLength);

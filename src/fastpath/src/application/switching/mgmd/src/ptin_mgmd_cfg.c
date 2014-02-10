@@ -22,9 +22,9 @@
 
 
 #include "ptin_mgmd_cfg.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_cfg_api.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};

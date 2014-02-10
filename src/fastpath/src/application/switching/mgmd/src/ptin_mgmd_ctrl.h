@@ -295,8 +295,10 @@ typedef struct
 typedef struct
 {
   uint32 serviceId;
-  uint32 groupIp;
-  uint32 sourceIp;
+  uint32 groupIp; 
+  uint8  groupMask;
+  uint32 sourceIp;  
+  uint8  sourceMask;
 } __attribute__((packed)) PTIN_MGMD_CTRL_WHITELIST_CONFIG_t; 
 
 // ----------------------------------------------

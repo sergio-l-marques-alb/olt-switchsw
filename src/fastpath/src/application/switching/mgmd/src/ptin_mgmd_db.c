@@ -18,12 +18,12 @@
 #include "ptin_utils_inet_addr_api.h"
 #include "ptin_mgmd_inet_defs.h"
 #include "ptin_mgmd_util.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_cnfgr.h"
 #include "ptin_mgmd_defs.h"
 #include "ptin_mgmd_cfg.h"
 
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 /*******************Static Methods**************************************************/
 
