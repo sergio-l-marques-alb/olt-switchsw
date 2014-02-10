@@ -8565,7 +8565,8 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If interface is root, or any of the unstacked EVCs,
        check if the vlan is not being used by other EVCs in the same interface */
-    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_STACKED))
+    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || 
+        (!(evcConf->flags & PTIN_EVC_MASK_STACKED) && !(evcConf->flags & PTIN_EVC_MASK_QUATTRO)))
     {
       /* Vlan */
       if (evcConf->intf[i].vid==0 || evcConf->intf[i].vid>=4095)
@@ -9734,7 +9735,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       #endif
 
       /* Only stacked services have clients */
-      if (IS_EVC_STACKED(evc_id))
+      if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
       {
         printf("    Clients       = %u\n", evcs[evc_id].intf[i].clients.n_elems);
 
