@@ -2403,7 +2403,7 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
-  L7_BOOL   evc_is_stacked;
+  L7_uint32 flags;
   L7_uint16 ovid, ivid;
   ptinIgmpClientInfoData_t *clientInfo;
 
@@ -2417,6 +2417,9 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
 
     ovid = clientInfo->uni_ovid;
     ivid = clientInfo->uni_ivid;
+
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Caught vlans: %u+%u", ovid, ivid);
   }
 
   /* If no data was retrieved, goto EVC info */
@@ -2427,14 +2430,20 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
       ovid = intOVlan;
       ivid = intIVlan;
     }
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Vlans obtained from EVC: %u+%u", ovid, ivid);
   }
 
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
-  if (/*!ptin_igmp_clientIntfVlan_validate(intIfNum, intOVlan) &&*/
-      ptin_evc_check_is_stacked_fromIntVlan(intOVlan, &evc_is_stacked) == L7_SUCCESS && !evc_is_stacked)
+  if (ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS &&
+      !(flags & PTIN_EVC_MASK_QUATTRO) &&
+      !(flags & PTIN_EVC_MASK_STACKED))
   {
     ivid = 0;
   }
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Vlans to retrieve: %u+%u", ovid, ivid);
 
   /* Return vlans */
   if (uni_ovid != L7_NULLPTR)  *uni_ovid = ovid;
