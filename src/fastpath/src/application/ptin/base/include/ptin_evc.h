@@ -327,6 +327,17 @@ extern L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRoot
 extern L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc_flood);
 
 /**
+ * Gets flag options for a particular (internal) OVlan
+ * 
+ * @param intVlan   : Internal OVlan
+ * @param flags     : Flag options 
+ * @param mc_flood  : Multicast flood
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_uint32 *mc_flood);
+
+/**
  * Get the outer+inner external vlan for a specific 
  * interface+evc_id+innerVlan. 
  *  

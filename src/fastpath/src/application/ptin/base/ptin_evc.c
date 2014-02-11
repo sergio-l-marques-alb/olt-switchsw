@@ -940,6 +940,48 @@ L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc
 }
 
 /**
+ * Gets flag options for a particular (internal) OVlan
+ * 
+ * @param intVlan   : Internal OVlan
+ * @param flags     : Flag options 
+ * @param mc_flood  : Multicast flood
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_uint32 *mc_flood)
+{
+  L7_uint evc_id;
+  L7_uint evc_ext_id;
+
+  /* Validate arguments */
+  if (intOVlan < PTIN_VLAN_MIN || intOVlan > PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_id = evcId_from_internalVlan[intOVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  /* Get external vlans */
+  if (ptin_evc_flags_get(evc_ext_id, flags, mc_flood)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting EVC flags for evc_ext_id=%u, intOVlan=%u", evc_ext_id, intOVlan);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+
+}
+
+/**
  * Get the outer+inner external vlan for a specific 
  * interface+evc_id+innerVlan. 
  *  
@@ -7855,7 +7897,7 @@ static L7_RC_t switching_mcevc_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vl
   #endif
 
   /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc); innerVlan is to be added */
-  rc = ptin_xlate_egress_add(intIfNum, int_vlan, 0, leaf_out_vlan, leaf_inner_vlan);
+  rc = ptin_xlate_egress_add(intIfNum, int_vlan, (L7_uint16)-1, leaf_out_vlan, leaf_inner_vlan);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intf %u xlate Egress entry [Root Int.VLAN %u => Leaf Out.VLAN %u + Leaf Inn.VLAN %u] (rc=%d)",
