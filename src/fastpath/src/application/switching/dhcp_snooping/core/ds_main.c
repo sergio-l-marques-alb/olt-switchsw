@@ -1823,15 +1823,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Add or update an existing entry in the binding table
-// if ((L7_DHCP6_SOLICIT == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_REQUEST == *(L7_uint8*)dhcp_header_ptr))
-// {
    dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
    dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)dhcp_header_ptr);
-// }
-// else if((L7_DHCP6_DECLINE == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_RELEASE == *(L7_uint8*)dhcp_header_ptr))
-// {
-//    dsBindingRemove(&client_mac_addr);
-// }
 
    return L7_SUCCESS;
 }
@@ -2105,13 +2098,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Add a new dynamic entry in the binding table
-// if (L7_DHCP6_REPLY == *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)))
-// {
-      //Ignore return codes from this functions. The client may have released first and now the relay agent is unable to find the binding entries for this MAC
-    dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
-    dsBindingLeaseSet(&client_mac_addr, lease_time);
-    dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
-// }
+   dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
+   dsBindingLeaseSet(&client_mac_addr, lease_time);
+   dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
 
    //Remove the entry in the binding table if the client has previously sent a release
    if(dhcp_binding.leaseStatus == DS_LEASESTATUS_V6_RELEASE)
