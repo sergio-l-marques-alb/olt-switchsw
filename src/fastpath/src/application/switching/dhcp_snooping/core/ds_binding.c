@@ -42,13 +42,16 @@ extern void *dsMsgQSema;
 
 osapiTimerDescr_t *dsLeaseTimer = L7_NULLPTR;
 L7_uchar8 *dsBindingTypeNames[] = {"TENTATIVE", "STATIC", "DYNAMIC"};
-
+L7_uchar8 *dsLeaseStatusNames[] = {"UNKNOWN", "DISCOVER", "OFFER", "REQUEST", "DECLINE", "ACK", "NACK", "RELEASE", "INFORM", "", "", "SOLICIT", 
+                                   "ADVERTISE", "REQUEST", "CONFIRM", "RENEW", "REBIND","REPLY", "RELEASE", "RECONFIGURE", "INFORMATIONREQUEST"};
 
 
 static L7_RC_t dsBindingTreeSearch(L7_enetMacAddr_t *macAddr, L7_uint32 matchType,
                                    dsBindingTreeNode_t **binding);
 
 static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding, dhcpSnoopBinding_t *extBinding);
+
+static L7_RC_t dsLeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint inetFamily, dsLeaseStatus_t leaseStatus);
 
 extern L7_RC_t dsCheckpointCallback(dsCkptEventType_t dsEvent, L7_enetMacAddr_t *macAddr);
 
@@ -413,6 +416,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
       return L7_FAILURE;                  /* node not inserted in table */
     }
     pNode->bindingType = bindingType;
+    pNode->leaseStatus = DS_LEASESTATUS_UNKNOWN;
     memcpy(&pNode->ipAddr, &ipAddr, sizeof(L7_inet_addr_t));
     pNode->vlanId = vlanId;
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
@@ -858,6 +862,49 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
 }
 
 /*********************************************************************
+* @purpose  Update the lease status for an existing binding table entry
+*
+* @param    macAddr:     Mac address that identifies the binding table entry
+* @param    inetFamily:  L7_AF_INET/L7_AF_INET6
+* @param    messageType: DHCP message type in the received packet
+*
+* @returns  L7_SUCCESS
+*
+* @notes    Converts lease time to remaining lease time in minutes.
+*
+* @end
+*********************************************************************/
+static L7_RC_t dsLeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint inetFamily, L7_uint messageType)
+{
+  dsBindingTreeNode_t *binding;
+
+  if (dsBindingTreeSearch(macAddr, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  if (binding->bindingType == DS_BINDING_STATIC)
+  {
+    return L7_SUCCESS;
+  }
+
+  if(L7_AF_INET == inetFamily)
+  {
+    dsInfo->dsDbDataChanged = L7_TRUE;
+    binding->leaseStatus    = messageType;
+  }
+  else if(L7_AF_INET6 == inetFamily)
+  {
+    /* 
+     * DHCPv6 message types start at value 1.
+     * However, in our enum DHCPv6 lease status start at 11. So, we must add an hardcoded 10 to the mesage type
+     */
+    dsInfo->dsDbDataChanged = L7_TRUE;
+    binding->leaseStatus    = messageType + 10; 
+  }
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
 * @purpose  Search the bindings table for a specific entry
 *
 * @param    extBinding  @b((input/output))  external representation of DHCP
@@ -1019,6 +1066,42 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr)
 #endif
   }
   return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Update the lease status of an existing binding.
+*
+* @param    macAddr       @b((input))  client MAC address.
+* @param    messageType   @b((input))  DHCP message type.
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    Ipv4 only
+*
+* @end
+*********************************************************************/
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
+{
+  return dsLeaseStatusUpdate(macAddr, L7_AF_INET, messageType);
+}
+
+/*********************************************************************
+* @purpose  Update the lease status of an existing binding.
+*
+* @param    macAddr       @b((input))  client MAC address.
+* @param    messageType   @b((input))  DHCP message type.
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    Ipv6 only
+*
+* @end
+*********************************************************************/
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
+{
+  return dsLeaseStatusUpdate(macAddr, L7_AF_INET6, messageType);
 }
 
 /*********************************************************************
@@ -1262,8 +1345,8 @@ void dsBindingTableShow(void)
   }
 
   printf("\nDHCP snooping bindings table (contains %u entries): ", count);
-  printf("\nMAC Address        IP Address                                      VLAN      Port      Type     Lease (min)\n");
-  printf("-----------------  ---------------------------------------------  ------ ----------- ---------  -----------\n");
+  printf("\n   MAC Address                      IP Address                     VLAN     Port        Type           Status        Lease (min) \n");
+  printf("-----------------  ---------------------------------------------  ------ ----------- ----------- ------------------ -------------\n");
 
   memset(&macAddr, 0, sizeof(macAddr));
   while (dsBindingTreeSearch(&macAddr, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
@@ -1289,9 +1372,11 @@ void dsBindingTableShow(void)
       remainingLease = 0;
     }
 
-    printf("%17s  %-45s  %6u  %10s %12s  %u\n",
+    printf("%17s  %-45s  %6u %10s %11s %18s %13u\n",
            macStr, ipAddrStr, binding->vlanId, ifName,
-           dsBindingTypeNames[binding->bindingType], remainingLease / 60);
+           dsBindingTypeNames[binding->bindingType], 
+           dsLeaseStatusNames[binding->leaseStatus], 
+           remainingLease / 60);
   }
   printf("\n\n");
 }

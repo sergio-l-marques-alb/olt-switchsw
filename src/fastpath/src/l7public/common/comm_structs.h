@@ -276,6 +276,34 @@ typedef enum
 
 typedef enum 
 {
+  DS_LEASESTATUS_UNKNOWN = 0,
+
+  /* v4 */
+  DS_LEASESTATUS_V4_DISCOVER = 1,
+  DS_LEASESTATUS_V4_OFFER,
+  DS_LEASESTATUS_V4_REQUEST,
+  DS_LEASESTATUS_V4_ACK,
+  DS_LEASESTATUS_V4_NACK,
+  DS_LEASESTATUS_V4_DECLINE,
+  DS_LEASESTATUS_V4_RELEASE,
+  DS_LEASESTATUS_V4_INFORM,
+
+  /* v6 */
+  DS_LEASESTATUS_V6_SOLICIT = 11,
+  DS_LEASESTATUS_V6_ADVERTISE,
+  DS_LEASESTATUS_V6_REQUEST,
+  DS_LEASESTATUS_V6_CONFIRM,
+  DS_LEASESTATUS_V6_RENEW,
+  DS_LEASESTATUS_V6_REBIND,
+  DS_LEASESTATUS_V6_REPLY,
+  DS_LEASESTATUS_V6_RELEASE,
+  DS_LEASESTATUS_V6_DECLINE,
+  DS_LEASESTATUS_V6_RECONFIGURE,
+  DS_LEASESTATUS_V6_INFORMATIONREQUEST,
+} dsLeaseStatus_t;
+
+typedef enum 
+{
   IPSG_ENTRY_STATIC,
   IPSG_ENTRY_DYNAMIC
 } ipsgEntryType_t;
@@ -312,6 +340,9 @@ typedef struct dhcpSnoopBinding_s
 
   /* Time left on lease (minutes) */
   L7_uint32 remLease;
+
+  /* Current lease status */
+  dsLeaseStatus_t leaseStatus;
 
   /* dynamic, static, tentative */
   dsBindingType_t bindingType;

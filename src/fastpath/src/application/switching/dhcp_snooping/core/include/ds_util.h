@@ -424,6 +424,9 @@ typedef struct dsBindingTreeNode_s
   /* How long the lease is valid (seconds) */
   L7_uint32 leaseTime;
 
+  /* Current lease status */
+  dsLeaseStatus_t leaseStatus;
+
   dsBindingType_t bindingType;
 
 #ifdef L7_NSF_PACKAGE
@@ -880,6 +883,8 @@ L7_BOOL dsBindingExists(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 L7_RC_t dsBindingFind(dhcpSnoopBinding_t *dsBinding, L7_uint32 matchType);
 L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr);
 L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr);
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
 L7_RC_t dsBindingLeaseSet(L7_enetMacAddr_t *macAddr, L7_uint32 leaseTime);
 L7_uint32 _dsBindingsCount(void);
 L7_uint32 _dsStaticBindingsCount(void);
