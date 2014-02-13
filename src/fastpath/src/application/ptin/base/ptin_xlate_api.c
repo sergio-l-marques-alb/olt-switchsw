@@ -648,8 +648,8 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
               intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   /* Validate arguments */
-  if (outerVlanId>4095 || innerVlanId>4095 ||
-      newOuterVlanId>4095 || newInnerVlanId>4095)
+  if (outerVlanId>4095 || /*innerVlanId>4095 ||*/
+      newOuterVlanId>4095 /*|| newInnerVlanId>4095*/)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
@@ -660,21 +660,41 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
   xlate.outerVlan     = outerVlanId;
-  xlate.innerVlan     = innerVlanId;
+  xlate.innerVlan     = (innerVlanId > 4095) ? 0 : innerVlanId;
   xlate.outerVlan_new = newOuterVlanId;
-  xlate.innerVlan_new = newInnerVlanId;
+  xlate.innerVlan_new = (newInnerVlanId > 4095) ? 0 : newInnerVlanId;
   xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
+  if (newInnerVlanId == 0)                /* If new inner VLANID is 0, do nothing */
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_NONE;
+  }
+  else if (newInnerVlanId > 4095)         /* If new inner VLANID is -1, delete it */
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  /* Valid new inner vlan */
+  else if (innerVlanId == 0)            /* If current inner VLANID is 0, it means it does not exist */
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_ADD;
+  }
+  else                                    /* Current inner vlan exists -> Do a replace */
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_REPLACE;
+  }
+
+  #if 0
   if (innerVlanId!=0)
   {
-    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
+    xlate.innerAction = (newInnerVlanId != 0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE; 
   }
   else
   {
     xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
   }
+  #endif
 #endif
 
   /* DTL call */
@@ -1079,8 +1099,8 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
 
   /* Validate arguments */
   if (portgroup==0 || 
-      outerVlanId>4095 || innerVlanId>4095 || 
-      newOuterVlanId>4095 || (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095))
+      outerVlanId>4095 || /*innerVlanId>4095 || */
+      newOuterVlanId>4095 /*|| (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095)*/)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
@@ -1091,22 +1111,27 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   xlate.portgroup     = portgroup;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = outerVlanId;
-  xlate.innerVlan     = innerVlanId;
+  xlate.innerVlan     = (innerVlanId > 4095) ? 0 : innerVlanId;
   xlate.outerVlan_new = newOuterVlanId;
   xlate.innerVlan_new = (newInnerVlanId>4095) ? 0 : newInnerVlanId;
   xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
 #if ( PTIN_BOARD_IS_MATRIX )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 #else
-  if (newInnerVlanId==0)
+  if (newInnerVlanId == 0)            /* If new inner VLANID is 0, do nothing */
   {
     xlate.innerAction = PTIN_XLATE_ACTION_NONE;
   }
-  else if (newInnerVlanId>4095)
+  else if (newInnerVlanId > 4095)     /* If new inner VLANID is -1, delete it */
   {
     xlate.innerAction = PTIN_XLATE_ACTION_DELETE;
   }
-  else
+  /* Valid new inner vlan id */
+  else if (innerVlanId > 4095)          /* If current inner VLANID is -1, it means it does not exist */
+  {
+    xlate.innerAction = PTIN_XLATE_ACTION_ADD;
+  }
+  else                                /* Current inner vlan exists -> Do a replace */
   {
     xlate.innerAction = PTIN_XLATE_ACTION_REPLACE;
   }

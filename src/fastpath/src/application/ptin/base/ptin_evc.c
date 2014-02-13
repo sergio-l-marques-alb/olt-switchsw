@@ -385,6 +385,12 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
 static L7_RC_t switching_elan_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
 static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
 
+/* Leaf add/remove for MC evcs (active IPTV flag) */
+#if ( !PTIN_BOARD_IS_MATRIX )
+static L7_RC_t switching_mcevc_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
+static L7_RC_t switching_mcevc_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
+#endif
+
 static L7_RC_t switching_etree_root_add(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan, L7_BOOL egress_del_ivid);
 static L7_RC_t switching_etree_root_remove(L7_uint root_intf, L7_uint16 root_out_vlan, L7_uint16 leaf_int_vlan);
 
@@ -931,6 +937,48 @@ L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc
   if (mc_flood != L7_NULLPTR) *mc_flood = evcs[evc_id].mc_flood;
 
   return L7_SUCCESS;
+}
+
+/**
+ * Gets flag options for a particular (internal) OVlan
+ * 
+ * @param intVlan   : Internal OVlan
+ * @param flags     : Flag options 
+ * @param mc_flood  : Multicast flood
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_uint32 *mc_flood)
+{
+  L7_uint evc_id;
+  L7_uint evc_ext_id;
+
+  /* Validate arguments */
+  if (intOVlan < PTIN_VLAN_MIN || intOVlan > PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_id = evcId_from_internalVlan[intOVlan];
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  /* Get external vlans */
+  if (ptin_evc_flags_get(evc_ext_id, flags, mc_flood)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting EVC flags for evc_ext_id=%u, intOVlan=%u", evc_ext_id, intOVlan);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+
 }
 
 /**
@@ -5765,6 +5813,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   L7_BOOL is_root;
   L7_BOOL mac_learning;
   L7_BOOL cpu_trap;
+  L7_BOOL iptv_flag;
   L7_uint16 int_vlan;
   L7_uint16 root_vlan;
   ptin_intf_t intf;
@@ -5783,6 +5832,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   is_stacked   = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED    ) == PTIN_EVC_MASK_STACKED;
   mac_learning = (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING) == PTIN_EVC_MASK_MACLEARNING;
   cpu_trap     = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)== PTIN_EVC_MASK_CPU_TRAPPING;
+  iptv_flag    = (evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)     == PTIN_EVC_MASK_MC_IPTV;
   is_root      =  intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
   root_vlan    =  evcs[evc_id].rvlan;
 
@@ -5867,7 +5917,18 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
     #endif
     {
-      rc = switching_elan_leaf_add(ptin_port, intf_cfg->vid, 0, int_vlan);
+      /* Only configure MC EVC partially if we are not at MX */
+      #if ( !PTIN_BOARD_IS_MATRIX )
+      if (iptv_flag)
+      {
+        rc = switching_mcevc_leaf_add(ptin_port, intf_cfg->vid, intf_cfg->vid_inner, int_vlan);
+      }
+      else
+      #endif
+      {
+        rc = switching_elan_leaf_add(ptin_port, intf_cfg->vid, 0, int_vlan);
+      }
+
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding translations for leaf interface %u (rc=%d)",ptin_port, rc);
@@ -5970,7 +6031,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
   L7_uint evc_type;
-  L7_BOOL is_p2p, is_quattro, is_stacked;
+  L7_BOOL is_p2p, is_quattro, is_stacked, iptv_flag;
   L7_BOOL is_root;
   L7_uint16 out_vlan;
   L7_uint16 inn_vlan;
@@ -5982,6 +6043,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
   is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+  iptv_flag  = (evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) == PTIN_EVC_MASK_MC_IPTV;
   is_root    = evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT;
   out_vlan   = evcs[evc_id].intf[ptin_port].out_vlan;
   inn_vlan   = evcs[evc_id].intf[ptin_port].inner_vlan;
@@ -6033,7 +6095,19 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     {
       /* Add translations for leaf ports, only if we are in matrix board */
       L7_RC_t rc;
-      rc = switching_elan_leaf_remove(ptin_port, out_vlan, 0, int_vlan);
+
+      /* Only configure MC EVC partially if we are not at MX */
+      #if ( !PTIN_BOARD_IS_MATRIX )
+      if (iptv_flag)
+      {
+        rc = switching_mcevc_leaf_remove(ptin_port, out_vlan, inn_vlan, int_vlan);
+      }
+      else
+      #endif
+      {
+        rc = switching_elan_leaf_remove(ptin_port, out_vlan, 0, int_vlan);
+      }
+
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing translations for leaf interface %u (rc=%d)",ptin_port, rc);
@@ -7784,6 +7858,106 @@ static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_
   return L7_SUCCESS;
 }
 
+#if ( !PTIN_BOARD_IS_MATRIX )
+/**
+ * Configures a leaf port (only for MC EVCs) 
+ * 
+ * @param leaf_intf Leaf interface (ptin_intf) 
+ * @param leaf_out_vlan : External outer vlan 
+ * @param leaf_inner_vlan : External inner vlan 
+ * @param int_vlan : Internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_mcevc_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding stacked leaf intf# %u [Int.VLAN=%u]...",
+           leaf_intf, int_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  #if 0
+  /* Add ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr) Remove inner vlan */
+  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, leaf_inner_vlan, int_vlan, (L7_uint16)-1);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intf %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u => Root Int.VLAN %u] (rc=%d)",
+            leaf_intf, leaf_out_vlan, leaf_inner_vlan, int_vlan, rc);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc); innerVlan is to be added */
+  rc = ptin_xlate_egress_add(intIfNum, int_vlan, (L7_uint16)-1, leaf_out_vlan, leaf_inner_vlan);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding intf %u xlate Egress entry [Root Int.VLAN %u => Leaf Out.VLAN %u + Leaf Inn.VLAN %u] (rc=%d)",
+            leaf_intf, int_vlan, leaf_out_vlan, leaf_inner_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes a leaf port (for MC EVCs) 
+ * 
+ * @param leaf_intf Leaf interface (ptin_intf) 
+ * @param leaf_out_vlan : External outer vlan 
+ * @param leaf_inner_vlan : External inner vlan  
+ * @param int_vlan : Internal VLAN
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t switching_mcevc_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Int.VLAN=%u]...",
+           leaf_intf, int_vlan);
+
+  /* Get intIfNum of ptin interface */
+  rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
+    return L7_FAILURE;
+  }
+
+  #if 0
+  /* Add ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr,Vc) */
+  rc = ptin_xlate_ingress_delete(intIfNum, leaf_out_vlan, leaf_inner_vlan);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intf %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u] (rc=%d)",
+            leaf_intf, leaf_out_vlan, 0, rc);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Add egress xlate entry: (leaf_intf) (Vr,Vc) => (Vs',Vc) */
+  rc = ptin_xlate_egress_delete(intIfNum, int_vlan, 0);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intf %u xlate Egress entry [Root Int.VLAN %u (rc=%d)",
+            leaf_intf, int_vlan, leaf_out_vlan, rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
 
 /**
  * Adds root configuration for unstacked EVCs 
@@ -8433,7 +8607,8 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
 
     /* If interface is root, or any of the unstacked EVCs,
        check if the vlan is not being used by other EVCs in the same interface */
-    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || !(evcConf->flags & PTIN_EVC_MASK_STACKED))
+    if (evcConf->intf[i].mef_type==PTIN_EVC_INTF_ROOT || 
+        (!(evcConf->flags & PTIN_EVC_MASK_STACKED) && !(evcConf->flags & PTIN_EVC_MASK_QUATTRO)))
     {
       /* Vlan */
       if (evcConf->intf[i].vid==0 || evcConf->intf[i].vid>=4095)
@@ -9602,7 +9777,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       #endif
 
       /* Only stacked services have clients */
-      if (IS_EVC_STACKED(evc_id))
+      if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
       {
         printf("    Clients       = %u\n", evcs[evc_id].intf[i].clients.n_elems);
 
