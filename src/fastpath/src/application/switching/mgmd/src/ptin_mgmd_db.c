@@ -1296,11 +1296,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3Inf
         {     
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
           return FAILURE;
-        }
-        if (pMgmdEB->noOfGroupRecordsToBeSent==0)
-        {
-          pMgmdEB->groupRecordPtr=groupPtr;
-        }
+        }        
         //End New Code
 
         if (FAILURE == (rc=ptinMgmdGroupRecordSourcedAdd(groupPtr, sourceAddr)))
@@ -1311,7 +1307,11 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3Inf
         else if (rc==SUCCESS)
         {
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Added to Group Record (serviceId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
-          ++(pMgmdEB->noOfGroupRecordsToBeSent);     
+          if (newEntry==TRUE)
+          {
+            pMgmdEB->groupRecordPtr=groupPtr;      
+            ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+          }       
         }        
       }
       --noOfSources;
@@ -1479,11 +1479,7 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
             {     
               PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
               return FAILURE;
-            }
-            if (pMgmdEB->noOfGroupRecordsToBeSent==0)
-            {
-              pMgmdEB->groupRecordPtr=groupPtr;
-            }
+            }            
             //End New Code
 
             if (FAILURE == (rc=ptinMgmdGroupRecordSourcedAdd(groupPtr, sourceAddr)))
@@ -1495,6 +1491,11 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
             {
               PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Added to Group Record (serviceId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
               ++(pMgmdEB->noOfGroupRecordsToBeSent);     
+              if (newEntry==TRUE)
+              {
+                pMgmdEB->groupRecordPtr=groupPtr;      
+                ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+              }       
             }        
           }
 
@@ -1547,11 +1548,7 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
                   PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
                   return FAILURE;
                 }
-#endif
-                if (pMgmdEB->noOfGroupRecordsToBeSent==0)
-                {
-                  pMgmdEB->groupRecordPtr=groupPtr;
-                }
+#endif                
                 //End New Code
 
                 if (FAILURE == (rc=ptinMgmdGroupRecordSourcedAdd(groupPtr, sourceAddr)))
@@ -1562,7 +1559,11 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
                 else if (rc==SUCCESS)
                 {
                   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Added to Group Record (serviceId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
-                  ++(pMgmdEB->noOfGroupRecordsToBeSent);     
+                  if (newEntry==TRUE)
+                  {
+                    pMgmdEB->groupRecordPtr=groupPtr;      
+                    ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+                  }       
                 }        
               }              
             }
@@ -1636,11 +1637,7 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
            {     
              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
              return FAILURE;
-           }
-           if (pMgmdEB->noOfGroupRecordsToBeSent==0)
-           {
-             pMgmdEB->groupRecordPtr=groupPtr;
-           }
+           }           
            //End New Code
 
           if (FAILURE == (rc=ptinMgmdGroupRecordSourcedAdd(groupPtr, sourceAddr)))
@@ -1651,7 +1648,11 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
           else if (rc==SUCCESS)
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Added to Group Record (serviceId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
-            ++(pMgmdEB->noOfGroupRecordsToBeSent);     
+            if (newEntry==TRUE)
+            {
+              pMgmdEB->groupRecordPtr=groupPtr;      
+              ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+            }       
           }        
         }
         
@@ -1692,13 +1693,13 @@ PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] 
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
           return FAILURE;
         }
-        if (pMgmdEB->noOfGroupRecordsToBeSent==0)
+        if (newEntry==TRUE)
         {
           pMgmdEB->groupRecordPtr=groupPtr;
+          ++(pMgmdEB->noOfGroupRecordsToBeSent);     
         }
         //End New Code
-
-        ++(pMgmdEB->noOfGroupRecordsToBeSent);     
+        
       }
     }   
   }
@@ -1838,11 +1839,7 @@ RC_t ptinMgmdMembershipReportAllowProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoDat
       {     
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return FAILURE;
-      }
-      if (pMgmdEB->noOfGroupRecordsToBeSent==0)
-      {
-        pMgmdEB->groupRecordPtr=groupPtr;
-      }
+      }     
       //End New Code
 
       if (FAILURE == (rc=ptinMgmdGroupRecordSourcedAdd(groupPtr, sourceAddr)))
@@ -1853,7 +1850,11 @@ RC_t ptinMgmdMembershipReportAllowProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoDat
       else if (rc==SUCCESS)
       {
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Added to Group Record (serviceId:%u, groupAddr:%s recordType:%u sourceAddr:%s", groupPtr->interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), groupPtr->recordType, ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
-        ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+        if (newEntry==TRUE)
+        {
+          pMgmdEB->groupRecordPtr=groupPtr;      
+          ++(pMgmdEB->noOfGroupRecordsToBeSent);      
+        }       
       }        
     }
 
