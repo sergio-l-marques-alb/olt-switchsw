@@ -2472,7 +2472,7 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
                                L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
   L7_uint dhcp_idx;
-  L7_BOOL evc_is_stacked;
+  L7_uint32 flags;
   L7_uint16 ovid, ivid;
   ptinDhcpClientInfoData_t *clientInfo;
 
@@ -2489,7 +2489,8 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
     ivid = clientInfo->uni_ivid;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"ovid=%u ivid=%u", ovid, ivid);
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "ovid=%u ivid=%u", ovid, ivid); 
 
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
@@ -2502,13 +2503,15 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
-  if (/*ptin_dhcp_is_intfTrusted(intIfNum, intOVlan) &&*/
-      ptin_evc_check_is_stacked_fromIntVlan(intOVlan, &evc_is_stacked) == L7_SUCCESS && !evc_is_stacked)
+  if (ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS &&
+      !(flags & PTIN_EVC_MASK_QUATTRO) &&
+      !(flags & PTIN_EVC_MASK_STACKED))
   {
     ivid = 0;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"ovid=%u ivid=%u", ovid, ivid);
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP,"ovid=%u ivid=%u", ovid, ivid);
 
   /* Return vlans */
   if (uni_ovid != L7_SUCCESS)  *uni_ovid = ovid;
