@@ -88,4 +88,8 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
 *********************************************************************/
 void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase);
 
+//extern int tx_dot3ad_matrix_sync_t(void);
+//extern void rx_dot3ad_matrix_sync_t(char *p, unsigned long dim);
+extern void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim);
 #endif /* _PTIN_CONTROL_H */
+

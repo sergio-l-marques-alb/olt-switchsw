@@ -1142,7 +1142,7 @@ L7_RC_t simSystemIPV6AddressConflictCheck(L7_in6_addr_t *ip6Addr,
 * @end
 *********************************************************************/
 void simMacAddrGet(L7_uchar8 *sysMacAddr)
-{
+{/* PTin added */ //unsigned char m[8]={00, 06, 0x91, 07, 0xC9, 0xCE}; memcpy(sysMacAddr, m, 6); return;
   if (simGetSystemIPMacType() == L7_SYSMAC_LAA)
   {
     simGetSystemIPLocalAdminMac(sysMacAddr);
