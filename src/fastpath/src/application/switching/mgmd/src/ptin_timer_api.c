@@ -92,16 +92,16 @@ void* ptin_timer_CB_handle(void *param)
     switch (cbPtr->state)
     {
       case PTIN_CONTROL_BLOCK_STATE_FREE:
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] libertar control block!",  pthread_self());
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] libertar control block!",  pthread_self());
         pthread_exit(NULL);
         return NULL;
       case PTIN_CONTROL_BLOCK_STATE_RESERVED:
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] nao temos timers!!",  pthread_self());
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nao temos timers!!",  pthread_self());
         if (sleep(10) == 0) break; //dormi ate ao fim...
       case PTIN_CONTROL_BLOCK_STATE_RUNNING:
 
         cbPtr->nextSleepPeriod = 0;
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] cbPtr->nextSleepPeriod %d cbPtr->lastSleepPeriod %d",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nextSleepPeriod [%d]mS lastSleepPeriod [%d]mS",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
         cbPtr->lastSleepPeriod = (requiredSleepTime.tv_sec - remainingSleepTime.tv_sec) * 1000 + (requiredSleepTime.tv_nsec - remainingSleepTime.tv_nsec) / 1000000; //em ms
         cbPtr->lastSleepPeriod = cbPtr->lastSleepPeriod / cbPtr->tickGranularity; //em timerTicks
 
@@ -125,19 +125,20 @@ void* ptin_timer_CB_handle(void *param)
                   pthread_attr_t attr;
                   if (0 != pthread_attr_init(&attr))
                   {
-                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u]: Unable to initialize thread attributes", pthread_self());
+                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u]: Unable to initialize thread attributes", pthread_self());
                   }
                   if (0 != pthread_attr_setstacksize(&attr, PTIN_MGMD_STACK_SIZE / 2))
                   {
-                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] Unable to set thread stack size to %u", pthread_self(), PTIN_MGMD_STACK_SIZE);
+                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] Unable to set thread stack size to %u", pthread_self(), PTIN_MGMD_STACK_SIZE);
                   }
                   if (0 != pthread_create(&thread_id, &attr, cbPtr->timers[i].funcPtr, cbPtr->timers[i].funcParam))
                   {
-                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] Unable to start MGMD thread", pthread_self());
+                    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] Unable to start MGMD thread", pthread_self());
                   }
                 }
                 else
-                {                  
+                { 
+                  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p]  Expirou!", cbPtr->thread_id, &cbPtr->timers[i]);
                   cbPtr->timers[i].funcPtr(cbPtr->timers[i].funcParam);   
                 }
               }
@@ -148,25 +149,25 @@ void* ptin_timer_CB_handle(void *param)
             } 
             else 
             {
-              PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] state %d", pthread_self(), cbPtr->timers[i].state );
+              PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] timerState [%s]", pthread_self(), (cbPtr->timers[i].state==PTIN_TIMER_STATE_RUNNING)?"RUNNING":"NOT RUNNING");
             }
             if (cbPtr->timers[i].state == PTIN_TIMER_STATE_RUNNING)
             {
               if (!cbPtr->nextSleepPeriod)
               {                
                 cbPtr->nextSleepPeriod = cbPtr->timers[i].counter;
-                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] cbPtr->nextSleepPeriod %d cbPtr->lastSleepPeriod %d",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
+                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nextSleepPeriod [%d]mS lastSleepPeriod [%d]mS",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
               }
               else if (cbPtr->nextSleepPeriod > cbPtr->timers[i].counter)
               {                
                 cbPtr->nextSleepPeriod = cbPtr->timers[i].counter;
-                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] cbPtr->nextSleepPeriod %d cbPtr->lastSleepPeriod %d",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
+                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nextSleepPeriod [%d]mS lastSleepPeriod [%d]mS",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);
               }
             }
           }
           cbPtr->timers[i].nLoadedFlag = 0;
         }
-         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] cbPtr->nextSleepPeriod %d cbPtr->lastSleepPeriod %d",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);         
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nextSleepPeriod [%d]ms lastSleepPeriod [%d]mS",  pthread_self(), cbPtr->nextSleepPeriod,cbPtr->lastSleepPeriod);         
         if (!cbPtr->nextSleepPeriod) //expiraram todos os timers...
         {
           requiredSleepTime.tv_sec = remainingSleepTime.tv_sec = 0;
@@ -185,7 +186,7 @@ void* ptin_timer_CB_handle(void *param)
           requiredSleepTime.tv_sec = nsNextSleep / 1000000000;
           requiredSleepTime.tv_nsec = nsNextSleep % 1000000000;
 
-          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] nsNextSleep %lld %d %d", pthread_self(), nsNextSleep, requiredSleepTime.tv_sec, requiredSleepTime.tv_nsec);
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] nsNextSleep [%lld]nS requiredSleepTime: [%d]S [%d]nsec", pthread_self(), nsNextSleep, requiredSleepTime.tv_sec, requiredSleepTime.tv_nsec);
 
           retCode = nanosleep(&requiredSleepTime, &remainingSleepTime);
           if (retCode == 0)
@@ -198,7 +199,7 @@ void* ptin_timer_CB_handle(void *param)
             requiredSleepTime.tv_sec = remainingSleepTime.tv_sec = 0;
             requiredSleepTime.tv_nsec = remainingSleepTime.tv_nsec = 0;
           } else {
-            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "[%u] %s %d sec %d nsec", pthread_self(), strerror(errno),remainingSleepTime.tv_sec, remainingSleepTime.tv_nsec);
+            PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "threadId [%u] ErrorCode [%s] remainingSleepTime [%d]sec [%d]nsec", pthread_self(), strerror(errno),remainingSleepTime.tv_sec, remainingSleepTime.tv_nsec);
             cbPtr->state = PTIN_CONTROL_BLOCK_STATE_RUNNING;
           }
         }
@@ -356,7 +357,7 @@ RC_t ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *
         pthread_mutex_unlock(&cbPtr->lock);
         return TABLE_IS_FULL;
     }
-	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"%s: timer %p [%u]\n\r", __FUNCTION__, *timerPtr, cbPtr->thread_id);
+	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p]",cbPtr->thread_id, *timerPtr);
 
     cbPtr->timers[i].counter=0;
     cbPtr->timers[i].funcPtr=funcPtr;
@@ -394,7 +395,7 @@ RC_t ptin_mgmd_timer_deinit(PTIN_MGMD_TIMER_t timerPtr) {
     int i;
 
     if (!tmrPtr) return NOT_EXIST;
-	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"%s: timer %p [%u]\n\r", __FUNCTION__, tmrPtr, ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id);
+	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p]", ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, tmrPtr);
 
     pthread_mutex_lock(&((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->lock);
     tmrPtr->state=PTIN_TIMER_STATE_FREE;
@@ -442,7 +443,7 @@ RC_t ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, uint32 timeout, void *par
 
     if (!tmrPtr) return NOT_EXIST;
 
-	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"%s: timer %p timeout %d [%u]\n\r", __FUNCTION__, tmrPtr, timeout, ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id);
+	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p] timeout [%d]mS",((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, tmrPtr, timeout);
 
     switch (tmrPtr->state) {
     case PTIN_TIMER_STATE_RESERVED:
@@ -515,7 +516,7 @@ RC_t ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr) {
 
     if (!tmrPtr) return NOT_EXIST;
 
-	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"%s: timer %p [%u]\n\r", __FUNCTION__, tmrPtr, ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id);
+	PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p] ", ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, tmrPtr);
 
     switch (tmrPtr->state) {
     case PTIN_TIMER_STATE_RUNNING:
@@ -595,7 +596,7 @@ BOOL ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr) {
     PTIN_TIMER_STRUCT *tmrPtr=timerPtr;
 
     if (!tmrPtr) return FALSE;
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,": timer %p (%s) [%u]", tmrPtr, (tmrPtr->state==PTIN_TIMER_STATE_RUNNING)?"RUNNING":"NOT RUNNING",((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"threadId [%u] timerPtr [%p] State [%s]", ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, tmrPtr, (tmrPtr->state==PTIN_TIMER_STATE_RUNNING)?"RUNNING":"NOT RUNNING");
     if (tmrPtr->state==PTIN_TIMER_STATE_RUNNING) return TRUE;
     else                                         return FALSE;
 }

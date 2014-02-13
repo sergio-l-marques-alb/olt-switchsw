@@ -226,7 +226,6 @@ typedef struct ptin_mgmd_inet_addr_s
 
 #define PTIN_MGMD_IP6_ADDR_V4MAPPED(xaddr) (((ptin_mgmd_in6_addr_t *)(xaddr))->in6.addr32[3])
 
-#define PTIN_MGMD_IP6_ADDR_LEN 16
 #define PTIN_MGMD_IP6_ADDR_COMPARE(xaddr1,xaddr2)  memcmp((xaddr1),(xaddr2),PTIN_MGMD_IP6_ADDR_LEN)
 
 /* a handy macro for snmp walks */
@@ -245,6 +244,10 @@ typedef struct ptin_mgmd_inet_addr_s
 }
 
 #define PTIN_MGMD_INET_ADDR_GET_ALL_ONES_MASKLEN(addr)  ((addr)->family == PTIN_MGMD_AF_INET)?32:128
+
+#define PTIN_MGMD_INET_ADDR_GET_MAX(addr,maskLen) 1<< ((PTIN_MGMD_INET_ADDR_GET_ALL_ONES_MASKLEN(addr)>=maskLen)?\
+ PTIN_MGMD_INET_ADDR_GET_ALL_ONES_MASKLEN(addr)-maskLen: \
+ 0)
 
 /*
  Following things are added for mcast support

@@ -771,7 +771,7 @@ RC_t ptin_mgmd_ctrl_whitelist_add(PTIN_MGMD_EVENT_CTRL_t *eventData)
   RC_t                              res       = SUCCESS;
   PTIN_MGMD_CTRL_WHITELIST_CONFIG_t request   = {0};
   ptin_mgmd_inet_addr_t             groupAddr;
-  ptin_mgmd_inet_addr_t             sourceAddr;
+  ptin_mgmd_inet_addr_t             sourceAddr;  
   char                              debugBuf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
@@ -784,7 +784,7 @@ RC_t ptin_mgmd_ctrl_whitelist_add(PTIN_MGMD_EVENT_CTRL_t *eventData)
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Group IP   = %s", ptin_mgmd_inetAddrPrint(&groupAddr, debugBuf));
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Source IP  = %s", ptin_mgmd_inetAddrPrint(&sourceAddr, debugBuf));
 
-  if (PTIN_NULLPTR == ptinMgmdWhitelistAdd(request.serviceId, &groupAddr, &sourceAddr))
+  if (SUCCESS != ptinMgmdWhitelistAdd(request.serviceId, &groupAddr,request.groupMaskLen, &sourceAddr,request.sourceMaskLen))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error adding entry to white-list");
     return ERROR;
@@ -820,7 +820,7 @@ RC_t ptin_mgmd_ctrl_whitelist_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Group IP   = %s", ptin_mgmd_inetAddrPrint(&groupAddr, debugBuf));
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Source IP  = %s", ptin_mgmd_inetAddrPrint(&sourceAddr, debugBuf));
 
-  if (SUCCESS != (res = ptinMgmdWhitelistRemove(request.serviceId, &groupAddr, &sourceAddr)))
+  if (SUCCESS != (res = ptinMgmdWhitelistRemove(request.serviceId, &groupAddr,request.groupMaskLen, &sourceAddr, request.sourceMaskLen)))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error removing entry from white-list");
     return res;

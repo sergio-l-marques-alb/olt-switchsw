@@ -374,6 +374,8 @@ static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx);
+L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
+L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
 /* Not used */
 #if 0
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx);
@@ -6054,7 +6056,28 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       break;
   }
 
-  return rc;
+ if (rc==L7_SUCCESS)
+ {
+#if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+   //Only IPv4 is supported!
+   if(channel_group->family==L7_AF_INET && channel_source->family==L7_AF_INET)
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+     return FAILURE;                       
+   }
+   ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask);
+#else
+   //Only IPv4 is supported!
+   if(channel_group->family!=L7_AF_INET)
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+     return FAILURE;     
+   }
+   ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,0,0);
+#endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
+ }
+
+ return rc; 
 }
 
 /**
@@ -6073,10 +6096,11 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
                                    L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                    L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask)
 {
-  L7_inet_addr_t  group, source;
-  L7_uint32       i, n_groups=1;
-  L7_uint32       j, n_sources=1;
+  L7_inet_addr_t        group, source;
+  L7_uint32             i, n_groups=1;
+  L7_uint32             j, n_sources=1;
   ptinIgmpPairDataKey_t avl_key;
+  L7_uint32             evc_mc;//Added to support MGMD
   L7_RC_t rc;
 
   /* Validate and prepare channel group Address*/
@@ -6143,6 +6167,13 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
       memcpy(&avl_key.channel_source, &source, sizeof(L7_inet_addr_t));
       #endif
 
+      /* Find associated MC service */
+      if (igmp_assoc_pair_get( evc_uc, &group, &source, &evc_mc )!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"No MC EVC associated with UC EVC %u",evc_uc);
+        rc = L7_FAILURE;
+      }      
+
       /* Add node into avl tree */
       if (igmp_assoc_avlTree_remove( &avl_key ) != L7_SUCCESS)
       {
@@ -6165,6 +6196,26 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
     else
       break;
   }
+
+ if (rc==L7_SUCCESS)
+ {
+#if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+   //Only IPv4 is supported!
+   if(channel_group->family==L7_AF_INET && channel_source->family!=L7_AF_INET)
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+     return FAILURE;                       
+   }
+   ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask);   
+#else
+   if(channel_group->family!=L7_AF_INET)
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+     return FAILURE;     
+   }
+   ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,0,0);
+#endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
+ }
 
   return rc;
 }
@@ -8193,6 +8244,53 @@ static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx)
 
   mgmdConfigMsg.serviceId = evc_idx;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  return L7_SUCCESS;
+}
+
+L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen)
+{
+  PTIN_MGMD_EVENT_t                 reqMsg        = {0};
+  PTIN_MGMD_EVENT_t                 resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t            ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_WHITELIST_CONFIG_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.serviceId = serviceId;
+  mgmdConfigMsg.groupIp   = groupAddr;
+  mgmdConfigMsg.groupMaskLen = groupMaskLen;
+  mgmdConfigMsg.sourceIp  = sourceAddr;
+  mgmdConfigMsg.sourceMaskLen= sourceMaskLen;
+
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  return L7_SUCCESS;
+}
+
+L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen)
+{
+  PTIN_MGMD_EVENT_t                 reqMsg        = {0};
+  PTIN_MGMD_EVENT_t                 resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t            ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_WHITELIST_CONFIG_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.serviceId     = serviceId;
+  mgmdConfigMsg.groupIp       = groupAddr;
+  mgmdConfigMsg.groupMaskLen  = groupMaskLen;
+  mgmdConfigMsg.sourceIp      = sourceAddr;
+  mgmdConfigMsg.sourceMaskLen = sourceMaskLen;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");

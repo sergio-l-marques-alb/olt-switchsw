@@ -397,45 +397,49 @@ struct mgmdProxyInterface_s
 typedef struct snoop_eb_s
 {
   /* Sources FIFO queue */
-  PTIN_FIFO_t groupSourcesQueue;
-  PTIN_FIFO_t specificQuerySourcesQueue;
+  PTIN_FIFO_t                        groupSourcesQueue;
+  PTIN_FIFO_t                        specificQuerySourcesQueue;
 
   /* L3 PTin AVL Tree data */
-  ptin_mgmd_avlTree_t       snoopPTinL3AvlTree;
-  ptin_mgmd_avlTreeTables_t *snoopPTinL3TreeHeap;
-  snoopPTinL3InfoData_t     *snoopPTinL3DataHeap;
+  ptin_mgmd_avlTree_t                snoopPTinL3AvlTree;
+  ptin_mgmd_avlTreeTables_t         *snoopPTinL3TreeHeap;
+  snoopPTinL3InfoData_t             *snoopPTinL3DataHeap;
 
   /* PTin Proxy  Source AVL Tree data */
-  ptin_mgmd_avlTree_t        snoopPTinProxySourceAvlTree;
-  ptin_mgmd_avlTreeTables_t  *snoopPTinProxySourceTreeHeap;
-  snoopPTinSourceRecord_t    *snoopPTinProxySourceDataHeap;
+  ptin_mgmd_avlTree_t                snoopPTinProxySourceAvlTree;
+  ptin_mgmd_avlTreeTables_t         *snoopPTinProxySourceTreeHeap;
+  snoopPTinSourceRecord_t           *snoopPTinProxySourceDataHeap;
 
   /* PTin Proxy  Group AVL Tree data */
-  ptin_mgmd_avlTree_t       snoopPTinProxyGroupAvlTree;
-  ptin_mgmd_avlTreeTables_t *snoopPTinProxyGroupTreeHeap;
-  mgmdGroupRecord_t         *snoopPTinProxyGroupDataHeap;
+  ptin_mgmd_avlTree_t                snoopPTinProxyGroupAvlTree;
+  ptin_mgmd_avlTreeTables_t         *snoopPTinProxyGroupTreeHeap;
+  mgmdGroupRecord_t                 *snoopPTinProxyGroupDataHeap;
 
   /* PTin Proxy  Group AVL Tree data */
-  ptin_mgmd_avlTree_t       snoopPTinProxyInterfaceAvlTree;
-  ptin_mgmd_avlTreeTables_t *snoopPTinProxyInterfaceTreeHeap;
-  mgmdProxyInterface_t      *snoopPTinProxyInterfaceDataHeap;
+  ptin_mgmd_avlTree_t                snoopPTinProxyInterfaceAvlTree;
+  ptin_mgmd_avlTreeTables_t         *snoopPTinProxyInterfaceTreeHeap;
+  mgmdProxyInterface_t              *snoopPTinProxyInterfaceDataHeap;
 
   /* Group-Source Specific Query AVL Tree data */
-  ptin_mgmd_avlTree_t             groupSourceSpecificQueryAvlTree;
-  ptin_mgmd_avlTreeTables_t       *groupSourceSpecificQueryTreeHeap;
-  groupSourceSpecificQueriesAvl_t *groupSourceSpecificQueryDataHeap;
+  ptin_mgmd_avlTree_t                groupSourceSpecificQueryAvlTree;
+  ptin_mgmd_avlTreeTables_t         *groupSourceSpecificQueryTreeHeap;
+  groupSourceSpecificQueriesAvl_t   *groupSourceSpecificQueryDataHeap;
 
   /* White-list AVL Tree data */
-  ptin_mgmd_avlTree_t       mgmdPTinWhitelistAvlTree;
-  ptin_mgmd_avlTreeTables_t *mgmdPTinWhitelistTreeHeap;
-  mgmdPTinWhitelistData_t   *mgmdPTinWhitelistDataHeap; 
+  ptin_mgmd_avlTree_t                mgmdPTinWhitelistAvlTree;
+  ptin_mgmd_avlTreeTables_t         *mgmdPTinWhitelistTreeHeap;
+  mgmdPTinWhitelistData_t           *mgmdPTinWhitelistDataHeap; 
 
   /*   Number of snooping instances supported */
-  uchar8      maxMgmdInstances;
+  uchar8                             maxMgmdInstances;
 
   /* Flag to specify if IPv6 hop by hop option with rtr alert is supported supported or not */
-  BOOL        ipv6OptionsSupport;
+  BOOL                               ipv6OptionsSupport;
 
+  /*Group Records*/
+  mgmdProxyInterface_t              *interfacePtr;
+  mgmdGroupRecord_t                 *groupRecordPtr;
+  uint16                             noOfGroupRecordsToBeSent;  
 } mgmd_eb_t; 
 
 /* Mgmd Control block */
@@ -478,6 +482,7 @@ typedef struct mgmdIpv6PseudoHdr_s
 typedef struct mgmdSnoopControlPkt_s
 {
   mgmd_cb_t              *cbHandle;
+  mgmd_eb_t              *ebHandle;
   uint32                  portId;                   
   uint32                  serviceId;
   uchar8                  family;                   

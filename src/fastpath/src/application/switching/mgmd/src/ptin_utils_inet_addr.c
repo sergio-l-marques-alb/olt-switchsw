@@ -279,8 +279,8 @@ RC_t ptin_mgmd_inetMaskToMaskLen(ptin_mgmd_inet_addr_t *mask, uchar8 *masklen)
 * @param    masklen @b{(input)} masklen
 * @param    mask    @b{(input)} mask
 *
-* @returns  TRUE
-* @returns  FALSE
+* @returns  SUCCESS
+* @returns  FAILURE
 *
 * @notes
 *

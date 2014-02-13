@@ -146,12 +146,12 @@ RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_
 
   if(SUCCESS == ptin_igmp_rootIntfVlan_validate(portId, mcastRootVlan))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port is root");
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is root");
     *portType = PTIN_MGMD_PORT_TYPE_ROOT;
   }
   else if(SUCCESS == ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port is leaf");
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is leaf");
     *portType = PTIN_MGMD_PORT_TYPE_LEAF;
   }
   else
@@ -194,12 +194,12 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
 
   /* Fill the message */
   memset((L7_uchar8 *)&msg, 0, sizeof(msg));
-  msg.msgId        = snoopMgmdSwitchPortOpen;
-  msg.intIfNum     = portId;
-  msg.vlanId       = serviceId;
-  msg.groupAddress = groupAddr;
-  msg.groupAddress = sourceAddr;
-  msg.cbHandle     = pSnoopCB;
+  msg.msgId         = snoopMgmdSwitchPortOpen;
+  msg.intIfNum      = portId;
+  msg.vlanId        = serviceId;
+  msg.groupAddress  = groupAddr;
+  msg.sourceAddress = sourceAddr;
+  msg.cbHandle      = pSnoopCB;
 
   /* Send a Port_Open event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a new port on the switch");
@@ -230,12 +230,12 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
 
   /* Fill the message */
   memset((L7_uchar8 *)&msg, 0, sizeof(msg));
-  msg.msgId        = snoopMgmdSwitchPortClose;
-  msg.intIfNum     = portId;
-  msg.vlanId       = serviceId;
-  msg.groupAddress = groupAddr;
-  msg.groupAddress = sourceAddr;
-  msg.cbHandle     = pSnoopCB;
+  msg.msgId         = snoopMgmdSwitchPortClose;
+  msg.intIfNum      = portId;
+  msg.vlanId        = serviceId;
+  msg.groupAddress  = groupAddr;
+  msg.sourceAddress = sourceAddr;
+  msg.cbHandle      = pSnoopCB;
 
   /* Send a Port_Close event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a new port on the switch");
