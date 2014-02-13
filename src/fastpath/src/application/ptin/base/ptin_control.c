@@ -1458,7 +1458,7 @@ uint32 ip, len, i;
                              &((char *) &stat)[i],
                              NULL,//answer,
                              len) < 0) {
-            LOG_INFO(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
+            LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
             //return 1;
         }
 
@@ -1508,7 +1508,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
     dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
 
-    LOG_INFO(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
 #endif
 }//rx_dot3ad_matrix_sync2_t
 
