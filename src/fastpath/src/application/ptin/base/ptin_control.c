@@ -33,6 +33,8 @@
 #include "fw_shm.h"
 #endif
 
+#include <usmdb_sim_api.h>
+
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_ISLOADING;
 
@@ -276,6 +278,11 @@ void _10msTask(void)
     PTIN_CRASH();
   }
 
+  //{
+  // static unsigned char m[8]={0, 1, 2, 3, 4, 5, 6, 7};
+  //    usmDbSwDevCtrlMacAddrTypeSet(0, L7_SYSMAC_LAA);
+  //    usmDbSwDevCtrlLocalAdminAddrSet(0, m);
+  //}
   sleep(5);     //Allow ANDL/HAPI layer to create the trunk before manipulating it in "monitor_matrix_commutation()"
 
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "10ms task will now start!");
@@ -824,7 +831,7 @@ void ptin_control_switchover_monitor(void)
   L7_uint16 board_id;
 
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
-  static L7_uint8 matrix_is_active_h = L7_TRUE;
+  static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
   L7_uint8 matrix_is_active;
 
   matrix_is_active = cpld_map->reg.mx_is_active;
@@ -832,8 +839,10 @@ void ptin_control_switchover_monitor(void)
   /* First time procedure (after switchover) */
   if (cpld_map->reg.mx_is_active != matrix_is_active_h)
   {
-    matrix_is_active_h = matrix_is_active;
+    //if (!matrix_is_active && 0xFF!=matrix_is_active_h) tx_dot3ad_matrix_sync_t();
     
+    matrix_is_active_h = matrix_is_active;
+
     if (linkscan_update_control)
     {
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
@@ -1244,4 +1253,270 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
 
   nimStartupEventDone(L7_PTIN_COMPONENT_ID);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
+#include "../../switching/link_aggregation/core/include/dot3ad_db.h"
+extern dot3ad_agg_t dot3adAgg[L7_MAX_NUM_LAG_INTF];
+extern dot3ad_port_t dot3adPort[L7_MAX_PORT_COUNT + 1];
+extern dot3adOperPort_t dot3adOperPort[L7_MAX_PORT_COUNT + 1];
+
+extern L7_uint32 dot3adAggIdx[L7_MAX_INTERFACE_COUNT];
+extern L7_uint32 dot3adPortIdx[L7_MAX_PORT_COUNT+1];
+extern dot3ad_system_t dot3adSystem;
+
+typedef struct {
+    dot3ad_agg_t dot3adAgg[L7_MAX_NUM_LAG_INTF];
+    dot3ad_port_t dot3adPort[L7_MAX_PORT_COUNT + 1];
+    dot3adOperPort_t dot3adOperPort[L7_MAX_PORT_COUNT + 1];
+    
+    L7_uint32 dot3adAggIdx[L7_MAX_INTERFACE_COUNT];
+    L7_uint32 dot3adPortIdx[L7_MAX_PORT_COUNT+1];
+    dot3ad_system_t dot3adSystem;
+} dot3ad_matrix_sync_t;
+
+
+int tx_dot3ad_matrix_sync_t(void) {
+static dot3ad_matrix_sync_t stat;
+//char answer[10];
+uint32 ip, len, i;
+
+
+    memcpy(stat.dot3adAgg, dot3adAgg, sizeof(dot3adAgg));
+    memcpy(stat.dot3adPort, dot3adPort, sizeof(dot3adPort));
+    memcpy(stat.dot3adOperPort, dot3adOperPort, sizeof(dot3adOperPort));
+    
+    memcpy(stat.dot3adAggIdx, dot3adAggIdx, sizeof(dot3adAggIdx));
+    memcpy(stat.dot3adPortIdx, dot3adPortIdx, sizeof(dot3adPortIdx));
+    memcpy(&stat.dot3adSystem, &dot3adSystem, sizeof(dot3adSystem));
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "sizeof(dot3adAgg)=%u\tsizeof(dot3adPort)=%u\tsizeof(dot3adOperPort)=%u\tsizeof(dot3adAggIdx)=%u\tsizeof(dot3adPortIdx)=%u\tsizeof(dot3adSystem)=%u",
+             sizeof(dot3adAgg), sizeof(dot3adPort), sizeof(dot3adOperPort), sizeof(dot3adAggIdx), sizeof(dot3adPortIdx), sizeof(dot3adSystem));
+
+    ip=     ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
+
+    i=      0;
+    len=    sizeof(dot3ad_matrix_sync_t);
+    if (len>IPCLIB_MAX_MSGSIZE) len=IPCLIB_MAX_MSGSIZE;
+
+    do {
+        if (send_ipc_message(IPC_HW_FASTPATH_PORT,
+                             ip,
+                             CCMSG_ETH_LACP_MATRIXES_SYNC,//CCMSG_HW_INTF_INFO_GET,
+                             &((char *) &stat)[i],
+                             NULL,//answer,
+                             len) < 0) {
+            LOG_INFO(LOG_CTX_PTIN_CONTROL, "Failed syncing matrixes .3ad wise");
+            //return 1;
+        }
+
+        if (0==i)   {i+=len;      len--;}   //1st message has a different size to align @Rx
+        else        i+=len;
+
+        if (i+len>sizeof(dot3ad_matrix_sync_t)) len=sizeof(dot3ad_matrix_sync_t)-i;
+    } while (i<sizeof(dot3ad_matrix_sync_t));
+
+    return 0;
+}//tx_dot3ad_matrix_sync_t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void rx_dot3ad_matrix_sync_t(char *p, unsigned long dim) {
+static dot3ad_matrix_sync_t stat;
+static uint32 i=-1UL;
+uint32 len;
+
+    len=    sizeof(dot3ad_matrix_sync_t);
+    if (len>IPCLIB_MAX_MSGSIZE) len=IPCLIB_MAX_MSGSIZE; //same as in tx_...
+
+    if (dim==len) {
+         i=0;      //1st message has this size to align @Rx
+         LOG_INFO(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync_t()\ti=0");
+    }
+    else LOG_INFO(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync_t()");
+
+    if (i>sizeof(dot3ad_matrix_sync_t)) return;
+
+    if (dim+i>sizeof(dot3ad_matrix_sync_t)) len=sizeof(dot3ad_matrix_sync_t)-i; //should never happen
+    else                                    len=dim;
+
+    memcpy(&((char *) &stat)[i], p, len);
+
+    i+=dim;//len;
+    //if (i>sizeof(dot3ad_matrix_sync_t)) return;
+    if (i<sizeof(dot3ad_matrix_sync_t)) return;
+
+
+//    //At this point, copy "stat" to relevant dot3ad variables
+//    for (i=0; i<L7_MAX_NUM_LAG_INTF; i++) {
+//        memcpy(&dot3adAgg[i].aggMacAddr, &stat.dot3adAgg[i].aggMacAddr,
+//               sizeof(dot3ad_agg_t)-sizeof(dot3adAgg[0].next)-sizeof(dot3adAgg[0].prev));
+//    }
+//    for (i=0; i<L7_MAX_PORT_COUNT + 1; i++) {
+//        memcpy(&dot3adPort[i].actorPortNum, &stat.dot3adPort[i].actorPortNum,
+//               dot3adPort[0].muxState-dot3adPort[0].actorPortNum+sizeof(dot3adPort[0].muxState));
+//    }
+//    memcpy(dot3adOperPort, stat.dot3adOperPort, sizeof(dot3adOperPort));
+//    memcpy(dot3adAggIdx, stat.dot3adAggIdx, sizeof(dot3adAggIdx));
+//    memcpy(&dot3adSystem, &stat.dot3adSystem, sizeof(dot3adSystem));
+//
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync_t()\tEND");
+}//rx_dot3ad_matrix_sync_t
+
+
+
+
+int dot3ad_DB_size(void) {
+int r, r2;
+ r2=sizeof(dot3adAgg);      r=r2;
+ printf("sizeof(dot3adAgg)=%d\n\r", r2);
+ r2=sizeof(dot3adPort);     r+=r2;
+ printf("sizeof(dot3adPort)=%d\n\r", r2);
+ r2=sizeof(dot3adOperPort); r+=r2;
+ printf("sizeof(dot3adOperPort)=%d\n\r", r2);
+
+ r2=sizeof(dot3adAggIdx); r+=r2;
+ printf("sizeof(dot3adAggIdx)=%d\n\r", r2);
+ r2=sizeof(dot3adPortIdx); r+=r2;
+ printf("sizeof(dot3adPortIdx)=%d\n\r", r2);
+ r2=sizeof(dot3adSystem); r+=r2;
+ printf("sizeof(dot3adSystem)=%d\n\r", r2);
+ return r;
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Goal: active matrix sends its received LACPDUs to standby matrix so as to synchronize it, reducing LACP unavailability when toggling matrixes
+#include "../../switching/link_aggregation/core/include/dot3ad_db.h"
+#include "../../switching/link_aggregation/core/include/dot3ad_lac.h"
+#include "../../switching/link_aggregation/core/include/dot3ad_lacp.h"
+typedef struct {
+    L7_uint32       intf;
+    dot3ad_pdu_t    pdu;
+} dot3ad_matrix_sync2_t;
+
+
+
+
+int tx_dot3ad_matrix_sync2_t(L7_uint32 intf, dot3ad_pdu_t *pdu) {
+#if (PTIN_BOARD_IS_MATRIX)
+static dot3ad_matrix_sync2_t stat;
+//char answer[10];
+uint32 ip, len, i;
+
+
+    if (!cpld_map->reg.mx_is_active) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+
+
+
+
+    stat.intf=  intf;
+    memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
+
+    ip=     ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
+
+    i=      0;
+    len=    sizeof(dot3ad_matrix_sync2_t);
+    if (len>IPCLIB_MAX_MSGSIZE) len=IPCLIB_MAX_MSGSIZE;
+
+    do {
+        if (send_ipc_message(IPC_HW_FASTPATH_PORT,
+                             ip,
+                             CCMSG_ETH_LACP_MATRIXES_SYNC2,
+                             &((char *) &stat)[i],
+                             NULL,//answer,
+                             len) < 0) {
+            LOG_INFO(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
+            //return 1;
+        }
+
+        if (0==i)   {i+=len;      len--;}   //1st message has a different size to align @Rx
+        else        i+=len;
+
+        if (i+len>sizeof(dot3ad_matrix_sync2_t)) len=sizeof(dot3ad_matrix_sync2_t)-i;
+    } while (i<sizeof(dot3ad_matrix_sync2_t));
+#endif
+    return 0;
+}//tx_dot3ad_matrix_sync2_t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
+#if (PTIN_BOARD_IS_MATRIX)
+    dot3ad_port_t *p;
+    dot3ad_agg_t *agg;
+    dot3ad_matrix_sync2_t *p2;
+
+    p2= (dot3ad_matrix_sync2_t *) pbuf;
+
+    p = dot3adPortIntfFind(p2->intf);
+    if (L7_NULLPTR == p) return;
+
+
+    /* Drop the received PDU if the port's aggregator is static */
+    /* Get the aggregator first */
+    agg = dot3adAggKeyFind(p->actorOperPortKey);
+    if (L7_NULLPTR == agg) return;
+
+    if (L7_TRUE == agg->isStatic) return;
+
+    dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
+#endif
+}//rx_dot3ad_matrix_sync2_t
 

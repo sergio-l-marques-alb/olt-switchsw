@@ -53,6 +53,9 @@
 #define CCMSG_ETH_LACP_STATS_GET            0x9026  // struct msg_LACPStats_t
 #define CCMSG_ETH_LACP_STATS_CLEAR          0x9027  // struct msg_LACPStats_t
 
+//#define CCMSG_ETH_LACP_MATRIXES_SYNC        0x9028
+#define CCMSG_ETH_LACP_MATRIXES_SYNC2       0x9028
+
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t

@@ -332,12 +332,13 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   comando.infoDim     = infoDim;
   memcpy(comando.info, request, infoDim);
 
-  ret=send_data(g_iInterfaceSW, porto, ipaddr, (ipc_msg *)&comando, (ipc_msg *)&resposta);
+  ret=send_data(g_iInterfaceSW, porto, ipaddr, (ipc_msg *)&comando, NULL==answer? NULL:(ipc_msg *)&resposta);
   if(ret<0)
   {
     LOG_ERR(LOG_CTX_IPC,"send_message to PORT %d (Canal =%d), Code = 0x%.4x: ERROR = %d", porto, g_iInterfaceSW, msg_id, ret);
     return ret;
   }
+  if (NULL==answer) return ret;
 
   /* Check if ACK */
   if (resposta.flags != IPCLIB_FLAGS_ACK)
