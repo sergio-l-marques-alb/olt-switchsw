@@ -261,8 +261,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   //Ignore if the port has link down
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
-    return L7_FALSE;
+    return SUCCESS;
   }
 
   //Get outter internal vlan
