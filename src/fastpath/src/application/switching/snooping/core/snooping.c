@@ -97,12 +97,12 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
   }
 
   //Create a new MGMD packet event
-  if(SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
+  if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to create packet for MGMD");
     return L7_ERROR;
   }
-  if(SUCCESS != ptin_mgmd_eventQueue_tx(&mgmdPcktEvent))
+  if(L7_SUCCESS != ptin_mgmd_eventQueue_tx(&mgmdPcktEvent))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to place packet event in MGMD rxQueue");
     return L7_ERROR;
@@ -803,7 +803,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #else
   /* Send packet to MGMD */
   ptin_timer_start(34,"mgmdPacketSend");
-  if(SUCCESS != (rc = mgmdPacketSend(McastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
+  if(L7_SUCCESS != (rc = mgmdPacketSend(McastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
   }
