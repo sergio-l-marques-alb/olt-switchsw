@@ -6058,6 +6058,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
 
  if (rc==L7_SUCCESS)
  {
+#if 0
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
    //Only IPv4 is supported!
    if(channel_group->family==L7_AF_INET && channel_source->family==L7_AF_INET)
@@ -6084,7 +6085,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
    }
 #endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
  }
-
+#endif
  return rc; 
 }
 
