@@ -6084,8 +6084,8 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
      return L7_FAILURE;
    }
 #endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
- }
 #endif
+ }
  return rc; 
 }
 
