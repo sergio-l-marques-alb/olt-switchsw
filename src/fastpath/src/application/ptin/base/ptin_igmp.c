@@ -6063,17 +6063,25 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
    if(channel_group->family==L7_AF_INET && channel_source->family==L7_AF_INET)
    {
      LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
-     return FAILURE;                       
+     return L7_FAILURE;                       
    }
-   ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask);
+   if(L7_SUCCESS != ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask))
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to create requested entry in the whitelist");
+     return L7_FAILURE;
+   }
 #else
    //Only IPv4 is supported!
    if(channel_group->family!=L7_AF_INET)
    {
      LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
-     return FAILURE;     
+     return L7_FAILURE;     
    }
-   ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,0,0);
+   if(L7_SUCCESS != ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,0,0))
+   {
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to create requested entry in the whitelist");
+     return L7_FAILURE;
+   }
 #endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
  }
 
@@ -8232,7 +8240,7 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
-  return L7_SUCCESS;
+  return ctrlResMsg.res;
 }
 
 static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx)
@@ -8251,7 +8259,7 @@ static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx)
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
-  return L7_SUCCESS;
+  return ctrlResMsg.res;
 }
 
 L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen)
@@ -8275,7 +8283,7 @@ L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
-  return L7_SUCCESS;
+  return ctrlResMsg.res;
 }
 
 L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen)
@@ -8298,7 +8306,7 @@ L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
-  return L7_SUCCESS;
+  return ctrlResMsg.res;
 }
 
 /**
