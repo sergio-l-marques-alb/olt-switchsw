@@ -174,15 +174,14 @@ RC_t ptin_mgmd_mld_packet_process(void)
 
 
 /*****************************************************************
-* @purpose  calculates the max response time from the max response code
+* @purpose  Calculates the max response time from the max response code 
+* @purpose     and to convert to mS unit
 *
 * @param    max_resp_time @b{ (input) } the maximum response time
 *
 * @returns
 * @notes
 *
-
-
    If Max Resp Code < 128, Max Resp Time = Max Resp Code
 
    If Max Resp Code >= 128, Max Resp Code represents a floating-point
@@ -196,7 +195,7 @@ RC_t ptin_mgmd_mld_packet_process(void)
    Max Resp Time = (mant | 0x10) << (exp + 3)
 * @end
 *********************************************************************/
-static int32  ptinMgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_code)
+static int32  ptin_mgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_code)
 {
   int32           max_resp_time = 0;
 
@@ -217,11 +216,12 @@ static int32  ptinMgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_cod
 
   if (family == PTIN_MGMD_AF_INET)
   {
-    max_resp_time = max_resp_time/10;
+    //Convert from dS to mS
+    max_resp_time = max_resp_time*100;
   }
   else if (family == PTIN_MGMD_AF_INET6)
   {
-    max_resp_time = max_resp_time/1000;
+    max_resp_time = max_resp_time;
   }
   return max_resp_time;
 }
@@ -881,16 +881,16 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
     return SUCCESS;
   }
    
-  /* As the packet has the max-respons-time in 1/10 of secs, convert it to seconds for further processing */
-  maxRespTime = ptinMgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
+  /* As the packet has the max-respons-time in 1/10 of secs, convert it to milliseconds for further processing */
+  maxRespTime = ptin_mgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
+#if 0
   if (maxRespTime == 0)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Max Response Time equal to zero, packet silently discarded");
     return FAILURE;
   }
-  //Convert from seconds to Millieconds
-  maxRespTime=maxRespTime*1000; 
-
+#endif
+  
   /* Calculate the Selected delay */
   selectedDelay = ptinMgmd_generate_random_response_delay(maxRespTime);
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Max_Response_Time:[%u], Selected_Delay:[%u]", maxRespTime, selectedDelay);

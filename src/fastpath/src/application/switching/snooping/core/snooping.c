@@ -802,10 +802,12 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #else
   /* Send packet to MGMD */
+  ptin_timer_start(34,"mgmdPacketSend");
   if(SUCCESS != (rc = mgmdPacketSend(McastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
   }
+  ptin_timer_stop(34);
 #endif
 
   if (rc != L7_SUCCESS)

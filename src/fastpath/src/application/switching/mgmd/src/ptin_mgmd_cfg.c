@@ -387,7 +387,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQI
       && mgmdProxyCfg.querier.last_member_query_interval != igmpProxy->querier.last_member_query_interval)
   {
-    mgmdProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval/10;
+    mgmdProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Last Member Query Interval:            %u (1/10s)", mgmdProxyCfg.querier.last_member_query_interval);
   }
 
