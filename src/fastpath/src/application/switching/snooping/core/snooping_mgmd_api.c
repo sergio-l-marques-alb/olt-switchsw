@@ -272,7 +272,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   }
 
   //Get destination MAC from destIpAddr
-  dstIpAddr = (L7_uint32) *(payload+16);
+  dstIpAddr = *((L7_uint32*) (payload+16));
   inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
   snoopMulticastMacFromIpAddr(&destIp, destMac);
 
