@@ -351,7 +351,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
     return FAILURE;
   }
 
-   /* Get Mgmd Control Block */
+  /* Get Mgmd Control Block */
   if ((mcastPacket->cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting pMgmdCB");
@@ -893,7 +893,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
   
   /* Calculate the Selected delay */
   selectedDelay = ptinMgmd_generate_random_response_delay(maxRespTime);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Max_Response_Time:[%u], Selected_Delay:[%u]", maxRespTime, selectedDelay);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Max_Response_Time:[%u]mS, Selected_Delay:[%u]mS", maxRespTime, selectedDelay);
  
   if (mcastPacket->family == PTIN_MGMD_AF_INET)
   {
@@ -965,7 +965,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
         {
           if (ptin_mgmd_inetIsInMulticast(&groupAddr) == TRUE)
           {
-            if (PTIN_MGMD_INET_IS_ADDR_EQUAL(&mcastPacket->destAddr, &groupAddr) == TRUE)
+            if (PTIN_MGMD_INET_IS_ADDR_EQUAL(&mcastPacket->destAddr, &groupAddr) == FALSE)
             {
               PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Group Specific Query Rec'd: IPv4 dst addr != Group Addr %s!=%s, packet silently discarded",
                           ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf),ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf2));                        

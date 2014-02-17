@@ -89,6 +89,7 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
   payload       += ethernetHdrLen;
   payloadLength -= ethernetHdrLen;
 
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "{");
   //Determine serviceId
   if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &serviceId)!=L7_SUCCESS)
   {
@@ -108,6 +109,7 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     return L7_ERROR;
   }
 
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Packet Send}");
   return L7_SUCCESS;
 }
 
@@ -388,17 +390,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   buffPtr=L7_NULLPTR;
   igmpPtr=L7_NULLPTR;
   ipHdrLen=0;
-
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-#if SNOOP_PTIN_IGMPv3_PROXY
-  char             debug_buf1[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};  
+  char       debug_buf1[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};  
 #endif
-#endif  
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopPacketHandle");
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"{");
 
   /* Get Snoop Control Block */
   if ((pSnoopCB = snoopCBGet(family)) == L7_NULLPTR)
   {
+    LOG_FATAL(LOG_CTX_PTIN_IGMP,"Snoop Control Block returned null pointer");
     return L7_FAILURE;
   }
 
@@ -407,6 +408,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
     if (!pSnoopCB->snoopExec->snoopIGMPQueue)
     {
+      LOG_FATAL(LOG_CTX_PTIN_IGMP,"IGMP message queue is not yet created");
       return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
     }
   }
@@ -414,36 +416,34 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
     if (!pSnoopCB->snoopExec->snoopMLDQueue)
     {
+      LOG_FATAL(LOG_CTX_PTIN_IGMP,"MLD message queue is not yet created");
       return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
     }
   }
 
-#if 1
   LOG_TRACE(LOG_CTX_PTIN_IGMP,
             "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
             pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-#else
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Packet intercepted vlan %d, innerVlan=%u, intIfNum %d",
-              pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum);
-#endif
+
 
   /* Ensure snooping is enabled on the switch */
   if (pSnoopCB->snoopCfgData->snoopAdminMode != L7_ENABLE)
   {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Snoop Admin mode is disabled");
     return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
   }
 
   /* Validate intIfNum */
   if ((pduInfo->intIfNum == 0) || (pduInfo->intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP))
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid intIfNum %u: out or range (max=%u)", pduInfo->intIfNum, PTIN_SYSTEM_MAXINTERFACES_PER_GROUP-1);
     return L7_FAILURE;
   }
 
   /* Get interface type */
   if (nimGetIntfType(pduInfo->intIfNum, &sysIntfType) != L7_SUCCESS)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface type");
     return L7_FAILURE;
   }
 
@@ -455,7 +455,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                  &dot1qMode) != L7_SUCCESS) ||
          (dot1qMode != L7_DOT1Q_FIXED) )
     {
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return L7_FAILURE;
     }
@@ -463,7 +462,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /* Verify that the receiving interface is valid */
     if (snoopIntfCanBeEnabled(pduInfo->intIfNum, pduInfo->vlanId) != L7_TRUE)
     {
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return L7_FAILURE;
     }
@@ -473,7 +471,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
 
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
               data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
 
   /* PTin added: IGMP snooping */
@@ -495,14 +493,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* IGMP */
   if (pSnoopCB->family == L7_AF_INET)
   {
-//  L7_uchar8 *buffPtr, *igmpPtr;
-//  L7_uint16 ipHdrLen;
-
     /* Validate minimum size of packet */
     if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
     {
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "Received pkt is too small %d",dataLength);
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received pkt is too small %d",dataLength);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
@@ -519,17 +513,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ipHdrLen = (buffPtr[0] & 0x0f)*4;
     if ( ipHdrLen < L7_IP_HDR_LEN)
     {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "IP Header Len is invalid %d",ipHdrLen);
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is invalid %d",ipHdrLen);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
     if ((L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + ipHdrLen + SNOOP_IGMPv1v2_HEADER_LENGTH) > dataLength)
     {
-      if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "IP Header Len is too big (%d) for the packet length (%u)", ipHdrLen, dataLength);
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is too big (%d) for the packet length (%u)", ipHdrLen, dataLength);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
@@ -562,8 +552,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: IPv6 not supported yet!");
-//  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "IPv6 not supported yet!");
     ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
     return L7_FAILURE;
   }
@@ -598,7 +587,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: ptin_igmp_clientIndex_get failed");
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
   }
 
@@ -606,54 +595,47 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client_idx = (L7_uint) -1;
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client not provided!");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client not provided!");
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Client index is %u",client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index is %u",client_idx);
   }
 #endif
 
   /* Get multicast root vlan */
   if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,
-              "snoopPacketHandle: Vlan=%u will be converted to %u (grpAddr=%s srcAddr=%s)",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s srcAddr=%s)",
               pduInfo->vlanId, McastRootVlan, inetAddrPrint(&grpAddr,debug_buf1),inetAddrPrint(&srcAddr,debug_buf2));
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,
-              "snoopPacketHandle: Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
               pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
-    {
-      //  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
+    {      
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     }
-
     return L7_FAILURE;
   }
 #else
   /* !IGMPASSOC_MULTI_MC_SUPPORTED */
   if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Vlan=%u will be converted to %u",pduInfo->vlanId,McastRootVlan);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,McastRootVlan);
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Can't get McastRootVlan for vlan=%u",pduInfo->vlanId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u",pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
     {
-  //  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     }
-    
-
     return L7_FAILURE;
   }
 #endif
@@ -661,20 +643,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Validate interface and Multicast root vlan */
   if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, McastRootVlan)!=L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
     {
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     }
     else
     {
-//    ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     }
-
-
-    
-
     return L7_FAILURE;
   }
 
@@ -698,7 +675,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     #endif
     {
       client_idx = (L7_uint) -1;
-      SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
     }
   }
   #endif
@@ -709,10 +686,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
-  /* Intercepted packet */
-//ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-//ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
-
   /* Change Internal vlan with the MC root vlan inside message */
   if ((*(L7_ushort16 *)&data[12] == 0x8100) ||
       (*(L7_ushort16 *)&data[12] == 0x88A8) ||
@@ -721,7 +694,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     data[14] &= 0xf0;
     data[14] |= (msg.vlanId>>8) & 0x0f;
     data[15]  =  msg.vlanId & 0xff;
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: vlan changed inside packet");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"vlan changed inside packet");
   }
 #endif
 
@@ -757,7 +730,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   if (rc != L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Insufficient buffers");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Insufficient buffers");
     if(igmpPtr!=L7_NULLPTR)
     {
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
@@ -767,21 +740,20 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
     }
 
-
     //ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
     return L7_FAILURE;
   }
 
-  SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Going to send message to queue");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
 
   L7_int32 n_msg = -1;
   if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Size of IGMP queue = %u messages",n_msg);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Size of IGMP queue = %u messages",n_msg);
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Error reading IGMP queue size");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error reading IGMP queue size");
   }
 
   memcpy(msg.snoopBuffer, data, dataLength);
@@ -813,32 +785,25 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (rc != L7_SUCCESS)
   {
     bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: osapiMessageSend failed\n");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"osapiMessageSend failed\n");
   }
   else
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: Message sent to queue");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Message sent to queue");
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
     {
-      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-              "snoopPacketHandle: Failed to give msgQueue semaphore");
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to give msgQueue semaphore");
     }
   }
 
   /* If any error, packet will be dropped */
   if (rc!=L7_SUCCESS)
   {
-#if SNOOP_PTIN_IGMPv3_PROXY
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,
-              "If any error, packet will be dropped");
-#endif
-//ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-//  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
-//  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
-    //ptin_igmp_dynamic_client_flush(pduInfo->vlanId,client_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Packet will be dropped");
   }
 
-
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"}");
   return rc;
 }
 /*************************************************************************
