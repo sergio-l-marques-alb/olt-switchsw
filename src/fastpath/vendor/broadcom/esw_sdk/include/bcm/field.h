@@ -3186,6 +3186,12 @@ typedef struct bcm_field_group_status_s {
     int entry_count;    /* Number of entries in the group. */
     int counter_count;  /* Number of counters attached to group entries. */
     int meter_count;    /* Number of meters attached to group entries. */
+#ifdef LVL7_FIXUP
+    int slice_width_physical;   /* Slice width of group based on physical slices. */
+    int intraslice_mode_enable; /* Indicates if intraslice mode is enabled. */
+    int natural_depth;          /* Number of rules when slice depth is one. */
+#endif
+
 } bcm_field_group_status_t;
 
 /* Group Modes (single, double or triple wide). */

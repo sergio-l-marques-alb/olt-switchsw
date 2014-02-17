@@ -287,8 +287,10 @@
 #define BCM_IPFIX_SUPPORT
 #endif
 
-#if defined(BCM_56685_A0) || defined(BCM_56685_B0)
+/* PTin modified: new switch */
+#if defined(BCM_56685_A0) || defined(BCM_56685_B0) || defined(BCM_56689_A0) || defined(BCM_56689_B0)
 #define BCM_56685
+#define BCM_56689   /* PTin added: new switch */
 #define BCM_56634
 #define BCM_56624
 #define BCM_56304
@@ -302,6 +304,7 @@
 #define BCM_MPLS_SUPPORT
 #define BCM_IPFIX_SUPPORT
 #endif
+/* PTin end */
 
 #if defined(BCM_56334_A0) || defined(BCM_56334_B0)
 #define BCM_56334
@@ -397,8 +400,10 @@
 #endif
 #endif
 
-#if defined(BCM_56640_A0) || defined(BCM_56640_B0)
+/* PTin modified: new platform */
+#if defined(BCM_56640_A0) || defined(BCM_56640_B0) || defined(BCM_56643_A0) || defined(BCM_56643_B0)
 #define BCM_56640
+#define BCM_56643     /* New switch BCM56643 */
 #define BCM_56840
 #define BCM_56634
 #define BCM_56624

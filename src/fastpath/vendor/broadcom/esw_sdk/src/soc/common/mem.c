@@ -4044,9 +4044,9 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
 
     if (rv < 0) {
         if (rv != SOC_E_TIMEOUT) {
-            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK)\n",
+            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK) rv=%d\n",
                          __FUNCTION__, SOC_MEM_UFNAME(unit, mem),
-                         SOC_BLOCK_NAME(unit, copyno));
+                         SOC_BLOCK_NAME(unit, copyno),rv);
 #ifdef BCM_TRIUMPH2_SUPPORT
             if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || 
                 SOC_IS_VALKYRIE2(unit)) {
@@ -11632,6 +11632,15 @@ _soc_mem_dual_hash_insert(int unit,
         }
         hash_info.bucket_size = SOC_L2X_BUCKET_SIZE;
         hash_info.base_mem = mem;
+#ifdef LVL7_FIXUP
+       /* soc_l2x_freeze/thaw routine are very costly as they try to disable
+        * learning on all Physical and VPs. In cases where we are continously
+        * running into hash collision, freeze/thaw ends up taking a lot of 
+        * cpu time un-neccessarily as we have not enabled software dual-hash
+        * move by default. */
+       if (recurse_depth > 0)
+       {
+#endif
 
         /* Time to shuffle the entries */
         SOC_IF_ERROR_RETURN(soc_l2x_freeze(unit));
@@ -11639,6 +11648,9 @@ _soc_mem_dual_hash_insert(int unit,
                                      copyno, entry_data, &hash_info,
                                      NULL, recurse_depth - 1);
         SOC_IF_ERROR_RETURN(soc_l2x_thaw(unit));
+#ifdef LVL7_FIXUP
+       }
+#endif
         return rv;
 #if defined(BCM_TRIUMPH_SUPPORT)
 #endif /* BCM_TRIUMPH_SUPPORT */

@@ -135,9 +135,20 @@ extern int (*soc_mdebug_print)(const char *format, ...)
 #define SOC_DEBUG_CHECK(enc_) \
     soc_cm_mdebug_check(&soc_mdebug_config, enc_)
 
+#ifndef LVL7_FIXUP
 #define SOC_DEBUG(enc_, stuff_) \
     if (SOC_DEBUG_CHECK(enc_) && soc_mdebug_print != 0) \
 	(*soc_mdebug_print) stuff_
+#else
+#define SOC_DEBUG(flags, stuff) \
+  do { \
+    if (SOC_DEBUG_CHECK(flags)) { \
+    if (SOC_DBG_ERR & (flags)) soc_cm_mdebug_error stuff ; \
+    else if (SOC_DBG_WARN & (flags)) soc_cm_mdebug_warn stuff ; \
+    else soc_cm_mdebug_debug stuff; \
+    } \
+  }while(0)
+#endif
 
 /*
  * Option-specific debug print macros.

@@ -63,6 +63,11 @@ soc_cm_mdebug_config_t bcmx_mdebug_config = {
 };
 
 int (*bcmx_mdebug_print)(const char *format, ...) = soc_cm_print;
+#ifdef LVL7_FIXUP
+int		(*bcmx_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
+int		(*bcmx_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
+int		(*bcmx_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
+#endif
 
 int
 bcmx_mdebug_init(void)

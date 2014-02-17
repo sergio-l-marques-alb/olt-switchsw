@@ -64,6 +64,12 @@ soc_cm_mdebug_config_t tks_mdebug_config = {
 
 int (*tks_mdebug_print)(const char *format, ...) = soc_cm_print;
 
+#ifdef LVL7_FIXUP
+int (*tks_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
+int (*tks_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
+int (*tks_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
+#endif
+
 int
 tks_mdebug_init(void)
 {

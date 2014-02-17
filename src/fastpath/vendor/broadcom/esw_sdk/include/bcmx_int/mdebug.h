@@ -103,9 +103,24 @@ extern int (*bcmx_mdebug_print)(const char *format, ...)
 #define BCMX_DEBUG_CHECK(enc_) \
     soc_cm_mdebug_check(&bcmx_mdebug_config, enc_)
 
+#ifndef LVL7_FIXUP
 #define BCMX_DEBUG(enc_, stuff_) \
     if (BCMX_DEBUG_CHECK(enc_) && bcmx_mdebug_print != 0) \
 	(*bcmx_mdebug_print) stuff_
+#else
+extern int (*bcmx_mdebug_error)(const char *format, ...);
+extern int (*bcmx_mdebug_warn)(const char *format, ...);
+extern int (*bcmx_mdebug_debug)(const char *format, ...);
+#define BCMX_DEBUG(flags, stuff) \
+  do { \
+    if (BCMX_DEBUG_CHECK(flags) && bcmx_mdebug_print != 0) \
+    { \
+      if ((flags) & BCMX_DBG_ERR) (*bcmx_mdebug_error) stuff ; \
+      else if ((flags) & BCMX_DBG_WARN) (*bcmx_mdebug_warn) stuff ; \
+      else (*bcmx_mdebug_debug) stuff ; \
+    } \
+  } while(0)
+#endif
 
 /*
  * Option-specific debug print macros.

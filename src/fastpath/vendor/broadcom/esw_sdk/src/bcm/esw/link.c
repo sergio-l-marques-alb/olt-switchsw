@@ -170,6 +170,8 @@
 #include <bcm_int/esw/switch.h>
 #endif /* BCM_WARM_BOOT_SUPPORT */
 
+#include <stdio.h>
+
 typedef struct ls_handler_s {
     struct ls_handler_s         *lh_next;
     bcm_linkscan_handler_t      lh_f;
@@ -1033,6 +1035,14 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
     return BCM_E_NONE;
 }
+
+/* PTin added: linkscan */
+#if 1
+int _ptin_esw_link_fault_get(int unit, int port, int *fault)
+{
+  return _bcm_esw_link_fault_get(unit, port, fault);
+}
+#endif
 #endif /* HERC15, FIREBOLT */  
 
 
@@ -2347,19 +2357,25 @@ _bcm_esw_linkscan_update_port(int unit, int port)
                          info.duplex ? "Full Duplex" : "Half Duplex",
                          PHY_FIBER_MODE(unit, port) ?
                          "Fiber" : "Copper");
+            printf("Port %d/%s: link up\n", port, SOC_PORT_NAME(unit, port));
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
             soc_cm_debug(DK_LINK, "Link up processing took %d usecs\n",
                          SAL_USECS_SUB(time_end, time_start));
+            printf("Link up processing took %d usecs (port %d)\n",
+                    SAL_USECS_SUB(time_end, time_start), port);
 #endif /* BCM_LINK_CHANGE_BENCHMARK */
  
         } else {
             soc_cm_debug(DK_LINK,
                          "Port %s: link down\n",
                          SOC_PORT_NAME(unit, port));
-
+            printf("Port %s: link down\n",
+                    SOC_PORT_NAME(unit, port));
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
             soc_cm_debug(DK_LINK, "Link down processing took %d usecs\n",
                          SAL_USECS_SUB(time_end, time_start));
+            printf("Link down processing took %d usecs (port=%d)\n",
+                         SAL_USECS_SUB(time_end, time_start), port);
 #endif /* BCM_LINK_CHANGE_BENCHMARK */
         }
     }
@@ -2720,6 +2736,70 @@ _bcm_esw_link_force(int unit, bcm_port_t port, int force, int link)
 
     return(BCM_E_NONE);
 }
+
+/* PTin added: linkscan */
+#if 1
+int
+_ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_linkchange)
+{
+    soc_persist_t	*sop = SOC_PERSIST(unit);
+    ls_cntl_t		*lc = link_control[unit];
+    pbmp_t		pbm;
+
+    LC_CHECK_INIT(unit);
+
+    if (!SOC_PORT_VALID(unit, port) || !IS_PORT(unit, port)) {
+	return BCM_E_PORT;
+    }
+
+    LC_LOCK(unit);
+
+    if (force) {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+	if (link) {
+            if (lc->lc_warm_boot) {
+                /* Don't update ports when recovering from Warm Boot. */
+                SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+                SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+            }
+	    SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
+	}
+        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_ports, port);
+    } else {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_ports, port);
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+        if (no_linkchange)
+        {
+          //SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+          SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+        }
+        else
+        {
+          SOC_PBMP_PORT_ADD(sop->lc_pbm_link_change, port);
+        }
+    }
+
+    /*
+     * Force immediate update to just this port - this allows loopback 
+     * forces to take effect immediately.
+     */
+    SOC_PBMP_CLEAR(pbm);
+    SOC_PBMP_PORT_ADD(pbm, port);
+    _bcm_esw_linkscan_update(unit, pbm);
+
+    LC_UNLOCK(unit);
+
+    /*
+     * Wake up master thread to notice changes - required if using hardware
+     * link scanning.
+     */
+    if (lc->lc_sema != NULL) {
+        sal_sem_give(lc->lc_sema);
+    }
+
+    return(BCM_E_NONE);
+}
+#endif
 
 /*
  * Function:    

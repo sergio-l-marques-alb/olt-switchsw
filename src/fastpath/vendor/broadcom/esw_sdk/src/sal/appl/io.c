@@ -411,7 +411,7 @@ int vprintk(const char *fmt, va_list ap)
 
     return retv;
 }
-
+#if defined(LVL7_FIXUP) && !defined(_L7_OS_ECOS_)
 int printk(const char *fmt, ...)
 {
     int retv;
@@ -421,6 +421,7 @@ int printk(const char *fmt, ...)
     va_end(varg);
     return retv;
 }
+#endif
 
 /*
  * debugk

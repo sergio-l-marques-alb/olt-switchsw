@@ -935,7 +935,19 @@ bcm_esw_stat_init(int unit)
                     SOC_IF_ERROR_RETURN(WRITE_IL_RX_CONFIGr(unit, port, rval32));
                 }
             } else {
+#ifdef LVL7_FIXUP
+                /* Set the Stack port Max size to 0x3fff */
+                if (IS_HG_PORT(unit,port))
+                {
+                  COMPILER_64_SET(rval, 0, 0x3fff);
+                }
+                else
+                {
+                  COMPILER_64_SET(rval, 0, _bcm_stat_ovr_threshold[unit][port]);
+                }
+#else
                 COMPILER_64_SET(rval, 0, _bcm_stat_ovr_threshold[unit][port]);
+#endif
                 SOC_IF_ERROR_RETURN(WRITE_MAC_CNTMAXSZr(unit, port, rval));
             }
 

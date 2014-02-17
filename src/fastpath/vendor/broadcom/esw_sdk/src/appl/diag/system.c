@@ -73,7 +73,7 @@
 
 #if defined(MOUSSE) || defined(BMW) || defined(IDTRP334) || defined(GTO) || \
     defined(MBZ) || defined(IDT438) || defined(NSX) || defined(ROBO_4704) || \
-    defined(METROCORE) || defined(KEYSTONE)
+    defined(METROCORE) || defined(KEYSTONE) || defined(LVL7_FIXUP)
 #if defined(VXWORKS)
 #include <config.h>      /* For INCLUDE_XXX */
 #endif /* VXWORKS */
@@ -1916,6 +1916,29 @@ diag_rc_get(int unit, const char **fname)
           SOC_INIT_RC);
 }
 
+#if defined(LVL7_FIXUP) && defined(VXWORKS)
+extern unsigned char rc_soc_array[];
+extern unsigned char helixmem_soc_array[];
+extern unsigned char config_bcm_array[];
+void diag_file_create(char *fname, unsigned char *data, int len)
+{
+  FILE  *fp = NULL;
+  int   index;
+
+  printf("Generating %s ...\n", fname);
+  index = 0;
+  if ((fp = sal_fopen(fname, "w")) != NULL)
+  {
+    while ((0 != data[index]) && (index < len))
+    {
+      fputc((int)data[index++], fp);
+    }
+    sal_fclose(fp);
+  }
+  return;
+} 
+#endif
+
 int
 diag_rc_load(int unit)
 {
@@ -1996,6 +2019,11 @@ diag_shell(void)
      * In PLISIM, this is not done; the probe and attach commands
      * must be given explicitly.
      */
+#if defined(LVL7_FIXUP) && defined(VXWORKS)
+    diag_file_create("rc.soc", rc_soc_array, strlen(rc_soc_array));
+    diag_file_create("helixmem.soc", helixmem_soc_array, strlen(helixmem_soc_array));
+    diag_file_create("config.bcm", config_bcm_array, strlen(config_bcm_array));
+#endif
     flags = sal_boot_flags_get();
 
     if (!(flags & BOOT_F_NO_PROBE)) {

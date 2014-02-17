@@ -202,13 +202,13 @@ endif
 CFGFLAGS += -DSYS_BE_PIO=1 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=1
 ENDIAN = BE_HOST=1
 CFGFLAGS += -D$(ENDIAN) 
-CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_MPC8548\"
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_MPC8270\"
 CFGFLAGS += -DSAL_BDE_DMA_MEM_DEFAULT=16
 
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
 
-ARCH = powerpc
+ARCH = ppc
 KBUILD_VERBOSE = 1
 
 export ARCH KBUILD_VERBOSE 
@@ -239,7 +239,7 @@ endif
 endif
 
 ifeq (2.0,$(WRS_LINUX_VERSION))
-KFLAG_INCLD = $(WRLINUX_GNU_PATH)/../lib/gcc/powerpc-wrs-linux-gnu/4.1.2/include
+KFLAG_INCLD = /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/lib/gcc/powerpc-e300c3-linux/4.0.2/include
 endif
 
 ifeq (3.0,$(WRS_LINUX_VERSION))

@@ -86,7 +86,17 @@ bcmx_custom_port_set(bcmx_lport_t port, int type, int len, uint32 *args)
                                                 BCMX_DEST_CONVERT_NON_GPORT))) {
             return BCM_E_PORT;
         }
+#ifdef LVL7_FIXUP
+        rv = bcm_custom_port_set(bcm_unit, bcm_port, type, len, args);
+        if (rv == BCM_E_UNIT)
+        {
+          rv = BCM_E_PORT;    
+        }
+
+        return rv;
+#else
         return bcm_custom_port_set(bcm_unit, bcm_port, type, len, args);
+#endif
     }
 
     /* Virtual port */
@@ -120,8 +130,19 @@ bcmx_custom_port_get(bcmx_lport_t port, int type, int max_len,
                                                 BCMX_DEST_CONVERT_NON_GPORT))) {
             return BCM_E_PORT;
         }
+#ifdef LVL7_FIXUP
+        rv = bcm_custom_port_get(bcm_unit, bcm_port, type,
+                                 max_len, args, actual_len);
+        if (rv == BCM_E_UNIT)
+        {
+          rv = BCM_E_PORT;    
+        }
+
+        return rv;
+#else
         return bcm_custom_port_get(bcm_unit, bcm_port, type,
                                    max_len, args, actual_len);
+#endif
     }
 
     /* Virtual port */

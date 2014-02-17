@@ -97,6 +97,11 @@ extern int bcm_tr2_ipmc_egress_intf_add(int unit, int index, bcm_port_t port,
                                 bcm_l3_intf_t *l3_intf);
 extern int bcm_tr2_ipmc_egress_intf_delete(int unit, int index, bcm_port_t port,
                                    bcm_l3_intf_t *l3_intf);
+#ifdef LVL7_FIXUP
+extern int bcm_tr2_ipmc_repl_set(int unit, int mc_index, bcm_port_t port,
+                                bcm_vlan_vector_t vlan_vec);
+#endif
+
 extern int bcm_tr2_ipmc_egress_intf_set(int unit, int mc_index,
                                        bcm_port_t port, int if_count,
                                        bcm_if_t *if_array, int check_port);
@@ -204,6 +209,11 @@ extern int _bcm_tr2_l3_ecmp_grp_add(int unit, int ecmp_grp, void *buf, int max_p
 extern int _bcm_tr2_l3_ecmp_grp_del(int unit, int ecmp_grp, int max_grp_size);
 extern int bcm_tr2_failover_egr_check (int unit, bcm_l3_egress_t  *egr);
 extern int bcm_tr2_failover_mpls_check (int unit, bcm_mpls_port_t  *mpls_port);
+
+/* PTin added: virtual port */
+#if 1
+extern int bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags);
+#endif
 
 extern int bcm_tr2_vlan_virtual_init(int unit);
 extern int bcm_tr2_vlan_virtual_detach(int unit);
