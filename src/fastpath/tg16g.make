@@ -98,6 +98,24 @@ clean cleanall: welcome
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching:
+clean-ptin clean-switching clean-andl:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
+
+andl ptin: welcome
+	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
+	@if [ -f $(TMP_FILE) ]; then\
+		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
+		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
+	echo "";\
+	fi;
+	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
+	@touch $(TMP_FILE);\
+	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
+	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
+		echo "Saving original $(BIN_FILE) binary...";\
+		$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(BIN_FILE).unstripped;\
+		echo "Stripping $(BIN_FILE) binary...";\
+		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
+	fi;
+	@echo ""
