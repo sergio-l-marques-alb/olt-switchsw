@@ -89,7 +89,8 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
   payload       += ethernetHdrLen;
   payloadLength -= ethernetHdrLen;
 
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "{");
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "{");
   //Determine serviceId
   if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &serviceId)!=L7_SUCCESS)
   {
@@ -109,7 +110,8 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     return L7_ERROR;
   }
 
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Packet Send}");
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Send}");
   return L7_SUCCESS;
 }
 
