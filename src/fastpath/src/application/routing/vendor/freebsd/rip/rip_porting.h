@@ -185,8 +185,11 @@ typedef enum
 #define fprintf(_f, _str, args...) \
   ripMapVendTrace(RIP_TRACE_RDISC, (_str), ##args)
 
+/* PTin added: ARM processor */
+#ifndef fputc
 #define fputc(_c, _x) \
   ripMapVendTrace(RIP_TRACE_RDISC, "%c", (_c))
+#endif
 
 /* functions with no replacement */
 #define trace_flush()

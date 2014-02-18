@@ -38,7 +38,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+/* PTin added: ARM processor */
+#ifndef __arm__
 #include <stropts.h>
+#endif
 #include <asm/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
