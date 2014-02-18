@@ -758,7 +758,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
+  if(ptin_debug_igmp_snooping)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
+  }
 
   L7_int32 n_msg = -1;
   if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
@@ -798,8 +801,12 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   if (rc != L7_SUCCESS)
   {
+#if 0 /* PTin removed: MGMD integration*/
     bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"osapiMessageSend failed\n");
+#else
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"mgmdPacketSend failed\n");
+#endif
   }
   else
   {
@@ -809,6 +816,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to give msgQueue semaphore");
     }
   }
+  bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
 
   /* If any error, packet will be dropped */
   if (rc!=L7_SUCCESS)
