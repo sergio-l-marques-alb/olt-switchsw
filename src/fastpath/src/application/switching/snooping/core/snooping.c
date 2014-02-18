@@ -601,7 +601,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
   }
 
@@ -609,7 +609,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client_idx = (L7_uint) -1;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client not provided!");
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");
   }
   else
   {
@@ -625,7 +625,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s): Packet Silently ignored...",
               pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
@@ -643,7 +643,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u",pduInfo->vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u: Packet Silently ignored...",pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
