@@ -92,23 +92,35 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "{");
   //Determine serviceId
+  ptin_timer_start(35,"ptin_evc_get_evcIdfromIntVlan");
   if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &serviceId)!=L7_SUCCESS)
   {
+    ptin_timer_stop(35);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to internal vlan %u", mcastRootVlan);
     return L7_FAILURE;
   }
+  ptin_timer_stop(35);
 
   //Create a new MGMD packet event
+  ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
   {
+    ptin_timer_stop(36);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to create packet for MGMD");
+    
     return L7_ERROR;
   }
+  ptin_timer_stop(36);
+
+  ptin_timer_start(37,"ptin_mgmd_eventQueue_tx");
   if(L7_SUCCESS != ptin_mgmd_eventQueue_tx(&mgmdPcktEvent))
   {
+    ptin_timer_stop(37);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to place packet event in MGMD rxQueue");
     return L7_ERROR;
   }
+  ptin_timer_stop(37);
+ 
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Send}");
