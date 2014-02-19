@@ -26,30 +26,31 @@ static int32 ctrlQueueId = -1;
 static void sendEmulatedBurst(uint32 pcktpsec);
 static void sendEmulatedGeneralQuery(uint16 serviceId, uint16 portId);
 static void sendEmulatedIsInclude(uint16 serviceId, uint16 portId, uint32 clientId);
-static void sendEmulatedMgmdConfigGet(void);
-static void sendEmulatedMgmdConfigSet(void);
-static void sendEmulatedMgmdClientStatsGet(uint16 portId, uint32 clientId);
-static void sendEmulatedMgmdClientStatsClear(uint16 portId, uint32 clientId);
-static void sendEmulatedMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId);
-static void sendEmulatedMgmdInterfaceStatsClear(uint16 serviceId, uint32 portId);
-static void sendEmulatedMgmdStaticGroupAdd(uint16 serviceId, uint32 groupAddr);
-static void sendEmulatedMgmdStaticGroupDel(uint16 serviceId, uint32 groupAddr);
-static void sendEmulatedMgmdActiveGroupsGet(uint16 serviceId);
-static void sendEmulatedMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint32 clientId);
-static void sendEmulatedMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr);
-static void sendEmulatedMgmdQuerierAdmin(uint16 serviceId, uint8 admin);
-static void sendEmulatedMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
-static void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
-static void sendEmulatedMgmdServiceRemove(uint16 serviceId);
-static void sendEmulatedMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug);
-static void sendEmulatedMgmdTimerLogLvl(uint8 debugLvl);
-static void sendEmulatedMcastGroupPrint(uint16 serviceId, uint32 groupAddr);
-static void sendEmulatedMcastGroupDump(void);
-static void sendEmulatedMcastGroupClean(void);
-static void sendEmulatedGroupRecordsDump(void);
-static void sendEmulatedGroupRecordsClean(void);
-static void sendEmulatedWhitelistDump(void);
-static void sendEmulatedWhitelistClean(void);
+static void sendMgmdConfigGet(void);
+static void sendMgmdConfigSet(void);
+static void sendMgmdClientStatsGet(uint16 portId, uint32 clientId);
+static void sendMgmdClientStatsClear(uint16 portId, uint32 clientId);
+static void sendMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId);
+static void sendMgmdInterfaceStatsClear(uint16 serviceId, uint32 portId);
+static void sendMgmdStaticGroupAdd(uint16 serviceId, uint32 groupAddr);
+static void sendMgmdStaticGroupDel(uint16 serviceId, uint32 groupAddr);
+static void sendMgmdActiveGroupsGet(uint16 serviceId);
+static void sendMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint32 clientId);
+static void sendMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr);
+static void sendMgmdQuerierAdmin(uint16 serviceId, uint8 admin);
+static void sendMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
+static void sendMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
+static void sendMgmdServiceRemove(uint16 serviceId);
+static void sendMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug);
+static void sendMgmdTimerLogLvl(uint8 debugLvl);
+static void sendMcastGroupPrint(uint16 serviceId, uint32 groupAddr);
+static void sendMcastGroupDump(void);
+static void sendMcastGroupClean(void);
+static void sendGroupRecordsDump(void);
+static void sendGroupRecordsClean(void);
+static void sendWhitelistDump(void);
+static void sendWhitelistClean(void);
+static void sendMeasurementTimersDump(void);
 static void printHelpMenu(void);
 
 static uint32 randomNumber(uint32 _min, uint32 _max)
@@ -158,7 +159,7 @@ void sendEmulatedBurst(uint32 pcktpsec)
   }
 }
 
-void sendEmulatedMgmdConfigGet(void)
+void sendMgmdConfigGet(void)
 {
   PTIN_MGMD_EVENT_t            reqMsg        = {0}, resMsg = {0};
   PTIN_MGMD_EVENT_CTRL_t       ctrlResMsg    = {0};
@@ -203,7 +204,7 @@ void sendEmulatedMgmdConfigGet(void)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Max Group Records per Packet   = %u",          mgmdConfigMsg.host.maxRecordsPerReport);
 }
 
-void sendEmulatedMgmdConfigSet(void)
+void sendMgmdConfigSet(void)
 {
   PTIN_MGMD_EVENT_t            reqMsg        = {0};
   PTIN_MGMD_EVENT_t            resMsg        = {0};
@@ -250,7 +251,7 @@ void sendEmulatedMgmdConfigSet(void)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdClientStatsGet(uint16 portId, uint32 clientId)
+void sendMgmdClientStatsGet(uint16 portId, uint32 clientId)
 {
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
@@ -313,7 +314,7 @@ void sendEmulatedMgmdClientStatsGet(uint16 portId, uint32 clientId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMPv3 Valid Source Query Rx:        %u", mgmdStatsResMsg.query.sourceQueryValidRx           );
 }
 
-void sendEmulatedMgmdClientStatsClear(uint16 portId, uint32 clientId)
+void sendMgmdClientStatsClear(uint16 portId, uint32 clientId)
 {
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
@@ -331,7 +332,7 @@ void sendEmulatedMgmdClientStatsClear(uint16 portId, uint32 clientId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId)
+void sendMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId)
 {
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
@@ -394,7 +395,7 @@ void sendEmulatedMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMPv3 Valid Source Query Rx:        %u", mgmdStatsResMsg.query.sourceQueryValidRx           );
 }
 
-void sendEmulatedMgmdInterfaceStatsClear(uint16 serviceId, uint32 portId)
+void sendMgmdInterfaceStatsClear(uint16 serviceId, uint32 portId)
 {
   PTIN_MGMD_EVENT_t              reqMsg          = {0};
   PTIN_MGMD_EVENT_t              resMsg          = {0};
@@ -412,7 +413,7 @@ void sendEmulatedMgmdInterfaceStatsClear(uint16 serviceId, uint32 portId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdStaticGroupAdd(uint16 serviceId, uint32 groupAddr)
+void sendMgmdStaticGroupAdd(uint16 serviceId, uint32 groupAddr)
 {
   PTIN_MGMD_EVENT_t            reqMsg       = {0};
   PTIN_MGMD_EVENT_t            resMsg       = {0};
@@ -430,7 +431,7 @@ void sendEmulatedMgmdStaticGroupAdd(uint16 serviceId, uint32 groupAddr)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdStaticGroupDel(uint16 serviceId, uint32 groupAddr)
+void sendMgmdStaticGroupDel(uint16 serviceId, uint32 groupAddr)
 {
   PTIN_MGMD_EVENT_t            reqMsg       = {0};
   PTIN_MGMD_EVENT_t            resMsg       = {0};
@@ -448,7 +449,7 @@ void sendEmulatedMgmdStaticGroupDel(uint16 serviceId, uint32 groupAddr)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdActiveGroupsGet(uint16 serviceId)
+void sendMgmdActiveGroupsGet(uint16 serviceId)
 {
   PTIN_MGMD_EVENT_t                     reqMsg        = {0};
   PTIN_MGMD_EVENT_t                     resMsg        = {0};
@@ -490,7 +491,7 @@ void sendEmulatedMgmdActiveGroupsGet(uint16 serviceId)
   }
 }
 
-void sendEmulatedMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint32 clientId)
+void sendMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint32 clientId)
 {
   PTIN_MGMD_EVENT_t                     reqMsg        = {0};
   PTIN_MGMD_EVENT_t                     resMsg        = {0};
@@ -534,7 +535,7 @@ void sendEmulatedMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint
   }
 }
 
-void sendEmulatedMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr)
+void sendMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr)
 {
   PTIN_MGMD_EVENT_t                     reqMsg        = {0};
   PTIN_MGMD_EVENT_t                     resMsg        = {0};
@@ -573,7 +574,7 @@ void sendEmulatedMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 
   }
 }
 
-void sendEmulatedMgmdQuerierAdmin(uint16 serviceId, uint8 admin)
+void sendMgmdQuerierAdmin(uint16 serviceId, uint8 admin)
 {
   PTIN_MGMD_EVENT_t             reqMsg       = {0};
   PTIN_MGMD_EVENT_t             resMsg       = {0};
@@ -592,7 +593,7 @@ void sendEmulatedMgmdQuerierAdmin(uint16 serviceId, uint8 admin)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask)
+void sendMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask)
 {
   PTIN_MGMD_EVENT_t                 reqMsg        = {0};
   PTIN_MGMD_EVENT_t                 resMsg        = {0};
@@ -613,7 +614,7 @@ void sendEmulatedMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 grou
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-static void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask)
+static void sendMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask)
 {
   PTIN_MGMD_EVENT_t                 reqMsg        = {0};
   PTIN_MGMD_EVENT_t                 resMsg        = {0};
@@ -634,7 +635,7 @@ static void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, 
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdServiceRemove(uint16 serviceId)
+void sendMgmdServiceRemove(uint16 serviceId)
 {
   PTIN_MGMD_EVENT_t               reqMsg        = {0};
   PTIN_MGMD_EVENT_t               resMsg        = {0};
@@ -651,7 +652,7 @@ void sendEmulatedMgmdServiceRemove(uint16 serviceId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
-void sendEmulatedMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug)
+void sendMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -666,7 +667,7 @@ void sendEmulatedMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug)
   }
 }
 
-void sendEmulatedMgmdTimerLogLvl(uint8 debugLvl)
+void sendMgmdTimerLogLvl(uint8 debugLvl)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -680,7 +681,7 @@ void sendEmulatedMgmdTimerLogLvl(uint8 debugLvl)
   }
 }
 
-void sendEmulatedMcastGroupPrint(uint16 serviceId, uint32 groupAddr)
+void sendMcastGroupPrint(uint16 serviceId, uint32 groupAddr)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -695,7 +696,7 @@ void sendEmulatedMcastGroupPrint(uint16 serviceId, uint32 groupAddr)
   }
 }
 
-void sendEmulatedMcastGroupDump(void)
+void sendMcastGroupDump(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -708,7 +709,7 @@ void sendEmulatedMcastGroupDump(void)
   }
 }
 
-void sendEmulatedMcastGroupClean(void)
+void sendMcastGroupClean(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -721,7 +722,7 @@ void sendEmulatedMcastGroupClean(void)
   }
 }
 
-void sendEmulatedGroupRecordsDump(void)
+void sendGroupRecordsDump(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -734,7 +735,7 @@ void sendEmulatedGroupRecordsDump(void)
   }
 }
 
-void sendEmulatedGroupRecordsClean(void)
+void sendGroupRecordsClean(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -747,7 +748,7 @@ void sendEmulatedGroupRecordsClean(void)
   }
 }
 
-void sendEmulatedWhitelistDump(void)
+void sendWhitelistDump(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -761,7 +762,7 @@ void sendEmulatedWhitelistDump(void)
 }
 
 
-void sendEmulatedWhitelistClean(void)
+void sendWhitelistClean(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -773,6 +774,21 @@ void sendEmulatedWhitelistClean(void)
     return;
   }
 }
+
+
+void sendMeasurementTimersDump(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_MEASUREMENT_TIMERS_DUMP, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
 
 void printHelpMenu(void)
 {
@@ -808,6 +824,7 @@ void printHelpMenu(void)
   printf("\t 107 - GROUP_RECORDS_CLEAN      -                                                                            \n"); 
   printf("\t 108 - WHITELIST_DUMP           -                                                                            \n"); 
   printf("\t 109 - WHITELIST_CLEAN          -                                                                            \n"); 
+  printf("\t 110 - MEASUREMENT_TIMERS       -                                                                            \n"); 
 }
 
 int main(int argc, char **argv)
@@ -878,12 +895,12 @@ int main(int argc, char **argv)
     }
     case 10:
     {
-      sendEmulatedMgmdConfigGet();
+      sendMgmdConfigGet();
       break;
     }
     case 11:
     {
-      sendEmulatedMgmdConfigSet();
+      sendMgmdConfigSet();
       break;
     }
     case 12:
@@ -900,7 +917,7 @@ int main(int argc, char **argv)
       portId   = strtoul(argv[2], PTIN_NULLPTR, 10);
       clientId = strtoul(argv[3], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdClientStatsGet(portId, clientId);
+      sendMgmdClientStatsGet(portId, clientId);
       break;
     }
     case 13:
@@ -917,7 +934,7 @@ int main(int argc, char **argv)
       portId   = strtoul(argv[2], PTIN_NULLPTR, 10);
       clientId = strtoul(argv[3], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdClientStatsClear(portId, clientId);
+      sendMgmdClientStatsClear(portId, clientId);
       break;
     }
     case 14:
@@ -933,7 +950,7 @@ int main(int argc, char **argv)
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
       portId    = strtoul(argv[3], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdInterfaceStatsGet(serviceId, portId);
+      sendMgmdInterfaceStatsGet(serviceId, portId);
       break;
     }
     case 15:
@@ -949,7 +966,7 @@ int main(int argc, char **argv)
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
       portId    = strtoul(argv[3], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdInterfaceStatsClear(serviceId, portId);
+      sendMgmdInterfaceStatsClear(serviceId, portId);
       break;
     }
     case 16:
@@ -966,7 +983,7 @@ int main(int argc, char **argv)
       serviceId  = strtoul(argv[2], PTIN_NULLPTR, 10);
       groupAddr  = strtoul(argv[3], PTIN_NULLPTR, 16);
 
-      sendEmulatedMgmdStaticGroupAdd(serviceId, groupAddr);
+      sendMgmdStaticGroupAdd(serviceId, groupAddr);
       break;
     }
     case 17:
@@ -983,7 +1000,7 @@ int main(int argc, char **argv)
       serviceId  = strtoul(argv[2], PTIN_NULLPTR, 10);
       groupAddr  = strtoul(argv[3], PTIN_NULLPTR, 16);
 
-      sendEmulatedMgmdStaticGroupDel(serviceId, groupAddr);
+      sendMgmdStaticGroupDel(serviceId, groupAddr);
       break;
     }
     case 18:
@@ -998,7 +1015,7 @@ int main(int argc, char **argv)
 
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdActiveGroupsGet(serviceId);
+      sendMgmdActiveGroupsGet(serviceId);
       break;
     }
     case 19:
@@ -1016,7 +1033,7 @@ int main(int argc, char **argv)
       portId    = strtoul(argv[3], PTIN_NULLPTR, 10);
       clientId  = strtoul(argv[4], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdClientActiveGroupsGet(serviceId, portId, clientId);
+      sendMgmdClientActiveGroupsGet(serviceId, portId, clientId);
       break;
     }
     case 20:
@@ -1034,7 +1051,7 @@ int main(int argc, char **argv)
       groupAddr  = strtoul(argv[3], PTIN_NULLPTR, 16);
       sourceAddr = strtoul(argv[4], PTIN_NULLPTR, 16);
 
-      sendEmulatedMgmdGroupClientsGet(serviceId, groupAddr, sourceAddr);
+      sendMgmdGroupClientsGet(serviceId, groupAddr, sourceAddr);
       break;
     }
     case 21:
@@ -1051,7 +1068,7 @@ int main(int argc, char **argv)
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
       admin     = strtoul(argv[3], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdQuerierAdmin(serviceId, admin);
+      sendMgmdQuerierAdmin(serviceId, admin);
       break;
     }
     case 22:
@@ -1071,7 +1088,7 @@ int main(int argc, char **argv)
       sourceIp  = strtoul(argv[5], PTIN_NULLPTR, 16);
       sourceMask= strtoul(argv[6], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdWhitelistAdd(serviceId, groupIp,groupMask, sourceIp, sourceMask);
+      sendMgmdWhitelistAdd(serviceId, groupIp,groupMask, sourceIp, sourceMask);
       break;
     }
     case 23:
@@ -1091,7 +1108,7 @@ int main(int argc, char **argv)
       sourceIp  = strtoul(argv[5], PTIN_NULLPTR, 16);
       sourceMask= strtoul(argv[6], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdWhitelistRemove(serviceId, groupIp,groupMask, sourceIp, sourceMask);
+      sendMgmdWhitelistRemove(serviceId, groupIp,groupMask, sourceIp, sourceMask);
       break;
     }
     case 24:
@@ -1106,7 +1123,7 @@ int main(int argc, char **argv)
 
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
 
-      sendEmulatedMgmdServiceRemove(serviceId);
+      sendMgmdServiceRemove(serviceId);
       break;
     }
     case 101:
@@ -1121,7 +1138,7 @@ int main(int argc, char **argv)
 
       debugLvl      = strtoul(argv[2], PTIN_NULLPTR, 10);
       advancedDebug = strtoul(argv[3], PTIN_NULLPTR, 10);
-      sendEmulatedMgmdIgmpLogLvl(debugLvl, advancedDebug);
+      sendMgmdIgmpLogLvl(debugLvl, advancedDebug);
       break;
     }
     case 102:
@@ -1135,7 +1152,7 @@ int main(int argc, char **argv)
       }
 
       debugLvl      = strtoul(argv[2], PTIN_NULLPTR, 10);
-      sendEmulatedMgmdTimerLogLvl(debugLvl);
+      sendMgmdTimerLogLvl(debugLvl);
       break;
     }
     case 103:
@@ -1151,37 +1168,42 @@ int main(int argc, char **argv)
       param1 = strtoul(argv[2], PTIN_NULLPTR, 10);
       param2 = strtoul(argv[3], PTIN_NULLPTR, 16);
 
-      sendEmulatedMcastGroupPrint(param1, param2);
+      sendMcastGroupPrint(param1, param2);
       break;
     }
     case 104:
     {
-      sendEmulatedMcastGroupDump();
+      sendMcastGroupDump();
       break;
     }
     case 105:
     {
-      sendEmulatedMcastGroupClean();
+      sendMcastGroupClean();
       break;
     }
     case 106:
     {
-      sendEmulatedGroupRecordsDump();
+      sendGroupRecordsDump();
       break;
     }
     case 107:
     {
-      sendEmulatedGroupRecordsClean();
+      sendGroupRecordsClean();
       break;
     }
     case 108:
     {
-      sendEmulatedWhitelistDump();
+      sendWhitelistDump();
       break;
     }
     case 109:
     {
-      sendEmulatedWhitelistClean();
+      sendWhitelistClean();
+      break;
+    }
+    case 110:
+    {
+      sendMeasurementTimersDump();
       break;
     }
     default:

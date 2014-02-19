@@ -14,6 +14,7 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include "ptin_timer_api.h"
 #include "ptin_mgmd_logger.h"
@@ -57,6 +58,22 @@ typedef struct {
 } PTIN_CONTROL_BLOCK_STRUCT;
 
 PTIN_CONTROL_BLOCK_STRUCT cbEntry[MGMD_MAX_NUM_CONTROL_BLOCKS];
+
+/* Used for the measurement timers */
+typedef struct
+{
+  struct timeval start_time;
+  struct timeval end_time;
+
+  uint64         measurements[PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES];
+  uint16         num_measurements;
+  uint16         last_measurement_index;
+
+  char           description[101];
+} PTIN_MEASUREMENT_TIMER_T;
+
+PTIN_MEASUREMENT_TIMER_T measurement_timers[PTIN_MEASUREMENT_TIMERS_NUM_MAX] = {{{0}}};
+
 
 static void timerSignalHandler (int sig) {
 
@@ -618,4 +635,136 @@ BOOL ptin_mgmd_timer_exist(PTIN_MGMD_TIMER_t timerPtr) {
     else                                      return TRUE;
 }
 
+/**
+ * Start a measurement timer.
+ * 
+ * @param[in] timerId          : Id of the requested measurement timer
+ * @param[in] timerDescription : Measurement description 
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_start(uint16 timerId, char *timerDescription)
+{
+  struct timeval tv;
 
+  if (timerId >= PTIN_MEASUREMENT_TIMERS_NUM_MAX)
+  {
+    return FAILURE;
+  }
+
+  gettimeofday(&tv, PTIN_NULLPTR);
+  measurement_timers[timerId].start_time.tv_usec = tv.tv_usec;
+  measurement_timers[timerId].start_time.tv_sec  = tv.tv_sec;
+  measurement_timers[timerId].end_time.tv_usec   = tv.tv_usec;   
+  measurement_timers[timerId].end_time.tv_sec    = tv.tv_sec;    
+
+  if (timerDescription != PTIN_NULLPTR)
+  {
+    strncpy(measurement_timers[timerId].description, timerDescription, 100);
+  }
+
+  return SUCCESS;
+}
+
+/**
+ * Stop a measurement timer.
+ * 
+ * @param[in] timerId : Id of the requested measurement timer
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_stop(uint16 timerId)
+{
+  struct timeval tv;
+  uint32 currentMeasurement;
+
+  if (timerId >= PTIN_MEASUREMENT_TIMERS_NUM_MAX)
+  {
+    return FAILURE;
+  }
+
+  gettimeofday(&tv, PTIN_NULLPTR);
+  measurement_timers[timerId].end_time.tv_usec   = tv.tv_usec;   
+  measurement_timers[timerId].end_time.tv_sec    = tv.tv_sec;   
+
+  //Save a new mean value
+  if(measurement_timers[timerId].num_measurements < PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES)
+  {
+    ++measurement_timers[timerId].num_measurements;
+  }
+  ptin_mgmd_measurement_timer_get(timerId, PTIN_NULLPTR, &currentMeasurement, PTIN_NULLPTR);
+  measurement_timers[timerId].measurements[measurement_timers[timerId].last_measurement_index] = currentMeasurement;
+  ++measurement_timers[timerId].last_measurement_index;
+  if(measurement_timers[timerId].last_measurement_index == PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES)
+  {
+    measurement_timers[timerId].last_measurement_index = 0;
+  }
+
+  return SUCCESS;
+}
+
+/**
+ * Start a measurement timer.
+ * 
+ * @param[in]  timerId          : Id of the requested measurement timer
+ * @param[out] timerDescription : Measurement description  
+ * @param[out] lastMeasurement  : Last time measurement  
+ * @param[out] meanMeasurement  : Mean time measurements
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_get(uint16 timerId, char **timerDescription, uint32 *lastMeasurement, uint32 *meanMeasurement)
+{
+  uint16 sampleIndex;
+
+  if (timerId >= PTIN_MEASUREMENT_TIMERS_NUM_MAX)
+  {
+    return FAILURE;
+  }
+
+  if (timerDescription != PTIN_NULLPTR)
+  {
+    *timerDescription = measurement_timers[timerId].description;
+  }
+    
+  if(lastMeasurement != PTIN_NULLPTR)
+  {
+    *lastMeasurement = ((measurement_timers[timerId].end_time.tv_sec - measurement_timers[timerId].start_time.tv_sec)*1000000) +
+                        (measurement_timers[timerId].end_time.tv_usec - measurement_timers[timerId].start_time.tv_usec);
+  }
+
+  if(meanMeasurement != PTIN_NULLPTR)
+  {
+    *meanMeasurement = 0;
+    for(sampleIndex=0; sampleIndex<PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES && sampleIndex<measurement_timers[timerId].num_measurements; ++sampleIndex)
+    {
+      *meanMeasurement += (measurement_timers[timerId].measurements[sampleIndex] / measurement_timers[timerId].num_measurements);
+    }
+  }
+
+  return SUCCESS;
+}
+
+/**
+ * Dump all current measurement timer values.
+ * 
+ * @note These values are printed to stdout
+ */
+void ptin_mgmd_measurement_timer_dump(void)
+{
+  uint16 timerIndex;
+  char* timerDescription;
+  uint32 currentTime;
+  uint32 meanTime;
+
+  printf("Measurement timers:\n");
+  for(timerIndex=0; timerIndex<PTIN_MEASUREMENT_TIMERS_NUM_MAX; ++timerIndex)
+  {
+    if(SUCCESS != ptin_mgmd_measurement_timer_get(timerIndex, &timerDescription, &currentTime, &meanTime))
+    {
+      continue;
+    }
+
+    printf("Timer#%-3u -> [Mean: %-10u us] [Last: %-10u us] [(%s)]\n", timerIndex, meanTime, currentTime, timerDescription);
+  }
+}

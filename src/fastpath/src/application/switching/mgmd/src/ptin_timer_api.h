@@ -12,6 +12,9 @@
 
 #include "ptin_mgmd_defs.h"
 
+#define PTIN_MEASUREMENT_TIMERS_NUM_MAX            40
+#define PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES 5
+
 typedef enum
 {
   PTIN_MGMD_TIMER_1MSEC   = 1,    /* Timer tick granularity of 1 millisecond    */
@@ -115,4 +118,42 @@ BOOL ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr);
  */
 BOOL ptin_mgmd_timer_exist(PTIN_MGMD_TIMER_t timerPtr);
 
-#endif //_L7_TIMER_API_H
+/**
+ * Start a measurement timer.
+ * 
+ * @param[in] timerId          : Id of the requested measurement timer
+ * @param[in] timerDescription : Measurement description 
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_start(uint16 timerId, char *timerDescription);
+
+/**
+ * Stop a measurement timer.
+ * 
+ * @param[in] timerId : Id of the requested measurement timer
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_stop(uint16 timerId);
+
+/**
+ * Start a measurement timer.
+ * 
+ * @param[in]  timerId          : Id of the requested measurement timer
+ * @param[out] timerDescription : Measurement description  
+ * @param[out] lastMeasurement  : Last time measurement  
+ * @param[out] meanMeasurement  : Mean time measurements
+ * 
+ * @return RC_t 
+ */
+RC_t ptin_mgmd_measurement_timer_get(uint16 timerId, char **timerDescription, uint32 *lastMeasurement, uint32 *meanMeasurement);
+
+/**
+ * Dump all current measurement timer values.
+ * 
+ * @note These values are printed to stdout
+ */
+void ptin_mgmd_measurement_timer_dump(void);
+
+#endif //_PTIN_TIMER_API_H
