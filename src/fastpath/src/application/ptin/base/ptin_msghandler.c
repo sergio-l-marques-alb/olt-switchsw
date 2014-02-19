@@ -16,6 +16,7 @@
 #include "sirerrors.h"
 #include "ptin_control.h"
 #include "ptin_mgmd_api.h"
+#include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
 
 /* Message processing time measuring */
 
@@ -3070,6 +3071,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get list of multicast channels */
     case CCMSG_ETH_IGMP_GROUPS_GET:
     {
+      ptin_timer_start(39,"CCMSG_ETH_IGMP_GROUPS_GET");
       msg_MCActiveChannelsRequest_t *inputPtr;
       msg_MCActiveChannelsReply_t   *outputPtr;
       L7_uint16                     numberOfChannels;
@@ -3097,12 +3099,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       outbuffer->infoDim = numberOfChannels * sizeof(msg_MCActiveChannelsReply_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
+       ptin_timer_stop(39);
     }
     break;
 
     /* Get list of clients watching a multicast channel */
     case CCMSG_ETH_IGMP_CLIENT_GROUPS_GET:
     {
+      ptin_timer_start(38,"CCMSG_ETH_IGMP_CLIENT_GROUPS_GET");
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X)", inbuffer->msgId);
 
@@ -3127,6 +3131,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       outbuffer->infoDim = sizeof(msg_MCActiveChannelClients_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
+      ptin_timer_stop(38);
     }
     break;
 
