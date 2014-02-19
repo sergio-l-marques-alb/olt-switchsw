@@ -12,7 +12,7 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-NUM_CPUS	= 1 #$(shell grep -c 'model name' /proc/cpuinfo)
+NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
