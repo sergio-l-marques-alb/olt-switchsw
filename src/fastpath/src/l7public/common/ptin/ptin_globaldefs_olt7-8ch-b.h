@@ -127,8 +127,8 @@
 #define SNOOP_PTIN_IGMPv3_PROXY   1   //Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_FPGA
-# define MAP_CPLD
+//# define MAP_FPGA
+//# define MAP_CPLD
 # define FPGA_BASE_ADDR                0xFF200000
 # define CPLD_BASE_ADDR                0xFF500000
 
@@ -169,7 +169,9 @@ typedef union
   } reg;
 } st_cpld_map_t;
 
+#ifdef MAP_CPLD
 extern volatile st_cpld_map_t *cpld_map;
+#endif
 
 /* FPGA map registers */
 # define FPGA_ID                       0x1112
@@ -196,7 +198,9 @@ typedef union
   } reg;
 } st_fpga_map_t;
 
+#ifdef MAP_FPGA
 extern volatile st_fpga_map_t *fpga_map;
+#endif
 
 # define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR             IPC_LOCALHOST_IPADDR

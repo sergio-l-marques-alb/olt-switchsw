@@ -166,7 +166,9 @@ typedef union
   } reg;
 } st_cpld_map_t;
 
+#ifdef MAP_CPLD
 extern volatile st_cpld_map_t *cpld_map;
+#endif
 
 /* FPGA map registers */
 # define FPGA_ID                       0x1295
@@ -210,7 +212,9 @@ typedef union
   } reg;
 } st_fpga_map_t;
 
+#ifdef MAP_FPGA
 extern volatile st_fpga_map_t *fpga_map;
+#endif
 
 //# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR             0xC0A8C865  /* 192.168.200.101 Hardcoded!!! */

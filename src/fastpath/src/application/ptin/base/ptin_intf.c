@@ -1325,14 +1325,18 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
  */
 L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 {
-  L7_uint8 raw_slot;
-
   /* Is CPLD mapped? */
+#ifdef MAP_CPLD
   if (cpld_map==L7_NULLPTR || cpld_map==(void *)-1)
+#endif
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"CPLD 0x%04x is not mapped in memory",CPLD_ID);
     return L7_FAILURE;
   }
+
+#ifdef MAP_CPLD
+  L7_uint8 raw_slot;
+
   /* Is CPLD id the expected one? */
   if (cpld_map->reg.id == 0x0000 || cpld_map->reg.id == 0xffff)
   {
@@ -1354,6 +1358,7 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
   {
     *slot_id = raw_slot+2;
   }
+#endif
 
   return L7_SUCCESS;
 }

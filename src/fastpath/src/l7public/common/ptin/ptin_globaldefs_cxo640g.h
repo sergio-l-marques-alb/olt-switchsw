@@ -141,7 +141,7 @@
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_CPLD
+//# define MAP_CPLD
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */
@@ -174,7 +174,9 @@ typedef union
   } reg;
 } st_cpld_map_t;
 
+#ifdef MAP_CPLD
 extern volatile st_cpld_map_t *cpld_map;
+#endif
 
 typedef union
 {
@@ -185,7 +187,9 @@ typedef union
   } reg;
 } st_fpga_map_t;
 
+#ifdef MAP_FPGA
 extern volatile st_fpga_map_t *fpga_map;
+#endif
 
 /* Slot/port map: only for matrix board */
 extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
