@@ -259,7 +259,9 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     {
       PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
       return FAILURE;
-    }        
+    }
+
+    PTIN_MGMD_UNSET_MASKBIT(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, portId);            
     if(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients == 0)
     {
       //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
@@ -271,6 +273,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
         return FAILURE;
       }
     }
+    PTIN_MGMD_SET_MASKBIT(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, portId); //Restore root port client bitmap
     
     if(SUCCESS != ptin_mgmd_groupsourcespecifictimer_init(&timerData->timerHandle))
     {
