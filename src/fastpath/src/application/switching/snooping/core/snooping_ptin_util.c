@@ -40,7 +40,6 @@ static L7_RC_t snoopPTinReportFrameV3Build(L7_uint32 noOfRecords, snoopPTinProxy
 static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType,L7_uint16 numberOfSources,snoopPTinProxySource_t* source, L7_uchar8 *buffer, L7_uint32 *length);
 static L7_RC_t  snoopPTinPacketBuild      (L7_uint32 vlanId, snoop_cb_t* pSnoopCB, L7_inet_addr_t* destIp, L7_uchar8* buffer, L7_uint32* length, L7_uchar8* igmpFrameBuffer, L7_uint32 igmpFrameLength,L7_uint32 packetType);
 
-static void     snoopPTinQuerySend        (L7_uint32 arg1);
 static L7_RC_t snoopPTinReportSend(L7_uint32 vlanId, snoopPTinProxyGroup_t     *groupPtr, L7_uint32 noOfGroupRecords, ptin_IgmpProxyCfg_t* igmpCfg);
 
 static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint32 noOfRecords,snoopPTinProxyGroup_t* groupPtr, L7_uint32* newNoOfRecords);
@@ -48,6 +47,8 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
 static L7_RC_t snoopPTinGroupRecordSourceIncrementTransmissions(snoopPTinProxyGroup_t* groupPtr);
 
 static snoopPTinProxyGroup_t* snoopPTinBuildCSR(snoopPTinProxyInterface_t *interfacePtr, L7_uint32 *noOfRecords,L7_uint8 robustnessVariable);
+
+void     snoopPTinQuerySend        (L7_uint32 arg1);
 
 /*********************************************************************
  * @purpose Add a new client to the L2 tables
