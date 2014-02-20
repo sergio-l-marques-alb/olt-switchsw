@@ -785,8 +785,10 @@ static void monitor_matrix_commutation(void)
 #if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_LINKSCAN_CONTROL
 
+#ifdef MAP_CPLD
 /* List of active interfaces */
 static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
+#endif
 
 /**
  * Task that checks for Matrix Switchovers
@@ -1444,11 +1446,9 @@ static dot3ad_matrix_sync2_t stat;
 //char answer[10];
 uint32 ip, len, i;
 
-
+#ifdef MAP_CPLD
     if (!cpld_map->reg.mx_is_active) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
-
-
-
+#endif
 
     stat.intf=  intf;
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));

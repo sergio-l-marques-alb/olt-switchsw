@@ -3266,6 +3266,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
 
 /* Not necessary for CXO640G: sysbrds.c is already inverting slots for the protection matrix */
 #if (PTIN_BOARD==PTIN_BOARD_CXP360G)
+#ifdef MAP_CPLD
   const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
 
@@ -3280,6 +3281,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     else if (cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_PROT)
       hapiSlotMapPtr[i].bcm_port = portmap_prot[i];
   }
+#endif
 #endif
 
   /* Initialize USP map */

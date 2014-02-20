@@ -19,9 +19,13 @@
   #define PTIN_ERPS_EVC
   #define PTIN_ENABLE_DTL0TRAP
 
+#ifdef MAP_CPLD
   #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
   #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
-
+#else
+  #define is_matrix_protection() 0
+  #define matrix_board_version() 2
+#endif
   
   #define PTIN_SYSTEM_INTERNAL_LAGID_BASE 18
 

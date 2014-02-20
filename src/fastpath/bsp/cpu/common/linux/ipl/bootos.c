@@ -239,8 +239,13 @@ void startupStatusTask(int argc, void *argv)
 /* PTin added */
 
 /* FPGA map */
+#ifdef MAP_FPGA
 volatile st_fpga_map_t *fpga_map = MAP_FAILED;
+#endif
+
+#ifdef MAP_CPLD
 volatile st_cpld_map_t *cpld_map = MAP_FAILED;
+#endif
 
 
 /**
