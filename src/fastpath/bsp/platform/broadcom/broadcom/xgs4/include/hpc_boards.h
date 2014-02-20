@@ -63,7 +63,7 @@
 	__BROADCOM_56680_ID,
         NO_CONNECTION_LIST
     },
-    /* PTin added: new platform */
+    /* PTin added: new switch 56689 (Valkyrie2) */
     /* 56689 board */
     {
         BCM_SYS_BOARD_56689,
@@ -79,6 +79,7 @@
         __BROADCOM_56685_ID,
         NO_CONNECTION_LIST
     },
+    /* PTin added: new switch 56843 (Trident) */
     /* 56843 board */
     {
         BCM_SYS_BOARD_56843,
@@ -95,6 +96,7 @@
         NO_CONNECTION_LIST
     },
 #if (PTIN_BOARD == PTIN_BOARD_CXP360G)
+    /* PTin added: new switch 56844 (Trident) */
     /* 56844 board */
     {
         BCM_SYS_BOARD_56844,
@@ -111,6 +113,7 @@
         NO_CONNECTION_LIST
     },
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    /* PTin added: new switch 56846 (Trident-plus) */
     /* 56846 board */
     {
         BCM_SYS_BOARD_56846,	/* XXXX */

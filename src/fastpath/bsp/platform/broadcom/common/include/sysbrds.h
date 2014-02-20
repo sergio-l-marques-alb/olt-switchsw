@@ -46,20 +46,21 @@ typedef enum bcm_sys_board_ids_e {
 
     BCM_SYS_BOARD_56624,
     BCM_SYS_BOARD_56680,
-    BCM_SYS_BOARD_56685,    /* PTin added: new platform */
-    BCM_SYS_BOARD_56689,    /* PTin added: new platform */
+    BCM_SYS_BOARD_56685,    /* PTin added: new switch 56685 */
+    BCM_SYS_BOARD_56689,    /* PTin added: new switch 56689 (Valkyrie2) */
     BCM_SYS_BOARD_56800,
     BCM_SYS_BOARD_56820,
-    BCM_SYS_BOARD_56843,    /* PTin added: new platform BCM56843 (trident) */
-    BCM_SYS_BOARD_56844,    /* PTin added: new platform BCM56844 (trident) */
-    BCM_SYS_BOARD_56846,    /* PTin added: new platform BCM56846 (trident) */
+    BCM_SYS_BOARD_56843,    /* PTin added: new switch 56843 (Trident) */
+    BCM_SYS_BOARD_56844,    /* PTin added: new switch 56844 (Trident) */
+    BCM_SYS_BOARD_56846,    /* PTin added: new switch 56846 (Trident-plus) */
     BCM_SYS_BOARD_56524,
     BCM_SYS_BOARD_56634,
     BCM_SYS_BOARD_53115,        /* ROBO - Vulcan */
     BCM_SYS_BOARD_56636,
     BCM_SYS_BOARD_56538,
     BCM_SYS_BOARD_56334,    
-    BCM_SYS_BOARD_56643,    /* PTin added: new platform BCM56643 (Triumph3) */
+    BCM_SYS_BOARD_56643,    /* PTin added: new switch 56643 (Triumph3) */
+    BCM_SYS_BOARD_56340,    /* PTin added: new switch 56340 (Helix4) */
 BCM_SYS_BOARD_COUNT         /* Last please */
 } bcm_sys_board_ids_t;
 

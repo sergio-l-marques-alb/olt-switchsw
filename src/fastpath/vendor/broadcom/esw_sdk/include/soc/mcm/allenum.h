@@ -74,8 +74,8 @@
  *		bcm56524_b0
  *		bcm56685_a0
  *		bcm56685_b0
- *		bcm56689_a0     PTin added: new switch
- *		bcm56689_b0     PTin added: new switch
+ *		bcm56689_a0     PTin added: new switch 56689 (Valkyrie2)
+ *		bcm56689_b0     PTin added: new switch 56689 (Valkyrie2)
  *		bcm56334_a0
  *		bcm56334_b0
  *		bcm88230_a0
@@ -299,7 +299,7 @@
 # endif
 #endif
 
-/* PTin added: new platform */
+/* PTin added: new switch 56689 (Valkyrie2) */
 #ifdef BCM_ESW_SUPPORT
 # if !defined(NO_BCM_56689_A0)
 #  define BCM_56685_A0

@@ -2358,7 +2358,6 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
 
   switch (board_info->npd_id)
   {
-    /* PTin updated: new platform */
     case __BROADCOM_56214_ID:
     case __BROADCOM_56218_ID:
     case __BROADCOM_56224_ID:
@@ -2381,8 +2380,8 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56636_ID:
-    case __BROADCOM_56685_ID:   /* PTin added: new switch */
-    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
+    case __BROADCOM_56685_ID:   /* PTin added: new switch 56689 (Valkyrie2) */
+    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
       *board_family = BCM_FAMILY_TRIUMPH2;
       break;
     case __BROADCOM_56820_ID:
@@ -2391,7 +2390,7 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_53115_ID:
        *board_family = BCM_FAMILY_ROBO;
        break;
-    case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+    case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
       *board_family = BCM_FAMILY_TRIDENT;
       break;
   default:

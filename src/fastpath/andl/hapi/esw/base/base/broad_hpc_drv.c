@@ -608,9 +608,11 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
 #ifdef BCM_TRX_SUPPORT
         extern int _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps, int burst);
 #if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
-        /* PTin updated: platform */
+        /* PTin added: new switch 56689 (Valkyrie2) */
+        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin removed: new switch 56843 (Trident) */
         if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/ ||
-            SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch BCM56643 */
+            SOC_IS_TRIUMPH3(unit))
         {
           extern int bcm_tr2_cosq_port_pps_set(int unit, bcm_port_t port,
                                                bcm_cos_queue_t cosq, int pps);   
@@ -618,10 +620,11 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif
-        if ((SOC_IS_TR_VL(unit) || SOC_IS_SCORPION(unit)) && !SOC_IS_TRIDENT(unit)) { /* PTin added: new switch TRIDENT */
+        /* PTin added: new switch 56843 (Trident) */
+        if ((SOC_IS_TR_VL(unit) || SOC_IS_SCORPION(unit)) && !SOC_IS_TRIDENT(unit)) {
           rv = _bcm_tr_cosq_port_packet_bandwidth_set(unit,CMIC_PORT(unit), cosq, rate, rate);
         }
-        /* PTin added: new switch TRIDENT */
+        /* PTin added: new switch 56843 (Trident) */
         else if (SOC_IS_TRIDENT(unit)) {
           extern int bcm_td_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
           rv = bcm_td_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
@@ -1339,9 +1342,11 @@ void hpcHardwareDefaultConfigApply(void)
 
 #ifdef L7_STACKING_PACKAGE
         static int xgs_stack_cos_map[] = {0,1,2,3,4,5,6,6};
-        /* PTin updated: platform */
+        /* PTin added: new switch 56689 (Valkyrie2) */
+        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 56843 (Trident) */
         if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) ||
-            SOC_IS_TRIUMPH3(i))       /* PTin added: new switch BCM56643 */
+            SOC_IS_TRIUMPH3(i))
         {
           /* 
            * XGS3 does not suffer from the same problem that caused us to map 7 -> 6
@@ -1579,9 +1584,11 @@ void hpcHardwareDefaultConfigApply(void)
         {
           rv = bcm_switch_control_set (i, bcmSwitchCpuProtoBpduPriority, HAPI_BROAD_INGRESS_BPDU_COS);
         }
-        /* PTin updated: platform */
+        /* PTin added: new switch 56689 (Valkyrie2) */
+        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin removed: new switch 56843 (Trident) */
         else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
-                 SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
+                 SOC_IS_TRIUMPH3(i))
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1659,9 +1666,11 @@ void hpcHardwareDefaultConfigApply(void)
           LOG_ERROR (rv);
         }
 
-        /* PTin updated: platform */
+        /* PTin added: new switch 56689 (Valkyrie2) */
+        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 56843 (Trident) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
+            !SOC_IS_TRIUMPH3(i))
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1709,9 +1718,11 @@ void hpcHardwareDefaultConfigApply(void)
           }
         }
 
-        /* PTin updated: platform */
+        /* PTin added: new switch 56689 (Valkyrie2) */
+        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 56843 (Trident) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i))        /* PTin added: new switch BCM56643 */
+            !SOC_IS_TRIUMPH3(i))
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */
@@ -1799,11 +1810,11 @@ void hpcHardwareDefaultConfigApply(void)
         */
 
        rv = bcm_switch_control_get(i, bcmSwitchHashL2, &hashControl);
-       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: BCM56643 */
+       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: new switch 56643 (Triumph3) */
        {
           LOG_ERROR (rv);
        }
-       /* PTin added: (BCM56643) Execute, only if success */
+       /* PTin added: new switch 56643 (Triumph3): Execute, only if success */
        if (rv == BCM_E_NONE)
        {
          if (hashControl == BCM_HASH_CRC32L)
@@ -1828,11 +1839,11 @@ void hpcHardwareDefaultConfigApply(void)
        if (soc_feature(i, soc_feature_l3))
        {
          rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
-         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: BCM56643 */
+         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: new switch 56643 (Triumph3) */
          {
             LOG_ERROR (rv);
          }
-         /* PTin added: (BCM56643) Execute, only if success */
+         /* PTin added: new switch 56643 (Triumph3) - Execute, only if success */
          if (rv == BCM_E_NONE)
          {
            if (hashControl == BCM_HASH_CRC32L)

@@ -384,9 +384,9 @@ void hapiBroadDebugHelp()
 
 void hapiBroadDebugSpecial(L7_ushort16 unit)
 {
-  /* PTin updated: platform */
+  /* PTin added: new switch 56843 (Triumph3) */
   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-      SOC_IS_TRIUMPH3(unit))      /* PTin added: new switch BCM56643 */
+      SOC_IS_TRIUMPH3(unit))
   {
       uint64 egr_val_64;
       uint32 bitmap;

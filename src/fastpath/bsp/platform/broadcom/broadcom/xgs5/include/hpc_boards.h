@@ -63,7 +63,7 @@
 	__BROADCOM_56680_ID,
         NO_CONNECTION_LIST
     },
-    /* PTin added: new platform */
+    /* PTin added: new switch 56689 (Valkyrie2) */
     /* 56689 board */
     {
         BCM_SYS_BOARD_56689,
@@ -79,7 +79,7 @@
         __BROADCOM_56685_ID,
         NO_CONNECTION_LIST
     },
-    /* PTin added: new platform */
+    /* PTin added: new switch 56643 (Triumph3) */
     /* 56643 board */
     {
         BCM_SYS_BOARD_56643,

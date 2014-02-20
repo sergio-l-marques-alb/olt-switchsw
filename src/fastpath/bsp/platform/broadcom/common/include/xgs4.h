@@ -179,7 +179,7 @@
  */
 #if ((PLAT_BCM_CHIP == L7_BCM_SCORPION) || (PLAT_BCM_CHIP == L7_BCM_ENDURO))
 #define     PLAT_IPV6_ROUTE_TBL_SIZE_TOTAL        3072
-/* PTin added: new switch BCM56843 */
+/* PTin added: new switch 56843 (Trident) */
 #elif (PLAT_BCM_CHIP == L7_BCM_TRIDENT)
 #define     PLAT_IPV6_ROUTE_TBL_SIZE_TOTAL        4096
 /* PTin end */
@@ -192,7 +192,7 @@
 #if ((PLAT_BCM_CHIP == L7_BCM_SCORPION) || (PLAT_BCM_CHIP == L7_BCM_ENDURO))
 #define     PLAT_IPV4_ROUTE_TBL_SIZE_DUAL         6112
 #define     PLAT_IPV4_ROUTE_TBL_SIZE_V4ONLY       12256
-/* PTin added: new switch BCM56843 */
+/* PTin added: new switch 56843 (Trident) */
 #elif (PLAT_BCM_CHIP == L7_BCM_TRIDENT)
 #define     PLAT_IPV4_ROUTE_TBL_SIZE_DUAL         8160
 #define     PLAT_IPV4_ROUTE_TBL_SIZE_V4ONLY       12256

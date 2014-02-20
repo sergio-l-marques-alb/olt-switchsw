@@ -237,7 +237,6 @@ L7_BOOL hapiBroadQosCosEgressBwSupported()
 
     switch (board_info->npd_id)
     {
-    /* PTin updated: new platform */
     case __BROADCOM_56224_ID:
     case __BROADCOM_56304_ID:
     case __BROADCOM_56314_ID:
@@ -245,13 +244,13 @@ L7_BOOL hapiBroadQosCosEgressBwSupported()
     case __BROADCOM_56514_ID:
     case __BROADCOM_56624_ID:
     case __BROADCOM_56680_ID:
-    case __BROADCOM_56685_ID:   /* PTin added: new switch */
-    case __BROADCOM_56843_ID:   /* PTin added: new switch BCM56843 */
+    case __BROADCOM_56685_ID:   /* PTin added: new switch 56685 (Valkyrie2) */
+    case __BROADCOM_56843_ID:   /* PTin added: new switch 56843 (Trident) */
     case __BROADCOM_56820_ID:
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56334_ID:
-    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 */
+    case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
       egrBwMetersSupported = L7_TRUE;
       break;
 

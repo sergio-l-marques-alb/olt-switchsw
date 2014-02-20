@@ -198,7 +198,7 @@ L7_RC_t hpcConfigBoardSet()
         break;
 
       case UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1_ID:
-      case UNIT_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID:   /* PTin added: new platform */
+      case UNIT_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID:   /* PTin added: new switch 56689 (Valkyrie2) */
         /* Enable trunk_128 bit. This will enable 128 trunks */
         /* and fixes LAG issue on XGS3 stacking              */
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
@@ -210,7 +210,7 @@ L7_RC_t hpcConfigBoardSet()
 #endif
         break;
 
-      /* PTin added: new switch BCM56843 */
+      /* PTin added: new switch 56843 (Trident) */
       case UNIT_BROAD_40_TENGIG_56843_REV_1_ID:
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);
 
@@ -442,7 +442,7 @@ L7_RC_t hpcConfigBoardSet()
 
         break;
 
-      /* PTin added: new switch BCM56846 */
+      /* PTin added: new switch 56846 (Trident-plus) */
       case UNIT_BROAD_64_TENGIG_56846_REV_1_ID:
         #if 0
         if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)

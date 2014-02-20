@@ -2258,7 +2258,7 @@
  */
 #define spn_PORTMAP  "portmap"
 #ifdef LVL7_FIXUP
-#define spn_PORT_PHY_ADDR "port_phy_addr"   /* PTin added: new switch BCM56843 */
+#define spn_PORT_PHY_ADDR "port_phy_addr"
 #define spn_LED_MODE_CUST "led_mode_cust"
 #define spn_PORT_PHY_ADDR_XE            "port_phy_addr_xe"
 #define spn_PORT_COMBO_VIRTUAL_PHY      "port_combo_virtual_phy"

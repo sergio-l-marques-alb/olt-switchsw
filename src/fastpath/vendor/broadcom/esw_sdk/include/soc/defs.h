@@ -287,10 +287,10 @@
 #define BCM_IPFIX_SUPPORT
 #endif
 
-/* PTin modified: new switch */
+/* PTin added: new switch 56689 (Valkyrie2) */
 #if defined(BCM_56685_A0) || defined(BCM_56685_B0) || defined(BCM_56689_A0) || defined(BCM_56689_B0)
 #define BCM_56685
-#define BCM_56689   /* PTin added: new switch */
+#define BCM_56689   /* PTin added: new switch 56689 (Valkyrie2) */
 #define BCM_56634
 #define BCM_56624
 #define BCM_56304
@@ -400,10 +400,10 @@
 #endif
 #endif
 
-/* PTin modified: new platform */
+/* PTin modified: new switch 56643 (Triumph3) */
 #if defined(BCM_56640_A0) || defined(BCM_56640_B0) || defined(BCM_56643_A0) || defined(BCM_56643_B0)
 #define BCM_56640
-#define BCM_56643     /* New switch BCM56643 */
+#define BCM_56643     /* PTin modified: new switch 56643 (Triumph3) */
 #define BCM_56840
 #define BCM_56634
 #define BCM_56624

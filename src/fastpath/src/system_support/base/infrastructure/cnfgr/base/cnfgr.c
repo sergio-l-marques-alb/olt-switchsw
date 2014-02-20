@@ -1536,7 +1536,7 @@ static L7_BOOL cnfgrLlpfIsFeaturePresent(L7_uint32 featureId)
       switch (techSubType)
       {
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5668x:
-      case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x:  /* PTin added: new switch BCM56843 */
+      case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x:  /* PTin added: new switch 56843 (Trident) */
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x:
       case L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520:
@@ -2824,8 +2824,8 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
 
     case __BROADCOM_56624_ID:
     case __BROADCOM_56680_ID:
-    case __BROADCOM_56685_ID:  /* PTin added: new switch */
-    case __BROADCOM_56843_ID:  /* PTin added: new switch BCM56843 */
+    case __BROADCOM_56685_ID:  /* PTin added: new switch 56689 (Valkyrie2) */
+    case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
     case __BROADCOM_56820_ID:
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
@@ -2834,7 +2834,7 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4;
       break;
 
-    case __BROADCOM_56643_ID: /* PTin added: new switch BCM56643 */
+    case __BROADCOM_56643_ID: /* PTin added: new switch 56643 (Triumph3) */
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5;      /* PTin added: XGS5 family supported */
       break;
 
@@ -2931,10 +2931,10 @@ L7_BASE_TECHNOLOGY_SUBTYPES_t cnfgrBaseTechnologySubtypeGet(void)
       tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x;
       break;
     case __BROADCOM_56680_ID:
-    case __BROADCOM_56685_ID:  /* PTin added: new switch */
+    case __BROADCOM_56685_ID:  /* PTin added: new switch 56689 (Valkyrie2) */
       tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5668x;
       break;
-    /* PTin added: new switch BCM56843 */
+    /* PTin added: new switch 56843 (Trident) */
     case __BROADCOM_56843_ID:
       tType = L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x;
       break;

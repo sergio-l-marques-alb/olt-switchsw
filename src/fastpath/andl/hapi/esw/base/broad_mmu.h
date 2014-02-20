@@ -147,7 +147,7 @@ int hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
 
 #endif /* TRIUMPH ONLY */
 
-/* PTin updated: new platform TRIUMP3 */
+/* PTin updated: new switch 56643 (Triumph3) */
 #if defined (BCM_ENDURO_SUPPORT) || defined (BCM_TRIUMPH_SUPPORT)
 /*New Macros for enduro*/
 #define EN_MMU_IN_PORT_MIN_CELLS                72
