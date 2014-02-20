@@ -980,8 +980,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
           }
           /*Let us verify if this group is registered by any IGMP Host*/            
           if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
-              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE ||
-              ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==TRUE)
+              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE)               
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
             return SUCCESS;
@@ -1045,8 +1044,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
 
           /*Let us verify if this group is registered by any IGMPv3 Host*/            
           if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
-              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE ||
-              ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==TRUE)
+              avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE)              
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
             return SUCCESS;
