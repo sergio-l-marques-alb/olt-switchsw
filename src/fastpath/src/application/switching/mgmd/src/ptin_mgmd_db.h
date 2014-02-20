@@ -44,9 +44,9 @@ RC_t                       ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd
  ******************************************************************************/
 //RC_t                       snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 portId, uint32 clientIdx, ushort16 noOfSources, ptin_inet_addr_t* sourceList,uint32 *noOfRecords, mgmdGroupRecord_t* groupPtr);
 //RC_t                       snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_inet_addr_t* sourceList,uint32 *noOfRecords, mgmdGroupRecord_t* groupPtr);
-RC_t                       ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
-RC_t                       ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
-RC_t                       ptinMgmdMembershipReportAllowProcess(mgmd_eb_t* pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
+RC_t                       ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
+RC_t                       ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
+RC_t                       ptinMgmdMembershipReportAllowProcess(mgmd_eb_t* pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
 RC_t                       ptinMgmdMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
 mgmdProxyInterface_t*      ptinMgmdGeneralQueryProcess(uint32 serviceId, uint32 selectedDelay, BOOL *sendReport, uint32 *timeout);
 mgmdGroupRecord_t*         ptinMgmdGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 selectedDelay, BOOL* sendReport, uint32* timeout);
@@ -57,7 +57,7 @@ mgmdGroupRecord_t*         ptinMgmdGroupSourceSpecifcQueryProcess(snoopPTinL3Inf
  ******************************************************************************/
 
 snoopPTinL3Source_t*       ptinMgmdSourceFind(snoopPTinL3InfoData_t *groupEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr);
-RC_t                       ptinMgmdSourceAdd(snoopPTinL3InfoData_t *avlTreeEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr,snoopPTinL3Source_t **sourcePtr);
+RC_t                       ptinMgmdSourceAdd(snoopPTinL3InfoData_t* groupEntry, uint32 portId, ptin_mgmd_inet_addr_t* sourceAddr,snoopPTinL3Source_t** sourcePtr,ptin_mgmd_externalapi_t*  externalApi);
 RC_t                       ptinMgmdSourceRemove(snoopPTinL3InfoData_t *avlTreeEntry,uint32 portId, snoopPTinL3Source_t *sourcePtr);
 RC_t                       ptinMgmdInitializeInterface(snoopPTinL3InfoData_t* groupPtr, uint16 portId);
 RC_t                       ptinMgmdInterfaceRemove(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum);

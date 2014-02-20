@@ -80,23 +80,15 @@ RC_t ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer)
 }
 
 
-RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 portId)
+RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 portId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
   RC_t rc = SUCCESS;
-  ptin_IgmpProxyCfg_t       igmpGlobalCfg;
-
+ 
   if (PTIN_NULLPTR == __controlBlock)
   {
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ControlBlock has not been initialized yet!");
     return FAILURE;
   }
-
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
-    return FAILURE;
-  }
-
 
   if(SUCCESS != ptin_mgmd_routercmtimer_init(&groupData->interfaces[portId].groupCMTimer))
   {
@@ -110,7 +102,7 @@ RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 port
     ptin_mgmd_timer_stop(groupData->interfaces[portId].groupCMTimer.timer);
   }
 
-  rc = ptin_mgmd_timer_start(groupData->interfaces[portId].groupCMTimer.timer, igmpGlobalCfg.querier.older_host_present_timeout*1000, &groupData->interfaces[portId].groupCMTimer);
+  rc = ptin_mgmd_timer_start(groupData->interfaces[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->interfaces[portId].groupCMTimer);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
   return rc;
 }

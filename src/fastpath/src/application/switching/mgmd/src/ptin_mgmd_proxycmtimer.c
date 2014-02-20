@@ -81,27 +81,13 @@ RC_t ptin_mgmd_proxycmtimer_init(snoopPTinCMtimer_t* pTimer)
 }
 
 
-RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId)
+RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId, mgmd_cb_t* pMgmdCB, ptin_IgmpProxyCfg_t *igmpCfg)
 {
-  RC_t                ret = SUCCESS;
-  ptin_IgmpProxyCfg_t igmpGlobalCfg;
-  mgmd_cb_t       *pMgmdCB = PTIN_NULLPTR; 
+  RC_t                ret = SUCCESS;  
 
   if(PTIN_NULLPTR == __controlBlock)
   {
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ControlBlock has not been initialized yet!");
-    return FAILURE;
-  }
-
-  if(ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
-    return FAILURE;
-  }
-
-  if((pMgmdCB=mgmdCBGet(PTIN_MGMD_AF_INET))==PTIN_NULLPTR)
-  {   
-    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get pMgmdCB family:%u", PTIN_MGMD_AF_INET);   
     return FAILURE;
   }
 
@@ -119,7 +105,7 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId)
     ptin_mgmd_timer_stop(pMgmdCB->proxyCM[serviceId].timer);
   }
 
-  ret = ptin_mgmd_timer_start(pMgmdCB->proxyCM[serviceId].timer, igmpGlobalCfg.host.older_querier_present_timeout*1000, &pMgmdCB->proxyCM[serviceId]);
+  ret = ptin_mgmd_timer_start(pMgmdCB->proxyCM[serviceId].timer, igmpCfg->host.older_querier_present_timeout*1000, &pMgmdCB->proxyCM[serviceId]);
   return ret;
 }
 

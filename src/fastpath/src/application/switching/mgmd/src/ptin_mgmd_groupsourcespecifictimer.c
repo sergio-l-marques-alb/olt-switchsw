@@ -204,10 +204,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_init(PTIN_MGMD_TIMER_t *timerPtr)
 }
 
 
-RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
+RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
-  RC_t                            ret           = SUCCESS;
-  ptin_IgmpProxyCfg_t             igmpGlobalCfg;
+  RC_t                            ret           = SUCCESS;  
   groupSourceSpecificQueriesAvl_t *timerData; 
   snoopPTinL3InfoData_t           *groupEntry;
 
@@ -225,12 +224,6 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     return FAILURE;
   }
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
-    return FAILURE;
-  }
-
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
   {
     uint32 gtTimeLeft, lmqt;
@@ -241,7 +234,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to add a new groupspecific timer entry [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
       return TABLE_IS_FULL;
     }
-    timerData->retransmissions = igmpGlobalCfg.querier.last_member_query_count;
+    timerData->retransmissions = igmpCfg->querier.last_member_query_count;
 
     //Set supress router-side processing flag if current grouptimer is higher than LMQT
     if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
@@ -249,7 +242,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to find group entry [groupAddr=0x%08X serviceId=%u]", groupAddr->addr.ipv4.s_addr, serviceId);
       return FAILURE;
     }    
-    lmqt       = igmpGlobalCfg.querier.last_member_query_interval/10 * igmpGlobalCfg.querier.last_member_query_count;//Convert from dS -> S
+    lmqt       = igmpCfg->querier.last_member_query_interval/10 * igmpCfg->querier.last_member_query_count;//Convert from dS -> S
     gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->interfaces[portId].groupTimer);//Seconds
     if(gtTimeLeft > lmqt)
     {
@@ -292,7 +285,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Restarting groupspecific [groupAddr=0x%08X serviceId=%u portId=%u]", 
               timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId, timerData->key.portId);
     ptin_mgmd_timer_stop(timerData->timerHandle);
-    timerData->retransmissions = igmpGlobalCfg.querier.last_member_query_count;
+    timerData->retransmissions = igmpCfg->querier.last_member_query_count;
   }
 
   ret = ptin_mgmd_timer_start(timerData->timerHandle, 0, &timerData->key); //Send a Q(G) immediatly
@@ -302,8 +295,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
 
 RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
 {
-  RC_t                            ret           = SUCCESS;
-  ptin_IgmpProxyCfg_t             igmpGlobalCfg;
+  RC_t                            ret           = SUCCESS;  
   groupSourceSpecificQueriesAvl_t *timerData; 
 
   if(PTIN_NULLPTR == groupAddr)
@@ -317,12 +309,6 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, 
   if (PTIN_NULLPTR == __controlBlock)
   {
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ControlBlock has not been initialized yet!");
-    return FAILURE;
-  }
-
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
     return FAILURE;
   }
 
