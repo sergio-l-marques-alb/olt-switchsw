@@ -58,7 +58,11 @@
 #include "appl/diag/diag.h"
 #include "appl/diag/system.h"
 #include "appl/diag/cmdlist.h"
+#if (SDK_VERSION_IS >= SDK_VERSION(6,3,2,0))
+#include "bcm_int/mdebug.h"
+#else
 #include "bcm/debug.h"
+#endif
 #include "osapi_trace.h"
 
 /* needed for the initialization of the bcm shell functionality */
@@ -2636,6 +2640,7 @@ void hapiBroadDebugDiagShell(void)
 #endif
 }
 
+#if (SDK_VERSION_IS < SDK_VERSION(6,3,2,0))
 /* These routines sets up the debug level for BCM APIs and previously
  * resided in SDK code. As part of making SDK fixup-free, these routines
  * are moved here. With BCM diag shell, we should be able to enable
@@ -2720,7 +2725,11 @@ TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_DISCV=0x%lx    /* Discovery verbose */\n", TKS_D
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TOPOLOGY=0x%lx /* Topology */\n", TKS_DBG_TOPOLOGY));
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TOPOV=0x%lx    /* Topology verbose */\n", TKS_DBG_TOPOV));
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_STKTASK=0x%lx  /* Stack task */\n", TKS_DBG_STKTASK));
+#if (SDK_VERSION_IS >= SDK_VERSION(6,3,2,0))
+TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_STKV=0x%lx     /* Stack task verbose */\n", TKS_DBG_STKV));
+#else
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_STV=0x%lx      /* Stack task verbose */\n", TKS_DBG_STV));
+#endif
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TX=0x%lx       /* TX */\n", TKS_DBG_TX));
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_NH=0x%lx       /* Next Hop */\n", TKS_DBG_NH));
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_NHV=0x%lx      /* Next Hop Verbose */\n", TKS_DBG_NHV));
@@ -2733,6 +2742,7 @@ TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_CTPKTV=0x%lx   /* CPUTRANS packet verbose */\n",
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TUNNEL=0x%lx   /* Tunnel related */\n", TKS_DBG_TUNNEL));
 TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TUNNELV=0x%lx  /* Tunnel verbose */\n", TKS_DBG_TUNNELV));
 }
+#endif
 #endif
 
 extern _bcmx_port_t *_bcmx_port;
