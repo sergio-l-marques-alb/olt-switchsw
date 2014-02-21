@@ -201,6 +201,23 @@
   }
 }
 ,
+/* PTin added: new switch 56340 (Helix4) */
+{
+  {
+    CARD_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID,   /* cardtypeID */
+    "BCM56340-12GIG-4TENGE-1GS",              /* cardModel  */
+    "Broadcom BCM56340 - 12 Port GbE + 4 Ten-Gigabit + 1 GS Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    17,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1 /* dapiCardInfo */
+  }
+}
+,
 /* PTin added: new switch 56843 (Trident) */
 {
   {
