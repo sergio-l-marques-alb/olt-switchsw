@@ -371,7 +371,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
   #if (PTIN_BOARD_IS_MATRIX)
-  #if MAP_CPLD
+  #ifdef MAP_CPLD
   L7_uint16 board_type;
 
   /* Only active matrix will process these messages */
