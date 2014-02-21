@@ -147,6 +147,15 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[
 { 3,  L7_TRUE,   8, 38}    /* logical Router card */
 };
 
+/* PTin added: new switch 56340 (Helix4) */
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
+{
+{ 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x1G + 4x10G) */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
 HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[] =
 {
  /* bcm_unit, bcm_port */
@@ -193,6 +202,15 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SING
   {0, 51}
 };
 
+/* PTin added: new switch 56340 (Helix4) */
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0, 50},
+  {0, 51},
+  {0, 52},
+  {0, 53}
+};
 
 HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1[] =
 {
@@ -306,6 +324,32 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
 #ifdef L7_STACKING_PACKAGE
   sizeof(stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
   stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1     /* stk_port_list */
+#else
+  0,
+  L7_NULLPTR
+#endif
+}
+};
+
+/* PTin added: new switch 56340 (Helix4) */
+/***********************************************************************************
+ * Broadcom Helix4 unit with 8x2.5GB + 4x1G + 4x10GB fixed ports on a single slot. *
+ *                                                                                 *
+ ***********************************************************************************/
+HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
+{
+{
+  mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1,
+  sizeof(mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
+
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
+  0,                                                  /* slot_id       */
+  1,                                                  /* num_units     */
+  0,                                                  /* dest_unit     */
+  0,                                                  /* dest_port     */
+#ifdef L7_STACKING_PACKAGE
+  sizeof(stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_SINGLE_CHIP_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
+  stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_SINGLE_CHIP_REV_1     /* stk_port_list */
 #else
   0,
   L7_NULLPTR
@@ -910,6 +954,30 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_R
 {       0,      51,          0,      57}, /* 10G 4*/
 };
 
+/* PTin added: new switch 56340 (Helix4) */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port *
+ * -------  ------- ----------- -------- */
+{
+{       0,       0,          0,       1}, /* 2.5G ETH */
+{       0,       1,          0,       5},
+{       0,       2,          0,       9},
+{       0,       3,          0,      13},
+{       0,       4,          0,      17},
+{       0,       5,          0,      21},
+{       0,       6,          0,      25},
+{       0,       7,          0,      29},
+{       0,       8,          0,      33}, /* 1G ETH */
+{       0,       9,          0,      37},
+{       0,      10,          0,      41},
+{       0,      11,          0,      45},
+{       0,      12,          0,      50}, /* 10G ETH */
+{       0,      13,          0,      51},
+{       0,      14,          0,      52},
+{       0,      15,          0,      53},
+{       0,      16,          0,      49}, /* GS port */
+};
+
 /* PTin added: new switch 56843 (Trident) */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port *
@@ -1492,6 +1560,29 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[]
 {    51},
 };
 
+/* PTin added: new switch 56340 (Helix4) */
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
+/*portNum
+ *------- */
+{{    0},
+{     1},
+{     2},
+{     3},
+{     4},
+{     5},
+{     6},
+{     7},
+{     8},
+{     9},
+{    10},
+{    11},
+{    12},
+{    13},
+{    14},
+{    15},
+{    16},
+};
+
 /* PTin added: new switch 56843 (Trident) */
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1[] =
 /*portNum
@@ -1762,6 +1853,13 @@ dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1, sizeof(dapiBroa
 dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
+/* PTin added: new switch 56340 (Helix4) */
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
 /* PTin added: new switch 56843 (Trident) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
@@ -1962,6 +2060,17 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_56643_R
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},  /* 52 ports (48xETH + 4x10G */
 {L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
+};
+
+/* PTin added: new switch 56340 (Helix4) */
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 8xGPON + 4x1G ports + 4x10G + GS */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},
 };
 
 /* PTin added: new switch 56843 (Trident) */

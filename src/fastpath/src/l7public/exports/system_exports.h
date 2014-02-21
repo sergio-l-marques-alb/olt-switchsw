@@ -256,6 +256,7 @@ typedef enum
   __BROADCOM_56685_ID,  /* PTin added: new switch 56689 (Valkyrie2) */
   __BROADCOM_56843_ID,  /* PTin added: new switch 56843 (Trident) */
   __BROADCOM_56643_ID,  /* PTin added: new switch 56643 (Triumph3) */
+  __BROADCOM_56340_ID,  /* PTin added: new switch 56340 (Helix4) */
   __MASTER_DRIVER_ID,
 } L7_NPD_ID_t;
 

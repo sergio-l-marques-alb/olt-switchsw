@@ -39,19 +39,21 @@
 #define L7_BCM_VALKYRIE2                           6  /* PTin added: new switch 56689 (Valkyrie2) */
 #define L7_BCM_TRIDENT                             7  /* PTin added: new switch 56843 (Trident) */
 #define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch 56643 (Triumph3) */
+#define L7_BCM_HELIX4                              9  /* PTin added: new switch 56340 (Helix4) */
 
 /* PTin added: boards definition */
-#define PTIN_BOARD_OLT7_8CH_B                      0x01
-#define PTIN_BOARD_TOLT8G                          0x02
-#define PTIN_BOARD_TG16G                           0x04
-#define PTIN_BOARD_CXP360G                         0x08
-#define PTIN_BOARD_CXO640G                         0x10
-#define PTIN_BOARD_TA48GE                          0x20
+#define PTIN_BOARD_OLT7_8CH_B                      0x0001
+#define PTIN_BOARD_TOLT8G                          0x0002
+#define PTIN_BOARD_TG16G                           0x0004
+#define PTIN_BOARD_CXP360G                         0x0008
+#define PTIN_BOARD_CXO640G                         0x0010
+#define PTIN_BOARD_TA48GE                          0x0020
+#define PTIN_BOARD_OLT1T0                          0x0100
 
 /* PTin added: board groups definition */
 #define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G)
 #define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TA48GE )
-#define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B )
+#define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B | PTIN_BOARD_OLT1T0)
 #define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G )
 #define PTIN_BOARD_ACTIVETH_FAMILY    ( PTIN_BOARD_TA48GE )
 
@@ -80,8 +82,15 @@
 /*********************************************************************
 **  Start of  Base parameters
 **********************************************************************/
+/* PTin added: new switch 56340 (Helix4) */
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
+#define L7_MAX_PORTS_PER_SLOT                    17
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           17
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           17
+
 /* PTin added: new switch 56689 (Valkyrie2) */
-#if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
+#elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    18    
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           18  
