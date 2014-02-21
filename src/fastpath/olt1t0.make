@@ -1,6 +1,6 @@
 ################################################
 #                                              #
-#   FastPath Makefile for the OLT7-8CHB card   #
+#   FastPath Makefile for the OLT1T0 card      #
 #                                              #
 #	Joao Mateiro, 2014                     #
 #	joao-v-mateiro@ptinovacao.pt           #
@@ -109,7 +109,7 @@ welcome:
 	@echo ""
 	@echo "##############################################"
 	@echo "#                                            #"
-	@echo "#  FastPath Makefile for the OLT7-8CHB card  #"
+	@echo "#  FastPath Makefile for the OLT1T0 card     #"
 	@echo "#                                            #"
 	@echo "##############################################"
 	@echo ""
