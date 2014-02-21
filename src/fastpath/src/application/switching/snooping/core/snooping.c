@@ -490,7 +490,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   /* PTin added: IGMP snooping */
 #if 1
-  L7_uint16 McastRootVlan;
+  L7_uint16 mcastRootVlan;
 
   /* Internal vlan will be converted to MC root vlan */
 
@@ -601,7 +601,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
   }
 
@@ -618,10 +618,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 
   /* Get multicast root vlan */
-  if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
+  if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s srcAddr=%s)",
-              pduInfo->vlanId, McastRootVlan, inetAddrPrint(&grpAddr,debug_buf1),inetAddrPrint(&srcAddr,debug_buf2));
+              pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&grpAddr,debug_buf1),inetAddrPrint(&srcAddr,debug_buf2));
   }
   else
   {
@@ -637,9 +637,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #else
   /* !IGMPASSOC_MULTI_MC_SUPPORTED */
-  if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &McastRootVlan)==L7_SUCCESS)
+  if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,McastRootVlan);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
   }
   else
   {
@@ -655,7 +655,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 
   /* Validate interface and Multicast root vlan */
-  if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, McastRootVlan)!=L7_SUCCESS)
+  if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)!=L7_SUCCESS)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
@@ -664,7 +664,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
     else
     {
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, McastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, mcastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
     }
     return L7_FAILURE;
   }
@@ -695,10 +695,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   #endif
 
   /* Update Vlan ID of the root MC service vlan */
-  pduInfo->vlanId = McastRootVlan;
+  pduInfo->vlanId = mcastRootVlan;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
-            pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
+            pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
 
   /* Change Internal vlan with the MC root vlan inside message */
   if ((*(L7_ushort16 *)&data[12] == 0x8100) ||
@@ -792,7 +792,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #else
   /* Send packet to MGMD */
   ptin_timer_start(34,"mgmdPacketSend");
-  if(L7_SUCCESS != (rc = mgmdPacketSend(McastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
+  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
   }

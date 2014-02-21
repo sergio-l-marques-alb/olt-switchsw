@@ -390,7 +390,7 @@ static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint16 U
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
 
 static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
-//static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
+static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
 
 
 /******************************* 
@@ -2343,14 +2343,17 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
                   return L7_FAILURE;
                 }
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+                LOG_INFO(LOG_CTX_PTIN_IGMP, "Port: %u", clientGroup->ptin_port);
           #endif
           #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                newClientEntry.outerVlan = clientGroup->uni_ovid;
+                newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+                LOG_INFO(LOG_CTX_PTIN_IGMP, "oVlan: %u", newClientEntry.outerVlan);
           #endif
           #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                newClientEntry.innerVlan = clientGroup->uni_ivid;
+                newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+                LOG_INFO(LOG_CTX_PTIN_IGMP, "iVlan: %u", newClientEntry.innerVlan);
           #endif
           #if 0
           #if (MC_CLIENT_IPADDR_SUPPORTED)
@@ -2365,7 +2368,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
           if(L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
           {
             *number_of_clients=0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes.portId-1, mgmdGroupsRes.clientId);
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes.clientId, mgmdGroupsRes.portId);
             return L7_FAILURE;
           }
 
@@ -2400,6 +2403,13 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
     }
 
     /* Copy client contents */
+    if(L7_SUCCESS != ptin_igmp_clientId_restore(&avl_infoData->key))
+    {
+      *number_of_clients=0;
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert client[mask:%02X intf:%u/%u oVlan:%u iVlan:%u]", avl_infoData->key.mask, avl_infoData->key.ptin_intf.intf_type, avl_infoData->key.ptin_intf.intf_id,
+                                                                                                     avl_infoData->key.outerVlan, avl_infoData->key.innerVlan);
+      return L7_FAILURE;
+    }
     LOG_INFO(LOG_CTX_PTIN_IGMP, "      Idx:   %u",    clientBufferIdx);
     LOG_INFO(LOG_CTX_PTIN_IGMP, "        Mask:  %02X",  avl_infoData->key.mask);
     LOG_INFO(LOG_CTX_PTIN_IGMP, "        Intf:  %u/%u", avl_infoData->key.ptin_intf.intf_type, avl_infoData->key.ptin_intf.intf_id);
@@ -3259,6 +3269,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
   else
     memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   #endif
+  avl_key.mask = client->mask;
 
   if (ptin_debug_igmp_snooping)
   {
@@ -8776,72 +8787,72 @@ static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-//static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
-//{
-//  L7_uint32 intIfNum;
-//  L7_uint16 extVlan, innerVlan;
-//
-//  /* Validate client */
-//  if (client==L7_NULLPTR)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments or no parameters provided");
-//    return L7_FAILURE;
-//  }
-//
-//  /* Check mask */
-//  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
-//  {
-//    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
-//    return L7_FAILURE;
-//  }
-//
-//  innerVlan = 0;
-//  #if MC_CLIENT_INNERVLAN_SUPPORTED
-//  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
-//  {
-//    /* Validate inner vlan */
-//    if (client->innerVlan>4095)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
-//      return L7_FAILURE;
-//    }
-//    innerVlan = client->innerVlan;
-//  }
-//  #endif
-//
-//  #if defined(MC_CLIENT_INTERF_SUPPORTED) && defined(MC_CLIENT_OUTERVLAN_SUPPORTED)
-//  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
-//  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
-//      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
-//  {
-//    /* Convert to intIfNum format */
-//    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
-//              client->ptin_intf.intf_type,client->ptin_intf.intf_id);
-//      return L7_FAILURE;
-//    }
-//
-//    /* Validate outer vlan */
-//    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
-//      return L7_FAILURE;
-//    }
-//    /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
-//    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
-//    {
-//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
-//              client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-//      return L7_FAILURE;
-//    }
-//    /* Replace outer vlan with the internal one */
-//    client->outerVlan = extVlan;
-//  }
-//  #endif
-//
-//  return L7_SUCCESS;
-//}
+static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
+{
+  L7_uint32 intIfNum;
+  L7_uint16 extVlan, innerVlan;
+
+  /* Validate client */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments or no parameters provided");
+    return L7_FAILURE;
+  }
+
+  /* Check mask */
+  if (MC_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Client mask is null");
+    return L7_FAILURE;
+  }
+
+  innerVlan = 0;
+  #if MC_CLIENT_INNERVLAN_SUPPORTED
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+  {
+    /* Validate inner vlan */
+    if (client->innerVlan>4095)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid inner vlan (%u)",client->innerVlan);
+      return L7_FAILURE;
+    }
+    innerVlan = client->innerVlan;
+  }
+  #endif
+
+  #if defined(MC_CLIENT_INTERF_SUPPORTED) && defined(MC_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
+      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+  {
+    /* Convert to intIfNum format */
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert client intf %u/%u to intIfNum format",
+              client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* Validate outer vlan */
+    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
+      return L7_FAILURE;
+    }
+    /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
+              client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+    /* Replace outer vlan with the internal one */
+    client->outerVlan = extVlan;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
 
 /**************************** 
  * IGMP statistics

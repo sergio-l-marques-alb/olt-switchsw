@@ -325,12 +325,12 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
  
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
   {
-      //Send packet
-      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+    //Send packet
+    snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
   }
   else //To support sending one Membership Query Message per ONU (client_idx)
   {   
-   /*   To get the first client */
+    /* To get the first client */
     memset(&clientFlow, 0x00, sizeof(clientFlow));
     do
     {
@@ -338,7 +338,6 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
       {
         /* First client/flow */
          rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
-       
 
         /* Internal vlans */
         int_ivlan = clientFlow.int_ivid;
