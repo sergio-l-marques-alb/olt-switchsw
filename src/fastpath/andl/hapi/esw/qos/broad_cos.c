@@ -251,6 +251,7 @@ L7_BOOL hapiBroadQosCosEgressBwSupported()
     case __BROADCOM_56524_ID:
     case __BROADCOM_56334_ID:
     case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
+    case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
       egrBwMetersSupported = L7_TRUE;
       break;
 
