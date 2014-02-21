@@ -375,6 +375,80 @@ L7_RC_t hpcConfigBoardSet()
 #endif
         break;
 
+    /* PTin added: new switch 56340 (Helix4) */
+    case UNIT_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID:
+      /* Enable trunk_128 bit. This will enable 128 trunks */
+      /* and fixes LAG issue on XGS3 stacking              */
+      if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
+        return(L7_FAILURE);
+
+      /* Configure to use LCPLL reference clock */
+      if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
+        return(L7_FAILURE);
+
+      /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
+      if (sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340") != 0)
+        return(L7_FAILURE);
+
+      /* Enable 12xF.QSGMII + Flex[4x10] + 2xHG[21] + 1GE mode for BCM56340 */
+      if (sal_config_set(spn_BCM56340_4X10, "1") != 0)
+        return(L7_FAILURE);
+
+      /*
+       * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+       * following line to change all ports to HG ports.  A specific bitmap
+       * may be provided to select some XE and some HG ports, with the set
+       * bits initialized to HG ports.  Note that HG and XE ports may be
+       * exchanged through the bcm_port_encap_set API.
+       */
+      if (sal_config_set(spn_PBMP_XPORT_XE, "0x3c000000000000") != 0)
+        return(L7_FAILURE);
+
+      /* Configuring GS port (ge48/49) */
+      /* Disable signal auto-detection between SGMII and fiber
+       *  Note this only works when auto-negotiation is enabled. */
+      if (sal_config_set(spn_SERDES_AUTOMEDIUM"_49", "0") != 0)
+        return(L7_FAILURE);
+      /* Manually select SGMII (when auto-detection is off) */
+      if (sal_config_set(spn_SERDES_FIBER_PREF"_49", "0") != 0)
+        return(L7_FAILURE);
+
+      /* Specifies the number of lanes used by each port in the flex port group.
+       * portgroup_<port group>=<number of lanes>.
+       * Applicable to BCM566xx and BCM565xx device family */
+      if (sal_config_set(spn_PORTGROUP"_0", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_1", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_2", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_3", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_4", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_5", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_6", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_7", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_8", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_9", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_10", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_11", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC group: 10G ports */
+        return(L7_FAILURE);
+
+#ifdef L7_STACKING_PACKAGE
+        /* On Stacking packages, restrict FDB size to 16K MAX for FB2. */
+        if (sal_config_set("l2_table_size", "0x3fff") != 0)
+          return(L7_FAILURE);
+#endif
+
       /* PTin added: new switch 56843 (Trident) */
       case UNIT_BROAD_40_TENGIG_56843_REV_1_ID:
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);
