@@ -31,7 +31,7 @@ export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
 export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
 
-BOARD = OLT7-8CH_B
+BOARD = OLT1T0
 CARD_FOLDER = FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$(BOARD)
 CARD	= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU	= $(word 5,$(subst -, ,$(CARD_FOLDER)))
