@@ -52,7 +52,6 @@
 
 /*********************Static Variables******************/
 BOOL                ptin_mgmd_extendedDebug = FALSE;
-ptin_IgmpProxyCfg_t igmpGlobalCfg;
 /*********************End Static Variables******************/
 
 static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
@@ -103,18 +102,24 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
     case PTIN_IGMP_MEMBERSHIP_QUERY:     
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
       { 
-        mcastPacket->ipPayloadLength=IGMP_PKT_MIN_LENGTH;//Truncate the IGMP packet to IGMPv2                   
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: Silently ignored...we are configured to operate at IGMPv2 only!");        
+        rc=ERROR;//We are configured to operate at IGMPv2         
       }
-      rc = ptinMgmdSrcSpecificMembershipQueryProcess(mcastPacket);
+      else
+      {
+        rc = ptinMgmdSrcSpecificMembershipQueryProcess(mcastPacket);
+      }      
       break;
-
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
       if (mcastPacket->cbHandle->mgmdProxyCfg.clientVersion!=PTIN_IGMP_VERSION_3)//Drop the packet
       { 
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3: Silently ignored...we are configured to operate at IGMPv2 only!");
         rc=ERROR;//We are configured to operate at IGMPv2               
       }
-      rc = ptinMgmdMembershipReportV3Process(mcastPacket);         
+      else
+      {
+        rc = ptinMgmdMembershipReportV3Process(mcastPacket);         
+      }      
       break;
 
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT: //Should we support these?
@@ -144,11 +149,11 @@ RC_t ptin_mgmd_mld_packet_process(void)
     switch (mcastPacket.msgType)
     {
     case L7_MLD_MEMBERSHIP_QUERY: /* Query */
-      rc = snoopMgmdMembershipQueryProcess(&mcastPacket);
+      rc = snoopMgmdMembershipQueryProcess(mcastPacket);
       break;
 
     case L7_MLD_V1_MEMBERSHIP_REPORT: /* Report */
-      rc = snoopMgmdMembershipReportProcess(&mcastPacket);
+      rc = snoopMgmdMembershipReportProcess(mcastPacket);
       break;
 
     case L7_MLD_V2_MEMBERSHIP_REPORT:

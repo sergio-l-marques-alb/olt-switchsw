@@ -228,14 +228,8 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   /* Max response code */
   if (version >= PTIN_IGMP_VERSION_2)
   {
-#if 0 //This value was previouly encoded to fp
-    if (version == SNOOP_IGMP_VERSION_3 && igmpGlobalCfg.querier.query_response_interval >= 128)
-    {
-      ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &byteVal);        
-    }
-    else
-#endif
-      byteVal=igmpGlobalCfg.querier.query_response_interval;
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &val);
+    byteVal=val;
   }
   else
   {
@@ -260,19 +254,13 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
-#if 0//Since we do require the Query Interval to Re-Schedule the Timer, the value is not previously encoded 
-    byteVal=igmpGlobalCfg.querier.query_interval;
-#else
-    val=igmpGlobalCfg.querier.query_interval;
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,val,&val);
-#endif
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,igmpGlobalCfg.querier.query_interval,&val);
     PTIN_MGMD_PUT_BYTE(val, dataPtr);
 
     /*Number of Sources*/
     shortVal = 0;
     PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
-    PTIN_MGMD_UNUSED_PARAM(dataPtr);
-
+    
     shortVal = ptinMgmdCheckSum((ushort16 *)startPtr, MGMD_IGMPV3_HEADER_MIN_LENGTH, 0);
     PTIN_MGMD_PUT_SHORT(shortVal, tempPtr);/* Copy the calculated checksum
                                           to stored checksum ptr */
@@ -283,8 +271,6 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     PTIN_MGMD_PUT_SHORT(shortVal, tempPtr); /* Copy the calculated checksum
                                           to stored checksum ptr */
   }
-  PTIN_MGMD_UNUSED_PARAM(tempPtr);
-
   return SUCCESS;
 }
 

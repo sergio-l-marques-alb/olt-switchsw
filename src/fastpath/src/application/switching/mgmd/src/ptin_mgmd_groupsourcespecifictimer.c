@@ -559,13 +559,15 @@ RC_t ptin_mgmd_groupsourcespecifictimer_stop(PTIN_MGMD_TIMER_t timer)
 
 RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t* eventData)
 {
-  uchar8                             queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
-  uint32                             queryHeaderLength = 0;
-  ptin_mgmd_externalapi_t            externalApi;
-  ptinMgmdControlPkt_t              queryPckt         = {0};
-  groupSourceSpecificQueriesAvl_t    *timerData;
-  groupSourceSpecificQueriesSource_t *iterator, *auxSourcePtr;
-  uint32                             sourcesToSend = 0;
+  uchar8                                 queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
+  uint32                                 queryHeaderLength = 0;
+  ptin_mgmd_externalapi_t                externalApi;
+  ptinMgmdControlPkt_t                   queryPckt         = {0};
+  groupSourceSpecificQueriesAvl_t       *timerData;
+  groupSourceSpecificQueriesSource_t    *iterator;
+  groupSourceSpecificQueriesSource_t    *auxSourcePtr;
+  uint32                                 sourcesToSend = 0;
+  ptin_IgmpProxyCfg_t                    igmpGlobalCfg;
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group & Source Specific Timer Expired [groupAddr=0x%08X serviceId=%u portId=%u]", eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
 
@@ -582,8 +584,14 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
     return FAILURE;
   }
 
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
+    return FAILURE;
+  }
+
   //Build IGMP Query header, without any sources
-  buildQueryHeader(PTIN_IGMP_VERSION_3, queryHeader, &queryHeaderLength, &timerData->key.groupAddr, FALSE);
+  buildQueryHeader(igmpGlobalCfg.clientVersion, queryHeader, &queryHeaderLength, &timerData->key.groupAddr, FALSE);
 
   //For each source with active retransmissions, add them to the IGMP Query header
   for(iterator=timerData->firstSource; iterator!=PTIN_NULLPTR; iterator=auxSourcePtr)
@@ -604,14 +612,6 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
 
   if( (sourcesToSend > 0) || (timerData->retransmissions > 0) )
   {
-    ptin_IgmpProxyCfg_t igmpGlobalCfg;
-
-    if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
-      return FAILURE;
-    }
-
     //Reduce group retransmissions
     if(timerData->retransmissions > 0)
     {
