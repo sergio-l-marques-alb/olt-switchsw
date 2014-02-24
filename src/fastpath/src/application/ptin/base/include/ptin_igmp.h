@@ -1172,5 +1172,12 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
 
 L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field);
 
+/**
+ * Get MGMD Query Instances 
+ *  
+ * @return mgmdQueryInstances_t : 
+ */
+extern  void* ptin_mgmd_query_instances_get(void);
+
 #endif
 

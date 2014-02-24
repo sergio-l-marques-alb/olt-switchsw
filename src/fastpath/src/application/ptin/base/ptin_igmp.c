@@ -321,6 +321,16 @@ typedef struct {
  * by the interval VLANs. */ 
 st_IgmpInstCfg_t  igmpInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 
+/* MGMD Query Instance Array
+ * This structure is used to save the Query Instances currently configured on the MGMD
+ *
+ *If modified please update also on snooping_mgmd_api.c! */
+typedef struct {
+  L7_BOOL   inUse;  
+  L7_uint16 UcastEvcId;
+} mgmdQueryInstances_t;
+mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
+
 /* Reference of evcid using internal vlan as reference */
 static L7_uint8 igmpInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
@@ -8240,6 +8250,11 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
   return rc;
 }
 
+void* ptin_mgmd_query_instances_get(void)
+{
+  return ((void*) &mgmdQueryInstances);  
+}
+
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
 {
   PTIN_MGMD_EVENT_t             reqMsg       = {0};
@@ -8261,6 +8276,32 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
+  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+  if(ctrlResMsg.res==L7_SUCCESS)
+  {
+    L7_uint16 iterator;
+    for (iterator=0; iterator<PTIN_SYSTEM_N_IGMP_INSTANCES; iterator++)
+    {
+      if (enable==L7_TRUE)
+      {
+        if(mgmdQueryInstances[iterator].inUse==L7_FALSE)
+        {
+          mgmdQueryInstances[iterator].UcastEvcId=evc_idx;
+          mgmdQueryInstances[iterator].inUse=L7_TRUE;
+          break;
+        }
+      }
+      else
+      {
+        if(mgmdQueryInstances[iterator].inUse==L7_TRUE && mgmdQueryInstances[iterator].UcastEvcId==evc_idx)
+        {
+          mgmdQueryInstances[iterator].inUse=L7_FALSE;
+          break;
+        }
+      }
+    }
+  }
+  #endif
   return ctrlResMsg.res;
 }
 
