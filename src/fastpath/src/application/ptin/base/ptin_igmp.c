@@ -2253,8 +2253,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
   PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t  mgmdGroupsMsg   = {0}; 
   L7_uint32                              currentClientId = 0;
   L7_uint32                              clientBufferIdx = 0;
-  ptinIgmpClientDataKey_t                avl_key;
-  ptinIgmpClientGroupsSnapshotAvlTree_t  *avl_tree;
+  ptin_client_id_t                       avl_key;
   ptinIgmpClientGroupsSnapshotInfoData_t *avl_infoData;
   L7_uint32                              totalClientCount = 0; 
   
@@ -2389,15 +2388,17 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
     } while(pageClientCount == maxResponseEntries); //While the number of clients returned equals the max number of clients per page
   }
 
-  /* AVL tree refrence */
-  avl_tree = &igmpSnapshotClientGroups;
-
   /* Get all clients */
-  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
-  while ( ((avl_infoData=(ptinIgmpClientGroupsSnapshotInfoData_t *) avlSearchLVL7(&(avl_tree->avlTree), &avl_key, L7_MATCH_GETNEXT))!=L7_NULLPTR) && (clientBufferIdx < *number_of_clients))
+  memset(&avl_key,0x00,sizeof(ptin_client_id_t));
+  while (L7_NULLPTR != (avl_infoData = (ptinIgmpClientGroupsSnapshotInfoData_t *)avlSearchLVL7(&(igmpSnapshotClientGroups.avlTree), &avl_key, L7_MATCH_GETNEXT)))
   {
+    ptin_client_id_t tempKey;
+
     /* Prepare next key */
-    memcpy(&avl_key, &avl_infoData->key, sizeof(ptinIgmpClientDataKey_t));
+    memcpy(&avl_key, &avl_infoData->key, sizeof(ptin_client_id_t));
+
+    /* Copy the key data to a temporary buffer. This is necessary so we don't change the AVLTree when restoring the clientData */
+    memcpy(&tempKey, &avl_infoData->key, sizeof(ptin_client_id_t));
 
     /* Ignore this entry if it's not in use */
     if(avl_infoData->in_use != L7_TRUE)
@@ -2413,19 +2414,18 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
     }
 
     /* Copy client contents */
-    if(L7_SUCCESS != ptin_igmp_clientId_restore(&avl_infoData->key))
+    if(L7_SUCCESS != ptin_igmp_clientId_restore(&tempKey))
     {
-      *number_of_clients=0;
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert client[mask:%02X intf:%u/%u oVlan:%u iVlan:%u]", avl_infoData->key.mask, avl_infoData->key.ptin_intf.intf_type, avl_infoData->key.ptin_intf.intf_id,
                                                                                                      avl_infoData->key.outerVlan, avl_infoData->key.innerVlan);
       return L7_FAILURE;
     }
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "      Idx:   %u",    clientBufferIdx);
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "        Mask:  %02X",  avl_infoData->key.mask);
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "        Intf:  %u/%u", avl_infoData->key.ptin_intf.intf_type, avl_infoData->key.ptin_intf.intf_id);
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "        oVlan: %u",    avl_infoData->key.outerVlan);
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "        iVlan: %u",    avl_infoData->key.innerVlan);
-    memcpy(&client_list[clientBufferIdx], &avl_infoData->key, sizeof(avl_infoData->key));
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "      Idx:   %u",      clientBufferIdx);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Mask:  %02X",  tempKey.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Intf:  %u/%u", tempKey.ptin_intf.intf_type, tempKey.ptin_intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        oVlan: %u",    tempKey.outerVlan);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        iVlan: %u",    tempKey.innerVlan);
+    memcpy(&client_list[clientBufferIdx], &tempKey, sizeof(tempKey));
 
     /* Increase the ID of the read clientGroup */
     ++clientBufferIdx;
