@@ -1432,9 +1432,15 @@ int r, r2;
 #include "../../switching/link_aggregation/core/include/dot3ad_db.h"
 #include "../../switching/link_aggregation/core/include/dot3ad_lac.h"
 #include "../../switching/link_aggregation/core/include/dot3ad_lacp.h"
+#include "../../switching/link_aggregation/core/include/dot3ad_cfg.h"
+
+extern dot3ad_system_t dot3adSystem;
+//extern dot3adCfg_t dot3adCfg;
+
 typedef struct {
-    L7_uint32       intf;
-    dot3ad_pdu_t    pdu;
+    L7_uint32           intf;
+    L7_enetMacAddr_t    actorSys;
+    dot3ad_pdu_t        pdu;
 } dot3ad_matrix_sync2_t;
 
 
@@ -1451,6 +1457,7 @@ uint32 ip, len, i;
 #endif
 
     stat.intf=  intf;
+    memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
 
     ip=     ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
@@ -1501,6 +1508,10 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     dot3ad_agg_t *agg;
     dot3ad_matrix_sync2_t *p2;
 
+#ifdef MAP_CPLD
+    if (cpld_map->reg.mx_is_active) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+#endif
+
     p2= (dot3ad_matrix_sync2_t *) pbuf;
 
     p = dot3adPortIntfFind(p2->intf);
@@ -1514,6 +1525,8 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
     if (L7_TRUE == agg->isStatic) return;
 
+    memcpy(dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
+    //memcpy(dot3adCfg.cfg.dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
     dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
 
     LOG_TRACE(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
