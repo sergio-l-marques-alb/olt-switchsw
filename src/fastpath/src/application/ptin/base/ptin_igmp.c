@@ -6086,9 +6086,9 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       break;
   }
 
- if (rc==L7_SUCCESS)
- {
 #if 0
+  if (rc==L7_SUCCESS)
+ {
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
    //Only IPv4 is supported!
    if(channel_group->family==L7_AF_INET && channel_source->family==L7_AF_INET)
@@ -6114,8 +6114,9 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
      return L7_FAILURE;
    }
 #endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
-#endif
  }
+#endif
+
  return rc; 
 }
 
@@ -6236,6 +6237,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
       break;
   }
 
+#if 0
  if (rc==L7_SUCCESS)
  {
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
@@ -6255,6 +6257,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
    ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,0,0);
 #endif//IGMPASSOC_CHANNEL_SOURCE_SUPPORTED    
  }
+#endif
 
   return rc;
 }
