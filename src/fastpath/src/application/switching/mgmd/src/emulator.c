@@ -38,6 +38,7 @@ static void sendMgmdActiveGroupsGet(uint16 serviceId);
 static void sendMgmdClientActiveGroupsGet(uint32 serviceId, uint32 portId, uint32 clientId);
 static void sendMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr);
 static void sendMgmdQuerierAdmin(uint16 serviceId, uint8 admin);
+static void sendMgmdQuerierReset(uint8 ipFamily);
 static void sendMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
 static void sendMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
 static void sendMgmdServiceRemove(uint16 serviceId);
@@ -593,6 +594,23 @@ void sendMgmdQuerierAdmin(uint16 serviceId, uint8 admin)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
+void sendMgmdQuerierReset(uint8 ipFamily)
+{
+  PTIN_MGMD_EVENT_t             reqMsg       = {0};
+  PTIN_MGMD_EVENT_t             resMsg       = {0};
+  PTIN_MGMD_EVENT_CTRL_t        ctrlResMsg   = {0};
+  PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdStatsMsg = {0}; 
+
+  mgmdStatsMsg.family = ipFamily;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ctrlQueueId, (void*)&mgmdStatsMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Response");
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+}
+
 void sendMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask)
 {
   PTIN_MGMD_EVENT_t                 reqMsg        = {0};
@@ -810,9 +828,10 @@ void printHelpMenu(void)
   printf("\t 19  - CLIENT_GROUPS_GET        - $serviceId $portId $clientId                                               \n");
   printf("\t 20  - GROUP_CLIENTS_GET        - $serviceId $groupAddr(hex) $sourceAddr(hex)                                \n");
   printf("\t 21  - QUERIER_ADMIN            - $serviceId $admin                                                          \n");
-  printf("\t 22  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $groupMaskLen $SourceMaskLen $sourceAddr(hex)   \n");
-  printf("\t 23  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMaskLen $sourceAddr(hex)  $sourceMaskLen  \n");
-  printf("\t 24  - SERVICE_REMOVE           - $serviceId                                                                 \n");
+  printf("\t 22  - QUERIER_RESET            - $family                                                                    \n");
+  printf("\t 23  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $groupMaskLen $SourceMaskLen $sourceAddr(hex)   \n");
+  printf("\t 24  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMaskLen $sourceAddr(hex)  $sourceMaskLen  \n");
+  printf("\t 25  - SERVICE_REMOVE           - $serviceId                                                                 \n");
                                                                                                                    
   printf("\n-------------DEBUG-------                                                                                    \n");    
   printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                                                   \n"); 
@@ -1073,6 +1092,21 @@ int main(int argc, char **argv)
     }
     case 22:
     {
+      uint8 family;
+
+      if(argc < 3)
+      {
+        printHelpMenu();
+        return 0;
+      }
+
+      family = strtoul(argv[2], PTIN_NULLPTR, 10);
+
+      sendMgmdQuerierReset(PTIN_MGMD_AF_INET);
+      break;
+    }
+    case 23:
+    {
       uint32 serviceId, groupIp, sourceIp;
       uint8  groupMask, sourceMask;
 
@@ -1091,7 +1125,7 @@ int main(int argc, char **argv)
       sendMgmdWhitelistAdd(serviceId, groupIp,groupMask, sourceIp, sourceMask);
       break;
     }
-    case 23:
+    case 24:
     {
       uint32 serviceId, groupIp, sourceIp;
       uint8  groupMask, sourceMask; 
@@ -1111,7 +1145,7 @@ int main(int argc, char **argv)
       sendMgmdWhitelistRemove(serviceId, groupIp,groupMask, sourceIp, sourceMask);
       break;
     }
-    case 24:
+    case 25:
     {
       uint32 serviceId;
 

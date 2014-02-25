@@ -36,10 +36,10 @@ libmgmd_la_SOURCES = ptin_mgmd_defs.h ptin_mgmd_inet_defs.h ptin_utils_inet_addr
 libmgmd_la_CFLAGS = $(CFLAGS) $(MGMD_CFLAGS) -I./
 libmgmd_la_LDFLAGS = $(LDFLAGS) -g -avoid-version
 
-sbin_PROGRAMS = emulator
-emulator_SOURCES = emulator.c
-emulator_CFLAGS = $(CFLAGS) $(MGMD_CFLAGS)
-emulator_LDADD = $(LD_PATH) $(LIBS) $(LDADD) $(top_srcdir)/src/libmgmd.la $(MGMD_LIBS)
+sbin_PROGRAMS = mgmd.cli
+mgmd_cli_SOURCES = emulator.c
+mgmd_cli_CFLAGS = $(CFLAGS) $(MGMD_CFLAGS)
+mgmd_cli_LDADD = $(LD_PATH) $(LIBS) $(LDADD) $(top_srcdir)/src/libmgmd.la $(MGMD_LIBS)
 
 if ENABLE_PTIN_BINARY
 sbin_PROGRAMS += mgmd

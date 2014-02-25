@@ -159,8 +159,8 @@ RC_t ptin_mgmd_querytimer_start(mgmdPTinL3Querytimer_t* timer, uint32 timeout, v
   else
   {
     
-    timer->queryData    = queryData;    
-    timer->family       =family;
+    timer->queryData = queryData;    
+    timer->family    = family;
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "New Query Timer (ServiceId:%u family:%u)", pMgmdEntry->key.serviceId,family);
   }
 

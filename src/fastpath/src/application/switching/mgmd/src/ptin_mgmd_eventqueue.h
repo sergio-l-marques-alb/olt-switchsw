@@ -51,6 +51,7 @@ typedef enum
   PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD    = 0x1111,
   PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE = 0x1112,
   PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN = 0x1121,
+  PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET = 0x1122,
   PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD       = 0x1131,
   PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE    = 0x1132,
   PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE      = 0x1141,
@@ -120,7 +121,8 @@ typedef struct
 *  
 * @return RC_t
 *  
-* @notes The rxMessageQueue can only be created once. After the first initialization, this method will not allow any further initializations to the queue. 
+* @notes The rxMessageQueue can only be created once. After the first initialization,
+*        this method will not allow any further initializations to the queue. 
 */
 RC_t ptin_mgmd_eventqueue_init(void);
 

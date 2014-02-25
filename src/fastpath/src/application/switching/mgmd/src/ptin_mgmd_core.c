@@ -2244,7 +2244,23 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
         res = ptinMgmdQuerierAdminModeApply(eventData);
       }
       break;
-    }  
+    }
+    case PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET:
+    {
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+
+      //Validate message size
+      if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received message[%u bytes] does not have the expected size[%u bytes]", eventData->dataLength, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+        res = FAILURE;
+      }
+      if(SUCCESS == res)
+      {        
+        res = ptinMgmdGeneralQuerierReset(eventData);
+      }
+      break;
+    }
     case PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET:
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET]     [ID: 0x%08X]", eventData->msgCode, eventData->msgId);

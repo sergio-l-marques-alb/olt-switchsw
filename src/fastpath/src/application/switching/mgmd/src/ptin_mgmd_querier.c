@@ -693,6 +693,75 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 
 
 /*********************************************************************
+* @purpose  Go through all currently configured Q() and reset their state,
+*           forcing them to enter in the startup phase
+*
+* @param    eventData @b{(input)} Event data
+*
+* @returns  RC_t
+*
+* @end
+*********************************************************************/
+RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
+{
+  mgmdPTinQuerierInfoData_t     *entry;
+  mgmdPtinQuerierInfoDataKey_t  key;
+  PTIN_MGMD_CTRL_QUERY_CONFIG_t ctrlData;
+  mgmd_cb_t                     *pMgmdCB;
+  ptin_IgmpProxyCfg_t           igmpCfg;
+
+  /* Parse CTRL data */
+  memcpy(&ctrlData, eventData->data, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+
+  /* Get MGMD control block */
+  if ((pMgmdCB = mgmdCBGet(ctrlData.family)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptinMgmdCB()");
+    return FAILURE;
+  }
+
+  /* Get current IGMP configurations */
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg)!=SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
+    return FAILURE;
+  }
+
+  /* Run all cells in AVL tree */    
+  memset(&key, 0x00, sizeof(mgmdPtinQuerierInfoDataKey_t));
+  while ( (entry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, AVL_NEXT)) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&key, &entry->key, sizeof(mgmdPtinQuerierInfoDataKey_t));
+
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u with state %u", entry->key.serviceId, entry->active);
+
+    /* Ignore this entry if the status is not active */
+    if(PTIN_MGMD_ENABLE == entry->active)
+    {
+      /* Stop Query Timer */
+      if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to stop Query Timer (serviceId:%u family:%u)",entry->key.serviceId, ctrlData.family);
+        return FAILURE;
+      }
+
+      /* Restart the Query timer with the startup flag enabled */
+      entry->startUpQueryFlag               = TRUE;
+      entry->querierTimer.startUpQueryCount = 0;
+      if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+        return FAILURE;
+      }
+    }
+  }
+
+  return SUCCESS;
+}
+
+
+/*********************************************************************
 * @purpose  Apply mgmd querier global admin mode
 *
 * @param    mode      @b{(input)} PTIN_ENABLE/PTIN_DISABLE

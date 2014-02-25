@@ -95,6 +95,9 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t key;
 
   /* PTin added: IGMP snooping */
+  #if PTIN_SNOOP_USE_MGMD
+  return;
+  #endif
   #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
@@ -270,6 +273,9 @@ void snoopTimerStop(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t  key;
 
   /* PTin added: IGMP snooping */
+  #if PTIN_SNOOP_USE_MGMD
+  return;
+  #endif
   #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
@@ -360,6 +366,9 @@ L7_RC_t snoopTimerStart(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
   snoopMrtrTimerDataKey_t key;
 
   /* PTin added: IGMP snooping */
+  #if PTIN_SNOOP_USE_MGMD
+  return L7_SUCCESS;
+  #endif
   #if 1
   if (snoopEntry!=L7_NULLPTR && snoopEntry->staticGroup)
   {
@@ -585,6 +594,9 @@ void snoopGroupMembershipExpiry(void *param)
   }
 
   /* PTin added: IGMP snooping */
+  #if PTIN_SNOOP_USE_MGMD
+  return;
+  #endif
   #if 1
   if (pTimerData->snoopEntry->staticGroup)
   {
