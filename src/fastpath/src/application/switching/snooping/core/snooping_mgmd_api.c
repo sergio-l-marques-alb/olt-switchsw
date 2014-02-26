@@ -87,8 +87,7 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
 {
   L7_INTF_MASK_t interfaceBitmap = {{0}};
   L7_uint16      mcastRootVlan;
-  L7_RC_t        res = SUCCESS;
-  L7_int32       i;
+  L7_RC_t        res = SUCCESS;  
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
 
@@ -113,6 +112,8 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
     return FAILURE;
   }
 
+#if 0
+  L7_int32       i;
   /* We need to shift the bitmap returned by FP to the left by 1 position to ensure compatibility with MGMD */
   for(i=0; i < L7_INTF_INDICES; ++i)
   {
@@ -130,7 +131,8 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
     }
 
     interfaceBitmap.value[i] = current_byte << 1;
-  }
+  } 
+#endif   
 
   if(SUCCESS != res)
   {

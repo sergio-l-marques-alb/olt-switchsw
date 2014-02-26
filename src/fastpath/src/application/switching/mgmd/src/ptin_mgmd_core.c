@@ -570,7 +570,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   //Validate clientId (only for leaf ports)
   if( (SUCCESS == externalApi.portType_get(serviceId, portId, &portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == portType) )
   {
-    if (clientId >= PTIN_MGMD_MAX_CLIENTS)
+    if (/*clientId==0  ||*/ clientId >= PTIN_MGMD_MAX_CLIENTS)
     {    
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
       return FAILURE;
