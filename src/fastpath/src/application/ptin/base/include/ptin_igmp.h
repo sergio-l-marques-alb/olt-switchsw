@@ -576,6 +576,13 @@ extern L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *clie
 extern L7_RC_t ptin_igmp_all_clients_flush(void);
 
 /**
+ * Reset all MGMD General Queriers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_generalquerier_reset(void);
+
+/**
  * Get list of channels, starting from a specific channel index
  * 
  * @param McastEvcId         : (in) Multicast EVC id

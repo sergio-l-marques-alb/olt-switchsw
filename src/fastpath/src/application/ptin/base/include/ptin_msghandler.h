@@ -56,6 +56,11 @@
 //#define CCMSG_ETH_LACP_MATRIXES_SYNC        0x9028
 #define CCMSG_ETH_LACP_MATRIXES_SYNC2       0x9028
 
+#define CCMSG_MGMD_PORT_OPEN_SYNC           0x9029  // struct msg_HwMgmdPortSync
+#define CCMSG_MGMD_PORT_CLOSE_SYNC          0x902A  // struct msg_HwMgmdPortSync
+
+#define CCMSG_TYPEB_PROT_INTF_CONFIG        0x902B  // struct msg_HwTypeBProtIntfConfig_t
+
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
@@ -684,6 +689,26 @@ typedef struct {
   /* IMPORTANT: interfaces must be in sequence (phy+lags) */
 
 } __attribute__((packed)) msg_HwEthMef10Evc_t;
+
+/* MGMD port sync */
+// Messages CCMSG_MGMD_PORT_OPEN_SYNC and CCMSG_MGMD_PORT_CLOSE_SYNC
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 serviceId;
+  L7_uint32 portId;
+  L7_uint32 groupAddr;
+  L7_uint32 sourceAddr;
+} __attribute__((packed)) msg_HwMgmdPortSync;
+
+/* Type-B Protection */
+// Message CCMSG_TYPEB_PROT_INTF_CONFIG
+typedef struct {
+  L7_uint8             slotId;
+  msg_HwEthInterface_t intfId;
+  L7_uint8             pairSlotId;
+  msg_HwEthInterface_t pairIntfId;
+  L7_uint8             intfRole;
+} __attribute__((packed)) msg_HwTypeBProtIntfConfig_t;
 
 /* EVC Remove */
 // Messages CCMSG_ETH_EVC_REMOVE
