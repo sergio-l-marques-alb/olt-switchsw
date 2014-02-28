@@ -2408,6 +2408,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 
           ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
           ++totalClientCount;
+          ++pageClientCount;
         }
       }
     } while(pageClientCount == maxResponseEntries); //While the number of clients returned equals the max number of clients per page
