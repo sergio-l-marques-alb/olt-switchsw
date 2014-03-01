@@ -84,8 +84,8 @@ extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
  * Create Virtual port
  * 
  * @param intIfNum    : interface to be added 
- * @param ext_ovid    : External outer vlan 
- * @param ext_ivid    : External inner vlan 
+ * @param ext_ovid    : External outer vlan (GEMid)
+ * @param ext_ivid    : External inner vlan (UNIVLAN)
  * @param int_ovid    : Internal outer vlan 
  * @param int_ivid    : Internal inner vlan  
  * @param mcast_group : Multicast group id. 

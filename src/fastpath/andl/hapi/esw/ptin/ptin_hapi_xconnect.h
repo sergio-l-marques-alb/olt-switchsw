@@ -119,13 +119,13 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
 /**
  * Create Virtual port
  * 
- * @param dapiPort    : PON port
- * @param match_ovid  : GEM id (outer vlan)
- * @param match_ivid  : inner vlan after GEM id
- * @param egress_ovid : outer vlan inside switch
- * @param egress_ivid : inner vlan inside switch
- * @param mcast_group : mc group (-1 to create) 
- * @param virtual_gport : vport id (to be returned)  
+ * @param dapiPort      : PON port
+ * @param match_ovid    : external outer vlan (GEMid)
+ * @param match_ivid    : external inner vlan (UNIVLAN)
+ * @param egress_ovid   : outer vlan inside switch
+ * @param egress_ivid   : inner vlan inside switch 
+ * @param mcast_group   : mc group (-1 to create) 
+ * @param virtual_gport : vport id (to be returned) 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
@@ -138,8 +138,8 @@ extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
  * Remove virtual port
  * 
  * @param dapiPort      : PON port
- * @param match_ovid    : GEM id (outer vlan)
- * @param match_ivid    : inner vlan after GEM id 
+ * @param match_ovid    : external Outer vlan (GEMid)
+ * @param match_ivid    : external inner vlan (UNIVLAN) 
  * @param virtual_gport : vport id 
  * @param mcast_group   : multicast group
  * 

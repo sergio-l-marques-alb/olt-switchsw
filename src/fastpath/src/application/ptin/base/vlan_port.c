@@ -30,23 +30,39 @@
 void vlanportNimEventCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal);
 
 
-L7_RC_t vlanport_create(L7_uint32 intfId)
+/**
+ * Create a new vlan port (virtual port) as na new intIfNum 
+ * value (does not affect hardware) 
+ * 
+ * @param intfId : some value
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t vlan_port_new(L7_uint32 intfId)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum = 0;
 
-  rc = vlanport_intIfNum_create(intfId, &intIfNum);
+  rc = vlan_port_intIfNum_create(intfId, &intIfNum);
 
   printf("Creation operation result: intIfNum=%u, rc=%d\r\n",intIfNum,rc);
 
   return rc;
 }
 
-L7_RC_t vlanport_destroy(L7_uint32 intIfNum)
+/**
+ * Remove a vlan port (virtual port) as an existent intIfNum 
+ * value (does not affect hardware) 
+ * 
+ * @param intIfNum: intIfNum value
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t vlan_port_free(L7_uint32 intIfNum)
 {
   L7_RC_t rc;
 
-  rc = vlanport_intIfNum_delete(intIfNum);
+  rc = vlan_port_intIfNum_delete(intIfNum);
 
   printf("Deletion operation result: rc=%d\r\n",rc);
 
@@ -68,7 +84,7 @@ L7_RC_t vlanport_destroy(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t vlanport_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
+L7_RC_t vlan_port_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
 {
   L7_RC_t rc = L7_SUCCESS;
   nimIntfCreateRequest_t nimRequest;
@@ -176,7 +192,7 @@ L7_RC_t vlanport_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t vlanport_intIfNum_delete(L7_uint32 intIfNum)
+L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
 {
   L7_BOOL wait_for_transition;
   L7_BOOL detach;

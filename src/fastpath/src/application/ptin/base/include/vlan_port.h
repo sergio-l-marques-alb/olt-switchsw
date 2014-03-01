@@ -36,7 +36,7 @@
 *
 * @end
 *********************************************************************/
-extern L7_RC_t vlanport_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum);
+extern L7_RC_t vlan_port_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum);
 
 /*********************************************************************
 * @purpose  Delete an VLAN_PORT intf in NIM
@@ -50,6 +50,6 @@ extern L7_RC_t vlanport_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum);
 *
 * @end
 *********************************************************************/
-extern L7_RC_t vlanport_intIfNum_delete(L7_uint32 intIfNum);
+extern L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum);
 
 #endif /* VLAN_PORT__H */
