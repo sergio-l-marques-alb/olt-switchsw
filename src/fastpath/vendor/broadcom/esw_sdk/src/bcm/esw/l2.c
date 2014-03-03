@@ -4251,7 +4251,10 @@ _bcm_esw_l2_replace(int unit, uint32 flags, bcm_l2_addr_t *match_addr,
             if (rep_st.match_dest.vp != -1) {
                 if (!BCM_GPORT_IS_WLAN_PORT(match_addr->port) &&
                     !BCM_GPORT_IS_TRILL_PORT(match_addr->port) &&
+                    /* !BCM_GPORT_IS_VLAN_PORT(match_addr->port)) { */
+                    !BCM_GPORT_IS_TRILL_PORT(match_addr->port) &&
                     !BCM_GPORT_IS_VLAN_PORT(match_addr->port)) {
+
                      /* Note: For MPLS, MiM, L2GRE, VXLAN VFI types only */
                      rep_st.key_type = 3; /* VFI Type */
                 }
