@@ -181,8 +181,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
       {
         /*Let us verify if this group still has any clients*/
         if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT))==PTIN_NULLPTR || 
-            avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE || 
-            ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==TRUE)
+            avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==FALSE)            
         {
           PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
           return SUCCESS;          
@@ -1204,11 +1203,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
     memcpy(&avlTreeKey, &groupEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
 
     if (groupEntry->snoopPTinL3InfoDataKey.serviceId==interfacePtr->key.serviceId && 
-        groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==TRUE && 
-#if (PTIN_BOARD_IS_LINECARD)
-        groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic==FALSE && 
-#endif
-        ptinMgmdZeroClients(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==FALSE)
+        groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==TRUE )        
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Address Number %u",++groupIdx);
       if (groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].filtermode==PTIN_MGMD_FILTERMODE_INCLUDE)
@@ -1258,8 +1253,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
       for (sourcePtr=groupEntry->interfaces[portId].firstSource, sourceId = 0; sourcePtr!=PTIN_NULLPTR && sourceId<groupEntry->interfaces[portId].numberOfSources  ;sourcePtr=sourcePtr->next, ++sourceId)                 
       {
         if (sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE &&  
-            ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)==TRUE &&
-            ptinMgmdZeroClients(sourcePtr->clients)==FALSE)
+            ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)==TRUE)
         {
           if (FAILURE == ptinMgmdGroupRecordSourcedAdd(groupPtr,&sourcePtr->sourceAddr))
           {
@@ -1322,8 +1316,7 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
     memcpy(&avlTreeKey, &avlTreeEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
 
     if (avlTreeEntry->snoopPTinL3InfoDataKey.serviceId==interfacePtr->key.serviceId && 
-        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==TRUE && 
-        ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients)==FALSE)
+        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active==TRUE)          
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Address: %s", ptin_mgmd_inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.groupAddr, debug_buf));    
       if ((groupPtr=ptinMgmdGroupRecordAdd(interfacePtr,PTIN_MGMD_MODE_IS_INCLUDE,&avlTreeEntry->snoopPTinL3InfoDataKey.groupAddr,&newEntry))== PTIN_NULLPTR)

@@ -765,6 +765,6 @@ void ptin_mgmd_measurement_timer_dump(void)
       continue;
     }
 
-    printf("Timer#%-3u -> [Mean: %-10u us] [Last: %-10u us] [(%s)]\n", timerIndex, meanTime, currentTime, timerDescription);
+    printf("Timer#%-3u -> [Mean: %-10u us] [Last: %-10u us] [%s]\n", timerIndex, meanTime, currentTime, timerDescription);
   }
 }

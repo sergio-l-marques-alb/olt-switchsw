@@ -61,7 +61,6 @@ RC_t                       ptinMgmdSourceAdd(snoopPTinL3InfoData_t *avlTreeEntry
 RC_t                       ptinMgmdSourceRemove(snoopPTinL3InfoData_t *avlTreeEntry,uint32 portId, snoopPTinL3Source_t *sourcePtr);
 RC_t                       ptinMgmdInitializeInterface(snoopPTinL3InfoData_t* groupPtr, uint16 portId);
 RC_t                       ptinMgmdInterfaceRemove(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum);
-BOOL                       ptinMgmdZeroClients(uint8* clients);
 mgmdProxyInterface_t*      ptinMgmdProxyInterfaceAdd(uint32 serviceId);
 mgmdGroupRecord_t*         ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr,uint8 recordType, ptin_mgmd_inet_addr_t* groupAddr, BOOL* newEntryFlag);
 RC_t                       ptinMgmdGroupRecordSourcedAdd(mgmdGroupRecord_t* groupPtr,ptin_mgmd_inet_addr_t* sourceAddr);

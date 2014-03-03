@@ -254,7 +254,7 @@ static BOOL snoopPTinZeroSourceClients(snoopPTinL3InfoData_t *groupEntry, ptin_m
     if (groupEntry->interfaces[portId].active == TRUE &&
         (sourcePtr=ptinMgmdSourceFind(groupEntry, portId,sourceAddr))!= PTIN_NULLPTR &&
         ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE &&
-        ptinMgmdZeroClients(sourcePtr->clients) == FALSE)
+        sourcePtr->numberOfClients!=0)        
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Existing Client @ interfaceIdx:%u, source:0x%x", portId, sourcePtr->sourceAddr);
       return FALSE;
@@ -262,41 +262,6 @@ static BOOL snoopPTinZeroSourceClients(snoopPTinL3InfoData_t *groupEntry, ptin_m
   }
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "All source client bitmaps are without clients");
   return TRUE;
-}
-
-
-/*************************************************************************
- * @purpose Verifies if is there any active client
- *
- * @param interfacePtr  Interface in which the source is
- * @param sourcePtr     Source from which the client should be removed
- * @param clientIdx     Index of the requested client
- *
- * @returns SUCCESS
- * @returns FAILURE
- *
- * @todo Remove client from L2
- *
- *************************************************************************/
-BOOL ptinMgmdZeroClients(uint8 *clients)
-{
-  uint8  *clientsPtr;
-  uint16 i;
-
-  clientsPtr = clients;
-  for (i = 0; i < PTIN_MGMD_CLIENT_BITMAP_SIZE && clientsPtr != PTIN_NULLPTR; ++i)
-  {
-    if (*clientsPtr != 0)
-    {
-      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Bitmap with clients");
-      return FALSE;
-    }
-    clientsPtr++;
-  }
-
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Bitmap without Clients");
-  return TRUE;
-
 }
 
 /*************************************************************************
@@ -2730,7 +2695,9 @@ pending report and the selected delay.*/
   while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
   {
     /* Search for this source in the current source list */
-    if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR  && ptinMgmdZeroClients(sourcePtr->clients) == ALREADY_CONFIGURED)
+    if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR  && 
+         sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && 
+         (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)==TRUE  || sourcePtr->isStatic==TRUE))
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Existing source %s", ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf));
       if (*sendReport == FALSE) *sendReport = TRUE;
@@ -2940,8 +2907,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
     memcpy(&avlTreeKey, &avlTreeEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
 
     if (avlTreeEntry->snoopPTinL3InfoDataKey.serviceId == serviceId &&
-        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active == TRUE &&
-        ptinMgmdZeroClients(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients) == FALSE)
+        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active == TRUE )        
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have at least one active group within this vlan Id:%u", serviceId);
       *activeGroups = TRUE;
@@ -4188,8 +4154,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
       {
         //Only consider sources for which traffic forwarding is enabled
         if (sourcePtr->status == PTIN_MGMD_SOURCESTATE_ACTIVE &&
-            ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE &&
-            ptinMgmdZeroClients(sourcePtr->clients) == FALSE)
+            (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE || sourcePtr->isStatic==TRUE))
         {
           //Filter by client (if requested)
           if ((clientId == (uint32)-1) || (PTIN_MGMD_IS_MASKBITSET(sourcePtr->clients, clientId)))
