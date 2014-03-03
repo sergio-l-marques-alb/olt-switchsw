@@ -1815,8 +1815,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Update the UDP and IPv6 headers
-   udp_copy_header->sourcePort   = 547;
-   udp_copy_header->length       = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
+   udp_copy_header->sourcePort = 547;
+   udp_copy_header->length     = ipv6_copy_header->paylen = frame_copy_len - ethHdrLen - L7_IP6_HEADER_LEN;
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the server
@@ -1826,15 +1826,9 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       return L7_FAILURE;
    }
 
-   //Add a new entry in the binding table
-   if ((L7_DHCP6_SOLICIT == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_REQUEST == *(L7_uint8*)dhcp_header_ptr))
-   {
-      dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
-   }
-   else if((L7_DHCP6_DECLINE == *(L7_uint8*)dhcp_header_ptr) || (L7_DHCP6_RELEASE == *(L7_uint8*)dhcp_header_ptr))
-   {
-      dsBindingRemove(&client_mac_addr);
-   }
+   //Add or update an existing entry in the binding table
+   dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
+   dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)dhcp_header_ptr);
 
    return L7_SUCCESS;
 }
@@ -1902,9 +1896,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    frame_copy_len       = ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
    //Get client interface from DHCP binding table
-   memset(&dhcp_binding,         0,                      sizeof(dhcpSnoopBinding_t));
-   memcpy(&client_mac_addr,      mac_header->dest.addr,  L7_ENET_MAC_ADDR_LEN);
-   memcpy(&dhcp_binding.macAddr, mac_header->dest.addr,  L7_ENET_MAC_ADDR_LEN);
+   memset(&dhcp_binding,         0,                     sizeof(dhcpSnoopBinding_t));
+   memcpy(&client_mac_addr,      mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+   memcpy(&dhcp_binding.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
       intIfNum = dhcp_binding.intIfNum;
@@ -1912,6 +1906,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Get DHCP Options for this client
    if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Unable to get client[intfNum:%u oVlan:%u iVlan:%u] options", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
       return L7_FAILURE;
    }
    //If the service is unstacked (client_idx==-1) then we have to determine the client_idx through the inner_vlan in the Binding Table
@@ -2023,7 +2018,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
                         if (subop_len < (sizeof(L7_dhcp6_option_packet_t) + dhcp_ia_subop_header->option_len))
                         {
                            LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, (sizeof(L7_dhcp6_option_packet_t) + dhcp_op_header->option_len));
-                           return L7_FAILURE;
+                           return L7_SUCCESS;
                         }
 
                         switch (dhcp_ia_subop_header->option_code)
@@ -2107,11 +2102,14 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
    //Add a new dynamic entry in the binding table
-   if (L7_DHCP6_REPLY == *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)))
+   dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
+   dsBindingLeaseSet(&client_mac_addr, lease_time);
+   dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
+
+   //Remove the entry in the binding table if the client has previously sent a release
+   if(dhcp_binding.leaseStatus == DS_LEASESTATUS_V6_RELEASE)
    {
-      //Ignore return codes from this functions. The client may have released first and now the relay agent is unable to find the binding entries for this MAC
-      dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
-      dsBindingLeaseSet(&client_mac_addr, lease_time);
+     dsBindingRemove(&client_mac_addr);
    }
 
    return L7_SUCCESS;
@@ -4360,6 +4358,9 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
       /* just ignore OFFER messages */
       break;
   }
+
+  //Update the lease status of the binding table entry. Ignore the return code because the entry might not exist if a release was received.
+  dsv4LeaseStatusUpdate(&chaddr, dhcpPktType);
 
   return L7_SUCCESS;
 }
