@@ -45,8 +45,11 @@ static void sendEmulatedMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug);
 static void sendEmulatedMgmdTimerLogLvl(uint8 debugLvl);
 static void sendEmulatedMcastGroupPrint(uint16 serviceId, uint32 groupAddr);
 static void sendEmulatedMcastGroupDump(void);
+static void sendEmulatedMcastGroupClean(void);
 static void sendEmulatedGroupRecordsDump(void);
+static void sendEmulatedGroupRecordsClean(void);
 static void sendEmulatedWhitelistDump(void);
+static void sendEmulatedWhitelistClean(void);
 static void printHelpMenu(void);
 
 static uint32 randomNumber(uint32 _min, uint32 _max)
@@ -598,9 +601,9 @@ void sendEmulatedMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 grou
 
   mgmdConfigMsg.serviceId = serviceId;
   mgmdConfigMsg.groupIp   = groupAddr;
-  mgmdConfigMsg.groupMask = groupMask;
+  mgmdConfigMsg.groupMaskLen = groupMask;
   mgmdConfigMsg.sourceIp  = sourceAddr;
-  mgmdConfigMsg.sourceMask= sourceMask;
+  mgmdConfigMsg.sourceMaskLen= sourceMask;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD, rand(), 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -619,9 +622,9 @@ static void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, 
 
   mgmdConfigMsg.serviceId = serviceId;
   mgmdConfigMsg.groupIp   = groupAddr;
-  mgmdConfigMsg.groupMask = groupMask;
+  mgmdConfigMsg.groupMaskLen = groupMask;
   mgmdConfigMsg.sourceIp  = sourceAddr;
-  mgmdConfigMsg.sourceMask= sourceMask;
+  mgmdConfigMsg.sourceMaskLen= sourceMask;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE, rand(), 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -705,12 +708,38 @@ void sendEmulatedMcastGroupDump(void)
   }
 }
 
+void sendEmulatedMcastGroupClean(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_MCAST_GROUP_CLEAN, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
 void sendEmulatedGroupRecordsDump(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
 
   ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_GROUP_RECORDS_DUMP, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
+void sendEmulatedGroupRecordsClean(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_GROUP_RECORDS_CLEAN, (void*)&params, 0);
   if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
@@ -731,37 +760,54 @@ void sendEmulatedWhitelistDump(void)
   }
 }
 
+
+void sendEmulatedWhitelistClean(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_WHITELIST_CLEAN, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
 void printHelpMenu(void)
 {
-  printf("-------------PACKETS-----                                                                                 \n");    
-  printf("\t 0   - BURST_TEST               - $pkts/sec                                                             \n");    
-  printf("\t 1   - GENERAL_QUERY            - $serviceId $portId                                                    \n");    
-  printf("\t 2   - IS_INCLUDE               - $serviceId $portId $clientId                                          \n");    
-                                                                                                                    
-  printf("\n---------------CTRL--------                                                                             \n");    
-  printf("\t 10  - PROXY_CONFIG_GET         -                                                                       \n");
-  printf("\t 11  - PROXY_CONFIG_SET         -                                                                       \n");
-  printf("\t 12  - CLIENT_STATS_GET         - $portId $clientId                                                     \n");
-  printf("\t 13  - CLIENT_STATS_CLEAR       - $portId $clientId                                                     \n");
-  printf("\t 14  - INTF_STATS_GET           - $serviceId $portId                                                    \n");
-  printf("\t 15  - INTF_STATS_CLEAR         - $serviceId $portId                                                    \n");
-  printf("\t 16  - STATIC_GROUP_ADD         - $serviceId $groupAddr(hex)                                            \n");
-  printf("\t 17  - STATIC_GROUP_REMOVE      - $serviceId $groupAddr(hex)                                            \n");
-  printf("\t 18  - GROUPS_GET               - $serviceId                                                            \n");
-  printf("\t 19  - CLIENT_GROUPS_GET        - $serviceId $portId $clientId                                          \n");
-  printf("\t 20  - GROUP_CLIENTS_GET        - $serviceId $groupAddr(hex) $sourceAddr(hex)                           \n");
-  printf("\t 21  - QUERIER_ADMIN            - $serviceId $admin                                                     \n");
-  printf("\t 22  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $sourceAddr(hex)                           \n");
-  printf("\t 23  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMask $sourceAddr(hex)  $sourceMask   \n");
-  printf("\t 24  - SERVICE_REMOVE           - $serviceId                                                            \n");
+  printf("-------------PACKETS-----                                                                                      \n");    
+  printf("\t 0   - BURST_TEST               - $pkts/sec                                                                  \n");    
+  printf("\t 1   - GENERAL_QUERY            - $serviceId $portId                                                         \n");    
+  printf("\t 2   - IS_INCLUDE               - $serviceId $portId $clientId                                               \n");    
+                                                                                                                         
+  printf("\n---------------CTRL--------                                                                                  \n");    
+  printf("\t 10  - PROXY_CONFIG_GET         -                                                                            \n");
+  printf("\t 11  - PROXY_CONFIG_SET         -                                                                            \n");
+  printf("\t 12  - CLIENT_STATS_GET         - $portId $clientId                                                          \n");
+  printf("\t 13  - CLIENT_STATS_CLEAR       - $portId $clientId                                                          \n");
+  printf("\t 14  - INTF_STATS_GET           - $serviceId $portId                                                         \n");
+  printf("\t 15  - INTF_STATS_CLEAR         - $serviceId $portId                                                         \n");
+  printf("\t 16  - STATIC_GROUP_ADD         - $serviceId $groupAddr(hex)                                                 \n");
+  printf("\t 17  - STATIC_GROUP_REMOVE      - $serviceId $groupAddr(hex)                                                 \n");
+  printf("\t 18  - GROUPS_GET               - $serviceId                                                                 \n");
+  printf("\t 19  - CLIENT_GROUPS_GET        - $serviceId $portId $clientId                                               \n");
+  printf("\t 20  - GROUP_CLIENTS_GET        - $serviceId $groupAddr(hex) $sourceAddr(hex)                                \n");
+  printf("\t 21  - QUERIER_ADMIN            - $serviceId $admin                                                          \n");
+  printf("\t 22  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $groupMaskLen $SourceMaskLen $sourceAddr(hex)   \n");
+  printf("\t 23  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMaskLen $sourceAddr(hex)  $sourceMaskLen  \n");
+  printf("\t 24  - SERVICE_REMOVE           - $serviceId                                                                 \n");
                                                                                                                    
-  printf("\n-------------DEBUG-------                                                                               \n");    
-  printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                                              \n"); 
-  printf("\t 102 - TIMER_LOG_LEVEL          - $logLevel                                                             \n"); 
-  printf("\t 103 - MCAST_GROUP_PRINT        - $serviceId $groupAddr(hex)                                            \n"); 
-  printf("\t 104 - MCAST_GROUP_DUMP         -                                                                       \n"); 
-  printf("\t 105 - GROUP_RECORDS_DUMP       -                                                                       \n"); 
-  printf("\t 106 - WHITELIST_DUMP           -                                                                       \n"); 
+  printf("\n-------------DEBUG-------                                                                                    \n");    
+  printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                                                   \n"); 
+  printf("\t 102 - TIMER_LOG_LEVEL          - $logLevel                                                                  \n"); 
+  printf("\t 103 - MCAST_GROUP_PRINT        - $serviceId $groupAddr(hex)                                                 \n"); 
+  printf("\t 104 - MCAST_GROUP_DUMP         -                                                                            \n"); 
+  printf("\t 105 - MCAST_GROUP_CLEAN        -                                                                            \n"); 
+  printf("\t 106 - GROUP_RECORDS_DUMP       -                                                                            \n"); 
+  printf("\t 107 - GROUP_RECORDS_CLEAN      -                                                                            \n"); 
+  printf("\t 108 - WHITELIST_DUMP           -                                                                            \n"); 
+  printf("\t 109 - WHITELIST_CLEAN          -                                                                            \n"); 
 }
 
 int main(int argc, char **argv)
@@ -1115,12 +1161,27 @@ int main(int argc, char **argv)
     }
     case 105:
     {
-      sendEmulatedGroupRecordsDump();
+      sendEmulatedMcastGroupClean();
       break;
     }
     case 106:
     {
+      sendEmulatedGroupRecordsDump();
+      break;
+    }
+    case 107:
+    {
+      sendEmulatedGroupRecordsClean();
+      break;
+    }
+    case 108:
+    {
       sendEmulatedWhitelistDump();
+      break;
+    }
+    case 109:
+    {
+      sendEmulatedWhitelistClean();
       break;
     }
     default:

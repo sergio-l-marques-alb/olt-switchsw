@@ -52,7 +52,7 @@ RC_t ptinMgmdWhitelistInit(void);
  * 
  * @return Pointer to inserted item. 
  */
-mgmdPTinWhitelistData_t* ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ptin_mgmd_inet_addr_t *sourceAddr);
+RC_t  ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint8 groupMaskLen, ptin_mgmd_inet_addr_t *sourceAddr, uint8 sourceMaskLen);
 
 /**
  * Remove an existing channel from the white-list.
@@ -63,7 +63,7 @@ mgmdPTinWhitelistData_t* ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_a
  *  
  * @return RC_t [NOT_EXIST if not found]
  */
-RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ptin_mgmd_inet_addr_t *sourceAddr);
+RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint8 groupMask, ptin_mgmd_inet_addr_t *sourceAddr, uint8 sourceMaskLen);
 
 /**
  * Search for the given channel in the white-list.
@@ -80,8 +80,15 @@ mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_ine
 /**
  * Dump the current white-list.
  *  
- * @return RC_t
+ * @return void
  */
-RC_t ptinMgmdWhitelistDump(void);
+void ptinMgmdWhitelistDump(void);
+
+/**
+ * Clean the current white-list.
+ *  
+ * @return void
+ */
+void ptinMgmdWhitelistClean(void);
 
 #endif //_PTIN_MGMD_WHITELIST_H

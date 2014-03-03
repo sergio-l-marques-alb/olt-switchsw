@@ -700,7 +700,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipAddr, &mcastPacket.destAddr);
   memcpy(mcastPacket.framePayload,dataStart,frameLength);
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (vlanId=%u)",serviceId);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (serviceId=%u)",serviceId);
 
   rc=ptinMgmdPacketSend(&mcastPacket,PTIN_IGMP_MEMBERSHIP_QUERY,PTIN_MGMD_PORT_TYPE_LEAF);    
 }

@@ -162,7 +162,7 @@ uint32 ptin_mgmd_proxytimer_timeleft(mgmdProxyInterfaceTimer_t *timer)
     return 0;
   }
 
-  return ptin_mgmd_timer_timeLeft(timer->newTimerHandle)/1000;
+  return ptin_mgmd_timer_timeLeft(timer->newTimerHandle);
 }
 
 

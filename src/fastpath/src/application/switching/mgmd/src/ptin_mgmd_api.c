@@ -226,6 +226,7 @@ RC_t ptin_mgmd_memAlloc(void)
 RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, uint8 logOutput, char8* logFile)
 {
   pthread_attr_t attr;
+  struct timespec tm;  
 
   //Validation
   if( (PTIN_NULLPTR==thread_id) || (PTIN_NULLPTR==externalApi) || ((logOutput==MGMD_LOG_FILE) && (PTIN_NULLPTR==logFile)) )
@@ -245,6 +246,11 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to finish timer initialization");
     return FAILURE;
   }
+
+  //Seed Initialization  
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC, &tm);
+  srand(tm.tv_nsec+(tm.tv_sec<<24)+((tm.tv_nsec*tm.tv_sec)<<10));
 
   //Memory allocation
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting memory allocation");

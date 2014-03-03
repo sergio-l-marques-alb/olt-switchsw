@@ -67,7 +67,6 @@ int32 ptinMgmd_generate_random_response_delay (int32 maxResponseTime)
     selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   else
   {
-    srand(time(NULL));
     selectedDelay = rand() % maxResponseTime +1;
     if (selectedDelay<PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL)
       selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
@@ -95,8 +94,7 @@ int32 ptinMgmd_generate_random_response_delay (int32 maxResponseTime)
 RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, uint8  reportType,uint32 timeOut, BOOL isInterface,uint32 noOfRecords, void* ptr)
 {
   ptin_IgmpProxyCfg_t        igmpCfg;  
-  uint32                     newNoOfRecords=0,
-                             noOfRecordsAux=noOfRecords;  
+  uint32                     newNoOfRecords=0;                             
   int64                      noOfPendingRecords;  
   mgmdGroupRecord_t         *groupPtr=PTIN_NULLPTR,*newgroupPtr=PTIN_NULLPTR;
   mgmdProxyInterface_t      *interfacePtr=PTIN_NULLPTR;
@@ -125,11 +123,11 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   {    
     interfacePtr=(mgmdProxyInterface_t*) ptr;
     proxyTimer=&interfacePtr->timer;
-    groupPtr=interfacePtr->firstGroupRecord;    
+    newgroupPtr=groupPtr=interfacePtr->firstGroupRecord;    
   }
   else
   {
-    groupPtr=(mgmdGroupRecord_t*) ptr;
+    newgroupPtr=groupPtr=(mgmdGroupRecord_t*) ptr;
     proxyTimer=&groupPtr->timer;
     interfacePtr=groupPtr->interfacePtr;
   }
@@ -154,9 +152,9 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     //Response to a General Query 
     if (isInterface==TRUE)
     {             
-      if ((groupPtr=mgmdBuildIgmpv3CSR(interfacePtr,&noOfRecordsAux))==PTIN_NULLPTR)
+      if ((groupPtr=mgmdBuildIgmpv3CSR(interfacePtr,&noOfRecords))==PTIN_NULLPTR)
       {
-        if (noOfRecordsAux>0)
+        if (noOfRecords>0)
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinBuildCSR()}");
           return FAILURE;
@@ -200,12 +198,6 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   }
   //End Current Group Record
 
-  if ((newgroupPtr=interfacePtr->firstGroupRecord)==PTIN_NULLPTR)
-  {         
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Ptr has a NULL Pointer");  
-    return FAILURE;
-  }
-
   /*We need to split the report if the number of records is higher then igmpCfg.host.max_records_per_report*/
   for (noOfPendingRecords=noOfRecords;noOfPendingRecords>0 && newgroupPtr!=PTIN_NULLPTR;noOfPendingRecords-=igmpCfg.host.max_records_per_report)
   {    
@@ -237,7 +229,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   }
 //________________________________________________________________________________________________________________
 
-  if ((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecordsAux,interfacePtr->firstGroupRecord,&newNoOfRecords,igmpCfg.host.robustness))==PTIN_NULLPTR && newNoOfRecords>0)
+  if ((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecords,groupPtr,&newNoOfRecords,igmpCfg.host.robustness))==PTIN_NULLPTR && newNoOfRecords>0)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordIncrementTransmissions()");
     return FAILURE;
@@ -1037,7 +1029,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
   for (i=0;i<groupPtr->numberOfSources && sourcePtr!=PTIN_NULLPTR; i++)
   {
     printf("  |Source Address: %s\n", ptin_mgmd_inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));    
-    printf("  |Retransmissions:    %u\n",sourcePtr->retransmissions);
+    printf("  |Retransmissions:    %u\n\n",sourcePtr->retransmissions);
     sourcePtr=sourcePtr->nextSource;
   }  
 }
@@ -1382,6 +1374,39 @@ void ptinMgmdDumpL3AvlTree(void)
   }
 }
 
+/*************************************************************************
+ * @purpose Clean IGMPv3 Group Record AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdCleanAllGroupAvlTree(void)
+{
+  mgmd_eb_t                *pSnoopEB;
+  snoopPTinL3InfoData_t     *avlTreeEntry;  
+  snoopPTinL3InfoDataKey_t  avlTreeKey;
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+ 
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
+  printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->groupSourcesQueue));
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
+
+    ptinMgmdInterfaceRemove(avlTreeEntry,SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);      
+  }
+  ptin_mgmd_avlPurgeAvlTree(&pSnoopEB->snoopPTinL3AvlTree,PTIN_MGMD_MAX_GROUPS);
+  ptinMgmdDumpL3AvlTree();
+}
+
 
 /*************************************************************************
  * @purpose Dump IGMPv3 Group Record AVL Tree
@@ -1414,12 +1439,77 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
 
 //  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "serviceId:%u  groupAddr  %s recordType:%u",avlTreeEntry->key.serviceId,inetAddrPrint(&avlTreeEntry->key.groupAddr, debug_buf),avlTreeEntry->key.recordType);
-    printf("serviceId: %u Group: %s     recordType:%u\n\n",avlTreeEntry->key.serviceId,ptin_mgmd_inetAddrPrint(&avlTreeEntry->key.groupAddr, debug_buf),avlTreeEntry->key.recordType);
+    printf("\nserviceId: %u Group: %s     recordType:%u\n",avlTreeEntry->key.serviceId,ptin_mgmd_inetAddrPrint(&avlTreeEntry->key.groupAddr, debug_buf),avlTreeEntry->key.recordType);
 
     ptinMgmdGroupRecordPrint(avlTreeEntry->key.serviceId,avlTreeEntry->key.groupAddr.addr.ipv4.s_addr,avlTreeEntry->key.recordType);
 
   }
 }
+
+/*************************************************************************
+ * @purpose Clean All IGMPv3 Group Record AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdCleanAllGroupRecordAvlTree(void)
+{
+  mgmd_eb_t                *pSnoopEB;
+
+  mgmdGroupRecord_t     *avlTreeEntry;  
+  mgmdGroupRecordKey_t  avlTreeKey;  
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+
+   /* Run all cells in AVL tree */    
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
+    ptinMgmdGroupRecordRemove(avlTreeEntry->interfacePtr,&avlTreeEntry->key.groupAddr,avlTreeEntry->key.recordType);    
+  }  
+  ptin_mgmd_avlPurgeAvlTree(&pSnoopEB->snoopPTinProxyGroupAvlTree,PTIN_MGMD_MAX_GROUPS);
+  ptinMgmdDumpGroupRecordAvlTree();
+}
+
+/*************************************************************************
+ * @purpose Clean IGMPv3 Group Record AVL Tree 
+ *
+ *
+ *
+ *************************************************************************/
+RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
+{
+  mgmdGroupRecord_t     *avlTreeEntry;  
+  mgmdGroupRecordKey_t  avlTreeKey;  
+
+  mgmd_eb_t                *pSnoopEB;
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return FAILURE;
+  }
+
+  /* Run all cells in AVL tree */    
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
+    if(serviceId==avlTreeEntry->key.serviceId)
+    {
+      ptinMgmdGroupRecordRemove(avlTreeEntry->interfacePtr,&avlTreeEntry->key.groupAddr,avlTreeEntry->key.recordType);
+    }
+  }
+  return SUCCESS;
+}
+
 
 
 /**********************************************************************

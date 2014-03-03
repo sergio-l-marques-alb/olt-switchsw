@@ -103,7 +103,10 @@ ushort16  ptinMgmdCheckSum(ushort16 *addr, ushort16 len, ushort16 csum);
 uint8     ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType);
 
 void      ptinMgmdDumpL3AvlTree(void);
+void      ptinMgmdCleanAllGroupAvlTree(void);
 void      ptinMgmdDumpGroupRecordAvlTree(void);
+void      ptinMgmdCleanAllGroupRecordAvlTree(void);
+RC_t      ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId);
 void      ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText);
 void      ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 recordType);
 
