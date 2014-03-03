@@ -396,6 +396,21 @@ RC_t ptin_mgmd_logseverity_set(uint8 context, uint8 severity)
   return ptin_mgmd_log_sev_set(1 << context, severity);
 }
 
+/**
+ * Used to set MGMD log level
+ * 
+ * @param logOutput[in]: Output stream [MGMD_LOG_STDERR; MGMD_LOG_STDOUT; MGMD_LOG_FILE]
+ * @param logFile[in]  : System path plus file name for the log file
+ *  
+ * @return RC_t 
+ *  
+ * @note 'logFile' defaults to /var/log/mgmd.log if passed as PTIN_NULLPTR.
+ * @note 'logFile' is ignored if 'logOutput' is not LOG_FILE 
+ */
+void ptin_mgmd_logredirect(uint8 logOutput, char8* logFile)
+{
+  ptin_mgmd_log_redirect(logOutput, logFile);
+}
 
 void* ptin_mgmd_event_handle(void *param)
 {

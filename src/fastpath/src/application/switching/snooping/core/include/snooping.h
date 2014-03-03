@@ -156,7 +156,10 @@ typedef enum
   snoopQuerierRtrAddressChange,
 
   snoopHandleNewBackupManager,
-  snoopActivateStartupDone
+  snoopActivateStartupDone,
+
+  snoopMgmdSwitchPortOpen,
+  snoopMgmdSwitchPortClose
 
 }snoopMgmtMessages_t;
 
@@ -836,6 +839,8 @@ typedef struct snoopPDU_Msg_s
   L7_uint32        vlanId;   /*VLAN on which PDU was received */
   L7_uint32        innerVlanId;   /*Inner VLAN if present */
   L7_uint32        client_idx;    /* Client index */          /* PTin added: IGMP snooping */
+  L7_uint32        groupAddress;  /* Group Address IP */      /* PTin added: MGMD integration */
+  L7_uint32        sourceAddress; /* Source Address IP */     /* PTin added: MGMD integration */
   snoop_cb_t      *cbHandle; /* Pointer to control block */
   L7_uchar8       *snoopBuffer; /* Pointer to the received PDU */
   L7_uint32        dataLength;  /* Length of received PDU */
