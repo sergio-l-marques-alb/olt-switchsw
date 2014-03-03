@@ -194,6 +194,12 @@ void* ptin_timer_CB_handle(void *param)
         else
         {
           unsigned long long int nsNextSleep;
+
+          if (cbPtr->nextSleepPeriod*cbPtr->tickGranularity > 1000)
+          {
+            cbPtr->nextSleepPeriod=1000/cbPtr->tickGranularity;
+          }
+
           nsNextSleep = cbPtr->nextSleepPeriod;
           nsNextSleep *= cbPtr->tickGranularity;
           nsNextSleep *= 1000;
@@ -480,7 +486,7 @@ RC_t ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, uint32 timeout, void *par
             //}
             //if (i==((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->numTimers) {
 
-                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"Nao ha nenhum timer que acorde antes deste, garantir que a thread CB carrega este timer!");
+            //    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"Nao ha nenhum timer que acorde antes deste, garantir que a thread CB carrega este timer!");
 
                 if(timeout == 0)
                 {
@@ -576,10 +582,12 @@ RC_t ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr) {
  *        function
  */
 uint32 ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr) {
-    int i; 
+//  int i;
     PTIN_TIMER_STRUCT *tmrPtr=timerPtr;
 
     if (!tmrPtr) return((uint32)-1);
+
+#if 0
 //  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"%s: timer %p [%u]\n\r", __FUNCTION__, tmrPtr, ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id);
     if ( pthread_equal( ((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, pthread_self()) ) { //sou a thread de timers
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER,"This function can't be called in any callback timer function");
@@ -588,17 +596,20 @@ uint32 ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr) {
 
     tmrPtr->nLoadedFlag=1;
 
+    //acordar a pthread de timers
+    pthread_kill(((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, PTIN_WAKE_UP_CB_TIMER_SIGNAL);
     for (i=0;i<PTIN_LOAD_TIMER_TIMEOUT;i++) {
-        //acordar a pthread de timers
-        pthread_kill(((PTIN_CONTROL_BLOCK_STRUCT *)tmrPtr->controlBlockPtr)->thread_id, PTIN_WAKE_UP_CB_TIMER_SIGNAL);
         usleep(1000);
         if (tmrPtr->nLoadedFlag==0) {
             return ((uint32) tmrPtr->counter);
         }
-        usleep(10000);
+        usleep(9000);
     }
 
     return ((uint32)-1);
+#else
+    return ((uint32) tmrPtr->counter);
+#endif
 }
 
 
