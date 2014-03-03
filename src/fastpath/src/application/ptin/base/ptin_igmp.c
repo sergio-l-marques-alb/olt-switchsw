@@ -2247,7 +2247,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
   ptinIgmpClientGroupsSnapshotAvlTree_t  *avl_tree;
   ptinIgmpClientGroupsSnapshotInfoData_t *avl_infoData;
   L7_uint32                              totalClientCount = 0; 
-
+  
   /* Validate arguments */
   if (client_list==L7_NULLPTR || number_of_clients==L7_NULLPTR || total_clients==L7_NULLPTR)
   {
@@ -2303,9 +2303,10 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u GroupAddr:%08X)", McastEvcId, ipv4_channel->s_addr);
         while(ctrlResMsg.dataLength > 0)
         {
-          ptin_client_id_t              newClientEntry;    
+          ptin_client_id_t               newClientEntry;    
           ptinIgmpClientInfoData_t      *client;
           ptinIgmpClientGroupInfoData_t *clientGroup;
+          L7_uint32                      ptinPort;
 
           memcpy(&mgmdGroupsRes, ctrlResMsg.data + pageClientCount*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
@@ -2313,8 +2314,16 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Port:   %u", mgmdGroupsRes.portId);
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Client: %u", mgmdGroupsRes.clientId);
 
+          if (ptin_intf_intIfNum2port(mgmdGroupsRes.portId,&ptinPort) != L7_SUCCESS)
+          {
+            *number_of_clients=0;
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to convert intIfNum [%u] to ptinPort",mgmdGroupsRes.portId);
+            return L7_FAILURE;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Converted   intIfNum [%u] to ptinPort [%u]", mgmdGroupsRes.portId,ptinPort);
+          
           /* Save entry in the clientGroup snapshot avlTree */
-          if(L7_NULLPTR == (client = igmpClients_unified.client_devices[mgmdGroupsRes.portId][mgmdGroupsRes.clientId].client))
+          if(L7_NULLPTR == (client = igmpClients_unified.client_devices[ptinPort][mgmdGroupsRes.clientId].client))
           {
             *number_of_clients=0;
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD");

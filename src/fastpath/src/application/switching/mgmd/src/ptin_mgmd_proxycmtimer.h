@@ -20,7 +20,7 @@
 RC_t   ptin_mgmd_proxycmtimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
 RC_t   ptin_mgmd_proxycmtimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);
 RC_t   ptin_mgmd_proxycmtimer_init(snoopPTinCMtimer_t* pTimer);
-RC_t   ptin_mgmd_proxycmtimer_start(uint32 serviceId);
+RC_t   ptin_mgmd_proxycmtimer_start(uint32 serviceId, mgmd_cb_t* pMgmdCB, ptin_IgmpProxyCfg_t *igmpCfg);
 RC_t   ptin_mgmd_proxycmtimer_stop(snoopPTinCMtimer_t* pTimer);
 uint32 ptin_mgmd_proxycmtimer_timeleft(snoopPTinCMtimer_t* pTimer);
 BOOL   ptin_mgmd_proxycmtimer_isRunning(snoopPTinCMtimer_t* pTimer);

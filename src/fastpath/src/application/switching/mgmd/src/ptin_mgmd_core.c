@@ -64,24 +64,17 @@ static RC_t ptin_mgmd_mld_packet_process(void);
 RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
 {
   uchar8              *buffPtr;
-  uchar8              igmpType;
-  RC_t                rc      = SUCCESS;
-  ptin_IgmpProxyCfg_t igmpCfg; 
-
+  uchar8               igmpType;
+  RC_t                 rc      = SUCCESS;
+  
   if(ptin_mgmd_extendedDebug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
-  //Get proxy configurations
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
-    return FAILURE;
-  }
-
+  
   buffPtr = mcastPacket->ipPayload;
   PTIN_MGMD_GET_BYTE(igmpType, buffPtr);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMP Type:[0x%X] NetworkVersion:[%u] ClientVersion:[%u]", igmpType, igmpCfg.networkVersion, igmpCfg.clientVersion);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMP Type:[0x%X] NetworkVersion:[%u] ClientVersion:[%u]", igmpType, mcastPacket->cbHandle->mgmdProxyCfg.networkVersion, mcastPacket->cbHandle->mgmdProxyCfg.clientVersion);
   PTIN_MGMD_UNUSED_PARAM(buffPtr);  
 
   //Validate total length value
@@ -93,7 +86,7 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
     return FAILURE;
   }
 
-  if (igmpCfg.host.tos_rtr_alert_check == TRUE)
+  if (mcastPacket->cbHandle->mgmdProxyCfg.host.tos_rtr_alert_check == TRUE)
   {
     //Reference: RFC3376 - Section 4. Do not accept IGMPv3 Report or Query messages without the IP TOS set to 0xC0. However this check is performed only if MGMD is configured for it.
     // @todo: Currently this field is not supported on the GL, Therefore we need to decide in compile time wether we check it or not
@@ -108,7 +101,7 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
   switch (igmpType)
   {
     case PTIN_IGMP_MEMBERSHIP_QUERY:     
-      if(igmpCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
+      if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
       { 
         mcastPacket->ipPayloadLength=IGMP_PKT_MIN_LENGTH;//Truncate the IGMP packet to IGMPv2                   
       }
@@ -116,7 +109,7 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
       break;
 
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
-      if (igmpCfg.clientVersion!=PTIN_IGMP_VERSION_3)//Drop the packet
+      if (mcastPacket->cbHandle->mgmdProxyCfg.clientVersion!=PTIN_IGMP_VERSION_3)//Drop the packet
       { 
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3: Silently ignored...we are configured to operate at IGMPv2 only!");
         rc=ERROR;//We are configured to operate at IGMPv2               
@@ -256,6 +249,20 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
 
+   /* Get Mgmd Control Block */
+  if ((mcastPacket->cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  //Get proxy configurations
+  if (ptin_mgmd_igmp_proxy_config_get(&mcastPacket->cbHandle->mgmdProxyCfg) != SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
+    return FAILURE;
+  }
+
   memset(mcastPacket->framePayload, 0x00, PTIN_MGMD_EVENT_PACKET_DATA_SIZE_MAX * sizeof(uchar8));
   memcpy(mcastPacket->framePayload, framePayload, framePayloadLength);
   mcastPacket->frameLength = framePayloadLength;
@@ -348,13 +355,6 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
   if (ptinMgmdCheckSum((ushort16 *)startPtr, ipHdrLen, 0) != 0)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid packet: Invalid IP header checksum");      
-    return FAILURE;
-  }
-
-  /* Get Mgmd Control Block */
-  if ((mcastPacket->cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting pMgmdCB");
     return FAILURE;
   }
   
@@ -699,12 +699,6 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
    /* Set pointer to IGMP message */
   dataPtr = mcastPacket->ipPayload;
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting MGMD Proxy configurations");
-    return FAILURE;
-  }
-
   if (mcastPacket->family == PTIN_MGMD_AF_INET) /* IGMP Message */
   {
     PTIN_MGMD_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
@@ -806,9 +800,9 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket
       //Switch proxy interface compatibility mode
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting compatibility mode to IGMPv2 on service [%u]",mcastPacket->serviceId);
       mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V2;  
-      if(igmpGlobalCfg.networkVersion==PTIN_IGMP_VERSION_3)
+      if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion==PTIN_IGMP_VERSION_3)
       {
-        ptin_mgmd_proxycmtimer_start(mcastPacket->serviceId);
+        ptin_mgmd_proxycmtimer_start(mcastPacket->serviceId, mcastPacket->cbHandle, &mcastPacket->cbHandle->mgmdProxyCfg);
       }
       else
       {
@@ -1347,7 +1341,6 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
   BOOL                      flagNewGroup = FALSE, 
                             flagAddClient = FALSE, 
                             flagRemoveClient = FALSE;
-  ptin_IgmpProxyCfg_t       igmpCfg; 
   BOOL                      groupAlreadyExists=FALSE;
   ptin_mgmd_externalapi_t   externalApi; 
 
@@ -1361,12 +1354,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
     return ERROR;
   }
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
-    return ERROR;
-  }
-
+  
   //Port must be leaf
   if (externalApi.portType_get(mcastPacket->serviceId,mcastPacket->portId, &portType) != SUCCESS || portType!=PTIN_MGMD_PORT_TYPE_LEAF)
   {
@@ -1376,7 +1364,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
 
   //Validate destination address
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipv4Addr);
-  if (ipv4Addr != PTIN_MGMD_IGMPV3_REPORT_ADDR && ipv4Addr!=igmpGlobalCfg.ipv4_addr)
+  if (ipv4Addr != PTIN_MGMD_IGMPV3_REPORT_ADDR && ipv4Addr!=mcastPacket->cbHandle->mgmdProxyCfg.ipv4_addr)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid destination address [%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf));
     return FAILURE;
@@ -1394,7 +1382,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Number of Group records [%u]", noOfGroups);
 
   //We need to fix this in the near future: since it can be used to prevent DOS attacks
-  if ( (noOfGroups > igmpCfg.host.max_records_per_report) || (noOfGroups == 0) )
+  if ( (noOfGroups > mcastPacket->cbHandle->mgmdProxyCfg.host.max_records_per_report) || (noOfGroups == 0) )
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Received a membership report with an invalid number of group records [%u]", noOfGroups);
     return FAILURE;
@@ -1498,7 +1486,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
       }    
 
       //If the white-list is enabled, here is where we check if the group-record contained any invalid channel. If yes, we increment the rx_invalid
-      if(igmpCfg.whitelist == PTIN_MGMD_ENABLE)
+      if(mcastPacket->cbHandle->mgmdProxyCfg.whitelist == PTIN_MGMD_ENABLE)
       {
         //If no channel in this group-record is valid, we mark it as dropped and continue to the next group-record
         if( (0 != noOfSources) && (0 == validSources) )
@@ -1614,7 +1602,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
         break;
 #else //We assume the behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
         //Once a Is_In{S} is equal to Allow_New_Source{S}. We use the same routine to process both.
-        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportAllowProcess()");              
         }
@@ -1632,7 +1620,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
         break;
 #else//We assume the same behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
        //Is_Ex{S} -> To_Ex{0} = Join(G)       
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");              
         }
@@ -1641,7 +1629,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
       }
     case PTIN_MGMD_CHANGE_TO_INCLUDE_MODE:
       {            
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");              
         }
@@ -1657,7 +1645,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
         break;
 #else  //We assume the behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
        //To_Ex{S} -> To_Ex{0} = Join(G)
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");              
         }
@@ -1666,7 +1654,7 @@ RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
       }
     case PTIN_MGMD_ALLOW_NEW_SOURCES:
       {            
-        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportAllowProcess()");              
         }
@@ -1799,19 +1787,13 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
     return ERROR;
   }
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
-    return FAILURE;
-  }
-
   //Validate destination address (224.0.0.2 for Leave reports; group address for others)
   dataPtr = mcastPacket->ipPayload + 4;
   PTIN_MGMD_GET_ADDR(&groupAddr, dataPtr);
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipDstAddr);
   if(PTIN_IGMP_V2_LEAVE_GROUP == igmpType)
   {
-    if( (PTIN_MGMD_IGMP_ALL_ROUTERS_ADDR != ipDstAddr) && (groupAddr != ipDstAddr) && (ipDstAddr!=igmpGlobalCfg.ipv4_addr))
+    if( (PTIN_MGMD_IGMP_ALL_ROUTERS_ADDR != ipDstAddr) && (groupAddr != ipDstAddr) && (ipDstAddr!=mcastPacket->cbHandle->mgmdProxyCfg.ipv4_addr))
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid destination address [%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf));
       return FAILURE;
@@ -1819,7 +1801,7 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
   }
   else if(PTIN_IGMP_V2_MEMBERSHIP_REPORT == igmpType)
   {
-    if( (groupAddr != ipDstAddr) && (ipDstAddr!=igmpGlobalCfg.ipv4_addr))
+    if( (groupAddr != ipDstAddr) && (ipDstAddr!=mcastPacket->cbHandle->mgmdProxyCfg.ipv4_addr))
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid destination address [%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf));
       return FAILURE;
@@ -1856,7 +1838,7 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
 
       numberOfClients = snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients;
     
-      if (SUCCESS != (rc = ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR)))
+      if (SUCCESS != (rc = ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");
       }
@@ -1900,7 +1882,7 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
         ptinMgmdInitializeInterface(snoopEntry, mcastPacket->portId);
       }
 
-      if (SUCCESS != (rc = ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR)))
+      if (SUCCESS != (rc = ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");
       }
@@ -1917,9 +1899,9 @@ RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
   {
     snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
     snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.groupKey=snoopEntry->snoopPTinL3InfoDataKey;
-    if(igmpGlobalCfg.clientVersion==PTIN_IGMP_VERSION_3)
+    if(mcastPacket->cbHandle->mgmdProxyCfg.clientVersion==PTIN_IGMP_VERSION_3)
     {
-      ptin_mgmd_routercmtimer_start(snoopEntry, mcastPacket->portId);
+      ptin_mgmd_routercmtimer_start(snoopEntry, mcastPacket->portId, &mcastPacket->cbHandle->mgmdProxyCfg);
     }
     else
     {

@@ -448,6 +448,8 @@ typedef struct ptinMgmd_cb_s
   uint8                     cbIndex; // Assigned at runtime 0 or 1
   uint8                     family;  //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
 
+  ptin_IgmpProxyCfg_t       mgmdProxyCfg;//We support different configurations [IGMP/MLD] per IP family address [IPv4/IPv6]
+
   /* AVL Tree data */
   ptin_mgmd_avlTree_t       mgmdPTinQuerierAvlTree;
   ptin_mgmd_avlTreeTables_t *mgmdPTinQuerierTreeHeap;
