@@ -126,7 +126,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Group-Source Specific Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*PTIN_MGMD_MAX_SERVICES;
+  num_timers = PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_groupsourcespecifictimer_CB_set(timersCB);
@@ -226,6 +226,13 @@ RC_t ptin_mgmd_memAlloc(void)
 RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, uint8 logOutput, char8* logFile)
 {
   pthread_attr_t attr;
+
+  //Validation
+  if( (PTIN_NULLPTR==thread_id) || (PTIN_NULLPTR==externalApi) || ((logOutput==MGMD_LOG_FILE) && (PTIN_NULLPTR==logFile)) )
+  {
+    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [thread_id:%p externalApi:%p logFile:%p]", thread_id, externalApi, logFile);
+    return FAILURE;
+  }
 
   //Log initialization
   ptin_mgmd_log_init(PTIN_MGMD_LOG_OUTPUT_STDERR);
@@ -499,6 +506,7 @@ int main(int argc, char **argv)
 
   externalApi.igmp_admin_set = &ptin_mgmd_cfg_igmp_admin_set;
   externalApi.mld_admin_set  = &ptin_mgmd_cfg_mld_admin_set;
+  externalApi.cos_set        = &ptin_mgmd_cfg_cos_set;
   externalApi.portList_get   = &ptin_mgmd_port_getList;
   externalApi.portType_get   = &ptin_mgmd_port_getType;
   externalApi.clientList_get = &ptin_mgmd_client_getList;

@@ -338,7 +338,7 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
 *
 * @return RC_t
 *
-* @notes none
+* @notes A value of -1 set in msgQueueId is considered invalid and will cause the method to abort
 */
 RC_t ptin_mgmd_event_ctrl_create(PTIN_MGMD_EVENT_t* eventMsg, PTIN_MGMD_EVENT_CTRL_TYPE_t msgCode, uint32 msgId, uint8 msgRes, int32 msgQueueId, void* data, uint32 datalength)
 {
@@ -347,9 +347,9 @@ RC_t ptin_mgmd_event_ctrl_create(PTIN_MGMD_EVENT_t* eventMsg, PTIN_MGMD_EVENT_CT
   uint32                 eventMsgLength;
 
   //Validations
-  if( (PTIN_NULLPTR == eventMsg) || (PTIN_NULLPTR == data) )
+  if( (PTIN_NULLPTR == eventMsg) || (PTIN_NULLPTR == data) || (-1 == msgQueueId) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [eventMsg:%p data:%p]", eventMsg, data);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [eventMsg:%p data:%p msgQueueId:%d]", eventMsg, data, msgQueueId);
     return ERROR;
   }
 

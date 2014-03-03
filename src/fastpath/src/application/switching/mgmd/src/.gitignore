@@ -1,0 +1,4 @@
+/.deps
+/Makefile
+/emulator
+/ptin_mgmd_defs.h

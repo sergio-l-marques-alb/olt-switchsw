@@ -2741,7 +2741,7 @@ L7_uint32 snoopCheckPrecedenceParamGet(L7_uint32 vlanId, L7_uint32 intIfNum,
   #if 1
   ptin_IgmpProxyCfg_t igmpCfg;
 
-  if (ptin_igmp_proxy_config_get(&igmpCfg)!=L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg)!=L7_SUCCESS)
   {
     return 0;
   }

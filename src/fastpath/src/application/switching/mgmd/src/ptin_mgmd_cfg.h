@@ -57,6 +57,9 @@
 #define PTIN_IGMP_DEFAULT_ROBUSTNESS 2
 
 
+#define PTIN_IGMP_COS_MIN                               1
+#define PTIN_IGMP_COS_MAX                               7
+
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
 
 #define PTIN_IGMP_MIN_QUERYINTERVAL                     10 /* (s) */

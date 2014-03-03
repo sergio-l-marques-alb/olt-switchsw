@@ -22,6 +22,9 @@
 #include "l7apptimer_api.h"
 #include "l7handle_api.h"
 #include "ptin_fieldproc.h"
+#include "ptin_mgmd_eventqueue.h"
+#include "ptin_mgmd_ctrl.h"
+#include "ptin_cnfgr.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -342,7 +345,7 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
 static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_channels);
 static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_BOOL remove_static, L7_BOOL force_remove);
 
-static L7_RC_t ptin_igmp_global_configuration(void);
+//static L7_RC_t ptin_igmp_global_configuration(void);
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable);
 
@@ -705,58 +708,6 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   return L7_SUCCESS;
 }
 
-/**
- * Load IGMP proxy default configuraion parameters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
-{
-  ptin_IgmpProxyCfg_t igmpProxy;
-  L7_RC_t rc;
-
-  igmpProxy.mask                                   = 0xFF;
-  igmpProxy.admin                                  = 0;
-  igmpProxy.networkVersion                         = PTIN_IGMP_DEFAULT_VERSION;
-  igmpProxy.clientVersion                          = PTIN_IGMP_DEFAULT_VERSION;
-  igmpProxy.ipv4_addr.s_addr                       = PTIN_IGMP_DEFAULT_IPV4;
-  igmpProxy.igmp_cos                               = PTIN_IGMP_DEFAULT_COS;
-  igmpProxy.fast_leave                             = PTIN_IGMP_DEFAULT_FASTLEAVEMODE;
-
-  igmpProxy.querier.mask                           = 0xFFFF;
-  igmpProxy.querier.flags                          = 0;
-  igmpProxy.querier.robustness                     = PTIN_IGMP_DEFAULT_ROBUSTNESS;
-  igmpProxy.querier.query_interval                 = PTIN_IGMP_DEFAULT_QUERYINTERVAL;
-  igmpProxy.querier.query_response_interval        = PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
-  igmpProxy.querier.group_membership_interval      = PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL;
-  igmpProxy.querier.other_querier_present_interval = PTIN_IGMP_DEFAULT_OTHERQUERIERPRESENTINTERVAL;
-  igmpProxy.querier.startup_query_interval         = PTIN_IGMP_DEFAULT_STARTUPQUERYINTERVAL;
-  igmpProxy.querier.startup_query_count            = PTIN_IGMP_DEFAULT_STARTUPQUERYCOUNT;
-  igmpProxy.querier.last_member_query_interval     = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYINTERVAL;
-  igmpProxy.querier.last_member_query_count        = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYCOUNT;
-  igmpProxy.querier.older_host_present_timeout     = PTIN_IGMP_DEFAULT_OLDERHOSTPRESENTTIMEOUT;
-
-  igmpProxy.host.mask                              = 0xFF;
-  igmpProxy.host.flags                             = 0;
-  igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
-  igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
-  igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
-  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
-
-  /* Apply default config */
-  rc = ptin_igmp_proxy_config_set(&igmpProxy);
-  if (rc != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "IGMP default config failed to be load");
-    return L7_FAILURE;
-  }
-
-  LOG_INFO(LOG_CTX_PTIN_IGMP, "IGMP default config loaded OK");
-
-  return L7_SUCCESS;
-}
-
-
 /*********************************************************************
 * @purpose  This function is used exclusively for encoding the floating
 *           point representation as described in RFC 3376 section 4.1.1
@@ -846,7 +797,7 @@ static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
+L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
 {
   L7_RC_t rc;
 
@@ -1169,17 +1120,63 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     igmpProxyCfg.admin = igmpProxy->admin;
   }
 
-  /* Global configuration */
-  if (ptin_igmp_global_configuration()!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error applying configurations");
-    osapiSemaGive(igmp_sem);
-    return L7_FAILURE;
-  }
-
   osapiSemaGive(igmp_sem);
 
   return L7_SUCCESS;
+}
+L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
+{
+  PTIN_MGMD_EVENT_t      inEventMsg = {0}, outEventMsg = {0};
+  PTIN_MGMD_EVENT_CTRL_t ctrlResMsg = {0};
+
+  /* Create and send a PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET event to MGMD */
+  ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET, 1, 0, ptinMgmdTxQueueId, (void*) igmpProxy, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&inEventMsg, &outEventMsg);
+
+  /* Parse the received reply */
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "MGMD replied");
+  ptin_mgmd_event_ctrl_parse(&outEventMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  /* If sucesseful, configure the old PTIN_IGMP struct, required for dynamic clients */
+  if(0 == ctrlResMsg.res)
+  {
+    ptin_IgmpProxyCfg_t oldIgmpConfig = {0};
+
+    oldIgmpConfig.mask                                   = igmpProxy->mask;
+    oldIgmpConfig.admin                                  = igmpProxy->admin;
+    oldIgmpConfig.networkVersion                         = igmpProxy->networkVersion;
+    oldIgmpConfig.clientVersion                          = igmpProxy->clientVersion;
+    oldIgmpConfig.ipv4_addr.s_addr                       = igmpProxy->ipv4Addr;
+    oldIgmpConfig.igmp_cos                               = igmpProxy->igmpCos;
+    oldIgmpConfig.fast_leave                             = igmpProxy->fastLeave;
+
+    oldIgmpConfig.querier.mask                           = igmpProxy->querier.mask;
+    oldIgmpConfig.querier.flags                          = igmpProxy->querier.flags;
+    oldIgmpConfig.querier.robustness                     = igmpProxy->querier.robustness;
+    oldIgmpConfig.querier.query_interval                 = igmpProxy->querier.queryInterval;
+    oldIgmpConfig.querier.query_response_interval        = igmpProxy->querier.queryResponseInterval;
+    oldIgmpConfig.querier.group_membership_interval      = igmpProxy->querier.groupMembershipInterval;
+    oldIgmpConfig.querier.other_querier_present_interval = igmpProxy->querier.otherQuerierPresentInterval;
+    oldIgmpConfig.querier.startup_query_interval         = igmpProxy->querier.startupQueryInterval;
+    oldIgmpConfig.querier.startup_query_count            = igmpProxy->querier.startupQueryCount;
+    oldIgmpConfig.querier.last_member_query_interval     = igmpProxy->querier.lastMemberQueryInterval;
+    oldIgmpConfig.querier.last_member_query_count        = igmpProxy->querier.lastMemberQueryCount;
+    oldIgmpConfig.querier.older_host_present_timeout     = igmpProxy->querier.olderHostPresentTimeout;
+
+    oldIgmpConfig.host.mask                              = igmpProxy->host.mask;
+    oldIgmpConfig.host.flags                             = igmpProxy->host.flags;
+    oldIgmpConfig.host.robustness                        = igmpProxy->host.robustness;
+    oldIgmpConfig.host.unsolicited_report_interval       = igmpProxy->host.unsolicitedReportInterval;
+    oldIgmpConfig.host.older_querier_present_timeout     = igmpProxy->host.olderQuerierPresentTimeout;
+    oldIgmpConfig.host.max_records_per_report            = igmpProxy->host.maxRecordsPerReport;
+
+    ptin_igmp_proxy_config_set__snooping_old(&oldIgmpConfig);
+  }
+
+  return ctrlResMsg.res;
 }
 
 /**
@@ -1189,7 +1186,7 @@ L7_RC_t ptin_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy)
+L7_RC_t ptin_igmp_proxy_config_get__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
 {
   *igmpProxy = igmpProxyCfg;
 
@@ -1198,6 +1195,35 @@ L7_RC_t ptin_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy)
   igmpProxy->host.mask    = 0xFF;
 
   return L7_SUCCESS;
+}
+L7_RC_t ptin_igmp_proxy_config_get(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
+{
+  PTIN_MGMD_EVENT_t      inEventMsg = {0}, outEventMsg = {0};
+  PTIN_MGMD_EVENT_CTRL_t ctrlResMsg = {0};
+
+  /* Create and send a PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET event to MGMD */
+  ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET, 1, 0, ptinMgmdTxQueueId, (void*) igmpProxy, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&inEventMsg, &outEventMsg);
+
+  /* Parse the received reply */
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "MGMD replied");
+  ptin_mgmd_event_ctrl_parse(&outEventMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+ 
+  /* Copy the response contents to igmpProxy */
+  if(sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t) != ctrlResMsg.dataLength)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unexpected size in the MGMD response [dataLength:%u/%u]", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t));
+    return L7_FAILURE;
+  }
+  else
+  {
+    memcpy(igmpProxy, ctrlResMsg.data, ctrlResMsg.dataLength);
+  }
+
+  return ctrlResMsg.res;
 }
 
 /**
@@ -2189,12 +2215,12 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
       channel.family = L7_AF_INET;
       channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
-      /* Get list of client indexes for this vlan */
-      if (ptin_snoop_clientsList_get(&channel,McastRootVlan,clientIdx_bmp_list,number_of_clients)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting list of clients");
-        return L7_FAILURE;
-      }
+//    /* Get list of client indexes for this vlan */
+//    if (ptin_snoop_clientsList_get(&channel,McastRootVlan,clientIdx_bmp_list,number_of_clients)!=L7_SUCCESS)
+//    {
+//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting list of clients");
+//      return L7_FAILURE;
+//    }
     }
     else
     {
@@ -2342,12 +2368,12 @@ L7_RC_t ptin_igmp_static_channel_add(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_ch
   channel.family = L7_AF_INET;
   channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
-  /* Add static channel */
-  if (ptin_snoop_static_channel_add(McastRootVlan,&channel)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
-    return L7_FAILURE;
-  }
+///* Add static channel */
+//if (ptin_snoop_static_channel_add(McastRootVlan,&channel)!=L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+//  return L7_FAILURE;
+//}
 
   return L7_SUCCESS;
 }
@@ -2393,12 +2419,12 @@ L7_RC_t ptin_igmp_channel_remove(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
   channel.family = L7_AF_INET;
   channel.addr.ipv4.s_addr = ipv4_channel->s_addr;
 
-  /* Remove channel */
-  if (ptin_snoop_channel_remove(McastRootVlan,&channel)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel");
-    return L7_FAILURE;
-  }
+///* Remove channel */
+//if (ptin_snoop_channel_remove(McastRootVlan,&channel)!=L7_SUCCESS)
+//{
+//  LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel");
+//  return L7_FAILURE;
+//}
 
   return L7_SUCCESS;
 }
@@ -7304,16 +7330,16 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Proceeding for snoop channels remotion: client_idx=%u, intIfNum=%u (port=%u)",
                   client_idx, intIfNum, ptin_port);
 
-      /* Remove client from all snooping entries */
-      if (ptin_snoop_client_remove(0 /*All vlans*/,client_idx,intIfNum)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
-      }
-      else
-      {
-        if (ptin_debug_igmp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed from snooping entries");
-      }
+//    /* Remove client from all snooping entries */
+//    if (ptin_snoop_client_remove(0 /*All vlans*/,client_idx,intIfNum)!=L7_SUCCESS)
+//    {
+//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing client from snooping entries");
+//    }
+//    else
+//    {
+//      if (ptin_debug_igmp_snooping)
+//        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed from snooping entries");
+//    }
     }
     else
     {
@@ -7393,70 +7419,70 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
  * 
  * @return L7_RC_t
  */
-static L7_RC_t ptin_igmp_global_configuration(void)
-{
-  L7_uint igmp_idx;
-
-  if (igmpProxyCfg.admin)
-  {
-    // Querier IP address
-    if (usmDbSnoopQuerierAddressSet( (void *) &igmpProxyCfg.ipv4_addr, L7_AF_INET)!=L7_SUCCESS)  {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierAddressSet");
-      return L7_FAILURE;
-    }
-    // IGMP version
-    if (usmDbSnoopQuerierVersionSet( igmpProxyCfg.clientVersion, L7_AF_INET)!=L7_SUCCESS)  {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierVersionSet");
-      return L7_FAILURE;
-    }
-    // Querier interval
-    if (usmDbSnoopQuerierQueryIntervalSet( igmpProxyCfg.querier.query_interval, L7_AF_INET)!=L7_SUCCESS)  {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierQueryIntervalSet");
-      return L7_FAILURE;
-    }
-
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IPv4 address set to %u.%u.%u.%u",
-              (igmpProxyCfg.ipv4_addr.s_addr>>24) & 0xff,
-              (igmpProxyCfg.ipv4_addr.s_addr>>16) & 0xff,
-              (igmpProxyCfg.ipv4_addr.s_addr>> 8) & 0xff,
-               igmpProxyCfg.ipv4_addr.s_addr & 0xff);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP version set to %u",igmpProxyCfg.clientVersion);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Querier interval set to %u",igmpProxyCfg.querier.query_interval);
-  }
-
-  // Attrib IGMP packets priority
-  if ( usmDbSnoopPrioModeSet(1, igmpProxyCfg.igmp_cos, L7_AF_INET) != L7_SUCCESS )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopPrioModeSet");
-    return L7_FAILURE;
-  }
-
-  // Snooping global activation
-  if (usmDbSnoopAdminModeSet( 1, igmpProxyCfg.admin, L7_AF_INET)!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeSet");
-    return L7_FAILURE;
-  }
-
-  // Querier admin
-  if (usmDbSnoopQuerierAdminModeSet(igmpProxyCfg.admin, L7_AF_INET)!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierAdminModeSet");
-    if (igmpProxyCfg.admin)  usmDbSnoopAdminModeSet( 1, L7_DISABLE, L7_AF_INET);
-    return L7_FAILURE;
-  }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP snooping enable set to %u",igmpProxyCfg.admin);
-
-  /* Run all IGMP instances and reset the IP address for each one */
-  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
-  {
-    if (igmpInstances[igmp_idx].inUse)
-    {
-      if (ptin_igmp_querier_configure(igmp_idx,L7_ENABLE)!=L7_SUCCESS)
-        return L7_FAILURE;
-    }
-  }
-
-  return L7_SUCCESS;
-}
+//static L7_RC_t ptin_igmp_global_configuration(void)
+//{
+//  L7_uint igmp_idx;
+//
+//  if (igmpProxyCfg.admin)
+//  {
+//    // Querier IP address
+//    if (usmDbSnoopQuerierAddressSet( (void *) &igmpProxyCfg.ipv4_addr, L7_AF_INET)!=L7_SUCCESS)  {
+//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierAddressSet");
+//      return L7_FAILURE;
+//    }
+//    // IGMP version
+//    if (usmDbSnoopQuerierVersionSet( igmpProxyCfg.clientVersion, L7_AF_INET)!=L7_SUCCESS)  {
+//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierVersionSet");
+//      return L7_FAILURE;
+//    }
+//    // Querier interval
+//    if (usmDbSnoopQuerierQueryIntervalSet( igmpProxyCfg.querier.query_interval, L7_AF_INET)!=L7_SUCCESS)  {
+//      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierQueryIntervalSet");
+//      return L7_FAILURE;
+//    }
+//
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IPv4 address set to %u.%u.%u.%u",
+//              (igmpProxyCfg.ipv4_addr.s_addr>>24) & 0xff,
+//              (igmpProxyCfg.ipv4_addr.s_addr>>16) & 0xff,
+//              (igmpProxyCfg.ipv4_addr.s_addr>> 8) & 0xff,
+//               igmpProxyCfg.ipv4_addr.s_addr & 0xff);
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP version set to %u",igmpProxyCfg.clientVersion);
+//    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Querier interval set to %u",igmpProxyCfg.querier.query_interval);
+//  }
+//
+//  // Attrib IGMP packets priority
+//  if ( usmDbSnoopPrioModeSet(1, igmpProxyCfg.igmp_cos, L7_AF_INET) != L7_SUCCESS )
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopPrioModeSet");
+//    return L7_FAILURE;
+//  }
+//
+//  // Snooping global activation
+//  if (usmDbSnoopAdminModeSet( 1, igmpProxyCfg.admin, L7_AF_INET)!=L7_SUCCESS)  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeSet");
+//    return L7_FAILURE;
+//  }
+//
+//  // Querier admin
+//  if (usmDbSnoopQuerierAdminModeSet(igmpProxyCfg.admin, L7_AF_INET)!=L7_SUCCESS)  {
+//    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopQuerierAdminModeSet");
+//    if (igmpProxyCfg.admin)  usmDbSnoopAdminModeSet( 1, L7_DISABLE, L7_AF_INET);
+//    return L7_FAILURE;
+//  }
+//  LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP snooping enable set to %u",igmpProxyCfg.admin);
+//
+//  /* Run all IGMP instances and reset the IP address for each one */
+//  for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
+//  {
+//    if (igmpInstances[igmp_idx].inUse)
+//    {
+//      if (ptin_igmp_querier_configure(igmp_idx,L7_ENABLE)!=L7_SUCCESS)
+//        return L7_FAILURE;
+//    }
+//  }
+//
+//  return L7_SUCCESS;
+//}
 
 static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 {

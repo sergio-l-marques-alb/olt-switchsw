@@ -46,6 +46,21 @@ RC_t ptin_mgmd_cfg_mld_admin_set(uint8 admin)
   return SUCCESS;
 }
 
+/**
+* @purpose Set CoS in the FW for the packets sent by MGMD
+*  
+* @param  cos[in] : Class of Service [1..7]
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_cfg_cos_set(uint8 cos)
+{
+  _UNUSED_(cos);
+  return SUCCESS;
+}
+
 #endif //_COMPILE_AS_BINARY_
 
 

@@ -13,6 +13,7 @@
 #define _PTIN_CNFGR_H
 
 #include "ptin_include.h"
+#include "ptin_mgmd_eventqueue.h"
 
 typedef enum {
   PTIN_PHASE_INIT_0 = 0,
@@ -48,5 +49,9 @@ extern void *ptin_ready_sem;
 extern void *ptin_switchover_sem;
 extern void *ptin_boardaction_sem;
 #endif
+
+extern L7_int32 ptinMgmdTxQueueId;
+
+#define MGMD_TXQUEUE_KEY 0x01010101 
 
 #endif /* _PTIN_CNFGR_H */

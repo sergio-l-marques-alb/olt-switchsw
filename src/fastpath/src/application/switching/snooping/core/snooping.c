@@ -36,6 +36,8 @@
 #include "snooping_db.h"
 #include "l7_mgmd_api.h"
 
+#include "ptin_mgmd_eventqueue.h"
+
 /* PTin added: IGMP snooping */
 #if 1
   #include "snooping_ptin_db.h"
@@ -62,6 +64,49 @@ extern ptin_debug_pktTimer_t debug_pktTimer;
 
 
 
+/*****************************************************************
+* @purpose  Create and send a packet event to MGMD, based on the received IGMP packet
+*
+* @param    outterVlan @b{ (input) } Packet's outter vlan
+* @param    innerVlan @b{ (input) } Packet's inner vlan
+* @param    portId @b{ (input) } Port through which the packet was received
+* @param    clientId @b{ (input) } Client that sent the packet
+* @param    payload @b{ (input) } Packet's payload (including L2)
+* @param    payloadLength @b{ (input) } Packet length (including L2)
+*
+* @returns
+* 
+* @end
+*********************************************************************/
+static L7_RC_t mgmdPacketSend(L7_uint16 outterVlan, L7_uint16 innerVlan, L7_uint32 portId, L7_uint32 clientId, void* payload, L7_uint32 payloadLength)
+{
+  PTIN_MGMD_EVENT_t mgmdPcktEvent = {0};
+  L7_uint32         ethernetHdrLen;
+  L7_uint32         serviceId;
+
+  //Strip L2 header from the packet before sending it to MGMD
+  ethernetHdrLen = sysNetDataOffsetGet(payload);
+  payload       += ethernetHdrLen;
+  payloadLength -= ethernetHdrLen;
+
+  //Hash the serviceId field from outter and inner vlans
+  serviceId = outterVlan + innerVlan;
+  serviceId = 7; //Hardcoded
+
+  //Create a new MGMD packet event
+  if(SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to create packet for MGMD");
+    return L7_ERROR;
+  }
+  if(SUCCESS != ptin_mgmd_eventQueue_tx(&mgmdPcktEvent))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to place packet event in MGMD rxQueue");
+    return L7_ERROR;
+  }
+
+  return L7_SUCCESS;
+}
 
 /* PTin added: IGMPv3 snooping */
 #if SNOOP_PTIN_IGMPv3_PROXY
@@ -739,6 +784,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   memcpy(msg.snoopBuffer, data, dataLength);
   msg.dataLength = dataLength;
 
+#if 0
   if (pSnoopCB->family == L7_AF_INET)
   {
     rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue,
@@ -751,6 +797,12 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT,
                           L7_MSG_PRIORITY_NORM);
   }
+#else
+  if(SUCCESS != (rc = mgmdPacketSend(msg.vlanId, msg.innerVlanId, pduInfo->intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
+  }
+#endif
 
   if (rc != L7_SUCCESS)
   {
@@ -1186,7 +1238,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 #endif
 
   /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
     return L7_FAILURE;
@@ -2581,7 +2633,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 
 
   /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");        
   }
@@ -3556,7 +3608,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   }
 
   /* Get proxy configurations */
-  if (ptin_igmp_proxy_config_get(&igmpCfg) != L7_SUCCESS)
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     igmpCfg.host.robustness=PTIN_IGMP_DEFAULT_ROBUSTNESS;

@@ -41,7 +41,7 @@ static const char *log_sev_str[PTIN_MGMD_LOG_SEV_LAST] = {
 /* Context strings */
 static const char *log_ctx_str[PTIN_MGMD_LOG_CONTEXT_LAST] = {
     "LOG  ",
-    "IGMP ",
+    "MGMD ",
     "TIMER",
     "FIFO",
 };

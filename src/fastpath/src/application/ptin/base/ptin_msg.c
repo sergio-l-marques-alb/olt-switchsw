@@ -4600,68 +4600,69 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
  */
 L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
 {
-  ptin_IgmpProxyCfg_t ptinIgmpProxy;
+  PTIN_MGMD_CTRL_MGMD_CONFIG_t ptinMgmdProxy;
   L7_RC_t rc;
 
   /* Copy data */
-  ptinIgmpProxy.mask                                   = msgIgmpProxy->mask;
-  ptinIgmpProxy.admin                                  = msgIgmpProxy->admin;
-  ptinIgmpProxy.networkVersion                         = msgIgmpProxy->networkVersion;
-  ptinIgmpProxy.clientVersion                          = msgIgmpProxy->clientVersion;
-  ptinIgmpProxy.ipv4_addr.s_addr                       = msgIgmpProxy->ipv4_addr.s_addr;
-  ptinIgmpProxy.igmp_cos                               = msgIgmpProxy->igmp_cos;
-  ptinIgmpProxy.fast_leave                             = msgIgmpProxy->fast_leave;
+  ptinMgmdProxy.mask                                   = msgIgmpProxy->mask;
+  ptinMgmdProxy.admin                                  = msgIgmpProxy->admin;
+  ptinMgmdProxy.whiteList                              = PTIN_MGMD_ENABLE;
+  ptinMgmdProxy.networkVersion                         = msgIgmpProxy->networkVersion;
+  ptinMgmdProxy.clientVersion                          = msgIgmpProxy->clientVersion;
+  ptinMgmdProxy.ipv4Addr                               = msgIgmpProxy->ipv4_addr.s_addr;
+  ptinMgmdProxy.igmpCos                                = msgIgmpProxy->igmp_cos;
+  ptinMgmdProxy.fastLeave                              = msgIgmpProxy->fast_leave;
 
-  ptinIgmpProxy.querier.mask                           = msgIgmpProxy->querier.mask;
-  ptinIgmpProxy.querier.flags                          = msgIgmpProxy->querier.flags;
-  ptinIgmpProxy.querier.robustness                     = msgIgmpProxy->querier.robustness;
-  ptinIgmpProxy.querier.query_interval                 = msgIgmpProxy->querier.query_interval;
-  ptinIgmpProxy.querier.query_response_interval        = msgIgmpProxy->querier.query_response_interval;
-  ptinIgmpProxy.querier.group_membership_interval      = msgIgmpProxy->querier.group_membership_interval;
-  ptinIgmpProxy.querier.other_querier_present_interval = msgIgmpProxy->querier.other_querier_present_interval;
-  ptinIgmpProxy.querier.startup_query_interval         = msgIgmpProxy->querier.startup_query_interval;
-  ptinIgmpProxy.querier.startup_query_count            = msgIgmpProxy->querier.startup_query_count;
-  ptinIgmpProxy.querier.last_member_query_interval     = msgIgmpProxy->querier.last_member_query_interval;
-  ptinIgmpProxy.querier.last_member_query_count        = msgIgmpProxy->querier.last_member_query_count;
-  ptinIgmpProxy.querier.older_host_present_timeout     = msgIgmpProxy->querier.older_host_present_timeout;
+  ptinMgmdProxy.querier.mask                           = msgIgmpProxy->querier.mask;
+  ptinMgmdProxy.querier.flags                          = msgIgmpProxy->querier.flags;
+  ptinMgmdProxy.querier.robustness                     = msgIgmpProxy->querier.robustness;
+  ptinMgmdProxy.querier.queryInterval                  = msgIgmpProxy->querier.query_interval;
+  ptinMgmdProxy.querier.queryResponseInterval          = msgIgmpProxy->querier.query_response_interval;
+  ptinMgmdProxy.querier.groupMembershipInterval        = msgIgmpProxy->querier.group_membership_interval;
+  ptinMgmdProxy.querier.otherQuerierPresentInterval    = msgIgmpProxy->querier.other_querier_present_interval;
+  ptinMgmdProxy.querier.startupQueryInterval           = msgIgmpProxy->querier.startup_query_interval;
+  ptinMgmdProxy.querier.startupQueryCount              = msgIgmpProxy->querier.startup_query_count;
+  ptinMgmdProxy.querier.lastMemberQueryInterval        = msgIgmpProxy->querier.last_member_query_interval;
+  ptinMgmdProxy.querier.lastMemberQueryCount           = msgIgmpProxy->querier.last_member_query_count;
+  ptinMgmdProxy.querier.olderHostPresentTimeout        = msgIgmpProxy->querier.older_host_present_timeout;
 
-  ptinIgmpProxy.host.mask                              = msgIgmpProxy->host.mask;
-  ptinIgmpProxy.host.flags                             = msgIgmpProxy->host.flags;
-  ptinIgmpProxy.host.robustness                        = msgIgmpProxy->host.robustness;
-  ptinIgmpProxy.host.unsolicited_report_interval       = msgIgmpProxy->host.unsolicited_report_interval;
-  ptinIgmpProxy.host.older_querier_present_timeout     = msgIgmpProxy->host.older_querier_present_timeout;
-  ptinIgmpProxy.host.max_records_per_report            = msgIgmpProxy->host.max_records_per_report;
+  ptinMgmdProxy.host.mask                              = msgIgmpProxy->host.mask;
+  ptinMgmdProxy.host.flags                             = msgIgmpProxy->host.flags;
+  ptinMgmdProxy.host.robustness                        = msgIgmpProxy->host.robustness;
+  ptinMgmdProxy.host.unsolicitedReportInterval         = msgIgmpProxy->host.unsolicited_report_interval;
+  ptinMgmdProxy.host.olderQuerierPresentTimeout        = msgIgmpProxy->host.older_querier_present_timeout;
+  ptinMgmdProxy.host.maxRecordsPerReport               = msgIgmpProxy->host.max_records_per_report;
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
-            (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%04X", ptinIgmpProxy.querier.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.query_response_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.group_membership_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.other_querier_present_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startup_query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startup_query_count);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.last_member_query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.last_member_query_count);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.older_host_present_timeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinIgmpProxy.host.older_querier_present_timeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Group Records per Packet   = %u", ptinIgmpProxy.host.max_records_per_report);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinMgmdProxy.admin);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinMgmdProxy.networkVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinMgmdProxy.clientVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
+                                                                                  (ptinMgmdProxy.ipv4Addr>>8)&0xFF, ptinMgmdProxy.ipv4Addr&0xFF);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinMgmdProxy.querier.queryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinMgmdProxy.querier.queryResponseInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinMgmdProxy.querier.groupMembershipInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinMgmdProxy.querier.otherQuerierPresentInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinMgmdProxy.querier.startupQueryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinMgmdProxy.querier.startupQueryCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinMgmdProxy.querier.lastMemberQueryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinMgmdProxy.querier.lastMemberQueryCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinMgmdProxy.querier.olderHostPresentTimeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinMgmdProxy.host.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinMgmdProxy.host.flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinMgmdProxy.host.robustness);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
 
   /* Apply config */
-  rc = ptin_igmp_proxy_config_set(&ptinIgmpProxy);
+  rc = ptin_igmp_proxy_config_set(&ptinMgmdProxy);
 
   if (rc != L7_SUCCESS)
   {
@@ -4681,7 +4682,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
  */
 L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
 {
-  ptin_IgmpProxyCfg_t ptinIgmpProxy;
+  PTIN_MGMD_CTRL_MGMD_CONFIG_t ptinIgmpProxy;
   L7_RC_t rc;
 
   memset(&ptinIgmpProxy, 0x00, sizeof(ptinIgmpProxy));
@@ -4704,55 +4705,55 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4_addr.s_addr  >> 24) & 0xFF, (ptinIgmpProxy.ipv4_addr.s_addr  >> 16) & 0xFF,
-            (ptinIgmpProxy.ipv4_addr.s_addr  >>  8) & 0xFF,  ptinIgmpProxy.ipv4_addr.s_addr         & 0xFF);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmp_cos);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fast_leave != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4Addr >> 24) & 0xFF, (ptinIgmpProxy.ipv4Addr >> 16) & 0xFF,
+                                                                                  (ptinIgmpProxy.ipv4Addr >>  8) & 0xFF,  ptinIgmpProxy.ipv4Addr        & 0xFF);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmpCos);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fastLeave != 0 ? "ON":"OFF");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.query_response_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.group_membership_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.other_querier_present_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startup_query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startup_query_count);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.last_member_query_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.last_member_query_count);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.older_host_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.queryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.queryResponseInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.groupMembershipInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.otherQuerierPresentInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startupQueryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startupQueryCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.lastMemberQueryInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.lastMemberQueryCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.olderHostPresentTimeout);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicited_report_interval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.older_querier_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicitedReportInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.olderQuerierPresentTimeout);
 
   /* Copy data */
   msgIgmpProxy->mask                                   = ptinIgmpProxy.mask;
   msgIgmpProxy->admin                                  = ptinIgmpProxy.admin;
   msgIgmpProxy->networkVersion                         = ptinIgmpProxy.networkVersion;
   msgIgmpProxy->clientVersion                          = ptinIgmpProxy.clientVersion;
-  msgIgmpProxy->ipv4_addr.s_addr                       = ptinIgmpProxy.ipv4_addr.s_addr;
-  msgIgmpProxy->igmp_cos                               = ptinIgmpProxy.igmp_cos;
-  msgIgmpProxy->fast_leave                             = ptinIgmpProxy.fast_leave;
+  msgIgmpProxy->ipv4_addr.s_addr                       = ptinIgmpProxy.ipv4Addr;
+  msgIgmpProxy->igmp_cos                               = ptinIgmpProxy.igmpCos;
+  msgIgmpProxy->fast_leave                             = ptinIgmpProxy.fastLeave;
 
   msgIgmpProxy->querier.mask                           = ptinIgmpProxy.querier.mask;
   msgIgmpProxy->querier.flags                          = ptinIgmpProxy.querier.flags;  
   msgIgmpProxy->querier.robustness                     = ptinIgmpProxy.querier.robustness;
-  msgIgmpProxy->querier.query_interval                 = ptinIgmpProxy.querier.query_interval;
-  msgIgmpProxy->querier.query_response_interval        = ptinIgmpProxy.querier.query_response_interval;
-  msgIgmpProxy->querier.group_membership_interval      = ptinIgmpProxy.querier.group_membership_interval;
-  msgIgmpProxy->querier.other_querier_present_interval = ptinIgmpProxy.querier.other_querier_present_interval;
-  msgIgmpProxy->querier.startup_query_interval         = ptinIgmpProxy.querier.startup_query_interval;
-  msgIgmpProxy->querier.startup_query_count            = ptinIgmpProxy.querier.startup_query_count;
-  msgIgmpProxy->querier.last_member_query_interval     = ptinIgmpProxy.querier.last_member_query_interval;
-  msgIgmpProxy->querier.last_member_query_count        = ptinIgmpProxy.querier.last_member_query_count;
-  msgIgmpProxy->querier.older_host_present_timeout     = ptinIgmpProxy.querier.older_host_present_timeout;
+  msgIgmpProxy->querier.query_interval                 = ptinIgmpProxy.querier.queryInterval;
+  msgIgmpProxy->querier.query_response_interval        = ptinIgmpProxy.querier.queryResponseInterval;
+  msgIgmpProxy->querier.group_membership_interval      = ptinIgmpProxy.querier.groupMembershipInterval;
+  msgIgmpProxy->querier.other_querier_present_interval = ptinIgmpProxy.querier.otherQuerierPresentInterval;
+  msgIgmpProxy->querier.startup_query_interval         = ptinIgmpProxy.querier.startupQueryInterval;
+  msgIgmpProxy->querier.startup_query_count            = ptinIgmpProxy.querier.startupQueryCount;
+  msgIgmpProxy->querier.last_member_query_interval     = ptinIgmpProxy.querier.lastMemberQueryInterval;
+  msgIgmpProxy->querier.last_member_query_count        = ptinIgmpProxy.querier.lastMemberQueryCount;
+  msgIgmpProxy->querier.older_host_present_timeout     = ptinIgmpProxy.querier.olderHostPresentTimeout;
 
   msgIgmpProxy->host.mask                              = ptinIgmpProxy.host.mask;
   msgIgmpProxy->host.flags                             = ptinIgmpProxy.host.flags;  
   msgIgmpProxy->host.robustness                        = ptinIgmpProxy.host.robustness;
-  msgIgmpProxy->host.unsolicited_report_interval       = ptinIgmpProxy.host.unsolicited_report_interval;
-  msgIgmpProxy->host.older_querier_present_timeout     = ptinIgmpProxy.host.older_querier_present_timeout;
+  msgIgmpProxy->host.unsolicited_report_interval       = ptinIgmpProxy.host.unsolicitedReportInterval;
+  msgIgmpProxy->host.older_querier_present_timeout     = ptinIgmpProxy.host.olderQuerierPresentTimeout;
 
   return L7_SUCCESS;
 }
