@@ -66,11 +66,11 @@ typedef enum  {
   SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX,
 
 /*IGMPv2 & MLDv1 only*/
-  SNOOP_STAT_FIELD_JOINS_SENT,
-  SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS,
-  SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED,
-  SNOOP_STAT_FIELD_LEAVES_SENT,
-  SNOOP_STAT_FIELD_LEAVES_RECEIVED,
+  SNOOP_STAT_FIELD_JOIN_TX,
+  SNOOP_STAT_FIELD_JOIN_VALID_RX,
+  SNOOP_STAT_FIELD_JOIN_INVALID_RX,
+  SNOOP_STAT_FIELD_LEAVE_TX,
+  SNOOP_STAT_FIELD_LEAVE_VALID_RX,
 /*IGMPv3 & MLDv2 only*/
   SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX,
   SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX,  
@@ -236,15 +236,16 @@ typedef enum
 
 typedef struct
 {
-  uint32                       membership_report_tx;
-  uint32                       membership_report_total_rx; 
-  uint32                       membership_report_valid_rx;  
-  uint32                       membership_report_invalid_rx; 
-  uint32                       membership_report_dropped_rx;
+  uint32                           membership_report_tx;
+  uint32                           membership_report_total_rx; 
+  uint32                           membership_report_valid_rx;  
+  uint32                           membership_report_invalid_rx; 
+  uint32                           membership_report_dropped_rx;
 
-  ptin_Group_Record_Statistics_t  group_record;
+  ptin_Group_Record_Statistics_t   group_record;
 } ptin_IGMPv3_Statistics_t;
 
+#if 0
 typedef struct
 {
   /*Here for historical reasons*/
@@ -273,7 +274,7 @@ typedef struct
 //ptin_Query_Statistics_t   mldquery;/*Variable respecting Query*/  
 
 } ptin_MGMD_Statistics_t;
-
+#endif
 
 typedef struct
 {
@@ -282,33 +283,14 @@ typedef struct
 
   uint32 active_groups;
   uint32 active_clients;
+ 
+  uint32 igmp_dropped_rx;
+  uint32 igmp_invalid_rx;
 
-  uint32 igmp_sent;
-  uint32 igmp_tx_failed;
-  uint32 igmp_intercepted;
-  uint32 igmp_dropped;
-  uint32 igmp_received_valid;
-  uint32 igmp_received_invalid;
-
-  //IGMPv2 only
-  uint32 joins_sent;
-  uint32 joins_received_success;
-  uint32 joins_received_failed;
-  uint32 leaves_sent;
-  uint32 leaves_received;
-
-  //IGMPv3 only
-  uint32 membership_report_v3;
-
-  //New Fields
+  ptin_IGMPv2_Statistics_t  igmpv2;/*Variable respecting IGMPv2*/
   ptin_IGMPv3_Statistics_t  igmpv3;    //Variable respecting IGMPv3
   ptin_Query_Statistics_t   igmpquery; //Variable respecting Query
 
-  //IGMPv2 Queries
-  uint32 general_queries_sent;
-  uint32 general_queries_received;
-  uint32 specific_queries_sent;
-  uint32 specific_queries_received;
 } ptin_IGMP_Statistics_t;/*To be replaced with ptin_MGMD_Statistics_t in a short future*/
 
 

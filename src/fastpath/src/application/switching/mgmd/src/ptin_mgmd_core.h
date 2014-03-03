@@ -26,7 +26,7 @@
 #ifndef SNOOPING_H
 #define SNOOPING_H
 
-#include "avl_api.h"
+#include "ptin_mgmd_avl_api.h"
 #include "ptin_timer_api.h"
 #include "ptin_mgmd_querier.h"
 #include "ptin_mgmd_features.h"
@@ -477,27 +477,27 @@ typedef struct mgmdIpv6PseudoHdr_s
 /* Place holder for the snooped IGMP/MLD MCAST Control Packet */
 typedef struct mgmdSnoopControlPkt_s
 {
-  mgmd_cb_t     *cbHandle;
-  uint32            portId;                   
-  uint32            serviceId;
-  uchar8            family;                   
-  uchar8            destMac[PTIN_MAC_ADDR_LEN];
-  uint32            client_idx;               
-  uchar8            msgType;
-  ptin_mgmd_inet_addr_t  srcAddr;
-  ptin_mgmd_inet_addr_t  destAddr;
-  uchar8            *ip_payload;
-  uint32            ip_payload_length;
-  uchar8            tosByte;
-  char8             routerAlert;
-  uchar8            payLoad[PTIN_MGMD_MAX_FRAME_SIZE];
-  uint32            length;                  
-} mgmdSnoopControlPkt_t; 
+  mgmd_cb_t              *cbHandle;
+  uint32                  portId;                   
+  uint32                  serviceId;
+  uchar8                  family;                   
+//uchar8                  destMac[PTIN_MAC_ADDR_LEN];
+  uint32                  clientId;               
+  uchar8                  msgType;
+  ptin_mgmd_inet_addr_t   srcAddr;
+  ptin_mgmd_inet_addr_t   destAddr;  
+  uchar8                  tosByte;
+  char8                   routerAlert;
+  uchar8                  framePayload[PTIN_MGMD_MAX_FRAME_SIZE];//IP
+  uint32                  frameLength;//IP                  
+  uchar8                 *ipPayload;//IGMP/MLD
+  uint32                  ipPayloadLength;//IGMP/MLD
+} ptinMgmdControlPkt_t; 
 
 RC_t ptin_mgmd_packet_process(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId);
-RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket);
-RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket);
-RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket);
+RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket);
+RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket);
+RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket);
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData);
 RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData);

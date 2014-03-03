@@ -16,8 +16,7 @@
 #include "ptin_mgmd_statistics.h"
 #include "ptin_utils_inet_addr_api.h"
 #include "ptin_mgmd_db.h"
-#include "snooping_ptin_defs.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 #include <string.h>
 
@@ -206,26 +205,26 @@ RC_t ptin_mgmd_ctrl_clientstats_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     response.activeGroups                       = stats.active_groups;
     response.activeClients                      = stats.active_clients;
 
-    response.igmpTx                             = stats.joins_sent                   +
-                                                  stats.leaves_sent                  +
+    response.igmpTx                             = stats.igmpv2.join_tx               +
+                                                  stats.igmpv2.leave_tx              +
                                                   stats.igmpv3.membership_report_tx  +
                                                   stats.igmpquery.general_query_tx   +
                                                   stats.igmpquery.group_query_tx     +
                                                   stats.igmpquery.source_query_tx;
 
     response.igmpValidRx                        = stats.igmpv3.membership_report_valid_rx  +
-                                                  stats.leaves_received                    +
-                                                  stats.joins_received_success             +
+                                                  stats.igmpv2.leave_valid_rx              +
+                                                  stats.igmpv2.join_valid_rx               +
                                                   stats.igmpquery.general_query_valid_rx   +
                                                   stats.igmpquery.group_query_valid_rx     +
                                                   stats.igmpquery.source_query_valid_rx;
 
-    response.igmpInvalidRx                      = stats.igmp_received_invalid                +
-                                                  stats.joins_received_failed                +
+    response.igmpInvalidRx                      = stats.igmp_invalid_rx                +
+                                                  stats.igmpv2.join_invalid_rx               +
                                                   stats.igmpv3.membership_report_invalid_rx  +
                                                   stats.igmpquery.generic_query_invalid_rx;
 
-    response.igmpDroppedRx                      = stats.igmp_dropped                         +
+    response.igmpDroppedRx                      = stats.igmp_dropped_rx                         +
                                                   stats.igmpv3.membership_report_dropped_rx  +
                                                   stats.igmpquery.generic_query_dropped_rx;
 
@@ -233,11 +232,11 @@ RC_t ptin_mgmd_ctrl_clientstats_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
                                                   response.igmpInvalidRx  +
                                                   response.igmpDroppedRx;
 
-    response.v2.joinTx                          = stats.joins_sent;
-    response.v2.joinValidRx                     = stats.joins_received_success;
-    response.v2.joinInvalidRx                   = stats.joins_received_failed;
-    response.v2.leaveTx                         = stats.leaves_sent;
-    response.v2.leaveValidRx                    = stats.leaves_received;
+    response.v2.joinTx                          = stats.igmpv2.join_tx;
+    response.v2.joinValidRx                     = stats.igmpv2.join_valid_rx;
+    response.v2.joinInvalidRx                   = stats.igmpv2.join_invalid_rx;
+    response.v2.leaveTx                         = stats.igmpv2.leave_tx;
+    response.v2.leaveValidRx                    = stats.igmpv2.leave_valid_rx;
 
     response.v3.membershipReportTx              = stats.igmpv3.membership_report_tx;
     response.v3.membershipReportValidRx         = stats.igmpv3.membership_report_valid_rx;
@@ -341,26 +340,26 @@ RC_t ptin_mgmd_ctrl_intfstats_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     response.activeGroups                       = stats.active_groups;
     response.activeClients                      = stats.active_clients;
 
-    response.igmpTx                             = stats.joins_sent                   +
-                                                  stats.leaves_sent                  +
+    response.igmpTx                             = stats.igmpv2.join_tx               +
+                                                  stats.igmpv2.leave_tx              +
                                                   stats.igmpv3.membership_report_tx  +
                                                   stats.igmpquery.general_query_tx   +
                                                   stats.igmpquery.group_query_tx     +
                                                   stats.igmpquery.source_query_tx;
 
     response.igmpValidRx                        = stats.igmpv3.membership_report_valid_rx  +
-                                                  stats.leaves_received                    +
-                                                  stats.joins_received_success             +
+                                                  stats.igmpv2.leave_valid_rx              +
+                                                  stats.igmpv2.join_valid_rx               +
                                                   stats.igmpquery.general_query_valid_rx   +
                                                   stats.igmpquery.group_query_valid_rx     +
                                                   stats.igmpquery.source_query_valid_rx;
 
-    response.igmpInvalidRx                      = stats.igmp_received_invalid                +
-                                                  stats.joins_received_failed                +
+    response.igmpInvalidRx                      = stats.igmp_invalid_rx                +
+                                                  stats.igmpv2.join_invalid_rx               +
                                                   stats.igmpv3.membership_report_invalid_rx  +
                                                   stats.igmpquery.generic_query_invalid_rx;
 
-    response.igmpDroppedRx                      = stats.igmp_dropped                         +
+    response.igmpDroppedRx                      = stats.igmp_dropped_rx                         +
                                                   stats.igmpv3.membership_report_dropped_rx  +
                                                   stats.igmpquery.generic_query_dropped_rx;
 
@@ -368,11 +367,11 @@ RC_t ptin_mgmd_ctrl_intfstats_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
                                                   response.igmpInvalidRx  +
                                                   response.igmpDroppedRx;
 
-    response.v2.joinTx                          = stats.joins_sent;
-    response.v2.joinValidRx                     = stats.joins_received_success;
-    response.v2.joinInvalidRx                   = stats.joins_received_failed;
-    response.v2.leaveTx                         = stats.leaves_sent;
-    response.v2.leaveValidRx                    = stats.leaves_received;
+    response.v2.joinTx                          = stats.igmpv2.join_tx;
+    response.v2.joinValidRx                     = stats.igmpv2.join_valid_rx;
+    response.v2.joinInvalidRx                   = stats.igmpv2.join_invalid_rx;
+    response.v2.leaveTx                         = stats.igmpv2.leave_tx;
+    response.v2.leaveValidRx                    = stats.igmpv2.leave_valid_rx;
 
     response.v3.membershipReportTx              = stats.igmpv3.membership_report_tx;
     response.v3.membershipReportValidRx         = stats.igmpv3.membership_report_valid_rx;

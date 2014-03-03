@@ -24,7 +24,7 @@
 #ifdef _COMPILE_AS_BINARY_ //All methods in this file should not be compiled if we are compiling as a lib
 
 #include "ptin_mgmd_service_api.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 #include "snooping_ptin_defs.h"
 
 #include <string.h>
@@ -72,17 +72,17 @@ RC_t ptin_mgmd_port_getType(uint32 serviceId, uint32 portId, ptin_mgmd_port_type
  * 
  * @param serviceId  : Service Identifier
  * @param portId     : Port Identifier
- * @param clientList : Client bitmap (with size PTIN_MGMD_CLIENT_BITMAP_SIZE) 
+ * @param clientList : Client bitmap
  * 
  * @return RC_t 
  *  
  * @notes: none 
  */
-RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, uint8 *clientList)
+RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList)
 {
   _UNUSED_(serviceId);
   _UNUSED_(portId);
-  memset(clientList, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
+  memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
   return SUCCESS; 
 }
  

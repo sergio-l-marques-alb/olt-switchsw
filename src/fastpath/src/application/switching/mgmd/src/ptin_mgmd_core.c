@@ -21,12 +21,11 @@
 * @end
 *
 **********************************************************************/
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_util.h"
 
 #include "ptin_mgmd_db.h"
-#include "snooping_ptin_defs.h"
-#include "logger.h" 
+#include "ptin_mgmd_logger.h" 
 #include "ptin_mgmd_osapi.h"
 #include "ptin_mgmd_features.h"
 
@@ -58,19 +57,21 @@ ptin_IgmpProxyCfg_t igmpGlobalCfg;
 
 static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
 
-static RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket);
+static RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket);
 static RC_t ptin_mgmd_mld_packet_process(void);
 
 /************************************************************************************************************/
-RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
+RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
 {
   uchar8              *buffPtr;
   uchar8              igmpType;
-  RC_t                res      = SUCCESS;
+  RC_t                rc      = SUCCESS;
   ptin_IgmpProxyCfg_t igmpCfg; 
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
-
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  }
   //Get proxy configurations
   if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
   {
@@ -78,17 +79,17 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
     return FAILURE;
   }
 
-  buffPtr = mcastPacket->ip_payload;
-  SNOOP_GET_BYTE(igmpType, buffPtr);
+  buffPtr = mcastPacket->ipPayload;
+  PTIN_MGMD_GET_BYTE(igmpType, buffPtr);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMP Type:[0x%X] NetworkVersion:[%u] ClientVersion:[%u]", igmpType, igmpCfg.networkVersion, igmpCfg.clientVersion);
-  SNOOP_UNUSED_PARAM(buffPtr);  
+  PTIN_MGMD_UNUSED_PARAM(buffPtr);  
 
   //Validate total length value
-  if ((igmpType == PTIN_IGMP_V3_MEMBERSHIP_REPORT && mcastPacket->length < IGMP_V3_PKT_MIN_LENGTH) ||
-      ((igmpType == PTIN_IGMP_MEMBERSHIP_QUERY  || igmpType == PTIN_IGMP_V2_MEMBERSHIP_REPORT || igmpType == PTIN_IGMP_V1_MEMBERSHIP_REPORT) && (mcastPacket->length < IGMP_PKT_MIN_LENGTH)))
+  if ((igmpType == PTIN_IGMP_V3_MEMBERSHIP_REPORT && mcastPacket->ipPayloadLength < IGMP_V3_PKT_MIN_LENGTH) ||
+      ((igmpType == PTIN_IGMP_MEMBERSHIP_QUERY  || igmpType == PTIN_IGMP_V2_MEMBERSHIP_REPORT || igmpType == PTIN_IGMP_V1_MEMBERSHIP_REPORT) && (mcastPacket->ipPayloadLength < IGMP_PKT_MIN_LENGTH)))
   {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket->ip_payload[0], SNOOP_STAT_FIELD_INVALID_RX));
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Invalid IGMP header length[%u]", mcastPacket->length);
+    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket->ipPayload[0], SNOOP_STAT_FIELD_INVALID_RX));
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Invalid IGMP header length[%u]", mcastPacket->ipPayloadLength);
     return FAILURE;
   }
 
@@ -106,26 +107,27 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
   //Process the IGMP message
   switch (igmpType)
   {
-    case PTIN_IGMP_MEMBERSHIP_QUERY:
-      if (igmpCfg.networkVersion==2)
-      {
-        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERY: sId=%u intIfNum=%u, client_idx=%u", mcastPacket->serviceId, mcastPacket->portId, mcastPacket->client_idx);                                  
+    case PTIN_IGMP_MEMBERSHIP_QUERY:     
+      if(igmpCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
+      { 
+        mcastPacket->ipPayloadLength=IGMP_PKT_MIN_LENGTH;//Truncate the IGMP packet to IGMPv2                   
       }
-      else if (igmpCfg.networkVersion==3)
-      {
-        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: sId=%u intIfNum=%u, client_idx=%u", mcastPacket->serviceId, mcastPacket->portId, mcastPacket->client_idx);          
-      }
-      res = ptinMgmdSrcSpecificMembershipQueryProcess(mcastPacket);
+      rc = ptinMgmdSrcSpecificMembershipQueryProcess(mcastPacket);
       break;
 
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
-      res = ptinMgmdMembershipReportV3Process(mcastPacket);
+      if (igmpCfg.clientVersion!=PTIN_IGMP_VERSION_3)//Drop the packet
+      { 
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3: Silently ignored...we are configured to operate at IGMPv2 only!");
+        rc=ERROR;//We are configured to operate at IGMPv2               
+      }
+      rc = ptinMgmdMembershipReportV3Process(mcastPacket);         
       break;
 
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT: //Should we support these?
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_LEAVE_GROUP:
-      res = ptinMgmdMembershipReportV2Process(mcastPacket);
+      rc = ptinMgmdMembershipReportV2Process(mcastPacket);
       break; 
 
     default:
@@ -133,8 +135,11 @@ RC_t ptin_mgmd_igmp_packet_process(mgmdSnoopControlPkt_t *mcastPacket)
       break;
   }              
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
-  return res;
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+  return rc;
 }
 
 RC_t ptin_mgmd_mld_packet_process(void)
@@ -239,39 +244,42 @@ static int32  ptinMgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_cod
 * @end
 *
 *************************************************************************/
-static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, mgmdSnoopControlPkt_t *mcastPacket)
+static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloadLength, ptinMgmdControlPkt_t *mcastPacket)
 {
   uint32        ipHdrLen;  
   ptin_mgmd_ipHeader_t ip_header;
   uchar8        *startPtr;
   uchar8        *buffPtr;
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  }
 
-  memset(mcastPacket->payLoad, 0x00, PTIN_MGMD_EVENT_PACKET_DATA_SIZE_MAX * sizeof(uchar8));
-  memcpy(mcastPacket->payLoad, payLoad, payloadLength);
-  mcastPacket->length = payloadLength;
-  buffPtr             = payLoad;
+  memset(mcastPacket->framePayload, 0x00, PTIN_MGMD_EVENT_PACKET_DATA_SIZE_MAX * sizeof(uchar8));
+  memcpy(mcastPacket->framePayload, framePayload, framePayloadLength);
+  mcastPacket->frameLength = framePayloadLength;
+  buffPtr             = framePayload;
   mcastPacket->family  = PTIN_MGMD_AF_INET;
   startPtr            = buffPtr;
 
-  if (mcastPacket->length < PTIN_IP_HDR_LEN + MGMD_IGMPv1v2_HEADER_LENGTH)
+  if (mcastPacket->frameLength < PTIN_IP_HDR_LEN + MGMD_IGMPv1v2_HEADER_LENGTH)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Packet length too small [%u]", mcastPacket->length);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet: Packet length too small [%u]", mcastPacket->frameLength);
     return FAILURE;
   }
   
   //Parse IP header
-  SNOOP_GET_BYTE(ip_header.iph_versLen, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_tos, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_len, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_ident, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_flags_frag, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_ttl, buffPtr);
-  SNOOP_GET_BYTE(ip_header.iph_prot, buffPtr);
-  SNOOP_GET_SHORT(ip_header.iph_csum, buffPtr);
-  SNOOP_GET_ADDR(&ip_header.iph_src, buffPtr);
-  SNOOP_GET_ADDR(&ip_header.iph_dst, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_versLen, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_tos, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_len, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_ident, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_flags_frag, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_ttl, buffPtr);
+  PTIN_MGMD_GET_BYTE(ip_header.iph_prot, buffPtr);
+  PTIN_MGMD_GET_SHORT(ip_header.iph_csum, buffPtr);
+  PTIN_MGMD_GET_ADDR(&ip_header.iph_src, buffPtr);
+  PTIN_MGMD_GET_ADDR(&ip_header.iph_dst, buffPtr);
 
   //Required as per RFC 3376
   if (ip_header.iph_ttl != PTIN_TTL_VALID_VALUE)
@@ -297,7 +305,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
   }
 
   buffPtr += (ipHdrLen - PTIN_IP_HDR_LEN);
-  mcastPacket->ip_payload = buffPtr;    
+  mcastPacket->ipPayload = buffPtr;    
 
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ip_header.iph_src, &(mcastPacket->srcAddr));
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ip_header.iph_dst, &(mcastPacket->destAddr));
@@ -334,7 +342,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Received an Invalid packet: [%u]",mcastPacket->msgType);      
     return FAILURE;
   }
-  mcastPacket->ip_payload_length = ip_header.iph_len - ipHdrLen;
+  mcastPacket->ipPayloadLength = ip_header.iph_len - ipHdrLen;
 
   //Validate IP header checksum
   if (ptinMgmdCheckSum((ushort16 *)startPtr, ipHdrLen, 0) != 0)
@@ -343,14 +351,17 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
     return FAILURE;
   }
 
-   /* Get Snoop Control Block */
+   /* Get Mgmd Control Block */
   if ((mcastPacket->cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting pMgmdCB");
     return FAILURE;
   }
   
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
   return SUCCESS;
 }
 
@@ -371,7 +382,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *payLoad, uint32 payloadLength, m
 * @end
 *
 *************************************************************************/
-static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, mgmdSnoopControlPkt_t *mcastPacket)
+static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, ptinMgmdControlPkt_t *mcastPacket)
 {
   _UNUSED_(payLoad);
   _UNUSED_(payloadLength);
@@ -507,17 +518,16 @@ static RC_t ptin_mgmd_mld_packet_parse(uchar8 *payLoad, uint32 payloadLength, mg
 *********************************************************************/
 RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId)
 {
-  static mgmdSnoopControlPkt_t mcastPacket;
-  RC_t                         res         = SUCCESS;
+  static ptinMgmdControlPkt_t mcastPacket;
+  RC_t                         rc         = SUCCESS;
   uchar8                       version; 
   ptin_mgmd_externalapi_t      externalApi;
   ptin_mgmd_port_type_t        portType;
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
-
-  //If advanced debugging is enabled, dump packet in output
   if(ptin_mgmd_extendedDebug)
   {
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  //If advanced debugging is enabled, dump packet in output  
     uint32 i;
     printf("Rx (%u bytes):\n", payloadLength);
     for (i=0; i<payloadLength; ++i)
@@ -562,38 +572,43 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     }
   }
 
-  memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
+  memset(&mcastPacket, 0x00, sizeof(ptinMgmdControlPkt_t));
   mcastPacket.portId      = portId;
   mcastPacket.serviceId   = serviceId;
-  mcastPacket.client_idx  = clientId;  
+  mcastPacket.clientId  = clientId;  
 
   //Parse and process the IGMP/MLD packet
   version=((payload[0]&0xf0)>>4);
   if(version == PTIN_IP_VERSION) 
   {
-    if ( (res=ptin_mgmd_igmp_packet_parse(payload, payloadLength, &mcastPacket)) != SUCCESS)
+    if ( (rc=ptin_mgmd_igmp_packet_parse(payload, payloadLength, &mcastPacket)) != SUCCESS)
     {
-      if (mcastPacket.ip_payload!=PTIN_NULLPTR)
+      if (mcastPacket.ipPayload!=PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket.ip_payload[0], SNOOP_STAT_FIELD_DROPPED_RX));
+        ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0], SNOOP_STAT_FIELD_DROPPED_RX));
       }
       else
       {
-        ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
       }
-
-      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+      if(ptin_mgmd_extendedDebug)
+      {
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+      }
       return SUCCESS;
     }
     
-    res = ptin_mgmd_igmp_packet_process(&mcastPacket);
+    rc = ptin_mgmd_igmp_packet_process(&mcastPacket);
   } 
   else if(version == PTIN_IPv6_VERSION)
   {
-    res = ptin_mgmd_mld_packet_parse(payload, payloadLength, &mcastPacket);
-    res = ptin_mgmd_mld_packet_process();
+    rc = ptin_mgmd_mld_packet_parse(payload, payloadLength, &mcastPacket);
+    rc = ptin_mgmd_mld_packet_process();
 
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    if(ptin_mgmd_extendedDebug)
+    {
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    }
     return SUCCESS;
   }
   else
@@ -602,21 +617,24 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return SUCCESS;
   }
 
-  if (res==SUCCESS)
+  if (rc==SUCCESS)
   {
-    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket.ip_payload[0],SNOOP_STAT_FIELD_VALID_RX));
+    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0],SNOOP_STAT_FIELD_VALID_RX));
   }
-  else if (res==FAILURE)
+  else if (rc==FAILURE)
   {
-    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket.ip_payload[0],SNOOP_STAT_FIELD_INVALID_RX));
+    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0],SNOOP_STAT_FIELD_INVALID_RX));
   }
   else
   {
-    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.client_idx, ptinMgmdPacketType2IGMPStatField(mcastPacket.ip_payload[0],SNOOP_STAT_FIELD_DROPPED_RX));
+    ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0],SNOOP_STAT_FIELD_DROPPED_RX));
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
-  return res;
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+  return rc;
 }
 
 /*********************************************************************
@@ -633,7 +651,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
 * @end
 *
 *********************************************************************/
-RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
+RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket)
 {
   mgmd_eb_t              *pMgmdEB;
   ptin_mgmd_port_type_t   portType;
@@ -654,7 +672,10 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   ptin_mgmd_inet_addr_t        groupAddr, sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]     = {};
   ptin_mgmd_externalapi_t externalApi; 
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  }
 
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
@@ -670,7 +691,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
   }
 
    /* Set pointer to IGMP message */
-  dataPtr = mcastPacket->ip_payload;
+  dataPtr = mcastPacket->ipPayload;
 
   if ((pMgmdEB= mgmdEBGet())== PTIN_NULLPTR)
   {
@@ -686,28 +707,28 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
 
   if (mcastPacket->family == PTIN_MGMD_AF_INET) /* IGMP Message */
   {
-    SNOOP_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
-    SNOOP_GET_BYTE(maxRespCode, dataPtr);   /* Max Response Code - 8 Bits IGMP*/
-    SNOOP_GET_SHORT(recdChecksum, dataPtr); /* Checksum */
-    SNOOP_GET_ADDR(&ipv4Addr, dataPtr);     /* Group Address */
+    PTIN_MGMD_GET_BYTE(byteVal, dataPtr);       /* Version/Type */
+    PTIN_MGMD_GET_BYTE(maxRespCode, dataPtr);   /* Max Response Code - 8 Bits IGMP*/
+    PTIN_MGMD_GET_SHORT(recdChecksum, dataPtr); /* Checksum */
+    PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);     /* Group Address */
 
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Dst Addr:[%s], Group Addr:[%s]", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr,debug_buf), ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf2));
 
-    if (mcastPacket->ip_payload==PTIN_NULLPTR ||  mcastPacket->ip_payload_length==0)
+    if (mcastPacket->ipPayload==PTIN_NULLPTR ||  mcastPacket->ipPayloadLength==0)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Either the IP payload is a null pointer or the ip payload length is 0");
       return ERROR;      
     }
 
-    if (mcastPacket->ip_payload_length > MGMD_IGMPv1v2_HEADER_LENGTH)
+    if (mcastPacket->ipPayloadLength > MGMD_IGMPv1v2_HEADER_LENGTH)
     {
 #ifdef PTIN_MGMD_ROUTER_ALERT_CHECK
       if (mcastPacket->cbHandle->snoopCfgData->igmpv3_tos_rtr_alert_check == TRUE)
       {
         if (mcastPacket->tosByte != PTIN_TOS_VALID_VALUE)
         {
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX);
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX);
           PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Packet rec'd with TOS invalid, packet silently discarded");
           return FAILURE;
         }
@@ -720,7 +741,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       }
 #endif
 
-      SNOOP_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
+      PTIN_MGMD_GET_BYTE(byteVal, dataPtr);  /*Resv+SFlag+QRV - 4 bits + 1 bit + 3 bits*/   
       robustnessVariable = byteVal & 0x07;    
       if (robustnessVariable<PTIN_MIN_ROBUSTNESS_VARIABLE)
       {
@@ -728,25 +749,33 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         return FAILURE;
       }
 
-      SNOOP_GET_BYTE(byteVal, dataPtr);       /* QQIC */
-      SNOOP_GET_SHORT(noOfSources, dataPtr);  /* Number of sources */
+      PTIN_MGMD_GET_BYTE(byteVal, dataPtr);       /* QQIC */
+      PTIN_MGMD_GET_SHORT(noOfSources, dataPtr);  /* Number of sources */
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Robustness:[%u], QQIC:[%u], noOfSources:[%u]", robustnessVariable, byteVal, noOfSources);
-      SNOOP_UNUSED_PARAM(dataPtr);
+      PTIN_MGMD_UNUSED_PARAM(dataPtr);
 
-      if (mcastPacket->ip_payload_length != (MGMD_IGMPV3_HEADER_MIN_LENGTH + noOfSources * sizeof(ptin_mgmd_in_addr_t)))
+      if (mcastPacket->ipPayloadLength != (MGMD_IGMPV3_HEADER_MIN_LENGTH + noOfSources * sizeof(ptin_mgmd_in_addr_t)))
       {
-        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length %u, packet silently discarded", mcastPacket->ip_payload_length);
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length %u, packet silently discarded", mcastPacket->ipPayloadLength);
         return FAILURE;
       }
       incomingVersion = PTIN_IGMP_VERSION_3;
+
+      //Switch interface compatibility mode
+      if(mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2 && 
+         ptin_mgmd_proxycmtimer_isRunning(&mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId])==PTIN_MGMD_FALSE)      
+      {
+        //If we are here, it means that we were configured to operate at IGMPv3.
+        mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V3;        
+      }   
     }
     else 
     {
       if (maxRespCode == 0)
       {
-        if (mcastPacket->ip_payload_length != MGMD_IGMPv1v2_HEADER_LENGTH)
+        if (mcastPacket->ipPayloadLength != MGMD_IGMPv1v2_HEADER_LENGTH)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv1 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv1 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ipPayloadLength);
           return FAILURE;
         }
         incomingVersion = PTIN_IGMP_VERSION_1;   
@@ -756,9 +785,9 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
       }
       else
       {
-        if (mcastPacket->ip_payload_length != MGMD_IGMPv1v2_HEADER_LENGTH)
+        if (mcastPacket->ipPayloadLength != MGMD_IGMPv1v2_HEADER_LENGTH)
         {
-          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ip_payload_length);
+          PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length: %u, packet silently discarded", mcastPacket->ipPayloadLength);
           return FAILURE;
         }
   #ifdef PTIN_MGMD_ROUTER_ALERT_CHECK
@@ -776,9 +805,15 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
         
       //Switch proxy interface compatibility mode
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting compatibility mode to IGMPv2 on service [%u]",mcastPacket->serviceId);
-      mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V2;    
-      ptin_mgmd_proxycmtimer_start(mcastPacket->serviceId);
-     
+      mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V2;  
+      if(igmpGlobalCfg.networkVersion==PTIN_IGMP_VERSION_3)
+      {
+        ptin_mgmd_proxycmtimer_start(mcastPacket->serviceId);
+      }
+      else
+      {
+        ptin_mgmd_proxycmtimer_stop(&mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId]);
+      }
     }     
   }/* End IGMP pkt check */
 #if 0//Snooping
@@ -1069,7 +1104,7 @@ RC_t ptinMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacke
     {
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
       {
-        SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
+        PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[sourceIdx]);
         if (ptin_mgmd_inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[sourceIdx])!=SUCCESS)
         {
@@ -1290,7 +1325,7 @@ uint8 ptinMgmdRecordType2IGMPStatField(uint8 recordType,uint8 fieldType)
 * @end
 *
 *****************************************************************************/
-RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
+RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket)
 {
   ptin_mgmd_port_type_t     portType;
   uchar8                   *dataPtr;
@@ -1318,11 +1353,11 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   ptin_mgmd_externalapi_t   externalApi; 
   mgmd_eb_t                *pMgmdEB;
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"{");
+  
 
   memset(&sourceList, 0x00, sizeof(sourceList));
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Membership_Report_v3 type:[0x%X] serviceId:[%u] portId:[%u] clientId:[%u]", mcastPacket->ip_payload[0], mcastPacket->serviceId, mcastPacket->portId, mcastPacket->client_idx);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Membership_Report_v3 type:[0x%X] serviceId:[%u] portId:[%u] clientId:[%u]", mcastPacket->ipPayload[0], mcastPacket->serviceId, mcastPacket->portId, mcastPacket->clientId);
 
   //Get configurations
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
@@ -1358,8 +1393,8 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   //Move dataPtr to the 'Number of Group Records' field (6 bytes offset)
-  dataPtr = mcastPacket->ip_payload + 6;
-  SNOOP_GET_SHORT(noOfGroups, dataPtr);
+  dataPtr = mcastPacket->ipPayload + 6;
+  PTIN_MGMD_GET_SHORT(noOfGroups, dataPtr);
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Number of Group records [%u]", noOfGroups);
 
   //We need to fix this in the near future: since it can be used to prevent DOS attacks
@@ -1370,7 +1405,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   //Check if it is a malformed packet
-  if ((uint32)(dataPtr - mcastPacket->ip_payload) > mcastPacket->ip_payload_length)
+  if ((uint32)(dataPtr - mcastPacket->ipPayload) > mcastPacket->ipPayloadLength)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Malformed packet");
     return FAILURE;
@@ -1380,18 +1415,18 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   {
     ptin_mgmd_inet_addr_t groupAddr = {0}; 
 
-    SNOOP_GET_BYTE(recType, dataPtr); //Record type    
+    PTIN_MGMD_GET_BYTE(recType, dataPtr); //Record type    
       
-    SNOOP_GET_BYTE(auxDataLen, dataPtr);   //AuxData Len
-    SNOOP_GET_SHORT(noOfSources, dataPtr); //Number of sources 
-    SNOOP_GET_ADDR(&ipv4Addr, dataPtr);    //Multicast Address
+    PTIN_MGMD_GET_BYTE(auxDataLen, dataPtr);   //AuxData Len
+    PTIN_MGMD_GET_SHORT(noOfSources, dataPtr); //Number of sources 
+    PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);    //Multicast Address
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &groupAddr);    
     
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Group Record: recordType:[%u] auxDataLen:[%u] numberOfSources:[%u] groupAddr:[%s]", recType,auxDataLen, noOfSources, ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf));
 
     if (recType==0 || recType>=MGMD_GROUP_REPORT_TYPE_MAX)
     {
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX);
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX);
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Unknown group record type [%u]", recType);
       return SUCCESS;
     }
@@ -1400,7 +1435,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
     if (noOfSources==0 && (recType==PTIN_MGMD_ALLOW_NEW_SOURCES || recType==PTIN_MGMD_BLOCK_OLD_SOURCES))
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Received a group record type:[%u] without any source address. Silently discarded.", recType);
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX));
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX));
       return SUCCESS;
     }
 
@@ -1414,7 +1449,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       --noOfGroups;
       /* Point to the next record */                
       dataPtr += (noOfSources)*4+(auxDataLen * 4);             
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
       continue;
 #else
       recTypeAux=recType;//Saving Record Type to be used when incrementing the counters          
@@ -1454,7 +1489,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       for (i=0, srcIdx=0; i<noOfSources; ++i)
       {
         memset(&sourceList[i], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
-        SNOOP_GET_ADDR(&ipv4Addr, dataPtr);
+        PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[srcIdx]);
 
         //If the white-list filtering is enabled, we must ensure that this is a valid channel
@@ -1477,7 +1512,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         //However, if in the future we decide to just continue to the next source, we have to ensure that the INVALID counter only increments once for the group-record
         if (ptin_mgmd_inetIpAddressValidityCheck(PTIN_MGMD_AF_INET,&sourceList[i])!=SUCCESS)
         {
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX)); 
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX)); 
           PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid packet: Invalid Source IP Address [%s]", ptin_mgmd_inetAddrPrint(&sourceList[srcIdx], debug_buf));
           return FAILURE;
         }
@@ -1492,7 +1527,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         if( (0 != noOfSources) && (0 == validSources) )
         {
           dataPtr += (noOfSources)*4+(auxDataLen*4);             
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
           continue;
         }
 
@@ -1500,7 +1535,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         if(validSources != noOfSources)
         {
           noOfSources = validSources;
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX)); 
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_INVALID_RX)); 
         }
       }
     }
@@ -1516,7 +1551,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         --noOfGroups;
         /* Point to the next record */                
         dataPtr += (auxDataLen * 4);             
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
         continue;
       }
 
@@ -1526,7 +1561,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         if (ptin_mgmd_avlTreeCount(&pMgmdEB->snoopPTinL3AvlTree)<PTIN_MGMD_MAX_GROUPS)
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add new group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
           return ERROR;          
          }
         else
@@ -1546,7 +1581,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       }
       if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(serviceId, &groupAddr, AVL_EXACT)))
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
         return ERROR;
       }
@@ -1572,7 +1607,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         --noOfGroups;
         /* Point to the next record */                
         dataPtr += (auxDataLen * 4);     
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
         continue;
       }
     }
@@ -1593,14 +1628,14 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
     {
       if ( (interfacePtr=ptinMgmdProxyInterfaceAdd(serviceId)) == PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX));          
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX));          
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyInterfaceAdd()");
         return ERROR;
       }
      
       if ((groupPtr=ptinMgmdGroupRecordAdd(interfacePtr, recTypeAux, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, &newEntry))==PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return ERROR;
       }
@@ -1611,6 +1646,13 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
     {
       firstGroupPtr=groupPtr;
     }
+
+    //Switch interface compatibility mode
+    if(snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2 &&  
+     ptin_mgmd_routercmtimer_isRunning(&snoopEntry->interfaces[mcastPacket->portId].groupCMTimer)==PTIN_MGMD_FALSE) 
+    {
+      snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.compatibilityMode=PTIN_MGMD_COMPATIBILITY_V3;      
+    }  
     
     switch (recType)
     {
@@ -1624,7 +1666,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         break;
 #else //We assume the behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
         //Once a Is_In{S} is equal to Allow_New_Source{S}. We use the same routine to process both.
-        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, noOfSources, sourceList,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportAllowProcess()");              
         }
@@ -1642,7 +1684,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         break;
 #else//We assume the same behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
        //Is_Ex{S} -> To_Ex{0} = Join(G)       
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, 0, PTIN_NULLPTR,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");              
         }
@@ -1651,7 +1693,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       }
     case PTIN_MGMD_CHANGE_TO_INCLUDE_MODE:
       {            
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToIncludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, noOfSources, sourceList,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToIncludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");              
         }
@@ -1667,7 +1709,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         break;
 #else  //We assume the behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
        //To_Ex{S} -> To_Ex{0} = Join(G)
-        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, 0, PTIN_NULLPTR,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");              
         }
@@ -1676,7 +1718,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       }
     case PTIN_MGMD_ALLOW_NEW_SOURCES:
       {            
-        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, noOfSources, sourceList,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportAllowProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportAllowProcess()");              
         }
@@ -1684,7 +1726,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       }
     case PTIN_MGMD_BLOCK_OLD_SOURCES:
       {            
-        if (SUCCESS != (rc=ptinMgmdMembershipReportBlockProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, noOfSources, sourceList,&noOfRecords, groupPtr)))
+        if (SUCCESS != (rc=ptinMgmdMembershipReportBlockProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList,&noOfRecords, groupPtr)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportBlockProcess()");
         }
@@ -1698,7 +1740,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
 
     if (rc!=SUCCESS)
     {
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX));         
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX));         
 
       if (newEntry==TRUE && ptinMgmdGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, recTypeAux)!=SUCCESS)
       {
@@ -1708,7 +1750,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
       return rc;
     }
     else
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_VALID_RX)); 
 
 
 
@@ -1747,7 +1789,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
 
     if (flagNewGroup==TRUE && snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients>0)
     {
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx,SNOOP_STAT_FIELD_ACTIVE_GROUPS);
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId,SNOOP_STAT_FIELD_ACTIVE_GROUPS);
       flagNewGroup=FALSE;
       if (flagAddClient==FALSE)
         flagAddClient=TRUE;
@@ -1763,7 +1805,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
         LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removing interface entry serviceId:u%  portId:%u", mcastPacket->serviceId, mcastPacket->portId);
       }
 #endif
-      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx,SNOOP_STAT_FIELD_ACTIVE_GROUPS);
+      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId,SNOOP_STAT_FIELD_ACTIVE_GROUPS);
     }
     else if (numberOfClients<snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients)
     {
@@ -1792,10 +1834,10 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
   if (flagAddClient!=flagRemoveClient)
   {
     if (flagAddClient==TRUE)
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx,SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId,SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
     else
-      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx,SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
-  }  
+      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId,SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
+  }
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"}");
   return SUCCESS;
@@ -1816,7 +1858,7 @@ RC_t ptinMgmdMembershipReportV3Process(mgmdSnoopControlPkt_t *mcastPacket)
 * @end
 *
 *****************************************************************************/
-RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
+RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket)
 {
   ptin_mgmd_port_type_t     portType;
   uchar8                    *dataPtr;
@@ -1834,8 +1876,8 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   ptin_mgmd_externalapi_t   externalApi; 
   uint8                     recordType=0;                     
 
-  igmpType = mcastPacket->ip_payload[0];
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Membership_Report_v2 type:[0x%X] serviceId:[%u] portId:[%u] clientId:[%u]", igmpType, mcastPacket->serviceId, mcastPacket->portId, mcastPacket->client_idx);
+  igmpType = mcastPacket->ipPayload[0];
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Membership_Report_v2 type:[0x%X] serviceId:[%u] portId:[%u] clientId:[%u]", igmpType, mcastPacket->serviceId, mcastPacket->portId, mcastPacket->clientId);
 
   //Get configurations
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
@@ -1858,8 +1900,8 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   //Validate destination address (224.0.0.2 for Leave reports; group address for others)
-  dataPtr = mcastPacket->ip_payload + 4;
-  SNOOP_GET_ADDR(&groupAddr, dataPtr);
+  dataPtr = mcastPacket->ipPayload + 4;
+  PTIN_MGMD_GET_ADDR(&groupAddr, dataPtr);
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipDstAddr);
   if(PTIN_IGMP_V2_LEAVE_GROUP == igmpType)
   {
@@ -1879,7 +1921,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   //Check if it is a malformed packet
-  if ((uint32)(dataPtr - mcastPacket->ip_payload) > mcastPacket->ip_payload_length)
+  if ((uint32)(dataPtr - mcastPacket->ipPayload) > mcastPacket->ipPayloadLength)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Malformed packet");
     return FAILURE;
@@ -1904,18 +1946,18 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
       numberOfClients = snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients;
       if ((interfacePtr = ptinMgmdProxyInterfaceAdd(mcastPacket->serviceId)) == PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyInterfaceAdd()");
         return ERROR;
       }
       if ((groupRecordPtr = ptinMgmdGroupRecordAdd(interfacePtr, recordType, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, &newEntry)) == PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return ERROR;
       }
 
-      if (SUCCESS != (rc = ptinMgmdMembershipReportToIncludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, 0, PTIN_NULLPTR, &noOfRecords, groupRecordPtr)))
+      if (SUCCESS != (rc = ptinMgmdMembershipReportToIncludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &noOfRecords, groupRecordPtr)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");
       }
@@ -1933,7 +1975,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
       {
         if (SUCCESS != ptinMgmdL3EntryAdd(mcastPacket->serviceId, &mcastPacket->destAddr))
         {
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add new group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
           return ERROR;
         }
@@ -1944,7 +1986,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
         }
         if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
         {
-          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+          ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
           return ERROR;
         }
@@ -1962,18 +2004,18 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
 
       if ((interfacePtr = ptinMgmdProxyInterfaceAdd(mcastPacket->serviceId)) == PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyInterfaceAdd()");
         return ERROR;
       }
       if ((groupRecordPtr = ptinMgmdGroupRecordAdd(interfacePtr, recordType, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, &newEntry)) == PTIN_NULLPTR)
       {
-        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+        ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return ERROR;
       }
 
-      if (SUCCESS != (rc = ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->client_idx, 0, PTIN_NULLPTR, &noOfRecords, groupRecordPtr)))
+      if (SUCCESS != (rc = ptinMgmdMembershipReportToExcludeProcess(snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &noOfRecords, groupRecordPtr)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");
       }
@@ -1990,7 +2032,14 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   {
     snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
     snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.groupKey=snoopEntry->snoopPTinL3InfoDataKey;
-    ptin_mgmd_routercmtimer_start(snoopEntry, mcastPacket->portId);
+    if(igmpGlobalCfg.clientVersion==PTIN_IGMP_VERSION_3)
+    {
+      ptin_mgmd_routercmtimer_start(snoopEntry, mcastPacket->portId);
+    }
+    else
+    {
+      ptin_mgmd_routercmtimer_stop(&snoopEntry->interfaces[mcastPacket->portId].groupCMTimer);
+    }
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting compatibility mode to v%u", snoopEntry->interfaces[mcastPacket->portId].groupCMTimer.compatibilityMode);
   }
   else
@@ -2000,7 +2049,7 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   
   if (rc != SUCCESS)
   {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
+    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
     if (newEntry==TRUE && ptinMgmdGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, recordType) != SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");
@@ -2010,18 +2059,18 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   }
   else 
   {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_VALID_RX));
+    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_VALID_RX));
   }
 
   if (flagNewGroup == TRUE && snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients > 0)
   {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
+    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
     flagNewGroup = FALSE;
     if (flagAddClient == FALSE) flagAddClient = TRUE;
   }
   else if (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients == 0)
   {
-    ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
+    ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
   }
   else if (numberOfClients < snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients)
   {
@@ -2054,11 +2103,11 @@ RC_t ptinMgmdMembershipReportV2Process(mgmdSnoopControlPkt_t *mcastPacket)
   {
     if (flagAddClient == TRUE)
     {
-      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
+      ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
     }
     else
     {
-      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->client_idx, SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
+      ptin_mgmd_stat_decrement_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_CLIENTS);
     }
   }
 
@@ -2070,11 +2119,17 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
   RC_t res = SUCCESS;
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  }
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Context [Length:%u ServiceId:%u PortId:%u ClientId:%u]", eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
   res = ptin_mgmd_packet_process(eventData->payload, eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extendedDebug)
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
   return res;
 }
 

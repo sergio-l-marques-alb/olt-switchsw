@@ -163,9 +163,11 @@ RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_
   return SUCCESS;
 }
 
-RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, uint8 *clientList)
+RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+
+  memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
 
   return SUCCESS;
 }
@@ -175,6 +177,12 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t msg;
+
+  /*
+   * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
+   * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
+   * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
+   */
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u]", serviceId, portId, groupAddr, sourceAddr, isStatic);
 
@@ -206,6 +214,12 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t msg;
 
+  /*
+   * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
+   * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
+   * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
+   */
+
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
 
   /* Get Snoop Control Block */
@@ -223,7 +237,7 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
   msg.groupAddress = sourceAddr;
   msg.cbHandle     = pSnoopCB;
 
-  /* Send a Port_Open event to the FP */
+  /* Send a Port_Close event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a new port on the switch");
   rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
@@ -290,7 +304,6 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
   //Send packet
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Sending portId:%u mcastRootVlan:%u packet:%p packetLength:%u family:%u clientId:%u", portId, mcastRootVlan, packet, packetLength, family, clientId);
   snoopPacketSend(portId, mcastRootVlan, 0, packet, packetLength, family, clientId);
 
   return SUCCESS;

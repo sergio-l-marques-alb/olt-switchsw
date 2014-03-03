@@ -27,6 +27,8 @@ typedef struct
 typedef struct mgmdPTinWhitelistData_s
 {
   mgmdPtinWhitelistDataKey_t  key;
+  uint8 groupMask;
+  uint8 sourceMask;
 
   void                        *next;
 } mgmdPTinWhitelistData_t;

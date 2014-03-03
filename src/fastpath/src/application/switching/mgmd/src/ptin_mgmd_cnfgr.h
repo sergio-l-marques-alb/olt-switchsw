@@ -14,7 +14,7 @@
 #define _PTIN_MGMD_CNFGR_H
 
 #include "ptin_mgmd_defs.h"
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 
 RC_t       ptinMgmdEBInit(void);
 RC_t       ptinMgmdCBInit(uint32 cbIndex, uchar8 family);

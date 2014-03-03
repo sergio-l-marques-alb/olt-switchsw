@@ -13,8 +13,8 @@
 
 #include "ptin_mgmd_querytimer.h"
 #include "ptin_mgmd_eventqueue.h"
-#include "logger.h"
-#include "snooping.h"
+#include "ptin_mgmd_logger.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_db.h"
 
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;

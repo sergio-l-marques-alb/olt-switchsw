@@ -48,12 +48,12 @@ typedef struct
   RC_t (*portList_get)   (uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
   RC_t (*portType_get)   (uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);
                          
-  RC_t (*clientList_get) (uint32 serviceId, uint32 portId, uint8 *clientList);
+  RC_t (*clientList_get) (uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
                          
   RC_t (*port_open)      (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
   RC_t (*port_close)     (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
                          
-  RC_t (*tx_packet)      (uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+  RC_t (*tx_packet)      (uchar8 *framePayload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
 } ptin_mgmd_externalapi_t;
 
 

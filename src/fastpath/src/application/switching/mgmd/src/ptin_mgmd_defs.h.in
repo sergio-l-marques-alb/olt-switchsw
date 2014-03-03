@@ -85,6 +85,8 @@
   #define _UNUSED_(x) (void) (x)
 #endif
 
+#define PTIN_MGMD_CTRL_TIMEOUT        @PTIN_MGMD_PLATFORM_CTRL_TIMEOUT@
+
 #define PTIN_MGMD_STACK_SIZE          @PTIN_MGMD_PLATFORM_STACK_SIZE@
 #define PTIN_MGMD_MAX_CHANNELS        @PTIN_MGMD_PLATFORM_MAX_CHANNELS@  
 #define PTIN_MGMD_MAX_WHITELIST       @PTIN_MGMD_PLATFORM_MAX_WHITELIST@  
@@ -96,6 +98,10 @@
 #define PTIN_MGMD_MAX_SERVICE_ID      @PTIN_MGMD_PLATFORM_MAX_SERVICE_ID@
 #define PTIN_MGMD_MAX_FRAME_SIZE      @PTIN_MGMD_PLATFORM_MAX_FRAME_SIZE@
 
+#define PTIN_MGMD_DISABLE 0
+#define PTIN_MGMD_ENABLE 1
+
+#define PTIN_MGMD_MAX_CB_INSTANCES 1 //Only IGMP is supported, if MLD is supported set this value to 2
 
 #ifdef PTIN_MGMD_GENERAL_QUERY_PER_INTERFACE  
 #define PTIN_MAX_QUERIES       1//For the moment we consider that we have a a Global Query per System and not Query per Interface, therefore 
@@ -108,13 +114,11 @@
 
 #define PTIN_MGMD_CLIENT_BITMAP_SIZE ((PTIN_MGMD_MAX_CLIENTS-1)/PTIN_MGMD_CLIENT_MASK_UNIT+1)  /* Maximum number of clientes per source */
 
-
-#define PTIN_MGMD_DISABLE 0
-#define PTIN_MGMD_ENABLE 1
-
-#define PTIN_MGMD_MAX_CB_INSTANCES 1 //Only IGMP is supported, if MLD is supported set this value to 2
-
-
+/* Client Mask*/
+typedef struct
+{
+  uchar8   value[PTIN_MGMD_CLIENT_BITMAP_SIZE];
+} PTIN_MGMD_CLIENT_MASK_t;
 
 typedef enum
 {
@@ -123,7 +127,6 @@ typedef enum
   PTIN_MGMD_PORT_TYPE_ROOT,
   PTIN_MGMD_PORT_TYPE_MAX//This field should be the last one. Please do not remove it
 } ptin_mgmd_port_type_t;
-
 
 
 /* Number of entries per mask byte */

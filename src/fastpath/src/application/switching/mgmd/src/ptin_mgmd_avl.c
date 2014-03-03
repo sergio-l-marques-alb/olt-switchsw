@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "avl_api.h"
-#include "avl.h"
+#include "ptin_mgmd_avl_api.h"
+#include "ptin_mgmd_avl.h"
 #include "ptin_mgmd_osapi.h"
 #include "ptin_mgmd_defs.h"
 

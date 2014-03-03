@@ -8,9 +8,8 @@
 #ifndef PTIN_MGMD_DB_H_
 #define PTIN_MGMD_DB_H_
 
-#include "snooping.h"
+#include "ptin_mgmd_core.h"
 #include "ptin_mgmd_util.h"
-#include "snooping_ptin_defs.h"
 #include "ptin_mgmd_statistics.h"
 
 /******************************************************************************

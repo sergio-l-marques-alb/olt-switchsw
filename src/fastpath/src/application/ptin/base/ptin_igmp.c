@@ -2153,8 +2153,12 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
       return L7_FAILURE;
     }
 
-    /* Extract Interface Number */
-    ptin_intf_ptintf2intIfNum(&client->ptin_intf,&intIfNum);
+    /* Validate interface */
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
 
     for(clientId=0; clientId<(sizeof(clientGroup->client_bmp_list)*8); ++clientId)
     {
@@ -8737,7 +8741,7 @@ static L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
  */
 L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
 {
-  L7_uint32                       ptin_port;
+  L7_uint32                       intIfNum;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
@@ -8751,14 +8755,14 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Request port statistics to MGMD */
-  mgmdStatsReqMsg.portId = ptin_port;
+  mgmdStatsReqMsg.portId = intIfNum;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -8790,7 +8794,7 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
  */
 L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
 {
-  L7_uint ptin_port;
+  L7_uint                         intIfNum       = 0;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
@@ -8804,14 +8808,14 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "ptin_intf %u/%u is invalid", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Request evc statistics to MGMD */
-  mgmdStatsReqMsg.portId    = ptin_port;
+  mgmdStatsReqMsg.portId    = intIfNum;
   mgmdStatsReqMsg.serviceId = evc_idx;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
@@ -8853,7 +8857,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
   PTIN_MGMD_CTRL_STATS_REQUEST_t  mgmdStatsReqMsg = {0};
   PTIN_MGMD_CTRL_STATS_RESPONSE_t mgmdStatsResMsg = {0};
   L7_uint32                       clientId;
-  L7_uint32                       ptin_port;
+  L7_uint32                       intIfNum;
 
   memset(statistics, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
 
@@ -8884,9 +8888,9 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2port(&client->ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "ptin_intf %u/%u is invalid", client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -8895,7 +8899,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
     if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
     {
       /* Request client statistics to MGMD */
-      mgmdStatsReqMsg.portId   = ptin_port;
+      mgmdStatsReqMsg.portId   = intIfNum;
       mgmdStatsReqMsg.clientId = clientId;
       ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
       ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
@@ -8972,7 +8976,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
  */
 L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
 {
-  L7_uint32                       ptin_port;
+  L7_uint32                       intIfNum;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
@@ -8985,14 +8989,14 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
     return L7_FAILURE;
   }
 
-  /* Convert interface to ptin_port */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  mgmdStatsReqMsg.portId = ptin_port;
+  mgmdStatsReqMsg.portId = intIfNum;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -9137,7 +9141,7 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
   PTIN_MGMD_EVENT_CTRL_t         ctrlResMsg      = {0};
   PTIN_MGMD_CTRL_STATS_REQUEST_t mgmdStatsReqMsg = {0};
   L7_uint32                      clientId;
-  L7_uint32                      ptin_port;
+  L7_uint32                      intIfNum;
 
   /* Validate and rearrange clientId info */
   if (ptin_igmp_clientId_convert(evc_idx, client) != L7_SUCCESS)
@@ -9166,9 +9170,9 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2port(&client->ptin_intf, &ptin_port)!=L7_SUCCESS || ptin_port>=PTIN_SYSTEM_N_INTERF)
+  if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "ptin_intf %u/%u is invalid", client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -9177,7 +9181,7 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
     if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
     {
       /* Request client statistics to MGMD */
-      mgmdStatsReqMsg.portId   = ptin_port;
+      mgmdStatsReqMsg.portId   = intIfNum;
       mgmdStatsReqMsg.clientId = clientId;
       ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
       ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);

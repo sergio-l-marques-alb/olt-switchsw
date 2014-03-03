@@ -13,7 +13,7 @@
 
 #include "ptin_fifo_api.h"
 #include "ptin_mgmd_osapi.h"
-#include "logger.h"
+#include "ptin_mgmd_logger.h"
 
 typedef struct 
 {
