@@ -244,10 +244,10 @@ static int32  ptin_mgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_co
 *************************************************************************/
 static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloadLength, ptinMgmdControlPkt_t *mcastPacket)
 {
-  uint32        ipHdrLen;  
+  uint32               ipHdrLen;  
   ptin_mgmd_ipHeader_t ip_header;
-  uchar8        *startPtr;
-  uchar8        *buffPtr;
+  uchar8               *startPtr;
+  uchar8               *buffPtr;
 
   if(ptin_mgmd_extendedDebug)
   {
@@ -272,7 +272,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
   memcpy(mcastPacket->framePayload, framePayload, framePayloadLength);
   mcastPacket->frameLength = framePayloadLength;
   buffPtr             = framePayload;
-  mcastPacket->family  = PTIN_MGMD_AF_INET;
+  mcastPacket->family = PTIN_MGMD_AF_INET;
   startPtr            = buffPtr;
 
   if (mcastPacket->frameLength < PTIN_IP_HDR_LEN + MGMD_IGMPv1v2_HEADER_LENGTH)
@@ -578,8 +578,8 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   }
 
   memset(&mcastPacket, 0x00, sizeof(ptinMgmdControlPkt_t));
-  mcastPacket.portId      = portId;
-  mcastPacket.serviceId   = serviceId;
+  mcastPacket.portId    = portId;
+  mcastPacket.serviceId = serviceId;
   mcastPacket.clientId  = clientId;  
 
   /* Get Mgmd Executation Block */
@@ -2406,6 +2406,16 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
       ptin_mgmd_measurement_timer_dump();
       break;
     }
+    case PTIN_MGMD_EVENT_DEBUG_MEMORY_REPORT_DUMP:
+    {
+      ptin_mgmd_memoryReport();
+      break;
+    }
+    case PTIN_MGMD_EVENT_DEBUG_GENERAL_QUERY_DUMP:
+    {
+      ptinMgmdDumpGeneralQuery();
+      break;
+    }    
     default:
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown request received");

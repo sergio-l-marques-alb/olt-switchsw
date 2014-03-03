@@ -19,7 +19,7 @@
 typedef struct mgmdPtinQuerierTimerKey_s
 {  
   uint8                         family; //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
-  mgmdPtinQuerierInfoDataKey_t querierKey;
+  ptinMgmdQuerierInfoDataKey_t querierKey;
 }mgmdPtinQuerierTimerKey_t ;
 
 
@@ -29,10 +29,10 @@ typedef struct mgmdPtinQuerierTimerKey_s
 RC_t   ptin_mgmd_querytimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
 RC_t   ptin_mgmd_querytimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);
 RC_t   ptin_mgmd_querytimer_deinit(PTIN_MGMD_TIMER_t timerPtr);
-RC_t   ptin_mgmd_querytimer_start(mgmdPTinL3Querytimer_t* timer, uint32 timeout, void* queryData, uint8 family);
-RC_t   ptin_mgmd_querytimer_stop(mgmdPTinL3Querytimer_t *pTimer);
-uint32 ptin_mgmd_querytimer_timeleft(mgmdPTinL3Querytimer_t *pTimer);
-BOOL   ptin_mgmd_querytimer_isRunning(mgmdPTinL3Querytimer_t *pTimer);
+RC_t   ptin_mgmd_querytimer_start(ptinMgmdL3Querytimer_t* timer, uint32 timeout, void* queryData, uint8 family);
+RC_t   ptin_mgmd_querytimer_stop(ptinMgmdL3Querytimer_t *pTimer);
+uint32 ptin_mgmd_querytimer_timeleft(ptinMgmdL3Querytimer_t *pTimer);
+BOOL   ptin_mgmd_querytimer_isRunning(ptinMgmdL3Querytimer_t *pTimer);
 
 RC_t   ptin_mgmd_event_querytimer(mgmdPtinQuerierTimerKey_t* eventData);
 

@@ -24,13 +24,13 @@ static RC_t  ptin_mgmd_querytimer_init(PTIN_MGMD_TIMER_t *timerPtr);
 
 void* ptin_mgmd_querytimer_callback(void *param)
 {
-  mgmdPTinL3Querytimer_t*  timerData = (mgmdPTinL3Querytimer_t*) param;
+  ptinMgmdL3Querytimer_t*  timerData = (ptinMgmdL3Querytimer_t*) param;
   PTIN_MGMD_EVENT_t        eventMsg = {0};
 
   mgmdPtinQuerierTimerKey_t querierTimerKey;
   ptin_IgmpProxyCfg_t igmpGlobalCfg;
   uint32 timeout;
-  mgmdPTinQuerierInfoData_t*  queryData=(mgmdPTinQuerierInfoData_t*) timerData->queryData;
+  ptinMgmdQuerierInfoData_t*  queryData=(ptinMgmdQuerierInfoData_t*) timerData->queryData;
 
   if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg)!=SUCCESS)
   {
@@ -124,11 +124,11 @@ RC_t ptin_mgmd_querytimer_init(PTIN_MGMD_TIMER_t *timerPtr)
 }
 
 
-RC_t ptin_mgmd_querytimer_start(mgmdPTinL3Querytimer_t* timer, uint32 timeout, void* queryData, uint8 family)
+RC_t ptin_mgmd_querytimer_start(ptinMgmdL3Querytimer_t* timer, uint32 timeout, void* queryData, uint8 family)
 {
   RC_t ret = SUCCESS;
 
-  mgmdPTinQuerierInfoData_t *pMgmdEntry;
+  ptinMgmdQuerierInfoData_t *pMgmdEntry;
 
   if(queryData==PTIN_NULLPTR)
   {
@@ -136,7 +136,7 @@ RC_t ptin_mgmd_querytimer_start(mgmdPTinL3Querytimer_t* timer, uint32 timeout, v
     return FAILURE;
   }
 
-  pMgmdEntry=(mgmdPTinQuerierInfoData_t*) queryData;
+  pMgmdEntry=(ptinMgmdQuerierInfoData_t*) queryData;
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ServiceId:%u family:%u", pMgmdEntry->key.serviceId,family);
 
   if (PTIN_NULLPTR == __controlBlock)
@@ -169,7 +169,7 @@ RC_t ptin_mgmd_querytimer_start(mgmdPTinL3Querytimer_t* timer, uint32 timeout, v
 }
 
 
-RC_t ptin_mgmd_querytimer_stop(mgmdPTinL3Querytimer_t *timer)
+RC_t ptin_mgmd_querytimer_stop(ptinMgmdL3Querytimer_t *timer)
 {
   if(&(timer->newTimerHandle)!=PTIN_NULLPTR)
   {
@@ -188,7 +188,7 @@ RC_t ptin_mgmd_querytimer_stop(mgmdPTinL3Querytimer_t *timer)
 }
 
 
-uint32 ptin_mgmd_querytimer_timeleft(mgmdPTinL3Querytimer_t *timer)
+uint32 ptin_mgmd_querytimer_timeleft(ptinMgmdL3Querytimer_t *timer)
 {
   if (FALSE == ptin_mgmd_timer_isRunning(timer->newTimerHandle))
   {
@@ -199,7 +199,7 @@ uint32 ptin_mgmd_querytimer_timeleft(mgmdPTinL3Querytimer_t *timer)
 }
 
 
-BOOL ptin_mgmd_querytimer_isRunning(mgmdPTinL3Querytimer_t *timer)
+BOOL ptin_mgmd_querytimer_isRunning(ptinMgmdL3Querytimer_t *timer)
 {
   return ptin_mgmd_timer_isRunning(timer->newTimerHandle);
 }
@@ -207,7 +207,7 @@ BOOL ptin_mgmd_querytimer_isRunning(mgmdPTinL3Querytimer_t *timer)
 RC_t ptin_mgmd_event_querytimer(mgmdPtinQuerierTimerKey_t* eventData)
 {
   mgmdPtinQuerierTimerKey_t querierTimerKey; 
-  mgmdPTinQuerierInfoData_t *mgmdPTinQuerierPtr;
+  ptinMgmdQuerierInfoData_t *mgmdPTinQuerierPtr;
 
   if (eventData==PTIN_NULLPTR)
   {

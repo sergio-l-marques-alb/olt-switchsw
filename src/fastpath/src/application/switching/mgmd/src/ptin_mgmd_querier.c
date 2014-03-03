@@ -704,8 +704,8 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 *********************************************************************/
 RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
 {
-  mgmdPTinQuerierInfoData_t     *entry;
-  mgmdPtinQuerierInfoDataKey_t  key;
+  ptinMgmdQuerierInfoData_t     *entry;
+  ptinMgmdQuerierInfoDataKey_t  key;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t ctrlData;
   mgmd_cb_t                     *pMgmdCB;
   ptin_IgmpProxyCfg_t           igmpCfg;
@@ -728,11 +728,11 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
   }
 
   /* Run all cells in AVL tree */    
-  memset(&key, 0x00, sizeof(mgmdPtinQuerierInfoDataKey_t));
+  memset(&key, 0x00, sizeof(ptinMgmdQuerierInfoDataKey_t));
   while ( (entry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, AVL_NEXT)) != PTIN_NULLPTR )
   {
     /* Prepare next key */
-    memcpy(&key, &entry->key, sizeof(mgmdPtinQuerierInfoDataKey_t));
+    memcpy(&key, &entry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u with state %u", entry->key.serviceId, entry->active);
 
@@ -779,7 +779,7 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
 {
   RC_t                          rc = SUCCESS;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t data; 
-  mgmdPTinQuerierInfoData_t     *pMgmdEntry=PTIN_NULLPTR;
+  ptinMgmdQuerierInfoData_t     *pMgmdEntry=PTIN_NULLPTR;
   BOOL                       newEntry;
 
   if (eventData==PTIN_NULLPTR || eventData->data==NULL ||  eventData->dataLength!=sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))

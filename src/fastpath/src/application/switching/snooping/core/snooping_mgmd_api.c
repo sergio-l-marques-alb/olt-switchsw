@@ -42,7 +42,7 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .port_open      = snooping_port_open,
   .port_close     = snooping_port_close,
   .tx_packet      = snooping_tx_packet,
-  };
+};
 
 RC_t snooping_igmp_admin_set(uint8 admin)
 {

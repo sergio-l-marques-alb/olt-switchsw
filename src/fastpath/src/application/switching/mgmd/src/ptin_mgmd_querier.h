@@ -24,12 +24,12 @@
 /************************************************************************************************************/
 /*Structures required for configuration Parameters of MGMD Querier*/
 
-typedef struct mgmdPtinQuerierInfoDataKey_s
+typedef struct ptinMgmdQuerierInfoDataKey_s
 {  
   uint16      serviceId; //Service Identifier  
-}mgmdPtinQuerierInfoDataKey_t ;
+}ptinMgmdQuerierInfoDataKey_t ;
 
-typedef struct mgmdPTinL3Querytimer_s
+typedef struct ptinMgmdL3Querytimer_s
 {
   uint8         family; //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
   uchar8        startUpQueryCount;//This value has only meaning if the startUpQueryFlag is active. In the remaining cases it is a don't care
@@ -37,37 +37,37 @@ typedef struct mgmdPTinL3Querytimer_s
 
   PTIN_MGMD_TIMER_t  newTimerHandle;
 
-}mgmdPTinL3Querytimer_t;
+}ptinMgmdL3Querytimer_t;
 
 
 #ifdef PTIN_MGMD_GENERAL_QUERY_PER_INTERFACE  
-typedef struct mgmdPTinQuerierInterface_s
+typedef struct ptinMgmdQuerierInterface_s
 {
   uchar8                        family;//PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
   uchar8                        version;//SNOOP_IGMP_VERSION_3 | SNOOP_MLD_VERSION_2
   uchar8                        queryType;//Do we need this field?
   uchar8                        startUpQueryFlag;//True if Query is in the StartUp Mode          
 
-  mgmdPTinL3Querytimer_t        queryTimer;
+  ptinMgmdL3Querytimer_t        queryTimer;
   
   ptin_IgmpV3QuerierCfg_t       *querierCfg;//Since we currently only support one global configuration per Query we save here the pointer to the configuration
                                   //In the future we need to decide, wheter we use this struct for querier, or if we define a new one.
                                             
   uchar8                        active;//TRUE if the general querier is active on this interface
   
-} mgmdPTinQuerierInterface_t;
+} ptinMgmdQuerierInterface_t;
 #endif
 
-typedef struct mgmdPTinQuerierInfoData_s
+typedef struct ptinMgmdQuerierInfoData_s
 {
-  mgmdPtinQuerierInfoDataKey_t  key;//Service Identifier             
+  ptinMgmdQuerierInfoDataKey_t  key;//Service Identifier             
 
 #if 0
   mgmdPTinL3Querytimer_t        interfaces[PTIN_MAX_LEAF_PORTS]; //For the moment we consider that we have a a Global Query per System and not a Query per Interface
 #else
-  uchar8                        queryType;//Do we need this field?
+//uchar8                        queryType;//Do we need this field?
   uchar8                        startUpQueryFlag;//True if Query is in the StartUp Mode 
-  mgmdPTinL3Querytimer_t        querierTimer;  
+  ptinMgmdL3Querytimer_t        querierTimer;  
 //ptin_IgmpV3QuerierCfg_t       *querierCfg;//Since we currently only support one global configuration per Query we save here the pointer to the configuration
                                   //In the future we need to decide, wheter we use this struct for querier, or if we define a new one.                                            
   uchar8                        active;//TRUE if the general querier is active 
@@ -75,7 +75,7 @@ typedef struct mgmdPTinQuerierInfoData_s
 
   void                          *next;
 
-}mgmdPTinQuerierInfoData_t;
+}ptinMgmdQuerierInfoData_t;
 //
 
 

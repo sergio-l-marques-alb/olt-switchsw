@@ -22,6 +22,7 @@
 #include "ptin_mgmd_proxytimer.h"
 #include "ptin_mgmd_routercmtimer.h"
 #include "ptin_mgmd_proxycmtimer.h"
+#include "ptin_mgmd_querytimer.h"
 #include "ptin_mgmd_avl_api.h"
 #include "ptin_mgmd_service_api.h"
 #include "ptin_mgmd_cnfgr.h"
@@ -1338,6 +1339,43 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
   return SUCCESS;       
 }
 
+/*************************************************************************
+ * @purpose Dump Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdDumpGeneralQuery(void)
+{
+  ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
+  ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
+  mgmd_cb_t                     *pMgmdCB;
+
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+  
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(snoopPTinL3InfoDataKey_t));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
+  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
+
+    printf("-----------------------------------------\n");
+    printf("General Query ServiceId:%u\n", avlTreeEntry->key.serviceId);  
+    printf("      |Active          :%s\n",avlTreeEntry->active?"Yes":"No");
+    printf("      |Timer Running   :%s\n", ptin_mgmd_querytimer_isRunning(&avlTreeEntry->querierTimer)?"Yes":"No");
+    printf("      |Query Timer     :%u\n", ptin_mgmd_querytimer_timeleft(&avlTreeEntry->querierTimer));    
+    printf("      |Startup Flag    :%s\n",avlTreeEntry->startUpQueryFlag?"True":"False");  
+    printf("-----------------------------------------\n");
+    
+  }  
+}
 
 /*************************************************************************
  * @purpose Dump IGMPv3 AVL Tree
@@ -1348,8 +1386,8 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
 void ptinMgmdDumpL3AvlTree(void)
 {
   snoopPTinL3InfoData_t     *avlTreeEntry;  
-  snoopPTinL3InfoDataKey_t  avlTreeKey;
-  mgmd_eb_t                *pSnoopEB;
+  snoopPTinL3InfoDataKey_t   avlTreeKey;
+  mgmd_eb_t                 *pSnoopEB;
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {

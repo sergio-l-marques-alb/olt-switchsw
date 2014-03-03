@@ -453,7 +453,7 @@ typedef struct ptinMgmd_cb_s
   /* AVL Tree data */
   ptin_mgmd_avlTree_t       mgmdPTinQuerierAvlTree;
   ptin_mgmd_avlTreeTables_t *mgmdPTinQuerierTreeHeap;
-  mgmdPTinQuerierInfoData_t *mgmdPTinQuerierDataHeap; 
+  ptinMgmdQuerierInfoData_t *mgmdPTinQuerierDataHeap; 
 
   snoopPTinCMtimer_t        proxyCM[PTIN_MGMD_MAX_SERVICE_ID]; //proxy compatibility-mode (per service)
 }mgmd_cb_t;

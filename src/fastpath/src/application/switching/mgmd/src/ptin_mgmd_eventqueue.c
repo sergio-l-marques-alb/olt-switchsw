@@ -26,7 +26,6 @@
 
 
 static int32                rxMessageQueueId = -1;
-static uint32               maxRxEventQueueSize = 1000000;
 static PTIN_MGMD_TIMER_CB_t ctrlTimerCB;
 static PTIN_MGMD_TIMER_t    ctrlTimer;
 static pthread_t            currentThreadId;
@@ -80,9 +79,7 @@ void ptin_mgmd_sigint_handler(int sig)
 */
 RC_t ptin_mgmd_eventqueue_init(void)
 {
-#ifndef _COMPILE_AS_BINARY_
   struct msqid_ds msgQueueStats = {{0}};
-#endif //_COMPILE_AS_BINARY_
 
   //Init message queues
   if(-1 == rxMessageQueueId)
@@ -107,19 +104,20 @@ RC_t ptin_mgmd_eventqueue_init(void)
         return FAILURE;
       }
     }
-#ifndef _COMPILE_AS_BINARY_
-    if (-1 == msgctl(rxMessageQueueId, IPC_STAT, &msgQueueStats))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while obtaining rxEventQueue stats [key:%08X]", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);
-      return FAILURE;
-    }
-    msgQueueStats.msg_qbytes = maxRxEventQueueSize;
-    if (-1 == msgctl(rxMessageQueueId, IPC_SET, &msgQueueStats))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while setting rxEventQueue stats [key:%08X]", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);
-      return FAILURE;
-    }
-#endif //_COMPILE_AS_BINARY_
+  }
+
+  //Resize the message queue to the desired number of bytes
+  if (-1 == msgctl(rxMessageQueueId, IPC_STAT, &msgQueueStats))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while obtaining rxEventQueue stats [key:%08X]", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);
+    return FAILURE;
+  }
+  msgQueueStats.msg_qbytes = PTIN_MGMD_MSGQUEUE_SIZE;
+  PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting queue size to %u bytes", msgQueueStats.msg_qbytes);
+  if (-1 == msgctl(rxMessageQueueId, IPC_SET, &msgQueueStats))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while setting rxEventQueue stats [key:%08X]", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);
+    return FAILURE;
   }
 
   //Init the ctrlTimer used by sendCtrlEvent (We only need to create one timer)
@@ -290,8 +288,7 @@ RC_t ptin_mgmd_eventQueue_tx(PTIN_MGMD_EVENT_t* eventMsg)
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while creating rxEventQueue with key %08X", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);
       return FAILURE;
     }
-
-    if(msgQueueStats.msg_cbytes > (maxRxEventQueueSize*0.70))
+    if(msgQueueStats.msg_cbytes > (PTIN_MGMD_MSGQUEUE_SIZE*0.70))
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Warning: packet-event dropped to prevent buffer overflow!");
       return FAILURE;
