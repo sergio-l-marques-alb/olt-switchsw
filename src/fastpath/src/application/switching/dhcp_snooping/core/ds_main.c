@@ -3374,6 +3374,19 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
     return L7_SUCCESS;
   }
 
+  /* 
+     RFC 3046 - 2.0
+   
+     The length N of the DHCP Agent Information Option shall include all bytes of the sub-option
+     code/length/value tuples.  Since at least one sub-option must be defined, the minimum Relay
+     Agent Information length is two (2).
+  */
+  if((*(relayOffset + 1)) < DHCP_OPTION_CONTENT_OFFSET)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP Agent Information Option length [%u]", *(relayOffset + 1));
+    return L7_FAILURE;
+  }
+
   /* If the relay agent option is present but the expected or
      valid suboptions are not present, then drop the packet. */
   /* Parse the relay agent suboptions. */
