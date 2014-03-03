@@ -2,8 +2,8 @@
 #                                           #
 # FastPath Makefile for the TA48GE card     #
 #                                           #
-#	Daniel Figueira, 2013               #
-#	daniel-f-figueira@ext.ptinovacao.pt #
+#  Daniel Figueira, 2013                    #
+#  daniel-f-figueira@ext.ptinovacao.pt      #
 #                                           #
 #############################################
 
@@ -45,7 +45,7 @@ export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
 .PHONY: welcome all install clean cleanall help h kernel
 
-all: welcome
+all: welcome mgmdconfig
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -62,6 +62,9 @@ all: welcome
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
 	@echo ""
+
+mgmdconfig:
+	@sh mgmd_config_$(CARD).sh
 
 install:
 	sh ta48ge.install

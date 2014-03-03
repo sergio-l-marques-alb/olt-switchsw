@@ -91,6 +91,7 @@ stacking clean-stacking debug-stacking::
 switching clean-switching debug-switching::
 	$(checking_msg)
 	+$(create_dir)
+	+@sh $(FP_BASE)/src/application/switching/make/mgmd_compile.sh $(FP_BASE) $@
 	+$(FP_MAKE) -f $(FP_BASE)/src/application/switching/make/Makefile $(make_cmd_common)
 
 wireless clean-wireless debug-wireless::
@@ -99,7 +100,7 @@ wireless clean-wireless debug-wireless::
 	+$(FP_MAKE) -f $(FP_BASE)/src/application/wireless/make/Makefile $(make_cmd_common)
 
 # PTin added: ptin module
-ptin	clean-ptin debug-ptin::
+ptin clean-ptin debug-ptin::
 	$(checking_msg)
 	+$(create_dir)
 	+$(FP_MAKE) -f $(FP_BASE)/src/application/ptin/make/Makefile $(make_cmd_common)
