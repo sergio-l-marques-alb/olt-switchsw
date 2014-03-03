@@ -498,9 +498,9 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   
   uint32         portId; /* Loop through internal interface numbers */
   /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
-  for (portId = 0; portId < PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId < PTIN_MGMD_MAX_PORTS; portId++)
   {
-    if (PTIN_MGMD_IS_MASKBITSET(portList.value,portId))
+    if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
       ptin_mgmd_stat_increment_field(portId, serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
   }  
   
@@ -1074,7 +1074,7 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
     /*Increment IGMPv3 Stats*/
     for (portId = 1; portId < PTIN_MGMD_MAX_PORTS; portId++)
     {
-      if (PTIN_MGMD_IS_MASKBITSET(portList.value,portId))
+      if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
       {
         ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
       }
@@ -1560,7 +1560,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
       }
       for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
       {
-        if (PTIN_MGMD_IS_MASKBITSET(clientBitmap.value, clientIdx))
+        if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
         {
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
         }
@@ -1626,9 +1626,9 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
   }
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
-  for (portId = 0; portId < PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId < PTIN_MGMD_MAX_PORTS; portId++)
   {
-    if (PTIN_MGMD_IS_MASKBITSET(portList.value,portId))
+    if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
       /* Send packet */        
       ptinMgmdPacketPortSend(mcastPacket, igmp_type, portId);

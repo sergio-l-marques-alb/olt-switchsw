@@ -16,6 +16,7 @@
 #include "l3_addrdefs.h"
 #include "comm_mask.h"
 #include "ptin_evc.h"
+#include "ptin_prot_typeb.h"
 #include "snooping_util.h"
 #include "snooping_proto.h"
 #include "snooping_db.h"
@@ -32,15 +33,15 @@ static L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7
 //End Static
 
 ptin_mgmd_externalapi_t mgmd_external_api = {
-  .igmp_admin_set=snooping_igmp_admin_set,
-  .mld_admin_set=snooping_mld_admin_set,
-  .cos_set=snooping_cos_set,
-  .portList_get=snooping_portList_get,
-  .portType_get=snooping_portType_get,
-  .clientList_get=snooping_clientList_get,
-  .port_open=snooping_port_open,
-  .port_close=snooping_port_close,
-  .tx_packet=snooping_tx_packet,
+  .igmp_admin_set = snooping_igmp_admin_set,
+  .mld_admin_set  = snooping_mld_admin_set,
+  .cos_set        = snooping_cos_set,
+  .portList_get   = snooping_portList_get,
+  .portType_get   = snooping_portType_get,
+  .clientList_get = snooping_clientList_get,
+  .port_open      = snooping_port_open,
+  .port_close     = snooping_port_close,
+  .tx_packet      = snooping_tx_packet,
   };
 
 RC_t snooping_igmp_admin_set(uint8 admin)
@@ -87,8 +88,7 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
 {
   L7_INTF_MASK_t interfaceBitmap = {{0}};
   L7_uint16      mcastRootVlan;
-  L7_RC_t        res = SUCCESS;
-  L7_int32       i;
+  L7_RC_t        res = SUCCESS;  
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
 
@@ -113,6 +113,8 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
     return FAILURE;
   }
 
+#if 0
+  L7_int32       i;
   /* We need to shift the bitmap returned by FP to the left by 1 position to ensure compatibility with MGMD */
   for(i=0; i < L7_INTF_INDICES; ++i)
   {
@@ -130,7 +132,8 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
     }
 
     interfaceBitmap.value[i] = current_byte << 1;
-  }
+  } 
+#endif   
 
   if(SUCCESS != res)
   {
@@ -215,6 +218,32 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
   /* Send a Port_Open event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
   rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+//#if (PTIN_BOARD_IS_MATRIX)
+//#else
+//  ptin_prottypeb_intf_config_t protTypebIntfConfig;
+//
+//  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+//  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+//  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+//  {
+//    L7_uint32 protectionSlotId;
+//    L7_uint32 protectionIntfId;
+//    L7_uint32 protectionSlotIp = 0xC0A8C800;
+//
+//    protectionSlotId  = protTypebIntfConfig.pairSlotId;
+//    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
+//    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
+//
+//    /* Send the switch port configurations to the backup port */
+////  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_OPEN_SYNC, &((char *) &stat)[i], NULL, len) < 0)
+////  {
+////    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
+////    //return 1;
+////  }
+//
+//  }
+//#endif
 
   return rc;
 }
@@ -341,7 +370,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   else //To support sending one Membership Query Message per ONU (client_idx)
   {
-    L7_uint32             groupAddress;    
+    L7_uint32 groupAddress;    
     
     //Get Group Address
     groupAddress=*((L7_uint32*) (payload+28));   

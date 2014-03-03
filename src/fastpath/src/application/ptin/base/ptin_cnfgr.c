@@ -30,6 +30,7 @@
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
+#include "ptin_prot_typeb.h"
 #include "ptin_ssm.h"
 #include "ptin_prot_erps.h"
 #include "ptin_ipdtl0_packet.h"
@@ -372,6 +373,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize PPPoE data structures */
   ptin_pppoe_init();
+
+  /* Initialize Type-B Protection data structures */
+  ptin_prottypeb_init();
 
   /* Initialize ERPS data structures (includes semaphores and timer) */
   #ifdef PTIN_ENABLE_ERPS

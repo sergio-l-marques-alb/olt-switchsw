@@ -39,9 +39,6 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups);
 static mgmdProxyInterface_t* snoopPTinPendingReport2GeneralQuery(uint32 serviceId, BOOL *pendingReport, uint32 *timeout);
 static mgmdGroupRecord_t* snoopPTinPendingReport2GroupQuery(snoopPTinL3InfoData_t* avlTreeEntry, mgmdProxyInterface_t* interfacePtr, BOOL* pendingReport, uint32* timeout);
 
-static RC_t snoopPTinAddStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uint32 portId, uint32 clientIdx, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceAddrList, uint32 *noOfRecordsPtr, mgmdGroupRecord_t *groupPtr);
-static RC_t snoopPTinRemoveStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum, uint32 clientIdx, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceAddrList, uint32 *noOfRecordsPtr, mgmdGroupRecord_t *groupPtr);
-
 #if 0
 static RC_t mgmdSourceRecordAdd(mgmdGroupRecord_t *avlTreeEntry, ptin_inet_addr_t *sourceAddr, MGMD_GROUP_REPORT_TYPE_t  recordType,  uint16 *newSourceIdx);
 static RC_t mgmdSourceRecordFind(mgmdGroupRecord_t *avlTreeEntry, ptin_inet_addr_t *sourceAddr, uint16 *foundIdx);
@@ -81,9 +78,9 @@ RC_t snoopPTinClientAdd(snoopPTinL3InfoData_t *groupEntry,uint32 portId, snoopPT
   }
     
   /* Add the client to this source*/  
-  if(PTIN_MGMD_IS_MASKBITSET(sourcePtr->clients, clientId)==FALSE)
+  if(PTIN_MGMD_CLIENT_IS_MASKBITSET(sourcePtr->clients, clientId)==FALSE)
   {
-    PTIN_MGMD_SET_MASKBIT(sourcePtr->clients, clientId);
+    PTIN_MGMD_CLIENT_SET_MASKBIT(sourcePtr->clients, clientId);
     ++sourcePtr->numberOfClients;
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ClientIdx:%u added to this Source Addr %s, number of Clients: %u", clientId, ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr, debug_buf), sourcePtr->numberOfClients);
   }
@@ -126,9 +123,9 @@ RC_t snoopPTinClientInterfaceAdd(snoopPTinL3Interface_t *interfacePtr, uint32 cl
   }
 
   /* Add the client to this interface*/  
-  if(PTIN_MGMD_IS_MASKBITSET(interfacePtr->clients, clientIdx)==FALSE)
+  if(PTIN_MGMD_CLIENT_IS_MASKBITSET(interfacePtr->clients, clientIdx)==FALSE)
   {
-    PTIN_MGMD_SET_MASKBIT(interfacePtr->clients, clientIdx);
+    PTIN_MGMD_CLIENT_SET_MASKBIT(interfacePtr->clients, clientIdx);
     ++interfacePtr->numberOfClients;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ClientIdx:%u added to this Interface", clientIdx);
     return SUCCESS;
@@ -172,9 +169,9 @@ RC_t snoopPTinClientRemove(snoopPTinL3Source_t *sourcePtr, uint32 clientIdx)
   }
 
   /* Remove the client from this source */
-  if(PTIN_MGMD_IS_MASKBITSET(sourcePtr->clients, clientIdx)==TRUE)
+  if(PTIN_MGMD_CLIENT_IS_MASKBITSET(sourcePtr->clients, clientIdx)==TRUE)
   {
-    PTIN_MGMD_UNSET_MASKBIT(sourcePtr->clients, clientIdx);
+    PTIN_MGMD_CLIENT_UNSET_MASKBIT(sourcePtr->clients, clientIdx);
     if (sourcePtr->numberOfClients--==0)
     {
       sourcePtr->numberOfClients=0;
@@ -222,9 +219,9 @@ RC_t snoopPTinClientInterfaceRemove(snoopPTinL3Interface_t *interfacePtr, uint32
   }
 
   /* Remove the client from this interface */
-  if(PTIN_MGMD_IS_MASKBITSET(interfacePtr->clients, clientIdx)==TRUE)
+  if(PTIN_MGMD_CLIENT_IS_MASKBITSET(interfacePtr->clients, clientIdx)==TRUE)
   {
-    PTIN_MGMD_UNSET_MASKBIT(interfacePtr->clients, clientIdx);    ;
+    PTIN_MGMD_CLIENT_UNSET_MASKBIT(interfacePtr->clients, clientIdx);    ;
     if (interfacePtr->numberOfClients--==0)
     {
       interfacePtr->numberOfClients=0;
@@ -1278,7 +1275,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3Inf
   else /*To_In{0}=IGMPv2 Leave Group*/
   {
     /*If this client exists on this interface, remove the client from the clientSource bitmap and also from the clientInterface bitmap*/
-    if (PTIN_MGMD_IS_MASKBITSET(groupEntry->interfaces[portId].clients, clientId) == TRUE)
+    if (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->interfaces[portId].clients, clientId) == TRUE)
     {
       //Remove the client from any source in which it may be
       for (sourcePtr=groupEntry->interfaces[portId].firstSource, sourceId = 0; sourceId<groupEntry->interfaces[portId].numberOfSources && sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next, ++sourceId)      
@@ -1751,14 +1748,16 @@ RC_t ptinMgmdMembershipReportAllowProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoDat
       return FAILURE;
     }
         
-    //Let us verify if the clientIdx is equal to the Id of Management
-    if (SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID != portId && clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID)        
-       sourcePtr->isStatic = TRUE;
+    //Set this source to static if the root port is static or the client id of the leaf is equal to -1
+    if(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic==TRUE ||  
+       (portId!=SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID && clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID)) 
+    {
+      sourcePtr->isStatic=TRUE;
+    }
 
     //Let us check if this source was added or does not have any client. If so add this source to the group record list
     if(portId == SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID && (rc!=ALREADY_CONFIGURED || sourcePtr->numberOfClients==0) ) 
-    {  
-      
+    {        
       //New Code
       if (pMgmdEB->noOfGroupRecordsToBeSent==0)
       {
@@ -1869,40 +1868,47 @@ RC_t ptinMgmdMembershipReportBlockProcess(snoopPTinL3InfoData_t *groupEntry, uin
     while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
     {
       /* Search for this source in the current source list */
-      if ((sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR && sourcePtr->numberOfClients>0)
+      if ((sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR)
       {
-        if (portId != SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID)
+        if(sourcePtr->numberOfClients>0)
         {
-          /* Remove this client from this source */
-          if (ERROR == (rc = snoopPTinClientRemove(sourcePtr, clientId)))
+          if (portId != SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID)
           {
-            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u", clientId);
-            return FAILURE;
-          }
-
-          //Add a source to the Q(G,S)
-          if( (SUCCESS == rc) && (0 == sourcePtr->numberOfClients) )
-          {
-            if(FAILURE == (rc = ptin_mgmd_groupsourcespecifictimer_addsource(&groupEntry->snoopPTinL3InfoDataKey.groupAddr, groupEntry->snoopPTinL3InfoDataKey.serviceId, portId, sourceAddr)))
+            /* Remove this client from this source */
+            if (ERROR == (rc = snoopPTinClientRemove(sourcePtr, clientId)))
             {
-              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add source[%08X] to Q(G,S)", sourceAddr->addr.ipv4.s_addr);
+              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u", clientId);
               return FAILURE;
             }
-            if (rc==SUCCESS)
+
+            //Add a source to the Q(G,S)
+            if( (SUCCESS == rc) && (0 == sourcePtr->numberOfClients) )
             {
-              isSourceBlocked=TRUE;
+              if(FAILURE == (rc = ptin_mgmd_groupsourcespecifictimer_addsource(&groupEntry->snoopPTinL3InfoDataKey.groupAddr, groupEntry->snoopPTinL3InfoDataKey.serviceId, portId, sourceAddr)))
+              {
+                PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add source[%08X] to Q(G,S)", sourceAddr->addr.ipv4.s_addr);
+                return FAILURE;
+              }
+              if (rc==SUCCESS)
+              {
+                isSourceBlocked=TRUE;
+              }
+            }
+          }
+          else if (snoopPTinZeroSourceClients(groupEntry, sourceAddr) == TRUE)
+          {
+            /* Remove this client from this source */
+            if (ERROR == snoopPTinClientRemove(sourcePtr, clientId))
+            {
+              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u", clientId);
+              return FAILURE;
             }
           }
         }
-        else if (snoopPTinZeroSourceClients(groupEntry, sourceAddr) == TRUE)
-        {
-          /* Remove this client from this source */
-          if (ERROR == snoopPTinClientRemove(sourcePtr, clientId))
-          {
-            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client clientIdx:%u", clientId);
-            return FAILURE;
-          }
-        }
+        //Set this source to dynamic
+        if(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic==FALSE ||  
+           (portId!=SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID && clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID)) 
+          sourcePtr->isStatic=FALSE;
       }
       --noOfSources;
       sourceAddr++;
@@ -2880,134 +2886,42 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
  *
  * @return RC_t
  *************************************************************************/
-RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceAddr)
+RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceList)
 {
-  uint32                    clientIdx;
-  snoopPTinL3InfoData_t     *snoopEntry;
-  BOOL                      newEntry;
-  RC_t                      res           = SUCCESS;
-  uint32                    recordType    = PTIN_MGMD_ALLOW_NEW_SOURCES;
-  mgmdProxyInterface_t *interfacePtr = PTIN_NULLPTR;
-  mgmdGroupRecord_t     *groupPtr     = PTIN_NULLPTR;
-  uint32                    noOfRecords   = 1;
-
-
+  uint32                    clientId=PTIN_MGMD_MANAGEMENT_CLIENT_ID;
+  snoopPTinL3InfoData_t    *avlTreeEntry;
+  RC_t                      rc           = SUCCESS;
+  PTIN_MGMD_PORT_MASK_t     portList;
+  uint16                    portId;
+  ptin_mgmd_externalapi_t   externalApi;
+  mgmd_eb_t                *pMgmdEB; 
+  ptin_IgmpProxyCfg_t       igmpCfg;
+ 
   /* Argument validation */
-  if (groupAddr == PTIN_NULLPTR || (noOfSources > 0 && sourceAddr == PTIN_NULLPTR))
+  if (groupAddr == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    res = FAILURE;
+    rc = FAILURE;
   }
 
-  /* Create new entry in AVL tree for VLAN+IP if necessary */
-  if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+  if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
-    if (SUCCESS != ptinMgmdL3EntryAdd(serviceId, groupAddr))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
-      return FAILURE;
-    }
-    if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
-      return FAILURE;
-    }
-  }
-  else
-  {
-    if ((snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic == TRUE)
-        && (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic == TRUE))
-    {
-      return res;
-    }
-  }
-
-  /* If root interface is not used, initialize it */
-  if (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active == FALSE)
-  {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Initializing root interface idx: %u", SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
-    ptinMgmdInitializeInterface(snoopEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
-  }
-
-  /*Set Group as static*/
-  snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic = TRUE;
-
-  if ((interfacePtr = ptinMgmdProxyInterfaceAdd(serviceId)) == PTIN_NULLPTR)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordInterfaceAdd()");
-    return FAILURE;
-  }
-  if (noOfSources == 0)
-  {
-    recordType = PTIN_MGMD_CHANGE_TO_EXCLUDE_MODE;
-  }
-  if ((groupPtr = ptinMgmdGroupRecordAdd(interfacePtr, recordType, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, &newEntry)) == PTIN_NULLPTR)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
     return FAILURE;
   }
 
-  clientIdx = PTIN_MGMD_MANAGEMENT_CLIENT_ID;
-  res = snoopPTinAddStaticSource(snoopEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID, clientIdx, noOfSources, sourceAddr, &noOfRecords, groupPtr);
-  if (res != SUCCESS)
+  //Get proxy configurations
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Leaf interface: Failed to  snoopPTinAddStaticSource()");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
     return FAILURE;
   }
-
-  if (noOfSources == 0 || noOfRecords > 0)
+  
+   /* Get leaf ports */  
+  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)!=SUCCESS)
   {
-
-    noOfSources = 1;
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-    if (ptinMgmdScheduleReportMessage(serviceId, groupAddr, PTIN_IGMP_V3_MEMBERSHIP_REPORT, 0, FALSE, noOfRecords, groupPtr) != SUCCESS)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinReportSchedule()");
-      return FAILURE;
-    }
-  }
-  else
-  {
-    if (newEntry == TRUE)
-    {
-      if (ptinMgmdGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, recordType) != SUCCESS)
-      {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");
-        return ERROR;
-      }
-    }
-  }
-
-  return res;
-}
-
-
-/*************************************************************************
- * @purpose Add a Static Source for a Given Group
- *
- * @param   snoopEntry  AVL tree entry for the requested multicast group
- * @param   intIfNum    Number of the interface through which the report
- *                      arrived
- * @param   noOfSources Number of sources included in the Membership
- *                      Report
- * @param   sourceList  List of the sources included in the Membership
- *                      Report
- *
- * @returns SUCCESS
- * @returns FAILURE
- *
- *************************************************************************/
-static RC_t snoopPTinAddStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum, uint32 clientIdx, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceList, uint32 *noOfRecordsPtr, mgmdGroupRecord_t *groupPtr)
-{
-  RC_t                rc;
-  mgmd_eb_t          *pMgmdEB;  
-  ptin_IgmpProxyCfg_t igmpCfg;    
-
-  /* Argument validation */
-  if (avlTreeEntry == PTIN_NULLPTR || groupPtr == PTIN_NULLPTR || noOfRecordsPtr == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return FAILURE;
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
+    return ERROR;
   }
 
   /* Get Mgmd Executation Block */
@@ -3017,90 +2931,73 @@ static RC_t snoopPTinAddStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uint32
     return FAILURE;
   }
 
-  //Get proxy configurations
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
-    return FAILURE;
-  }
+  //Initialize Group Records Context
+  pMgmdEB->noOfGroupRecordsToBeSent=0;
+  pMgmdEB->interfacePtr=PTIN_NULLPTR;
+  pMgmdEB->groupRecordPtr=PTIN_NULLPTR;
+  //End Initialization
 
-  if (noOfSources == 0)
+  /* Create new entry in AVL tree for VLAN+IP if necessary */
+  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
   {
-    rc = ptinMgmdMembershipReportToExcludeProcess(pMgmdEB, avlTreeEntry, intIfNum, clientIdx, 0, PTIN_NULLPTR, &igmpCfg);
-  }
-  else
-  {
-    if (intIfNum == SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID)
+    if (SUCCESS != ptinMgmdL3EntryAdd(serviceId, groupAddr))
     {
-      rc = ptinMgmdMembershipReportAllowProcess(pMgmdEB, avlTreeEntry, intIfNum, clientIdx, noOfSources, sourceList, &igmpCfg);
-    }
-    else
-    {     
-      rc = ptinMgmdMembershipReportAllowProcess(pMgmdEB, avlTreeEntry, intIfNum, clientIdx, noOfSources, sourceList, &igmpCfg);
-    }
-  }
-
-  return rc;
-}
-
-
-/*************************************************************************
-* @purpose Remove a Static Source for a given Group
-*
-* @param   snoopEntry  AVL tree entry for the requested multicast group
-* @param   intIfNum    Number of the interface through which the report
-*                      arrived
-* @param   noOfSources Number of sources included in the Membership
-*                      Report
-* @param   sourceList  List of the sources included in the Membership
-*                      Report
-*
-* @returns SUCCESS
-* @returns FAILURE
-*
-*************************************************************************/
-static RC_t snoopPTinRemoveStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum, uint32 clientIdx, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceList, uint32 *noOfRecordsPtr, mgmdGroupRecord_t *groupPtr)
-{
-  RC_t                 rc;
-  mgmd_eb_t           *pMgmdEB;  
-  ptin_IgmpProxyCfg_t  igmpCfg;
-
-/* Argument validation */
-  if (avlTreeEntry == PTIN_NULLPTR || groupPtr == PTIN_NULLPTR || noOfRecordsPtr == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
-    return FAILURE;
-  }
-
-  //Get proxy configurations
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
-    return FAILURE;
-  }
-
-  if (noOfSources == 0)
-  {
-     /* Get Mgmd Executation Block */
-    if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting mgmdEBGet");
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
       return FAILURE;
     }
+    if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
+      return FAILURE;
+    }
+  }
 
-    rc = ptinMgmdMembershipReportToIncludeProcess(pMgmdEB, avlTreeEntry, intIfNum, clientIdx, 0, PTIN_NULLPTR, &igmpCfg);
-  }
-  else
+  for (portId = 1; portId < PTIN_MGMD_MAX_PORTS; portId++)
   {
-    if (intIfNum == SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID)
+    if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
-      rc = ptinMgmdMembershipReportBlockProcess(avlTreeEntry, intIfNum, clientIdx, noOfSources, sourceList);
-    }
-    else
-    {
-      rc = ptinMgmdMembershipReportBlockProcess(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID,  intIfNum, noOfSources, sourceList);      
+      /* If leaf interface is not used, initialize it */
+      if (avlTreeEntry->interfaces[portId].active == FALSE)
+      {        
+        rc =ptinMgmdInitializeInterface(avlTreeEntry, portId);
+        if (rc != SUCCESS)
+        {          
+          return FAILURE;
+        }      
+      }
+      /*Set Group Leaf Port  to static*/
+      avlTreeEntry->interfaces[portId].isStatic = TRUE; 
+
+      if(avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic==FALSE)
+      {
+        /*Set Group Root Port  to static*/
+        avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic = TRUE; 
+      }      
+      
+      if (noOfSources == 0)
+      {
+        rc = ptinMgmdMembershipReportToExcludeProcess(pMgmdEB, avlTreeEntry, portId, clientId, 0, PTIN_NULLPTR, &igmpCfg);
+      }
+      else
+      {   
+        rc = ptinMgmdMembershipReportAllowProcess(pMgmdEB, avlTreeEntry, portId, clientId, noOfSources, sourceList, &igmpCfg);   
+      }
+      if (rc != SUCCESS)
+      {          
+        return FAILURE;
+      }        
     }
   }
+
+  if (pMgmdEB->noOfGroupRecordsToBeSent > 0)
+  {   
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
+    if (ptinMgmdScheduleReportMessage(serviceId, groupAddr, PTIN_IGMP_V3_MEMBERSHIP_REPORT, 0, FALSE, pMgmdEB->noOfGroupRecordsToBeSent, pMgmdEB->groupRecordPtr) != SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinReportSchedule()");
+      return FAILURE;
+    }
+  } 
 
   return rc;
 }
@@ -3115,100 +3012,79 @@ static RC_t snoopPTinRemoveStaticSource(snoopPTinL3InfoData_t *avlTreeEntry, uin
  *
  * @return RC_t
  *************************************************************************/
-RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceAddr)
+RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t *sourceList)
 {
-  uint32                    clientIdx;
-  snoopPTinL3InfoData_t     *snoopEntry;
-  BOOL                      newEntry;
-  RC_t                      rc            = SUCCESS;
-  uint32                    recordType    = PTIN_MGMD_BLOCK_OLD_SOURCES;
-  mgmdProxyInterface_t *interfacePtr = PTIN_NULLPTR;
-  mgmdGroupRecord_t     *groupPtr     = PTIN_NULLPTR;
-  uint32                    noOfRecords   = 0;
+  uint32                         clientId=PTIN_MGMD_MANAGEMENT_CLIENT_ID;
+  snoopPTinL3InfoData_t         *avlTreeEntry;  
+  PTIN_MGMD_PORT_MASK_t          portList;
+  uint16                         portId;
+  ptin_mgmd_externalapi_t        externalApi;
+  ptin_IgmpProxyCfg_t            igmpCfg;
+  mgmd_eb_t                     *pMgmdEB; 
+  RC_t                           rc            = SUCCESS;
+    
 
   //Argument validation
-  if (groupAddr == PTIN_NULLPTR || (noOfSources > 0 && sourceAddr == PTIN_NULLPTR))
+  if (groupAddr == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return FAILURE;
   }
 
   //Create new entry in AVL tree for VLAN+IP if necessary
-  if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinL3EntryFind()");
     return SUCCESS;
   }
 
-  /* If root interface is  used*/
-  if (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].active == TRUE)
+  //Get proxy configurations
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
   {
-    if ((interfacePtr = ptinMgmdProxyInterfaceAdd(serviceId)) == PTIN_NULLPTR)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordInterfaceAdd()");
-      return FAILURE;
-    }
-    if (noOfSources == 0 && snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfSources == 0)
-    {
-      recordType = PTIN_MGMD_CHANGE_TO_INCLUDE_MODE;
-    }
-
-    if ((groupPtr = ptinMgmdGroupRecordAdd(interfacePtr, recordType, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, &newEntry)) == PTIN_NULLPTR)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
-      return FAILURE;
-    }
-
-    /*Set the ClientIdx as the Last One*/
-    clientIdx = PTIN_MGMD_MAX_CLIENTS - 1;
-    rc = snoopPTinRemoveStaticSource(snoopEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID, clientIdx, noOfSources, sourceAddr, &noOfRecords, groupPtr);
-    if (rc != SUCCESS)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Leaf interface: Failed to  snoopPTinRemoveStaticSource()");
-      return FAILURE;
-    }
-
-    /* If no sources remain and no clients remain, remove group*/
-    if (snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients == 0)
-    {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Removing interface");
-      rc = ptinMgmdInterfaceRemove(snoopEntry,SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
-      if (rc != SUCCESS)
-      {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Root Interface: Failed to snoopPTinInterfaceRemove()");
-        return FAILURE;
-      }
-    }
-    else
-    {
-      /*Set Group as dynamic*/
-      snoopEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic = FALSE;
-    }
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting IGMP Proxy configurations");
+    return FAILURE;
+  }
+  
+  /* Get Mgmd Executation Block */
+  if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Error getting mgmdEBGet");
+    return FAILURE;
   }
 
-  if (noOfSources == 0 || noOfRecords > 0)
+  if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
-    noOfSources = 1;
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-    if (ptinMgmdScheduleReportMessage(serviceId, groupAddr, PTIN_IGMP_V3_MEMBERSHIP_REPORT, 0, FALSE, noOfRecords, groupPtr) != SUCCESS)
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinReportSchedule()");
-      return FAILURE;
-    }
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return FAILURE;
   }
-  else
+  
+   /* Get leaf ports */  
+  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)!=SUCCESS)
   {
-    if (newEntry == TRUE)
-    {
-      if (ptinMgmdGroupRecordRemove(interfacePtr, &snoopEntry->snoopPTinL3InfoDataKey.groupAddr, recordType) != SUCCESS)
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
+    return FAILURE;
+  }
+
+  for (portId = 1; portId < PTIN_MGMD_MAX_PORTS; portId++)
+  {
+    if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+    {      
+      if (avlTreeEntry->interfaces[portId].active == TRUE && avlTreeEntry->interfaces[portId].isStatic==TRUE)
       {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordRemove()");
-        return ERROR;
+        if (noOfSources == 0)
+        {
+          rc = ptinMgmdMembershipReportToIncludeProcess(PTIN_NULLPTR, avlTreeEntry, portId, clientId, 0, PTIN_NULLPTR, &igmpCfg);
+        }
+        else
+        {
+          rc = ptinMgmdMembershipReportBlockProcess(avlTreeEntry, portId, clientId, noOfSources, sourceList);    
+        }
+        avlTreeEntry->interfaces[portId].isStatic=FALSE;        
       }
     }
   }
-
-  return SUCCESS;
+  avlTreeEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].isStatic=FALSE;
+  return rc;
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -4125,7 +4001,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
             (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE || sourcePtr->isStatic==TRUE))
         {
           //Filter by client (if requested)
-          if ((clientId == (uint32)-1) || (PTIN_MGMD_IS_MASKBITSET(sourcePtr->clients, clientId)))
+          if ((clientId == (uint32)-1) || (PTIN_MGMD_CLIENT_IS_MASKBITSET(sourcePtr->clients, clientId)))
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\t\tSource: %s", ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr, debug_buf));
 
@@ -4149,7 +4025,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
       }
 
       //Add an entry for clients that have requested this group but with no source in particular (or for PTIN_MGMD_MANAGEMENT_CLIENT_ID).
-      if (channelAdded == FALSE && ((clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID) || (PTIN_MGMD_IS_MASKBITSET(groupEntry->interfaces[portId].clients, clientId))))
+      if (channelAdded == FALSE && ((clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID) || (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->interfaces[portId].clients, clientId))))
       {
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\t\tSource: ANY_SOURCE");
 

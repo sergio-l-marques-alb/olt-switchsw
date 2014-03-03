@@ -675,7 +675,7 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
         } 
 
         //Add a new client to the response if the bit is set
-        if(TRUE == PTIN_MGMD_IS_MASKBITSET(portClientList[portId], clientId))
+        if(TRUE == PTIN_MGMD_CLIENT_IS_MASKBITSET(portClientList[portId], clientId))
         {    
           response.entryId  = entryId;
           response.portId   = portId;

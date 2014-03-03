@@ -2029,6 +2029,31 @@ L7_RC_t ptin_igmp_all_clients_flush(void)
 }
 
 /**
+ * Reset all MGMD General Queriers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_generalquerier_reset(void)
+{
+  PTIN_MGMD_EVENT_t             reqMsg       = {0};
+  PTIN_MGMD_EVENT_t             resMsg       = {0};
+  PTIN_MGMD_EVENT_CTRL_t        ctrlResMsg   = {0};
+  PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdQuerierConfigMsg = {0}; 
+
+  mgmdQuerierConfigMsg.family = PTIN_MGMD_AF_INET;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdQuerierConfigMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Response");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  return (L7_RC_t)ctrlResMsg.res;
+}
+
+/**
  * Get list of channels, starting from a specific channel index
  * 
  * @param McastEvcId         : (in) Multicast EVC id
@@ -2383,6 +2408,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 
           ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
           ++totalClientCount;
+          ++pageClientCount;
         }
       }
     } while(pageClientCount == maxResponseEntries); //While the number of clients returned equals the max number of clients per page

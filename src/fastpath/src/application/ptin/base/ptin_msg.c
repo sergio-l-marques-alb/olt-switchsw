@@ -19,6 +19,7 @@
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
+#include "ptin_prot_typeb.h"
 #include "ptin_l2.h"
 #include "ptin_fieldproc.h"
 #include "ptin_cfg.h"
@@ -176,6 +177,66 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 }
 
 /**
+ * TYPE B Protection Interface Configuration
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
+{
+  L7_RC_t                      rc;
+  L7_int                       ptin_port;
+  ptin_prottypeb_intf_config_t ptin_intfConfig;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configurations");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " slotId     = %u"   , msg->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " intfId     = %u/%u", msg->intfId.intf_type, msg->intfId.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " pairSlotId = %u"   , msg->pairSlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " pairIntfId = %u/%u", msg->pairIntfId.intf_type, msg->pairIntfId.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " intfRole   = %u"   , msg->intfRole);
+
+  memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
+
+  /* Convert intfId to intfNum */
+  if (ptin_msg_ptinPort_get(msg->intfId.intf_type, msg->intfId.intf_id, &ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid port");
+    return L7_FAILURE;
+  }
+  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.intfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    return L7_FAILURE;
+  }
+
+  /* Convert pairIntfId to intfNum */
+  if (ptin_msg_ptinPort_get(msg->pairIntfId.intf_type, msg->pairIntfId.intf_id, &ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid port");
+    return L7_FAILURE;
+  }
+  if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.pairIntfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    return L7_FAILURE;
+  }
+
+  ptin_intfConfig.pairSlotId = msg->slotId;
+  ptin_intfConfig.intfRole   = msg->intfRole;
+
+  /* Save interface configurations */
+  rc = ptin_prottypeb_intf_config_set(&ptin_intfConfig);
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * TYPE B Protection Switching
  * 
  * @param msg : (no meaning)
@@ -199,6 +260,13 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
     {
       rc = fdbFlushByPort(intIfNum);
     }
+  }
+
+  /* Reset MGMD General Querier state */
+  rc = ptin_igmp_generalquerier_reset();
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
   }
 
   if (rc!=L7_SUCCESS)
