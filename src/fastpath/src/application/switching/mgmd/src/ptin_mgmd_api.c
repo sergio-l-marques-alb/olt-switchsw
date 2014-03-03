@@ -543,7 +543,7 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_TRACE);
+  ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_ERROR);
 
   pthread_join(thread_id, &res); //Wait forever..
 

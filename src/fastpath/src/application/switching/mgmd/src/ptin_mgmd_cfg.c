@@ -25,6 +25,7 @@
 #include "ptin_mgmd_logger.h"
 #include "ptin_mgmd_cfg_api.h"
 #include "ptin_mgmd_core.h"
+#include "ptin_mgmd_cnfgr.h"
 
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
@@ -169,12 +170,20 @@ RC_t ptin_mgmd_igmp_proxy_defaultcfg_load(void)
  */
 RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
 {
-  ptin_mgmd_externalapi_t externalApi;
+  ptin_mgmd_externalapi_t  externalApi;
+  mgmd_cb_t               *pMgmdCB;
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Applying new config to IGMP Proxy...");
 
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
+    return FAILURE;
+  }
+
+  /* Get Mgmd Control Block */
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
     return FAILURE;
   }
 
@@ -209,6 +218,15 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
       && mgmdProxyCfg.networkVersion != igmpProxy->networkVersion)
   {
     mgmdProxyCfg.networkVersion = igmpProxy->networkVersion;
+
+    if(igmpProxy->networkVersion == PTIN_MGMD_COMPATIBILITY_V2)
+    {   
+     uint32 i;   
+     for(i=0; i<PTIN_MGMD_MAX_SERVICE_ID; ++i)
+     {
+       pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
+     }
+    }
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMP Network Version:                     %u", mgmdProxyCfg.networkVersion);
   }
 
@@ -387,7 +405,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQI
       && mgmdProxyCfg.querier.last_member_query_interval != igmpProxy->querier.last_member_query_interval)
   {
-    mgmdProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval/10;
+    mgmdProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Last Member Query Interval:            %u (1/10s)", mgmdProxyCfg.querier.last_member_query_interval);
   }
 

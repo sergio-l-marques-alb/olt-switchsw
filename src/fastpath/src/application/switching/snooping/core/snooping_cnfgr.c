@@ -721,7 +721,7 @@ L7_RC_t snoopCnfgrInitPhase3Process(L7_BOOL warmRestart,
     LOG_FATAL(LOG_CTX_PTIN_IGMP,"Huge, CATASTROPHIC failure on MGMD! Run as fast as you can and don't look back!");
     return L7_FAILURE;
   }
-  ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_TRACE);
+  ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_ERROR);
 
   snoopEB.snoopCnfgrState = SNOOP_PHASE_INIT_3;
   return snoopRC;

@@ -158,10 +158,9 @@ RC_t ptin_mgmd_event_grouptimer(snoopPTinL3Grouptimer_t *timerData)
                           *sourcePtrAux;
   snoopPTinL3InfoData_t*   groupEntry;
   
-//uint8              recordType=PTIN_MGMD_CHANGE_TO_INCLUDE_MODE;
-  mgmdGroupRecord_t* groupPtr=PTIN_NULLPTR;       
-  mgmdProxyInterface_t* proxyInterfacePtr=PTIN_NULLPTR;
-  BOOL  newEntry=FALSE;
+  mgmdGroupRecord_t       *groupPtr;       
+  mgmdProxyInterface_t    *proxyInterfacePtr;
+  BOOL                     newEntry=FALSE;
 
   if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr, AVL_EXACT)))
   {

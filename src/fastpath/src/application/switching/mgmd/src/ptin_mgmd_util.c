@@ -62,7 +62,7 @@ static mgmdGroupRecord_t*     mgmdBuildIgmpv3CSR(mgmdProxyInterface_t *interface
 int32 ptinMgmd_generate_random_response_delay (int32 maxResponseTime)
 {
   int32 selectedDelay;
-
+#if 0
   if(maxResponseTime<=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL)
     selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   else
@@ -71,6 +71,9 @@ int32 ptinMgmd_generate_random_response_delay (int32 maxResponseTime)
     if (selectedDelay<PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL)
       selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
   }
+#else
+  selectedDelay = rand() % maxResponseTime +1;
+#endif
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Selected Delay :%u",selectedDelay);  
   return(selectedDelay);
 }

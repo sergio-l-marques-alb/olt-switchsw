@@ -249,9 +249,9 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to find group entry [groupAddr=0x%08X serviceId=%u]", groupAddr->addr.ipv4.s_addr, serviceId);
       return FAILURE;
-    }
-    lmqt       = igmpGlobalCfg.querier.last_member_query_interval * igmpGlobalCfg.querier.last_member_query_count;
-    gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->interfaces[portId].groupTimer);
+    }    
+    lmqt       = igmpGlobalCfg.querier.last_member_query_interval/10 * igmpGlobalCfg.querier.last_member_query_count;//Convert from dS -> S
+    gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->interfaces[portId].groupTimer);//Seconds
     if(gtTimeLeft > lmqt)
     {
       timerData->supressRouterSideProcessing = TRUE;
@@ -398,7 +398,7 @@ RC_t  ptin_mgmd_groupsourcespecifictimer_restart(groupSourceSpecificQueriesAvlKe
     return FAILURE;
   }
 
-  ret = ptin_mgmd_timer_start(timerData->timerHandle, igmpGlobalCfg.querier.last_member_query_interval*1000, &timerData->key);
+  ret = ptin_mgmd_timer_start(timerData->timerHandle, igmpGlobalCfg.querier.last_member_query_interval*100, &timerData->key);
   return ret;
 }
 
@@ -421,7 +421,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
     return FAILURE;
   }
 
-  lmqt = igmpGlobalCfg.querier.last_member_query_interval * igmpGlobalCfg.querier.last_member_query_count;
+  lmqt = igmpGlobalCfg.querier.last_member_query_interval/10 * igmpGlobalCfg.querier.last_member_query_count;//dS -> S
 
   //Find entry in the AVL
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))

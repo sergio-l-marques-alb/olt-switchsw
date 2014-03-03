@@ -246,18 +246,23 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
 
 RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family)
 {
-  L7_uint16 shortVal, mcastRootVlan;
-  L7_uchar8 srcMac[L7_MAC_ADDR_LEN];
-  L7_uchar8 destMac[L7_MAC_ADDR_LEN];
-  L7_uchar8 packet[L7_MAX_FRAME_SIZE];
-  L7_uchar8 *dataPtr = packet;
-  L7_uint32 packetLength = payloadLength;
-  L7_uint32 dstIpAddr;
+  L7_uint16      shortVal, mcastRootVlan;
+  L7_uchar8      srcMac[L7_MAC_ADDR_LEN];
+  L7_uchar8      destMac[L7_MAC_ADDR_LEN];
+  L7_uchar8      packet[L7_MAX_FRAME_SIZE];
+  L7_uchar8      *dataPtr;
+  L7_uint32      packetLength = payloadLength;
+  L7_uint32      dstIpAddr;
   L7_inet_addr_t destIp;
+  L7_uint32      activeState;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
-  memset(packet, 0x00, L7_MAX_FRAME_SIZE * sizeof(L7_uchar8));
+  //Ignore if the port has link down
+  if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  {
+    return SUCCESS;
+  }
 
   //Get outter internal vlan
   if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
@@ -267,7 +272,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   }
 
   //Get destination MAC from destIpAddr
-  dstIpAddr = (L7_uint32) *(payload+16);
+  dstIpAddr = *((L7_uint32*) (payload+16));
   inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
   snoopMulticastMacFromIpAddr(&destIp, destMac);
 
@@ -282,6 +287,8 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   }
 
   //Set source and dest MAC in ethernet header
+  dataPtr = packet;
+  memset(packet, 0x00, L7_MAX_FRAME_SIZE * sizeof(L7_uchar8));
   SNOOP_PUT_DATA(destMac, L7_MAC_ADDR_LEN, dataPtr);    // 6 bytes
   packetLength += L7_MAC_ADDR_LEN;
   SNOOP_PUT_DATA(srcMac, L7_MAC_ADDR_LEN, dataPtr);    // 6 bytes
