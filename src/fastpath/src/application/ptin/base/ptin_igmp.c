@@ -2314,7 +2314,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Client: %u", mgmdGroupsRes.clientId);
 
           /* Save entry in the clientGroup snapshot avlTree */
-          if(L7_NULLPTR == (client = igmpClients_unified.client_devices[mgmdGroupsRes.portId-1][mgmdGroupsRes.clientId].client))
+          if(L7_NULLPTR == (client = igmpClients_unified.client_devices[mgmdGroupsRes.portId][mgmdGroupsRes.clientId].client))
           {
             *number_of_clients=0;
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD");

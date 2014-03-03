@@ -234,8 +234,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
   {
     uint32 gtTimeLeft, lmqt;
-    int32  rootPortBitmap;
-
+    
     //Add new entry to the AVL tree with the parameters in groupData
     if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd(groupAddr, serviceId, portId)))
     {
@@ -267,10 +266,8 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     {
       PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
       return FAILURE;
-    }
+    }        
     PTIN_MGMD_UNSET_MASKBIT(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, portId);
-    PTIN_MGMD_CLIENT_NONZEROMASK(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, rootPortBitmap);
-    if(-1 == rootPortBitmap)
     {
       //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting root interface timer to LMQT");
@@ -282,7 +279,6 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
       }
     }
     PTIN_MGMD_SET_MASKBIT(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, portId); //Restore root port client bitmap
-
     if(SUCCESS != ptin_mgmd_groupsourcespecifictimer_init(&timerData->timerHandle))
     {
       PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to initialize a new groupspecific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);

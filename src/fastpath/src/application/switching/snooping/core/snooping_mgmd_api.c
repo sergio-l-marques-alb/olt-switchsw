@@ -246,16 +246,22 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
 
 RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family)
 {
-  L7_uint16      shortVal, mcastRootVlan;
-  L7_uchar8      srcMac[L7_MAC_ADDR_LEN];
-  L7_uchar8      destMac[L7_MAC_ADDR_LEN];
-  L7_uchar8      packet[L7_MAX_FRAME_SIZE];
-  L7_uchar8      *dataPtr;
-  L7_uint32      packetLength = payloadLength;
-  L7_uint32      dstIpAddr;
-  L7_inet_addr_t destIp;
-  L7_uint32      activeState;
-
+  L7_uint16             shortVal;
+  L7_uchar8             srcMac[L7_MAC_ADDR_LEN];
+  L7_uchar8             destMac[L7_MAC_ADDR_LEN];
+  L7_uchar8             packet[L7_MAX_FRAME_SIZE];
+  L7_uchar8             *dataPtr;
+  L7_uint32             packetLength = payloadLength;
+  L7_uint32             dstIpAddr;
+  L7_inet_addr_t        destIp;
+  L7_uint32             activeState;
+  RC_t                  rc=SUCCESS;
+  L7_uint16             int_ovlan; 
+  L7_uint16             int_ivlan=0;
+  ptin_HwEthEvcFlow_t   clientFlow;
+  L7_uint               client_idx=clientId;
+  ptin_mgmd_port_type_t portType;
+  
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
   //Ignore if the port has link down
@@ -265,7 +271,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   }
 
   //Get outter internal vlan
-  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
     return FAILURE;
@@ -298,7 +304,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   shortVal = L7_ETYPE_8021Q;
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
-  shortVal = ((5 & 0x07)<<13) | (mcastRootVlan & 0x0fff);
+  shortVal = ((5 & 0x07)<<13) | (int_ovlan & 0x0fff);
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
 
@@ -310,9 +316,94 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
-  //Send packet
-  snoopPacketSend(portId, mcastRootVlan, 0, packet, packetLength, family, clientId);
+  if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
+    return FAILURE;
+  }
 
+ 
+  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
+  {
+      //Send packet
+      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+  }
+  else //To support sending one Membership Query Message per ONU (client_idx)
+  {   
+   /*   To get the first client */
+    memset(&clientFlow, 0x00, sizeof(clientFlow));
+    do
+    {
+      #if (defined IGMP_QUERIER_IN_UC_EVC)
+      {
+        /* First client/flow */
+         rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
+       
+
+        /* Internal vlans */
+        int_ivlan = clientFlow.int_ivid;
+
+        if (ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d", rc);
+
+        /* if success, use next cvlan */
+        if (rc == L7_SUCCESS)
+        {
+          /* If this client is not an IGMP client, goto next one */
+          if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+            continue;
+
+          /* Get client index */
+          if (clientFlow.int_ivid != 0)
+          {
+            /* Get related client index */
+            if (ptin_igmp_clientIndex_get(portId, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
+            {
+              client_idx = (L7_uint) -1;
+            }
+            if (ptin_debug_igmp_snooping)
+            {
+              LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for client cvlan=%u (client_idx=%u) in intIfNum=%u (intVlan=%u)",
+                        int_ivlan, client_idx, portId, int_ovlan);
+            }
+          }
+        }
+        /* If clients are not supported, used null inner vlan */
+        else if ( rc == L7_NOT_SUPPORTED )
+        {
+          int_ivlan = 0;
+          client_idx = (L7_uint)-1;
+          if (ptin_debug_igmp_snooping)
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", portId, int_ovlan);
+          }
+        }
+        else
+        {
+          /* An error ocurred */
+          if (ptin_debug_igmp_snooping)
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
+          }
+          break;
+        }
+      }
+      #else
+      {
+        /* Standard querier, with no inner vlan (clients querier not supported) */
+        int_ivlan = 0;
+        rc = L7_NOT_SUPPORTED;
+      }
+      #endif
+      /* Only transmit, if IGMP flag is active */
+      if (rc==L7_NOT_SUPPORTED || clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+      {
+        //Send packet
+        snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+      }
+    } while (rc==L7_SUCCESS);   /* Next client? */  
+  }
+  
   return SUCCESS;
 }
 

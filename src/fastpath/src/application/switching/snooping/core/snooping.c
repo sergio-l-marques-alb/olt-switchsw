@@ -601,7 +601,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
   }
 
@@ -609,7 +609,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client_idx = (L7_uint) -1;
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");    
   }
   else
   {
