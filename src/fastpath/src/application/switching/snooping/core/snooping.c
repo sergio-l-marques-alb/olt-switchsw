@@ -776,7 +776,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   memcpy(msg.snoopBuffer, data, dataLength);
   msg.dataLength = dataLength;
 
-#if 0
+#if PTIN_SNOOP_USE_MGMD
+  /* Send packet to MGMD */
+  ptin_timer_start(34,"mgmdPacketSend");
+  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
+  }
+  ptin_timer_stop(34);
+#else
   if (pSnoopCB->family == L7_AF_INET)
   {
     rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue,
@@ -789,14 +797,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT,
                           L7_MSG_PRIORITY_NORM);
   }
-#else
-  /* Send packet to MGMD */
-  ptin_timer_start(34,"mgmdPacketSend");
-  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
-  }
-  ptin_timer_stop(34);
 #endif
 
   if (rc != L7_SUCCESS)

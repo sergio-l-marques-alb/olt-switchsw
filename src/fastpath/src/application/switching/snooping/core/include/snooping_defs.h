@@ -24,6 +24,9 @@
 #ifndef INCLUDE_SNOOPING_DEFS_H
 #define INCLUDE_SNOOPING_DEFS_H
 
+/* Set MGMD integration */
+#define PTIN_SNOOP_USE_MGMD 1
+
 /* Message Queues */
 #define SNOOP_QUEUE           "snoop_Queue"
 #define SNOOP_TIMER_QUEUE     "snoop_Timer_Queue"

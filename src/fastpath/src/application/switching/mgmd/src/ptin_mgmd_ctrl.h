@@ -280,6 +280,7 @@ typedef struct
 
 // ----------------------------------------------
 // PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN
+// PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET
 // ----------------------------------------------
 typedef struct
 {

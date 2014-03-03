@@ -127,6 +127,17 @@ struct L7_mgmdQueryMsg_s;
 struct mgmdSnoopControlPkt_s;
 
 
+/*********************************************************************
+* @purpose  Go through all currently configured Q() and reset their state,
+*           forcing them to enter in the startup phase
+*
+* @param    eventData @b{(input)} Event data
+*
+* @returns  RC_t
+*
+* @end
+*********************************************************************/
+RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData);
 
 RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData);
 void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family);

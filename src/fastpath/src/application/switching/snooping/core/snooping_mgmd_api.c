@@ -20,6 +20,17 @@
 #include "snooping_proto.h"
 #include "snooping_db.h"
 
+typedef struct {
+  L7_BOOL   inUse;  
+  L7_uint16 UcastEvcId;
+} mgmdQueryInstances_t;
+
+//Internal Static Routines
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+static L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *packet, L7_uint32 packetLength,uchar8 family, L7_uint client_idx);
+#endif
+//End Static
+
 ptin_mgmd_externalapi_t mgmd_external_api = {
   .igmp_admin_set=snooping_igmp_admin_set,
   .mld_admin_set=snooping_mld_admin_set,
@@ -202,7 +213,7 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
   msg.cbHandle      = pSnoopCB;
 
   /* Send a Port_Open event to the FP */
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a new port on the switch");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
   rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
   return rc;
@@ -238,7 +249,7 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
   msg.cbHandle      = pSnoopCB;
 
   /* Send a Port_Close event to the FP */
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a new port on the switch");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a port");
   rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
   return rc;
@@ -254,13 +265,9 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   L7_uint32             packetLength = payloadLength;
   L7_uint32             dstIpAddr;
   L7_inet_addr_t        destIp;
-  L7_uint32             activeState;
-  RC_t                  rc=SUCCESS;
+  L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
-  L7_uint16             int_ivlan=0;
-  ptin_HwEthEvcFlow_t   clientFlow;
-  L7_uint               client_idx=clientId;
-  ptin_mgmd_port_type_t portType;
+  L7_uint16             int_ivlan=0; 
   
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
@@ -316,93 +323,138 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
+  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+  ptin_mgmd_port_type_t portType;
   if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
     return FAILURE;
   }
 
- 
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
+  #endif
   {
+  
     //Send packet
-    snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+    snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
   }
+  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   else //To support sending one Membership Query Message per ONU (client_idx)
-  {   
-    /* To get the first client */
-    memset(&clientFlow, 0x00, sizeof(clientFlow));
-    do
+  {
+    L7_uint32             groupAddress;    
+    
+    //Get Group Address
+    groupAddress=*((L7_uint32*) (payload+28));   
+
+    if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
     {
-      #if (defined IGMP_QUERIER_IN_UC_EVC)
+      mgmdQueryInstances_t *mgmdQueryInstances= (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
+      L7_uint16 iterator;
+
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Send Group Specific Query");
+
+      for (iterator=0; iterator<PTIN_SYSTEM_N_IGMP_INSTANCES; iterator++)
       {
-        /* First client/flow */
-         rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
-
-        /* Internal vlans */
-        int_ivlan = clientFlow.int_ivid;
-
-        if (ptin_debug_igmp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d", rc);
-
-        /* if success, use next cvlan */
-        if (rc == L7_SUCCESS)
+        if (mgmdQueryInstances[iterator].inUse==L7_TRUE)
         {
-          /* If this client is not an IGMP client, goto next one */
-          if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
-            continue;
-
-          /* Get client index */
-          if (clientFlow.int_ivid != 0)
+          //Get outter internal vlan
+          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstances[iterator].UcastEvcId, &int_ovlan))
           {
-            /* Get related client index */
-            if (ptin_igmp_clientIndex_get(portId, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
-            {
-              client_idx = (L7_uint) -1;
-            }
-            if (ptin_debug_igmp_snooping)
-            {
-              LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for client cvlan=%u (client_idx=%u) in intIfNum=%u (intVlan=%u)",
-                        int_ivlan, client_idx, portId, int_ovlan);
-            }
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+            return FAILURE;
           }
-        }
-        /* If clients are not supported, used null inner vlan */
-        else if ( rc == L7_NOT_SUPPORTED )
-        {
-          int_ivlan = 0;
-          client_idx = (L7_uint)-1;
-          if (ptin_debug_igmp_snooping)
-          {
-            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", portId, int_ovlan);
-          }
-        }
-        else
-        {
-          /* An error ocurred */
-          if (ptin_debug_igmp_snooping)
-          {
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
-          }
-          break;
+          ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
         }
       }
-      #else
-      {
-        /* Standard querier, with no inner vlan (clients querier not supported) */
-        int_ivlan = 0;
-        rc = L7_NOT_SUPPORTED;
-      }
-      #endif
-      /* Only transmit, if IGMP flag is active */
-      if (rc==L7_NOT_SUPPORTED || clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-      {
-        //Send packet
-        snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
-      }
-    } while (rc==L7_SUCCESS);   /* Next client? */  
+    }
+    else //General Query
+    {
+      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+    }
   }
+  #endif
   
   return SUCCESS;
 }
 
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *packet, L7_uint32 packetLength,uchar8 family, L7_uint client_idx)
+{
+  ptin_HwEthEvcFlow_t   clientFlow;
+  L7_RC_t               rc;
+
+  /* To get the first client */
+  memset(&clientFlow, 0x00, sizeof(clientFlow));
+  do
+  {
+    #if (defined IGMP_QUERIER_IN_UC_EVC)
+    {
+      /* First client/flow */
+       rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
+
+      /* Internal vlans */
+      int_ivlan = clientFlow.int_ivid;
+
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"rc=%d", rc);
+
+      /* if success, use next cvlan */
+      if (rc == L7_SUCCESS)
+      {
+        /* If this client is not an IGMP client, goto next one */
+        if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+          continue;
+
+        /* Get client index */
+        if (clientFlow.int_ivid != 0)
+        {
+          /* Get related client index */
+          if (ptin_igmp_clientIndex_get(portId, int_ovlan, int_ivlan, L7_NULLPTR, &client_idx)!=L7_SUCCESS)
+          {
+            client_idx = (L7_uint) -1;
+          }
+          if (ptin_debug_igmp_snooping)
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for client cvlan=%u (client_idx=%u) in intIfNum=%u (intVlan=%u)",
+                      int_ivlan, client_idx, portId, int_ovlan);
+          }
+        }
+      }
+      /* If clients are not supported, used null inner vlan */
+      else if ( rc == L7_NOT_SUPPORTED )
+      {
+        int_ivlan = 0;
+        client_idx = (L7_uint)-1;
+        if (ptin_debug_igmp_snooping)
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet will be transmited for intIfNum=%u (intVlan=%u)", portId, int_ovlan);
+        }
+      }
+      else
+      {
+        /* An error ocurred */
+        if (ptin_debug_igmp_snooping)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
+        }
+        break;
+      }
+    }
+    #else
+    {
+      /* Standard querier, with no inner vlan (clients querier not supported) */
+      int_ivlan = 0;
+      rc = L7_NOT_SUPPORTED;
+    }
+    #endif
+    /* Only transmit, if IGMP flag is active */
+    if (rc==L7_NOT_SUPPORTED || clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    {
+      //Send packet
+      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+    }
+  } while (rc==L7_SUCCESS);   /* Next client? */  
+  return rc;
+}
+
+#endif

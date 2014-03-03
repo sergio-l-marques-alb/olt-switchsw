@@ -228,14 +228,8 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   /* Max response code */
   if (version >= PTIN_IGMP_VERSION_2)
   {
-#if 0 //This value was previouly encoded to fp
-    if (version == SNOOP_IGMP_VERSION_3 && igmpGlobalCfg.querier.query_response_interval >= 128)
-    {
-      ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &byteVal);        
-    }
-    else
-#endif
-      byteVal=igmpGlobalCfg.querier.query_response_interval;
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &val);
+    byteVal=val;
   }
   else
   {
@@ -260,19 +254,13 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
-#if 0//Since we do require the Query Interval to Re-Schedule the Timer, the value is not previously encoded 
-    byteVal=igmpGlobalCfg.querier.query_interval;
-#else
-    val=igmpGlobalCfg.querier.query_interval;
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,val,&val);
-#endif
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,igmpGlobalCfg.querier.query_interval,&val);
     PTIN_MGMD_PUT_BYTE(val, dataPtr);
 
     /*Number of Sources*/
     shortVal = 0;
     PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
-    PTIN_MGMD_UNUSED_PARAM(dataPtr);
-
+    
     shortVal = ptinMgmdCheckSum((ushort16 *)startPtr, MGMD_IGMPV3_HEADER_MIN_LENGTH, 0);
     PTIN_MGMD_PUT_SHORT(shortVal, tempPtr);/* Copy the calculated checksum
                                           to stored checksum ptr */
@@ -283,8 +271,6 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     PTIN_MGMD_PUT_SHORT(shortVal, tempPtr); /* Copy the calculated checksum
                                           to stored checksum ptr */
   }
-  PTIN_MGMD_UNUSED_PARAM(tempPtr);
-
   return SUCCESS;
 }
 
@@ -703,6 +689,75 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (serviceId=%u)",serviceId);
 
   rc=ptinMgmdPacketSend(&mcastPacket,PTIN_IGMP_MEMBERSHIP_QUERY,PTIN_MGMD_PORT_TYPE_LEAF);    
+}
+
+
+/*********************************************************************
+* @purpose  Go through all currently configured Q() and reset their state,
+*           forcing them to enter in the startup phase
+*
+* @param    eventData @b{(input)} Event data
+*
+* @returns  RC_t
+*
+* @end
+*********************************************************************/
+RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
+{
+  mgmdPTinQuerierInfoData_t     *entry;
+  mgmdPtinQuerierInfoDataKey_t  key;
+  PTIN_MGMD_CTRL_QUERY_CONFIG_t ctrlData;
+  mgmd_cb_t                     *pMgmdCB;
+  ptin_IgmpProxyCfg_t           igmpCfg;
+
+  /* Parse CTRL data */
+  memcpy(&ctrlData, eventData->data, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+
+  /* Get MGMD control block */
+  if ((pMgmdCB = mgmdCBGet(ctrlData.family)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptinMgmdCB()");
+    return FAILURE;
+  }
+
+  /* Get current IGMP configurations */
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg)!=SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
+    return FAILURE;
+  }
+
+  /* Run all cells in AVL tree */    
+  memset(&key, 0x00, sizeof(mgmdPtinQuerierInfoDataKey_t));
+  while ( (entry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, AVL_NEXT)) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&key, &entry->key, sizeof(mgmdPtinQuerierInfoDataKey_t));
+
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u with state %u", entry->key.serviceId, entry->active);
+
+    /* Ignore this entry if the status is not active */
+    if(PTIN_MGMD_ENABLE == entry->active)
+    {
+      /* Stop Query Timer */
+      if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to stop Query Timer (serviceId:%u family:%u)",entry->key.serviceId, ctrlData.family);
+        return FAILURE;
+      }
+
+      /* Restart the Query timer with the startup flag enabled */
+      entry->startUpQueryFlag               = TRUE;
+      entry->querierTimer.startUpQueryCount = 0;
+      if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+        return FAILURE;
+      }
+    }
+  }
+
+  return SUCCESS;
 }
 
 

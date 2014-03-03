@@ -75,7 +75,8 @@ void ptin_mgmd_sigint_handler(int sig)
 *  
 * @return RC_t
 *  
-* @notes The rxMessageQueue can only be created once. After the first initialization, this method will not allow any further initializations to the queue. 
+* @notes The rxMessageQueue can only be created once. After the first initialization,
+*        this method will not allow any further initializations to the queue. 
 */
 RC_t ptin_mgmd_eventqueue_init(void)
 {
