@@ -2077,13 +2077,9 @@ L7_RC_t snoopDot1sIntfChangeProcess(L7_uint32 mstID, L7_uint32 intIfNum,
 *********************************************************************/
 void snoopTimerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
 {
-  L7_int32       rc;
+  L7_int32       rc = L7_SUCCESS;
   snoopTimerParams_t msg;
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
-
-#if PTIN_SNOOP_USE_MGMD
-  return;
-#endif
 
   pSnoopEB = snoopEBGet();
   msg.timerCBHandle = (L7_uint32)ptrData;
@@ -2092,8 +2088,10 @@ void snoopTimerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   if ((pSnoopEB = (snoop_eb_t *)ptrData) == L7_NULLPTR)
     return;
 #endif
+#if (!PTIN_SNOOP_USE_MGMD)
   rc = osapiMessageSend(pSnoopEB->snoopTimerQueue, &msg, SNOOP_TIMER_MSG_SIZE, L7_NO_WAIT,
                         L7_MSG_PRIORITY_NORM);
+#endif
   if (rc != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,

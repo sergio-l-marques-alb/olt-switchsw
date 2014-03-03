@@ -191,6 +191,7 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t msg;
+  snoop_eb_t     *pSnoopEB = L7_NULLPTR;
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
@@ -200,7 +201,8 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u]", serviceId, portId, groupAddr, sourceAddr, isStatic);
 
-  /* Get Snoop Control Block */
+  /* Get Snoop Execution Block and Control Block */
+  pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
   {
     return L7_FAILURE;
@@ -217,7 +219,14 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
 
   /* Send a Port_Open event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
-  rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  {
+    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      return L7_FAILURE;
+    }
+  }
 
 //#if (PTIN_BOARD_IS_MATRIX)
 //#else
@@ -253,6 +262,7 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t msg;
+  snoop_eb_t     *pSnoopEB = L7_NULLPTR;
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
@@ -262,7 +272,8 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
 
-  /* Get Snoop Control Block */
+  /* Get Snoop Execution Block and Control Block */
+  pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
   {
     return L7_FAILURE;
@@ -279,7 +290,14 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
 
   /* Send a Port_Close event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a port");
-  rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  {
+    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      return L7_FAILURE;
+    }
+  }
 
   return rc;
 }
