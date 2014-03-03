@@ -7278,6 +7278,64 @@ bcm_esw_port_learn_get(int unit, bcm_port_t port, uint32 *flags)
 }
 
 /*
+* Function:
+*      _bcm_vlan_port_learn_set
+* Purpose:
+*      Modifies the hardware and software learning support on a l2 logical port.
+* Parameters:
+*      unit          - SOC unit number
+*      vlan_port_if  - l2 logical port ID
+*      flags         - learning control flags
+* Returns:
+*      BCM error code (BCM_E_XXX)
+*/
+int
+_bcm_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
+{
+  int vp, cml = 0, rv = BCM_E_NONE;
+  source_vp_entry_t svp;
+
+  cml = 0;
+  if (!(flags & BCM_PORT_LEARN_FWD)) {
+     cml |= (1 << 0);
+  }
+  if (flags & BCM_PORT_LEARN_CPU) {
+     cml |= (1 << 1);
+  }
+  if (flags & BCM_PORT_LEARN_PENDING) {
+     cml |= (1 << 2);
+  }
+  if (flags & BCM_PORT_LEARN_ARL) {
+     cml |= (1 << 3);
+  }
+
+  /* Get the VP index from the gport */
+  vp = BCM_GPORT_VLAN_PORT_ID_GET(vlan_port_id);
+  if (vp == -1) {
+      return BCM_E_PARAM;
+  }
+
+  /* Be sure the entry is used and is set for VLAN virtual ports */
+  if (!_bcm_vp_used_get(unit, vp, _bcmVpTypeVlan)) {
+      return BCM_E_NOT_FOUND;
+  }
+  rv = READ_SOURCE_VPm(unit, MEM_BLOCK_ANY, vp, &svp);
+  if (rv < 0) {
+      return rv;
+  }
+  if (soc_SOURCE_VPm_field32_get(unit, &svp, ENTRY_TYPEf) != 3) { /* VLAN PORT (GPON)*/
+      return BCM_E_NOT_FOUND;
+  }
+
+  soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_MOVEf, cml);
+  soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_NEWf, cml);
+  rv = WRITE_SOURCE_VPm(unit, MEM_BLOCK_ALL, vp, &svp);
+
+  return rv;
+}
+
+
+/*
  * Function:
  *      bcm_port_learn_set
  * Purpose:
@@ -7333,6 +7391,14 @@ bcm_esw_port_learn_set(int unit, bcm_port_t port, uint32 flags)
             return bcm_tr2_wlan_port_learn_set(unit, (bcm_gport_t) port, flags);
         }
     }
+#endif /* BCM_TRIUMPH2_SUPPORT && INCLUDE_L3 */
+
+#if defined(BCM_TRIUMPH2_SUPPORT) && defined(INCLUDE_L3)
+   if (BCM_GPORT_IS_VLAN_PORT(port)) {
+      if (soc_feature(unit, soc_feature_vlan_vp)) {
+         return _bcm_vlan_port_learn_set(unit, port, flags);
+      }
+   }
 #endif /* BCM_TRIUMPH2_SUPPORT && INCLUDE_L3 */
 
     BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
