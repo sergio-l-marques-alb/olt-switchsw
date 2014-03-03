@@ -92,23 +92,35 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "{");
   //Determine serviceId
+  ptin_timer_start(35,"ptin_evc_get_evcIdfromIntVlan");
   if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &serviceId)!=L7_SUCCESS)
   {
+    ptin_timer_stop(35);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to internal vlan %u", mcastRootVlan);
     return L7_FAILURE;
   }
+  ptin_timer_stop(35);
 
   //Create a new MGMD packet event
+  ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
   {
+    ptin_timer_stop(36);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to create packet for MGMD");
+    
     return L7_ERROR;
   }
+  ptin_timer_stop(36);
+
+  ptin_timer_start(37,"ptin_mgmd_eventQueue_tx");
   if(L7_SUCCESS != ptin_mgmd_eventQueue_tx(&mgmdPcktEvent))
   {
+    ptin_timer_stop(37);
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to place packet event in MGMD rxQueue");
     return L7_ERROR;
   }
+  ptin_timer_stop(37);
+ 
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Send}");
@@ -589,7 +601,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
   }
 
@@ -597,7 +609,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
     client_idx = (L7_uint) -1;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client not provided!");
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");
   }
   else
   {
@@ -613,7 +625,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s)",
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s): Packet Silently ignored...",
               pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
@@ -631,7 +643,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u",pduInfo->vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u: Packet Silently ignored...",pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
@@ -746,7 +758,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
+  if(ptin_debug_igmp_snooping)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
+  }
 
   L7_int32 n_msg = -1;
   if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
@@ -786,8 +801,12 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   if (rc != L7_SUCCESS)
   {
+#if 0 /* PTin removed: MGMD integration*/
     bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"osapiMessageSend failed\n");
+#else
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"mgmdPacketSend failed\n");
+#endif
   }
   else
   {
@@ -797,6 +816,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to give msgQueue semaphore");
     }
   }
+  bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
 
   /* If any error, packet will be dropped */
   if (rc!=L7_SUCCESS)
