@@ -1,0 +1,13 @@
+./vendor/openssh/Makefile.main
+./vendor/broadcom/esw_sdk/systems/bde/linux/kernel/Makefile.24
+./vendor/broadcom/esw_sdk/systems/bde/linux/user/kernel/Makefile.24
+./vendor/broadcom/esw_sdk/src/appl/cint/Makefile
+./vendor/broadcom/esw_sdk/make/Makefile.linux-kernel-3_0
+./vendor/broadcom/esw_sdk/make/Make.config
+./vendor/broadcom/esw_sdk/make/Makefile.unix-common
+./vendor/broadcom/esw_sdk/make/Makefile.linux-kernel
+./vendor/broadcom/esw_sdk/make/Makefile.linux-kernel-2_6
+./vendor/broadcom/esw_sdk/make/Makefile.linux-e500mc-2_6
+./vendor/openssl/demos/state_machine/Makefile
+./src/l7tools/build/make.cfg
+./vendor/broadcom/esw_sdk/make/Makefile.unix-user
