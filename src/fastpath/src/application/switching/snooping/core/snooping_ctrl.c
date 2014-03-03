@@ -44,6 +44,7 @@
 /* PTin added: IGMP snooping */
 #if 1
 #include "logger.h"
+#include "snooping_defs.h"
 #endif
 
 #include "ptin_evc.h"
@@ -2080,6 +2081,10 @@ void snoopTimerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   snoopTimerParams_t msg;
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
 
+#if PTIN_SNOOP_USE_MGMD
+  return;
+#endif
+
   pSnoopEB = snoopEBGet();
   msg.timerCBHandle = (L7_uint32)ptrData;
 
@@ -3305,13 +3310,13 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
 
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId");
   }
 
   inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
   if(L7_SUCCESS != snoopGroupIntfAdd(mcastRootVlan, &groupIp, portId, L7_TRUE))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to open port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to open port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
   }
 }
 
@@ -3324,13 +3329,13 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portI
 
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId");
   }
 
   inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
   if(L7_SUCCESS != snoopGroupIntfRemove(mcastRootVlan, &groupIp, portId))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to close port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to close port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
   }
 }
 

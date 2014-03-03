@@ -1367,7 +1367,7 @@ void ptinMgmdDumpGeneralQuery(void)
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
     printf("-----------------------------------------\n");
-    printf("General Query ServiceId: %u\n", avlTreeEntry->key.serviceId);  
+    printf("General Query ServiceId:%u\n", avlTreeEntry->key.serviceId);  
     printf("      |Active          :%s\n",avlTreeEntry->active?"Yes":"No");
     printf("      |Timer Running   :%s\n", ptin_mgmd_querytimer_isRunning(&avlTreeEntry->querierTimer)?"Yes":"No");
     printf("      |Query Timer     :%u\n", ptin_mgmd_querytimer_timeleft(&avlTreeEntry->querierTimer));    
