@@ -208,7 +208,7 @@ CFGFLAGS += -DBCM_PLATFORM_STRING=\"GTO_MPC8544\"
 
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags) 
-EXTRA_CFLAGS+=-Wno-unused-but-set-variable -Wno-enum-compare -Wno-address -Wno-uninitialized -Wno-sequence-point -Wno-switch
+EXTRA_CFLAGS+= -Wno-unused-but-set-variable -Wno-enum-compare -Wno-address -Wno-uninitialized -Wno-sequence-point -Wno-switch
 EXTRA_CFLAGS+= -mcpu=e500mc -m32 -mhard-float --sysroot=/opt/fsl/1.2/sysroots/ppce500mc-fsl-linux
 
 ARCH = powerpc
@@ -254,7 +254,7 @@ endif
 
 
 ifeq (,$(KFLAGS))
-KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
+KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -mhard-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
 endif
 
 # Use MSI interrupts if kernel is compiled with MSI support.

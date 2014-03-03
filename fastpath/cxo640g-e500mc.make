@@ -31,7 +31,8 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= $(OLT_DIR)/../lib/tmp/cxo640/kernel_3_0_53
+export KERNEL_PATH	= /home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51.test
+#$(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
 
 #CC='${COMPILER}gcc'
 #AS='${COMPILER}as'  
@@ -146,6 +147,10 @@ clean cleanall: welcome
 
 clean-platform:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
+	$(RM) -f $(TMP_FILE)
+
+clean-andl:
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
 clean-notandl:
