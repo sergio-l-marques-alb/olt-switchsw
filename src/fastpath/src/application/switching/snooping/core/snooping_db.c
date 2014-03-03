@@ -1018,7 +1018,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,i))  continue;
 
       /* Get client information */
-      if (ptin_igmp_clientData_get(vlan,i,&clientData)!=L7_SUCCESS)  continue;
+      if (ptin_igmp_clientData_get(intIfNum, i, &clientData) != L7_SUCCESS)  continue;
 
       /* If this client is not attached to this interface, do nothing */
       if (clientData.ptin_intf.intf_type!=ptin_intf.intf_type ||
@@ -3192,27 +3192,32 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
         }
         printf("\r\n");
         printf("      Clients list:");
-        for (j=0; j<PTIN_SYSTEM_IGMP_MAXCLIENTS; j++)
+        for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
         {
-          if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].clients_list,j))  continue;
-          if (ptin_igmp_clientData_get(intVlan,j,&clientData)!=L7_SUCCESS)
+          if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].intIfNum_mask, intIfNum))  continue;
+
+          for (j=0; j<PTIN_SYSTEM_IGMP_MAXCLIENTS; j++)
           {
-            printf(" {id=%u}",j);
-          }
-          else
-          {
-            printf(" {");
-            if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INTF)
-              printf("intf=%u/%u",clientData.ptin_intf.intf_type,clientData.ptin_intf.intf_id);
-            if (clientData.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
-              printf(",ovid=%u",clientData.outerVlan);
-            if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
-              printf(",ivid=%u",clientData.innerVlan);
-            if (clientData.mask & PTIN_CLIENT_MASK_FIELD_IPADDR)
-              printf(",ipAddr=%u.%u.%u.%u",(clientData.ipv4_addr>>24) & 0xff,(clientData.ipv4_addr>>16) & 0xff,(clientData.ipv4_addr>>8) & 0xff,clientData.ipv4_addr & 0xff);
-            if (clientData.mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
-              printf(",mac=%02x:%02x:%02x:%02x:%02x:%02x",clientData.macAddr[0],clientData.macAddr[1],clientData.macAddr[2],clientData.macAddr[3],clientData.macAddr[4],clientData.macAddr[5]);
-            printf("}");
+            if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].clients_list,j))  continue;
+            if (ptin_igmp_clientData_get(intIfNum, j, &clientData) != L7_SUCCESS)
+            {
+              printf(" {id=%u}",j);
+            }
+            else
+            {
+              printf(" {");
+              if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INTF)
+                printf("intf=%u/%u",clientData.ptin_intf.intf_type,clientData.ptin_intf.intf_id);
+              if (clientData.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+                printf(",ovid=%u",clientData.outerVlan);
+              if (clientData.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+                printf(",ivid=%u",clientData.innerVlan);
+              if (clientData.mask & PTIN_CLIENT_MASK_FIELD_IPADDR)
+                printf(",ipAddr=%u.%u.%u.%u",(clientData.ipv4_addr>>24) & 0xff,(clientData.ipv4_addr>>16) & 0xff,(clientData.ipv4_addr>>8) & 0xff,clientData.ipv4_addr & 0xff);
+              if (clientData.mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
+                printf(",mac=%02x:%02x:%02x:%02x:%02x:%02x",clientData.macAddr[0],clientData.macAddr[1],clientData.macAddr[2],clientData.macAddr[3],clientData.macAddr[4],clientData.macAddr[5]);
+              printf("}");
+            }
           }
         }
         printf("\r\n");
