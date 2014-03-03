@@ -612,22 +612,20 @@ extern L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4
 /**
  * Add a new static channel
  * 
- * @param McastEvcId   : Multicast EVC id
- * @param ipv4_channel : Channel IP
+ * @param channel : Static Channel
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_static_channel_add(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel);
+extern L7_RC_t ptin_igmp_static_channel_add(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
 
 /**
  * Remove an existent channel
  * 
- * @param McastEvcId   : Multicast EVC id
- * @param ipv4_channel : Channel IP
+ * @param channel : Static Channel
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_channel_remove(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel);
+extern L7_RC_t ptin_igmp_channel_remove(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
 
 
 #define IGMPASSOC_CHANNELS_MAX    4096
@@ -826,6 +824,18 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
 extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid);
 
 /**
+ * Add a new Multicast client group
+ * 
+ * @param client      : client group identification parameters 
+ * @param intVid      : Internal vlan
+ * @param uni_ovid    : External Outer vlan 
+ * @param uni_ivid    : External Inner vlan 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client);
+
+/**
  * Remove a Multicast client group
  * 
  * @param client      : client group identification parameters
@@ -840,6 +850,13 @@ extern L7_RC_t ptin_igmp_clientGroup_remove(ptin_client_id_t *client);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_clientGroup_clean(void);
+
+/**
+ * Remove all Multicast client groups
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void);
 
 /**
  * Add a dynamic client
@@ -1028,11 +1045,11 @@ extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
  * Get global IGMP statistics
  * 
  * @param intIfNum    : interface
- * @param stat_port_g : statistics (output)
+ * @param statistics  : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port_g);
+L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics);
 
 /**
  * GetIGMP statistics of a particular IGMP instance and 
@@ -1040,11 +1057,11 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *
  * 
  * @param evc_idx  : Multicast EVC id
  * @param intIfNum    : interface
- * @param stat_port   : statistics (output)
+ * @param statistics  : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stat_port);
+L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics);
 
 /**
  * GetIGMP statistics of a particular IGMP instance and 
@@ -1052,11 +1069,11 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
  * 
  * @param evc_idx  : Multicast EVC id
  * @param client      : client reference
- * @param stat_port   : statistics (output)
+ * @param statistics  : statistics (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_IGMP_Statistics_t *stat_client);
+extern L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics);
 
 /**
  * Clear all IGMP statistics

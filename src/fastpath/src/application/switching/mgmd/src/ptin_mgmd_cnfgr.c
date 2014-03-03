@@ -203,11 +203,11 @@ RC_t ptinMgmdEBInit(void)
   uchar8 family[PTIN_MGMD_MAX_CB_INSTANCES];
 
 #if PTIN_MGMD_MAX_CB_INSTANCES==1
-  family[0]=AF_INET;
+  family[0]=PTIN_MGMD_AF_INET;
 #else
 #if PTIN_MGMD_MAX_CB_INSTANCES==2
-  family[0]=AF_INET;
-  family[1]=AF_INET6;
+  family[0]=PTIN_MGMD_AF_INET;
+  family[1]=PTIN_MGMD_AF_INET6;
 #else
 #error "PTIN_MGMD_MAX_CB_INSTANCES higher than the number of IP address families supported"
 #endif
@@ -241,8 +241,8 @@ RC_t ptinMgmdEBInit(void)
 *
 * @param    cbIndex  - @b{(input)}  Instance index whose Cb is
 *                                   to be initalized.
-* @param    family      @b{(input)}  AF_INET  => IGMP Snooping
-*                                    AF_INET6 => MLD Snooping
+* @param    family      @b{(input)}  PTIN_MGMD_AF_INET  => IGMP Snooping
+*                                    PTIN_MGMD_AF_INET6 => MLD Snooping
 *
 * @returns  SUCCESS - Initialization complete
 *           FAILURE - Initilaization failed because of
@@ -272,10 +272,9 @@ RC_t     ptinMgmdCBInit(uint32 cbIndex, uchar8 family)
    ptinMgmdGeneralQueryAVLTreeInit(family);
 
    //ProxyCM initialization
-   for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
+   for(i=0; i<PTIN_MGMD_MAX_SERVICE_ID; ++i)
    {
      pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3;
-     ptin_mgmd_proxycmtimer_init(&(pMgmdCB->proxyCM[i]));
    }
 
    return SUCCESS;
@@ -395,8 +394,8 @@ mgmd_cb_t *mgmdFirsCBGet(void)
 /*********************************************************************
 * @purpose  Get the Snoop Control block if it is supported
 *
-* @param    family  @b{(input)}   AF_INET  => IGMP Snooping
-*                                 AF_INET6 => MLD Snooping
+* @param    family  @b{(input)}   PTIN_MGMD_AF_INET  => IGMP Snooping
+*                                 PTIN_MGMD_AF_INET6 => MLD Snooping
 *
 * @returns  pointer to the snoop control block
 * @returns  PTIN_NULLPTR  -  If invalid snoop instance

@@ -25,6 +25,9 @@
    #define BOOL           unsigned char
 #endif
 
+#define PTIN_MGMD_AF_INET  1
+#define PTIN_MGMD_AF_INET6 2
+
 #ifndef char8
   typedef char               char8;
 #endif
@@ -154,5 +157,11 @@ typedef enum
   NO_MEMORY,
   DEPENDENCY_NOT_MET,
 } RC_t;
+
+#define PTIN_MGMD_CTRL_FILTERMODE_INCLUDE 0
+#define PTIN_MGMD_CTRL_FILTERMODE_EXCLUDE 1
+
+#define PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC 0
+#define PTIN_MGMD_CTRL_GROUPTYPE_STATIC  1
 
 #endif //_PTIN_MGMD_DEFS_H

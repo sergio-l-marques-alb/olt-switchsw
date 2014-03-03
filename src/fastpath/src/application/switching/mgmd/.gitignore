@@ -1,10 +1,13 @@
-/rfs
 /Makefile
+/Makefile.in
+/autom4te.cache
 /config.h
 /config.log
 /config.status
 /configure
 /libtool
 /ltmain.sh
+/m4
 /mgmd.pc
+/rfs
 /stamp-h1

@@ -150,7 +150,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Proxy compatibility mode Timers
-  num_timers = PTIN_MGMD_MAX_SERVICES;
+  num_timers = PTIN_MGMD_MAX_SERVICE_ID;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_proxycmtimer_CB_set(timersCB);
@@ -242,6 +242,7 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting timer initialization allocation");
   if(SUCCESS != ptin_mgmd_timers_create())
   {
+    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to finish timer initialization");
     return FAILURE;
   }
 
@@ -249,6 +250,7 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting memory allocation");
   if(SUCCESS != ptin_mgmd_memAlloc())
   {
+    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to finish memory allocation");
     return FAILURE;
   }
 
@@ -259,7 +261,7 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Loadind Default MGMD Configs");  
   if(SUCCESS != ptin_mgmd_igmp_proxy_defaultcfg_load())
   {
-    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to to load default configs");
+    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to load default configs");
     return FAILURE;
   }
 

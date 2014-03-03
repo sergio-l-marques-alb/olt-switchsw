@@ -768,10 +768,7 @@ RC_t ptinMgmdInterfaceRemove(snoopPTinL3InfoData_t *groupEntry, uint32 portId)
   for (sourcePtr=groupEntry->interfaces[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtrAux)
   { 
     sourcePtrAux=sourcePtr->next;
-    if (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == FALSE)
-    { 
-      ptinMgmdSourceRemove(groupEntry,portId, sourcePtr);
-    }           
+    ptinMgmdSourceRemove(groupEntry,portId, sourcePtr);
   }
 
    //Force stop of running timers  
@@ -3873,7 +3870,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 f
 
   if (pData == PTIN_NULL)
   {
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find root vlan in the AVL Tree (serviceId:%u)", serviceId);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find service in the AVL Tree (serviceId:%u)", serviceId);
     return PTIN_NULLPTR;
   }
   else
@@ -4271,7 +4268,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
  * 
  * @return RC_t
  */
-RC_t ptinMgmdgroupclients_get(uint16 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr, uint8* clientList,uint16* numClients)
+RC_t ptinMgmdgroupclients_get(uint32 serviceId, uint32 portId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr, uint8* clientList,uint16* numClients)
 {
   snoopPTinL3InfoData_t *groupEntry;  
   snoopPTinL3Source_t   *sourcePtr;
@@ -4282,7 +4279,7 @@ RC_t ptinMgmdgroupclients_get(uint16 serviceId, uint16 portId, ptin_mgmd_inet_ad
     return FAILURE;
   }
 
-  if (groupAddr->family != AF_INET)
+  if (groupAddr->family != PTIN_MGMD_AF_INET)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Only IPv4 is supported!");
     return FAILURE;

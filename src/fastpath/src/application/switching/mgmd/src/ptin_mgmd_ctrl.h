@@ -26,14 +26,14 @@
 // ----------------------------------------------
 // Structure PTIN_MGMD_CTRL_MGMD_CONFIG_t Fields MASKs
 #define PTIN_MGMD_CONFIG_ADMIN_MASK             ((MGMD_BASE_MASK)<<0) 
-#define PTIN_MGMD_CONFIG_WHITELIST_MASK         ((MGMD_BASE_MASK)<<1) 
-#define PTIN_MGMD_CONFIG_NETWORKVERSION_MASK    ((MGMD_BASE_MASK)<<2) 
-#define PTIN_MGMD_CONFIG_CLIENTVERSION_MASK     ((MGMD_BASE_MASK)<<3) 
-#define PTIN_MGMD_CONFIG_IPV4_MASK              ((MGMD_BASE_MASK)<<4) 
-#define PTIN_MGMD_CONFIG_COS_MASK               ((MGMD_BASE_MASK)<<5) 
-#define PTIN_MGMD_CONFIG_FASTLEAVE_MASK         ((MGMD_BASE_MASK)<<6) 
-#define PTIN_MGMD_CONFIG_QUERIER_MASK           ((MGMD_BASE_MASK)<<7) 
-#define PTIN_MGMD_CONFIG_HOST_MASK              ((MGMD_BASE_MASK)<<8) 
+#define PTIN_MGMD_CONFIG_NETWORKVERSION_MASK    ((MGMD_BASE_MASK)<<1) 
+#define PTIN_MGMD_CONFIG_CLIENTVERSION_MASK     ((MGMD_BASE_MASK)<<2) 
+#define PTIN_MGMD_CONFIG_IPV4_MASK              ((MGMD_BASE_MASK)<<3) 
+#define PTIN_MGMD_CONFIG_COS_MASK               ((MGMD_BASE_MASK)<<4) 
+#define PTIN_MGMD_CONFIG_FASTLEAVE_MASK         ((MGMD_BASE_MASK)<<5) 
+#define PTIN_MGMD_CONFIG_QUERIER_MASK           ((MGMD_BASE_MASK)<<6) 
+#define PTIN_MGMD_CONFIG_HOST_MASK              ((MGMD_BASE_MASK)<<7) 
+#define PTIN_MGMD_CONFIG_WHITELIST_MASK         ((MGMD_BASE_MASK)<<8) 
 
 // Flags - For Querier - Activate Time Interval Calculation according to RFC3376
 #define PTIN_MGMD_CONFIG_Q_FLAGS_AUTO_GMI_MASK  0x0001  
@@ -71,7 +71,6 @@ typedef struct
   uint16     mask;                                 
                                                    
   uint8      admin;                             // Global admin for both host and querier) [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE]
-  uint8      whiteList;                         // Channel white-list admin [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE]
   uint8      networkVersion;                    // Defines maximum working version (overrides query/host version)
   uint8      clientVersion;                     // Defines maximum working version (overrides query/host version)
   uint32     ipv4Addr;                          // Proxy IP Address (for both host and querier))                 
@@ -134,7 +133,9 @@ typedef struct
                                                 //          Default(Must Be): RV * QI (in the last Query received) + QRI
                                                 //        If PTIN_MGMD_CONFIG_H_FLAGS_AUTO_OQPT_MASK is enabled this value is ignored 
     uint8    maxRecordsPerReport;
-  }__attribute__((packed)) host;                
+  }__attribute__((packed)) host;           
+       
+  uint8      whiteList;                         // Channel white-list admin [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE]
 } __attribute__((packed)) PTIN_MGMD_CTRL_MGMD_CONFIG_t; 
 
 // ----------------------------------------------
@@ -284,7 +285,7 @@ typedef struct
 {
   uint8  admin;                     // Administrative Status [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE]             
   uint32 serviceId;
-  uint8  family;                    // Address Family - IPv4 (IGMP) or IPv6(MLD) [AF_INET|AF_INET6] 
+  uint8  family;                    // Address Family - IPv4 (IGMP) or IPv6(MLD) [PTIN_MGMD_AF_INET|PTIN_MGMD_AF_INET6] 
 } __attribute__((packed)) PTIN_MGMD_CTRL_QUERY_CONFIG_t; 
 
 // ----------------------------------------------
@@ -297,6 +298,14 @@ typedef struct
   uint32 groupIp;
   uint32 sourceIp;
 } __attribute__((packed)) PTIN_MGMD_CTRL_WHITELIST_CONFIG_t; 
+
+// ----------------------------------------------
+// PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE
+// ----------------------------------------------
+typedef struct
+{
+  uint32 serviceId;
+} __attribute__((packed)) PTIN_MGMD_CTRL_SERVICE_REMOVE_t; 
 
 
 /**
@@ -441,6 +450,17 @@ RC_t ptin_mgmd_ctrl_whitelist_add(PTIN_MGMD_EVENT_CTRL_t *eventData);
 * @notes none
 */
 RC_t ptin_mgmd_ctrl_whitelist_remove(PTIN_MGMD_EVENT_CTRL_t *eventData);
+
+/**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE message
+*  
+* @param  eventMsg[in] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_service_remove(PTIN_MGMD_EVENT_CTRL_t *eventData);
 
 
 #endif //_PTIN_MGMD_CTRL_API_H_

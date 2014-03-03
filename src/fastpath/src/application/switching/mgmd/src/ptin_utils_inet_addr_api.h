@@ -140,7 +140,7 @@ RC_t	ptin_mgmd_inetAddressReset(ptin_mgmd_inet_addr_t * inetAddr);
 * @purpose  Get an IPV4/IPV6 address field
 *
 * @param    inetAddr @b{(input)} inetAddress
-* @param    family   @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param    family   @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 *	@param    addr     @b{(input)} (uint32  in addr for ipv4 ,
                                   uchar8* in addr for ipv6)
 * @returns   FAILURE  
@@ -156,7 +156,7 @@ RC_t ptin_mgmd_inetAddressGet(uchar8 family, ptin_mgmd_inet_addr_t *inetAddr, vo
 /*********************************************************************
 * @purpose  Set an IPV4/IPV6 address field
 *
-* @param    family  @b{(input)}Address family (AF_INET, AF_INET6, etc.)
+* @param    family  @b{(input)}Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 *	@param	  addr    @b{(input)}(uint32*  in addr for ipv4 ,
 * @param                               uchar8* in addr for ipv6)
 * @param    inetAddr @b{(input)}InetAddress
@@ -174,7 +174,7 @@ RC_t ptin_mgmd_inetAddressSet(uchar8 family,  void *addr, ptin_mgmd_inet_addr_t 
 /*********************************************************************
 * @purpose  Set an IPV4/IPV6 address field
 *
-* @param    family   @b{(input)}Address family (AF_INET, AF_INET6, etc.)
+* @param    family   @b{(input)}Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 * @param    inetAddr @b{(output)} inetAddress
 *
 * @returns   FAILURE / SUCCESS
@@ -223,7 +223,7 @@ BOOL ptin_mgmd_inetIsLANScopedAddress(ptin_mgmd_inet_addr_t *addr);
 /*********************************************************************
 * @purpose  Set addr to INADDR_ANY
 *
-* @param   family @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param   family @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 * @param	 addr   @b{(input)} InetAddress
 *
 * @returns   FAILURE 
@@ -311,7 +311,7 @@ RC_t ptin_mgmd_inetMaskToMaskLen(ptin_mgmd_inet_addr_t *mask, uchar8 *masklen);
 /*********************************************************************
 * @purpose  Convert masklen to mask
 *
-* @param    family  @b{(input)} Address family (AF_INET, AF_INET6, etc.)
+* @param    family  @b{(input)} Address family (PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, etc.)
 * @param    masklen @b{(input)} masklen
 * @param    mask    @b{(input)} mask
 *

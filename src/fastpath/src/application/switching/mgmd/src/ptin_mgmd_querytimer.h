@@ -18,7 +18,7 @@
 
 typedef struct mgmdPtinQuerierTimerKey_s
 {  
-  uint8                         family; //AF_INET/AF_INET6
+  uint8                         family; //PTIN_MGMD_AF_INET/PTIN_MGMD_AF_INET6
   mgmdPtinQuerierInfoDataKey_t querierKey;
 }mgmdPtinQuerierTimerKey_t ;
 

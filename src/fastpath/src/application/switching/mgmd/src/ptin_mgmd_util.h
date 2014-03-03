@@ -90,4 +90,6 @@ void      ptinMgmdDumpGroupRecordAvlTree(void);
 void      ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText);
 void      ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 recordType);
 
+RC_t      ptinMgmdServiceRemove(uint32 serviceId);
+
 #endif /* SNOOPING_UTIL_H */

@@ -40,6 +40,7 @@ static void sendEmulatedMgmdGroupClientsGet(uint16 serviceId, uint32 groupAddr, 
 static void sendEmulatedMgmdQuerierAdmin(uint16 serviceId, uint8 admin);
 static void sendEmulatedMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr);
 static void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint32 sourceAddr);
+static void sendEmulatedMgmdServiceRemove(uint16 serviceId);
 static void sendEmulatedMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug);
 static void sendEmulatedMgmdTimerLogLvl(uint8 debugLvl);
 static void sendEmulatedMcastGroupPrint(uint16 serviceId, uint32 groupAddr);
@@ -119,7 +120,7 @@ void sendEmulatedBurst(uint32 pcktpsec)
         randomGroupIpIncrement = randomNumber(1, 50);
         groupIp = (225 << 24) | (0 << 16) | (0 << 8) | (randomGroupIpIncrement);
         groupIp = ntohl(groupIp);
-        ptin_mgmd_inetAddressSet(AF_INET, &groupIp, &groupAddr);
+        ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &groupIp, &groupAddr);
         addGroupRecordToMembershipReport(igmpHeader, &igmpHeaderLength, recordType, &groupAddr);
 
         while(randomNumber(0, 2))
@@ -128,7 +129,7 @@ void sendEmulatedBurst(uint32 pcktpsec)
           randomGroupIpIncrement = randomNumber(1, 20);
           sourceIp = (192 << 24) | (168 << 16) | (1 << 8) | (randomGroupIpIncrement);
           sourceIp = ntohl(sourceIp);
-          ptin_mgmd_inetAddressSet(AF_INET, &sourceIp, &sourceAddr);
+          ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &sourceIp, &sourceAddr);
           addSourceToGroupRecord(igmpHeader, &igmpHeaderLength, &sourceAddr);
         }
       } while(randomNumber(0, 1));
@@ -578,7 +579,7 @@ void sendEmulatedMgmdQuerierAdmin(uint16 serviceId, uint8 admin)
 
   mgmdStatsMsg.admin     = admin;
   mgmdStatsMsg.serviceId = serviceId;
-  mgmdStatsMsg.family    = AF_INET;
+  mgmdStatsMsg.family    = PTIN_MGMD_AF_INET;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN, rand(), 0, ctrlQueueId, (void*)&mgmdStatsMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -618,6 +619,23 @@ void sendEmulatedMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint32 
   mgmdConfigMsg.groupIp   = groupAddr;
   mgmdConfigMsg.sourceIp  = sourceAddr;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE, rand(), 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Response");
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+}
+
+void sendEmulatedMgmdServiceRemove(uint16 serviceId)
+{
+  PTIN_MGMD_EVENT_t               reqMsg        = {0};
+  PTIN_MGMD_EVENT_t               resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_SERVICE_REMOVE_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.serviceId = serviceId;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE, rand(), 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Response");
@@ -731,6 +749,7 @@ void printHelpMenu(void)
   printf("\t 21  - QUERIER_ADMIN            - $serviceId $admin                               \n");
   printf("\t 22  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $sourceAddr(hex)     \n");
   printf("\t 23  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $sourceAddr(hex)     \n");
+  printf("\t 24  - SERVICE_REMOVE           - $serviceId                                      \n");
                                                                             
   printf("\n-------------DEBUG-------                                                         \n");    
   printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                        \n"); 
@@ -989,7 +1008,7 @@ int main(int argc, char **argv)
     {
       uint32 serviceId, groupIp, sourceIp;
 
-      if(argc < 4)
+      if(argc < 5)
       {
         printHelpMenu();
         return 0;
@@ -1006,7 +1025,7 @@ int main(int argc, char **argv)
     {
       uint32 serviceId, groupIp, sourceIp;
 
-      if(argc < 4)
+      if(argc < 5)
       {
         printHelpMenu();
         return 0;
@@ -1017,6 +1036,21 @@ int main(int argc, char **argv)
       sourceIp  = strtoul(argv[4], PTIN_NULLPTR, 16);
 
       sendEmulatedMgmdWhitelistRemove(serviceId, groupIp, sourceIp);
+      break;
+    }
+    case 24:
+    {
+      uint32 serviceId;
+
+      if(argc < 3)
+      {
+        printHelpMenu();
+        return 0;
+      }
+
+      serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
+
+      sendEmulatedMgmdServiceRemove(serviceId);
       break;
     }
     case 101:

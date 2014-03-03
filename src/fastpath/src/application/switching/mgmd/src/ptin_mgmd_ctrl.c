@@ -108,7 +108,6 @@ RC_t ptin_mgmd_ctrl_mgmd_config_set(PTIN_MGMD_EVENT_CTRL_t *eventData)
 
   igmpCfg.mask                                   = data.mask;
   igmpCfg.admin                                  = data.admin;
-  igmpCfg.whitelist                              = data.whiteList;
   igmpCfg.networkVersion                         = data.networkVersion;
   igmpCfg.clientVersion                          = data.clientVersion;
   igmpCfg.ipv4_addr                              = data.ipv4Addr;
@@ -135,6 +134,8 @@ RC_t ptin_mgmd_ctrl_mgmd_config_set(PTIN_MGMD_EVENT_CTRL_t *eventData)
   igmpCfg.host.older_querier_present_timeout     = data.host.olderQuerierPresentTimeout;
   igmpCfg.host.max_records_per_report            = data.host.maxRecordsPerReport;
 
+  igmpCfg.whitelist                              = data.whiteList;
+
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "IGMP Proxy (mask=0x%08X)", igmpCfg.mask);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, " Admin #                          = %u",          igmpCfg.admin);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, " Network Version                  = %u",          igmpCfg.networkVersion);
@@ -160,6 +161,7 @@ RC_t ptin_mgmd_ctrl_mgmd_config_set(PTIN_MGMD_EVENT_CTRL_t *eventData)
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Unsolicited Report Interval    = %u",          igmpCfg.host.unsolicited_report_interval);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Older Querier Present Timeout  = %u",          igmpCfg.host.older_querier_present_timeout);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Max Group Records per Packet   = %u",          igmpCfg.host.max_records_per_report);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, " Whitelist                        = %s",          igmpCfg.whitelist != 0 ? "ON" : "OFF");
 
   if (SUCCESS != (res = ptin_mgmd_igmp_proxy_config_set(&igmpCfg)))
   {
@@ -595,16 +597,16 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
   uint16                                 portId;
   uint16                                 numberOfClientsAux = 0;
   uint32                                 maxNumberOfEntries = PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
-  uint32                                 clientId, entryId;
+  uint32                                 clientId, entryId, numOfClientsInMsg;
   PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t  request            = {0};
   PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t response           = {0};
-  ptin_mgmd_inet_addr_t                       groupAddr, sourceAddr;
+  ptin_mgmd_inet_addr_t                  groupAddr, sourceAddr;
   char                                   debugBuf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t));
 
-  ptin_mgmd_inetAddressSet(AF_INET, &request.groupIP,  &groupAddr);
-  ptin_mgmd_inetAddressSet(AF_INET, &request.sourceIP, &sourceAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.groupIP,  &groupAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.sourceIP, &sourceAddr);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Reading client list");
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
@@ -640,13 +642,15 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
 
   if(SUCCESS == res)
   {
+    ++request.entryId; //Start searching the ID next to the requested
+    numOfClientsInMsg  = 0;
     numberOfClientsAux = 0;
     entryId            = 0;
     for (portId=1; portId<PTIN_MGMD_MAX_PORTS; portId++)
     {
       //Ignore this interface if the requested entryId is higher than the number os clients for this interface
       numberOfClientsAux += numberOfClientsPerPort[portId];
-      if(numberOfClientsAux <= request.entryId)
+      if(numberOfClientsAux < request.entryId)
       {
         entryId += numberOfClientsPerPort[portId];
         continue;
@@ -679,10 +683,11 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
           memcpy(eventData->data+entryId*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
           ++entryId;
+          ++numOfClientsInMsg;
         }
       }
     }
-    eventData->dataLength = entryId*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
+    eventData->dataLength = numOfClientsInMsg*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
   }
   return SUCCESS;
 }
@@ -705,7 +710,7 @@ RC_t ptin_mgmd_ctrl_staticChannel_add(PTIN_MGMD_EVENT_CTRL_t *eventData)
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_STATICGROUP_t));
 
-  ptin_mgmd_inetAddressSet(AF_INET, &request.groupIp, &groupAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.groupIp, &groupAddr);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Adding static group");
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
@@ -738,7 +743,7 @@ RC_t ptin_mgmd_ctrl_staticChannel_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_STATICGROUP_t));
 
-  ptin_mgmd_inetAddressSet(AF_INET, &request.groupIp, &groupAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.groupIp, &groupAddr);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Removing static group");
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
@@ -772,8 +777,8 @@ RC_t ptin_mgmd_ctrl_whitelist_add(PTIN_MGMD_EVENT_CTRL_t *eventData)
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
 
-  ptin_mgmd_inetAddressSet(AF_INET, &request.groupIp, &groupAddr);
-  ptin_mgmd_inetAddressSet(AF_INET, &request.sourceIp, &sourceAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.groupIp, &groupAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.sourceIp, &sourceAddr);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Adding channel to white-list");
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
@@ -808,8 +813,8 @@ RC_t ptin_mgmd_ctrl_whitelist_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
   
   memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t));
 
-  ptin_mgmd_inetAddressSet(AF_INET, &request.groupIp, &groupAddr);
-  ptin_mgmd_inetAddressSet(AF_INET, &request.sourceIp, &sourceAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.groupIp, &groupAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &request.sourceIp, &sourceAddr);
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Removing channel from white-list");
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
@@ -819,6 +824,34 @@ RC_t ptin_mgmd_ctrl_whitelist_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
   if (SUCCESS != (res = ptinMgmdWhitelistRemove(request.serviceId, &groupAddr, &sourceAddr)))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error removing entry from white-list");
+    return res;
+  }
+
+  return res;
+}
+
+/**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE message
+*  
+* @param  eventMsg[in] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_service_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
+{
+  RC_t                            res       = SUCCESS;
+  PTIN_MGMD_CTRL_SERVICE_REMOVE_t request   = {0};
+  
+  memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t));
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Removing service from MGMD");
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Service ID = %u", request.serviceId);
+
+  if (SUCCESS != (res = ptinMgmdServiceRemove(request.serviceId)))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error removing service from MGMD");
     return res;
   }
 

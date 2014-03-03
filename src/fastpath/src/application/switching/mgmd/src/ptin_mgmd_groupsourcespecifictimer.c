@@ -639,7 +639,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
     //Send Group-Source specific query to all leaf ports for this service
     queryPckt.serviceId  = timerData->key.serviceId;  
     queryPckt.client_idx = (uint32)-1;
-    queryPckt.family     = AF_INET;
+    queryPckt.family     = PTIN_MGMD_AF_INET;
     if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, timerData->key.portId))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to send source specific query for service[%u]", timerData->key.serviceId);

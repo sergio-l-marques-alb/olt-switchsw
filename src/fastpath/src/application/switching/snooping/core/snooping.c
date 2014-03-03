@@ -78,7 +78,7 @@ extern ptin_debug_pktTimer_t debug_pktTimer;
 * 
 * @end
 *********************************************************************/
-static L7_RC_t mgmdPacketSend(L7_uint16 outterVlan, L7_uint16 innerVlan, L7_uint32 portId, L7_uint32 clientId, void* payload, L7_uint32 payloadLength)
+static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint32 clientId, void* payload, L7_uint32 payloadLength)
 {
   PTIN_MGMD_EVENT_t mgmdPcktEvent = {0};
   L7_uint32         ethernetHdrLen;
@@ -89,9 +89,12 @@ static L7_RC_t mgmdPacketSend(L7_uint16 outterVlan, L7_uint16 innerVlan, L7_uint
   payload       += ethernetHdrLen;
   payloadLength -= ethernetHdrLen;
 
-  //Hash the serviceId field from outter and inner vlans
-  serviceId = outterVlan + innerVlan;
-  serviceId = 7; //Hardcoded
+  //Determine serviceId
+  if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &serviceId)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to internal vlan %u", mcastRootVlan);
+    return L7_FAILURE;
+  }
 
   //Create a new MGMD packet event
   if(SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
@@ -798,7 +801,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           L7_MSG_PRIORITY_NORM);
   }
 #else
-  if(SUCCESS != (rc = mgmdPacketSend(msg.vlanId, msg.innerVlanId, pduInfo->intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
+  /* Send packet to MGMD */
+  if(SUCCESS != (rc = mgmdPacketSend(McastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
   }

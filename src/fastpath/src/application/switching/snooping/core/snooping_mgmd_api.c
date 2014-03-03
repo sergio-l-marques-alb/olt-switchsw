@@ -14,6 +14,11 @@
 #include "logger.h" 
 #include "usmdb_snooping_api.h"
 #include "l3_addrdefs.h"
+#include "comm_mask.h"
+#include "ptin_evc.h"
+#include "snooping_util.h"
+#include "snooping_proto.h"
+#include "snooping_db.h"
 
 ptin_mgmd_externalapi_t mgmd_external_api = {
   .igmp_admin_set=snooping_igmp_admin_set,
@@ -29,7 +34,7 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
 
 RC_t snooping_igmp_admin_set(uint8 admin)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
 
   // Snooping global activation
   if (L7_SUCCESS != usmDbSnoopAdminModeSet( 1, admin, L7_AF_INET))  {
@@ -42,7 +47,7 @@ RC_t snooping_igmp_admin_set(uint8 admin)
 
 RC_t snooping_mld_admin_set(uint8 admin)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
 
   // Snooping global activation
   if (L7_SUCCESS != usmDbSnoopAdminModeSet( 1, admin, L7_AF_INET6))  {
@@ -55,7 +60,7 @@ RC_t snooping_mld_admin_set(uint8 admin)
 
 RC_t snooping_cos_set(uint8 cos)
 {
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Context [cos:%u]", cos);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [cos:%u]", cos);
 
   // Attrib IGMP packets priority
   if (L7_SUCCESS != usmDbSnoopPrioModeSet(1, cos, L7_AF_INET))
@@ -69,46 +74,199 @@ RC_t snooping_cos_set(uint8 cos)
 
 RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
+  L7_INTF_MASK_t interfaceBitmap = {{0}};
+  L7_uint16      mcastRootVlan;
+  L7_RC_t        res = SUCCESS;
 
-  memset(portList, 0x00, sizeof(PTIN_MGMD_PORT_MASK_t));
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
+
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  } 
+
+  if(PTIN_MGMD_PORT_TYPE_LEAF == portType)
+  {
+    res = ptin_igmp_clientIntfs_getList(mcastRootVlan, &interfaceBitmap);
+  }
+  else if(PTIN_MGMD_PORT_TYPE_ROOT == portType)
+  {
+    res = ptin_igmp_rootIntfs_getList(mcastRootVlan, &interfaceBitmap);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
+    return FAILURE;
+  }
+
+  if(SUCCESS != res)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get port information");
+    return FAILURE;
+  }
+
+  memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
 
   return SUCCESS;
 }
 
 RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
+  L7_uint16 mcastRootVlan;
 
-  *portType = PTIN_MGMD_PORT_TYPE_LEAF; //Hardcoded for now..
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
+
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  } 
+
+  if(SUCCESS == ptin_igmp_rootIntfVlan_validate(portId, mcastRootVlan))
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port is root");
+    *portType = PTIN_MGMD_PORT_TYPE_ROOT;
+  }
+  else if(SUCCESS == ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port is leaf");
+    *portType = PTIN_MGMD_PORT_TYPE_LEAF;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
+    return FAILURE;
+  }
 
   return SUCCESS;
 }
 
 RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, uint8 *clientList)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
 
   return SUCCESS;
 }
 
 RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u]", serviceId, portId, groupAddr, sourceAddr, isStatic);
+  L7_RC_t        res = SUCCESS;
+  L7_uint16      mcastRootVlan;
+  L7_inet_addr_t groupIp;
 
-  return SUCCESS;
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u]", serviceId, portId, groupAddr, sourceAddr, isStatic);
+
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Before VLAN: %u", serviceId);
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  } 
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "After VLAN: %u", mcastRootVlan);
+
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Before IP: %08X", groupAddr);
+  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "After IP: %u %08X", groupIp.family, groupIp.addr.ipv4.s_addr);
+//res = snoopGroupIntfAdd(mcastRootVlan, &groupIp, portId, isStatic);
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "After Port Add");
+
+  return res;
 }
 
 RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+  L7_RC_t        res;
+  L7_uint16      mcastRootVlan;
+  L7_inet_addr_t groupIp;
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  } 
+
+  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
+  res = snoopGroupIntfRemove(mcastRootVlan, &groupIp, portId);
+
+  return res;
 
   return SUCCESS;
 }
 
-RC_t snooping_tx_packet(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family)
+RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payLoad, payloadLength, serviceId, portId, clientId, family);
+  L7_uint16 shortVal, mcastRootVlan;
+  L7_uchar8 srcMac[L7_MAC_ADDR_LEN];
+  L7_uchar8 destMac[L7_MAC_ADDR_LEN];
+  L7_uchar8 packet[L7_MAX_FRAME_SIZE];
+  L7_uchar8 *dataPtr = packet;
+  L7_uint32 packetLength = payloadLength;
+  L7_uint32 dstIpAddr;
+  L7_inet_addr_t destIp;
+  L7_uint32 i;
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
+
+  memset(packet, 0x00, L7_MAX_FRAME_SIZE * sizeof(L7_uchar8));
+
+  //Get outter internal vlan
+  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    return FAILURE;
+  }
+
+  //Get destination MAC from destIpAddr
+  dstIpAddr = (L7_uint32) *(payload+16);
+  inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
+  snoopMulticastMacFromIpAddr(&destIp, destMac);
+
+  //Get base MAC address (could be BIA or LAA) and use it as src MAC */
+  if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
+  {
+    simGetSystemIPBurnedInMac(srcMac);
+  }
+  else
+  {
+    simGetSystemIPLocalAdminMac(srcMac);
+  }
+
+  //Set source and dest MAC in ethernet header
+  SNOOP_PUT_DATA(destMac, L7_MAC_ADDR_LEN, dataPtr);    // 6 bytes
+  packetLength += L7_MAC_ADDR_LEN;
+  SNOOP_PUT_DATA(srcMac, L7_MAC_ADDR_LEN, dataPtr);    // 6 bytes
+  packetLength += L7_MAC_ADDR_LEN;
+
+  //OuterVlan
+  shortVal = L7_ETYPE_8021Q;
+  SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+  packetLength += 2;
+  shortVal = ((5 & 0x07)<<13) | (mcastRootVlan & 0x0fff);
+  SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+  packetLength += 2;
+
+  //IP Ether type
+  shortVal = L7_ETYPE_IP;
+  SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+  packetLength += 2;
+
+  //Copy the L3 and above payload to the packet buffer
+  memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
+
+  printf("\nTx:PayloadLength:%d\n",packetLength);
+  for (i=0;i<packetLength;i++)
+    printf("%02x ",packet[i]);
+  printf("\n");
+
+  //Since the intfNum notation starts with port 1 and MGMD with port 0, we need to convert the portId
+  ++portId;
+
+  //Send packet
+  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Sending portId:%u mcastRootVlan:%u packet:%p packetLength:%u family:%u clientId:%u", portId, mcastRootVlan, packet, packetLength, family, clientId);
+  snoopPacketSend(portId, mcastRootVlan, 0, packet, packetLength, family, clientId);
 
   return SUCCESS;
 }

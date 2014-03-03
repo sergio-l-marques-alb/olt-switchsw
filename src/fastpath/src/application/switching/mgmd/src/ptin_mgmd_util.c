@@ -109,7 +109,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   /* Argument validation */
   if (groupAddr==PTIN_NULLPTR || ptr == PTIN_NULLPTR )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments}");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments [groupAddr=%p ptr=%p] }", groupAddr, ptr);
     return FAILURE;
   }
    
@@ -460,7 +460,7 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   SNOOP_PUT_SHORT(shortVal, dataPtr);
 
   /*Multicast Address*/
-  if (groupAddr->family!=AF_INET)
+  if (groupAddr->family!=PTIN_MGMD_AF_INET)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid IP Family");
     return PTIN_NULLPTR;
@@ -474,14 +474,14 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   for (i=0;i<numberOfSources && sourcePtr != PTIN_NULLPTR;i++)
   {
     /*Source Address*/
-    if (groupAddr->family!=AF_INET)
+    if (groupAddr->family!=PTIN_MGMD_AF_INET)
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid IP Family");
       return PTIN_NULLPTR;
     }
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source (sourceAddr: %s)", ptin_mgmd_inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
 
-    ptin_mgmd_inetAddressGet(AF_INET, &sourcePtr->key.sourceAddr,  &ipv4Addr );  
+    ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &sourcePtr->key.sourceAddr,  &ipv4Addr );  
     SNOOP_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
 
     sourcePtr=sourcePtr->nextSource;
@@ -682,14 +682,14 @@ void snoopPTinQuerySend(uint32 arg1)
   }
 
   /* Get Snoop Control Block */
-  if ((pSnoopCB = snoopCBGet(AF_INET)) == PTIN_NULLPTR)
+  if ((pSnoopCB = snoopCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting pSnoopCB");
     return;
   }
 
   /* Only allow IPv4 for now */
-  if (pSnoopCB->family != AF_INET)
+  if (pSnoopCB->family != PTIN_MGMD_AF_INET)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Not IPv4 packet");
     return;
@@ -713,14 +713,14 @@ void snoopPTinQuerySend(uint32 arg1)
 
   /* Initialize mcastPacket structure */
   memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
-  mcastPacket.cbHandle = snoopCBGet(AF_INET);
+  mcastPacket.cbHandle = snoopCBGet(PTIN_MGMD_AF_INET);
   mcastPacket.vlanId = queryData->vlanId;
   mcastPacket.innerVlanId = 0;
   mcastPacket.client_idx = (uint32) -1;
   mcastPacket.msgType = IP_PROT_IGMP;
-  mcastPacket.srcAddr.family = AF_INET;
+  mcastPacket.srcAddr.family = PTIN_MGMD_AF_INET;
   mcastPacket.srcAddr.addr.ipv4.s_addr = PTIN_NULL_IP_ADDR;
-  mcastPacket.destAddr.family = AF_INET;
+  mcastPacket.destAddr.family = PTIN_MGMD_AF_INET;
   mcastPacket.destAddr.addr.ipv4.s_addr = PTIN_NULL_IP_ADDR;
 
   /* Build header frame for IGMPv3 Query with no sources */
@@ -775,7 +775,7 @@ void snoopPTinQuerySend(uint32 arg1)
  * @param   arg1  Pointer to a snoopPTinQueryData_t structure
  *
  *********************************************************************/
-RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t     *groupPtr, uint32 noOfGroupRecords, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 noOfGroupRecords, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   uchar8             igmpFrame[PTIN_MGMD_MAX_FRAME_SIZE]={0};
   uint32             igmpFrameLength=0;
@@ -794,12 +794,11 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t     *groupPtr, uint
     return FAILURE;
   }
 
-
   /* Initialize mcastPacket structure */
   memset(&mcastPacket, 0x00, sizeof(mgmdSnoopControlPkt_t));
 
   /* Get Mgmd Control Block */
-  if (( mcastPacket.cbHandle = mgmdCBGet(AF_INET)) == PTIN_NULLPTR)
+  if (( mcastPacket.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
     return FAILURE;
@@ -808,13 +807,13 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t     *groupPtr, uint
   mcastPacket.serviceId = serviceId;  
   mcastPacket.client_idx = (uint32) -1;
   mcastPacket.msgType = PTIN_MGMD_IP_PROT_IGMP;
-  mcastPacket.family=AF_INET;
-  mcastPacket.srcAddr.family = AF_INET;
+  mcastPacket.family=PTIN_MGMD_AF_INET;
+  mcastPacket.srcAddr.family = PTIN_MGMD_AF_INET;
   mcastPacket.srcAddr.addr.ipv4.s_addr=igmpCfg->ipv4_addr;   
 
   if(mcastPacket.cbHandle->proxyCM[serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
   {  
-    mcastPacket.destAddr.family = AF_INET;
+    mcastPacket.destAddr.family = PTIN_MGMD_AF_INET;
     mcastPacket.destAddr.addr.ipv4.s_addr =groupPtr->key.groupAddr.addr.ipv4.s_addr;
     igmpType=PTIN_IGMP_V3_MEMBERSHIP_REPORT;        
 
@@ -855,8 +854,8 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t     *groupPtr, uint
     }
     for(i=0;i<noOfGroupRecords && groupPtrAux!=PTIN_NULLPTR;i++)
     {
-      mcastPacket.destAddr.family = AF_INET;
-      mcastPacket.destAddr.addr.ipv4.s_addr =groupPtrAux->key.groupAddr.addr.ipv4.s_addr;
+      mcastPacket.destAddr.family = PTIN_MGMD_AF_INET;
+      mcastPacket.destAddr.addr.ipv4.s_addr = groupPtrAux->key.groupAddr.addr.ipv4.s_addr;
      
       /* Build header frame for IGMPv2 */       
       if (ptinIgmpV2FrameBuild(igmpType,groupPtrAux,igmpFrame,&igmpFrameLength) != SUCCESS)
@@ -905,7 +904,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
   mgmd_cb_t             *pMgmdCB = PTIN_NULLPTR; 
 
   memset(&groupAddr, 0x00, sizeof(ptin_mgmd_inet_addr_t));
-  groupAddr.family=AF_INET;
+  groupAddr.family=PTIN_MGMD_AF_INET;
 
   if (serviceId>PTIN_MGMD_MAX_SERVICE_ID)
   {
@@ -1003,7 +1002,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
 
   ptin_mgmd_inet_addr_t        groupAddr;
   memset(&groupAddr, 0x00, sizeof(ptin_mgmd_inet_addr_t));
-  groupAddr.family=AF_INET;
+  groupAddr.family=PTIN_MGMD_AF_INET;
 
 
   mgmdProxyInterface_t *interfacePtr;
@@ -1730,4 +1729,98 @@ uint8 ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType)
   }
 }
 
+RC_t ptinMgmdServiceRemove(uint32 serviceId)
+{
+  mgmdProxyInterface_t               *proxy_interface;
+  char                               debugBuf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
+  mgmd_eb_t                          *pSnoopEB;
+  mgmd_cb_t                          *pSnoopCB;
+  snoopPTinL3InfoData_t              *avlTreeEntry;  
+  snoopPTinL3InfoDataKey_t           avlTreeKey;
+  groupSourceSpecificQueriesAvl_t    *queriesAvlTreeEntry;
+  groupSourceSpecificQueriesAvlKey_t queriesAvlTreeKey;
 
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Starting to remove service %u", serviceId);
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return FAILURE;
+  }
+
+  /* Initialize mcastPacket structure */
+  if ((pSnoopCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing statistics...", serviceId);
+  {
+    ptin_mgmd_stats_service_clear(serviceId);
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing learnt channels...", serviceId);
+  {
+    memset(&avlTreeKey, 0x00, sizeof(snoopPTinL3InfoDataKey_t));
+    while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinL3AvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+    {
+      // Prepare next key
+      memcpy(&avlTreeKey, &avlTreeEntry->snoopPTinL3InfoDataKey, sizeof(snoopPTinL3InfoDataKey_t));
+
+      if(avlTreeEntry->snoopPTinL3InfoDataKey.serviceId == serviceId)
+      {
+        // Triggering the removal of the root interface will remove the entire AVL entry
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.groupAddr, debugBuf));
+        ptinMgmdInterfaceRemove(avlTreeEntry, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
+      }
+    }
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing pending reports...", serviceId);
+  {
+    proxy_interface = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
+    if(PTIN_NULLPTR != proxy_interface)
+    {
+      mgmdGroupRecord_t *group_record;
+
+      group_record = proxy_interface->firstGroupRecord;
+      while(PTIN_NULLPTR != group_record)
+      {
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&group_record->key.groupAddr, debugBuf));
+        ptinMgmdGroupRecordRemove(proxy_interface, &group_record->key.groupAddr, group_record->key.recordType);
+        group_record = group_record->nextGroupRecord;
+      }
+    }
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing pending Q(G,S)...", serviceId);
+  {
+    memset(&queriesAvlTreeKey, 0x00, sizeof(groupSourceSpecificQueriesAvlKey_t));
+    while ( ( queriesAvlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &queriesAvlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+    {
+      // Prepare next key
+      memcpy(&queriesAvlTreeKey, &queriesAvlTreeEntry->key, sizeof(groupSourceSpecificQueriesAvlKey_t));
+
+      if(queriesAvlTreeEntry->key.serviceId == serviceId)
+      {
+        // Triggering the removal of the root interface will remove the entire AVL entry
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&queriesAvlTreeEntry->key.groupAddr, debugBuf));
+        if(SUCCESS != ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&queriesAvlTreeEntry->key.groupAddr, queriesAvlTreeEntry->key.serviceId, queriesAvlTreeEntry->key.portId))
+        {
+          return FAILURE;
+        }
+        ptin_mgmd_timer_deinit(queriesAvlTreeEntry->timerHandle);
+      }
+    }
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing compatibility-mode settings...", serviceId);
+  {
+    //Restore compatibility-mode
+    ptin_mgmd_proxycmtimer_stop(&pSnoopCB->proxyCM[serviceId]);
+    pSnoopCB->proxyCM[serviceId].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; 
+  }
+
+  return SUCCESS;
+}

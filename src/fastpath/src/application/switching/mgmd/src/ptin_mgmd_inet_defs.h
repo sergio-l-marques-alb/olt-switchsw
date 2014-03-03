@@ -129,7 +129,7 @@ typedef struct ptin_mgmd_sockaddr_union_s{
 
 typedef struct ptin_mgmd_inet_addr_s
 {
-  uchar8     family;  /* AF_INET, AF_INET6, ... */
+  uchar8     family;  /* PTIN_MGMD_AF_INET, PTIN_MGMD_AF_INET6, ... */
   union
   {
     struct ptin_mgmd_in_addr_s    ipv4;
@@ -143,7 +143,7 @@ typedef struct ptin_mgmd_inet_addr_s
 /* some macros for inet_address */
 #define	PTIN_MGMD_IP4_IN_MULTICAST(a)		((((a)) & 0xf0000000) == 0xe0000000)
 #define PTIN_MGMD_INET_IS_ADDR_EQUAL(xaddr, yaddr) \
-  ( (AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
+  ( (PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
     ( (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[0] == \
        ((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv6.in6.addr32[0]) && \
       (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[1] == \
@@ -156,14 +156,14 @@ typedef struct ptin_mgmd_inet_addr_s
       ((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv4.s_addr ) )
 
 #define PTIN_MGMD_INET_ADDR_COMPARE(xaddr, yaddr) \
-    ( (AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
+    ( (PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
       (memcmp(&(((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6), \
               &(((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv6), sizeof(ptin_mgmd_in6_addr_t))) : \
       (memcmp(&(((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv4), \
               &(((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv4), sizeof(ptin_mgmd_in_addr_t))) )
 
 #define PTIN_MGMD_INET_IS_ADDR_BROADCAST(xaddr) \
-  ( (AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
+  ( (PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
     ( (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[0] == \
        0xff) && \
       (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[1] == \
@@ -176,7 +176,7 @@ typedef struct ptin_mgmd_inet_addr_s
       0xffffffff ) )
 
 #define PTIN_MGMD_INET_IS_ADDR_EXPERIMENTAL(xaddr) \
-  ( (AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? 0\
+  ( (PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? 0\
     : ( ((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv4.s_addr & 0xe0000000) == 0xe0000000)
 
 /* some macros for inet_address */
@@ -244,14 +244,14 @@ typedef struct ptin_mgmd_inet_addr_s
    if(xx < 0) xcarry = TRUE; \
 }
 
-#define PTIN_MGMD_INET_ADDR_GET_ALL_ONES_MASKLEN(addr)  ((addr)->family == AF_INET)?32:128
+#define PTIN_MGMD_INET_ADDR_GET_ALL_ONES_MASKLEN(addr)  ((addr)->family == PTIN_MGMD_AF_INET)?32:128
 
 /*
  Following things are added for mcast support
  */
 
 #define PTIN_MGMD_INET_APPLY_MASK(xaddr, yaddr) \
-  ( (AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
+  ( (PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
     ( (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[0] & \
        ((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv6.in6.addr32[0]) && \
       (((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr32[1] & \
@@ -264,7 +264,7 @@ typedef struct ptin_mgmd_inet_addr_s
       ((ptin_mgmd_inet_addr_t *)(yaddr))->addr.ipv4.s_addr ) )
 
 #define PTIN_MGMD_INET_IN_SSM_RANGE(xaddr) \
-	((AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
+	((PTIN_MGMD_AF_INET6 == ((ptin_mgmd_inet_addr_t *)(xaddr))->family) ? \
 	 (((osapiNtohs( ((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr16[0] ) & 0xfff0) == 0xff30)&&  \
       ((osapiNtohs( ((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr16[1] ) & 0xffff) == 0x0000)&&  \
       ((osapiNtohs( ((ptin_mgmd_inet_addr_t *)(xaddr))->addr.ipv6.in6.addr16[2] ) & 0xffff) == 0x0000)&&  \
@@ -275,7 +275,7 @@ typedef struct ptin_mgmd_inet_addr_s
 	 L7_IP_SSM_BASE_ADDR))
 
 
-#define PTIN_MGMD_INET_GET_MAX_MASK_LEN(family) (family == AF_INET)?32:128
+#define PTIN_MGMD_INET_GET_MAX_MASK_LEN(family) (family == PTIN_MGMD_AF_INET)?32:128
 
 #define PTIN_MGMD_IP6_GET_VER(ip6)      (osapiNtohl((ip6)->ver_class_flow) >> 28)
 #define PTIN_MGMD_IP6_SET_VER(ip6,val)  (ip6)->ver_class_flow = osapiHtonl((val & 0x0f) << 28)

@@ -36,7 +36,7 @@ RC_t                        ptinMgmdQueryEntryDelete(uint16 sId,uchar8 family);
  * API methods for the CTRL events
  ******************************************************************************/
 RC_t                       ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, ptin_mgmd_groupInfo_t *channelList, uint32 *numChannels);
-RC_t                       ptinMgmdgroupclients_get(uint16 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr, uint8* clientList,uint16* numClients);
+RC_t                       ptinMgmdgroupclients_get(uint32 serviceId, uint32 portId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr, uint8* clientList,uint16* numClients);
 RC_t                       ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t* sourceAddr);
 RC_t                       ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 noOfSources, ptin_mgmd_inet_addr_t* sourceAddr);
 
