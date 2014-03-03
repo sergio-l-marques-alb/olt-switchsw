@@ -27,8 +27,8 @@ mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin
 mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 flag);
 mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL* newEntry);
 RC_t                        ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId);
-mgmdPTinQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 family,uint32 flag);
-mgmdPTinQuerierInfoData_t*  ptinMgmdQueryEntryAdd(uint16 sId,uchar8 family, BOOL* newEntry);
+ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 family,uint32 flag);
+ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryAdd(uint16 sId,uchar8 family, BOOL* newEntry);
 RC_t                        ptinMgmdQueryEntryDelete(uint16 sId,uchar8 family);
 
 /******************************************************************************

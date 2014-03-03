@@ -2406,6 +2406,16 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
       ptin_mgmd_measurement_timer_dump();
       break;
     }
+    case PTIN_MGMD_EVENT_DEBUG_MEMORY_REPORT_DUMP:
+    {
+      ptin_mgmd_memoryReport();
+      break;
+    }
+    case PTIN_MGMD_EVENT_DEBUG_GENERAL_QUERY_DUMP:
+    {
+      ptinMgmdDumpGeneralQuery();
+      break;
+    }    
     default:
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown request received");

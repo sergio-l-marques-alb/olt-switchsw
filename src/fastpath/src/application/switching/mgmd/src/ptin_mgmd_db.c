@@ -3782,10 +3782,10 @@ RC_t ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId)
 *
  * @return  Matching entry or NULL on failure
  */
-mgmdPTinQuerierInfoData_t* ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 family, uint32 flag)
+ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 family, uint32 flag)
 {
-  mgmdPTinQuerierInfoData_t    *pMgmdEntry;
-  mgmdPtinQuerierInfoDataKey_t key;
+  ptinMgmdQuerierInfoData_t    *pMgmdEntry;
+  ptinMgmdQuerierInfoDataKey_t key;
 
   mgmd_cb_t                *pMgmdCB;
 
@@ -3829,10 +3829,10 @@ mgmdPTinQuerierInfoData_t* ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 famil
  *
  * @return  SUCCESS or FAILURE
  */
-mgmdPTinQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint16 serviceId, uchar8 family, BOOL *newEntry)
+ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint16 serviceId, uchar8 family, BOOL *newEntry)
 {
-  mgmdPTinQuerierInfoData_t mgmdEntry;
-  mgmdPTinQuerierInfoData_t *pMgmdEntry;
+  ptinMgmdQuerierInfoData_t mgmdEntry;
+  ptinMgmdQuerierInfoData_t *pMgmdEntry;
 
   mgmd_cb_t             *pMgmdCB;
 
@@ -3890,8 +3890,8 @@ mgmdPTinQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint16 serviceId, uchar8 family
  */
 RC_t ptinMgmdQueryEntryDelete(uint16 serviceId, uchar8 family)
 {
-  mgmdPTinQuerierInfoData_t *pMgmdEntry;
-  mgmdPTinQuerierInfoData_t *pMgmdEntryAux;
+  ptinMgmdQuerierInfoData_t *pMgmdEntry;
+  ptinMgmdQuerierInfoData_t *pMgmdEntryAux;
   mgmd_cb_t             *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(family)) == PTIN_NULLPTR)

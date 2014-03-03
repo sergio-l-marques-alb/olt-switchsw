@@ -807,6 +807,33 @@ void sendMeasurementTimersDump(void)
   }
 }
 
+void sendMemoryReportDump(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_MEMORY_REPORT_DUMP, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
+
+void sendGeneralQueryDump(void)
+{
+  PTIN_MGMD_EVENT_t txMsg   = {0};
+  uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
+
+  ptin_mgmd_event_debug_create(&txMsg, PTIN_MGMD_EVENT_DEBUG_GENERAL_QUERY_DUMP, (void*)&params, 0);
+  if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to sent event", strerror(errno));
+    return;
+  }
+}
+
 
 void printHelpMenu(void)
 {
@@ -844,6 +871,8 @@ void printHelpMenu(void)
   printf("\t 108 - WHITELIST_DUMP           -                                                                            \n"); 
   printf("\t 109 - WHITELIST_CLEAN          -                                                                            \n"); 
   printf("\t 110 - MEASUREMENT_TIMERS       -                                                                            \n"); 
+  printf("\t 111 - MEMORY_REPORT_DUMP       -                                                                            \n");
+  printf("\t 112 - GENERAL_QUERY_DUMP       -                                                                            \n");
 }
 
 int main(int argc, char **argv)
@@ -1238,6 +1267,16 @@ int main(int argc, char **argv)
     case 110:
     {
       sendMeasurementTimersDump();
+      break;
+    }
+    case 111:
+    {
+      sendMemoryReportDump();
+      break;
+    }
+    case 112:
+    {
+      sendGeneralQueryDump();
       break;
     }
     default:
