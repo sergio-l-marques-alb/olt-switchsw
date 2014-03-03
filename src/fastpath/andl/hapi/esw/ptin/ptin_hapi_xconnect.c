@@ -493,6 +493,9 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
   return L7_SUCCESS;
 }
 
+
+extern int _bcm_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags);
+
 /**
  * Create Virtual port
  * 
@@ -565,6 +568,9 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   }
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vport=%d", vlan_port.vlan_port_id);
+
+  /* USE PENDING FLAG */
+  _bcm_vlan_port_learn_set(0, vlan_port.vlan_port_id, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
 
   /* create egress translation entries for virtual ports to do VLAN tag manipulation 
    * i.e. client -> gem_id + some_c_vlan */
