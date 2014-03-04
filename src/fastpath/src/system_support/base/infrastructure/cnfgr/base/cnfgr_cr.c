@@ -36,6 +36,9 @@
 #include "sysapi_hpc.h"
 #include "unitmgr_api.h"
 
+/* PTin added: logger */
+#include "logger.h"
+
 #if (CNFGR_MODULE_CR == CNFGR_PRESENT)
 
 
@@ -1051,6 +1054,8 @@ L7_RC_t cnfgrCrInitialize()
     L7_BOOL                       skip_component;
 
 
+    LOG_TRACE(LOG_CTX_STARTUP,"Starting...");
+
     local_unit = hpcLocalUnitDescriptorGet ();
     if (local_unit == L7_NULLPTR)
     {
@@ -1102,6 +1107,8 @@ L7_RC_t cnfgrCrInitialize()
 
           if (skip_component == L7_FALSE)
           {
+            LOG_TRACE(LOG_CTX_STARTUP,"Adding component cid %u",cil[i].cid);
+
             /* 1.-set up a component entry -
              *
              * <get component information from the input list (cnfgr_sid.c)>
@@ -1213,6 +1220,8 @@ L7_RC_t cnfgrCrInitialize()
         /* return error to caller */
         crRC = L7_ERROR;
     }
+
+    LOG_TRACE(LOG_CTX_STARTUP,"Leaving: crRC=%d",crRC);
 
     /* return value to caller */
     return (crRC);

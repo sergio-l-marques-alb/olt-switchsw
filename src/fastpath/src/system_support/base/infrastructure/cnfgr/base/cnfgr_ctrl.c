@@ -42,6 +42,8 @@
 #include "cnfgr_include.h"
 #include "osapi_trace.h"
 
+/* PTin added: logger */
+#include "logger.h"
 
 /*
  *********************************************************************
@@ -880,6 +882,8 @@ L7_RC_t cnfgrCCtlrActionProcess(
   L7_CNFGR_CORRELATOR_t  correlator,
 			 *pCorrelator;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Processing action %u for cid=%u",actionNdx,pComponent->cid);
+
   pCmdData = &cmdData;
 
   /* Check if not action need */
@@ -1168,6 +1172,7 @@ void cnfgrCCtlrEventReceive(
 
   L7_COMPONENT_IDS_t     cid         = (L7_COMPONENT_IDS_t)eventData.data;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Received event %u for cid %u",eventData.event, cid);
 
   if ( cid != L7_LAST_COMPONENT_ID )
   {
@@ -1194,6 +1199,9 @@ void cnfgrCCtlrEventReceive(
          * system policies determine action. This may be fatal error. 
          */
       } /* endif open tally handle */
+
+      LOG_TRACE(LOG_CTX_STARTUP,"Going to process event %u for cid %u",
+                eventData.event, cid);
 
       /* Process the event to obtain an action.
        *
@@ -1241,7 +1249,7 @@ void cnfgrCCtlrEventReceive(
   }
   else
   {
-
+    LOG_TRACE(LOG_CTX_STARTUP,"All componentes processed!");
 
     /* Set up to traverse the Component Repository -
      *
@@ -1287,6 +1295,8 @@ void cnfgrCCtlrEventReceive(
 
           if ( actionNdx != CNFGR_NDX0 )
           {
+            LOG_TRACE(LOG_CTX_STARTUP,"Going to process action %u for cid %u",
+                      actionNdx, pComponent->cid);
 
             /* Process the action 
              *
