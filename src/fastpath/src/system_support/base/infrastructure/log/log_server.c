@@ -1043,6 +1043,8 @@ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
   L7_BOOL    freeBuf = L7_FALSE;
   const L7_int32   bufsiz = L7_LOG_MESSAGE_LENGTH;
 
+  printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+
   /* NOTE: This function uses the fileName parm as is (caller is responsible
    *       for stripping off path info, if desired).
    */
@@ -1699,6 +1701,7 @@ static void logTask()
 
       }
 
+    printf("LOGF: \"%s\"\r\n",(L7_char8 *) (logMsg.buffer + LOG_STACK_HEADER_LEN));
 
     /* Log to console? And yes, we do allow mgmt to
      * change things while writing to slow devices.
