@@ -21,19 +21,19 @@
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;
 
 static void* ptin_mgmd_sourcetimer_callback(void *param);
-static RC_t  ptin_mgmd_sourcetimer_init(snoopPTinL3Sourcetimer_t *timer);
+static RC_t  ptin_mgmd_sourcetimer_init(ptinMgmdSourcetimer_t *timer);
 
 
 void* ptin_mgmd_sourcetimer_callback(void *param)
 {
-  snoopPTinL3Sourcetimer_t* timerData = (snoopPTinL3Sourcetimer_t*) param;
+  ptinMgmdSourcetimer_t* timerData = (ptinMgmdSourcetimer_t*) param;
   PTIN_MGMD_EVENT_t         eventMsg = {0};
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Timer expired for [timerPtr=%p groupAddr=0x%08X serviceId=%u portId=%u sourceAddr=0x%08X]", 
-            timerData->newTimerHandle, timerData->groupKey.groupAddr.addr.ipv4.s_addr, timerData->groupKey.serviceId, timerData->interfaceIdx, timerData->sourcePtr->sourceAddr.addr.ipv4.s_addr);
+            timerData->timerHandle, timerData->groupKey.groupAddr.addr.ipv4.s_addr, timerData->groupKey.serviceId, timerData->portId, timerData->sourcePtr->sourceAddr.addr.ipv4.s_addr);
 
   //Create new timer event
-  ptin_mgmd_event_timer_create(&eventMsg, PTIN_MGMD_EVENT_TIMER_TYPE_SOURCE, (void*) timerData, sizeof(snoopPTinL3Sourcetimer_t));
+  ptin_mgmd_event_timer_create(&eventMsg, PTIN_MGMD_EVENT_TIMER_TYPE_SOURCE, (void*) timerData, sizeof(ptinMgmdSourcetimer_t));
   if (SUCCESS != ptin_mgmd_eventQueue_tx(&eventMsg))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add event to the message queue");
@@ -62,7 +62,7 @@ RC_t ptin_mgmd_sourcetimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock)
 }
 
 
-RC_t ptin_mgmd_sourcetimer_init(snoopPTinL3Sourcetimer_t *timer)
+RC_t ptin_mgmd_sourcetimer_init(ptinMgmdSourcetimer_t *timer)
 {
   RC_t ret = SUCCESS;
 
@@ -78,15 +78,15 @@ RC_t ptin_mgmd_sourcetimer_init(snoopPTinL3Sourcetimer_t *timer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exist(timer->newTimerHandle))
+  if(FALSE == ptin_mgmd_timer_exist(timer->timerHandle))
   {
-    ret = ptin_mgmd_timer_init(__controlBlock, &(timer->newTimerHandle), ptin_mgmd_sourcetimer_callback);
+    ret = ptin_mgmd_timer_init(__controlBlock, &(timer->timerHandle), ptin_mgmd_sourcetimer_callback);
   }
   return ret;
 }
 
 
-RC_t ptin_mgmd_sourcetimer_start(snoopPTinL3Sourcetimer_t *timer, uint32 timeout, snoopPTinL3InfoDataKey_t groupKey, uint32 interfaceIdx,  snoopPTinL3Source_t *sourcePtr)
+RC_t ptin_mgmd_sourcetimer_start(ptinMgmdSourcetimer_t *timer, uint32 timeout, ptinMgmdGroupInfoDataKey_t groupKey, uint32 interfaceIdx,  ptinMgmdSource_t *sourcePtr)
 {
   RC_t ret = SUCCESS;
 
@@ -104,98 +104,99 @@ RC_t ptin_mgmd_sourcetimer_start(snoopPTinL3Sourcetimer_t *timer, uint32 timeout
 
   if (TRUE == ptin_mgmd_sourcetimer_isRunning(timer))
   {
-    ptin_mgmd_timer_stop(timer->newTimerHandle);
+    ptin_mgmd_timer_stop(timer->timerHandle);
   } 
   else
   {
     timer->groupKey    = groupKey;
-    timer->interfaceIdx = interfaceIdx;
+    timer->portId = interfaceIdx;
     timer->sourcePtr    = sourcePtr;
   }
 
-  ret = ptin_mgmd_timer_start(timer->newTimerHandle, timeout*1000, timer);
+  ret = ptin_mgmd_timer_start(timer->timerHandle, timeout*1000, timer);
   return ret;
 }
 
 
-RC_t ptin_mgmd_sourcetimer_stop(snoopPTinL3Sourcetimer_t *timer)
+RC_t ptin_mgmd_sourcetimer_stop(ptinMgmdSourcetimer_t *timer)
 {
   if (TRUE == ptin_mgmd_sourcetimer_isRunning(timer))
   {
-    ptin_mgmd_timer_stop(timer->newTimerHandle);
+    ptin_mgmd_timer_stop(timer->timerHandle);
   }
   
-  ptin_mgmd_timer_deinit(timer->newTimerHandle);
+  ptin_mgmd_timer_deinit(timer->timerHandle);
   return SUCCESS;
 }
 
 
-uint32 ptin_mgmd_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *timer)
+uint32 ptin_mgmd_sourcetimer_timeleft(ptinMgmdSourcetimer_t *timer)
 {
   if (FALSE == ptin_mgmd_sourcetimer_isRunning(timer))
   {
     return 0;
   }
 
-  return ptin_mgmd_timer_timeLeft(timer->newTimerHandle)/1000;
+  return ptin_mgmd_timer_timeLeft(timer->timerHandle)/1000;
 }
 
 
-BOOL ptin_mgmd_sourcetimer_isRunning(snoopPTinL3Sourcetimer_t *timer)
+BOOL ptin_mgmd_sourcetimer_isRunning(ptinMgmdSourcetimer_t *timer)
 {
-  return ptin_mgmd_timer_isRunning(timer->newTimerHandle);
+  return ptin_mgmd_timer_isRunning(timer->timerHandle);
 }
 
 
-RC_t ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData)
+RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
 {
   uint32                     intIfNum;
-  char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN],debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN];
-  snoopPTinL3Interface_t     *interfacePtr;
-  snoopPTinL3Source_t        *sourcePtr;
-  snoopPTinL3InfoData_t*     groupData;  
+  char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN],debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
+  ptinMgmdSource_t      *sourcePtr;
+  ptinMgmdGroupInfoData_t*    portData;
+  ptinMgmdPort_t            *portPtr;  
 
-  mgmdGroupRecord_t         *groupPtr=PTIN_NULLPTR;
-  mgmdProxyInterface_t      *proxyInterfacePtr=PTIN_NULLPTR;
-  mgmd_cb_t             *pMmgmdCB;
+  mgmdGroupRecord_t         *groupPtr;
+  mgmdProxyInterface_t      *proxyInterfacePtr;
+  mgmd_cb_t                 *pMmgmdCB;
   BOOL                       newEntry;
   RC_t                       rc;
 
-  if (PTIN_NULLPTR == (groupData = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (portData = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr, AVL_EXACT)))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Source Timer to process (serviceId:[%u] groupAddr:[0x%X]), but we were unable to find the entry in the AVL tree",timerData->groupKey.serviceId,timerData->groupKey.groupAddr.addr.ipv4.s_addr);
     return SUCCESS;
   }   
     
   //Saving Timer Variables
-  intIfNum     = timerData->interfaceIdx;
-  sourcePtr    = timerData->sourcePtr;
-  interfacePtr = &groupData->interfaces[intIfNum];  
+  intIfNum     = timerData->portId;
+  sourcePtr    = timerData->sourcePtr;  
+  portPtr      = &portData->ports[intIfNum];          
+  
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr:%s)", 
-            ptin_mgmd_inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.groupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.serviceId, intIfNum, ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
+            ptin_mgmd_inetAddrPrint(&(portData->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portData->ptinMgmdGroupInfoDataKey.serviceId, intIfNum, ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
 
-  if (interfacePtr->filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
+  if (portPtr->filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
   {
     if (sourcePtr->isStatic==FALSE)
     {
-      if (intIfNum==SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID)
+      if (intIfNum==PTIN_MGMD_ROOT_PORT)
       {
-        if ( (proxyInterfacePtr=ptinMgmdProxyInterfaceAdd(groupData->snoopPTinL3InfoDataKey.serviceId)) ==PTIN_NULLPTR)                     
+        if ( (proxyInterfacePtr=ptinMgmdProxyInterfaceAdd(portData->ptinMgmdGroupInfoDataKey.serviceId)) ==PTIN_NULLPTR)                     
         {             
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyInterfaceAdd()");
           return FAILURE;
         }            
         /*This is the Last Source, Send a ToIn{}*/
-        if (interfacePtr->numberOfSources==1)
+        if (portPtr->numberOfSources==1)
         {           
-          if((groupPtr=ptinMgmdGroupRecordAdd(proxyInterfacePtr,PTIN_MGMD_CHANGE_TO_INCLUDE_MODE,&groupData->snoopPTinL3InfoDataKey.groupAddr,&newEntry ))==PTIN_NULLPTR)
+          if((groupPtr=ptinMgmdGroupRecordAdd(proxyInterfacePtr,PTIN_MGMD_CHANGE_TO_INCLUDE_MODE,&portData->ptinMgmdGroupInfoDataKey.groupAddr,&newEntry ))==PTIN_NULLPTR)
           {
             PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
             return FAILURE;
           }
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-          if(ptinMgmdScheduleReportMessage(groupData->snoopPTinL3InfoDataKey.serviceId,&groupData->snoopPTinL3InfoDataKey.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,0,FALSE,1,groupPtr)!=SUCCESS)
+          if(ptinMgmdScheduleReportMessage(portData->ptinMgmdGroupInfoDataKey.serviceId,&portData->ptinMgmdGroupInfoDataKey.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,0,FALSE,1,groupPtr)!=SUCCESS)
           {
             PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
             return FAILURE;
@@ -211,9 +212,9 @@ RC_t ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData)
              return FAILURE;
            }
           //We only send a Block Record if we are working in V3 Mode
-          if(pMmgmdCB->proxyCM[groupData->snoopPTinL3InfoDataKey.serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
+          if(pMmgmdCB->proxyCM[portData->ptinMgmdGroupInfoDataKey.serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
           {
-            if((groupPtr=ptinMgmdGroupRecordAdd(proxyInterfacePtr,PTIN_MGMD_BLOCK_OLD_SOURCES,&groupData->snoopPTinL3InfoDataKey.groupAddr,&newEntry ))==PTIN_NULLPTR)
+            if((groupPtr=ptinMgmdGroupRecordAdd(proxyInterfacePtr,PTIN_MGMD_BLOCK_OLD_SOURCES,&portData->ptinMgmdGroupInfoDataKey.groupAddr,&newEntry ))==PTIN_NULLPTR)
             {
               PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
               return FAILURE;
@@ -226,7 +227,7 @@ RC_t ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData)
             else if (rc==SUCCESS)
             {
               PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
-              if(ptinMgmdScheduleReportMessage(groupData->snoopPTinL3InfoDataKey.serviceId,&groupData->snoopPTinL3InfoDataKey.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,0,FALSE,1,groupPtr)!=SUCCESS)
+              if(ptinMgmdScheduleReportMessage(portData->ptinMgmdGroupInfoDataKey.serviceId,&portData->ptinMgmdGroupInfoDataKey.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,0,FALSE,1,groupPtr)!=SUCCESS)
               {
                 PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
                 return FAILURE;
@@ -238,14 +239,14 @@ RC_t ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData)
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Removing source %s", ptin_mgmd_inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));        
       
       /* Remove source */
-      ptinMgmdSourceRemove(groupData,intIfNum, sourcePtr);          
+      ptinMgmdSourceRemove(portData,intIfNum, sourcePtr);          
           
     }
     /* If no more sources remain, remove interface */
-    if (interfacePtr->numberOfSources == 0 && interfacePtr->isStatic==FALSE)
+    if (portPtr->numberOfSources == 0 && portPtr->isStatic==FALSE)
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Interface has no more sources, thus it is being removed.");
-      ptinMgmdInterfaceRemove(groupData,intIfNum);
+      ptinMgmdInterfaceRemove(portData,intIfNum);
     }
   }
   return SUCCESS;

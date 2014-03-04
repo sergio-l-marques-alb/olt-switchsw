@@ -208,7 +208,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
 {
   RC_t                             ret           = SUCCESS;  
   groupSourceSpecificQueriesAvl_t *timerData; 
-  snoopPTinL3InfoData_t           *groupEntry;
+  ptinMgmdGroupInfoData_t           *groupEntry;
 
   if(PTIN_NULLPTR == groupAddr)
   {
@@ -243,7 +243,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
       return FAILURE;
     }    
     lmqt       = igmpCfg->querier.last_member_query_interval/10 * igmpCfg->querier.last_member_query_count;//Convert from dS -> S
-    gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->interfaces[portId].groupTimer);//Seconds
+    gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->ports[portId].groupTimer);//Seconds
     if(gtTimeLeft > lmqt)
     {
       timerData->supressRouterSideProcessing = TRUE;
@@ -255,21 +255,21 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
 
     //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting interface timer to LMQT");
-    if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->interfaces[portId].groupTimer, lmqt, groupEntry->snoopPTinL3InfoDataKey, portId))
+    if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, lmqt, groupEntry->ptinMgmdGroupInfoDataKey, portId))
     {
       PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
       return FAILURE;
     }
     
-    if(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients==0 ||
-       (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].clients, portId) && groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].numberOfClients == 1))
+    if(groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients==0 ||
+       (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, portId) && groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients == 1))
     {
       //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting root interface timer to LMQT");
-      if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID].groupTimer, lmqt+1, groupEntry->snoopPTinL3InfoDataKey, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID))
+      if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[PTIN_MGMD_ROOT_PORT].groupTimer, lmqt+1, groupEntry->ptinMgmdGroupInfoDataKey, PTIN_MGMD_ROOT_PORT))
       {
         PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]",
-                     groupAddr->addr.ipv4.s_addr, serviceId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
+                     groupAddr->addr.ipv4.s_addr, serviceId, PTIN_MGMD_ROOT_PORT);
         return FAILURE;
       }
     }
@@ -392,8 +392,8 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
   groupSourceSpecificQueriesAvl_t  *timerData;
   ptin_IgmpProxyCfg_t               igmpGlobalCfg;
   uint32                            i;   
-  snoopPTinL3Source_t              *sourcePtr;
-  snoopPTinL3InfoData_t            *groupEntry;
+  ptinMgmdSource_t              *sourcePtr;
+  ptinMgmdGroupInfoData_t            *groupEntry;
   uint32                            lmqt;
     
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Adding new source to source specific timer [groupAddr=0x%08X serviceId=%u portId=%u sourceAddr=0x%08X]",
@@ -474,13 +474,13 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
   if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR)  
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting source[%08X] timer to LMQT[%u]", sourceAddr->addr.ipv4.s_addr, lmqt);
-    if(SUCCESS != ptin_mgmd_sourcetimer_start(&sourcePtr->sourceTimer, lmqt, groupEntry->snoopPTinL3InfoDataKey, portId, sourcePtr))
+    if(SUCCESS != ptin_mgmd_sourcetimer_start(&sourcePtr->sourceTimer, lmqt, groupEntry->ptinMgmdGroupInfoDataKey, portId, sourcePtr))
     {
       PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
       return FAILURE;
     }
   }  
-  if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID,sourceAddr)) !=PTIN_NULLPTR)  
+  if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,PTIN_MGMD_ROOT_PORT,sourceAddr)) !=PTIN_NULLPTR)  
   {   
     int32  rootPortBitmap;
 
@@ -489,10 +489,10 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
     if(-1 == rootPortBitmap)
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting source[%08X] timer to LMQT[%u]", sourceAddr->addr.ipv4.s_addr, lmqt);
-      if(SUCCESS != ptin_mgmd_sourcetimer_start(&sourcePtr->sourceTimer, lmqt+1, groupEntry->snoopPTinL3InfoDataKey, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID, sourcePtr))
+      if(SUCCESS != ptin_mgmd_sourcetimer_start(&sourcePtr->sourceTimer, lmqt+1, groupEntry->ptinMgmdGroupInfoDataKey, PTIN_MGMD_ROOT_PORT, sourcePtr))
       {
         PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]",
-                     groupAddr->addr.ipv4.s_addr, serviceId, SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID);
+                     groupAddr->addr.ipv4.s_addr, serviceId, PTIN_MGMD_ROOT_PORT);
         return FAILURE;
       }
     }

@@ -78,7 +78,7 @@ RC_t ptin_mgmd_timers_create(void)
   uint32          num_timers = 0;
 
   //Source Timers
-  num_timers = PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES;
+  num_timers = (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES;//Plus the root port
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_sourcetimer_CB_set(timersCB);
@@ -90,7 +90,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Group Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*PTIN_MGMD_MAX_PORTS;
+  num_timers = PTIN_MGMD_MAX_GROUPS*(PTIN_MGMD_MAX_PORTS+1);//Plus the root port
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_grouptimer_CB_set(timersCB);
@@ -102,7 +102,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Proxy Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*PTIN_MGMD_MAX_PORTS;
+  num_timers = PTIN_MGMD_MAX_GROUPS;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_proxytimer_CB_set(timersCB);

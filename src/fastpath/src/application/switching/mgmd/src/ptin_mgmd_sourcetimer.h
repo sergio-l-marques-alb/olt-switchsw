@@ -19,11 +19,11 @@
 
 RC_t   ptin_mgmd_sourcetimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
 RC_t   ptin_mgmd_sourcetimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);
-RC_t   ptin_mgmd_sourcetimer_start(snoopPTinL3Sourcetimer_t *timer, uint32 timeout, snoopPTinL3InfoDataKey_t groupKey, uint32 interfaceIdx,  snoopPTinL3Source_t *sourcePtr);
-RC_t   ptin_mgmd_sourcetimer_stop(snoopPTinL3Sourcetimer_t *pTimer);
-uint32 ptin_mgmd_sourcetimer_timeleft(snoopPTinL3Sourcetimer_t *pTimer);
-BOOL   ptin_mgmd_sourcetimer_isRunning(snoopPTinL3Sourcetimer_t *pTimer);
+RC_t   ptin_mgmd_sourcetimer_start(ptinMgmdSourcetimer_t *timer, uint32 timeout, ptinMgmdGroupInfoDataKey_t groupKey, uint32 interfaceIdx,  ptinMgmdSource_t *sourcePtr);
+RC_t   ptin_mgmd_sourcetimer_stop(ptinMgmdSourcetimer_t *pTimer);
+uint32 ptin_mgmd_sourcetimer_timeleft(ptinMgmdSourcetimer_t *pTimer);
+BOOL   ptin_mgmd_sourcetimer_isRunning(ptinMgmdSourcetimer_t *pTimer);
 
-RC_t   ptin_mgmd_event_sourcetimer(snoopPTinL3Sourcetimer_t *timerData);
+RC_t   ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData);
 
 #endif //_L7_MGMD_SOURCETIMER_H

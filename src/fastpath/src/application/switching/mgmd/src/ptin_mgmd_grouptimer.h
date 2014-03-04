@@ -19,11 +19,11 @@
 
 RC_t   ptin_mgmd_grouptimer_CB_set(PTIN_MGMD_TIMER_CB_t controlBlock);
 RC_t   ptin_mgmd_grouptimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock);
-RC_t   ptin_mgmd_grouptimer_start(snoopPTinL3Grouptimer_t *pTimer, uint32 timeout, snoopPTinL3InfoDataKey_t groupData, uint32 interfaceIdx);
-RC_t   ptin_mgmd_grouptimer_stop(snoopPTinL3Grouptimer_t *pTimer);
-uint32 ptin_mgmd_grouptimer_timeleft(snoopPTinL3Grouptimer_t *pTimer);
-BOOL   ptin_mgmd_grouptimer_isRunning(snoopPTinL3Grouptimer_t *pTimer);
+RC_t   ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *pTimer, uint32 timeout, ptinMgmdGroupInfoDataKey_t groupData, uint32 interfaceIdx);
+RC_t   ptin_mgmd_grouptimer_stop(ptinMgmdGroupTimer_t *pTimer);
+uint32 ptin_mgmd_grouptimer_timeleft(ptinMgmdGroupTimer_t *pTimer);
+BOOL   ptin_mgmd_grouptimer_isRunning(ptinMgmdGroupTimer_t *pTimer);
 
-RC_t   ptin_mgmd_event_grouptimer(snoopPTinL3Grouptimer_t *timerData);
+RC_t   ptin_mgmd_event_grouptimer(ptinMgmdGroupTimer_t *timerData);
 
 #endif //_PTN_MGMD_GROUPTIMER_H

@@ -80,9 +80,9 @@ RC_t ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer)
 }
 
 
-RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 portId, ptin_IgmpProxyCfg_t *igmpCfg)
+RC_t ptin_mgmd_routercmtimer_start(ptinMgmdGroupInfoData_t *groupData, uint32 portId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
-  RC_t rc = SUCCESS;
+  RC_t               rc = SUCCESS; 
  
   if (PTIN_NULLPTR == __controlBlock)
   {
@@ -90,19 +90,19 @@ RC_t ptin_mgmd_routercmtimer_start(snoopPTinL3InfoData_t *groupData, uint32 port
     return FAILURE;
   }
 
-  if(SUCCESS != ptin_mgmd_routercmtimer_init(&groupData->interfaces[portId].groupCMTimer))
+  if(SUCCESS != ptin_mgmd_routercmtimer_init(&groupData->ports[portId].groupCMTimer))
   {
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to initialize a new routerCM timer!");
     return FAILURE;
   }
 
-  if (TRUE == ptin_mgmd_routercmtimer_isRunning(&groupData->interfaces[portId].groupCMTimer))
+  if (TRUE == ptin_mgmd_routercmtimer_isRunning(&groupData->ports[portId].groupCMTimer))
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
-    ptin_mgmd_timer_stop(groupData->interfaces[portId].groupCMTimer.timer);
+    ptin_mgmd_timer_stop(groupData->ports[portId].groupCMTimer.timer);
   }
 
-  rc = ptin_mgmd_timer_start(groupData->interfaces[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->interfaces[portId].groupCMTimer);
+  rc = ptin_mgmd_timer_start(groupData->ports[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
   return rc;
 }

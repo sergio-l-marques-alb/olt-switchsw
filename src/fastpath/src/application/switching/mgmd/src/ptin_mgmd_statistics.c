@@ -79,7 +79,7 @@ static RC_t ptin_mgmd_stats_service_getfree(uint32 serviceId, int16 *arrayIdx)
     {
       uint32 portIdx;
      
-      for(portIdx = 0; portIdx < PTIN_MGMD_MAX_PORTS; ++portIdx)
+      for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORTS; ++portIdx)
       {
         memset(&mgmd_stat_service[*arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
         mgmd_stat_service[*arrayIdx][portIdx].used      = TRUE;
@@ -108,7 +108,7 @@ RC_t ptin_mgmd_stats_service_clear(uint32 serviceId)
   {
     if(mgmd_stat_service[arrayIdx][0].serviceId == serviceId)
     {
-      for(portIdx = 0; portIdx < PTIN_MGMD_MAX_PORTS; ++portIdx)
+      for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORTS; ++portIdx)
       {
         memset(&mgmd_stat_service[arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
         mgmd_stat_service[arrayIdx][portIdx].used = FALSE;
@@ -134,7 +134,7 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
   int16 arrayIdx;
 
   // Validations
-  if ( (portId >= PTIN_MGMD_MAX_PORTS) || (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
+  if ( (portId > PTIN_MGMD_MAX_PORTS) || (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u serviceId:%u clientId:%u]", portId, serviceId, clientId);
     return FAILURE;
@@ -513,7 +513,7 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
 RC_t ptin_mgmd_stat_increment_clientOnly(uint32 portId, uint32 clientId, ptin_snoop_stat_enum_t field)
 {
   // Validations
-  if ( (portId >= PTIN_MGMD_MAX_PORTS) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) || (clientId == ((uint32)-1)) )
+  if ( (portId > PTIN_MGMD_MAX_PORTS) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) || (clientId == ((uint32)-1)) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u clientId:%u]", portId, clientId);
     return FAILURE;
@@ -771,7 +771,7 @@ RC_t ptin_mgmd_stat_decrement_field(uint32 portId, uint32 serviceId, uint32 clie
   int16 arrayIdx;
 
   // Validations
-  if ( (portId >= PTIN_MGMD_MAX_PORTS) || (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
+  if ( (portId > PTIN_MGMD_MAX_PORTS) || (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u serviceId:%u clientId:%u]", portId, serviceId, clientId);
     return FAILURE;
@@ -818,7 +818,7 @@ RC_t ptin_mgmd_stat_decrement_field(uint32 portId, uint32 serviceId, uint32 clie
 RC_t ptin_mgmd_stat_client_get(uint32 portId, uint32 clientId, ptin_IGMP_Statistics_t *clientStats)
 {
   // Validations
-  if ( (portId >= PTIN_MGMD_MAX_PORTS) || (clientId > PTIN_MGMD_MAX_CLIENTS) )
+  if ( (portId > PTIN_MGMD_MAX_PORTS) || (clientId > PTIN_MGMD_MAX_CLIENTS) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u clientId:%u]", portId, clientId);
     return FAILURE;
@@ -843,7 +843,7 @@ RC_t ptin_mgmd_stat_client_clear(uint32 portId, uint32 clientId)
   uint32 activeGroups, activeClients;
 
   // Validations
-  if ( (portId >= PTIN_MGMD_MAX_PORTS) || (clientId > PTIN_MGMD_MAX_CLIENTS) )
+  if ( (portId > PTIN_MGMD_MAX_PORTS) || (clientId > PTIN_MGMD_MAX_CLIENTS) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u clientId:%u]", portId, clientId);
     return FAILURE;
@@ -873,7 +873,7 @@ RC_t ptin_mgmd_stat_intf_get(uint32 serviceId, uint32 interfaceId, ptin_IGMP_Sta
   int16 arrayIdx;
 
   // Validations
-  if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (interfaceId >= PTIN_MGMD_MAX_PORTS) )
+  if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (interfaceId > PTIN_MGMD_MAX_PORTS) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [serviceId:%u interfaceId:%u]", serviceId, interfaceId);
     return FAILURE;
@@ -908,7 +908,7 @@ RC_t ptin_mgmd_stat_intf_clear(uint32 serviceId, uint32 portId)
   int16 arrayIdx;
 
   // Validations
-  if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (portId >= PTIN_MGMD_MAX_PORTS) )
+  if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (portId > PTIN_MGMD_MAX_PORTS) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [serviceId:%u interfaceId:%u]", serviceId, portId);
     return FAILURE;

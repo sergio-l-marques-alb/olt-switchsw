@@ -46,29 +46,47 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
 
   pSnoopEB = &mgmdEB;
 
-  pSnoopEB->snoopPTinL3TreeHeap = (ptin_mgmd_avlTreeTables_t *)       ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));
-  pSnoopEB->snoopPTinL3DataHeap = (snoopPTinL3InfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(snoopPTinL3InfoData_t));
+  pSnoopEB->ptinMgmdGroupTreeHeap = (ptin_mgmd_avlTreeTables_t *)       ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));
+  pSnoopEB->ptinMgmdGroupDataHeap = (ptinMgmdGroupInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptinMgmdGroupInfoData_t));
 
-  if ((pSnoopEB->snoopPTinL3TreeHeap == PTIN_NULLPTR) || (pSnoopEB->snoopPTinL3DataHeap == PTIN_NULLPTR))
+  if ((pSnoopEB->ptinMgmdGroupTreeHeap == PTIN_NULLPTR) || (pSnoopEB->ptinMgmdGroupDataHeap == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Error allocating data for snoopPtinRouterAVLTreeInit");    
     return FAILURE;
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinL3AvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->ptinMgmdGroupAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
 
   /* AVL Tree creations - snoopAvlTree*/
-  ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->snoopPTinL3AvlTree), pSnoopEB->snoopPTinL3TreeHeap, pSnoopEB->snoopPTinL3DataHeap,
-                   PTIN_MGMD_MAX_GROUPS, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
+  ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->ptinMgmdGroupAvlTree), pSnoopEB->ptinMgmdGroupTreeHeap, pSnoopEB->ptinMgmdGroupDataHeap,
+                   PTIN_MGMD_MAX_GROUPS, sizeof(ptinMgmdGroupInfoData_t), 0x10, sizeof(ptinMgmdGroupInfoDataKey_t));
 
   /* Create the FIFO queue for the sources */
-  ptin_fifo_create(&pSnoopEB->groupSourcesQueue, PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES);
-  for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES); ++i)
+  ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
+  for(i=0; i<=((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
   {
-    snoopPTinL3Source_t *new_source = (snoopPTinL3Source_t*) ptin_mgmd_malloc(sizeof(snoopPTinL3Source_t));
+    ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));
+    
+    ptin_fifo_push(pSnoopEB->sourcesQueue, (PTIN_FIFO_ELEMENT_t)new_source);
+  }
 
-    ptin_fifo_push(pSnoopEB->groupSourcesQueue, (PTIN_FIFO_ELEMENT_t)new_source);
+  /* Create the Leaf Port Client Bitmap and the Leaf Source Client Bitmap*/
+  ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORTS+PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES);
+  for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS); ++i) 
+  {
+    ptinMgmdLeafClient_t *new_element = (ptinMgmdLeafClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdLeafClient_t));   
+
+    ptin_fifo_push(pSnoopEB->leafClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
+  }
+
+  /* Create the Root Port Client Bitmap and the Root Source Client Bitmap*/
+  ptin_fifo_create(&pSnoopEB->rootClientBitmap, 1+PTIN_MGMD_MAX_SOURCES);
+  for(i=0; i<(1+PTIN_MGMD_MAX_SOURCES); ++i) 
+  {
+    ptinMgmdRootClient_t *new_element = (ptinMgmdRootClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdRootClient_t));
+   
+    ptin_fifo_push(pSnoopEB->rootClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
   }
 
   return SUCCESS;

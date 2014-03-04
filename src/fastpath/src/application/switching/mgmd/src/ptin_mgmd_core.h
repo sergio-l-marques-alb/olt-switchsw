@@ -37,9 +37,17 @@
 #define SNOOP_LITTLE_ENDIAN 0
 #define SNOOP_BIG_ENDIAN 1
 
+#define PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE (PTIN_MGMD_MAX_PORTS-1)/PTIN_MGMD_CLIENT_MASK_UNIT+1 /* Maximum number of Client per Root Port per source */
+
+/* Client Mask*/
+typedef struct
+{
+  uchar8   value[PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE];
+} PTIN_MGMD_ROOT_CLIENT_MASK_t;
+
 #define SNOOP_IGMPv3_MAX_SOURCE_PER_REPORT                (1500-8-24-8-8)/4 /*363=(MTU-802.1Q-IPPayload-IGMPv3_Payload-IGMPv3_Group_Record_Payload)/IPv4Size : Sources per Per Report*/
 #define SNOOP_IGMPv3_MAX_GROUP_RECORD_PER_REPORT          64                //((MTU-802.1Q-IPPayload-IGMPv3_Payload)/[(GroupRecordPayload+GroupAddr+SourceAddr)/8]=1460/12=121.66 Bytes*/
-#define SNOOP_PTIN_PROXY_ROOT_INTERFACE_ID                0
+#define PTIN_MGMD_ROOT_PORT                0
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0                 /*Currently we do not support sending Group and Source Specific Queries*/
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE                   0                 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
 #define SNOOP_PTIN_CISCO_MAX_RESPONSE_CODE_BUG            0               /*We need to further verify if it does happen with IGMPv3 host*/
@@ -168,79 +176,97 @@ typedef enum
   PTIN_MGMD_PARAM_ALL /*Do not remove this field*/
 } ptin_mgmd_params_t;
 
-typedef struct snoopPTinL3InfoData_s snoopPTinL3InfoData_t;
+typedef struct ptinMgmdGroupInfoData_s ptinMgmdGroupInfoData_t;
 
-typedef struct snoopPTinL3Source_s snoopPTinL3Source_t;
+typedef struct ptinMgmdSource_s ptinMgmdSource_t;
 
-typedef struct snoopPTinL3InfoDataKey_s
+//typedef struct ptinMgmdRootSource_s ptinMgmdRootSource_t;
+
+typedef struct ptinMgmdRootClient_s ptinMgmdRootClient_t;
+
+typedef struct ptinMgmdLeafClient_s ptinMgmdLeafClient_t;
+
+typedef struct ptinMgmdGroupInfoDataKey_s
 {
   ptin_mgmd_inet_addr_t  groupAddr;
-  uint32            serviceId;
-}snoopPTinL3InfoDataKey_t;
+  uint32                 serviceId;
+}ptinMgmdGroupInfoDataKey_t;
 
 typedef struct
 {
-  uint8                     compatibilityMode;       //ptin_mgmd_compatibility_mode_t
-  snoopPTinL3InfoDataKey_t  groupKey;
-  PTIN_MGMD_TIMER_t              timer;
+  uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t
+  ptinMgmdGroupInfoDataKey_t      groupKey;
+  PTIN_MGMD_TIMER_t               timer;
 } snoopPTinCMtimer_t;
 
 typedef struct
 {  
-  snoopPTinL3Source_t     *sourcePtr;
-  uint16                   interfaceIdx;  
-  snoopPTinL3InfoDataKey_t groupKey; 
+  ptinMgmdSource_t             *sourcePtr;
+  uint16                        portId;  
+  ptinMgmdGroupInfoDataKey_t    groupKey; 
 
-  PTIN_MGMD_TIMER_t             newTimerHandle;
-} snoopPTinL3Sourcetimer_t;
+  PTIN_MGMD_TIMER_t             timerHandle;
+} ptinMgmdSourcetimer_t;
 
 typedef struct
 {
-  uint16                   interfaceIdx;  
-  snoopPTinL3InfoDataKey_t groupKey;
+  uint16                     interfaceIdx;  
+  ptinMgmdGroupInfoDataKey_t  groupKey;
 
-  PTIN_MGMD_TIMER_t             newTimerHandle; //Rename this after refractoring the rest of the struct..
-} snoopPTinL3Grouptimer_t;
+  PTIN_MGMD_TIMER_t          timerHandle; //Rename this after refractoring the rest of the struct..
+} ptinMgmdGroupTimer_t;
 
-struct snoopPTinL3Source_s
+struct ptinMgmdLeafClient_s
 {
-  uint8                    status;
-  BOOL                     isStatic;
-  
-  ptin_mgmd_inet_addr_t         sourceAddr;
-  snoopPTinL3Sourcetimer_t sourceTimer;
-
   uint8                    clients[PTIN_MGMD_CLIENT_BITMAP_SIZE];
-  uint16                   numberOfClients;
+};
 
-  snoopPTinL3Source_t     *next;
-  snoopPTinL3Source_t     *previous;
-  
+struct ptinMgmdRootClient_s
+{
+  uint8                    clients[PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE];
+};
+
+struct ptinMgmdSource_s
+{
+  uint8                          status;
+  BOOL                           isStatic;
+                                
+  ptin_mgmd_inet_addr_t          sourceAddr;
+  ptinMgmdSourcetimer_t          sourceTimer;
+
+//uint8                          clients[PTIN_MGMD_CLIENT_BITMAP_SIZE];
+  uint8                         *clients;
+  uint16                         numberOfClients;
+
+  ptinMgmdSource_t              *next;
+  ptinMgmdSource_t              *previous;  
 };
 
 typedef struct
 {
-  uint8                     active;
-  BOOL                      isStatic;
-  uint8                     filtermode; //snoop_ptin_filtermode_t
+  uint8                           active;
+  BOOL                            isStatic;
+  uint8                           filtermode; //snoop_ptin_filtermode_t
 
-  snoopPTinCMtimer_t        groupCMTimer; //router compatibility-mode
+  snoopPTinCMtimer_t              groupCMTimer; //router compatibility-mode
 
-  snoopPTinL3Grouptimer_t   groupTimer;
-  
-  snoopPTinL3Source_t      *firstSource;
-  snoopPTinL3Source_t      *lastSource;
-  uint16                    numberOfSources;
+  ptinMgmdGroupTimer_t            groupTimer;
+                                 
+  ptinMgmdSource_t               *firstSource;
+  ptinMgmdSource_t               *lastSource;
+  uint16                          numberOfSources;
 
-  uint8                     clients[PTIN_MGMD_CLIENT_BITMAP_SIZE];
-  uint16                    numberOfClients;
-} snoopPTinL3Interface_t;
+  uint8                           clients[max(PTIN_MGMD_CLIENT_BITMAP_SIZE,PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE)];
+//uint8                          *clients;
+  uint16                          numberOfClients;
+} ptinMgmdPort_t;
 
-struct snoopPTinL3InfoData_s {
-  snoopPTinL3InfoDataKey_t snoopPTinL3InfoDataKey;
-  snoopPTinL3Interface_t   interfaces[PTIN_MGMD_MAX_PORTS]; // Iface id 0 is used to store Proxy information.
-
-  void                     *next;
+struct ptinMgmdGroupInfoData_s {
+  ptinMgmdGroupInfoDataKey_t      ptinMgmdGroupInfoDataKey;
+//ptinMgmdRootPort_t              rootPort; // Iface id 0 is used to store Proxy information.
+  ptinMgmdPort_t                  ports[PTIN_MGMD_MAX_PORTS]; // Iface id 0 is used to store Proxy information.
+                                 
+  void                           *next;
 }; 
 
 /***************State Change Records*******************************************************************************/
@@ -250,10 +276,10 @@ typedef struct mgmdProxyInterfaceTimer_s
 {
   void          *groupData; //It will be either a interfacePtr or a groupPtr
 
-  uint32        noOfRecords;  
-  uint8         reportType;
-  BOOL          isFirstTransmission;
-  BOOL          isInterface; 
+  uint32         noOfRecords;  
+  uint8          reportType;
+  BOOL           isFirstTransmission;
+  BOOL           isInterface; 
 
   PTIN_MGMD_TIMER_t  newTimerHandle;
 } mgmdProxyInterfaceTimer_t; 
@@ -297,30 +323,30 @@ typedef struct  mgmdProxyInterface_s mgmdProxyInterface_t;
 typedef struct mgmdGroupRecordKey_s
 {
   uint32                       serviceId;
-  ptin_mgmd_inet_addr_t             groupAddr;  //IPv4(v6) Multicast Group Address
+  ptin_mgmd_inet_addr_t        groupAddr;  //IPv4(v6) Multicast Group Address
   uint8                        recordType; //MGMD_GROUP_REPORT_TYPE_t  
 } mgmdGroupRecordKey_t;
 
 
 struct mgmdGroupRecord_s
 {
-  mgmdGroupRecordKey_t   key;
+  mgmdGroupRecordKey_t         key;
   uint8                        retransmissions;    //Number of Retransmissions Sent  
   uint16                       numberOfSources;    //Number of active Sources
 
   snoopPTinSourceRecord_t     *firstSource;       //Pointer to the First Source
   snoopPTinSourceRecord_t     *lastSource;       //Pointer to the Last Source
 
-  mgmdProxyInterface_t   *interfacePtr;      //Interface
+  mgmdProxyInterface_t        *interfacePtr;      //Interface
 
   MGMD_GROUP_REPORT_TYPE_t     recordType;         //MGMD_GROUP_REPORT_TYPE_t
 
-  mgmdProxyInterfaceTimer_t        timer;
+  mgmdProxyInterfaceTimer_t    timer;
 
   mgmdGroupRecord_t           *nextGroupRecord;
   mgmdGroupRecord_t           *previousGroupRecord;
 
-   void                      *next; 
+   void                       *next; 
 
 //Added to Support Merging State Change Records  
 #if 0
@@ -368,7 +394,7 @@ struct mgmdCurrentStateRecord_s
 
 typedef struct snoopPTinProxyInterfaceKey_s
 {  
-  uint32                               serviceId;
+  uint32                              serviceId;
 } snoopPTinProxyInterfaceKey_t;
 
 
@@ -376,15 +402,16 @@ struct mgmdProxyInterface_s
 {
   snoopPTinProxyInterfaceKey_t key;
 
-  uint8                     retransmissions;
-  uint8                     robustnessVariable;
-  uint32                    numberOfGroupRecords; //Number of active Groups
-//mgmdGroupRecord_t        *groupRecord;
-  mgmdGroupRecord_t        *firstGroupRecord; //This points to the first group record of the Current State Record List  
-  mgmdGroupRecord_t        *lastGroupRecord; //This points to the first group record of the Current State Record List  
-  mgmdProxyInterfaceTimer_t     timer;
+  uint8                               retransmissions;
+  uint8                               robustnessVariable;
+  uint32                              numberOfGroupRecords; //Number of active Groups
+//mgmdGroupRecord_t                  *groupRecord;
+  mgmdGroupRecord_t                  *firstGroupRecord; //This points to the first group record of the Current State Record List  
+  mgmdGroupRecord_t                  *lastGroupRecord; //This points to the first group record of the Current State Record List  
 
-  void                      *next; 
+  mgmdProxyInterfaceTimer_t           timer;
+
+  void                               *next; 
 };
 
 
@@ -397,13 +424,15 @@ struct mgmdProxyInterface_s
 typedef struct snoop_eb_s
 {
   /* Sources FIFO queue */
-  PTIN_FIFO_t                        groupSourcesQueue;
+  PTIN_FIFO_t                        leafClientBitmap;
+  PTIN_FIFO_t                        rootClientBitmap; 
+  PTIN_FIFO_t                        sourcesQueue;
   PTIN_FIFO_t                        specificQuerySourcesQueue;
 
   /* L3 PTin AVL Tree data */
-  ptin_mgmd_avlTree_t                snoopPTinL3AvlTree;
-  ptin_mgmd_avlTreeTables_t         *snoopPTinL3TreeHeap;
-  snoopPTinL3InfoData_t             *snoopPTinL3DataHeap;
+  ptin_mgmd_avlTree_t                ptinMgmdGroupAvlTree;
+  ptin_mgmd_avlTreeTables_t         *ptinMgmdGroupTreeHeap;
+  ptinMgmdGroupInfoData_t           *ptinMgmdGroupDataHeap;
 
   /* PTin Proxy  Source AVL Tree data */
   ptin_mgmd_avlTree_t                snoopPTinProxySourceAvlTree;
@@ -502,9 +531,9 @@ typedef struct mgmdSnoopControlPkt_s
 } ptinMgmdControlPkt_t; 
 
 RC_t ptin_mgmd_packet_process(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId);
-RC_t ptinMgmdSrcSpecificMembershipQueryProcess(ptinMgmdControlPkt_t *mcastPacket);
-RC_t ptinMgmdMembershipReportV2Process(ptinMgmdControlPkt_t *mcastPacket);
-RC_t ptinMgmdMembershipReportV3Process(ptinMgmdControlPkt_t *mcastPacket);
+RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket);
+RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket);
+RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket);
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData);
 RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData);
