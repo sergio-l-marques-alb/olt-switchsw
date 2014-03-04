@@ -2078,7 +2078,8 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
   mgmdGroupRecord_t  *new_group;
   char                debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {};
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
   if (interfacePtr == PTIN_NULLPTR || groupAddr == PTIN_NULLPTR)
   {
@@ -2096,7 +2097,8 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
 
   if(*newEntryFlag == FALSE)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
     return new_group;
   }
 
@@ -2278,8 +2280,8 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   snoopPTinSourceRecord_t    *sourcePtr,
                              *sourcePtrAux;
 
-
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
   if (interfacePtr == PTIN_NULLPTR || interfacePtr->key.serviceId > PTIN_MGMD_MAX_SERVICE_ID ||  groupAddr == PTIN_NULLPTR)
   {
