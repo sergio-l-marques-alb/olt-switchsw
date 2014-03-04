@@ -96,6 +96,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task will now start!");
 
+  LOG_TRACE(LOG_CTX_STARTUP,"ptinTask started");
+
   /* Initialize PTin Interface module data structures
    * Note: ptin_intf_data_init() needs to be invoked ONLY after nim
    * initialization, which can be guaranteed at this stage */
@@ -198,6 +200,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 #endif
+  
+  LOG_TRACE(LOG_CTX_STARTUP,"ptinTask ready!");
 
   /* Loop */
   while (1)

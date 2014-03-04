@@ -307,6 +307,8 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Phase 1...");
+
   /* Phase 1:
    *  - Create queues, tasks, semaphores, timers
    *  - Allocate memory
@@ -416,6 +418,8 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTIN Phase 1 initialization OK");
 
+  LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 1: rc=%d",rc);
+
   return rc;
 }
 
@@ -448,6 +452,8 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   *  - Register for callbacks with other components
   */
   
+  LOG_TRACE(LOG_CTX_STARTUP,"Phase 2...");
+
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
   
@@ -532,6 +538,8 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTIN Phase 2 initialization OK");
 
+  LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 2 (Success)");
+
   return L7_SUCCESS;
 }
 
@@ -561,6 +569,8 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Phase 3...");
+
   /* Phase 3:
    *  - Reset all status structures to initial state 
    *  - Read configuration
@@ -579,6 +589,8 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTIN Phase 3 initialization OK");
+
+  LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 3: rc=%d", rc);
 
   return rc;
 }
