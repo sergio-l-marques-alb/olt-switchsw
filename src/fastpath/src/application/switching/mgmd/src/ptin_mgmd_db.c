@@ -25,6 +25,8 @@
 
 #include "ptin_mgmd_logger.h"
 
+extern BOOL ptin_mgmd_extended_debug;
+
 /*******************Static Methods**************************************************/
 
 static RC_t ptinMgmdClientAdd(ptinMgmdGroupInfoData_t *avlTreeEntry,uint32 intIfNum, ptinMgmdSource_t *sourcePtr, uint32 clientIdx);
@@ -321,8 +323,8 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
   
   (*sourcePtr)->status=PTIN_MGMD_SOURCESTATE_ACTIVE;
   (*sourcePtr)->sourceAddr=*sourceAddr;  
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",
              (*sourcePtr), (*sourcePtr)->next, (*sourcePtr)->previous, 
              groupEntry->ports[portId].firstSource, groupEntry->ports[portId].firstSource->next, groupEntry->ports[portId].firstSource->previous, 
              groupEntry->ports[portId].lastSource, groupEntry->ports[portId].lastSource->next, groupEntry->ports[portId].lastSource->previous);
@@ -464,7 +466,8 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",sourcePtr,sourcePtr->next,sourcePtr->previous,
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",sourcePtr,sourcePtr->next,sourcePtr->previous,
             groupEntry->ports[portId].firstSource,groupEntry->ports[portId].firstSource->next,groupEntry->ports[portId].firstSource->previous,groupEntry->ports[portId].lastSource->next,groupEntry->ports[portId].lastSource->previous);
 
   //This FIFO has only source
@@ -2088,8 +2091,8 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryAdd()");
     return PTIN_NULLPTR;
   }
-
-   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord);
 
   if(*newEntryFlag == FALSE)
   {
@@ -2115,9 +2118,13 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Record (serviceId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", interfacePtr->key.serviceId, 
               ptin_mgmd_inetAddrPrint(&interfacePtr->lastGroupRecord->key.groupAddr, debug_buf), interfacePtr->lastGroupRecord->key.recordType, interfacePtr->numberOfGroupRecords);
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord,new_group->numberOfSources,new_group->firstSource);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "pFirstNext:[%p] pFirstprevious:[%p] pLastNext:[%p] pLastprevious:[%p]",interfacePtr->firstGroupRecord->nextGroupRecord,interfacePtr->firstGroupRecord->previousGroupRecord,interfacePtr->lastGroupRecord->nextGroupRecord,interfacePtr->lastGroupRecord->previousGroupRecord);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord,new_group->numberOfSources,new_group->firstSource);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "pFirstNext:[%p] pFirstprevious:[%p] pLastNext:[%p] pLastprevious:[%p]",interfacePtr->firstGroupRecord->nextGroupRecord,interfacePtr->firstGroupRecord->previousGroupRecord,interfacePtr->lastGroupRecord->nextGroupRecord,interfacePtr->lastGroupRecord->previousGroupRecord);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+  
   return new_group;
 }
 
@@ -2287,14 +2294,15 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
   for (sourcePtr=groupPtr->firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
   {      
     sourcePtrAux=sourcePtr->next;    
     ptinMgmdGroupRecordSourceRemove(groupPtr,&sourcePtr->key.sourceAddr);    
   }
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
 
 
   if (ptin_mgmd_proxytimer_stop(&groupPtr->timer) != SUCCESS)
@@ -2336,8 +2344,13 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   }
 
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+   
   return SUCCESS;
 }
 
@@ -2372,7 +2385,8 @@ RC_t ptinMgmdGroupRecordSourceRemove(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
   //This FIFO has only source
   if (--groupPtr->numberOfSources==0)
   {
@@ -2406,9 +2420,12 @@ RC_t ptinMgmdGroupRecordSourceRemove(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
   return SUCCESS;
 }
 
@@ -3626,7 +3643,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
     return PTIN_NULLPTR;
   }
   snoopEntry = pData;
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to remove Group Record from the AVL Tree (serviceId:%u groupAddr:%s recordtype:%u)", serviceId, ptin_mgmd_inetAddrPrint(groupAddr, debug_buf), recordType);
   pData = ptin_mgmd_avlDeleteEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, pData);
@@ -3639,7 +3657,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
   }
   if (pData == snoopEntry)
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
     /* Entry deleted */
     return pData;
   }
