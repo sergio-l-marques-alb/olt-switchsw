@@ -15,7 +15,7 @@
 /******************************************************************************
  * API methods for the AVLs used in MGMD
  ******************************************************************************/
-snoopPTinL3InfoData_t*      ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* mcastGroupAddr,uint32 flag);
+ptinMgmdGroupInfoData_t*      ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* mcastGroupAddr,uint32 flag);
 RC_t                        ptinMgmdL3EntryAdd(uint32 serviceId,ptin_mgmd_inet_addr_t* mcastGroupAddr);
 RC_t                        ptinMgmdL3EntryDelete(uint32 serviceId,ptin_mgmd_inet_addr_t* mcastGroupAddr);
 snoopPTinSourceRecord_t*    ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr,uint32 flag);
@@ -44,23 +44,23 @@ RC_t                       ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd
  ******************************************************************************/
 //RC_t                       snoopPTinMembershipReportIsIncludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 portId, uint32 clientIdx, ushort16 noOfSources, ptin_inet_addr_t* sourceList,uint32 *noOfRecords, mgmdGroupRecord_t* groupPtr);
 //RC_t                       snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_inet_addr_t* sourceList,uint32 *noOfRecords, mgmdGroupRecord_t* groupPtr);
-RC_t                       ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
-RC_t                       ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
-RC_t                       ptinMgmdMembershipReportAllowProcess(mgmd_eb_t* pMgmdEB, snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
-RC_t                       ptinMgmdMembershipReportBlockProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
+RC_t                       ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
+RC_t                       ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
+RC_t                       ptinMgmdMembershipReportAllowProcess(mgmd_eb_t* pMgmdEB, ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg);
+RC_t                       ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 intIfNum, uint32 clientIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t* sourceList);
 mgmdProxyInterface_t*      ptinMgmdGeneralQueryProcess(uint32 serviceId, uint32 selectedDelay, BOOL *sendReport, uint32 *timeout);
-mgmdGroupRecord_t*         ptinMgmdGroupSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 selectedDelay, BOOL* sendReport, uint32* timeout);
-mgmdGroupRecord_t*         ptinMgmdGroupSourceSpecifcQueryProcess(snoopPTinL3InfoData_t* avlTreeEntry, uint32 rootIntIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t *sourceList, uint32 selectedDelay, BOOL *sendReport, uint32 *timeout);
+mgmdGroupRecord_t*         ptinMgmdGroupSpecifcQueryProcess(ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 selectedDelay, BOOL* sendReport, uint32* timeout);
+mgmdGroupRecord_t*         ptinMgmdGroupSourceSpecifcQueryProcess(ptinMgmdGroupInfoData_t* avlTreeEntry, uint32 rootIntIdx, ushort16 noOfSources, ptin_mgmd_inet_addr_t *sourceList, uint32 selectedDelay, BOOL *sendReport, uint32 *timeout);
 
 /******************************************************************************
  * MGMD utility methods for the internal structures
  ******************************************************************************/
 
-snoopPTinL3Source_t*       ptinMgmdSourceFind(snoopPTinL3InfoData_t *groupEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr);
-RC_t                       ptinMgmdSourceAdd(snoopPTinL3InfoData_t* groupEntry, uint32 portId, ptin_mgmd_inet_addr_t* sourceAddr,snoopPTinL3Source_t** sourcePtr,ptin_mgmd_externalapi_t*  externalApi);
-RC_t                       ptinMgmdSourceRemove(snoopPTinL3InfoData_t *avlTreeEntry,uint32 portId, snoopPTinL3Source_t *sourcePtr);
-RC_t                       ptinMgmdInitializeInterface(snoopPTinL3InfoData_t* groupPtr, uint16 portId);
-RC_t                       ptinMgmdInterfaceRemove(snoopPTinL3InfoData_t *avlTreeEntry, uint32 intIfNum);
+ptinMgmdSource_t*       ptinMgmdSourceFind(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr);
+RC_t                       ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_mgmd_inet_addr_t* sourceAddr,ptinMgmdSource_t** sourcePtr,ptin_mgmd_externalapi_t*  externalApi);
+RC_t                       ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *avlTreeEntry,uint32 portId, ptinMgmdSource_t *sourcePtr);
+RC_t                       ptinMgmdInitializeInterface(ptinMgmdGroupInfoData_t* groupPtr, uint16 portId);
+RC_t                       ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *avlTreeEntry, uint32 intIfNum);
 mgmdProxyInterface_t*      ptinMgmdProxyInterfaceAdd(uint32 serviceId);
 mgmdGroupRecord_t*         ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr,uint8 recordType, ptin_mgmd_inet_addr_t* groupAddr, BOOL* newEntryFlag);
 RC_t                       ptinMgmdGroupRecordSourcedAdd(mgmdGroupRecord_t* groupPtr,ptin_mgmd_inet_addr_t* sourceAddr);

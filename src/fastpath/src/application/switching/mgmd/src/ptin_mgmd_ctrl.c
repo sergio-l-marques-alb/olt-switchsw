@@ -620,7 +620,7 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     numberOfClients=0;
     memset(portClientList, 0x00, sizeof(portClientList));
     memset(numberOfClientsPerPort, 0x00, sizeof(numberOfClientsPerPort));
-    for (portId=1;portId<PTIN_MGMD_MAX_PORTS;portId++)
+    for (portId=1;portId<=PTIN_MGMD_MAX_PORTS;portId++)
     {
       if (SUCCESS != (res = ptinMgmdgroupclients_get(request.serviceId, portId, &groupAddr, &sourceAddr, portClientList[portId], &numberOfClientsPerPort[portId])))
       {
@@ -646,7 +646,7 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     numOfClientsInMsg  = 0;
     numberOfClientsAux = 0;
     entryId            = 0;
-    for (portId=1; portId<PTIN_MGMD_MAX_PORTS; portId++)
+    for (portId=1; portId<=PTIN_MGMD_MAX_PORTS; portId++)
     {
       //Ignore this interface if the requested entryId is higher than the number os clients for this interface
       numberOfClientsAux += numberOfClientsPerPort[portId];
