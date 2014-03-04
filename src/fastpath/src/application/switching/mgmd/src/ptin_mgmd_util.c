@@ -31,7 +31,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-extern BOOL ptin_mgmd_extendedDebug;
+extern BOOL ptin_mgmd_extended_debug;
 
 /*********************************************************************
 * Static Methods
@@ -1691,7 +1691,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
   }
   else //We only show the packet payload if we have sent the packet
   {
-    if(ptin_mgmd_extendedDebug)
+    if(ptin_mgmd_extended_debug)
     {    
       uint32 i;
       printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);

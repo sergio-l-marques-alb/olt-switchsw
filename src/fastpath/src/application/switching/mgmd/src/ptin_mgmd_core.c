@@ -51,7 +51,7 @@
 #include "ptin_mgmd_service_api.h"
 
 /*********************Static Variables******************/
-BOOL                ptin_mgmd_extendedDebug = FALSE;
+BOOL                ptin_mgmd_extended_debug = FALSE;
 /*********************End Static Variables******************/
 
 static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
@@ -60,13 +60,14 @@ static RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket);
 static RC_t ptin_mgmd_mld_packet_process(void);
 
 /************************************************************************************************************/
+
 RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
 {
   uchar8              *buffPtr;
   uchar8               igmpType;
   RC_t                 rc      = SUCCESS;
   
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
@@ -133,7 +134,7 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
       break;
   }              
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   }
@@ -249,7 +250,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
   uchar8               *startPtr;
   uchar8               *buffPtr;
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
@@ -363,7 +364,7 @@ static RC_t ptin_mgmd_igmp_packet_parse(uchar8 *framePayload, uint32 framePayloa
     return FAILURE;
   }
   
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   }
@@ -529,7 +530,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   ptin_mgmd_externalapi_t      externalApi;
   ptin_mgmd_port_type_t        portType;
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   //If advanced debugging is enabled, dump packet in output  
@@ -603,7 +604,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
       {
         ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
       }
-      if(ptin_mgmd_extendedDebug)
+      if(ptin_mgmd_extended_debug)
       {
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
       }
@@ -617,7 +618,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     rc = ptin_mgmd_mld_packet_parse(payload, payloadLength, &mcastPacket);
     rc = ptin_mgmd_mld_packet_process();
 
-    if(ptin_mgmd_extendedDebug)
+    if(ptin_mgmd_extended_debug)
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
     }
@@ -642,7 +643,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0],SNOOP_STAT_FIELD_DROPPED_RX));
   }
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   }
@@ -689,7 +690,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
                                sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]     = {};
   ptin_mgmd_externalapi_t externalApi; 
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
@@ -985,6 +986,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
             return SUCCESS;
           }
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"IGMPv2 Group Specific Query Rec'd");
+          queryType=PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY; 
         }
 #else
         LOG_WARNING(LOG_CTX_PTIN_IGMP,"IGMPv2 Query Rec'd, Packet Silently Ignored");
@@ -1978,14 +1980,14 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
   RC_t res = SUCCESS;
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   }
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Context [Length:%u ServiceId:%u PortId:%u ClientId:%u]", eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
   res = ptin_mgmd_packet_process(eventData->payload, eventData->payloadLength, eventData->serviceId, eventData->portId, eventData->clientId);
 
-  if(ptin_mgmd_extendedDebug)
+  if(ptin_mgmd_extended_debug)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
   }
@@ -2347,12 +2349,12 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     case PTIN_MGMD_EVENT_IGMP_DEBUG_LOG_LVL:
     {
       ptin_mgmd_logseverity_set(PTIN_MGMD_LOG_CTX_PTIN_IGMP, eventData->param[0]);
-      if(ptin_mgmd_extendedDebug!= (BOOL) (eventData->param[1]))
+      if(ptin_mgmd_extended_debug!= (BOOL) (eventData->param[1]))
       {
         if((BOOL)eventData->param[1]==TRUE || (BOOL)(eventData->param[1])==FALSE)
         {
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting ptin_mgmd_extendedDebug to :%u", eventData->param[1]);
-          ptin_mgmd_extendedDebug = (BOOL)(eventData->param[1]);
+          ptin_mgmd_extended_debug = (BOOL)(eventData->param[1]);
         }
         else
         {
