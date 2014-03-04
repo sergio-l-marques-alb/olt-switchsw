@@ -130,8 +130,11 @@
 
 MODULE_AUTHOR("Broadcom Corporation");
 MODULE_DESCRIPTION("Kernel BDE");
+#ifdef __arm__
+MODULE_LICENSE("Proprietary");
+#else
 MODULE_LICENSE("GPL");
-//MODULE_LICENSE("Proprietary");
+#endif
 
 /* DMA memory pool size */
 static char *dmasize;
@@ -146,7 +149,12 @@ MODULE_PARM_DESC(himem,
 "Use high memory for DMA (default no)");
 
 /* PCIe max payload */
-int maxpayload = 128; //256;  /* PTin modified: Max payload limited to 128B */
+/* PTin modified: Max payload limited to 128B */
+#ifdef __arm__
+int maxpayload = 256;
+#else
+int maxpayload = 128;
+#endif
 LKM_MOD_PARAM(maxpayload, "i", int, 0);
 MODULE_PARM_DESC(maxpayload,
 "Limit maximum payload size and request size on PCIe devices");
@@ -1560,7 +1568,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     }
 #endif /* BCM_DFE_SUPPORT */
 
-
+#ifndef __arm__
     if (debug >= 1) {
         uint8 aux8;
         uint32 aux32;
@@ -1594,6 +1602,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
         gprintk("****************************\n");
     }
+#endif
 
     /* Prevent compiler warning */
     if (ctrl == NULL) {
@@ -4032,8 +4041,8 @@ _interrupt_connect(int d,
             ctrl->iLine = ctrl->pci_device->irq;
             gprintk ("LTX: Success enabling MSI\n");
         }
-	 else
-	 {
+        else
+        {
             gprintk ("LTX: MSI not enabled\n");
         }
 #endif
@@ -4056,7 +4065,7 @@ _interrupt_connect(int d,
 #endif
             return -1;
         }
-        gprintk("Success requesting irq %d for device %d\n",ctrl->iLine,ctrl->pci_device->irq);
+        gprintk("Success requesting irq %d\n", ctrl->iLine);
     }
 
     return 0;
