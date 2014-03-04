@@ -18,14 +18,6 @@
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
   #define PTIN_ENABLE_DTL0TRAP
-
-#ifdef MAP_CPLD
-  #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
-  #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
-#else
-  #define is_matrix_protection() 0
-  #define matrix_board_version() 2
-#endif
   
   #define PTIN_SYSTEM_INTERNAL_LAGID_BASE 18
 
@@ -93,7 +85,7 @@ extern int ptin_sys_number_of_ports;
 
 /* OLT10 */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-#include "ptin_globaldefs_olt7-8ch-b.h"
+#include "ptin_globaldefs_olt1t0.h"
 
 /* OLT7-8CH */
 #elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
@@ -120,6 +112,17 @@ extern int ptin_sys_number_of_ports;
 #include "ptin_globaldefs_cxo640g.h"
 
 #endif
+
+
+#if PTIN_BOARD_IS_MATRIX
+#ifdef MAP_CPLD
+  #define is_matrix_protection() (cpld_map->reg.slot_id != 0)   /* To know if we are in protection matrix */
+  #define matrix_board_version() ((cpld_map->reg.id==CPLD_ID_CXO640G_V1) ? 1 : 2)
+#else
+  #define is_matrix_protection() 0
+  #define matrix_board_version() 2
+#endif
+#endif  // PTIN_BOARD_IS_MATRIX
 
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE

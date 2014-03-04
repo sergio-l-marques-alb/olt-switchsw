@@ -1,5 +1,5 @@
-#ifndef _PTIN_GLOBALDEFS_OLT78CHB_H
-#define _PTIN_GLOBALDEFS_OLT78CHB_H
+#ifndef _PTIN_GLOBALDEFS_OLT1T0_H
+#define _PTIN_GLOBALDEFS_OLT1T0_H
 
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
@@ -11,7 +11,7 @@
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
-# define PTIN_SYSTEM_N_PORTS           18
+# define PTIN_SYSTEM_N_PORTS           16
 # define PTIN_SYSTEM_N_PONS            8 
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
@@ -23,8 +23,8 @@
 # define PTIN_SYSTEM_UPLINK_PRIO       2    /* MAC Learning priority (station move is allowed over same prio) */
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x000000FF
-# define PTIN_SYSTEM_ETH_PORTS_MASK    0x0000FF00
-# define PTIN_SYSTEM_10G_PORTS_MASK    0x00030000
+# define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000F00
+# define PTIN_SYSTEM_10G_PORTS_MASK    0x0000F000
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            2048  /* Maximum nr of EVCs allowed in this equipment */
@@ -127,8 +127,8 @@
 #define SNOOP_PTIN_IGMPv3_PROXY   1   //Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_FPGA
-# define MAP_CPLD
+//# define MAP_FPGA
+//# define MAP_CPLD
 # define FPGA_BASE_ADDR                0xFF200000
 # define CPLD_BASE_ADDR                0xFF500000
 
@@ -206,5 +206,5 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_SERVER_IPADDR             IPC_LOCALHOST_IPADDR
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */
 
-#endif /* _PTIN_GLOBALDEFS_OLT78CHB_H */
+#endif /* _PTIN_GLOBALDEFS_OLT1T0_H */
 
