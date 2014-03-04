@@ -3441,7 +3441,7 @@ void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g)
 *
 *********************************************************************/
 
-static int ptin_l2_addr_add = 0;
+static int ptin_l2_addr_add = 1;
 void ptin_l2_addr_add_enable(int enable)
 {
   ptin_l2_addr_add = enable & 1;
