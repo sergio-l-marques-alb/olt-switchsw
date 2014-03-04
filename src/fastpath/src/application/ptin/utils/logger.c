@@ -230,7 +230,7 @@ void log_init(log_output_t output)
     {
       outFile.output  = LOG_OUTPUT_FILE;
       fprintf(stdout,"log initialized at \"%s\"\r\n", LOG_OUTPUT_FILE_DEFAULT );
-      LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log initialized at \"%s\"", LOG_OUTPUT_FILE_DEFAULT );
+      //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log initialized at \"%s\"", LOG_OUTPUT_FILE_DEFAULT );
     }
 
     outFile.lock = WRITE_UNLOCK;
