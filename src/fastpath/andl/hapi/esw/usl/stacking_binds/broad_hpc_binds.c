@@ -44,6 +44,10 @@
 #include "appl/stktask/topo_pkt.h"
 #include "bcmx/bcmx_int.h"
 
+/* PTin added: logger */
+#include "ptin_globaldefs.h"
+#include "logger.h"
+
 static cpudb_ref_t system_cpudb = L7_NULLPTR;
 static topo_cpu_t  system_topo;
 extern void hapiBroadSocFileLoad(char *file_name, L7_BOOL suppressFileNotAvail);
@@ -179,6 +183,14 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   /* override the default output */
   init_data.debug_out = (void *)hapiBroadCmPrint;
+
+  /* PTin added: new switch 56340 (Helix4) */
+  #if (PTIN_BOARD==PTIN_BOARD_OLT1T0)
+  /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
+  (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340");
+
+  LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
+  #endif
 
   if (soc_cm_init(&init_data) != SOC_E_NONE)
   {

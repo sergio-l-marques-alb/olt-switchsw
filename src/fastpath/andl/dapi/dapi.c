@@ -38,6 +38,9 @@
 #include "dapi_trace.h"
 #include "hpc_db.h"
 
+/* PTin added: logger */
+#include "logger.h"
+
 /*
  * Globals
  */
@@ -861,12 +864,17 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
       dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cachePortConfig        = L7_FALSE;
       dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->pendingAdminModeConfig = L7_FALSE;
 
+      LOG_TRACE(LOG_CTX_STARTUP,"DAPI_CMD_CARD_INSERT event");
+
       if (dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cardPresent == L7_FALSE)
       {
+        LOG_TRACE(LOG_CTX_STARTUP,"Going to insert card...");
         if (dapiCardInsert(&dapiUsp, cmd, data) == L7_FAILURE) {
+          LOG_ERR(LOG_CTX_STARTUP,"Error inserting card!");
           result = L7_FAILURE;
         }
         else {
+          LOG_NOTICE(LOG_CTX_STARTUP,"Success inserting card!");
           dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cardPresent = L7_TRUE;
         }
       }
@@ -1173,6 +1181,7 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Starting dapiCardInsert...");
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(cmdInfo->cmdData.cardInsert.cardId);
   if (sysapiHpcCardInfoPtr == L7_NULLPTR)
   {
@@ -1353,9 +1362,12 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
 
       osapiFree (L7_DRIVER_COMPONENT_ID, dapi_g->unit[usp.unit]->slot[usp.slot]->port);
     }
+
+    LOG_ERR(LOG_CTX_STARTUP,"Error inserting card: result=%d",result);
     return result;
   }
 
+  LOG_INFO(LOG_CTX_STARTUP,"dapiCardInsert: result=%d",result);
   return result;
 }
 
@@ -1502,6 +1514,8 @@ L7_RC_t dapiCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"dapiCpuCardInsert starting...");
+
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(cmdInfo->cmdData.cardInsert.cardId);
   if (sysapiHpcCardInfoPtr == L7_NULLPTR)
   {
@@ -1591,6 +1605,8 @@ L7_RC_t dapiCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
     }
     dapiPortPtr->type = L7_IANA_OTHER_CPU;
   }
+
+  LOG_INFO(LOG_CTX_STARTUP,"dapiCpuCardInsert: result=%d",result);
 
   return result;
 }

@@ -32,6 +32,8 @@
 #define DTLCTRL_DRIVER_GLOBALS              /* Enable global space   */
 #include "dtlinclude.h"
 
+/* PTin added: logger */
+#include "logger.h"
 
 #if DTLCTRL_COMPONENT_DRIVER             /* Classifier support        */
 
@@ -138,18 +140,21 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
     dapiCardMgmt.cardCmd = CARD_CMD_INSERT;
     dapiCardMgmt.cmdData.cardInsert.cardId = cardTypeID;
 
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_INSERT event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_INSERT,&dapiCardMgmt) == L7_FAILURE)
       return L7_FAILURE;
     break;
 
   case DTL_CARD_REMOVE:
     dapiCardMgmt.cardCmd = CARD_CMD_REMOVE;
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_REMOVE event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_REMOVE,&dapiCardMgmt) == L7_FAILURE)
       return L7_FAILURE;
     break;
 
   case DTL_CARD_PLUGIN_START:
     dapiCardMgmt.cardCmd = CARD_CMD_PLUGIN_START;
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_START event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_PLUGIN,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -157,6 +162,7 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_PLUGIN_FINISH:
     dapiCardMgmt.cardCmd = CARD_CMD_PLUGIN_FINISH;
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_FINISH event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_PLUGIN,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -164,6 +170,7 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_UNPLUG_START:
     dapiCardMgmt.cardCmd = CARD_CMD_UNPLUG_START;
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_START event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_UNPLUG,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -171,12 +178,14 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_UNPLUG_FINISH:
     dapiCardMgmt.cardCmd = CARD_CMD_UNPLUG_FINISH;
+    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_FINISH event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_UNPLUG,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
     break;
 
   default:
+    LOG_ERR(LOG_CTX_STARTUP,"Unknown event");
     return L7_FAILURE;
   }
   return L7_SUCCESS;

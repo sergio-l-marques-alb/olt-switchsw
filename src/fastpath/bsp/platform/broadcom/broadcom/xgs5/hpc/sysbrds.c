@@ -172,6 +172,8 @@ L7_RC_t hpcConfigBoardSet()
 
   if ((lclUnitDesc = hpcLocalUnitDescriptorGet()) != L7_NULLPTR)
   {
+    LOG_TRACE(LOG_CTX_STARTUP,"UNIT=0x%08x",lclUnitDesc->unitTypeDescriptor.unitTypeId);
+
     switch (lclUnitDesc->unitTypeDescriptor.unitTypeId)
     {
 
@@ -448,6 +450,9 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set("l2_table_size", "0x3fff") != 0)
           return(L7_FAILURE);
 #endif
+
+      LOG_TRACE(LOG_CTX_STARTUP,"Helix4 ready to be started!");
+      break;
 
       /* PTin added: new switch 56843 (Trident) */
       case UNIT_BROAD_40_TENGIG_56843_REV_1_ID:
