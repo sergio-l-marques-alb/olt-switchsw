@@ -118,6 +118,10 @@ L7_RC_t hapi_ptin_data_init(void)
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
+  rc = ptin_hapi_macaddr_init();
+  if (rc != L7_SUCCESS)
+    return L7_FAILURE;
+
   return rc;
 }
 

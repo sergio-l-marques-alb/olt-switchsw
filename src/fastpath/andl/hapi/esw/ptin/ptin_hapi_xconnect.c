@@ -24,7 +24,7 @@
 /* Available resources for translation: This is for the 5668x switches */
 L7_uint16 resources_crossconnects = FREE_RESOURCES_CROSSCONNECTS;
 
-#if 0
+#if 1
 typedef struct
 {
   L7_uint8 mac_counter;
@@ -1055,7 +1055,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   return L7_SUCCESS;
 }
 
-#if 0
+#if 1
 /************************************
  * MAC Learning Control
  ************************************/
@@ -1085,6 +1085,7 @@ L7_RC_t ptin_hapi_macaddr_init(void)
   return L7_SUCCESS;
 }
 
+
 /**
  * Increment number of learned MAC addresses
  * 
@@ -1094,38 +1095,47 @@ L7_RC_t ptin_hapi_macaddr_init(void)
  */
 L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
 {
-  L7_int vport_id = 0;
-  L7_uint16 vlan_id = 0;
+  L7_uint vport_id = 0;
+  L7_uint vlan_id = 0;
 
   if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
   {
     vport_id = bcmx_l2_addr->lport & 0xffff;
-    /* Vport is valid? */
+
+    /* Virtual port ID is valid? */
     if (vport_id > MAX_GPORTS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
+
     /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_maximum < (L7_uint8)-1 &&
+    if (macLearn_info_flow[vport_id].mac_maximum != (L7_uint8)-1 &&
         macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
     {
       return L7_FAILURE;
     }
+
     macLearn_info_flow[vport_id].mac_counter++;
   }
   else
   {
     vlan_id = bcmx_l2_addr->vid;
-    /* Vlan is valid? */
+
+    /* VLAN ID is valid? */
     if (vlan_id > MAX_VLANS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
+
     /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_maximum)
+    if (macLearn_info_vlan[vlan_id].mac_maximum != (L7_uint8)-1 &&
+        macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_maximum)
     {
       return L7_FAILURE;
     }
+
     macLearn_info_vlan[vlan_id].mac_counter++;
   }
 
@@ -1141,18 +1151,21 @@ L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
  */
 L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
 {
-  L7_int vport_id = 0;
-  L7_uint16 vlan_id = 0;
+  L7_uint vport_id = 0;
+  L7_uint vlan_id = 0;
 
   if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
   {
     vport_id = bcmx_l2_addr->lport & 0xffff;
-    /* Vport is valid? */
+
+    /* Virtual port ID is valid? */
     if (vport_id > MAX_GPORTS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
-    /* Do not accept more mac addresses, if maximum was reached */
+
+    /* Decrement, but only if greater than 0 */
     if (macLearn_info_flow[vport_id].mac_counter > 0)
     {
       macLearn_info_flow[vport_id].mac_counter--;
@@ -1161,12 +1174,15 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
   else
   {
     vlan_id = bcmx_l2_addr->vid;
-    /* Vlan is valid? */
+
+    /* VLAN ID is valid? */
     if (vlan_id > MAX_VLANS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
-    /* Do not accept more mac addresses, if maximum was reached */
+
+    /* Decrement, but only if greater than 0 */
     if (macLearn_info_vlan[vlan_id].mac_counter > 0)
     {
       macLearn_info_vlan[vlan_id].mac_counter--;
@@ -1184,25 +1200,33 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlanId, bcm_gport_t gport)
+L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
 {
+  L7_uint vport_id = 0;
+
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    /* Vport is valid? */
-    if (gport > MAX_GPORTS)
+    vport_id = gport & 0xffff;
+
+    /* Virtual port ID is valid? */
+    if (vport_id > MAX_GPORTS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
+
     macLearn_info_flow[gport].mac_counter = 0;
   }
   else
   {
-    /* Vlan is valid? */
-    if (vlanId > MAX_VLANS)
+    /* VLAN ID is valid? */
+    if (vlan_id > MAX_VLANS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
-    macLearn_info_vlan[vlanId].mac_counter = 0;
+
+    macLearn_info_vlan[vlan_id].mac_counter = 0;
   }
 
   return L7_SUCCESS;
@@ -1216,28 +1240,65 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlanId, bcm_gport_t gport)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlanId, bcm_gport_t gport, L7_uint8 max_value)
+L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8 max_value)
 {
+  L7_uint vport_id = 0;
+
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
-    /* Vport is valid? */
-    if (gport > MAX_GPORTS)
+    vport_id = gport & 0xffff;
+
+    /* Virtual port ID is valid? */
+    if (vport_id > MAX_GPORTS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
+
     macLearn_info_flow[gport].mac_maximum = max_value;
   }
   else
   {
-    /* Vlan is valid? */
-    if (vlanId > MAX_VLANS)
+    /* VLAN ID is valid? */
+    if (vlan_id > MAX_VLANS)
     {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
-    macLearn_info_vlan[vlanId].mac_maximum = max_value;
+
+    macLearn_info_vlan[vlan_id].mac_maximum = max_value;
   }
 
   return L7_SUCCESS;
 }
+
+/**
+ * Dump MAC limit tables
+ * 
+ * @author alex (3/5/2014)
+ */
+void ptin_maclimit_dump(void)
+{
+  L7_uint i;
+
+  printf("MAC limit tables (counters > 0)\n");
+
+  /* MAC learning control at vlan level */
+  for (i=0; i<MAX_VLANS; i++) {
+    if (macLearn_info_vlan[i].mac_counter > 0) {
+      printf(" VLAN=%.4u   %u of %u\n", i, macLearn_info_vlan[i].mac_counter, macLearn_info_vlan[i].mac_maximum);
+    }
+  }
+
+  /* MAC learning control at virtual port level */
+  for (i=0; i<MAX_GPORTS; i++) {
+    if (macLearn_info_flow[i].mac_counter > 0) {
+      printf(" GPORT=%.4u  %u of %u\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_maximum);
+    }
+  }
+
+  printf("\n");
+}
+
 #endif
 

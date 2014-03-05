@@ -201,7 +201,7 @@ extern L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcas
  */
 extern L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_BOOL destroy_mcgroup);
 
-#if 0
+#if 1
 /************************************
  * MAC Learning Control
  ************************************/
@@ -239,7 +239,7 @@ extern L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlanId, bcm_gport_t gport);
+extern L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport);
 
 /**
  * Set maximum number of learned MAC addresses
@@ -249,7 +249,7 @@ extern L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlanId, bcm_gport_t gport);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlanId, bcm_gport_t gport, L7_uint8 max_value);
+extern L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8 max_value);
 #endif
 
 #endif /* _PTIN_HAPI_BRIDGE__H */

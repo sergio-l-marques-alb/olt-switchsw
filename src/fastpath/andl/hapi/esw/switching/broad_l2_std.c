@@ -81,6 +81,9 @@
 #include "broad_dot1ad.h"
 #endif
 
+#include "logger.h"
+#include "ptin_hapi_xconnect.h"
+
 extern int _bcm_esw_l2_from_l2x(int unit, soc_mem_t mem, bcm_l2_addr_t *l2addr, uint32 *l2_entry);
 
 //L7_BOOL ptin_learnEnabled[L7_MAX_INTERFACE_COUNT];    /* PTin added: MAC learning */
@@ -3558,11 +3561,16 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   if (bcmx_l2_addr->flags & BCM_L2_PENDING)
   {
     #if 1
-    if (ptin_l2_addr_add)
+    if (ptin_hapi_macaddr_inc(bcmx_l2_addr))
     {
       bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
       rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
       printf("%s(%d) I was here\r\n",__FUNCTION__,__LINE__);
+    }
+    else
+    {
+      LOG_WARNING(LOG_CTX_PTIN_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
+                  bcmx_l2_addr->vid, bcmx_l2_addr->lport);
     }
     #endif
 
@@ -3735,6 +3743,8 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
       {
         rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
+        /* PTin added: MAC learning limit */
+        ptin_hapi_macaddr_dec(bcmx_l2_addr);
       }
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
