@@ -718,8 +718,7 @@ L7_RC_t snoopCnfgrInitPhase3Process(L7_BOOL warmRestart,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting MGMD...");
   if (ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT))
   {
-    LOG_FATAL(LOG_CTX_PTIN_IGMP,"Huge, CATASTROPHIC failure on MGMD! Run as fast as you can and don't look back!");
-    return L7_FAILURE;
+    LOG_FATAL(LOG_CTX_PTIN_IGMP,"Huge, CATASTROPHIC failure on MGMD! Run as fast as you can and don't look back!"); /* DO NOT RETURN FAILURE HERE!! */
   }
   ptin_mgmd_logseverity_set(PTIN_MGMD_LOG, MGMD_LOG_ERROR);
 
