@@ -798,71 +798,71 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
 *
 * @end
 *********************************************************************/
-static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
-{
-  L7_int32 exp, mant;
-  L7_uchar8 *codev4;
-  L7_ushort16 *codev6;
-
-  if (family == L7_AF_INET)
-  {
-    codev4 = (L7_uchar8 *)code;
-    if (num < 128)
-    {
-      *codev4 = num;
-    }
-    else
-    {
-      mant = num >> 3;
-      exp = 0;
-      for (;;)
-      {
-        if ((mant & 0xfffffff0) == 0x00000010)
-          break;
-        mant = mant >> 1;
-        exp++;
-        /* Check for out of range */
-        if (exp > 7)
-        {
-          *codev4 = 0;
-          return;
-        }
-      }
-
-      mant = mant & 0x0f;
-      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
-    }
-  }
-  else if (family == L7_AF_INET6)
-  {
-    codev6 = (L7_ushort16 *)code;
-    if (num < 32768)
-    {
-      *codev6 = num;
-    }
-    else
-    {
-      mant = num >> 3;
-      exp = 0;
-      for (;;)
-      {
-        if ((mant & 0xfffffff0) == 0x00000010)
-          break;
-        mant = mant >> 1;
-        exp++;
-        /* Check for out of range */
-        if (exp > 7)
-        {
-          *codev6 = 0;
-          return;
-        }
-      }
-
-      mant = mant & 0x0f;
-      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
-    }
-  }
-}
+//static void snoop_fp_encode(L7_uchar8 family,L7_int32 num, void *code)
+//{
+//  L7_int32 exp, mant;
+//  L7_uchar8 *codev4;
+//  L7_ushort16 *codev6;
+//
+//  if (family == L7_AF_INET)
+//  {
+//    codev4 = (L7_uchar8 *)code;
+//    if (num < 128)
+//    {
+//      *codev4 = num;
+//    }
+//    else
+//    {
+//      mant = num >> 3;
+//      exp = 0;
+//      for (;;)
+//      {
+//        if ((mant & 0xfffffff0) == 0x00000010)
+//          break;
+//        mant = mant >> 1;
+//        exp++;
+//        /* Check for out of range */
+//        if (exp > 7)
+//        {
+//          *codev4 = 0;
+//          return;
+//        }
+//      }
+//
+//      mant = mant & 0x0f;
+//      *codev4 = (L7_uchar8)(0x80 | (exp<<4) | mant);
+//    }
+//  }
+//  else if (family == L7_AF_INET6)
+//  {
+//    codev6 = (L7_ushort16 *)code;
+//    if (num < 32768)
+//    {
+//      *codev6 = num;
+//    }
+//    else
+//    {
+//      mant = num >> 3;
+//      exp = 0;
+//      for (;;)
+//      {
+//        if ((mant & 0xfffffff0) == 0x00000010)
+//          break;
+//        mant = mant >> 1;
+//        exp++;
+//        /* Check for out of range */
+//        if (exp > 7)
+//        {
+//          *codev6 = 0;
+//          return;
+//        }
+//      }
+//
+//      mant = mant & 0x0f;
+//      *codev6 = (L7_ushort16)(0x80 | (exp<<4) | mant);
+//    }
+//  }
+//}
 
 /**
  * Applies IGMP Proxy configuration
@@ -954,74 +954,16 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
       && igmpProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
   {
-    if (igmpProxy->querier.query_interval<PTIN_IGMP_MIN_QUERYINTERVAL ||
-        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_interval>PTIN_IGMPv2_MAX_QUERYINTERVAL) || 
-        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>PTIN_IGMPv3_MAX_QUERYINTERVAL)) 
-    {       
-      igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Interval:%u, going to use default value:%u",igmpProxy->querier.query_interval,igmpProxyCfg.querier.query_interval);           
-    }
-    else if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_interval>=128)
-    {
-      snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval, &igmpProxyCfg.querier.query_interval );
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxy->querier.query_interval);
-    }
-    else
-    {
-      igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
-    }
+    igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
   }
 
   /* Query Response Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI
       && igmpProxyCfg.querier.query_response_interval != igmpProxy->querier.query_response_interval)
   {
-    if (igmpProxy->querier.query_response_interval<PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL ||
-        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_response_interval>PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL) || 
-        (igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL)) 
-    { 
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Query Response Interval:%u",igmpProxy->querier.query_response_interval);           
-      if (igmpProxy->querier.query_interval*10-10>=10)
-      {
-        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval*10-10, &igmpProxyCfg.querier.query_response_interval );
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_interval*10-10);
-      }
-      else
-      {
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to use default values for QQIC & QRI");
-        igmpProxyCfg.querier.query_interval=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
-        igmpProxyCfg.querier.query_response_interval=PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
-      }      
-    }
-    else if(igmpProxy->querier.query_response_interval>=igmpProxy->querier.query_interval*10)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Query Response Interval>=Query Interval (%u,%u)", igmpProxy->querier.query_response_interval,igmpProxy->querier.query_interval);
-      if (igmpProxy->querier.query_interval*10-10>=10)
-      {
-        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_interval*10-10, &igmpProxyCfg.querier.query_response_interval );
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_interval*10-10);
-      }
-      else
-      {
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to use default values for QQIC & QRI");
-        snoop_fp_encode(L7_AF_INET, PTIN_IGMP_DEFAULT_QUERYINTERVAL, &igmpProxyCfg.querier.query_interval );
-        snoop_fp_encode(L7_AF_INET, PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL, &igmpProxyCfg.querier.query_response_interval );
-      }
-    }
-    else
-    {
-      if(igmpProxyCfg.networkVersion==PTIN_IGMP_VERSION_3 && igmpProxy->querier.query_response_interval>=128)
-      {
-        snoop_fp_encode(L7_AF_INET, igmpProxy->querier.query_response_interval, &igmpProxyCfg.querier.query_response_interval );
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxy->querier.query_response_interval);
-      }
-      else
-      {
-        igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
-        LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
-      }    
-    }
+    igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
   }
 
   /* Group Membership Interval */
@@ -1125,30 +1067,16 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
       && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
   {
-    if (igmpProxy->host.robustness<1 || igmpProxy->host.robustness>7)
-    { 
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Robustness Variable value:%u, going to use existing value:%u",igmpProxy->host.robustness,igmpProxyCfg.host.robustness);
-    }
-    else
-    {
-      igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
-    }    
+    igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
   }
 
   /* Unsolicited Report Interval */
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_URI
       && igmpProxyCfg.host.unsolicited_report_interval != igmpProxy->host.unsolicited_report_interval)
   {
-    if (igmpProxy->host.unsolicited_report_interval<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL || igmpProxy->host.unsolicited_report_interval>PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL)
-    { 
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Unsolicited Report Interval configured: %u, going to use existing value :%u",igmpProxy->host.unsolicited_report_interval,igmpProxyCfg.host.unsolicited_report_interval);
-    }
-    else
-    {
-      igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
-    }    
+    igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
   }
 
   /* Older Querier Present Timeout */
@@ -1169,15 +1097,8 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Max Records per Report */
   if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_MRPR && igmpProxyCfg.host.max_records_per_report != igmpProxy->host.max_records_per_report )
   {
-    if(igmpProxy->host.max_records_per_report<PTIN_IGMP_MIN_RECORDS_PER_REPORT || igmpProxy->host.max_records_per_report>PTIN_IGMP_MAX_RECORDS_PER_REPORT)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "Invalid Max Records per Report Value: %u, going to use existing value:%u",igmpProxy->host.max_records_per_report,igmpProxyCfg.host.max_records_per_report);
-    }
-    else
-    {
-      igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
-    }    
+    igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
   }
 
   /* Update AUTO flags */
@@ -1188,9 +1109,6 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_ADMIN
       && igmpProxyCfg.admin != igmpProxy->admin)
   {
-    // TODO apply changes
-//  rc = snoopIGMPAdminModeApply();
-
     igmpProxyCfg.admin = igmpProxy->admin;
   }
 

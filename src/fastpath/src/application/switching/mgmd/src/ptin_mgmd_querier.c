@@ -36,8 +36,9 @@ ptin_IgmpProxyCfg_t igmpGlobalCfg;
 *           An out of range parameter causes the output parm "code" to
 *           be set to 0.
 *
-* @param    num   @b{ (input) }    Number to be encoded
-* @param    code  @b{ (output) }   Coded value
+* @param    num     @b{ (input) }    Number to be encoded
+* @param    version @b{ (input) }    Protocol Version [PTIN_IGMP_VERSION_1, PTIN_IGMP_VERSION_2, PTIN_IGMP_VERSION_3]
+* @param    code    @b{ (output) }   Coded value
 *
 * @returns  uint32 Coded value
 *
@@ -45,12 +46,18 @@ ptin_IgmpProxyCfg_t igmpGlobalCfg;
 *
 * @end
 *********************************************************************/
-static void ptin_mgmd_fp_encode(uchar8 family,int32 num, uint32* code)
+static void ptin_mgmd_fp_encode(uchar8 family, uint8 version, int32 num, uint32* code)
 {
   int32 exp, mant;
 
   if (family == PTIN_MGMD_AF_INET)
   {
+    /* If we are working with v2, then if num exceed v2 maximum value, truncate it to v2 max value */
+    if(version == PTIN_IGMP_VERSION_2)
+    {
+      num = PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL;
+    }
+
     if (num < 128)
     {
       *code = num;
@@ -228,7 +235,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   /* Max response code */
   if (version >= PTIN_IGMP_VERSION_2)
   {
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpGlobalCfg.querier.query_response_interval, &val);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, version, igmpGlobalCfg.querier.query_response_interval, &val);
     byteVal=val;
   }
   else
@@ -254,7 +261,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
     PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,igmpGlobalCfg.querier.query_interval,&val);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,version,igmpGlobalCfg.querier.query_interval,&val);
     PTIN_MGMD_PUT_BYTE(val, dataPtr);
 
     /*Number of Sources*/
@@ -1130,11 +1137,11 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
   //Max Resp Code
   if(ptin_mgmd_inetIsAddressZero(groupAddr)) //For general queries, max response time is QRI
   {
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.query_response_interval, &value32);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpVersion, igmpCfg.querier.query_response_interval, &value32);
   }
   else  //For group-source specific queries, max response time is LMQI
   {
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.last_member_query_interval, &value32);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpVersion, igmpCfg.querier.last_member_query_interval, &value32);
   }
   value8 = value32;
   PTIN_MGMD_PUT_BYTE(value8, queryHeader);
@@ -1162,7 +1169,7 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
   *headerLength += 1;
 
   //QQIC
-  ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpCfg.querier.query_interval, &value32);
+  ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, igmpVersion, igmpCfg.querier.query_interval, &value32);
   value8 = value32;
   PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
