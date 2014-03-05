@@ -3561,7 +3561,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   if (bcmx_l2_addr->flags & BCM_L2_PENDING)
   {
     #if 1
-    if (ptin_hapi_macaddr_inc(bcmx_l2_addr))
+    if (ptin_hapi_macaddr_inc(bcmx_l2_addr) != L7_FAILURE)
     {
       bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
       rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
