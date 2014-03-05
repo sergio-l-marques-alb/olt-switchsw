@@ -169,15 +169,6 @@ RC_t ptin_mgmd_memAlloc(void)
 {
   RC_t res = SUCCESS;
 
-  //Memory Allocated for the Statistics Component
-  ptin_mgmd_statistics_memory_allocation();
-  //Memory Allocated for the Configuration Component
-  ptin_mgmd_cfg_memory_allocation();
-  //Memory Allocated for the Cnfgr Component
-  ptin_mgmd_cnfgr_memory_allocation();
-  //Memory Allocated for the Core Component
-  ptin_mgmd_core_memory_allocation();
-
   ptin_mgmd_memory_log_report();
 
   if(SUCCESS != (res = ptinMgmdEBInit()))
@@ -215,8 +206,8 @@ RC_t ptin_mgmd_memAlloc(void)
     return res;
   }
 
-  ptin_mgmd_memory_log_report();
-
+  ptin_mgmd_process_memory_report();
+  
   return res;
 }
 

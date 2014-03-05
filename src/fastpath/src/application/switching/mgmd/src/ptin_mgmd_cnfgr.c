@@ -378,8 +378,8 @@ void ptin_mgmd_memory_report(void)
   printf(" \tMGMD Configurations\n");
   printf("[Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]\n", 
             PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
-  printf("Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
-  printf("Process Memory Allocated: %lu MB", vmrss_kb/1024);
+  printf("MGMD Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
+  printf("FP Memory Allocated: %lu MB\n", vmrss_kb/1024);
 }
 
 
@@ -410,11 +410,19 @@ void ptin_mgmd_memory_log_report(void)
     line = strtok(NULL, "\n");
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," \tMGMD Configurations\n");
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"[Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]\n", 
+  //Memory Allocated for the Statistics Component
+  ptin_mgmd_statistics_memory_allocation();
+  //Memory Allocated for the Configuration Component
+  ptin_mgmd_cfg_memory_allocation();
+  //Memory Allocated for the Cnfgr Component
+  ptin_mgmd_cnfgr_memory_allocation();
+  //Memory Allocated for the Core Component
+  ptin_mgmd_core_memory_allocation();
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Configurations [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]", 
                       PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Process Memory Allocated: %lu MB", vmrss_kb/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Memory Allocated: %lu MB",ptin_mgmd_memory_allocation/1024/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Memory Allocated: %lu MB", vmrss_kb/1024);
 }
 
 
@@ -445,7 +453,7 @@ void ptin_mgmd_process_memory_report(void)
     line = strtok(NULL, "\n");
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Process Memory Allocated: %lu MB", vmrss_kb/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Currently Allocated Memory : %lu MB", vmrss_kb/1024);
 }
 
 /*********************************************************************
