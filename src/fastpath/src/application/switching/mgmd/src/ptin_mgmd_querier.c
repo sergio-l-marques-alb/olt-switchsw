@@ -714,7 +714,7 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
   ptinMgmdQuerierInfoData_t     *entry;
   ptinMgmdQuerierInfoDataKey_t  key;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t ctrlData;
-  mgmd_cb_t                     *pMgmdCB;
+  ptin_mgmd_cb_t               *pMgmdCB;
   ptin_IgmpProxyCfg_t           igmpCfg;
 
   /* Parse CTRL data */

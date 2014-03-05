@@ -81,7 +81,7 @@ RC_t ptin_mgmd_proxycmtimer_init(snoopPTinCMtimer_t* pTimer)
 }
 
 
-RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId, mgmd_cb_t* pMgmdCB, ptin_IgmpProxyCfg_t *igmpCfg)
+RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId, ptin_mgmd_cb_t* pMgmdCB, ptin_IgmpProxyCfg_t *igmpCfg)
 {
   RC_t                ret = SUCCESS;  
 

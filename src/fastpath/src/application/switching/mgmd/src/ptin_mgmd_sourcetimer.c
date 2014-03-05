@@ -157,7 +157,7 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
 
   mgmdGroupRecord_t         *groupPtr;
   mgmdProxyInterface_t      *proxyInterfacePtr;
-  mgmd_cb_t                 *pMmgmdCB;
+  ptin_mgmd_cb_t            *pMmgmdCB;
   BOOL                       newEntry;
   RC_t                       rc;
 

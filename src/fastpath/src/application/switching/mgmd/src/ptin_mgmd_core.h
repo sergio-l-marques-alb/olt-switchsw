@@ -469,7 +469,7 @@ typedef struct snoop_eb_s
   mgmdProxyInterface_t              *interfacePtr;
   mgmdGroupRecord_t                 *groupRecordPtr;
   uint16                             noOfGroupRecordsToBeSent;  
-} mgmd_eb_t; 
+} ptin_mgmd_eb_t; 
 
 /* Mgmd Control block */
 typedef struct ptinMgmd_cb_s
@@ -485,7 +485,7 @@ typedef struct ptinMgmd_cb_s
   ptinMgmdQuerierInfoData_t *mgmdPTinQuerierDataHeap; 
 
   snoopPTinCMtimer_t        proxyCM[PTIN_MGMD_MAX_SERVICE_ID]; //proxy compatibility-mode (per service)
-}mgmd_cb_t;
+}ptin_mgmd_cb_t;
 
 #ifdef PTIN_MGMD_MLD_SUPPORT
 typedef struct ipv6pkt_s
@@ -512,8 +512,8 @@ typedef struct mgmdIpv6PseudoHdr_s
 /* Place holder for the snooped IGMP/MLD MCAST Control Packet */
 typedef struct mgmdSnoopControlPkt_s
 {
-  mgmd_cb_t              *cbHandle;
-  mgmd_eb_t              *ebHandle;
+  ptin_mgmd_cb_t         *cbHandle;
+  ptin_mgmd_eb_t         *ebHandle;
   uint32                  portId;                   
   uint32                  serviceId;
   uchar8                  family;                   
@@ -529,6 +529,8 @@ typedef struct mgmdSnoopControlPkt_s
   uchar8                 *ipPayload;//IGMP/MLD
   uint32                  ipPayloadLength;//IGMP/MLD
 } ptinMgmdControlPkt_t; 
+
+void ptin_mgmd_core_memory_allocation(void);
 
 RC_t ptin_mgmd_packet_process(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId);
 RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket);

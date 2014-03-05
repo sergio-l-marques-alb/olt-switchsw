@@ -897,7 +897,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
   ptinMgmdGroupInfoData_t *groupEntry;
   ptinMgmdSource_t   *sourcePtr;
   ptin_mgmd_inet_addr_t       groupAddr;
-  mgmd_cb_t             *pMgmdCB = PTIN_NULLPTR; 
+  ptin_mgmd_cb_t             *pMgmdCB = PTIN_NULLPTR; 
 
   memset(&groupAddr, 0x00, sizeof(ptin_mgmd_inet_addr_t));
   groupAddr.family=PTIN_MGMD_AF_INET;
@@ -1190,7 +1190,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
   BOOL                      firstGroupAdded = FALSE;
   uint32                    sourceId,groupIdx = 0, noOfRecords = 0;
   uint8                     recordType;
-  mgmd_eb_t               *pSnoopEB=PTIN_NULLPTR; 
+  ptin_mgmd_eb_t           *pSnoopEB=PTIN_NULLPTR; 
 
   /* Argument validation */
   if (interfacePtr ==PTIN_NULLPTR || noOfRecordsPtr == PTIN_NULLPTR )
@@ -1303,7 +1303,7 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
   mgmdGroupRecord_t        *groupPtr;                             
   uint32                    noOfRecords = 0;  
   mgmdProxyInterface_t*     interfacePtr;
-  mgmd_eb_t               *pSnoopEB; 
+  ptin_mgmd_eb_t           *pSnoopEB; 
   
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
@@ -1361,7 +1361,7 @@ void ptinMgmdDumpGeneralQuery(void)
 {
   ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
   ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
-  mgmd_cb_t                     *pMgmdCB;
+  ptin_mgmd_cb_t                *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
@@ -1399,7 +1399,7 @@ void ptinMgmdDumpL3AvlTree(void)
 {
   ptinMgmdGroupInfoData_t     *avlTreeEntry;  
   ptinMgmdGroupInfoDataKey_t   avlTreeKey;
-  mgmd_eb_t                 *pSnoopEB;
+  ptin_mgmd_eb_t              *pSnoopEB;
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
@@ -1428,9 +1428,9 @@ void ptinMgmdDumpL3AvlTree(void)
  *************************************************************************/
 void ptinMgmdCleanAllGroupAvlTree(void)
 {
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t              *pSnoopEB;
   ptinMgmdGroupInfoData_t     *avlTreeEntry;  
-  ptinMgmdGroupInfoDataKey_t  avlTreeKey;
+  ptinMgmdGroupInfoDataKey_t   avlTreeKey;
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
@@ -1465,8 +1465,8 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
   mgmdGroupRecord_t     *avlTreeEntry;  
   mgmdGroupRecordKey_t  avlTreeKey;
 
-  mgmd_eb_t                *pSnoopEB;
-  char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]={};
+  ptin_mgmd_eb_t                *pSnoopEB;
+  char                           debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]={};
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
@@ -1500,7 +1500,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
  *************************************************************************/
 void ptinMgmdCleanAllGroupRecordAvlTree(void)
 {
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t        *pSnoopEB;
 
   mgmdGroupRecord_t     *avlTreeEntry;  
   mgmdGroupRecordKey_t  avlTreeKey;  
@@ -1534,7 +1534,7 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
   mgmdGroupRecord_t     *avlTreeEntry;  
   mgmdGroupRecordKey_t  avlTreeKey;  
 
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
@@ -1868,11 +1868,11 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 {
   mgmdProxyInterface_t               *proxy_interface;
   char                               debugBuf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
-  mgmd_eb_t                          *pSnoopEB;
-  mgmd_cb_t                          *pSnoopCB;
-  ptinMgmdGroupInfoData_t              *avlTreeEntry;  
-  ptinMgmdGroupInfoDataKey_t           avlTreeKey;
-  groupSourceSpecificQueriesAvl_t    *queriesAvlTreeEntry;
+  ptin_mgmd_eb_t                    *pSnoopEB;
+  ptin_mgmd_cb_t                    *pSnoopCB;
+  ptinMgmdGroupInfoData_t           *avlTreeEntry;  
+  ptinMgmdGroupInfoDataKey_t         avlTreeKey;
+  groupSourceSpecificQueriesAvl_t   *queriesAvlTreeEntry;
   groupSourceSpecificQueriesAvlKey_t queriesAvlTreeKey;
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Starting to remove service %u", serviceId);

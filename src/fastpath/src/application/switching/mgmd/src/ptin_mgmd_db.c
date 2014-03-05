@@ -281,7 +281,7 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
     
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};  
-  mgmd_eb_t                *pMgmdEB;  
+  ptin_mgmd_eb_t            *pMgmdEB;  
   ptinMgmdSource_t         *auxSource;
    
   /* Argument validation */
@@ -419,7 +419,7 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
   char                        debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]      = {0};  
   ptin_mgmd_externalapi_t     externalApi;
   PTIN_FIFO_t                 fifoClientPtr;
-  mgmd_eb_t                  *pMgmdEB;
+  ptin_mgmd_eb_t             *pMgmdEB;
   
   /* Argument validation */
   if (groupEntry == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORTS)
@@ -1174,7 +1174,7 @@ RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTreeEnt
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]            = {0},
                            debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]           = {0};   
@@ -1372,7 +1372,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupI
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]       = {0};  
@@ -1744,7 +1744,7 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupI
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportAllowProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {};  
@@ -2887,7 +2887,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
   ptinMgmdGroupInfoDataKey_t avlTreeKey;
 
 //char                debug_buf[IPV6_DISP_ADDR_LEN]={};
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t     *pSnoopEB;
 
   /* Argument validation */
   if (activeGroups == PTIN_NULLPTR)
@@ -2943,7 +2943,7 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
   PTIN_MGMD_PORT_MASK_t     portList;
   uint16                    portId;
   ptin_mgmd_externalapi_t   externalApi;
-  mgmd_eb_t                *pMgmdEB; 
+  ptin_mgmd_eb_t           *pMgmdEB; 
   ptin_IgmpProxyCfg_t       igmpCfg;
  
   /* Argument validation */
@@ -3069,7 +3069,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
   uint16                         portId;
   ptin_mgmd_externalapi_t        externalApi;
   ptin_IgmpProxyCfg_t            igmpCfg;
-  mgmd_eb_t                     *pMgmdEB; 
+  ptin_mgmd_eb_t                *pMgmdEB; 
   RC_t                           rc            = SUCCESS;
     
 
@@ -3154,7 +3154,7 @@ ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_ad
 {
   ptinMgmdGroupInfoData_t    *snoopEntry;
   ptinMgmdGroupInfoDataKey_t key;
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t            *pSnoopEB;
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3202,7 +3202,7 @@ RC_t ptinMgmdL3EntryAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
 {
   ptinMgmdGroupInfoData_t snoopEntry;
   ptinMgmdGroupInfoData_t *pData;
-  mgmd_eb_t            *pSnoopEB;
+  ptin_mgmd_eb_t          *pSnoopEB;
 
   pSnoopEB = mgmdEBGet();
 
@@ -3251,8 +3251,8 @@ RC_t ptinMgmdL3EntryDelete(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
 {
   ptinMgmdGroupInfoData_t *pData;
   ptinMgmdGroupInfoData_t *snoopEntry;
-  mgmd_eb_t            *pSnoopEB;
-  char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
+  ptin_mgmd_eb_t          *pSnoopEB;
+  char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3315,7 +3315,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t *groupPt
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
 
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
   /* Argument validation */
   if (groupPtr == PTIN_NULLPTR || sourceAddr == PTIN_NULLPTR)
@@ -3378,7 +3378,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryAdd(mgmdGroupRecord_t* groupPtr
   uint32 ivlLength = 0, freeIdx;
   L7_FDB_TYPE_t fdbType;
 #endif
-  mgmd_eb_t             *pSnoopEB;
+  ptin_mgmd_eb_t             *pSnoopEB;
 
   /* Argument validation */
   if (groupPtr == PTIN_NULLPTR || sourceAddr == PTIN_NULLPTR || newEntry == PTIN_NULLPTR)
@@ -3441,7 +3441,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryDelete(mgmdGroupRecord_t *group
 {
   snoopPTinSourceRecord_t *pData;
   snoopPTinSourceRecord_t *snoopEntry;
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t          *pSnoopEB;
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0},
                            debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};
 
@@ -3505,7 +3505,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_
   mgmdGroupRecordKey_t key;
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
 
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t               *pSnoopEB;
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3561,7 +3561,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryAdd(mgmdProxyInterface_t* interfacePtr
   mgmdGroupRecord_t *pData;
   char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};
 
-  mgmd_eb_t            *pSnoopEB;
+  ptin_mgmd_eb_t            *pSnoopEB;
 
   /*Arguments Validation*/
   if (interfacePtr == PTIN_NULLPTR || groupAddr == PTIN_NULLPTR || newEntry == PTIN_NULLPTR)
@@ -3627,8 +3627,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
 {
   mgmdGroupRecord_t *pData;
   mgmdGroupRecord_t *snoopEntry;
-  mgmd_eb_t            *pSnoopEB;
-  char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
+  ptin_mgmd_eb_t    *pSnoopEB;
+  char               debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
 
 
   /*Arguments Validation*/
@@ -3690,7 +3690,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 f
 {
   mgmdProxyInterface_t    *pData;
   snoopPTinProxyInterfaceKey_t key;
-  mgmd_eb_t                   *pSnoopEB;
+  ptin_mgmd_eb_t              *pSnoopEB;
 
   memset((void*)&key, 0x00, sizeof(snoopPTinProxyInterfaceKey_t));
 
@@ -3734,7 +3734,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL *new
   mgmdProxyInterface_t snoopEntry;
   mgmdProxyInterface_t *pData;
 
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
 
   /*Arguments Validation*/
@@ -3788,7 +3788,7 @@ RC_t ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId)
 {
   mgmdProxyInterface_t *pData;
   mgmdProxyInterface_t *snoopEntry;
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t       *pSnoopEB;
 
   pSnoopEB = mgmdEBGet();
   pData = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
@@ -3838,7 +3838,7 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 famil
   ptinMgmdQuerierInfoData_t    *pMgmdEntry;
   ptinMgmdQuerierInfoDataKey_t key;
 
-  mgmd_cb_t                *pMgmdCB;
+  ptin_mgmd_cb_t                *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(family)) == PTIN_NULLPTR)
   {
@@ -3885,7 +3885,7 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint16 serviceId, uchar8 family
   ptinMgmdQuerierInfoData_t mgmdEntry;
   ptinMgmdQuerierInfoData_t *pMgmdEntry;
 
-  mgmd_cb_t             *pMgmdCB;
+  ptin_mgmd_cb_t             *pMgmdCB;
 
   /*Arguments Validation*/
   if (newEntry == PTIN_NULLPTR)
@@ -3943,7 +3943,7 @@ RC_t ptinMgmdQueryEntryDelete(uint16 serviceId, uchar8 family)
 {
   ptinMgmdQuerierInfoData_t *pMgmdEntry;
   ptinMgmdQuerierInfoData_t *pMgmdEntryAux;
-  mgmd_cb_t             *pMgmdCB;
+  ptin_mgmd_cb_t            *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(family)) == PTIN_NULLPTR)
   {
@@ -3996,9 +3996,9 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 {
   ptinMgmdGroupInfoDataKey_t   avlTreeKey       = {{0}};
   ptinMgmdGroupInfoData_t     *groupEntry;
-  mgmd_eb_t                 *pSnoopEB;
-  uint32                     max_num_channels;
-  char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0};
+  ptin_mgmd_eb_t              *pSnoopEB;
+  uint32                       max_num_channels;
+  char                         debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0};
   BOOL                       channelAdded     = FALSE;
   ptinMgmdSource_t       *sourcePtr;
 
