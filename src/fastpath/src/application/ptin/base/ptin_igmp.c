@@ -35,6 +35,8 @@
 /* Comment the follwing line, if you don't want to use client timers */
 #define CLIENT_TIMERS_SUPPORTED
 
+#define PTIN_MGMD_MC_SERVICE_ID_IN_USE 
+
 /******************************* 
  * Debug procedures
  *******************************/
@@ -1449,6 +1451,15 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
   igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
   #endif
+
+#ifdef PTIN_MGMD_MC_SERVICE_ID_IN_USE//This is only applicable when MGMD is configured to used the Multicast Service Id
+  /* If we are removing the service, force a clear of all it's records on MGMD as well */
+  if ((ptin_igmp_mgmd_service_remove(McastEvcId)!=L7_SUCCESS))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Unable to remove service from MGMD",McastEvcId);
+    return L7_FAILURE;
+  }
+#endif
 
   return L7_SUCCESS;
 }
@@ -6562,12 +6573,14 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
   #endif
   #endif
 
+#ifndef PTIN_MGMD_MC_SERVICE_ID_IN_USE//This is only applicable when MGMD is configured to used the Unicast Service Id
   /* If we are removing the service, force a clear of all it's records on MGMD as well */
   if ((L7_FALSE == enable) && (ptin_igmp_mgmd_service_remove(evc_idx)!=L7_SUCCESS))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Unable to remove service from MGMD",evc_idx);
     return L7_FAILURE;
   }
+#endif
   return L7_SUCCESS;
 }
 
@@ -8223,6 +8236,8 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 
+  //Save the unicast EVC Id on which this Query was configured.
+  // This is required for the Group Specific Queries
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   if(ctrlResMsg.res==L7_SUCCESS)
   {
@@ -8249,6 +8264,8 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
     }
   }
   #endif
+  //End Save
+
   return ctrlResMsg.res;
 }
 
