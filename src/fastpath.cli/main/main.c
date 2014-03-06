@@ -4869,7 +4869,7 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to element
-          ptr = &(((msg_DHCPv4v6_bind_table_t *) resposta.info)[i]);
+          ptr = &(((msg_DHCPv4v6_bind_table_t *) resposta.info)[0]);
 
           printf(" Reading page %u of DHCP Binding table (slot=%u):\r\n",ptr->page,ptr->SlotId);
 

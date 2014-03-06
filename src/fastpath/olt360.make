@@ -7,17 +7,11 @@
 #                                              #
 ################################################
 
-.PHONY: help h all install clean cleanall image kernel_cxp360g kernel_tolt8g cxp360g tolt8g cli shell clean_cxp360g clean_tolt8g clean_cli clean_shell cleanall_cxp360g cleanall_tolt8g cleanall_cli cleanall_shell install_cxp360g install_tolt8g install_cli install_shell
+.PHONY: help h all install clean cleanall image kernel_cxp360g kernel_tolt8g cxp360g tolt8g clean_cxp360g clean_tolt8g cleanall_cxp360g cleanall_tolt8g install_cxp360g install_tolt8g
 
 SVN_REV := $(shell svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//')
 
 version = "test"
-
-FP_CLI_DIR	= ../fastpath.cli
-FP_CLI_BIN	= fastpath.cli
-
-FP_SHELL_DIR	= ../fastpath.shell
-FP_SHELL_BIN	= fastpath.shell
 
 IMAGE_DIR       = ../../builds
 
@@ -30,26 +24,18 @@ help h:
 	@echo " make all                "
 	@echo " make cxp360g            "
 	@echo " make tolt8g             "
-	@echo " make cli                "
-	@echo " make shell              "
 	@echo ""
 	@echo " make clean              "
 	@echo " make clean_cxp360g      "
 	@echo " make clean_tolt8g       "
-	@echo " make clean_cli          "
-	@echo " make clean_shell        "
 	@echo ""
 	@echo " make cleanall           "
 	@echo " make cleanall_cxp360g   "
 	@echo " make cleanall_tolt8g    "
-	@echo " make cleanall_cli       "
-	@echo " make cleanall_shell     "
 	@echo ""
 	@echo " make install            "
 	@echo " make install_cxp360g    "
 	@echo " make install_tolt8g     "
-	@echo " make install_cli        "
-	@echo " make install_shell      "
 	@echo ""
 	@echo " make image              "
 	@echo ""
@@ -60,7 +46,7 @@ kernel_cxp360g:
 kernel_tolt8g:
 	@$(MAKE) -f tolt8g.make kernel
 
-all:	cxp360g tolt8g cli shell
+all:	cxp360g tolt8g
 
 cxp360g:
 	@$(MAKE) -f cxp360g.make
@@ -68,23 +54,11 @@ cxp360g:
 tolt8g:
 	@$(MAKE) -f tolt8g.make
 
-cli:
-	@$(MAKE) -C $(FP_CLI_DIR)
-
-shell:
-	@$(MAKE) -C $(FP_SHELL_DIR)
-
 clean_cxp360g:
 	@$(MAKE) -f cxp360g.make clean
 
 clean_tolt8g:
 	@$(MAKE) -f tolt8g.make clean
-
-clean_cli:
-	@$(MAKE) clean -C $(FP_CLI_DIR)
-
-clean_shell:
-	@$(MAKE) clean -C $(FP_SHELL_DIR)
 
 cleanall_cxp360g:
 	@$(MAKE) -f cxp360g.make cleanall
@@ -92,29 +66,17 @@ cleanall_cxp360g:
 cleanall_tolt8g:
 	@$(MAKE) -f tolt8g.make cleanall
 
-cleanall_cli:
-	@$(MAKE) cleanall -C $(FP_CLI_DIR)
-
-cleanall_shell:
-	@$(MAKE) cleanall -C $(FP_SHELL_DIR)
-
 install_cxp360g:
 	@$(MAKE) -f cxp360g.make install
 
 install_tolt8g:
 	@$(MAKE) -f tolt8g.make install
 
-install_cli:
-	@$(MAKE) install -C $(FP_CLI_DIR)
+install:	install_cxp360g install_tolt8g
 
-install_shell:
-	@$(MAKE) install -C $(FP_SHELL_DIR)
+clean:		clean_cxp360g clean_tolt8g
 
-install:	install_cxp360g install_tolt8g install_cli install_shell
-
-clean:		clean_cxp360g clean_tolt8g clean_cli clean_shell
-
-cleanall:	cleanall_cxp360g cleanall_tolt8g cleanall_cli cleanall_shell
+cleanall:	cleanall_cxp360g cleanall_tolt8g
 
 image:		install
 		cd $(IMAGE_DIR) && ./fastpath-olt360.build $(version)
