@@ -943,169 +943,175 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
    * IGMP Querier config
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Querier config:");
+  if(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_QUERIER)
+  {
+    /* Querier Robustness */
+    if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV
+        && igmpProxyCfg.querier.robustness != igmpProxy->querier.robustness && igmpProxy->querier.robustness>=PTIN_MIN_ROBUSTNESS_VARIABLE && igmpProxy->querier.robustness<=PTIN_MAX_ROBUSTNESS_VARIABLE)
+    {
+      igmpProxyCfg.querier.robustness = igmpProxy->querier.robustness;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.querier.robustness);
+    }
 
-  /* Querier Robustness */
-  if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV
-      && igmpProxyCfg.querier.robustness != igmpProxy->querier.robustness && igmpProxy->querier.robustness>=PTIN_MIN_ROBUSTNESS_VARIABLE && igmpProxy->querier.robustness<=PTIN_MAX_ROBUSTNESS_VARIABLE)
-  {
-    igmpProxyCfg.querier.robustness = igmpProxy->querier.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.querier.robustness);
-  }
+    /* Query Interval */
+    if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
+        && igmpProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
+    {
+      igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
+    }
 
-  /* Query Interval */
-  if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI
-      && igmpProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
-  {
-    igmpProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", igmpProxyCfg.querier.query_interval);
-  }
+    /* Query Response Interval */
+    if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI
+        && igmpProxyCfg.querier.query_response_interval != igmpProxy->querier.query_response_interval)
+    {
+      igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
+    }
 
-  /* Query Response Interval */
-  if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI
-      && igmpProxyCfg.querier.query_response_interval != igmpProxy->querier.query_response_interval)
-  {
-    igmpProxyCfg.querier.query_response_interval = igmpProxy->querier.query_response_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Query Response Interval:               %u (1/10s)", igmpProxyCfg.querier.query_response_interval);
-  }
-
-  /* Group Membership Interval */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_GMI)
-  {
-    igmpProxyCfg.querier.group_membership_interval = PTIN_IGMP_AUTO_GMI(igmpProxyCfg.querier.robustness,
-                                                                        igmpProxyCfg.querier.query_interval,
-                                                                        igmpProxyCfg.querier.query_response_interval);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Group Membership Interval (AUTO):      %u (s)", igmpProxyCfg.querier.group_membership_interval);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_GMI
-           && igmpProxyCfg.querier.group_membership_interval != igmpProxy->querier.group_membership_interval)
-  {
-    igmpProxyCfg.querier.group_membership_interval = igmpProxy->querier.group_membership_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Group Membership Interval:             %u (s)", igmpProxyCfg.querier.group_membership_interval);
-  }
-
-  /* Other Querier Present Interval */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_OQPI)
-  {
-    igmpProxyCfg.querier.other_querier_present_interval = PTIN_IGMP_AUTO_OQPI(igmpProxyCfg.querier.robustness,
-                                                                              igmpProxyCfg.querier.query_interval,
-                                                                              igmpProxyCfg.querier.query_response_interval);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Other Querier Present Interval (AUTO): %u (s)", igmpProxyCfg.querier.other_querier_present_interval);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_OQPI
-           && igmpProxyCfg.querier.other_querier_present_interval != igmpProxy->querier.other_querier_present_interval)
-  {
-    igmpProxyCfg.querier.other_querier_present_interval = igmpProxy->querier.other_querier_present_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Other Querier Present Interval:        %u (s)", igmpProxyCfg.querier.other_querier_present_interval);
-  }
-
-  /* Startup Query Interval */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQI)
-  {
-    igmpProxyCfg.querier.startup_query_interval = PTIN_IGMP_AUTO_SQI(igmpProxyCfg.querier.query_interval);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval (AUTO):         %u (s)", igmpProxyCfg.querier.startup_query_interval);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQI
-           && igmpProxyCfg.querier.startup_query_interval != igmpProxy->querier.startup_query_interval)
-  {
-    igmpProxyCfg.querier.startup_query_interval = igmpProxy->querier.startup_query_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval:                %u (s)", igmpProxyCfg.querier.startup_query_interval);
-  }
-
-  /* Startup Query Count */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQC)
-  {
-    igmpProxyCfg.querier.startup_query_count = PTIN_IGMP_AUTO_SQC(igmpProxyCfg.querier.robustness);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Count (AUTO):            %u (s)", igmpProxyCfg.querier.startup_query_count);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQC
-           && igmpProxyCfg.querier.startup_query_count != igmpProxy->querier.startup_query_count)
-  {
-    igmpProxyCfg.querier.startup_query_count = igmpProxy->querier.startup_query_count;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Count:                   %u (s)", igmpProxyCfg.querier.startup_query_count);
-  }
-
-  /* Last Member Query Interval */
-  if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQI
-      && igmpProxyCfg.querier.last_member_query_interval != igmpProxy->querier.last_member_query_interval)
-  {
-    igmpProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Interval:            %u (1/10s)", igmpProxyCfg.querier.last_member_query_interval);
-  }
-
-  /* Last Member Query Count */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC)
-  {
-    igmpProxyCfg.querier.last_member_query_count = PTIN_IGMP_AUTO_LMQC(igmpProxyCfg.querier.robustness);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Count (AUTO):        %u (s)", igmpProxyCfg.querier.last_member_query_count);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC
-           && igmpProxyCfg.querier.last_member_query_count != igmpProxy->querier.last_member_query_count)
-  {
-    igmpProxyCfg.querier.last_member_query_count = igmpProxy->querier.last_member_query_count;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Count:               %u (s)", igmpProxyCfg.querier.last_member_query_count);
-  }
-
-  /* Older Host Present Timeout */
-  if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC)
-  {
-    igmpProxyCfg.querier.older_host_present_timeout = PTIN_IGMP_AUTO_OHPT(igmpProxyCfg.querier.robustness,
+    /* Group Membership Interval */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_GMI)
+    {
+      igmpProxyCfg.querier.group_membership_interval = PTIN_IGMP_AUTO_GMI(igmpProxyCfg.querier.robustness,
                                                                           igmpProxyCfg.querier.query_interval,
                                                                           igmpProxyCfg.querier.query_response_interval);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Host Present Timeout (AUTO):     %u (s)", igmpProxyCfg.querier.older_host_present_timeout);
-  }
-  else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC
-           && igmpProxyCfg.querier.older_host_present_timeout != igmpProxy->querier.older_host_present_timeout)
-  {
-    igmpProxyCfg.querier.older_host_present_timeout = igmpProxy->querier.older_host_present_timeout;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Host Present Timeout:            %u (s)", igmpProxyCfg.querier.older_host_present_timeout);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Group Membership Interval (AUTO):      %u (s)", igmpProxyCfg.querier.group_membership_interval);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_GMI
+             && igmpProxyCfg.querier.group_membership_interval != igmpProxy->querier.group_membership_interval)
+    {
+      igmpProxyCfg.querier.group_membership_interval = igmpProxy->querier.group_membership_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Group Membership Interval:             %u (s)", igmpProxyCfg.querier.group_membership_interval);
+    }
+
+    /* Other Querier Present Interval */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_OQPI)
+    {
+      igmpProxyCfg.querier.other_querier_present_interval = PTIN_IGMP_AUTO_OQPI(igmpProxyCfg.querier.robustness,
+                                                                                igmpProxyCfg.querier.query_interval,
+                                                                                igmpProxyCfg.querier.query_response_interval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Other Querier Present Interval (AUTO): %u (s)", igmpProxyCfg.querier.other_querier_present_interval);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_OQPI
+             && igmpProxyCfg.querier.other_querier_present_interval != igmpProxy->querier.other_querier_present_interval)
+    {
+      igmpProxyCfg.querier.other_querier_present_interval = igmpProxy->querier.other_querier_present_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Other Querier Present Interval:        %u (s)", igmpProxyCfg.querier.other_querier_present_interval);
+    }
+
+    /* Startup Query Interval */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQI)
+    {
+      igmpProxyCfg.querier.startup_query_interval = PTIN_IGMP_AUTO_SQI(igmpProxyCfg.querier.query_interval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval (AUTO):         %u (s)", igmpProxyCfg.querier.startup_query_interval);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQI
+             && igmpProxyCfg.querier.startup_query_interval != igmpProxy->querier.startup_query_interval)
+    {
+      igmpProxyCfg.querier.startup_query_interval = igmpProxy->querier.startup_query_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval:                %u (s)", igmpProxyCfg.querier.startup_query_interval);
+    }
+
+    /* Startup Query Count */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQC)
+    {
+      igmpProxyCfg.querier.startup_query_count = PTIN_IGMP_AUTO_SQC(igmpProxyCfg.querier.robustness);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Count (AUTO):            %u (s)", igmpProxyCfg.querier.startup_query_count);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQC
+             && igmpProxyCfg.querier.startup_query_count != igmpProxy->querier.startup_query_count)
+    {
+      igmpProxyCfg.querier.startup_query_count = igmpProxy->querier.startup_query_count;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Count:                   %u (s)", igmpProxyCfg.querier.startup_query_count);
+    }
+
+    /* Last Member Query Interval */
+    if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQI
+        && igmpProxyCfg.querier.last_member_query_interval != igmpProxy->querier.last_member_query_interval)
+    {
+      igmpProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Interval:            %u (1/10s)", igmpProxyCfg.querier.last_member_query_interval);
+    }
+
+    /* Last Member Query Count */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC)
+    {
+      igmpProxyCfg.querier.last_member_query_count = PTIN_IGMP_AUTO_LMQC(igmpProxyCfg.querier.robustness);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Count (AUTO):        %u (s)", igmpProxyCfg.querier.last_member_query_count);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC
+             && igmpProxyCfg.querier.last_member_query_count != igmpProxy->querier.last_member_query_count)
+    {
+      igmpProxyCfg.querier.last_member_query_count = igmpProxy->querier.last_member_query_count;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Last Member Query Count:               %u (s)", igmpProxyCfg.querier.last_member_query_count);
+    }
+
+    /* Older Host Present Timeout */
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC)
+    {
+      igmpProxyCfg.querier.older_host_present_timeout = PTIN_IGMP_AUTO_OHPT(igmpProxyCfg.querier.robustness,
+                                                                            igmpProxyCfg.querier.query_interval,
+                                                                            igmpProxyCfg.querier.query_response_interval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Host Present Timeout (AUTO):     %u (s)", igmpProxyCfg.querier.older_host_present_timeout);
+    }
+    else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC
+             && igmpProxyCfg.querier.older_host_present_timeout != igmpProxy->querier.older_host_present_timeout)
+    {
+      igmpProxyCfg.querier.older_host_present_timeout = igmpProxy->querier.older_host_present_timeout;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Host Present Timeout:            %u (s)", igmpProxyCfg.querier.older_host_present_timeout);
+    }
+
+    /* Update AUTO flags */
+    igmpProxyCfg.querier.flags = igmpProxy->querier.flags;
   }
 
   /* *******************
    * IGMP Host config
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Host config:");
-
-  /* Host Robustness */
-  if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
-      && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
+  if(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_QUERIER)
   {
-    igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
-  }
+    /* Host Robustness */
+    if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
+        && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
+    {
+      igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+    }
 
-  /* Unsolicited Report Interval */
-  if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_URI
-      && igmpProxyCfg.host.unsolicited_report_interval != igmpProxy->host.unsolicited_report_interval)
-  {
-    igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
-  }
+    /* Unsolicited Report Interval */
+    if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_URI
+        && igmpProxyCfg.host.unsolicited_report_interval != igmpProxy->host.unsolicited_report_interval)
+    {
+      igmpProxyCfg.host.unsolicited_report_interval = igmpProxy->host.unsolicited_report_interval;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Unsolicited Report Interval:           %u (s)", igmpProxyCfg.host.unsolicited_report_interval);
+    }
 
-  /* Older Querier Present Timeout */
-  if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_OQPT)
-  {
-    igmpProxyCfg.host.older_querier_present_timeout = PTIN_IGMP_AUTO_OQPT(igmpProxyCfg.host.robustness,
-                                                                          igmpProxyCfg.querier.query_interval,
-                                                                          igmpProxyCfg.querier.query_response_interval);
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Querier Present Timeout (AUTO):  %u (s)", igmpProxyCfg.host.older_querier_present_timeout);
-  }
-  else if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_OQPT
-           && igmpProxyCfg.host.older_querier_present_timeout != igmpProxy->host.older_querier_present_timeout)
-  {
-    igmpProxyCfg.host.older_querier_present_timeout = igmpProxy->host.older_querier_present_timeout;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Querier Present Timeout:         %u (s)", igmpProxyCfg.host.older_querier_present_timeout);
-  }
+    /* Older Querier Present Timeout */
+    if (igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_OQPT)
+    {
+      igmpProxyCfg.host.older_querier_present_timeout = PTIN_IGMP_AUTO_OQPT(igmpProxyCfg.host.robustness,
+                                                                            igmpProxyCfg.querier.query_interval,
+                                                                            igmpProxyCfg.querier.query_response_interval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Querier Present Timeout (AUTO):  %u (s)", igmpProxyCfg.host.older_querier_present_timeout);
+    }
+    else if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_OQPT
+             && igmpProxyCfg.host.older_querier_present_timeout != igmpProxy->host.older_querier_present_timeout)
+    {
+      igmpProxyCfg.host.older_querier_present_timeout = igmpProxy->host.older_querier_present_timeout;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Older Querier Present Timeout:         %u (s)", igmpProxyCfg.host.older_querier_present_timeout);
+    }
 
-  /* Max Records per Report */
-  if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_MRPR && igmpProxyCfg.host.max_records_per_report != igmpProxy->host.max_records_per_report )
-  {
-    igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
-  }
+    /* Max Records per Report */
+    if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_MRPR && igmpProxyCfg.host.max_records_per_report != igmpProxy->host.max_records_per_report )
+    {
+      igmpProxyCfg.host.max_records_per_report = igmpProxy->host.max_records_per_report;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Max Records per Report:                %u (s)", igmpProxyCfg.host.max_records_per_report);
+    }
 
-  /* Update AUTO flags */
-  igmpProxyCfg.querier.flags = igmpProxy->querier.flags;
-  igmpProxyCfg.host.flags    = igmpProxy->host.flags;
+    /* Update AUTO flags */
+    igmpProxyCfg.host.flags    = igmpProxy->host.flags;
+  }
 
   /* Finally, (de)activate IGMP module */
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_ADMIN
@@ -6170,7 +6176,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
       }      
 
       /* Add node into avl tree */
-      if (igmp_assoc_avlTree_remove( &avl_key ) != L7_SUCCESS)
+      if ( (rc == L7_SUCCESS) && (igmp_assoc_avlTree_remove( &avl_key ) != L7_SUCCESS))
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
                 group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_uc);
@@ -6214,7 +6220,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
  }
 #endif
 
-  return rc;
+  return L7_SUCCESS;
 }
 
 /**

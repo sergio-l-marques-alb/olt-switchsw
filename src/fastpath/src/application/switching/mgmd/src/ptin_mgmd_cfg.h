@@ -52,22 +52,20 @@
 #define PTIN_IGMP_DEFAULT_FASTLEAVEMODE                 1
 
 /* Default config values (based on RFC3376) */
+#define PTIN_IGMP_DEFAULT_ROBUSTNESS 2
 #define PTIN_MAX_ROBUSTNESS_VARIABLE 7 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 #define PTIN_MIN_ROBUSTNESS_VARIABLE 1 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
-#define PTIN_IGMP_DEFAULT_ROBUSTNESS 2
 
 
 #define PTIN_IGMP_COS_MIN                               1
 #define PTIN_IGMP_COS_MAX                               7
 
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
-
 #define PTIN_IGMP_MIN_QUERYINTERVAL                     10 /* (s) */
-#define PTIN_IGMPv2_MAX_QUERYINTERVAL                   31744 /* (s) */
-#define PTIN_IGMPv3_MAX_QUERYINTERVAL                   31744 /* (s) */
+#define PTIN_IGMPv2_MAX_QUERYINTERVAL                   3175 /* (s) */
+#define PTIN_IGMPv3_MAX_QUERYINTERVAL                   3175 /* (s) */
 
 #define PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL         100 /* (1/10s - 10s) (ds)*/
-
 #define PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL             10 /* (ds) */
 #define PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL           255 /* (ds) */
 #define PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL           31744 /* (ds) */
@@ -90,10 +88,8 @@
 #define PTIN_IGMP_DEFAULT_LASTMEMBERQUERYCOUNT          PTIN_IGMP_AUTO_LMQC(PTIN_IGMP_DEFAULT_ROBUSTNESS)
 
 #define PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL     1   /* (1s for IGMPv3, 10s for IGMPv2) */
-
-#define PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL         0.5 /*(s)*/
-
-#define PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL         5 /*(s)*/
+#define PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL         1 /*(s)*/
+#define PTIN_IGMP_MAX_UNSOLICITEDREPORTINTERVAL         10 /*(s)*/
 
 
 
@@ -108,7 +104,7 @@
 
 #define PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT              64
 
-#define PTIN_IGMP_MAX_RECORDS_PER_REPORT                      128
+#define PTIN_IGMP_MAX_RECORDS_PER_REPORT                      64
 
 #define PTIN_IGMP_MIN_RECORDS_PER_REPORT                      1
 
@@ -116,16 +112,17 @@
 
 
 /* Querier's config structure */
-#define PTIN_IGMP_QUERIER_MASK_RV         0x0001
-#define PTIN_IGMP_QUERIER_MASK_QI         0x0002
-#define PTIN_IGMP_QUERIER_MASK_QRI        0x0004
-#define PTIN_IGMP_QUERIER_MASK_GMI        0x0008
-#define PTIN_IGMP_QUERIER_MASK_OQPI       0x0010
-#define PTIN_IGMP_QUERIER_MASK_SQI        0x0020
-#define PTIN_IGMP_QUERIER_MASK_SQC        0x0040
-#define PTIN_IGMP_QUERIER_MASK_LMQI       0x0080
-#define PTIN_IGMP_QUERIER_MASK_LMQC       0x0100
-#define PTIN_IGMP_QUERIER_MASK_OHPT       0x0200
+#define PTIN_IGMP_QUERIER_MASK_FLAGS      0x0001
+#define PTIN_IGMP_QUERIER_MASK_RV         0x0002
+#define PTIN_IGMP_QUERIER_MASK_QI         0x0004
+#define PTIN_IGMP_QUERIER_MASK_QRI        0x0008
+#define PTIN_IGMP_QUERIER_MASK_GMI        0x0010
+#define PTIN_IGMP_QUERIER_MASK_OQPI       0x0020
+#define PTIN_IGMP_QUERIER_MASK_SQI        0x0040
+#define PTIN_IGMP_QUERIER_MASK_SQC        0x0080
+#define PTIN_IGMP_QUERIER_MASK_LMQI       0x0100
+#define PTIN_IGMP_QUERIER_MASK_LMQC       0x0200
+#define PTIN_IGMP_QUERIER_MASK_OHPT       0x0400
 
 #define PTIN_IGMP_QUERIER_MASK_AUTO_GMI   0x0001
 #define PTIN_IGMP_QUERIER_MASK_AUTO_OQPI  0x0002
@@ -155,11 +152,12 @@ typedef struct {
 } ptin_IgmpV3QuerierCfg_t;
 
 /* Host's config structure */
-#define PTIN_IGMP_HOST_MASK_RV            0x0001
-#define PTIN_IGMP_HOST_MASK_URI           0x0002
-#define PTIN_IGMP_HOST_MASK_OQPT          0x0004
-#define PTIN_IGMP_HOST_MASK_MRPR          0x0008
-#define PTIN_IGMP_HOST_MASK_RTR_ALERT     0x0010
+#define PTIN_IGMP_HOST_MASK_FLAGS         0x0001
+#define PTIN_IGMP_HOST_MASK_RV            0x0002
+#define PTIN_IGMP_HOST_MASK_URI           0x0004
+#define PTIN_IGMP_HOST_MASK_OQPT          0x0008
+#define PTIN_IGMP_HOST_MASK_MRPR          0x0010
+#define PTIN_IGMP_HOST_MASK_RTR_ALERT     0x0020
 
 #define PTIN_IGMP_HOST_MASK_AUTO_OQPT     0x0001
 
