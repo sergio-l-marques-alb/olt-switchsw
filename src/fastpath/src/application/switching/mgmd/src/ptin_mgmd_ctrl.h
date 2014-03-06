@@ -47,24 +47,22 @@
 #define PTIN_MGMD_CONFIG_H_FLAGS_AUTO_OQPT_MASK 0x0001
 
 // Structure querier Fields MASKs
-#define PTIN_MGMD_CONFIG_QUERIER_FLAGS_MASK     ((MGMD_BASE_MASK)<<0 )  // flags
-#define PTIN_MGMD_CONFIG_QUERIER_RV_MASK        ((MGMD_BASE_MASK)<<1 )  // robustness
-#define PTIN_MGMD_CONFIG_QUERIER_QI_MASK        ((MGMD_BASE_MASK)<<2 )  // queryInterval              
-#define PTIN_MGMD_CONFIG_QUERIER_QRI_MASK       ((MGMD_BASE_MASK)<<3 )  // queryResponseInterval                                                                       
-#define PTIN_MGMD_CONFIG_QUERIER_GMI_MASK       ((MGMD_BASE_MASK)<<4 )  // groupMembershipInterval
-#define PTIN_MGMD_CONFIG_QUERIER_OQPI_MASK      ((MGMD_BASE_MASK)<<5 )  // otherQuerierPresentInterval
-#define PTIN_MGMD_CONFIG_QUERIER_SQI_MASK       ((MGMD_BASE_MASK)<<6 )  // startupQueryInterval  
-#define PTIN_MGMD_CONFIG_QUERIER_SQC_MASK       ((MGMD_BASE_MASK)<<7 )  // startupQueryCount         
-#define PTIN_MGMD_CONFIG_QUERIER_LMQI_MASK      ((MGMD_BASE_MASK)<<8 )  // lastMemberQueryInterval
-#define PTIN_MGMD_CONFIG_QUERIER_LMQC_MASK      ((MGMD_BASE_MASK)<<9 )  // lastMemberQueryCount      
-#define PTIN_MGMD_CONFIG_QUERIER_OHPT_MASK      ((MGMD_BASE_MASK)<<10)  // olderHostPresentTimeout
+#define PTIN_MGMD_CONFIG_QUERIER_RV_MASK        ((MGMD_BASE_MASK)<<0 )  // robustness
+#define PTIN_MGMD_CONFIG_QUERIER_QI_MASK        ((MGMD_BASE_MASK)<<1 )  // queryInterval              
+#define PTIN_MGMD_CONFIG_QUERIER_QRI_MASK       ((MGMD_BASE_MASK)<<2 )  // queryResponseInterval                                                                       
+#define PTIN_MGMD_CONFIG_QUERIER_GMI_MASK       ((MGMD_BASE_MASK)<<3 )  // groupMembershipInterval
+#define PTIN_MGMD_CONFIG_QUERIER_OQPI_MASK      ((MGMD_BASE_MASK)<<4 )  // otherQuerierPresentInterval
+#define PTIN_MGMD_CONFIG_QUERIER_SQI_MASK       ((MGMD_BASE_MASK)<<5 )  // startupQueryInterval  
+#define PTIN_MGMD_CONFIG_QUERIER_SQC_MASK       ((MGMD_BASE_MASK)<<6 )  // startupQueryCount         
+#define PTIN_MGMD_CONFIG_QUERIER_LMQI_MASK      ((MGMD_BASE_MASK)<<7 )  // lastMemberQueryInterval
+#define PTIN_MGMD_CONFIG_QUERIER_LMQC_MASK      ((MGMD_BASE_MASK)<<8 )  // lastMemberQueryCount      
+#define PTIN_MGMD_CONFIG_QUERIER_OHPT_MASK      ((MGMD_BASE_MASK)<<9 )  // olderHostPresentTimeout
 
 // Structure host Fields MASKs
-#define PTIN_MGMD_CONFIG_HOST_FLAGS_MASK        ((MGMD_BASE_MASK)<<0)   // flags
-#define PTIN_MGMD_CONFIG_HOST_RV_MASK           ((MGMD_BASE_MASK)<<1)   // robustness
-#define PTIN_MGMD_CONFIG_HOST_URI_MASK          ((MGMD_BASE_MASK)<<2)   // unsolicitedReportInterval
-#define PTIN_MGMD_CONFIG_HOST_OQPT_MASK         ((MGMD_BASE_MASK)<<3)   // olderQuerierPresentTimeout
-#define PTIN_MGMD_CONFIG_HOST_MRPR_MASK         ((MGMD_BASE_MASK)<<4)   // maxRecordsPerReport       
+#define PTIN_MGMD_CONFIG_HOST_RV_MASK           ((MGMD_BASE_MASK)<<0)   // robustness
+#define PTIN_MGMD_CONFIG_HOST_URI_MASK          ((MGMD_BASE_MASK)<<1)   // unsolicitedReportInterval
+#define PTIN_MGMD_CONFIG_HOST_OQPT_MASK         ((MGMD_BASE_MASK)<<2)   // olderQuerierPresentTimeout
+#define PTIN_MGMD_CONFIG_HOST_MRPR_MASK         ((MGMD_BASE_MASK)<<3)   // maxRecordsPerReport       
 
 typedef struct
 {
