@@ -28,8 +28,8 @@
  */
 RC_t ptinMgmdWhitelistInit(void)
 {
-  RC_t      res = SUCCESS;
-  mgmd_eb_t *pSnoopEB;
+  RC_t            res = SUCCESS;
+  ptin_mgmd_eb_t *pSnoopEB;
 
   if ((pSnoopEB= mgmdEBGet())== PTIN_NULLPTR)
   {
@@ -152,7 +152,7 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
                            sourceCIDR; //Source Address Classless Inter Domain Routing  
   uint32                   maxGroupAddresses,
                            maxSourceAddresses;
-  mgmd_eb_t               *pSnoopEB; 
+  ptin_mgmd_eb_t          *pSnoopEB; 
   
   // Argument validation
   if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (groupAddr == PTIN_NULLPTR) || (groupMaskLen==0) || (sourceMaskLen!=0 && sourceAddr == PTIN_NULLPTR) )
@@ -257,7 +257,7 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
                            sourceCIDR; //Source Address Classless Inter Domain Routing  
   uint32                   maxGroupAddresses,
                            maxSourceAddresses;
-  mgmd_eb_t               *pSnoopEB; 
+  ptin_mgmd_eb_t          *pSnoopEB; 
   
   // Argument validation
   if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (groupAddr == PTIN_NULLPTR) || (groupMaskLen==0) || (sourceMaskLen!=0 && sourceAddr == PTIN_NULLPTR) )
@@ -330,7 +330,7 @@ mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_ine
 {
   mgmdPTinWhitelistData_t     *entry;
   mgmdPtinWhitelistDataKey_t  key;
-  mgmd_eb_t                   *pSnoopEB; 
+  ptin_mgmd_eb_t             *pSnoopEB; 
 
   // Argument validation
   if ( (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || (groupAddr == PTIN_NULLPTR) || (sourceAddr == PTIN_NULLPTR) )
@@ -378,7 +378,7 @@ void ptinMgmdWhitelistDump(void)
 {
   mgmdPTinWhitelistData_t     *entry;  
   mgmdPtinWhitelistDataKey_t  key;
-  mgmd_eb_t                   *pSnoopEB;
+  ptin_mgmd_eb_t             *pSnoopEB;
   char                        debug_buf1[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
   char                        debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
 
@@ -411,7 +411,7 @@ void ptinMgmdWhitelistDump(void)
  *************************************************************************/
 void ptinMgmdWhitelistClean(void)
 {
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
   {

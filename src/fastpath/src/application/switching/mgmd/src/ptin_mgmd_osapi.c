@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+unsigned long ptin_mgmd_memory_allocation=0; /*Memory Allocation*/
 
 void* ptin_mgmd_malloc(uint32 nbytes)
 {
@@ -22,6 +23,8 @@ void* ptin_mgmd_malloc(uint32 nbytes)
   {
     (void)memset(mem_address, 0, nbytes);
   } 
+
+  ptin_mgmd_memory_allocation+=nbytes;
 
   return(mem_address);
 }

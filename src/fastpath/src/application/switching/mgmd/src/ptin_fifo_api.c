@@ -137,7 +137,7 @@ RC_t ptin_fifo_create(PTIN_FIFO_t* fifoQueue, uint32 numElements)
 
   //Create a new queue
   queue = (FIFO_QUEUE_t*) ptin_mgmd_malloc(sizeof(FIFO_QUEUE_t));
-
+    
   //Initialization
   queue->first_used = PTIN_NULLPTR;
   queue->last_used  = PTIN_NULLPTR;

@@ -30,9 +30,15 @@
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
 
+extern unsigned long     ptin_mgmd_memory_allocation;
+
 static RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy);
 
 
+void ptin_mgmd_cfg_memory_allocation(void)
+{
+  ptin_mgmd_memory_allocation+=sizeof(ptin_mgmd_externalapi);  
+}
 /**
  * Configure the external API.
  * 
@@ -171,7 +177,7 @@ RC_t ptin_mgmd_igmp_proxy_defaultcfg_load(void)
  */
 RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy)
 {
-  mgmd_cb_t *pMgmdCB;
+  ptin_mgmd_cb_t *pMgmdCB;
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Verifying new config to IGMP Proxy...");
 
@@ -198,7 +204,7 @@ RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Class-Of-Service (COS) */
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_COS && mgmdProxyCfg.igmp_cos != igmpProxy->igmp_cos)
   {
-    if( (igmpProxy->igmp_cos >= PTIN_IGMP_COS_MIN) || ( igmpProxy->igmp_cos > PTIN_IGMP_COS_MAX) )
+    if( (igmpProxy->igmp_cos < PTIN_IGMP_COS_MIN) || ( igmpProxy->igmp_cos > PTIN_IGMP_COS_MAX) )
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  Invalid CoS Value:                       %u", mgmdProxyCfg.igmp_cos);
       return FAILURE;
@@ -291,7 +297,7 @@ RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy)
 RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
 {
   ptin_mgmd_externalapi_t  externalApi;
-  mgmd_cb_t               *pMgmdCB;
+  ptin_mgmd_cb_t          *pMgmdCB;
 
   /* Ensure the requested configurations are valid. No other validations are performed later in this method */
   if(SUCCESS != ptin_mgmd_igmp_proxy_config_validate(igmpProxy))

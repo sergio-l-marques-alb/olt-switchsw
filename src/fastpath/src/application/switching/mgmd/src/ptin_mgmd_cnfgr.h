@@ -18,11 +18,12 @@
 
 RC_t       ptinMgmdEBInit(void);
 RC_t       ptinMgmdCBInit(uint32 cbIndex, uchar8 family);
-mgmd_cb_t* mgmdFirsCBGet(void);
-mgmd_cb_t* mgmdCBGet(uchar8 family);
-mgmd_eb_t* mgmdEBGet(void);
+ptin_mgmd_cb_t* mgmdFirsCBGet(void);
+ptin_mgmd_cb_t* mgmdCBGet(uchar8 family);
+ptin_mgmd_eb_t* mgmdEBGet(void);
 uint32     maxMgmdInstancesGet(void);
 
+void ptin_mgmd_cnfgr_memory_allocation(void);
 RC_t ptinMgmdGroupAVLTreeInit(void);
 RC_t ptinMgmdGroupRecordSourceAVLTreeInit(void);
 RC_t ptinMgmdGroupRecordGroupAVLTreeInit(void);
@@ -32,6 +33,8 @@ RC_t snoopPtinProxyAVLTreeInterfacetimerInit(void);
 RC_t snoopPtinProxyAVLTreeGrouptimerInit(void);
 RC_t snoopPtinProxyAVLTreeSourcetimerInit(void);
 
-void ptin_mgmd_memoryReport(void);
+void ptin_mgmd_memory_report(void);
+void ptin_mgmd_memory_log_report(void);
+void ptin_mgmd_process_memory_report(void);
 
 #endif //_PTIN_MGMD_CNFGR_H

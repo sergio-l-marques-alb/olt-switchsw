@@ -293,7 +293,7 @@ typedef struct
 
 } ptin_IGMP_Statistics_t;/*To be replaced with ptin_MGMD_Statistics_t in a short future*/
 
-
+void ptin_mgmd_statistics_memory_allocation(void);
 /**
  * Increment MGMD statistics
  * 

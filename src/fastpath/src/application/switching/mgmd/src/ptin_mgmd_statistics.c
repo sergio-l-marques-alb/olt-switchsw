@@ -23,6 +23,15 @@ ptin_IGMP_Statistics_t mgmd_stat_port[PTIN_MGMD_MAX_PORTS]                      
 ptin_IGMP_Statistics_t mgmd_stat_service[PTIN_MGMD_MAX_SERVICES][PTIN_MGMD_MAX_PORTS] = {{{0}}};
 ptin_IGMP_Statistics_t mgmd_stat_client[PTIN_MGMD_MAX_PORTS][PTIN_MGMD_MAX_CLIENTS]   = {{{0}}};
 
+extern unsigned long     ptin_mgmd_memory_allocation;
+
+
+void ptin_mgmd_statistics_memory_allocation(void)
+{
+  ptin_mgmd_memory_allocation+=sizeof(mgmd_stat_port[PTIN_MGMD_MAX_PORTS]);
+  ptin_mgmd_memory_allocation+=sizeof(mgmd_stat_service[PTIN_MGMD_MAX_SERVICES][PTIN_MGMD_MAX_PORTS]);
+  ptin_mgmd_memory_allocation+=sizeof(mgmd_stat_client[PTIN_MGMD_MAX_PORTS][PTIN_MGMD_MAX_CLIENTS]);
+}
 
 /**
  * Use this static method to find the array idx with the desired service ID

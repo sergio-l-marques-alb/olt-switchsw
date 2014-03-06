@@ -23,7 +23,7 @@
  */
 RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
 {
-  mgmd_eb_t *pSnoopEB;
+  ptin_mgmd_eb_t *pSnoopEB;
   uint32    i;
 
   if ((pSnoopEB= mgmdEBGet())== PTIN_NULLPTR)
@@ -64,7 +64,7 @@ groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFin
 {
   groupSourceSpecificQueriesAvl_t    *entry;
   groupSourceSpecificQueriesAvlKey_t key;
-  mgmd_eb_t                         *pSnoopEB; 
+  ptin_mgmd_eb_t                    *pSnoopEB; 
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -105,7 +105,7 @@ groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd
 {
   groupSourceSpecificQueriesAvl_t entry;
   groupSourceSpecificQueriesAvl_t *pData;
-  mgmd_eb_t                      *pSnoopEB; 
+  ptin_mgmd_eb_t                  *pSnoopEB; 
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -147,7 +147,7 @@ groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd
 RC_t ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
 {
   groupSourceSpecificQueriesAvl_t *pData;
-  mgmd_eb_t                      *pSnoopEB; 
+  ptin_mgmd_eb_t                  *pSnoopEB; 
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)

@@ -36,8 +36,8 @@ static RC_t  __groupsourcespecifictimer_delsource(groupSourceSpecificQueriesAvl_
 
 RC_t __groupsourcespecifictimer_addsource(groupSourceSpecificQueriesAvl_t *avlTree, ptin_mgmd_inet_addr_t* sourceAddr, uint8 retransmissions)
 {
-  mgmd_eb_t *pMgmdEB;  
-  RC_t      res = SUCCESS;
+  ptin_mgmd_eb_t *pMgmdEB;  
+  RC_t            res = SUCCESS;
   groupSourceSpecificQueriesSource_t *new_source;
 
   //Validations
@@ -89,7 +89,7 @@ RC_t __groupsourcespecifictimer_addsource(groupSourceSpecificQueriesAvl_t *avlTr
 
 RC_t __groupsourcespecifictimer_delsource(groupSourceSpecificQueriesAvl_t *avlTree, groupSourceSpecificQueriesSource_t *source)
 {
-  mgmd_eb_t *pMgmdEB;  
+  ptin_mgmd_eb_t *pMgmdEB;  
   RC_t res = SUCCESS;
 
   //Validations

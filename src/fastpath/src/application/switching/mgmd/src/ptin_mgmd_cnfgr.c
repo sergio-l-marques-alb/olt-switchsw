@@ -23,8 +23,15 @@
 #include "memory.h"
 #include "ptin_fifo_api.h"
 
-static mgmd_eb_t    mgmdEB;           /* Snoop execution block holder */
-static mgmd_cb_t *mgmdCB = PTIN_NULLPTR;    /* Mgmd Control blocks holder */
+static ptin_mgmd_eb_t    mgmdEB;           /* Snoop execution block holder */
+static ptin_mgmd_cb_t   *mgmdCB = PTIN_NULLPTR;    /* Mgmd Control blocks holder */
+
+extern unsigned long     ptin_mgmd_memory_allocation;
+
+void ptin_mgmd_cnfgr_memory_allocation(void)
+{
+  ptin_mgmd_memory_allocation+=sizeof(ptin_mgmd_eb_t);  
+}
 
 /*********************************************************************
 * @purpose  MGMD Router Execution block initializations
@@ -41,13 +48,13 @@ static mgmd_cb_t *mgmdCB = PTIN_NULLPTR;    /* Mgmd Control blocks holder */
 *********************************************************************/
 RC_t ptinMgmdGroupAVLTreeInit(void)
 {
-  mgmd_eb_t *pSnoopEB;
-  uint32    i;
+  ptin_mgmd_eb_t *pSnoopEB;
+  uint32          i;
 
   pSnoopEB = &mgmdEB;
 
-  pSnoopEB->ptinMgmdGroupTreeHeap = (ptin_mgmd_avlTreeTables_t *)       ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));
-  pSnoopEB->ptinMgmdGroupDataHeap = (ptinMgmdGroupInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptinMgmdGroupInfoData_t));
+  pSnoopEB->ptinMgmdGroupTreeHeap = (ptin_mgmd_avlTreeTables_t *)       ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));  
+  pSnoopEB->ptinMgmdGroupDataHeap = (ptinMgmdGroupInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptinMgmdGroupInfoData_t));  
 
   if ((pSnoopEB->ptinMgmdGroupTreeHeap == PTIN_NULLPTR) || (pSnoopEB->ptinMgmdGroupDataHeap == PTIN_NULLPTR))
   {
@@ -64,9 +71,9 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
 
   /* Create the FIFO queue for the sources */
   ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
-  for(i=0; i<=((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
+  for(i=0; i<((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
   {
-    ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));
+    ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));    
     
     ptin_fifo_push(pSnoopEB->sourcesQueue, (PTIN_FIFO_ELEMENT_t)new_source);
   }
@@ -76,7 +83,7 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS); ++i) 
   {
     ptinMgmdLeafClient_t *new_element = (ptinMgmdLeafClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdLeafClient_t));   
-
+    
     ptin_fifo_push(pSnoopEB->leafClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
   }
 
@@ -85,10 +92,9 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   for(i=0; i<(1+PTIN_MGMD_MAX_SOURCES); ++i) 
   {
     ptinMgmdRootClient_t *new_element = (ptinMgmdRootClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdRootClient_t));
-   
+       
     ptin_fifo_push(pSnoopEB->rootClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
   }
-
   return SUCCESS;
 }
 
@@ -108,12 +114,12 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
 *********************************************************************/
 RC_t ptinMgmdGroupRecordSourceAVLTreeInit(void)
 {
-  mgmd_eb_t *pSnoopEB;
+  ptin_mgmd_eb_t *pSnoopEB;
   pSnoopEB = &mgmdEB;
 
   pSnoopEB->snoopPTinProxySourceTreeHeap = (ptin_mgmd_avlTreeTables_t *)        ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));
   pSnoopEB->snoopPTinProxySourceDataHeap = (snoopPTinSourceRecord_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(snoopPTinSourceRecord_t));
-
+  
   if ((pSnoopEB->snoopPTinProxySourceTreeHeap == PTIN_NULLPTR) || (pSnoopEB->snoopPTinProxySourceDataHeap == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Error allocating data for snoopPtinProxySourceAVLTreeInit");    
@@ -144,7 +150,7 @@ RC_t ptinMgmdGroupRecordSourceAVLTreeInit(void)
 *********************************************************************/
 RC_t ptinMgmdGroupRecordGroupAVLTreeInit(void)
 {
-  mgmd_eb_t *pSnoopEB;
+  ptin_mgmd_eb_t *pSnoopEB;
   pSnoopEB = &mgmdEB;
 
   pSnoopEB->snoopPTinProxyGroupTreeHeap = (ptin_mgmd_avlTreeTables_t *)       ptin_mgmd_malloc(PTIN_MGMD_MAX_GROUPS*sizeof(ptin_mgmd_avlTreeTables_t));
@@ -181,12 +187,12 @@ RC_t ptinMgmdGroupRecordGroupAVLTreeInit(void)
 *********************************************************************/
 RC_t ptinMgmdRootInterfaceAVLTreeInit(void)
 {
-  mgmd_eb_t *pSnoopEB;
+  ptin_mgmd_eb_t *pSnoopEB;
   pSnoopEB = &mgmdEB;
 
   pSnoopEB->snoopPTinProxyInterfaceTreeHeap = (ptin_mgmd_avlTreeTables_t *)           ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptin_mgmd_avlTreeTables_t));
   pSnoopEB->snoopPTinProxyInterfaceDataHeap = (mgmdProxyInterface_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(mgmdProxyInterface_t));
-
+  
   if ((pSnoopEB->snoopPTinProxyInterfaceTreeHeap == PTIN_NULLPTR) || (pSnoopEB->snoopPTinProxyInterfaceDataHeap == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Error allocating data for snoopPtinProxyInterfaceAVLTreeInit");   
@@ -236,12 +242,13 @@ RC_t ptinMgmdEBInit(void)
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting maxSnoopInstances to :%u",mgmdEB.maxMgmdInstances);   
 
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"snoopEB.maxSnoopInstances: Allocating %u Bytes",sizeof(mgmd_cb_t) *mgmdEB.maxMgmdInstances);
-  if((mgmdCB = (mgmd_cb_t *)ptin_mgmd_malloc(sizeof(mgmd_cb_t) * mgmdEB.maxMgmdInstances))==PTIN_NULLPTR)
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"snoopEB.maxSnoopInstances: Allocating %u Bytes",sizeof(ptin_mgmd_cb_t) *mgmdEB.maxMgmdInstances);
+  if((mgmdCB = (ptin_mgmd_cb_t *)ptin_mgmd_malloc(sizeof(ptin_mgmd_cb_t) * mgmdEB.maxMgmdInstances))==PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to allocate memory on mgmdCB");   
     return FAILURE;
   }  
+  
   for (cbIndex=0;cbIndex<PTIN_MGMD_MAX_CB_INSTANCES && cbIndex<mgmdEB.maxMgmdInstances;cbIndex++)
   {    
     if(ptinMgmdCBInit(cbIndex,family[cbIndex])!=SUCCESS)
@@ -272,7 +279,7 @@ RC_t ptinMgmdEBInit(void)
 *********************************************************************/
 RC_t     ptinMgmdCBInit(uint32 cbIndex, uchar8 family)
 {    
-  mgmd_cb_t  *pMgmdCB = PTIN_NULLPTR;
+  ptin_mgmd_cb_t  *pMgmdCB = PTIN_NULLPTR;
   uint32         i;
 
   /* validate the cbIndex */
@@ -313,7 +320,7 @@ RC_t     ptinMgmdCBInit(uint32 cbIndex, uchar8 family)
 *********************************************************************/
 RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
 {
-  mgmd_cb_t *pMgmdCB=PTIN_NULLPTR;
+  ptin_mgmd_cb_t *pMgmdCB=PTIN_NULLPTR;
  
   if((pMgmdCB=mgmdCBGet(family))==PTIN_NULLPTR)
   {   
@@ -321,8 +328,8 @@ RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
     return FAILURE;
   }
 
-  pMgmdCB->mgmdPTinQuerierTreeHeap = (ptin_mgmd_avlTreeTables_t *)           ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptin_mgmd_avlTreeTables_t));
-  pMgmdCB->mgmdPTinQuerierDataHeap = (ptinMgmdQuerierInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptinMgmdQuerierInfoData_t));
+  pMgmdCB->mgmdPTinQuerierTreeHeap = (ptin_mgmd_avlTreeTables_t *)           ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptin_mgmd_avlTreeTables_t));  
+  pMgmdCB->mgmdPTinQuerierDataHeap = (ptinMgmdQuerierInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptinMgmdQuerierInfoData_t));  
 
   if ((pMgmdCB->mgmdPTinQuerierTreeHeap == PTIN_NULLPTR) || (pMgmdCB->mgmdPTinQuerierDataHeap == PTIN_NULLPTR))
   {
@@ -341,7 +348,41 @@ RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
 }
 
 
-void ptin_mgmd_memoryReport(void)
+void ptin_mgmd_memory_report(void)
+{
+  long  vmrss_kb;
+  short found_vmrss = 0;
+  FILE  *procfile;
+  char  buffer[8192]; 
+
+  /* Get the the current process' status file from the proc filesystem */
+  procfile = fopen("/proc/self/status", "r");
+  fread(buffer, sizeof(char), sizeof(buffer), procfile);
+  fclose(procfile);
+
+  /* Look through proc status contents line by line */
+  char *line = strtok(buffer, "\n");
+  while (line != NULL && found_vmrss == 0)
+  {
+    char  *search_result;
+
+    search_result = strstr(line, "VmRSS:");
+    if (search_result != NULL)
+    {
+      sscanf(line, "%*s %lu", &vmrss_kb);
+      found_vmrss = 1;
+    }
+    line = strtok(NULL, "\n");
+  }
+  
+  printf("MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]\n", 
+            PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
+  printf("MGMD Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
+  printf("FP Memory Allocated: %lu MB\n", vmrss_kb/1024);
+}
+
+
+void ptin_mgmd_memory_log_report(void)
 {
   long  vmrss_kb;
   short found_vmrss = 0;
@@ -368,11 +409,51 @@ void ptin_mgmd_memoryReport(void)
     line = strtok(NULL, "\n");
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\tConfigurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]", 
-            PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\tTotal memory allocated: %lu kB", vmrss_kb);
+  //Memory Allocated for the Statistics Component
+  ptin_mgmd_statistics_memory_allocation();
+  //Memory Allocated for the Configuration Component
+  ptin_mgmd_cfg_memory_allocation();
+  //Memory Allocated for the Cnfgr Component
+  ptin_mgmd_cnfgr_memory_allocation();
+  //Memory Allocated for the Core Component
+  ptin_mgmd_core_memory_allocation();
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]", 
+                      PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Memory Allocated: %lu MB",ptin_mgmd_memory_allocation/1024/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Memory Allocated: %lu MB", vmrss_kb/1024);
 }
 
+
+void ptin_mgmd_process_memory_report(void)
+{
+  long  vmrss_kb;
+  short found_vmrss = 0;
+  FILE  *procfile;
+  char  buffer[8192]; 
+
+  /* Get the the current process' status file from the proc filesystem */
+  procfile = fopen("/proc/self/status", "r");
+  fread(buffer, sizeof(char), sizeof(buffer), procfile);
+  fclose(procfile);
+
+  /* Look through proc status contents line by line */
+  char *line = strtok(buffer, "\n");
+  while (line != NULL && found_vmrss == 0)
+  {
+    char  *search_result;
+
+    search_result = strstr(line, "VmRSS:");
+    if (search_result != NULL)
+    {
+      sscanf(line, "%*s %lu", &vmrss_kb);
+      found_vmrss = 1;
+    }
+    line = strtok(NULL, "\n");
+  }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Currently Allocated Memory : %lu MB", vmrss_kb/1024);
+}
 
 /*********************************************************************
 * @purpose  Get the Snoop Execution block
@@ -385,7 +466,7 @@ void ptin_mgmd_memoryReport(void)
 *
 * @end
 *********************************************************************/
-mgmd_eb_t *mgmdEBGet(void)
+ptin_mgmd_eb_t *mgmdEBGet(void)
 {
   return &mgmdEB;
 }
@@ -402,7 +483,7 @@ mgmd_eb_t *mgmdEBGet(void)
 *
 * @end
 *********************************************************************/
-mgmd_cb_t *mgmdFirsCBGet(void)
+ptin_mgmd_cb_t *mgmdFirsCBGet(void)
 {
   return mgmdCB;
 }
@@ -422,9 +503,9 @@ mgmd_cb_t *mgmdFirsCBGet(void)
 *
 * @end
 *********************************************************************/
-mgmd_cb_t *mgmdCBGet(uchar8 family)
+ptin_mgmd_cb_t *mgmdCBGet(uchar8 family)
 {
-  mgmd_cb_t *pMgmdCB = PTIN_NULLPTR;
+  ptin_mgmd_cb_t *pMgmdCB = PTIN_NULLPTR;
   uint32     cbIndex; 
 
   for (cbIndex = 0; cbIndex < mgmdEB.maxMgmdInstances; cbIndex++)

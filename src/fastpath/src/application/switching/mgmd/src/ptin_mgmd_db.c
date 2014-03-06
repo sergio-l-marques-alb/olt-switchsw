@@ -25,6 +25,8 @@
 
 #include "ptin_mgmd_logger.h"
 
+extern BOOL ptin_mgmd_extended_debug;
+
 /*******************Static Methods**************************************************/
 
 static RC_t ptinMgmdClientAdd(ptinMgmdGroupInfoData_t *avlTreeEntry,uint32 intIfNum, ptinMgmdSource_t *sourcePtr, uint32 clientIdx);
@@ -279,7 +281,7 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
     
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};  
-  mgmd_eb_t                *pMgmdEB;  
+  ptin_mgmd_eb_t            *pMgmdEB;  
   ptinMgmdSource_t         *auxSource;
    
   /* Argument validation */
@@ -321,8 +323,8 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
   
   (*sourcePtr)->status=PTIN_MGMD_SOURCESTATE_ACTIVE;
   (*sourcePtr)->sourceAddr=*sourceAddr;  
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",
              (*sourcePtr), (*sourcePtr)->next, (*sourcePtr)->previous, 
              groupEntry->ports[portId].firstSource, groupEntry->ports[portId].firstSource->next, groupEntry->ports[portId].firstSource->previous, 
              groupEntry->ports[portId].lastSource, groupEntry->ports[portId].lastSource->next, groupEntry->ports[portId].lastSource->previous);
@@ -417,7 +419,7 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
   char                        debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]      = {0};  
   ptin_mgmd_externalapi_t     externalApi;
   PTIN_FIFO_t                 fifoClientPtr;
-  mgmd_eb_t                  *pMgmdEB;
+  ptin_mgmd_eb_t             *pMgmdEB;
   
   /* Argument validation */
   if (groupEntry == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORTS)
@@ -464,7 +466,8 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",sourcePtr,sourcePtr->next,sourcePtr->previous,
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] pNext:[%p] pPrevious:[%p] pFirst[:%p] pFirstNext:[%p] pFirstPrevious:[%p] pLast:[%p] pLastNext:[%p] pFirstPrevious:[%p]",sourcePtr,sourcePtr->next,sourcePtr->previous,
             groupEntry->ports[portId].firstSource,groupEntry->ports[portId].firstSource->next,groupEntry->ports[portId].firstSource->previous,groupEntry->ports[portId].lastSource->next,groupEntry->ports[portId].lastSource->previous);
 
   //This FIFO has only source
@@ -1171,7 +1174,7 @@ RC_t snoopPTinMembershipReportIsExcludeProcess(snoopPTinL3InfoData_t *avlTreeEnt
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]            = {0},
                            debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]           = {0};   
@@ -1369,7 +1372,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupI
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]       = {0};  
@@ -1741,7 +1744,7 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupI
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportAllowProcess(mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
+RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t* sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {};  
@@ -2075,7 +2078,8 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
   mgmdGroupRecord_t  *new_group;
   char                debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {};
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
   if (interfacePtr == PTIN_NULLPTR || groupAddr == PTIN_NULLPTR)
   {
@@ -2088,12 +2092,13 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxyGroupEntryAdd()");
     return PTIN_NULLPTR;
   }
-
-   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord);
 
   if(*newEntryFlag == FALSE)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
     return new_group;
   }
 
@@ -2115,9 +2120,13 @@ mgmdGroupRecord_t* ptinMgmdGroupRecordAdd(mgmdProxyInterface_t* interfacePtr, ui
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Record (serviceId: %u groupAddr: %s recordType: %u  noOfGroupRecords: %u)", interfacePtr->key.serviceId, 
               ptin_mgmd_inetAddrPrint(&interfacePtr->lastGroupRecord->key.groupAddr, debug_buf), interfacePtr->lastGroupRecord->key.recordType, interfacePtr->numberOfGroupRecords);
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord,new_group->numberOfSources,new_group->firstSource);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "pFirstNext:[%p] pFirstprevious:[%p] pLastNext:[%p] pLastprevious:[%p]",interfacePtr->firstGroupRecord->nextGroupRecord,interfacePtr->firstGroupRecord->previousGroupRecord,interfacePtr->lastGroupRecord->nextGroupRecord,interfacePtr->lastGroupRecord->previousGroupRecord);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p]",interfacePtr->numberOfGroupRecords,new_group,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,new_group->nextGroupRecord,new_group->previousGroupRecord,new_group->numberOfSources,new_group->firstSource);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "pFirstNext:[%p] pFirstprevious:[%p] pLastNext:[%p] pLastprevious:[%p]",interfacePtr->firstGroupRecord->nextGroupRecord,interfacePtr->firstGroupRecord->previousGroupRecord,interfacePtr->lastGroupRecord->nextGroupRecord,interfacePtr->lastGroupRecord->previousGroupRecord);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+  
   return new_group;
 }
 
@@ -2271,8 +2280,8 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   snoopPTinSourceRecord_t    *sourcePtr,
                              *sourcePtrAux;
 
-
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
   if (interfacePtr == PTIN_NULLPTR || interfacePtr->key.serviceId > PTIN_MGMD_MAX_SERVICE_ID ||  groupAddr == PTIN_NULLPTR)
   {
@@ -2287,14 +2296,15 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
   for (sourcePtr=groupPtr->firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
   {      
     sourcePtrAux=sourcePtr->next;    
     ptinMgmdGroupRecordSourceRemove(groupPtr,&sourcePtr->key.sourceAddr);    
   }
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
 
 
   if (ptin_mgmd_proxytimer_stop(&groupPtr->timer) != SUCCESS)
@@ -2336,8 +2346,13 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   }
 
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
+
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
+   
   return SUCCESS;
 }
 
@@ -2372,7 +2387,8 @@ RC_t ptinMgmdGroupRecordSourceRemove(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
   //This FIFO has only source
   if (--groupPtr->numberOfSources==0)
   {
@@ -2406,9 +2422,12 @@ RC_t ptinMgmdGroupRecordSourceRemove(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet
     return SUCCESS;
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
+  if(ptin_mgmd_extended_debug)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfSources:[%u] p:[%p] pFirst:[%p] pLast:[%p]",groupPtr->numberOfSources,groupPtr,groupPtr->firstSource,groupPtr->lastSource);
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "}");
+  }
   return SUCCESS;
 }
 
@@ -2868,7 +2887,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
   ptinMgmdGroupInfoDataKey_t avlTreeKey;
 
 //char                debug_buf[IPV6_DISP_ADDR_LEN]={};
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t     *pSnoopEB;
 
   /* Argument validation */
   if (activeGroups == PTIN_NULLPTR)
@@ -2924,7 +2943,7 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
   PTIN_MGMD_PORT_MASK_t     portList;
   uint16                    portId;
   ptin_mgmd_externalapi_t   externalApi;
-  mgmd_eb_t                *pMgmdEB; 
+  ptin_mgmd_eb_t           *pMgmdEB; 
   ptin_IgmpProxyCfg_t       igmpCfg;
  
   /* Argument validation */
@@ -3050,7 +3069,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
   uint16                         portId;
   ptin_mgmd_externalapi_t        externalApi;
   ptin_IgmpProxyCfg_t            igmpCfg;
-  mgmd_eb_t                     *pMgmdEB; 
+  ptin_mgmd_eb_t                *pMgmdEB; 
   RC_t                           rc            = SUCCESS;
     
 
@@ -3135,7 +3154,7 @@ ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_ad
 {
   ptinMgmdGroupInfoData_t    *snoopEntry;
   ptinMgmdGroupInfoDataKey_t key;
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t            *pSnoopEB;
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3183,7 +3202,7 @@ RC_t ptinMgmdL3EntryAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
 {
   ptinMgmdGroupInfoData_t snoopEntry;
   ptinMgmdGroupInfoData_t *pData;
-  mgmd_eb_t            *pSnoopEB;
+  ptin_mgmd_eb_t          *pSnoopEB;
 
   pSnoopEB = mgmdEBGet();
 
@@ -3232,8 +3251,8 @@ RC_t ptinMgmdL3EntryDelete(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
 {
   ptinMgmdGroupInfoData_t *pData;
   ptinMgmdGroupInfoData_t *snoopEntry;
-  mgmd_eb_t            *pSnoopEB;
-  char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
+  ptin_mgmd_eb_t          *pSnoopEB;
+  char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3296,7 +3315,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t *groupPt
   char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0},
                             debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
 
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
   /* Argument validation */
   if (groupPtr == PTIN_NULLPTR || sourceAddr == PTIN_NULLPTR)
@@ -3359,7 +3378,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryAdd(mgmdGroupRecord_t* groupPtr
   uint32 ivlLength = 0, freeIdx;
   L7_FDB_TYPE_t fdbType;
 #endif
-  mgmd_eb_t             *pSnoopEB;
+  ptin_mgmd_eb_t             *pSnoopEB;
 
   /* Argument validation */
   if (groupPtr == PTIN_NULLPTR || sourceAddr == PTIN_NULLPTR || newEntry == PTIN_NULLPTR)
@@ -3422,7 +3441,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryDelete(mgmdGroupRecord_t *group
 {
   snoopPTinSourceRecord_t *pData;
   snoopPTinSourceRecord_t *snoopEntry;
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t          *pSnoopEB;
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0},
                            debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};
 
@@ -3486,7 +3505,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_
   mgmdGroupRecordKey_t key;
   char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
 
-  mgmd_eb_t               *pSnoopEB;
+  ptin_mgmd_eb_t               *pSnoopEB;
 
   /* Argument validation */
   if (groupAddr == PTIN_NULLPTR)
@@ -3542,7 +3561,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryAdd(mgmdProxyInterface_t* interfacePtr
   mgmdGroupRecord_t *pData;
   char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]  = {0};
 
-  mgmd_eb_t            *pSnoopEB;
+  ptin_mgmd_eb_t            *pSnoopEB;
 
   /*Arguments Validation*/
   if (interfacePtr == PTIN_NULLPTR || groupAddr == PTIN_NULLPTR || newEntry == PTIN_NULLPTR)
@@ -3608,8 +3627,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
 {
   mgmdGroupRecord_t *pData;
   mgmdGroupRecord_t *snoopEntry;
-  mgmd_eb_t            *pSnoopEB;
-  char                  debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
+  ptin_mgmd_eb_t    *pSnoopEB;
+  char               debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {0};
 
 
   /*Arguments Validation*/
@@ -3626,7 +3645,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
     return PTIN_NULLPTR;
   }
   snoopEntry = pData;
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
+  if(ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to remove Group Record from the AVL Tree (serviceId:%u groupAddr:%s recordtype:%u)", serviceId, ptin_mgmd_inetAddrPrint(groupAddr, debug_buf), recordType);
   pData = ptin_mgmd_avlDeleteEntry(&pSnoopEB->snoopPTinProxyGroupAvlTree, pData);
@@ -3639,7 +3659,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
   }
   if (pData == snoopEntry)
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "p:[%p] next:[%p] previous:[%p] numberofSources:[%u] firstSOurce:[%p] lastSOurce:[%p]",pData,pData->nextGroupRecord,pData->previousGroupRecord,pData->numberOfSources,pData->firstSource,pData->lastSource);
     /* Entry deleted */
     return pData;
   }
@@ -3669,7 +3690,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 f
 {
   mgmdProxyInterface_t    *pData;
   snoopPTinProxyInterfaceKey_t key;
-  mgmd_eb_t                   *pSnoopEB;
+  ptin_mgmd_eb_t              *pSnoopEB;
 
   memset((void*)&key, 0x00, sizeof(snoopPTinProxyInterfaceKey_t));
 
@@ -3713,7 +3734,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL *new
   mgmdProxyInterface_t snoopEntry;
   mgmdProxyInterface_t *pData;
 
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t                *pSnoopEB;
 
 
   /*Arguments Validation*/
@@ -3767,7 +3788,7 @@ RC_t ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId)
 {
   mgmdProxyInterface_t *pData;
   mgmdProxyInterface_t *snoopEntry;
-  mgmd_eb_t                *pSnoopEB;
+  ptin_mgmd_eb_t       *pSnoopEB;
 
   pSnoopEB = mgmdEBGet();
   pData = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
@@ -3817,7 +3838,7 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 famil
   ptinMgmdQuerierInfoData_t    *pMgmdEntry;
   ptinMgmdQuerierInfoDataKey_t key;
 
-  mgmd_cb_t                *pMgmdCB;
+  ptin_mgmd_cb_t                *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(family)) == PTIN_NULLPTR)
   {
@@ -3864,7 +3885,7 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint16 serviceId, uchar8 family
   ptinMgmdQuerierInfoData_t mgmdEntry;
   ptinMgmdQuerierInfoData_t *pMgmdEntry;
 
-  mgmd_cb_t             *pMgmdCB;
+  ptin_mgmd_cb_t             *pMgmdCB;
 
   /*Arguments Validation*/
   if (newEntry == PTIN_NULLPTR)
@@ -3922,7 +3943,7 @@ RC_t ptinMgmdQueryEntryDelete(uint16 serviceId, uchar8 family)
 {
   ptinMgmdQuerierInfoData_t *pMgmdEntry;
   ptinMgmdQuerierInfoData_t *pMgmdEntryAux;
-  mgmd_cb_t             *pMgmdCB;
+  ptin_mgmd_cb_t            *pMgmdCB;
 
   if ((pMgmdCB = mgmdCBGet(family)) == PTIN_NULLPTR)
   {
@@ -3975,9 +3996,9 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 {
   ptinMgmdGroupInfoDataKey_t   avlTreeKey       = {{0}};
   ptinMgmdGroupInfoData_t     *groupEntry;
-  mgmd_eb_t                 *pSnoopEB;
-  uint32                     max_num_channels;
-  char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0};
+  ptin_mgmd_eb_t              *pSnoopEB;
+  uint32                       max_num_channels;
+  char                         debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {0};
   BOOL                       channelAdded     = FALSE;
   ptinMgmdSource_t       *sourcePtr;
 

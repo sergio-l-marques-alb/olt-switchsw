@@ -113,7 +113,7 @@ RC_t ptin_mgmd_eventqueue_init(void)
     return FAILURE;
   }
   msgQueueStats.msg_qbytes = PTIN_MGMD_MSGQUEUE_SIZE;
-  PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting queue size to %u bytes", msgQueueStats.msg_qbytes);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting queue size to %u bytes", msgQueueStats.msg_qbytes);
   if (-1 == msgctl(rxMessageQueueId, IPC_SET, &msgQueueStats))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error '%s' while setting rxEventQueue stats [key:%08X]", strerror(errno), PTIN_MGMD_RX_QUEUE_KEY);

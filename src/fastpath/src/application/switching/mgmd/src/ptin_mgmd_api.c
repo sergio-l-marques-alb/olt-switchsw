@@ -169,6 +169,8 @@ RC_t ptin_mgmd_memAlloc(void)
 {
   RC_t res = SUCCESS;
 
+  ptin_mgmd_memory_log_report();
+
   if(SUCCESS != (res = ptinMgmdEBInit()))
   {
     return res;
@@ -204,8 +206,8 @@ RC_t ptin_mgmd_memAlloc(void)
     return res;
   }
 
-  ptin_mgmd_memoryReport();
-
+  ptin_mgmd_process_memory_report();
+  
   return res;
 }
 

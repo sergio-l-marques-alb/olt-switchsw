@@ -202,6 +202,7 @@ typedef struct {
 } ptin_IgmpProxyCfg_t;
 
 
+void ptin_mgmd_cfg_memory_allocation(void);
 /**
  * Configure the external API.
  * 

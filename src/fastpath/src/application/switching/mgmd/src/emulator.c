@@ -870,9 +870,9 @@ void printHelpMenu(void)
   printf("\t 107 - GROUP_RECORDS_CLEAN      -                                                                            \n"); 
   printf("\t 108 - WHITELIST_DUMP           -                                                                            \n"); 
   printf("\t 109 - WHITELIST_CLEAN          -                                                                            \n"); 
-  printf("\t 110 - MEASUREMENT_TIMERS       -                                                                            \n"); 
-  printf("\t 111 - MEMORY_REPORT_DUMP       -                                                                            \n");
+  printf("\t 110 - MEASUREMENT_TIMERS       -                                                                            \n");   
   printf("\t 112 - GENERAL_QUERY_DUMP       -                                                                            \n");
+  printf("\t 999 - MEMORY_REPORT_DUMP       -                                                                            \n");  
 }
 
 int main(int argc, char **argv)
@@ -1268,15 +1268,16 @@ int main(int argc, char **argv)
     {
       sendMeasurementTimersDump();
       break;
-    }
+    }    
     case 111:
     {
-      sendMemoryReportDump();
+      sendGeneralQueryDump();
       break;
     }
-    case 112:
+    /*For convenience this should the last case*/
+    case 999:
     {
-      sendGeneralQueryDump();
+      sendMemoryReportDump();
       break;
     }
     default:

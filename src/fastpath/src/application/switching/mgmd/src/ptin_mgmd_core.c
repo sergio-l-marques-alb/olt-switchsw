@@ -50,16 +50,30 @@
 
 #include "ptin_mgmd_service_api.h"
 
+
+/*********************Global Variables******************/
+BOOL                     ptin_mgmd_extended_debug = FALSE;
+extern unsigned long     ptin_mgmd_memory_allocation;
+/*********************End Global Variables******************/
+
+
+
 /*********************Static Variables******************/
-BOOL                ptin_mgmd_extended_debug = FALSE;
+static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
 /*********************End Static Variables******************/
 
-static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
-
+/*********************Static Routines******************/
 static RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket);
 static RC_t ptin_mgmd_mld_packet_process(void);
+/*********************End Statid Routines******************/
 
 /************************************************************************************************************/
+
+
+void ptin_mgmd_core_memory_allocation(void)
+{
+  ptin_mgmd_memory_allocation+=sizeof(sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]);  
+}
 
 RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
 {
@@ -2045,7 +2059,7 @@ RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData)
       ptin_mgmd_event_proxycmtimer((snoopPTinCMtimer_t**)eventData->data);
 
       break;
-    }
+    }    
     default:
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown timer event type received");
@@ -2410,7 +2424,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     }
     case PTIN_MGMD_EVENT_DEBUG_MEMORY_REPORT_DUMP:
     {
-      ptin_mgmd_memoryReport();
+      ptin_mgmd_memory_report();
       break;
     }
     case PTIN_MGMD_EVENT_DEBUG_GENERAL_QUERY_DUMP:
