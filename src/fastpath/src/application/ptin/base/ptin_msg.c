@@ -2579,8 +2579,12 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
 
+    #if 0 //(PTIN_BOARD_IS_MATRIX)
     /* PTP: Workaround */
-    if ( (msgEvcConf->intf[i].intf_id == 52) && (msgEvcConf->intf[i].vid >= 1065) )
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
+
+    if ( (msgEvcConf->intf[i].intf_id == (ptin_sys_number_of_ports - 1)) /*&& (msgEvcConf->intf[i].vid >= 1065)*/ )
     {
 
       ptinEvcConf.flags = 0x18;
@@ -2590,6 +2594,10 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "PTP EVC (%u)",              ptinEvcConf.index);
       break;
     }
+
+    ptinEvcConf.flags &= ~PTIN_EVC_MASK_IGMP_PROTOCOL;
+    ptinEvcConf.flags &= ~PTIN_EVC_MASK_MC_IPTV;     
+    #endif
 
     ptinEvcConf.intf[i].intf_id   = msgEvcConf->intf[i].intf_id;
     ptinEvcConf.intf[i].intf_type = msgEvcConf->intf[i].intf_type;
@@ -2818,14 +2826,16 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
   ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);
 
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {

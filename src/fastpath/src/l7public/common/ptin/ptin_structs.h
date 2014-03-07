@@ -358,16 +358,25 @@ typedef struct
   L7_BOOL destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
 } ptin_bridge_vlan_multicast_t;
 
+/* Virtual ports commands */
+typedef enum
+{
+  PTIN_VPORT_CMD_VP_OPER = 0,
+  PTIN_VPORT_CMD_MAXMAC_SET
+} PTIN_VPORT_CMD_t;
+
 /* Virtual ports management */
 typedef struct
 {
   DAPI_CMD_GET_SET_t oper;
+  PTIN_VPORT_CMD_t   cmd;
   L7_int ext_ovid;
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
   L7_int virtual_gport;
   L7_int multicast_group;
+  L7_uint8 macLearnMax;
 } ptin_vport_t;
 
 /* Struct used to manipulate cross connects via DTL */
@@ -485,9 +494,10 @@ typedef struct {
   L7_uint16 int_ivid;     // C-VLAN tagged in the upstream flows (inside the switch)
 
   /* Client interface (root is already known by the EVC) */
-  ptin_intf_t ptin_intf;  // PON interface
-  L7_uint16   uni_ovid;   // GEM id
-  L7_uint16   uni_ivid;   // UNI cvlan
+  ptin_intf_t ptin_intf;    // PON interface
+  L7_uint16   uni_ovid;     // GEM id
+  L7_uint16   uni_ivid;     // UNI cvlan
+  L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses
 } ptin_HwEthEvcFlow_t;
 
 /* Client identification */

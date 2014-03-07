@@ -90,6 +90,7 @@ extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
  * @param int_ivid    : Internal inner vlan  
  * @param mcast_group : Multicast group id. 
  * @param vport_id    : vport id 
+ * @param macLearnMax : Maximum Learned MACs
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
@@ -97,7 +98,18 @@ extern L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                                      L7_int ext_ovid, L7_int ext_ivid,
                                      L7_int int_ovid, L7_int int_ivid,
                                      L7_int mcast_group,
-                                     L7_int *vport_id);
+                                     L7_int *vport_id,
+                                     L7_uint8 macLearnMax);
+
+/**
+ * Configure the Maximum Learned MACs foa a Virtual port
+ * 
+ * @param vport_id    : vport id 
+ * @param macLearnMax : Maximum Learned MACs
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int vport_id, L7_uint8 macLearnMax);
 
 /**
  * Remove Virtual port

@@ -295,6 +295,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
  * @param int_ivid    : Internal inner vlan  
  * @param mcast_group : Multicast group id. 
  * @param vport_id    : vport id 
+ * @param macLearnMax : Maximum Learned MACs
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
@@ -302,7 +303,8 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                               L7_int ext_ovid, L7_int ext_ivid,
                               L7_int int_ovid, L7_int int_ivid,
                               L7_int mcast_group,
-                              L7_int *vport_id)
+                              L7_int *vport_id,
+                              L7_uint8 macLearnMax)
 {
   ptin_vport_t vport;
   L7_RC_t rc = L7_SUCCESS;
@@ -316,17 +318,19 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
     LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
-            intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group);
+  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
+            intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
 
   /* Fill structure */
   vport.oper             = DAPI_CMD_SET;
+  vport.cmd              = PTIN_VPORT_CMD_VP_OPER;
   vport.int_ovid         = int_ovid;
   vport.int_ivid         = int_ivid;
   vport.ext_ovid         = ext_ovid;
   vport.ext_ivid         = ext_ivid;
   vport.virtual_gport    = -1;
   vport.multicast_group  = mcast_group;
+  vport.macLearnMax      = macLearnMax;
 
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);
@@ -342,6 +346,44 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
     if (vport_id != L7_SUCCESS)
       *vport_id = vport.virtual_gport;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
+
+  return rc;
+}
+
+/**
+ * Configure the Maximum Learned MACs foa a Virtual port
+ * 
+ * @param intIfNum    : interface to be confgured
+ * @param vport_id    : vport id 
+ * @param macLearnMax : Maximum Learned MACs
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int vport_id, L7_uint8 macLearnMax)
+{
+  ptin_vport_t vport;
+  L7_RC_t rc = L7_SUCCESS;
+
+  LOG_TRACE(LOG_CTX_PTIN_API, "vport_id=0x%x, macLearnMax=%u", vport_id, macLearnMax);
+
+  /* Fill structure */
+
+  if ( macLearnMax != (L7_uint8)-1 )
+  {
+      vport.oper         = DAPI_CMD_SET;
+  }
+  else
+  {
+      vport.oper         = DAPI_CMD_CLEAR;
+  }
+  vport.cmd              = PTIN_VPORT_CMD_MAXMAC_SET;
+  vport.virtual_gport    = vport_id;
+  vport.macLearnMax      = macLearnMax;
+
+  /* DTL call */
+  rc = dtlPtinVirtualPort(intIfNum, &vport);
 
   LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
 
@@ -374,12 +416,14 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
 
   /* Fill structure */
   vport.oper             = DAPI_CMD_CLEAR;
+  vport.cmd              = PTIN_VPORT_CMD_VP_OPER;
   vport.int_ovid         = -1;
   vport.int_ivid         = -1;
   vport.ext_ovid         = -1;
   vport.ext_ivid         = -1;
   vport.virtual_gport    = virtual_gport;
   vport.multicast_group  = mcast_group;
+  vport.macLearnMax      = (L7_uint8) -1;
 
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);

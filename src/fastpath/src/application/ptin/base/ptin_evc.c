@@ -3397,7 +3397,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                               evcFlow->uni_ovid, evcFlow->uni_ivid,
                               int_ovid, evcFlow->int_ivid,
                               multicast_group,
-                              &vport_id) != L7_SUCCESS)
+                              &vport_id,
+                              evcFlow->macLearnMax) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
       return L7_FAILURE;
@@ -3420,6 +3421,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
   else
   {
+    ptin_virtual_macLearnMax_set(intIfNum, pflow->virtual_gport, evcFlow->macLearnMax);
+
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
   }
 

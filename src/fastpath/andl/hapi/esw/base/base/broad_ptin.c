@@ -728,16 +728,42 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   switch (vport->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_vp_create(&dapiPort,
-                             vport->ext_ovid, vport->ext_ivid,
-                             vport->int_ovid, vport->int_ivid,
-                             &vport->multicast_group,
-                             &vport->virtual_gport);
+    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    {
+      rc = ptin_hapi_vp_create(&dapiPort, 
+                               vport->ext_ovid, vport->ext_ivid,
+                               vport->int_ovid, vport->int_ivid,
+                               &vport->multicast_group,
+                               &vport->virtual_gport);
+
+      if (rc == L7_SUCCESS)
+      {
+        rc = ptin_hapi_macaddr_setmax(vport->int_ovid, vport->virtual_gport, vport->macLearnMax);
+      }
+    }
+    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    {
+      rc = ptin_hapi_macaddr_setmax(vport->int_ovid, vport->virtual_gport, vport->macLearnMax); 
+    }
     break;
+
   case DAPI_CMD_CLEAR:
   case DAPI_CMD_CLEAR_ALL:
-    rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+    if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
+    {
+      rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+
+      if (rc == L7_SUCCESS)
+      {
+        rc = ptin_hapi_macaddr_reset(vport->int_ovid, vport->virtual_gport);
+      }
+    }
+    else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
+    {
+      rc = ptin_hapi_macaddr_reset(vport->int_ovid, vport->virtual_gport);
+    }
     break;
+
   default:
     rc = L7_FAILURE;
     break;

@@ -3565,7 +3565,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     {
       bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
       rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
-      printf("%s(%d) I was here\r\n",__FUNCTION__,__LINE__);
     }
     else
     {
@@ -3573,12 +3572,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
                   bcmx_l2_addr->vid, bcmx_l2_addr->lport);
     }
     #endif
-
-    if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport)) {
-      printf("%s(%d) MAC on Virtual Port: MAC %02x:%02x:%02x:%02x:%02x:%02x; VID %d, GPORT 0x%x\r\n",__FUNCTION__,__LINE__, 
-             bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
-             bcmx_l2_addr->vid, bcmx_l2_addr->lport);
-    }
 
     dapiCardRemovalReadLockGive();
     return;

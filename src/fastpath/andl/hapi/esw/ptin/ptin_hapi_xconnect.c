@@ -27,8 +27,9 @@ L7_uint16 resources_crossconnects = FREE_RESOURCES_CROSSCONNECTS;
 #if 1
 typedef struct
 {
-  L7_uint8 mac_counter;
-  L7_uint8 mac_maximum;
+  L7_uint8  mac_counter;
+  L7_uint16 mac_total;
+  L7_uint8  mac_maximum;
 } mac_learn_info_t;
 
 #define MAX_VLANS   4096
@@ -494,7 +495,6 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
 }
 
 
-extern int _bcm_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags);
 
 /**
  * Create Virtual port
@@ -567,10 +567,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
     return L7_FAILURE;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vport=%d", vlan_port.vlan_port_id);
-
-  /* USE PENDING FLAG */
-  _bcm_vlan_port_learn_set(0, vlan_port.vlan_port_id, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
 
   /* create egress translation entries for virtual ports to do VLAN tag manipulation 
    * i.e. client -> gem_id + some_c_vlan */
@@ -1072,6 +1069,7 @@ L7_RC_t ptin_hapi_macaddr_init(void)
   for (i=0; i<MAX_VLANS; i++)
   {
     macLearn_info_vlan[i].mac_counter = 0;
+    macLearn_info_vlan[i].mac_total   = 0;
     macLearn_info_vlan[i].mac_maximum = (L7_uint8)-1; /* Unlimited */
   }
 
@@ -1079,6 +1077,7 @@ L7_RC_t ptin_hapi_macaddr_init(void)
   for (i=0; i<MAX_GPORTS; i++)
   {
     macLearn_info_flow[i].mac_counter = 0;
+    macLearn_info_flow[i].mac_total   = 0;
     macLearn_info_flow[i].mac_maximum = (L7_uint8)-1; /* Unlimited */
   }
 
@@ -1109,14 +1108,45 @@ L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_maximum != (L7_uint8)-1 &&
-        macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].mac_maximum == (L7_uint8)-1)
     {
       return L7_FAILURE;
     }
 
+    /* Do not accept more mac addresses, if maximum was reached */
+    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x rejected (flags 0x%x)\r\n",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "inc mac_total");
+
+      macLearn_info_flow[vport_id].mac_total++;
+
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x accepted (flags 0x%x)\r\n",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "inc mac_counter");
+
     macLearn_info_flow[vport_id].mac_counter++;
+    macLearn_info_flow[vport_id].mac_total++;
+
+    /* Check if maximum was reached */
+    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
+    {
+      /* Enable the use of Pending Mechanism but disable FWD */
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
+      bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    }
+
   }
   else
   {
@@ -1129,9 +1159,14 @@ L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
-    /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_vlan[vlan_id].mac_maximum != (L7_uint8)-1 &&
-        macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_maximum)
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].mac_maximum == (L7_uint8)-1)
+    {
+      return L7_FAILURE;
+    }
+
+    /* Do not accept more MAC addresses, if maximum was reached */
+    if (macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_maximum)
     {
       return L7_FAILURE;
     }
@@ -1165,11 +1200,44 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].mac_maximum == (L7_uint8)-1)
+    {
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x cleared (flags 0x%x)\r\n",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
+    /* Do not accept more MAC addresses, if maximum was reached */
+    /* if BCM_L2_PENDING is cleared, it means it is a aging of a learned MAC in the L2 table */
+    if ((macLearn_info_flow[vport_id].mac_total > macLearn_info_flow[vport_id].mac_counter) && (bcmx_l2_addr->flags & BCM_L2_PENDING))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "dec mac_total");
+      macLearn_info_flow[vport_id].mac_total--;
+
+      return L7_FAILURE;
+    }
+
     /* Decrement, but only if greater than 0 */
     if (macLearn_info_flow[vport_id].mac_counter > 0)
     {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "dec mac_counter");
       macLearn_info_flow[vport_id].mac_counter--;
+      macLearn_info_flow[vport_id].mac_total--;
     }
+
+    #if 0
+    /* Check if maximum was reached */
+    if ( (macLearn_info_flow[vport_id].mac_counter < macLearn_info_flow[vport_id].mac_maximum) && (macLearn_info_flow[vport_id].mac_total < macLearn_info_flow[vport_id].mac_maximum))
+    {
+      /* Enable the use of Pending Mechanism and enable FWD */
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Enabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
+      bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    }
+    #endif
   }
   else
   {
@@ -1179,6 +1247,12 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     if (vlan_id > MAX_VLANS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
+      return L7_FAILURE;
+    }
+
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].mac_maximum == (L7_uint8)-1)
+    {
       return L7_FAILURE;
     }
 
@@ -1215,7 +1289,15 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
       return L7_FAILURE;
     }
 
-    macLearn_info_flow[gport].mac_counter = 0;
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling Pending Mechanism (GPORT=0x%x)", gport);
+
+    /* Disable the use of Pending Mechanism */
+    bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD );
+
+    macLearn_info_flow[vport_id].mac_counter = 0;
+    macLearn_info_flow[vport_id].mac_total = 0;
+    macLearn_info_flow[vport_id].mac_maximum = (L7_uint8)-1; /* Unlimited */
+
   }
   else
   {
@@ -1226,8 +1308,36 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
       return L7_FAILURE;
     }
 
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling Pending Mechanism (VLAN ID=0x%x)", vlan_id);
+
     macLearn_info_vlan[vlan_id].mac_counter = 0;
+    macLearn_info_vlan[vlan_id].mac_maximum = (L7_uint8)-1; /* Unlimited */
   }
+
+  return L7_SUCCESS;
+}
+
+L7_RC_t ptin_hapi_macaddr_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD_FLUSH_TYPE_t type)
+{
+  L7_uint vport_id = 0;
+
+  vport_id = gport & 0xffff;
+
+  macLearn_info_flow[vport_id].mac_total -= macLearn_info_flow[vport_id].mac_counter;
+  macLearn_info_flow[vport_id].mac_counter = 0;
+
+  /* Flush FDB */
+  BROAD_L2ADDR_FLUSH_t  l2addr_vlan;
+  /* Fill in the structure */
+  l2addr_vlan.bcmx_lport = gport;
+  l2addr_vlan.vlanID = vlan_id;
+  l2addr_vlan.flushtype = type;
+  l2addr_vlan.port_is_lag = L7_FALSE;
+  l2addr_vlan.tgid        = 0;
+  memset(l2addr_vlan.mac.addr, 0, L7_ENET_MAC_ADDR_LEN);
+
+  /* Send a message to L2 address flushing task with the vlan info */
+  hapiBroadL2FlushRequest(l2addr_vlan);
 
   return L7_SUCCESS;
 }
@@ -1243,6 +1353,9 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
 L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8 max_value)
 {
   L7_uint vport_id = 0;
+  L7_uint8 max_value_old;
+  L7_RC_t rc = L7_SUCCESS;
+
 
   if (BCM_GPORT_IS_VLAN_PORT(gport))
   {
@@ -1255,7 +1368,43 @@ L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8
       return L7_FAILURE;
     }
 
-    macLearn_info_flow[gport].mac_maximum = max_value;
+    if (max_value == (L7_uint8)-1)
+    {
+      if (macLearn_info_flow[vport_id].mac_maximum != (L7_uint8)-1)
+      {
+        rc = ptin_hapi_macaddr_reset(vlan_id, gport);
+      }
+      return rc;
+    }
+
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Enabling Pending Mechanism (GPORT=0x%x) with MAC Learned limit set to %u", gport, max_value);
+
+    max_value_old = macLearn_info_flow[vport_id].mac_maximum;
+    macLearn_info_flow[vport_id].mac_maximum = max_value;
+
+    /* Check if maximum was reached */
+    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
+    {
+      /* Enable the use of Pending Mechanism but disable FWD*/
+      bcm_port_learn_set(0, gport, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    }
+    else
+    {
+      /* Enable the use of Pending Mechanism and enable FWD */
+      bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    }
+
+    #if 0
+    /* New MAX value lower than old value. Clear the L2 table. */
+    if (max_value < max_value_old)
+    {
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Performing fdbFlush");
+
+      ptin_hapi_macaddr_fdbFlush(vlan_id, gport, BROAD_FLUSH_BY_VLAN);
+    }
+    #endif
+
   }
   else
   {
@@ -1265,6 +1414,17 @@ L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (vlan_id=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
+
+    if (max_value == (L7_uint8)-1)
+    {
+      if (macLearn_info_vlan[vport_id].mac_maximum != (L7_uint8)-1)
+      {
+        rc = ptin_hapi_macaddr_reset(vlan_id, gport);
+      }
+      return rc;
+    }
+
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Enabling Pending Mechanism (VLAN ID=%d) with MAC Learned limit set to %u", vlan_id, max_value);
 
     macLearn_info_vlan[vlan_id].mac_maximum = max_value;
   }
@@ -1281,19 +1441,23 @@ void ptin_maclimit_dump(void)
 {
   L7_uint i;
 
-  printf("MAC limit tables (counters > 0)\n");
+  printf("MAC limit tables\n");
 
   /* MAC learning control at vlan level */
-  for (i=0; i<MAX_VLANS; i++) {
-    if (macLearn_info_vlan[i].mac_counter > 0) {
-      printf(" VLAN=%.4u   %u of %u\n", i, macLearn_info_vlan[i].mac_counter, macLearn_info_vlan[i].mac_maximum);
+  for (i=0; i<MAX_VLANS; i++)
+  {
+    if (macLearn_info_vlan[i].mac_maximum != (L7_uint8)-1)
+    {
+      printf(" VLAN=%.4u   %u of %u (total: %u)\n", i, macLearn_info_vlan[i].mac_counter, macLearn_info_vlan[i].mac_maximum, macLearn_info_vlan[i].mac_total);
     }
   }
 
   /* MAC learning control at virtual port level */
-  for (i=0; i<MAX_GPORTS; i++) {
-    if (macLearn_info_flow[i].mac_counter > 0) {
-      printf(" GPORT=%.4u  %u of %u\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_maximum);
+  for (i=0; i<MAX_GPORTS; i++) 
+  {
+    if (macLearn_info_flow[i].mac_maximum != (L7_uint8)-1)
+    {
+      printf(" GPORT=%.4u  %u of %u (total: %u)\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_maximum, macLearn_info_flow[i].mac_total);
     }
   }
 

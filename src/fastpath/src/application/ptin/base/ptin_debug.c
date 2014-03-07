@@ -153,7 +153,7 @@ void ptin_debug(void)
   printf("  ptin_linkscan_control_global <enable>       - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
   printf("  ptin_intf_linkscan_control <port> <enable>  - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
   printf("\r\n");
-  printf("  void ptin_maclimit_dump             - Dumps MAC limit tables (non empty)\r\n");
+  printf("  ptin_maclimit_dump                  - Dumps MAC limit tables (non empty)\r\n");
   printf("\r\n");
   printf("  log_help                            - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity> - use log_help for more info\r\n");
