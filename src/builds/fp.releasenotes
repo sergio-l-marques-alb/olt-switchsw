@@ -1,1 +1,33 @@
-../../fastpath.releasenotes
+Fastpath 6.3.0.2 Release Notes
+Version 2.7.0-r1223
+ - Fix OLTSWITCH-246/OLTTS-3971: IGMP (group) clients are not being added/removed for QUATTRO services.
+ - Fix OLTSWITCH-244/OLTTS-3971: IGMP client semaphore was not being closed.
+ - Fix OLTSWITCH-245/OLTTS-3983: Traffic stops flowing after sending "FS" command.
+Version 2.8.0-r1415
+ - Req OLTSWITCH-253/OLTTS-3980: Integration of MGMD module to Fastpath.
+ - Fix OLTSWITCH-266: This has to change places, otherwise "MAP_CPLD"'s not defined, leading to strange behaviours.
+ - Req OLTSWITCH-259: Should instead be used an OLT sysID MAC, not this.
+ - Fix OLTSWITCH-266: PLD/FPGA accesses should be avoided for boards with no PLD/FPGA.
+ - Req OLTSWITCH-259: LACP driven LAGs unavailability above 50ms under matrix commutation (still pending a common LACP sysID for both matrixes).
+ - Fix OLTSWITCH-261: Transmitted IGMP/DHCP/PPPoE packets (to leaf ports) should be double-tagged packets for QUATTRO EVCs.
+ - Fix OLTSWITCH-260: Multicast EVCs egress rules defined as OVLAN+UNIVLAN.
+ - Task OLTSWITCH-256/OLTTS-4261: Explore BCM IP Routing
+ - Req OLTSWITCH-185: EVC virtual indexing (extended ids) applied to matrix boards.
+ - Task OLTSWITCH-256/OLTTS-4261: L3 Host and Route routines added.
+ - Fix OLTSWITCH-255/OLTTS-4260: Service Unicast Unstacked with relay PPPoE sends C-VLAN to Upstream in PPPoE packets.
+ - Task OLTSWITCH-48: fastpath.build optimized to compress further the unstripped binaries.
+ - Fix OLTSWITCH-252/OLTTS-4140: It is not possible to create a Multicast Group List to a multicast service that have a TA48GE as client interface.
+ - Fix OLTSWITCH-251/OLTTS-4139: Mediatype and auto-negotiation status on the TA48 should not appear if there is no SFP on the interface
+ - Fix OLTSWITCH-254/OLTTS-4127: The alarm “ End Eth link down” is not registered on WebTI and CLI, when LAG Interface changes to administrative down state.
+ - Req OLTSWITCH-229: TA48GE switch fabric switching service unavailability reduction-harmonization with OLTTS-3864/OLTTS-4093
+ - Fix OLTTS-4141: DHCP Client Request and Server Replies Without Options: gubfixes.
+ - Fix OLTSWITCH-249/OLTTS-4042: DHCP packets belonging to QUATTRO flows, are not being correctly validated.
+ - Fix OLTSWITCH-239: Decreased CBS from 256 to 64 kbps. This will make faster the packet loss for low CBR.
+ - Fix OLTSWITCH-247/OLTTS-4108: Performing a Clear command does not update the ERPS Node State.
+ - Fix OLTSWITCH-243/OLTTS-3963: It is not possible to change tha admin state of a IPv6 Extended rule to up.
+Version 2.8.0-r1463
+ - Tsk OLTSWITCH-219/OLTTS-3402: Allow limiting the number of MAC addresses per service.
+ - Req OLTSWITCH-253/OLTTS-3980: Adaptation of Fastpath to MGMD module.
+ - Fix OLTSWITCH-274/OLTTS-4627: Error disabling an entry in the multicast group list.
+ - Fix OLTSWITCH-270/OLTTS-4586: Ranges for configurable values in MGMD Proxy differ from GL and FW.
+ - Task OLTSWITCH-29: Makefiles and install scripts refactored and optimized.
