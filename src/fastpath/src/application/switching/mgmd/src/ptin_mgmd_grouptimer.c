@@ -113,7 +113,7 @@ RC_t ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *timer, uint32 timeout, pti
     timer->interfaceIdx = interfaceIdx;
   }
 
-  ret = ptin_mgmd_timer_start(timer->timerHandle, timeout*1000, timer);
+  ret = ptin_mgmd_timer_start(timer->timerHandle, timeout, timer);
 
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",timer->newTimerHandle,ptin_mgmd_grouptimer_timeleft(timer));
   return ret;

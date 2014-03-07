@@ -595,7 +595,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   else
   {
     memset((void *)dataStart, 0x00, MLD_FRAME_SIZE);
-    memset(&ipv6Addr, 0x00, sizeof(ptin_mgmd_in6_addr_t));
+    memset(&ipv6Addr, 0x00, sizeof(ipv6Addr));
 
     osapiInetPton(PTIN_MGMD_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, (uchar8 *)&ipv6Addr);
 
@@ -621,7 +621,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 #ifdef PTIN_MGMD_MLD_SUPPORT
   else
   {
-    memset(&ipv6Addr, 0x00, sizeof(ptin_mgmd_in6_addr_t));
+    memset(&ipv6Addr, 0x00, sizeof(ipv6Addr));
     ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET6, &ipv6Addr, &groupAddr);
     rc = ptinMgmdMLDFrameBuild(PTIN_NULL,
                                &destIp,     /* FF02::01 */
@@ -735,7 +735,7 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
   }
 
   /* Run all cells in AVL tree */    
-  memset(&key, 0x00, sizeof(ptinMgmdQuerierInfoDataKey_t));
+  memset(&key, 0x00, sizeof(key));
   while ( (entry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, AVL_NEXT)) != PTIN_NULLPTR )
   {
     /* Prepare next key */

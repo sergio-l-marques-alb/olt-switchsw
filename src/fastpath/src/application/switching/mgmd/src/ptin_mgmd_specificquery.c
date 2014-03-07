@@ -40,7 +40,7 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Error allocating data for groupSourceSpecificQueriesAvl_t");    
     return FAILURE;
   }
-  memset(&pSnoopEB->groupSourceSpecificQueryAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->groupSourceSpecificQueryAvlTree, 0x00, sizeof(pSnoopEB->groupSourceSpecificQueryAvlTree));
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->groupSourceSpecificQueryAvlTree), pSnoopEB->groupSourceSpecificQueryTreeHeap, pSnoopEB->groupSourceSpecificQueryDataHeap, 
                    PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS, sizeof(groupSourceSpecificQueriesAvl_t), 0x10, sizeof(groupSourceSpecificQueriesAvlKey_t));
 

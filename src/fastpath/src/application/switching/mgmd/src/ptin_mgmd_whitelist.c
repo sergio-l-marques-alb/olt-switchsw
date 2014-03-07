@@ -390,7 +390,7 @@ void ptinMgmdWhitelistDump(void)
   printf("+------------+------------------+------------------+\n");
   printf("| Service ID | Group Address    | Source Address   |\n");
   printf("+------------+------------------+------------------+\n");
-  memset(&key, 0x00, sizeof(mgmdPtinWhitelistDataKey_t));
+  memset(&key, 0x00, sizeof(key));
   while ((entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->mgmdPTinWhitelistAvlTree, &key, AVL_NEXT)) != PTIN_NULLPTR)
   {
     //Prepare next key

@@ -63,7 +63,7 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->ptinMgmdGroupAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->ptinMgmdGroupAvlTree, 0x00, sizeof(pSnoopEB->ptinMgmdGroupAvlTree));
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->ptinMgmdGroupAvlTree), pSnoopEB->ptinMgmdGroupTreeHeap, pSnoopEB->ptinMgmdGroupDataHeap,
@@ -127,7 +127,7 @@ RC_t ptinMgmdGroupRecordSourceAVLTreeInit(void)
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxySourceAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->snoopPTinProxySourceAvlTree, 0x00, sizeof(pSnoopEB->snoopPTinProxySourceAvlTree));
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->snoopPTinProxySourceAvlTree), pSnoopEB->snoopPTinProxySourceTreeHeap, pSnoopEB->snoopPTinProxySourceDataHeap,
@@ -163,7 +163,7 @@ RC_t ptinMgmdGroupRecordGroupAVLTreeInit(void)
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxyGroupAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->snoopPTinProxyGroupAvlTree, 0x00, sizeof(pSnoopEB->snoopPTinProxyGroupAvlTree));
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyGroupAvlTree), pSnoopEB->snoopPTinProxyGroupTreeHeap, pSnoopEB->snoopPTinProxyGroupDataHeap,
@@ -200,7 +200,7 @@ RC_t ptinMgmdRootInterfaceAVLTreeInit(void)
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, 0x00, sizeof(pSnoopEB->snoopPTinProxyInterfaceAvlTree));
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->snoopPTinProxyInterfaceAvlTree), pSnoopEB->snoopPTinProxyInterfaceTreeHeap, pSnoopEB->snoopPTinProxyInterfaceDataHeap,
@@ -338,7 +338,7 @@ RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
   }
 
   /* Initialize the storage for all the AVL trees */
-  memset(&pMgmdCB->mgmdPTinQuerierAvlTree, 0x00, sizeof(ptin_mgmd_avlTree_t));
+  memset(&pMgmdCB->mgmdPTinQuerierAvlTree, 0x00, sizeof(pMgmdCB->mgmdPTinQuerierAvlTree));
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pMgmdCB->mgmdPTinQuerierAvlTree), pMgmdCB->mgmdPTinQuerierTreeHeap, pMgmdCB->mgmdPTinQuerierDataHeap,
@@ -378,7 +378,7 @@ void ptin_mgmd_memory_report(void)
   printf("MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]\n", 
             PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
   printf("MGMD Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
-  printf("FP Memory Allocated: %lu MB\n", vmrss_kb/1024);
+  printf("Thread Memory Allocated: %lu MB\n", vmrss_kb/1024);
 }
 
 
@@ -421,7 +421,7 @@ void ptin_mgmd_memory_log_report(void)
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]", 
                       PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Memory Allocated: %lu MB",ptin_mgmd_memory_allocation/1024/1024);
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Memory Allocated: %lu MB", vmrss_kb/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Thread Memory Allocated: %lu MB", vmrss_kb/1024);
 }
 
 

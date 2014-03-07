@@ -499,7 +499,7 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
 
   ptin_mgmd_sourcetimer_stop(&sourcePtr->sourceTimer);
 
-  memset(sourcePtr, 0x00, sizeof(ptinMgmdSource_t));
+  memset(sourcePtr, 0x00, sizeof(*sourcePtr));
 
   if(ptin_fifo_push(pMgmdEB->sourcesQueue, (PTIN_FIFO_ELEMENT_t)sourcePtr)!=SUCCESS)
   {
@@ -1183,9 +1183,10 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   ptin_mgmd_inet_addr_t   *sourceAddr;  
   RC_t                     rc                   = SUCCESS;
   ptin_mgmd_externalapi_t  externalApi;
-  ptinMgmdSource_t     *sourcePtr;
+  ptinMgmdSource_t        *sourcePtr;
   mgmdGroupRecord_t       *groupPtr;
   BOOL                     newEntry;
+  BOOL                     sendGroupSpecificQuery=FALSE;
 
   /* Argument validation */
   if (groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR))
@@ -1212,16 +1213,12 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
         continue;
       }
 
-      if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
-      {
+      if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_INCLUDE || ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)==TRUE)
+      {     
         ptin_mgmd_groupsourcespecifictimer_addsource(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
                                                      portId, &sourcePtr->sourceAddr);
-      }
-      else if ( (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_EXCLUDE) && 
-                (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)) )
-      {
-        ptin_mgmd_groupsourcespecifictimer_addsource(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
-                                                     portId, &sourcePtr->sourceAddr);
+        if(sendGroupSpecificQuery==FALSE)
+          sendGroupSpecificQuery=TRUE;
       }
     }
   }
@@ -1335,14 +1332,15 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_EXCLUDE && groupEntry->ports[portId].numberOfClients==0)
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
-      ptin_mgmd_groupspecifictimer_start(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, igmpCfg);
+      ptin_mgmd_groupspecifictimer_start(groupEntry, portId, igmpCfg);
     }
   }
 
   /* Send a Q(G,S) */
-  if (PTIN_MGMD_ROOT_PORT != portId)
+  if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
-    ptin_mgmd_groupsourcespecifictimer_start(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
+    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
   }
 
   //Recursivly call ourselvs to add this entry in the root interface
@@ -1383,9 +1381,10 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   ptin_mgmd_inet_addr_t    *sourceAddr;
   ptin_mgmd_externalapi_t   externalApi;
   mgmdGroupRecord_t        *groupPtr;
-  ptinMgmdSource_t      *sourcePtr,
+  ptinMgmdSource_t         *sourcePtr,
                            *sourcePtrAux;
   BOOL                      newEntry;
+  BOOL                      sendGroupSpecificQuery=FALSE;
 
   /* Argument validation */
   if (groupEntry == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
@@ -1542,6 +1541,9 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
             /* Add source to Q(G,S) */
             ptin_mgmd_groupsourcespecifictimer_addsource(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
                                                          portId, &sourcePtr->sourceAddr);
+
+            if(sendGroupSpecificQuery==FALSE)
+              sendGroupSpecificQuery=TRUE;
           }          
         }        
         --noOfSources;
@@ -1647,6 +1649,8 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
           return FAILURE;
         }
+
+        ptin_mgmd_groupsourcespecifictimer_removegroup(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr,groupEntry->ptinMgmdGroupInfoDataKey.serviceId,portId);
       }
       else
       {
@@ -1692,9 +1696,10 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   }
 
   /* Send a Q(G,S) */
-  if (PTIN_MGMD_ROOT_PORT != portId)
+  if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
-    ptin_mgmd_groupsourcespecifictimer_start(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
+    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
   }
 
   /* Add client to the interface bitmap if it does not exist */
@@ -1706,7 +1711,7 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   }
   
   /* Set group-timer to GMI */
-  if (SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, igmpCfg->querier.group_membership_interval, groupEntry->ptinMgmdGroupInfoDataKey, portId))
+  if (SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, igmpCfg->querier.group_membership_interval*1000, groupEntry->ptinMgmdGroupInfoDataKey, portId))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to start grouptimer");
     return FAILURE;
@@ -1876,7 +1881,7 @@ RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroup
  * @returns FAILURE
  *
  *************************************************************************/
-RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList)
+RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, uint32 clientId, ushort16 noOfSourcesInput, ptin_mgmd_inet_addr_t *sourceList, ptin_IgmpProxyCfg_t* igmpCfg)
 {
   uint32                  group_timer;
   char                    debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]        = {};                        
@@ -1922,7 +1927,7 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
                 PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add source[%08X] to Q(G,S)", sourceAddr->addr.ipv4.s_addr);
                 return FAILURE;
               }
-              if (rc==SUCCESS)
+              if (rc==SUCCESS && isSourceBlocked==FALSE)
               {
                 isSourceBlocked=TRUE;
               }
@@ -1950,12 +1955,8 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
     if (portId != PTIN_MGMD_ROOT_PORT && isSourceBlocked==TRUE)
     {
       //Send the Q(G,S)
-      if (SUCCESS != ptin_mgmd_groupsourcespecifictimer_start(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId))
-      {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to start Q(G,S) for group[%08X] service[%u] port[%u]", 
-                groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
-        return FAILURE;
-      }
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
+      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
     }
   }
   else if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_EXCLUDE)
@@ -2008,7 +2009,8 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
     /* Send a Q(G,S) */
     if (PTIN_MGMD_ROOT_PORT != portId)
     {
-      ptin_mgmd_groupsourcespecifictimer_start(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
+      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
     }
 
     /* Add client to the interface bitmap if it does not exist */
@@ -2023,7 +2025,7 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
   //Recursivly call ourselvs to add this entry in the root interface
   if (PTIN_MGMD_ROOT_PORT != portId)
   {
-    if(SUCCESS != ptinMgmdMembershipReportBlockProcess(groupEntry, PTIN_MGMD_ROOT_PORT, portId, noOfSourcesInput, sourceList))
+    if(SUCCESS != ptinMgmdMembershipReportBlockProcess(groupEntry, PTIN_MGMD_ROOT_PORT, portId, noOfSourcesInput, sourceList,igmpCfg))
     {
       return FAILURE;
     }
@@ -2906,7 +2908,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Verifying if there is any active group on serviceId:%u", serviceId);
 
 /* Run all cells in AVL tree */
-  memset(&avlTreeKey, 0x00, sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey, 0x00, sizeof(avlTreeKey));
   while ((avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT)) != PTIN_NULLPTR)
   {
 
@@ -3015,9 +3017,12 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
         }      
       }
       /*Set Group Leaf Port  to static*/
-      avlTreeEntry->ports[portId].isStatic = TRUE; 
+      if(avlTreeEntry->ports[portId].isStatic == FALSE) 
+      {
+        avlTreeEntry->ports[portId].isStatic = TRUE; 
+      }
 
-      if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==FALSE)
+      if (avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic == FALSE)
       {
         /*Set Group Root Port  to static*/
         avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic = TRUE; 
@@ -3126,7 +3131,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
         }
         else
         {
-          rc = ptinMgmdMembershipReportBlockProcess(avlTreeEntry, portId, clientId, noOfSources, sourceList);    
+          rc = ptinMgmdMembershipReportBlockProcess(avlTreeEntry, portId, clientId, noOfSources, sourceList,&igmpCfg);    
         }
         avlTreeEntry->ports[portId].isStatic=FALSE;        
       }
@@ -3163,7 +3168,7 @@ ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_ad
     return PTIN_NULLPTR;
   }
 
-  memset((void*)&key, 0x00, sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset((void*)&key, 0x00, sizeof(key));
 
   pSnoopEB = mgmdEBGet();
 
@@ -3213,7 +3218,7 @@ RC_t ptinMgmdL3EntryAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
     return ERROR;
   }
 
-  memset(&snoopEntry, 0x00, sizeof(ptinMgmdGroupInfoData_t));
+  memset(&snoopEntry, 0x00, sizeof(snoopEntry));
   memcpy(&snoopEntry.ptinMgmdGroupInfoDataKey.groupAddr, groupAddr, sizeof(ptin_mgmd_inet_addr_t));
   memcpy(&snoopEntry.ptinMgmdGroupInfoDataKey.serviceId,         &serviceId,         sizeof(uint32));
 
@@ -3324,7 +3329,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t *groupPt
     return PTIN_NULLPTR;
   }
 
-  memset((void*)&key, 0x00, sizeof(snoopPTinSourceRecordKey_t));
+  memset((void*)&key, 0x00, sizeof(key));
 
   pSnoopEB = mgmdEBGet();
 
@@ -3392,7 +3397,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryAdd(mgmdGroupRecord_t* groupPtr
   pSnoopEB = mgmdEBGet();
 
 
-  memset(&snoopEntry, 0x00, sizeof(snoopPTinSourceRecord_t));
+  memset(&snoopEntry, 0x00, sizeof(snoopEntry));
 #if 0
   memcpy(&snoopEntry.key.groupPtr, &groupPtr, sizeof(mgmdGroupRecord_t*));
 #else
@@ -3514,7 +3519,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_
     return PTIN_NULLPTR;
   }
 
-  memset((void*)&key, 0x00, sizeof(mgmdGroupRecordKey_t));
+  memset((void*)&key, 0x00, sizeof(key));
 
   pSnoopEB = mgmdEBGet();
 
@@ -3572,7 +3577,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryAdd(mgmdProxyInterface_t* interfacePtr
   *newEntry = FALSE;
   pSnoopEB = mgmdEBGet();
 
-  memset(&snoopEntry, 0x00, sizeof(mgmdGroupRecord_t));
+  memset(&snoopEntry, 0x00, sizeof(snoopEntry));
 //memcpy(&snoopEntry.key.interfacePtr, &interfacePtr, sizeof(snoopPTinProxyInterface_t*));
   snoopEntry.key.serviceId=interfacePtr->key.serviceId;
   snoopEntry.key.groupAddr=*groupAddr;
@@ -3692,7 +3697,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 f
   snoopPTinProxyInterfaceKey_t key;
   ptin_mgmd_eb_t              *pSnoopEB;
 
-  memset((void*)&key, 0x00, sizeof(snoopPTinProxyInterfaceKey_t));
+  memset((void*)&key, 0x00, sizeof(key));
 
   pSnoopEB = mgmdEBGet();
 
@@ -3747,7 +3752,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL *new
 
   pSnoopEB = mgmdEBGet();
 
-  memset(&snoopEntry, 0x00, sizeof(mgmdProxyInterface_t));  
+  memset(&snoopEntry, 0x00, sizeof(snoopEntry));  
   memcpy(&snoopEntry.key.serviceId, &serviceId, sizeof(uint32));       
   pData = ptin_mgmd_avlInsertEntry(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &snoopEntry);
 

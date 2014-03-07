@@ -63,7 +63,7 @@ RC_t __groupsourcespecifictimer_addsource(groupSourceSpecificQueriesAvl_t *avlTr
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "I was given the source %p", new_source);
 
   //Configure the new source
-  memset(new_source, 0x00, sizeof(groupSourceSpecificQueriesSource_t));
+  memset(new_source, 0x00, sizeof(*new_source));
   ptin_mgmd_inetCopy(&new_source->sourceAddr, sourceAddr);
   new_source->retransmissions = retransmissions;
   new_source->prev            = PTIN_NULLPTR;
@@ -204,19 +204,22 @@ RC_t ptin_mgmd_groupsourcespecifictimer_init(PTIN_MGMD_TIMER_t *timerPtr)
 }
 
 
-RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_IgmpProxyCfg_t *igmpCfg)
+RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
-  RC_t                             ret           = SUCCESS;  
   groupSourceSpecificQueriesAvl_t *timerData; 
-  ptinMgmdGroupInfoData_t           *groupEntry;
-
-  if(PTIN_NULLPTR == groupAddr)
+  uchar8                           queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
+  uint32                           queryHeaderLength = 0;
+  ptin_mgmd_externalapi_t          externalApi;
+  ptinMgmdControlPkt_t             queryPckt         = {0};
+  uint32                           gtTimeLeft, lmqt;
+   
+  if(PTIN_NULLPTR == groupEntry)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid parameters [groupAddr=%p]", groupAddr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid parameters [groupAddr=%p]", groupEntry);
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting group specific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting group specific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
 
   if (PTIN_NULLPTR == __controlBlock)
   {
@@ -224,89 +227,127 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32
     return FAILURE;
   }
 
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
-    uint32 gtTimeLeft, lmqt;
-    
-    //Add new entry to the AVL tree with the parameters in groupData
-    if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd(groupAddr, serviceId, portId)))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to add a new groupspecific timer entry [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
-      return TABLE_IS_FULL;
-    }
-    timerData->retransmissions = igmpCfg->querier.last_member_query_count;
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return FAILURE;
+  }
 
-    //Set supress router-side processing flag if current grouptimer is higher than LMQT
-    if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to find group entry [groupAddr=0x%08X serviceId=%u]", groupAddr->addr.ipv4.s_addr, serviceId);
-      return FAILURE;
-    }    
-    lmqt       = igmpCfg->querier.last_member_query_interval/10 * igmpCfg->querier.last_member_query_count;//Convert from dS -> S
-    gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->ports[portId].groupTimer);//Seconds
-    if(gtTimeLeft > lmqt)
-    {
-      timerData->supressRouterSideProcessing = TRUE;
-    }
-    else
-    {
-      timerData->supressRouterSideProcessing = FALSE;
-    }
+  lmqt       = igmpCfg->querier.last_member_query_interval * igmpCfg->querier.last_member_query_count*100;//Convert from dS -> mS
+  gtTimeLeft = ptin_mgmd_grouptimer_timeleft(&groupEntry->ports[portId].groupTimer)*1000;//Convert from S -> mS 
 
-    //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting interface timer to LMQT");
-    if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, lmqt, groupEntry->ptinMgmdGroupInfoDataKey, portId))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, AVL_EXACT)))
+  {
+    if(igmpCfg->querier.last_member_query_count>1)
     {
-      PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
-      return FAILURE;
-    }
-    
-    if(groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients==0 ||
-       (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, portId) && groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients == 1))
-    {
-      //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
-      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting root interface timer to LMQT");
-      if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[PTIN_MGMD_ROOT_PORT].groupTimer, lmqt+1, groupEntry->ptinMgmdGroupInfoDataKey, PTIN_MGMD_ROOT_PORT))
+       //Add new entry to the AVL tree with the parameters in groupData
+      if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId)))
       {
-        PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]",
-                     groupAddr->addr.ipv4.s_addr, serviceId, PTIN_MGMD_ROOT_PORT);
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to add a new groupspecific timer entry [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+        return TABLE_IS_FULL;
+      }
+      timerData->retransmissions = igmpCfg->querier.last_member_query_count-1;
+
+      if(gtTimeLeft > lmqt)
+      {
+        timerData->supressRouterSideProcessing = TRUE;
+      }
+      else
+      {
+        timerData->supressRouterSideProcessing = FALSE;
+      }
+
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "New group specific timer [groupAddr=0x%08X serviceId=%u portId=%u]", 
+              groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+      if(SUCCESS != ptin_mgmd_groupsourcespecifictimer_init(&timerData->timerHandle))
+      {
+        PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to initialize a new groupspecific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
         return FAILURE;
       }
     }
-        
-    if(SUCCESS != ptin_mgmd_groupsourcespecifictimer_init(&timerData->timerHandle))
-    {
-      PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to initialize a new groupspecific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
-      return FAILURE;
-    }
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "New group specific timer [groupAddr=0x%08X serviceId=%u portId=%u]", 
-              timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId, timerData->key.portId);
   }
   else
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Restarting groupspecific [groupAddr=0x%08X serviceId=%u portId=%u]", 
-              timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId, timerData->key.portId);
+              groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
     ptin_mgmd_timer_stop(timerData->timerHandle);
-    timerData->retransmissions = igmpCfg->querier.last_member_query_count;
+    timerData->retransmissions = igmpCfg->querier.last_member_query_count-1;
+
+    if(igmpCfg->querier.last_member_query_count==1)
+    {
+      ptin_mgmd_groupsourcespecifictimer_removegroup(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr,groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+    }
   }
 
-  ret = ptin_mgmd_timer_start(timerData->timerHandle, 0, &timerData->key); //Send a Q(G) immediatly
-  return ret;
+  //Build IGMP Query header, without any sources
+  buildQueryHeader(igmpCfg->clientVersion, queryHeader, &queryHeaderLength, &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, FALSE);
+
+  //Build the IGMP Query frame
+  buildIgmpFrame(queryPckt.framePayload, &queryPckt.frameLength, queryHeader, queryHeaderLength);
+
+  //Send Group-Source specific query to all leaf ports for this service
+  queryPckt.serviceId  = groupEntry->ptinMgmdGroupInfoDataKey.serviceId;  
+  queryPckt.clientId = (uint32)-1;
+  queryPckt.family     = PTIN_MGMD_AF_INET;
+  if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, portId))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to send source specific query for service[%u]", groupEntry->ptinMgmdGroupInfoDataKey.serviceId);
+    return FAILURE;
+  }
+  
+  //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting interface timer to LMQT");
+  if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, lmqt, groupEntry->ptinMgmdGroupInfoDataKey, portId))
+  {
+    PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+    return FAILURE;
+  }
+  
+  if(groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients==0 ||
+     (TRUE == PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, portId) && groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients == 1))
+  {
+    //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting root interface timer to LMQT");
+    if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[PTIN_MGMD_ROOT_PORT].groupTimer, lmqt+1000, groupEntry->ptinMgmdGroupInfoDataKey, PTIN_MGMD_ROOT_PORT))
+    {
+      PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]",
+                   groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, PTIN_MGMD_ROOT_PORT);
+      return FAILURE;
+    }
+  }  
+
+  if(igmpCfg->querier.last_member_query_count>1)
+  {
+    //Schedule a new source-speficic query
+    if(SUCCESS != ptin_mgmd_timer_start(timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start group specific timer");
+      return FAILURE;
+    }
+  }
+
+  return SUCCESS;
 }
 
 
-RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
+RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId,ptin_IgmpProxyCfg_t *igmpCfg)
 {
-  RC_t                            ret           = SUCCESS;  
-  groupSourceSpecificQueriesAvl_t *timerData; 
-
-  if(PTIN_NULLPTR == groupAddr)
+  uchar8                                 queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
+  uint32                                 queryHeaderLength = 0;
+  ptin_mgmd_externalapi_t                externalApi;
+  ptinMgmdControlPkt_t                   queryPckt         = {0};
+  groupSourceSpecificQueriesAvl_t       *timerData; 
+  groupSourceSpecificQueriesSource_t    *auxSourcePtr;
+  groupSourceSpecificQueriesSource_t    *iterator;
+  uint32                                 sourcesToSend = 0;
+  
+  if(PTIN_NULLPTR == groupEntry)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid parameters [groupAddr=%p]", groupAddr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid parameters [groupAddr=%p]", groupEntry);
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting sourcespecific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupAddr->addr.ipv4.s_addr, serviceId, portId);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Starting sourcespecific timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
 
   if (PTIN_NULLPTR == __controlBlock)
   {
@@ -314,10 +355,10 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, 
     return FAILURE;
   }
 
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, AVL_EXACT)))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Nothing to be done for this Q(G,S) [groupAddr=0x%08X serviceId=%u portId=%u]", 
-            groupAddr->addr.ipv4.s_addr, serviceId, portId);
+            groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
     return SUCCESS;
   }
   else
@@ -327,15 +368,63 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, 
 
   if(timerData->numberOfSources != 0)
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Scheduling group-source specific timer [groupAddr=0x%08X serviceId=%u portId=%u]", 
-              timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId, timerData->key.portId);
-    ret = ptin_mgmd_timer_start(timerData->timerHandle, 0, &timerData->key); //Send a Q(G,S) immediatly
+    if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+      return FAILURE;
+    }
+    
+    //Build IGMP Query header, without any sources
+    buildQueryHeader(igmpCfg->clientVersion, queryHeader, &queryHeaderLength, &timerData->key.groupAddr, FALSE);
+
+    //For each source with active retransmissions, add them to the IGMP Query header
+    for(iterator=timerData->firstSource; iterator!=PTIN_NULLPTR; iterator=auxSourcePtr)
+    {
+      auxSourcePtr = iterator->next;
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Adding source[%08X] to Q(G,S) [groupAddr=0x%08X serviceId=%u portId=%u]", 
+                iterator->sourceAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
+      addSourceToQuery(queryHeader, &queryHeaderLength, &iterator->sourceAddr);
+      ++sourcesToSend;
+
+      //Reduce the number of retransmissions. If it reached 0, remove the source from the list
+      if(--iterator->retransmissions == 0)
+      {
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Last retransmission for source[%08X]", iterator->sourceAddr.addr.ipv4.s_addr);
+        __groupsourcespecifictimer_delsource(timerData, iterator);
+      }
+    }
+
+    if( (sourcesToSend > 0) || (timerData->retransmissions > 0) )
+    {
+      //Reduce group retransmissions
+      if(timerData->retransmissions > 0)
+      {
+        --timerData->retransmissions;
+      }
+      //Build the IGMP Query frame
+      buildIgmpFrame(queryPckt.framePayload, &queryPckt.frameLength, queryHeader, queryHeaderLength);
+
+      //Send Group-Source specific query to all leaf ports for this service
+      queryPckt.serviceId  = timerData->key.serviceId;  
+      queryPckt.clientId = (uint32)-1;
+      queryPckt.family     = PTIN_MGMD_AF_INET;
+      if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, timerData->key.portId))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to send source specific query for service[%u]", timerData->key.serviceId);
+        return FAILURE;
+      }
+
+      //Schedule a new source-speficic query
+      if(SUCCESS != ptin_mgmd_timer_start(timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start group specific timer");
+        return FAILURE;
+      }
+    }
   }
-  
-  //If this Q(G,S) does not have any more sources or group retransmissions, remote it
-  if( (timerData->numberOfSources == 0) && (timerData->retransmissions == 0) )
+  else
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "No retransmissions left for this Group Specific Timer");
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group and Source Specific Query without Sources");
     if(SUCCESS != ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to delete Group Specific Timer [groupAddr=0x%08X serviceId=%u portId=%u]", 
@@ -343,8 +432,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptin_mgmd_inet_addr_t* groupAddr, 
       return FAILURE;
     }
     ptin_mgmd_timer_deinit(timerData->timerHandle);
-  }
-  return ret;
+  }  
+
+  return SUCCESS;
 }
 
 
@@ -449,7 +539,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
     {
       if(TRUE == PTIN_MGMD_INET_IS_ADDR_EQUAL(&iterator->sourceAddr, sourceAddr))
       {
-        iterator->retransmissions = igmpGlobalCfg.querier.last_member_query_count; //Reset retransmissions counter
+        iterator->retransmissions = igmpGlobalCfg.querier.last_member_query_count-1; //Reset retransmissions counter
         source_found = TRUE;
         break;
       }
@@ -481,12 +571,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
     }
   }  
   if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,PTIN_MGMD_ROOT_PORT,sourceAddr)) !=PTIN_NULLPTR)  
-  {   
-    int32  rootPortBitmap;
-
-    PTIN_MGMD_CLIENT_UNSET_MASKBIT(sourcePtr->clients, portId);
-    PTIN_MGMD_CLIENT_NONZEROMASK(sourcePtr->clients, rootPortBitmap);
-    if(-1 == rootPortBitmap)
+  { 
+    if(sourcePtr->numberOfClients==0 ||
+     (TRUE == PTIN_MGMD_CLIENT_IS_MASKBITSET(sourcePtr->clients, portId) && sourcePtr->numberOfClients == 1))
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting source[%08X] timer to LMQT[%u]", sourceAddr->addr.ipv4.s_addr, lmqt);
       if(SUCCESS != ptin_mgmd_sourcetimer_start(&sourcePtr->sourceTimer, lmqt+1, groupEntry->ptinMgmdGroupInfoDataKey, PTIN_MGMD_ROOT_PORT, sourcePtr))
@@ -495,8 +582,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
                      groupAddr->addr.ipv4.s_addr, serviceId, PTIN_MGMD_ROOT_PORT);
         return FAILURE;
       }
-    }
-    PTIN_MGMD_CLIENT_SET_MASKBIT(sourcePtr->clients, portId); //Restore root port client bitmap
+    }    
   }
   
   return SUCCESS;
@@ -515,7 +601,64 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
               groupAddr->addr.ipv4.s_addr, serviceId, portId);
-    return FAILURE;
+    return SUCCESS;
+  }
+  else
+  {
+    if(timerData->numberOfSources!=0) //Group & Source Specific Query
+    {
+      groupSourceSpecificQueriesSource_t *iterator;
+      uint32                             i; 
+
+      //Search for the requested source
+      for(iterator=timerData->firstSource, i=0; iterator!=PTIN_NULLPTR && i<timerData->numberOfSources; iterator=iterator->next, ++i)
+      {
+        if(TRUE == PTIN_MGMD_INET_IS_ADDR_EQUAL(&iterator->sourceAddr, sourceAddr))
+        {
+          ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
+          iterator->retransmissions = 0;
+          --timerData->numberOfSources;
+
+          __groupsourcespecifictimer_delsource(timerData, iterator);
+
+          break;
+        }
+      }
+      //If no more sources exist. Remove this Group & Source Specific Query
+      if(timerData->numberOfSources==0)
+      {
+        //Ensure that the timer is not running
+        ptin_mgmd_groupsourcespecifictimer_stop(timerData->timerHandle);
+
+        ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
+    
+        ptin_mgmd_timer_deinit(timerData->timerHandle);
+      }
+    }
+    else //Group Specific Query
+    {      
+      //No source found      
+      return SUCCESS;
+    }    
+  }
+
+  return SUCCESS;
+}
+
+
+RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
+{
+  groupSourceSpecificQueriesAvl_t *timerData;
+    
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Removing  Q(G,S) timer [groupAddr=0x%08X serviceId=%u portId=%u]",
+            groupAddr->addr.ipv4.s_addr, serviceId, portId);
+
+  //Find entry in the AVL
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
+              groupAddr->addr.ipv4.s_addr, serviceId, portId);
+    return SUCCESS;
   }
   else
   {
@@ -528,22 +671,20 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
     //Search for the requested source
     for(iterator=timerData->firstSource, i=0; iterator!=PTIN_NULLPTR && i<timerData->numberOfSources; iterator=iterator->next, ++i)
     {
-      if(TRUE == PTIN_MGMD_INET_IS_ADDR_EQUAL(&iterator->sourceAddr, sourceAddr))
-      {
-        ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
-        iterator->retransmissions = 0;
-        --timerData->numberOfSources;
+      ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
+      iterator->retransmissions = 0;
+      --timerData->numberOfSources;
 
-        __groupsourcespecifictimer_delsource(timerData, iterator);
-
-        break;
-      }
+      __groupsourcespecifictimer_delsource(timerData, iterator);
+      
     }
   }
+  ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
+  
+  ptin_mgmd_timer_deinit(timerData->timerHandle);
 
   return SUCCESS;
 }
-
 
 RC_t ptin_mgmd_groupsourcespecifictimer_stop(PTIN_MGMD_TIMER_t timer)
 {

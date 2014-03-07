@@ -871,7 +871,7 @@ void printHelpMenu(void)
   printf("\t 108 - WHITELIST_DUMP           -                                                                            \n"); 
   printf("\t 109 - WHITELIST_CLEAN          -                                                                            \n"); 
   printf("\t 110 - MEASUREMENT_TIMERS       -                                                                            \n");   
-  printf("\t 112 - GENERAL_QUERY_DUMP       -                                                                            \n");
+  printf("\t 111 - QUERIES_DUMP             -                                                                            \n");
   printf("\t 999 - MEMORY_REPORT_DUMP       -                                                                            \n");  
 }
 

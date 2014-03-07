@@ -44,6 +44,7 @@ static RC_t                   snoopPTinReportSend(uint32 serviceId, mgmdGroupRec
 static mgmdGroupRecord_t*     snoopPTinGroupRecordIncrementTransmissions(uint32 noOfRecords,mgmdGroupRecord_t* groupPtr, uint32* newNoOfRecords,uint8 robustnessVariable);
 static RC_t                   snoopPTinGroupRecordSourceIncrementTransmissions(mgmdGroupRecord_t* groupPtr,uint8 robustnessVariable);
 static mgmdGroupRecord_t*     mgmdBuildIgmpv3CSR(mgmdProxyInterface_t *interfacePtr, uint32 *noOfRecords);
+static void                   ptinMgmdDumpGroupSpecificQuery(void);
 
 
 /*****************************************************************
@@ -791,7 +792,7 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
   }
 
   /* Initialize mcastPacket structure */
-  memset(&mcastPacket, 0x00, sizeof(ptinMgmdControlPkt_t));
+  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
 
   /* Get Mgmd Control Block */
   if (( mcastPacket.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
@@ -893,13 +894,13 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
  *************************************************************************/
 void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
 {
-  char                   debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
+  char                     debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
   ptinMgmdGroupInfoData_t *groupEntry;
-  ptinMgmdSource_t   *sourcePtr;
-  ptin_mgmd_inet_addr_t       groupAddr;
-  ptin_mgmd_cb_t             *pMgmdCB = PTIN_NULLPTR; 
+  ptinMgmdSource_t        *sourcePtr;
+  ptin_mgmd_inet_addr_t    groupAddr;
+  ptin_mgmd_cb_t          *pMgmdCB = PTIN_NULLPTR; 
 
-  memset(&groupAddr, 0x00, sizeof(ptin_mgmd_inet_addr_t));
+  memset(&groupAddr, 0x00, sizeof(groupAddr));
   groupAddr.family=PTIN_MGMD_AF_INET;
 
   if (serviceId>PTIN_MGMD_MAX_SERVICE_ID)
@@ -1007,7 +1008,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
   uint32 i;
 
   ptin_mgmd_inet_addr_t        groupAddr;
-  memset(&groupAddr, 0x00, sizeof(ptin_mgmd_inet_addr_t));
+  memset(&groupAddr, 0x00, sizeof(groupAddr));
   groupAddr.family=PTIN_MGMD_AF_INET;
 
 
@@ -1208,7 +1209,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Building Current State Records of serviceId:%u",interfacePtr->key.serviceId);
 /* Run all cells in AVL tree */    
 
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( groupEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
 
@@ -1321,7 +1322,7 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
   }
 
   /* Run all cells in AVL tree */    
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
 
@@ -1370,8 +1371,8 @@ void ptinMgmdDumpGeneralQuery(void)
   }
   
   /* Run all cells in AVL tree */
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdDumpGeneralQuery");
   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
@@ -1387,8 +1388,62 @@ void ptinMgmdDumpGeneralQuery(void)
     printf("-----------------------------------------\n");
     
   }  
+  ptinMgmdDumpGroupSpecificQuery();  
 }
 
+
+/*************************************************************************
+ * @purpose Dump Group and Group Source Specific Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdDumpGroupSpecificQuery(void)
+{
+  groupSourceSpecificQueriesAvl_t     *avlTreeEntry;  
+  groupSourceSpecificQueriesAvlKey_t   avlTreeKey;
+  ptin_mgmd_eb_t                      *pMgmdEB;
+  char                                 debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {0};
+  groupSourceSpecificQueriesSource_t  *sourcePtr;
+
+  if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+  
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdDumpGroupSpecificQuery");
+  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdEB->groupSourceSpecificQueryAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
+
+    printf("-----------------------------------------\n");
+    if(avlTreeEntry->numberOfSources==0)
+    {
+       printf("Group Specific Query Query\n");
+    }
+    else
+    {
+      printf("Group & Source Specific Query Query\n");
+    }    
+    printf("ServiceId                  :%u\n", avlTreeEntry->key.serviceId);  
+    printf("GroupAddr                  :%s\n", ptin_mgmd_inetAddrPrint(&(avlTreeEntry->key.groupAddr), debug_buf));  
+    printf("PortId                     :%u\n", avlTreeEntry->key.portId);  
+    printf("SupressRouterSideProcessing:%s\n", avlTreeEntry->supressRouterSideProcessing?"True":"False");
+    printf("Retransmissions            :%u\n", avlTreeEntry->retransmissions);
+    sourcePtr=avlTreeEntry->firstSource;
+    while (sourcePtr!=PTIN_NULLPTR)    
+    {
+      printf("   SourceAddr:%s",ptin_mgmd_inetAddrPrint(&(sourcePtr->sourceAddr),debug_buf));
+      printf("Retransmissions            :%u\n",sourcePtr->retransmissions);
+      sourcePtr=sourcePtr->next;
+    }
+  } 
+}
 /*************************************************************************
  * @purpose Dump IGMPv3 AVL Tree
  *
@@ -1408,7 +1463,7 @@ void ptinMgmdDumpL3AvlTree(void)
   }
 
 /* Run all cells in AVL tree */
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
   printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
@@ -1439,7 +1494,7 @@ void ptinMgmdCleanAllGroupAvlTree(void)
   }
  
   /* Run all cells in AVL tree */
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
   printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
@@ -1477,7 +1532,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
 
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpGroupRecordAvlTree");
 /* Run all cells in AVL tree */    
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
 
@@ -1512,7 +1567,7 @@ void ptinMgmdCleanAllGroupRecordAvlTree(void)
   }
 
    /* Run all cells in AVL tree */    
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
@@ -1543,7 +1598,7 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
   }
 
   /* Run all cells in AVL tree */    
-  memset(&avlTreeKey,0x00,sizeof(ptinMgmdGroupInfoDataKey_t));
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
@@ -1897,7 +1952,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing learnt channels...", serviceId);
   {
-    memset(&avlTreeKey, 0x00, sizeof(ptinMgmdGroupInfoDataKey_t));
+    memset(&avlTreeKey, 0x00, sizeof(avlTreeKey));
     while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
       // Prepare next key
@@ -1931,7 +1986,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing pending Q(G,S)...", serviceId);
   {
-    memset(&queriesAvlTreeKey, 0x00, sizeof(groupSourceSpecificQueriesAvlKey_t));
+    memset(&queriesAvlTreeKey, 0x00, sizeof(queriesAvlTreeKey));
     while ( ( queriesAvlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &queriesAvlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
       // Prepare next key
