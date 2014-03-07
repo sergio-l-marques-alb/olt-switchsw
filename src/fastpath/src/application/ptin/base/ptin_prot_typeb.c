@@ -46,7 +46,7 @@ ptin_prottypeb_intf_config_t prottypeb_interfaces[PTIN_SYSTEM_N_INTERF];
 L7_RC_t ptin_prottypeb_init(void)
 {
   /* Initialize the interface configurations */
-  LOG_INFO(LOG_CTX_PTIN_TYPEBPROT, "Initializing interface type-b protection configurations");
+  LOG_INFO(LOG_CTX_PTIN_PROTB, "Initializing interface type-b protection configurations");
   memset(prottypeb_interfaces, 0x00, sizeof(prottypeb_interfaces));
 
   return L7_SUCCESS;
@@ -68,7 +68,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   /* Check input */
   if(data==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_TYPEBPROT, "Invalid context [data:%p]", data);
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid context [data:%p]", data);
     return L7_FAILURE;
   }
 
@@ -76,17 +76,17 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   intfNum = data->intfNum;
   if(intfNum>=PTIN_SYSTEM_N_INTERF)
   {
-    LOG_ERR(LOG_CTX_PTIN_TYPEBPROT, "Invalid intfNum[%u]", data->intfNum);
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid intfNum[%u]", data->intfNum);
     return L7_FAILURE;
   }
 
   /* Return the configurations for the desired interface */
-  LOG_DEBUG(LOG_CTX_PTIN_TYPEBPROT, "Setting intfNum[%u] type-b protection configurations", intfNum);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "Configurations:");
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    intfNum    : %u", data->intfNum);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    intfRole   : %u", data->intfRole);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    pairSlotId : %u", data->pairSlotId);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    pairIntfNum: %u", data->pairIntfNum);
+  LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Setting intfNum[%u] type-b protection configurations", intfNum);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Configurations:");
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfNum    : %u", data->intfNum);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfRole   : %u", data->intfRole);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairSlotId : %u", data->pairSlotId);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairIntfNum: %u", data->pairIntfNum);
   memcpy(&prottypeb_interfaces[intfNum], data, sizeof(ptin_prottypeb_intf_config_t));
 
   return L7_SUCCESS;
@@ -105,25 +105,25 @@ L7_RC_t ptin_prottypeb_intf_config_get(L7_uint32 intfNum, ptin_prottypeb_intf_co
   /* Check input */
   if(data==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_TYPEBPROT, "Invalid context [data:%p]", data);
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid context [data:%p]", data);
     return L7_FAILURE;
   }
 
   /* Ensure the requested interface is valid */
   if(intfNum>=PTIN_SYSTEM_N_INTERF)
   {
-    LOG_ERR(LOG_CTX_PTIN_TYPEBPROT, "Invalid intfNum[%u]", data->intfNum);
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid intfNum[%u]", data->intfNum);
     return L7_FAILURE;
   }
 
   /* Return the configurations for the desired interface */
-  LOG_DEBUG(LOG_CTX_PTIN_TYPEBPROT, "Getting intfNum[%u] type-b protection configurations", intfNum);
+  LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Getting intfNum[%u] type-b protection configurations", intfNum);
   memcpy(data, &prottypeb_interfaces[intfNum], sizeof(ptin_prottypeb_intf_config_t));
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "Configurations:");
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    intfNum    : %u", data->intfNum);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    intfRole   : %u", data->intfRole);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    pairSlotId : %u", data->pairSlotId);
-  LOG_TRACE(LOG_CTX_PTIN_TYPEBPROT, "    pairIntfNum: %u", data->pairIntfNum);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Configurations:");
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfNum    : %u", data->intfNum);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfRole   : %u", data->intfRole);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairSlotId : %u", data->pairSlotId);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairIntfNum: %u", data->pairIntfNum);
 
   return L7_SUCCESS;
 }
