@@ -222,7 +222,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     return L7_FAILURE;
   }
 
-  ptin_intfConfig.pairSlotId = msg->slotId;
+  ptin_intfConfig.pairSlotId = msg->pairSlotId;
   ptin_intfConfig.intfRole   = msg->intfRole;
 
   /* Save interface configurations */
@@ -5900,6 +5900,25 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_igmp_clientList_get");
     return rc;
   }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Sync MGMD open ports
+ * 
+ * @param port_sync_data : MGMD port to sync
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
+{
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
+  LOG_INFO(LOG_CTX_PTIN_MSG, " admin      = %u", port_sync_data->admin);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " serviceId  = %u", port_sync_data->serviceId);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " portId     = %u", port_sync_data->portId);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
 
   return L7_SUCCESS;
 }

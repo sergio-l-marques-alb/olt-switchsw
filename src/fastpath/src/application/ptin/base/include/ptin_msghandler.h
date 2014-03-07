@@ -56,8 +56,7 @@
 //#define CCMSG_ETH_LACP_MATRIXES_SYNC        0x9028
 #define CCMSG_ETH_LACP_MATRIXES_SYNC2       0x9028
 
-#define CCMSG_MGMD_PORT_OPEN_SYNC           0x9029  // struct msg_HwMgmdPortSync
-#define CCMSG_MGMD_PORT_CLOSE_SYNC          0x902A  // struct msg_HwMgmdPortSync
+#define CCMSG_MGMD_PORT_SYNC                0x9029  // struct msg_HwMgmdPortSync
 
 #define CCMSG_TYPEB_PROT_INTF_CONFIG        0x902B  // struct msg_HwTypeBProtIntfConfig_t
 
@@ -691,9 +690,10 @@ typedef struct {
 } __attribute__((packed)) msg_HwEthMef10Evc_t;
 
 /* MGMD port sync */
-// Messages CCMSG_MGMD_PORT_OPEN_SYNC and CCMSG_MGMD_PORT_CLOSE_SYNC
+// Messages CCMSG_MGMD_PORT_SYNC
 typedef struct {
   L7_uint8  SlotId;
+  L7_uint8  admin;
   L7_uint32 serviceId;
   L7_uint32 portId;
   L7_uint32 groupAddr;

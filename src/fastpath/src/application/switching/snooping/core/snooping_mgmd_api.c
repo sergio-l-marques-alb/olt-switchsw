@@ -21,6 +21,9 @@
 #include "snooping_proto.h"
 #include "snooping_db.h"
 
+//#include "ipc.h"
+//#include "ptin_msghandler.h"
+
 typedef struct {
   L7_BOOL   inUse;  
   L7_uint16 UcastEvcId;
@@ -228,31 +231,42 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
     }
   }
 
-//#if (PTIN_BOARD_IS_MATRIX)
-//#else
-//  ptin_prottypeb_intf_config_t protTypebIntfConfig;
-//
-//  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
-//  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
-//  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+#if (PTIN_BOARD_IS_MATRIX)
+#else
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+  {
+//  msg_HwMgmdPortSync mgmdPortSync = {0};
+    L7_uint32          protectionSlotId;
+    L7_uint32          protectionIntfId;
+    L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+
+    /* Determine protection slot/ip/interface */
+    protectionSlotId  = protTypebIntfConfig.pairSlotId;
+    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
+    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
+
+    /* Fill the sync structure */
+//  mgmdPortSync.SlotId     = protectionSlotId;
+//  mgmdPortSync.admin      = L7_ENABLE;
+//  mgmdPortSync.serviceId  = serviceId;
+//  mgmdPortSync.portId     = portId;
+//  mgmdPortSync.groupAddr  = groupAddr;
+//  mgmdPortSync.sourceAddr = sourceAddr;
+
+    LOG_INFO(LOG_CTX_PTIN_PROTB, "This port is the prot-typeb master of %u/%u", protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
+    LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to open port %u as well", protectionSlotIp, protectionSlotId, protectionIntfId);
+
+    /* Send the switch port configurations to the backup port */
+//  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
 //  {
-//    L7_uint32 protectionSlotId;
-//    L7_uint32 protectionIntfId;
-//    L7_uint32 protectionSlotIp = 0xC0A8C800;
-//
-//    protectionSlotId  = protTypebIntfConfig.pairSlotId;
-//    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
-//    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
-//
-//    /* Send the switch port configurations to the backup port */
-////  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_OPEN_SYNC, &((char *) &stat)[i], NULL, len) < 0)
-////  {
-////    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
-////    //return 1;
-////  }
-//
+//    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
 //  }
-//#endif
+  }
+#endif
 
   return rc;
 }
@@ -298,6 +312,43 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
       return L7_FAILURE;
     }
   }
+
+#if (PTIN_BOARD_IS_MATRIX)
+#else
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+  {
+//  msg_HwMgmdPortSync mgmdPortSync = {0};
+    L7_uint32          protectionSlotId;
+    L7_uint32          protectionIntfId;
+    L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+
+    /* Determine protection slot/ip/interface */
+    protectionSlotId  = protTypebIntfConfig.pairSlotId;
+    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
+    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
+
+    /* Fill the sync structure */
+//  mgmdPortSync.SlotId     = protectionSlotId;
+//  mgmdPortSync.admin      = L7_DISABLE;
+//  mgmdPortSync.serviceId  = serviceId;
+//  mgmdPortSync.portId     = portId;
+//  mgmdPortSync.groupAddr  = groupAddr;
+//  mgmdPortSync.sourceAddr = sourceAddr;
+
+    LOG_INFO(LOG_CTX_PTIN_PROTB, "This port is the prot-typeb master of %u/%u", protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
+    LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to close port %u as well", protectionSlotIp, protectionSlotId, protectionIntfId);
+
+    /* Send the switch port configurations to the backup port */
+//  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+//  }
+  }
+#endif
 
   return rc;
 }

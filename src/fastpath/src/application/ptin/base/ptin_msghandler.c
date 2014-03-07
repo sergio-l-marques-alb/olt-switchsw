@@ -3161,6 +3161,26 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_timer_stop(38);
     }
     break;
+    
+    /* Sync MGMD open ports between different cards/interfaces*/
+    case CCMSG_MGMD_PORT_SYNC:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_HwMgmdPortSync);
+
+      msg_HwMgmdPortSync *ptr;
+      ptr = (msg_HwMgmdPortSync *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwMgmdPortSync));
+
+      /* Execute command */
+      rc = ptin_msg_mgmd_sync_ports(ptr);
+      outbuffer->infoDim = 1;
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with rc:%d bytes", rc);
+    }
+    break;
 
     /* Set PRBS mode */
     case CCMSG_ETH_PCS_PRBS_ENABLE:

@@ -53,7 +53,7 @@ static void ptin_mgmd_fp_encode(uchar8 family, uint8 version, int32 num, uint32*
   if (family == PTIN_MGMD_AF_INET)
   {
     /* If we are working with v2, then if num exceed v2 maximum value, truncate it to v2 max value */
-    if(version == PTIN_IGMP_VERSION_2)
+    if( (version == PTIN_IGMP_VERSION_2) && (num > PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL) )
     {
       num = PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL;
     }

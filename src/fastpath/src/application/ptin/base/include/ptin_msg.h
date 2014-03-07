@@ -889,6 +889,15 @@ extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inpu
 extern L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list);
 
 /**
+ * Sync MGMD open ports
+ * 
+ * @param port_sync_data : MGMD port to sync
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data);
+
+/**
  * Enable PRBS tx/rx
  * 
  * @param msg : PRBS configuration

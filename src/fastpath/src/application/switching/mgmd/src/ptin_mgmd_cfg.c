@@ -225,7 +225,6 @@ RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy)
      }
   }
 
-
   /* Query Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI && mgmdProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
   {
