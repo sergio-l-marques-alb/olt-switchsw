@@ -122,6 +122,10 @@ cli_clean:
 shell_clean:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make clean
 
+clean-ptin clean-switching clean-andl:
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
+	$(RM) -f $(TMP_FILE)
+
 clean cleanall: welcome cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
