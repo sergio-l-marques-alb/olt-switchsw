@@ -2751,7 +2751,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC Policy created");
 
         /* For Multicast traffic, priority rule must be higher than the others */
-        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST );
+        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
         if (result != L7_SUCCESS)  break;
 
         #if 1
