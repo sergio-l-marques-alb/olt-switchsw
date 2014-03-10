@@ -60,7 +60,7 @@
 
 /* PTin added: inband */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-#define __DISABLE_DTL0INBANDVID_REMOVAL__ 0
+#define __DISABLE_DTL0INBANDVID_REMOVAL__ 1
 #else
 #define __DISABLE_DTL0INBANDVID_REMOVAL__ 1
 #endif
