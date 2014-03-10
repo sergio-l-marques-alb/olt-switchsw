@@ -227,10 +227,16 @@ typedef enum
 /* Log with a format string and variable arguments */
 /* Extra casts are for cpp support */
 
+/* PTin modified */
+/*#define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
+          l7_logf(__sev__, __comp__, (L7_char8 *)__FILE__, __LINE__, (L7_char8 *)__fmt__, ## __args__)*/
+
+#include <ptin/logger.h>
+//extern void log_print(unsigned int ctx, unsigned int sev, char const *file,
+//               char const *func, int line, char const *fmt, ...);
 #define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
-          l7_logf(__sev__, __comp__, (L7_char8 *)__FILE__, __LINE__, (L7_char8 *)__fmt__, ## __args__)
-
-
+log_print( LOG_CTX_MISC, (log_severity_t) (__sev__+1), NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ )
+/* PTin modified */
 /*_------------------------------------------------------------------*/
 /*
  *  BONUS SYSLOG MACROS:
