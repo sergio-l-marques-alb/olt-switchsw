@@ -1093,10 +1093,10 @@ L7_RC_t ptin_hapi_macaddr_init(void)
     macLearn_info_flow[i].mac_total   = 0;
     macLearn_info_flow[i].mac_maximum = (L7_uint8)-1; /* Unlimited */
 
-    macLearn_info_vlan[i].trap_sent           = L7_FALSE;
-    macLearn_info_vlan[i].ptin_intf.intf_type = 0;
-    macLearn_info_vlan[i].ptin_intf.intf_id   = 0;
-    macLearn_info_vlan[i].uni_ovid            = 0;
+    macLearn_info_flow[i].trap_sent           = L7_FALSE;
+    macLearn_info_flow[i].ptin_intf.intf_type = 0;
+    macLearn_info_flow[i].ptin_intf.intf_id   = 0;
+    macLearn_info_flow[i].uni_ovid            = 0;
   }
 
   return L7_SUCCESS;
