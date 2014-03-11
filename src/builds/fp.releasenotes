@@ -1,8 +1,4 @@
 Fastpath 6.3.0.2 Release Notes
-Version 2.7.0-r1223
- - Fix OLTSWITCH-246/OLTTS-3971: IGMP (group) clients are not being added/removed for QUATTRO services.
- - Fix OLTSWITCH-244/OLTTS-3971: IGMP client semaphore was not being closed.
- - Fix OLTSWITCH-245/OLTTS-3983: Traffic stops flowing after sending "FS" command.
 Version 2.8.0-r1415
  - Req OLTSWITCH-253/OLTTS-3980: Integration of MGMD module to Fastpath.
  - Fix OLTSWITCH-266: This has to change places, otherwise "MAP_CPLD"'s not defined, leading to strange behaviours.
@@ -31,3 +27,10 @@ Version 2.8.0-r1463
  - Fix OLTSWITCH-274/OLTTS-4627: Error disabling an entry in the multicast group list.
  - Fix OLTSWITCH-270/OLTTS-4586: Ranges for configurable values in MGMD Proxy differ from GL and FW.
  - Task OLTSWITCH-29: Makefiles and install scripts refactored and optimized.
+Version 2.8.0-r1480
+ - Req OLTSWITCH-219/OLTTS-3402: Added trap event.
+ - Req OLTSWITCH-277/OLTTS-4585: ptin_msghandler.h updated.
+ - Req OLTSWITCH-277/OLTTS-4585: Provide the ONU ID related to the learned MAC Address in Switch MAC table.
+ - Fix OLTSWITCH-275/OLTTS-4654: Multicast Storm Control is being configured with minimal priority.
+ - Fix OLTSWITCH-276/OLTTS-4655: Inband connection is removing Outer VLAN.
+ - Req OLTSWITCH-219/OLTTS-3402: IPC functions visible across all modules and layers.
