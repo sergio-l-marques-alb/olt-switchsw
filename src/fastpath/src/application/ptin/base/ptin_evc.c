@@ -28,6 +28,8 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
+#include <vlan_port.h>
+
 #define PTIN_FLOOD_VLANS_MAX  8
 
 //#define EVC_COUNTERS_REQUIRE_CLEANUP_BEFORE_REMOVAL   1       /* Used for EVC remotion */
@@ -53,6 +55,7 @@ struct ptin_evc_client_s {
   /* GEM ids which will be flooded the ARP packets */
   L7_uint16  flood_vlan[PTIN_FLOOD_VLANS_MAX];
   L7_int     virtual_gport;
+  L7_uint32  intIfNum_vport;
   L7_uint32  flags;         /* Client/flow flags */
 
   /* Counters/Profiles per client on stacked EVCs (S+C) */
@@ -488,6 +491,7 @@ L7_RC_t ptin_evc_init(void)
     return L7_FAILURE;
   }
 
+  IfN_vp_DB(0, NULL);
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC init OK");
 
   return L7_SUCCESS;
@@ -3304,6 +3308,93 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+#define N PROD_MAX_NUM_VLAN_PORT_INTF
+#define intIfNum_vport__2__i(IfN, M) ( ((IfN)|(IfN)<<24) % M)
+
+
+
+
+int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry) {
+static IfN_vp_entry_t table[N];
+static unsigned long n=0;
+static unsigned long modu=N;
+unsigned long i, j, k, _1st_empty;
+
+ switch (_0init_1insert_2remove_3find) {
+ default: return 1;
+ case 0:
+     n=0;
+     for (i=0; i<N; i++) INVALIDATE_IfN_VP(&table[i])
+
+     for (modu=N; 1;) {                                     //Just to improve modulus
+         for (i=2; i*i<modu; i++) if (0==modu%i) break;
+         if (i*i>=modu) break;
+         modu++;
+     }
+     LOG_INFO(LOG_CTX_PTIN_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, N, modu, L7_MAX_INTERFACE_COUNT);
+     break;
+ case 1:
+ case 2:
+ case 3:
+     i=intIfNum_vport__2__i(entry->intIfNum_vport, modu%N);
+     for (j=0, k=i, _1st_empty=-1;  j<N;  j++) {
+         if (entry->intIfNum_vport==table[k].intIfNum_vport) {i=k; break;}
+         if (_1st_empty>=N && EMPTY_IfN_VP(&table[k])) _1st_empty=k;
+         if (++k>=N) k=0;
+     }
+     LOG_TRACE(LOG_CTX_PTIN_EVC, "IfN_vp_DB (_0init_1insert_2remove_3find=%d)\ti=%lu j=%lu k=%lu\t_1st_empty=%lu\tn=%lu", _0init_1insert_2remove_3find, i,j,k, _1st_empty, n);
+     if (j>=N) {//(entry->intIfNum_vport!=table[i].intIfNum_vport) {//didn't find it
+         if (3==_0init_1insert_2remove_3find) return 2;
+         if (2==_0init_1insert_2remove_3find) return 0;
+
+         //1==_0init_1insert_2remove_3find
+         if (_1st_empty>=N) return 3; //if (!EMPTY_IfN_VP(&table[i])) return 3; //if (N==n) return 3;       //no empty entries
+         n++;
+         table[_1st_empty]=*entry;
+     }
+     else {                                             //did find it
+         if (3==_0init_1insert_2remove_3find) {*entry=table[i]; return 0;}
+         if (2==_0init_1insert_2remove_3find) {INVALIDATE_IfN_VP(&table[i]); n--; return 0;}
+
+         //1==_0init_1insert_2remove_3find
+         table[i]=*entry; //overwrite
+     }
+     break;
+ }//switch
+
+ return 0;
+}//IfN_vp_DB
+
+#undef N
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Adds a flow to the EVC
  * 
@@ -3315,7 +3406,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 {
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
-  L7_uint32 intIfNum;
+  L7_uint32 intIfNum, intIfNum_vport;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -3403,6 +3494,19 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
       return L7_FAILURE;
     }
+    else
+    if (L7_SUCCESS != vlan_port_intIfNum_create(vport_id & 0xffffff, &intIfNum_vport)) {     //check _SHR_GPORT_VLAN_PORT_ID_GET (SDK's gport.h)
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port (application layer)", evc_id);
+        //return L7_FAILURE;
+    }
+    else {
+    IfN_vp_entry_t e;
+
+        e.intIfNum_vport=   intIfNum_vport;
+        e.pon=              evcFlow->ptin_intf;
+        e.gem_id=           evcFlow->uni_ovid;
+        IfN_vp_DB(1, &e);
+    }
 
     /* Add client to the EVC struct */
     dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t**) &pflow);    /* get a free client entry */
@@ -3414,10 +3518,15 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->client_vid = evcFlow->uni_ivid;
     pflow->flags      = evcFlow->flags;
     pflow->virtual_gport= vport_id;
+    pflow->intIfNum_vport= intIfNum_vport;
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clients++;
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport=%d)", evc_ext_id, vport_id);
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (intIfNum_vport=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvport_id=0x%8.8lx)",
+             evc_ext_id,
+             intIfNum_vport,
+             evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
+             evcFlow->uni_ovid, vport_id);
   }
   else
   {
@@ -3689,9 +3798,19 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_evc_pclientFlow_clean(evc_id, pflow, L7_TRUE);
 
   /* Remove virtual port */
+  if (L7_SUCCESS!=vlan_port_intIfNum_delete(pflow->intIfNum_vport)) {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port (application layer)", evc_id);
+      //return L7_FAILURE;
+  }
+  {
+  IfN_vp_entry_t e;
+
+      e.intIfNum_vport=   pflow->intIfNum_vport;
+      IfN_vp_DB(2, &e);
+  }
   if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port", evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port", evc_id);
     return L7_FAILURE;
   }
 

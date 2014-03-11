@@ -390,7 +390,7 @@ extern L7_RC_t ptin_msg_l2_switch_config_get(msg_switch_config_t *switch_config)
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table);
+extern L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1or2);
 
 /**
  * Remove an address from the L2 table

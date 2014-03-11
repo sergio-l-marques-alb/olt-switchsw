@@ -71,6 +71,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
   L7_INTF_TYPES_t   intfType;
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         evc_ext_id;
+  IfN_vp_entry_t    e;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Loading MAC table...");
 
@@ -89,13 +90,24 @@ L7_RC_t ptin_l2_mac_table_load(void)
     }
 
     /* Only accept physical and logical interfaces */
-    if (intfType!=L7_PHYSICAL_INTF && intfType!=L7_LAG_INTF)
+    if (intfType!=L7_PHYSICAL_INTF && intfType!=L7_LAG_INTF && intfType!=L7_VLAN_PORT_INTF)
     {
       LOG_WARNING(LOG_CTX_PTIN_L2,"Invalid interface type (%u) of intIfNum=%u",intfType,fdbEntry.dot1dTpFdbPort);
       continue;
     }
 
     /* Convert to ptin interface format */
+    if (intfType==L7_VLAN_PORT_INTF) {
+        e.intIfNum_vport=   fdbEntry.dot1dTpFdbPort;
+        if (IfN_vp_DB(3, &e)) {
+            LOG_WARNING(LOG_CTX_PTIN_L2,"PON&GEMid for intIfNum=%lu not found",fdbEntry.dot1dTpFdbPort);
+            continue;
+        }
+        else LOG_TRACE(LOG_CTX_PTIN_L2,"intIfNum_vport=%lu PON=%u/%u GEMid=%u",fdbEntry.dot1dTpFdbPort, e.pon.intf_type, e.pon.intf_id, e.gem_id);
+        ptin_intf=  e.pon;
+                    //=e.gem_id;
+    }
+    else
     if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
     {
       LOG_WARNING(LOG_CTX_PTIN_L2,"Invalid intIfNum=%u",fdbEntry.dot1dTpFdbPort);
@@ -118,6 +130,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     mac_table[index].evcId        = evc_ext_id;
     mac_table[index].vlanId       = vlan;
     mac_table[index].intf         = ptin_intf;
+    mac_table[index].gem_id       = L7_VLAN_PORT_INTF==intfType?    e.gem_id:   -1;
     mac_table[index].static_entry = (fdbEntry.dot1dTpFdbEntryType==L7_FDB_ADDR_FLAG_STATIC);
     memcpy(mac_table[index].addr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uchar8)*L7_FDB_MAC_ADDR_LEN);
 

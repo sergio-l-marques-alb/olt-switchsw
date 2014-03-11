@@ -1531,6 +1531,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     /* Get L2 table */
     case CCMSG_ETH_MAC_TABLE_SHOW:
+    case CCMSG_ETH_MAC_TABLE_SHOW2:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", CCMSG_ETH_MAC_TABLE_SHOW);
@@ -1540,7 +1541,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_switch_mac_table_t));
 
       /* Execute command */
-      rc = ptin_msg_l2_macTable_get(mac_table);
+      rc = ptin_msg_l2_macTable_get(mac_table, CCMSG_ETH_MAC_TABLE_SHOW==inbuffer->msgId?1:2);
 
       if (L7_SUCCESS != rc)
       {
