@@ -47,6 +47,7 @@ static RC_t  ptin_mgmd_timers_create(void);
 static RC_t  ptin_mgmd_memAlloc(void);
 static RC_t  ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr);
 
+extern unsigned long     ptin_mgmd_number_of_timers;
 
 RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
 {
@@ -79,6 +80,7 @@ RC_t ptin_mgmd_timers_create(void)
 
   //Source Timers
   num_timers = (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES;//Plus the root port
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_sourcetimer_CB_set(timersCB);
@@ -90,7 +92,8 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Group Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*(PTIN_MGMD_MAX_PORTS+1);//Plus the root port
+  num_timers = (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_GROUPS;//Plus the root port
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_grouptimer_CB_set(timersCB);
@@ -103,6 +106,7 @@ RC_t ptin_mgmd_timers_create(void)
 
   //Proxy Timers
   num_timers = PTIN_MGMD_MAX_GROUPS;
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_proxytimer_CB_set(timersCB);
@@ -114,7 +118,8 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Query Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*PTIN_MGMD_MAX_PORTS;
+  num_timers = PTIN_MGMD_MAX_SERVICES;
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_querytimer_CB_set(timersCB);
@@ -126,7 +131,9 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Group-Source Specific Timers
-  num_timers = PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS;
+  //num_timers = PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_CHANNELS;
+  num_timers = PTIN_MGMD_MAX_CHANNELS;
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_groupsourcespecifictimer_CB_set(timersCB);
@@ -138,7 +145,8 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Router compatibility mode Timers
-  num_timers = PTIN_MGMD_MAX_GROUPS*PTIN_MGMD_MAX_PORTS;
+  num_timers = PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_GROUPS;
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_routercmtimer_CB_set(timersCB);
@@ -151,6 +159,7 @@ RC_t ptin_mgmd_timers_create(void)
 
   //Proxy compatibility mode Timers
   num_timers = PTIN_MGMD_MAX_SERVICE_ID;
+  ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_createCB(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, &timersCB)))
   {
     ptin_mgmd_proxycmtimer_CB_set(timersCB);
@@ -452,44 +461,49 @@ void* ptin_mgmd_event_handle(void *param)
           PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "MGMD is disabled: Packet event discarded");
           break;
         }
-
+        ptin_mgmd_measurement_timer_start(36,"PTIN_MGMD_EVENT_CODE_PACKET");
         ptin_mgmd_event_packet_parse(&eventMsg, &eventData);
         ptin_mgmd_event_packet(&eventData);
+        ptin_mgmd_measurement_timer_stop(36);
 
         break;
       }
       case PTIN_MGMD_EVENT_CODE_TIMER:
       {
         PTIN_MGMD_EVENT_TIMER_t eventData = {0};
-
+        ptin_mgmd_measurement_timer_start(37,"PTIN_MGMD_EVENT_CODE_TIMER");
         ptin_mgmd_event_timer_parse(&eventMsg, &eventData);
         ptin_mgmd_event_timer(&eventData);
-
+        ptin_mgmd_measurement_timer_stop(37);
         break;
       }
       case PTIN_MGMD_EVENT_CODE_CTRL:
       {
         PTIN_MGMD_EVENT_CTRL_t eventData = {0};
 
+        ptin_mgmd_measurement_timer_start(38,"PTIN_MGMD_EVENT_CODE_CTRL");
         ptin_mgmd_event_ctrl_parse(&eventMsg, &eventData);
         ptin_mgmd_event_ctrl(&eventData);
 
         //Send the result to the CTRL
-        ptin_mgmd_event_ctrl_create(&eventMsg, eventData.msgCode, eventData.msgId, eventData.res, eventData.msgQueueId, eventData.data, eventData.dataLength);
+        ptin_mgmd_event_ctrl_create(&eventMsg, eventData.msgCode, eventData.msgId, eventData.res, eventData.msgQueueId, eventData.data, eventData.dataLength);        
         if (SUCCESS != ptin_mgmd_messageQueue_send(eventData.msgQueueId, &eventMsg))
         {
+          ptin_mgmd_measurement_timer_stop(38);
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to write to txEventQueue");
           continue; //Do not abort here..Instead, just continue to the next event
         }
+        ptin_mgmd_measurement_timer_stop(38);
 
         break;
       }
       case PTIN_MGMD_EVENT_CODE_DEBUG:
       {
         PTIN_MGMD_EVENT_DEBUG_t eventData = {0};
-
+        ptin_mgmd_measurement_timer_start(39,"PTIN_MGMD_EVENT_CODE_DEBUG");
         ptin_mgmd_event_debug_parse(&eventMsg, &eventData);
         ptin_mgmd_event_debug(&eventData);
+        ptin_mgmd_measurement_timer_stop(39);
         break;
       }
       default:

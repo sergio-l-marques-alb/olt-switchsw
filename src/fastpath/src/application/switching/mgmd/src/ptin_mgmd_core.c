@@ -569,7 +569,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   }
 
   //Validate portId
-  if ( (portId==0) || (portId > PTIN_MGMD_MAX_PORTS) )
+  if ( (portId==0) || (portId > PTIN_MGMD_MAX_PORT_ID) )
   {   
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid portID [%u]", portId);    
     return FAILURE;
@@ -895,8 +895,16 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
     return SUCCESS;
   }
    
-  /* As the packet has the max-respons-time in 1/10 of secs, convert it to milliseconds for further processing */
-  maxRespTime = ptin_mgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
+  if(incomingVersion==PTIN_IGMP_VERSION_3)
+  {
+    /*  As the packet has the max-respons-time in 1/10 of secs, convert it to milliseconds for further processing */
+    maxRespTime = ptin_mgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
+  }
+  else
+  {
+    maxRespTime = maxRespCode;
+  }
+
 #if 0
   if (maxRespTime == 0)
   {

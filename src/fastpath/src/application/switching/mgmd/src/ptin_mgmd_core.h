@@ -37,8 +37,8 @@
 #define SNOOP_LITTLE_ENDIAN 0
 #define SNOOP_BIG_ENDIAN 1
 
-#define PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE (PTIN_MGMD_MAX_PORTS-1)/PTIN_MGMD_CLIENT_MASK_UNIT+1 /* Maximum number of Client per Root Port per source */
-
+#define PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE (PTIN_MGMD_MAX_PORT_ID-1)/PTIN_MGMD_CLIENT_MASK_UNIT+1 /* Maximum number of Client per Root Port per source */
+     
 /* Client Mask*/
 typedef struct
 {
@@ -264,7 +264,7 @@ typedef struct
 struct ptinMgmdGroupInfoData_s {
   ptinMgmdGroupInfoDataKey_t      ptinMgmdGroupInfoDataKey;
 //ptinMgmdRootPort_t              rootPort; // Iface id 0 is used to store Proxy information.
-  ptinMgmdPort_t                  ports[PTIN_MGMD_MAX_PORTS]; // Iface id 0 is used to store Proxy information.
+  ptinMgmdPort_t                  ports[PTIN_MGMD_MAX_PORT_ID]; // Iface id 0 is used to store Proxy information.
                                  
   void                           *next;
 }; 

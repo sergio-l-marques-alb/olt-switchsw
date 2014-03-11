@@ -364,8 +364,9 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
   //Save the current threadId so we can sendit a SIGINT in case of a timeout
   currentThreadId = pthread_self();
   ctrlTimerHasExpired = FALSE;
+  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
   ptin_mgmd_timer_start(ctrlTimer, PTIN_MGMD_CTRL_TIMEOUT*1000, PTIN_NULLPTR);
-
+  ptin_mgmd_measurement_timer_stop(0);
   //Send event to the MGMD
   ptin_mgmd_eventQueue_tx(inEventMsg);
 
@@ -380,7 +381,9 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
   }
   else
   {
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(ctrlTimer);
+    ptin_mgmd_measurement_timer_stop(1);
   }
 
   //Check event_type, ctrl_code, msg_id for a match and res for 0

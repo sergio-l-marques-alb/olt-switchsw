@@ -144,7 +144,7 @@ void sendEmulatedBurst(uint32 pcktpsec)
 
       //Random ServiceId and PortId
       serviceId = randomNumber(1, PTIN_MGMD_MAX_SERVICES-1);
-      portId    = randomNumber(1, PTIN_MGMD_MAX_PORTS-1);
+      portId    = randomNumber(1, PTIN_MGMD_MAX_PORT_ID-1);
 
       //Send packet
       ptin_mgmd_event_packet_create(&reqMsg, serviceId, portId, 0, (void*) igmpFrame, igmpFrameLength);

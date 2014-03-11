@@ -502,7 +502,7 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   
   uint32         portId; /* Loop through internal interface numbers */
   /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
       ptin_mgmd_stat_increment_field(portId, serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
@@ -834,6 +834,7 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     /*Leave Group*/
     if(groupPtr->key.recordType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE)
     {
+      groupPtr->retransmissions=igmpCfg->host.robustness;//Leaves are sent only once
       igmpType=PTIN_IGMP_V2_LEAVE_GROUP;      
     }
     /*Join Group*/
@@ -926,7 +927,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
     printf("Group: %s       serviceId: %u\n", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), groupEntry->ptinMgmdGroupInfoDataKey.serviceId);
     printf("-----------------------------------------\n");
 
-    for (portId=0; portId<= PTIN_MGMD_MAX_PORTS; ++portId)
+    for (portId=0; portId<= PTIN_MGMD_MAX_PORT_ID; ++portId)
     {
       if (groupEntry->ports[portId].active == TRUE)
       {
@@ -1086,7 +1087,7 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
 
 //This eventually needs to be moved to where the packet is been constructed
     /*Increment IGMPv3 Stats*/
-    for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+    for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
     {
       if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
       {
@@ -1094,26 +1095,7 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
       }
     }
     /*End Stats*/
-
-#if 0
-    //Remove Old State Change Records
-    if(groupPtrAux->key.recordType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE)      
-    {
-      if (snoopPTinGroupRecordRemove(interfacePtr,&groupPtrAux->key.groupAddr,PTIN_MGMD_CHANGE_TO_EXCLUDE_MODE)!=SUCCESS)
-      {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDelete()");        
-      }
-    }
-    if(groupPtrAux->key.recordType==PTIN_MGMD_CHANGE_TO_EXCLUDE_MODE)      
-    {
-      if (snoopPTinGroupRecordRemove(interfacePtr,&groupPtrAux->key.groupAddr,PTIN_MGMD_CHANGE_TO_INCLUDE_MODE)!=SUCCESS)
-      {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordSourceDelete()");        
-      }
-    }
-    //End Remove Old State Change Records
-#endif
-   
+  
     if (snoopPTinGroupRecordSourceIncrementTransmissions(groupPtrAux,robustnessVariable)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinGroupRecordSourceIncrementTransmissions()");
@@ -1465,7 +1447,7 @@ void ptinMgmdDumpL3AvlTree(void)
 /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
-  printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
+  printf("Number of used groups: %u | Number of used sources: %u\n", ptin_mgmd_avlTreeCount(&pSnoopEB->ptinMgmdGroupAvlTree),ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));  
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
@@ -1731,7 +1713,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
   }
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {

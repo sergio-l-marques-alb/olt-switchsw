@@ -65,7 +65,7 @@ RC_t ptinMgmdClientAdd(ptinMgmdGroupInfoData_t *portPtr,uint32 portId, ptinMgmdS
   char                    debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {};
 
   /* Argument validation */
-  if (portPtr == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORTS)
+  if (portPtr == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORT_ID)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return ERROR;
@@ -247,7 +247,7 @@ static BOOL snoopPTinZeroSourceClients(ptinMgmdGroupInfoData_t *groupEntry, ptin
     return FALSE;
   }
 
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (groupEntry->ports[portId].active == TRUE &&
         (sourcePtr=ptinMgmdSourceFind(groupEntry, portId,sourceAddr))!= PTIN_NULLPTR &&
@@ -422,7 +422,7 @@ RC_t ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *groupEntry,uint32 portId, pti
   ptin_mgmd_eb_t             *pMgmdEB;
   
   /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORTS)
+  if (groupEntry == PTIN_NULLPTR || sourcePtr == PTIN_NULLPTR || portId>PTIN_MGMD_MAX_PORT_ID)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments avlTreeEntry:[%p] sourcePtr:[%p] portId:[%u]",groupEntry,sourcePtr,portId);
     return FAILURE;
@@ -785,7 +785,7 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
   }
   else //Root Port
   {
-    for (portIdAux=1;groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients!=0 && portIdAux<=PTIN_MGMD_MAX_PORTS ;portIdAux++)
+    for (portIdAux=1;groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients!=0 && portIdAux<=PTIN_MGMD_MAX_PORT_ID ;portIdAux++)
     {
       if(groupEntry->ports[portIdAux].active==TRUE)
       {
@@ -3003,7 +3003,7 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
     }
   }
 
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
@@ -3119,7 +3119,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
     return FAILURE;
   }
 
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORTS; portId++)
+  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {      

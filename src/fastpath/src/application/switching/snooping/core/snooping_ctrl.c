@@ -262,8 +262,8 @@ void snoopTask(void)
       }
       if (rc != L7_SUCCESS)
       {
-        L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-               "snoopTask: Queues out of sync");
+//      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+//             "snoopTask: Queues out of sync");
         continue;
       }
     }

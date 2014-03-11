@@ -99,10 +99,14 @@ RC_t ptin_mgmd_routercmtimer_start(ptinMgmdGroupInfoData_t *groupData, uint32 po
   if (TRUE == ptin_mgmd_routercmtimer_isRunning(&groupData->ports[portId].groupCMTimer))
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(groupData->ports[portId].groupCMTimer.timer);
+    ptin_mgmd_measurement_timer_stop(1);
   }
 
+  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
   rc = ptin_mgmd_timer_start(groupData->ports[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
+  ptin_mgmd_measurement_timer_stop(0);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
   return rc;
 }
@@ -112,7 +116,8 @@ RC_t ptin_mgmd_routercmtimer_stop(snoopPTinCMtimer_t* timerPtr)
 {  
   if (TRUE == ptin_mgmd_routercmtimer_isRunning(timerPtr))
   { 
-    ptin_mgmd_timer_stop(timerPtr->timer);
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+    ptin_mgmd_measurement_timer_stop(1);
   }
   ptin_mgmd_timer_deinit(timerPtr->timer);  
   return SUCCESS;
@@ -125,8 +130,12 @@ uint32 ptin_mgmd_routercmtimer_timeleft(snoopPTinCMtimer_t* pTimer)
   {
     return 0;
   }
-
-  return ptin_mgmd_timer_timeLeft(pTimer->timer)/1000;
+ 
+  uint32 timeLeft;
+  ptin_mgmd_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
+  timeLeft=ptin_mgmd_timer_timeLeft(pTimer->timer)/1000;
+  ptin_mgmd_measurement_timer_stop(2);
+  return timeLeft;
 }
 
 

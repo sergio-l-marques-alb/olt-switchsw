@@ -105,7 +105,9 @@ RC_t ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *timer, uint32 timeout, pti
   if (TRUE == ptin_mgmd_grouptimer_isRunning(timer))
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",timer->newTimerHandle,ptin_mgmd_grouptimer_timeleft(timer));
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_measurement_timer_stop(1);
   }
   else
   {
@@ -113,8 +115,9 @@ RC_t ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *timer, uint32 timeout, pti
     timer->interfaceIdx = interfaceIdx;
   }
 
+  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
   ret = ptin_mgmd_timer_start(timer->timerHandle, timeout, timer);
-
+  ptin_mgmd_measurement_timer_stop(0);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",timer->newTimerHandle,ptin_mgmd_grouptimer_timeleft(timer));
   return ret;
 }
@@ -124,7 +127,9 @@ RC_t ptin_mgmd_grouptimer_stop(ptinMgmdGroupTimer_t *timer)
 {
   if (TRUE == ptin_mgmd_grouptimer_isRunning(timer))
   {
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_measurement_timer_stop(1);
   }
   
   ptin_mgmd_timer_deinit(timer->timerHandle);
@@ -138,8 +143,11 @@ uint32 ptin_mgmd_grouptimer_timeleft(ptinMgmdGroupTimer_t *timer)
   {
     return 0;
   }
-
-  return ptin_mgmd_timer_timeLeft(timer->timerHandle)/1000;
+  uint32 timeLeft;
+  ptin_mgmd_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
+  timeLeft=ptin_mgmd_timer_timeLeft(timer->timerHandle)/1000;
+  ptin_mgmd_measurement_timer_stop(2);
+  return timeLeft;
 }
 
 

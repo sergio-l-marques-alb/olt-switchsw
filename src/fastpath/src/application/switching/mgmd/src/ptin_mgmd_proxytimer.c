@@ -123,6 +123,7 @@ RC_t ptin_mgmd_proxytimer_start(mgmdProxyInterfaceTimer_t* timer, uint32 timeout
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "timeleft<timeout",newTimeOut,timeout);
       timeout=newTimeOut;
     }
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     if(SUCCESS!=ptin_mgmd_timer_stop(timer->newTimerHandle))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed ptin_timer_stop()!");
@@ -138,7 +139,9 @@ RC_t ptin_mgmd_proxytimer_start(mgmdProxyInterfaceTimer_t* timer, uint32 timeout
     timer->noOfRecords        = noOfRecords;    
   }
 
+  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
   ret = ptin_mgmd_timer_start(timer->newTimerHandle, timeout, timer);  
+  ptin_mgmd_measurement_timer_stop(0);
   return ret;
 }
 
@@ -148,7 +151,9 @@ RC_t ptin_mgmd_proxytimer_stop(mgmdProxyInterfaceTimer_t *timer)
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Proxy Timer Stop...");   
   if (TRUE == ptin_mgmd_timer_isRunning(timer->newTimerHandle))
   {
+    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(timer->newTimerHandle);
+    ptin_mgmd_measurement_timer_stop(1);
   }
 
   
@@ -163,8 +168,11 @@ uint32 ptin_mgmd_proxytimer_timeleft(mgmdProxyInterfaceTimer_t *timer)
   {
     return 0;
   }
-
-  return ptin_mgmd_timer_timeLeft(timer->newTimerHandle);
+  uint32 timeLeft;
+  ptin_mgmd_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
+  timeLeft=ptin_mgmd_timer_timeLeft(timer->newTimerHandle)/1000;
+  ptin_mgmd_measurement_timer_stop(2);
+  return timeLeft;
 }
 
 

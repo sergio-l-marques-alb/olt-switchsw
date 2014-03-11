@@ -33,8 +33,8 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
   }
 
   //Group-Source Specific Query initializations
-  pSnoopEB->groupSourceSpecificQueryTreeHeap = (ptin_mgmd_avlTreeTables_t *)                 ptin_mgmd_malloc(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS*sizeof(ptin_mgmd_avlTreeTables_t));
-  pSnoopEB->groupSourceSpecificQueryDataHeap = (groupSourceSpecificQueriesAvl_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS*sizeof(groupSourceSpecificQueriesAvl_t));
+  pSnoopEB->groupSourceSpecificQueryTreeHeap = (ptin_mgmd_avlTreeTables_t *)                 ptin_mgmd_malloc(PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_CHANNELS*sizeof(ptin_mgmd_avlTreeTables_t));
+  pSnoopEB->groupSourceSpecificQueryDataHeap = (groupSourceSpecificQueriesAvl_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_CHANNELS*sizeof(groupSourceSpecificQueriesAvl_t));
   if ((pSnoopEB->groupSourceSpecificQueryTreeHeap == PTIN_NULLPTR) || (pSnoopEB->groupSourceSpecificQueryDataHeap == PTIN_NULLPTR))
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Error allocating data for groupSourceSpecificQueriesAvl_t");    
@@ -42,7 +42,7 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
   }
   memset(&pSnoopEB->groupSourceSpecificQueryAvlTree, 0x00, sizeof(pSnoopEB->groupSourceSpecificQueryAvlTree));
   ptin_mgmd_avlCreateAvlTree(&(pSnoopEB->groupSourceSpecificQueryAvlTree), pSnoopEB->groupSourceSpecificQueryTreeHeap, pSnoopEB->groupSourceSpecificQueryDataHeap, 
-                   PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CHANNELS, sizeof(groupSourceSpecificQueriesAvl_t), 0x10, sizeof(groupSourceSpecificQueriesAvlKey_t));
+                   PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_CHANNELS, sizeof(groupSourceSpecificQueriesAvl_t), 0x10, sizeof(groupSourceSpecificQueriesAvlKey_t));
 
   /* Create the FIFO queue for the sources */
   ptin_fifo_create(&pSnoopEB->specificQuerySourcesQueue, PTIN_MGMD_MAX_SOURCES);

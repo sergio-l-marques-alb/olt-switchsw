@@ -27,6 +27,7 @@ static ptin_mgmd_eb_t    mgmdEB;           /* Snoop execution block holder */
 static ptin_mgmd_cb_t   *mgmdCB = PTIN_NULLPTR;    /* Mgmd Control blocks holder */
 
 extern unsigned long     ptin_mgmd_memory_allocation;
+unsigned long            ptin_mgmd_number_of_timers=0;
 
 void ptin_mgmd_cnfgr_memory_allocation(void)
 {
@@ -70,8 +71,8 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
                    PTIN_MGMD_MAX_GROUPS, sizeof(ptinMgmdGroupInfoData_t), 0x10, sizeof(ptinMgmdGroupInfoDataKey_t));
 
   /* Create the FIFO queue for the sources */
-  ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
-  for(i=0; i<((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
+  ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORT_ID+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
+  for(i=0; i<((PTIN_MGMD_MAX_PORT_ID+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
   {
     ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));    
     
@@ -79,8 +80,8 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   }
 
   /* Create the Leaf Port Client Bitmap and the Leaf Source Client Bitmap*/
-  ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORTS+PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES);
-  for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS); ++i) 
+  ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORT_ID+PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_SOURCES);
+  for(i=0; i<(PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORT_ID); ++i) 
   {
     ptinMgmdLeafClient_t *new_element = (ptinMgmdLeafClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdLeafClient_t));   
     
@@ -375,8 +376,8 @@ void ptin_mgmd_memory_report(void)
     line = strtok(NULL, "\n");
   }
   
-  printf("MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]\n", 
-            PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
+  printf("MGMD Configurations: [Channels=%u Whitelist=%u Services=%u MaxServiceId=%u Groups=%u Sources=%u Ports=%u MaxPortId=%u Clients=%u Timers:%lu]\n", 
+            PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES,PTIN_MGMD_MAX_SERVICE_ID, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_PORT_ID, PTIN_MGMD_MAX_CLIENTS,ptin_mgmd_number_of_timers);
   printf("MGMD Memory Allocated: %lu MB\n",ptin_mgmd_memory_allocation/1024/1024);
   printf("Thread Memory Allocated: %lu MB\n", vmrss_kb/1024);
 }
@@ -418,8 +419,8 @@ void ptin_mgmd_memory_log_report(void)
   //Memory Allocated for the Core Component
   ptin_mgmd_core_memory_allocation();
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Configurations: [Channels=%u Whitelist=%u Services=%u Groups=%u Sources=%u Ports=%u Clients=%u]", 
-                      PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_CLIENTS);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Configurations: [Channels=%u Whitelist=%u Services=%u MaxServiceId=%u Groups=%u Sources=%u Ports=%u MaxPortId=%u Clients=%u Timers:%lu]\n", 
+            PTIN_MGMD_MAX_CHANNELS, PTIN_MGMD_MAX_WHITELIST, PTIN_MGMD_MAX_SERVICES,PTIN_MGMD_MAX_SERVICE_ID, PTIN_MGMD_MAX_GROUPS, PTIN_MGMD_MAX_SOURCES, PTIN_MGMD_MAX_PORTS, PTIN_MGMD_MAX_PORT_ID, PTIN_MGMD_MAX_CLIENTS,ptin_mgmd_number_of_timers);  
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MGMD Memory Allocated: %lu MB",ptin_mgmd_memory_allocation/1024/1024);
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Thread Memory Allocated: %lu MB", vmrss_kb/1024);
 }

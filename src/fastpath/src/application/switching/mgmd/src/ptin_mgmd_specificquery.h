@@ -28,11 +28,11 @@ typedef struct
 
 struct groupSourceSpecificQueriesSource_s
 {  
-  groupSourceSpecificQueriesSource_t *next;
-  groupSourceSpecificQueriesSource_t *prev;
+  groupSourceSpecificQueriesSource_t  *next;
+  groupSourceSpecificQueriesSource_t  *prev;
 
-  ptin_mgmd_inet_addr_t                   sourceAddr;
-  uint8                              retransmissions;
+  ptin_mgmd_inet_addr_t                sourceAddr;
+  uint8                                retransmissions;
 };
 
 typedef struct
@@ -40,15 +40,16 @@ typedef struct
   groupSourceSpecificQueriesAvlKey_t key;
 
   //These are only used for the Q(G,S)
-  groupSourceSpecificQueriesSource_t *firstSource;
-  groupSourceSpecificQueriesSource_t *lastSource;
-  uint8                              numberOfSources;
+  groupSourceSpecificQueriesSource_t   *firstSource;
+  groupSourceSpecificQueriesSource_t   *lastSource;
+  uint8                                 numberOfSources;
 
   //These are only used for the Q(G)
-  uint8                              retransmissions;
-  BOOL                               supressRouterSideProcessing;
+  uint8                                 retransmissions;
+  BOOL                                  supressRouterSideProcessing;
+  uint8                                 compatibilityMode;       //ptin_mgmd_compatibility_mode_t
 
-  PTIN_MGMD_TIMER_t                       timerHandle;
+  PTIN_MGMD_TIMER_t                     timerHandle;
 
   void                               *next;
 }groupSourceSpecificQueriesAvl_t;
