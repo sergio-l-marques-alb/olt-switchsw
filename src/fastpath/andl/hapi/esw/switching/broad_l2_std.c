@@ -3562,16 +3562,30 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   /* If pending flag is active, check if MAC should be learnt */
   if (bcmx_l2_addr->flags & BCM_L2_PENDING)
   {
+    LOG_WARNING(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: VID %d, GPORT 0x%08X, flags 0x%x",
+                  bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
     #if 1
-    if (ptin_hapi_macaddr_inc(bcmx_l2_addr) != L7_FAILURE)
+    if (bcmx_l2_addr->flags & BCM_L2_MOVE)
     {
-      bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
-      rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
+      ptin_hapi_macaddr_dec(bcmx_l2_addr);
     }
     else
     {
-      LOG_WARNING(LOG_CTX_PTIN_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
-                  bcmx_l2_addr->vid, bcmx_l2_addr->lport);
+      if (ptin_hapi_macaddr_inc(bcmx_l2_addr) != L7_FAILURE)
+      {
+        bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
+        rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
+      }
+      else
+      {
+        /* This action allows rejected MACs to appear in Fdb table */
+        //bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
+        //rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac, bcmx_l2_addr->vid);
+
+        LOG_WARNING(LOG_CTX_PTIN_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
+                    bcmx_l2_addr->vid, bcmx_l2_addr->lport);
+      }
     }
     #endif
 

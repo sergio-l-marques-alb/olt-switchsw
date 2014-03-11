@@ -39,6 +39,23 @@ typedef struct _st_alarmGeral {
   unsigned int   param2      ;
 } __attribute__((packed)) st_alarmGeral;
 
+
+typedef struct
+{
+   BYTE  slotId;
+   UINT  code;          // CHTRAP_CODE_MAC_LIMIT
+   UINT  alarmstatus;   // 0=Fim ; 1=Inicio ; 2=Evento
+   UINT  evcId;         // unused
+   BYTE  intf_type;     // PTIN_EVC_INTF_PHYSICAL
+   BYTE  intf_id;       // interface
+   UWORD nni_cvlan;     // unused
+   UWORD outer_vid;     // GEM ID
+   UWORD inner_vid;     // unused
+   BYTE  mac[6];        // unused
+   UINT  flags;         // unused
+} __attribute__((packed)) st_EthSwitchEvent;
+
+
 /* Initialize server ip */
 static void ipc_server_ipaddr_init(void);
 
@@ -246,6 +263,41 @@ int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status,
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
+  return(ret);
+}
+
+/* Trap related to Switch Events */
+int send_trap_switch_event(unsigned char intfType, int interface, int code, int status, int param)
+{
+  ipc_msg	comando;
+  int ret = 0;
+  st_EthSwitchEvent *alarm;
+
+//if (!global_var_system_ready)  return S_OK;
+
+  if(g_iInterfaceSW==-1) 
+      return(-1);
+
+  comando.protocolId= SIR_IPCPROTOCOL_ID;
+  comando.flags		= IPCLIB_FLAGS_CMD;
+  comando.counter   = GetMsgCounter ();
+  comando.msgId		= TRAP_ALARME_SWITCH;
+  comando.infoDim   = sizeof(st_EthSwitchEvent);
+  alarm             = (st_EthSwitchEvent *) &comando.info[0];
+
+  memset(alarm,0x00,sizeof(st_EthSwitchEvent));
+  alarm->slotId      = ptin_board_slotId;
+  alarm->code        = code;
+  alarm->alarmstatus = status;
+  alarm->intf_type   = intfType;
+  alarm->intf_id     = interface;
+  alarm->outer_vid   = param;
+
+  LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret);
+
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  if(ret<0)
+      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, ret);
   return(ret);
 }
 

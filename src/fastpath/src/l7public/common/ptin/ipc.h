@@ -13,6 +13,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 #ifndef EMILOX16_CONTROLO_IPC_H
 #define EMILOX16_CONTROLO_IPC_H
 
+#include "datatypes.h"
 #include "globaldefs.h"
 #include "ptin_globaldefs.h"
 #include "ipc_lib.h"
@@ -32,6 +33,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 //#define TRAP_ALARM_PORT_ENABLED                 0x9005
 //#define TRAP_ALARM_PORT_DISABLED                0x9006
 //#define TRAP_ALARM_MAC_DUPLICATED               0x9010
+#define TRAP_ALARM_MAC_LIMIT                    0x9011
 #define TRAP_LINECARD_TRAFFIC_RX                0x900F
 
 #define TRAP_LC_TYPE_INTERFACE    4   // For alarmtype
@@ -94,6 +96,7 @@ extern uint8 ptin_board_slotId;
    EXTERN_C int send_trap(int porto, int trap_type, int arg);
    EXTERN_C int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status, int param);
    EXTERN_C int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status, int param1, int param2);
+   EXTERN_C int send_trap_switch_event(unsigned char intfType, int interface, int code, int status, int param);
    EXTERN_C int send_trap_to_linecard(unsigned char intfType, int porto, int code, int status, int param);
    EXTERN_C int send_trap_ETH_OAM(void *param, int param_size);
    EXTERN_C int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDim);

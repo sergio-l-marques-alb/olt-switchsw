@@ -250,6 +250,17 @@ extern L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8 max_value);
+
+/**
+ * Configures the information needed to generate alarms
+ * 
+ * @param outer_vid : VLAN id 
+ * @param intf_id   : Physical port
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_macaddr_config(bcm_vlan_t vlan_id, bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid);
+
 #endif
 
 #endif /* _PTIN_HAPI_BRIDGE__H */

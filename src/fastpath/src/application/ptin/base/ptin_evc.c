@@ -3530,7 +3530,10 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
   else
   {
+    /* Due to inconsistent behaviour, runtime reconfiguration is not allowed  */
+    #if 0
     ptin_virtual_macLearnMax_set(intIfNum, pflow->virtual_gport, evcFlow->macLearnMax);
+    #endif
 
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
   }
