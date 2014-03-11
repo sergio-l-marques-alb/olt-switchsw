@@ -574,7 +574,7 @@ typedef struct {
         msg_HwEthInterface_t intf;  /* Interface attached to this entry */
         L7_uint16   gem_id;         /* When intf's a PON, GEMid identifies the ONU*/
         L7_uint8    static_entry;   /* Is this entry static? */
-    }                       entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
+    } __attribute__((packed)) entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
 } __attribute__((packed)) msg_switch_mac_table2_t;
 
 #if 0

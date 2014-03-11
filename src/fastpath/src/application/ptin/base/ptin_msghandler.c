@@ -1534,11 +1534,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_MAC_TABLE_SHOW2:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", CCMSG_ETH_MAC_TABLE_SHOW);
+               "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", inbuffer->msgId);
       CHECK_INFO_SIZE(msg_switch_mac_intro_t);
 
       msg_switch_mac_table_t *mac_table = (msg_switch_mac_table_t *) outbuffer->info;
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_switch_mac_table_t));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_switch_mac_intro_t));
 
       /* Execute command */
       rc = ptin_msg_l2_macTable_get(mac_table, CCMSG_ETH_MAC_TABLE_SHOW==inbuffer->msgId?1:2);
@@ -1551,7 +1551,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_switch_mac_table_t);
+      outbuffer->infoDim = CCMSG_ETH_MAC_TABLE_SHOW==inbuffer->msgId? sizeof(msg_switch_mac_table_t): sizeof(msg_switch_mac_table2_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
