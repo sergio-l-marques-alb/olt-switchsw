@@ -131,6 +131,7 @@
 #define CCMSG_ETH_MAC_TABLE_SHOW            0x90A2  // struct msg_switch_mac_table_t
 #define CCMSG_ETH_MAC_ENTRY_REMOVE          0x90A3  // struct msg_switch_mac_table_t
 #define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_t
+#define CCMSG_ETH_MAC_TABLE_SHOW2           0x90A5  // struct msg_switch_mac_table2_t
 
 #define CCMSG_ETH_IGMP_CLIENT_STATS_GET     0x9077  // struct msg_IgmpClientStatistics_t
 #define CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR   0x9078  // struct msg_IgmpClientStatistics_t
@@ -562,6 +563,19 @@ typedef struct {
     msg_switch_mac_intro_t  intro;        /* Intro struct  used for requests will also be used for replies */
     msg_switch_mac_entry    entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
 } __attribute__((packed)) msg_switch_mac_table_t;
+
+#include <ptin_structs.h>
+typedef struct {
+    msg_switch_mac_intro_t  intro;        /* Intro struct  used for requests will also be used for replies */
+    struct {
+        L7_uint16   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
+        L7_uint16   vlanId;         /* Vlan associated to this MAC entry */
+        L7_uint8    addr[6];        /* MAC address */
+        msg_HwEthInterface_t intf;  /* Interface attached to this entry */
+        L7_uint16   gem_id;         /* When intf's a PON, GEMid identifies the ONU*/
+        L7_uint8    static_entry;   /* Is this entry static? */
+    }                       entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
+} __attribute__((packed)) msg_switch_mac_table2_t;
 
 #if 0
 typedef struct {
