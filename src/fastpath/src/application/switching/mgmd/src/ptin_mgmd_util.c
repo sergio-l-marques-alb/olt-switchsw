@@ -1485,8 +1485,7 @@ void ptinMgmdDumpL3AvlTree(void)
 
 /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
-  printf("Number of used groups: %u | Number of used sources: %u\n", ptin_mgmd_avlTreeCount(&pSnoopEB->ptinMgmdGroupAvlTree),ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));  
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");  
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
@@ -1494,6 +1493,7 @@ void ptinMgmdDumpL3AvlTree(void)
 
     ptinMgmdMcastgroupPrint(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId,avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr);
   }
+  printf("Number of used groups: %u | Number of used sources: %u\n", ptin_mgmd_avlTreeCount(&pSnoopEB->ptinMgmdGroupAvlTree),ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));  
 }
 
 /*************************************************************************
@@ -1566,6 +1566,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
     ptinMgmdGroupRecordPrint(avlTreeEntry->key.serviceId,avlTreeEntry->key.groupAddr.addr.ipv4.s_addr,avlTreeEntry->key.recordType);
 
   }
+  printf("Number of used Group Records: %u ", ptin_mgmd_avlTreeCount(&pSnoopEB->snoopPTinProxyGroupAvlTree));  
 }
 
 /*************************************************************************
