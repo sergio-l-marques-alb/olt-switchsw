@@ -699,6 +699,32 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* group
   return SUCCESS;
 }
 
+RC_t ptin_mgmd_groupsourcespecifictimer_remove_entry(groupSourceSpecificQueriesAvl_t *avlTreeEntry)
+{
+  groupSourceSpecificQueriesSource_t *iterator;
+  uint32                             i; 
+
+  //Ensure that the timer is not running
+  ptin_mgmd_groupsourcespecifictimer_stop(avlTreeEntry->timerHandle);
+
+  //Search for the requested source
+  for(iterator=avlTreeEntry->firstSource, i=0; iterator!=PTIN_NULLPTR && i<avlTreeEntry->numberOfSources; iterator=iterator->next, ++i)
+  {
+    ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
+    iterator->retransmissions = 0;
+    --avlTreeEntry->numberOfSources;
+
+    __groupsourcespecifictimer_delsource(avlTreeEntry, iterator);
+    
+  }
+  
+  ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&avlTreeEntry->key.groupAddr, avlTreeEntry->key.serviceId, avlTreeEntry->key.portId);
+
+  ptin_mgmd_timer_deinit(avlTreeEntry->timerHandle);
+
+  return SUCCESS;
+}
+
 RC_t ptin_mgmd_groupsourcespecifictimer_stop(PTIN_MGMD_TIMER_t timer)
 {
   if (TRUE == ptin_mgmd_timer_isRunning(timer))
@@ -728,9 +754,9 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
 
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&eventData->groupAddr, eventData->serviceId, eventData->portId, AVL_EXACT)))
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested AVL entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested AVL entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
             eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
-    return FAILURE;
+    return SUCCESS;
   }
 
   if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))

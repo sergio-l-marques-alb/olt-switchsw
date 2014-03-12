@@ -26,6 +26,7 @@
 #include "ptin_mgmd_avl_api.h"
 #include "ptin_mgmd_service_api.h"
 #include "ptin_mgmd_cnfgr.h"
+#include "ptin_mgmd_groupsourcespecifictimer.h"
 
 #include <ctype.h>
 #include <time.h>
@@ -1309,7 +1310,7 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
   {
 
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
     if (avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId==interfacePtr->key.serviceId && 
         avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE)          
@@ -1359,7 +1360,7 @@ void ptinMgmdDumpGeneralQuery(void)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
     printf("-----------------------------------------\n");
     printf("General Query ServiceId:%u\n", avlTreeEntry->key.serviceId);  
@@ -1373,6 +1374,44 @@ void ptinMgmdDumpGeneralQuery(void)
   ptinMgmdDumpGroupSpecificQuery();  
 }
 
+
+/*************************************************************************
+ * @purpose Dump Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdCleanAllGeneralQuery(void)
+{
+  ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
+  ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_cb_t                *pMgmdCB;
+
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+  
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdCleanAllGeneralQuery");
+  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+
+       //Stop Query Timer
+      if (avlTreeEntry->active==TRUE)        
+      {
+        ptin_mgmd_querytimer_stop(&avlTreeEntry->querierTimer);
+      }
+      //Remove Query Entry
+      
+      ptinMgmdQueryEntryDelete(avlTreeKey.serviceId,PTIN_MGMD_AF_INET);
+  }  
+}
 
 /*************************************************************************
  * @purpose Dump Group and Group Source Specific Query AVL Tree
@@ -1401,7 +1440,7 @@ void ptinMgmdDumpGroupSpecificQuery(void)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdEB->groupSourceSpecificQueryAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
     printf("-----------------------------------------\n");
     if(avlTreeEntry->numberOfSources==0)
@@ -1451,7 +1490,7 @@ void ptinMgmdDumpL3AvlTree(void)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
     ptinMgmdMcastgroupPrint(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId,avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr);
   }
@@ -1482,7 +1521,7 @@ void ptinMgmdCleanAllGroupAvlTree(void)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
     ptinMgmdInterfaceRemove(avlTreeEntry,PTIN_MGMD_ROOT_PORT);      
   }
@@ -1519,7 +1558,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
   {
 
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
 //  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "serviceId:%u  groupAddr  %s recordType:%u",avlTreeEntry->key.serviceId,inetAddrPrint(&avlTreeEntry->key.groupAddr, debug_buf),avlTreeEntry->key.recordType);
     printf("\nserviceId: %u Group: %s     recordType:%u\n",avlTreeEntry->key.serviceId,ptin_mgmd_inetAddrPrint(&avlTreeEntry->key.groupAddr, debug_buf),avlTreeEntry->key.recordType);
@@ -1553,12 +1592,46 @@ void ptinMgmdCleanAllGroupRecordAvlTree(void)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     ptinMgmdGroupRecordRemove(avlTreeEntry->interfacePtr,&avlTreeEntry->key.groupAddr,avlTreeEntry->key.recordType);    
   }  
   ptin_mgmd_avlPurgeAvlTree(&pSnoopEB->snoopPTinProxyGroupAvlTree,PTIN_MGMD_MAX_GROUPS);
   ptinMgmdDumpGroupRecordAvlTree();
 }
+
+/*************************************************************************
+ * @purpose Clean All IGMPv3 Group Record AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdCleanAllGroupSpecificQueriesAvlTree(void)
+{
+  ptin_mgmd_eb_t        *pMgmdEB;
+
+  groupSourceSpecificQueriesAvl_t     *avlTreeEntry;  
+  groupSourceSpecificQueriesAvlKey_t   avlTreeKey;  
+
+  if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdEBGet()");
+    return;
+  }
+
+   /* Run all cells in AVL tree */    
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdEB->groupSourceSpecificQueryAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+    ptin_mgmd_groupsourcespecifictimer_remove_entry(avlTreeEntry);    
+  }  
+  ptin_mgmd_avlPurgeAvlTree(&pMgmdEB->groupSourceSpecificQueryAvlTree,PTIN_MGMD_MAX_GROUPS);
+  ptinMgmdDumpGroupSpecificQuery();  
+}
+
+
+
 
 /*************************************************************************
  * @purpose Clean IGMPv3 Group Record AVL Tree 
@@ -1584,7 +1657,7 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
     /* Prepare next key */
-    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(mgmdGroupRecordKey_t));
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     if(serviceId==avlTreeEntry->key.serviceId)
     {
       ptinMgmdGroupRecordRemove(avlTreeEntry->interfacePtr,&avlTreeEntry->key.groupAddr,avlTreeEntry->key.recordType);
@@ -1938,7 +2011,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
       // Prepare next key
-      memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
+      memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
       if(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId == serviceId)
       {
@@ -1972,7 +2045,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     while ( ( queriesAvlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &queriesAvlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
       // Prepare next key
-      memcpy(&queriesAvlTreeKey, &queriesAvlTreeEntry->key, sizeof(groupSourceSpecificQueriesAvlKey_t));
+      memcpy(&queriesAvlTreeKey, &queriesAvlTreeEntry->key, sizeof(queriesAvlTreeKey));
 
       if(queriesAvlTreeEntry->key.serviceId == serviceId)
       {

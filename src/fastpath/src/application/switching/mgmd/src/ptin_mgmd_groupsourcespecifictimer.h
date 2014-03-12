@@ -25,6 +25,7 @@ RC_t   ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEn
 RC_t   ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* sourceAddr);
 RC_t   ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, ptin_mgmd_inet_addr_t* sourceAddr);
 RC_t   ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId);
+RC_t   ptin_mgmd_groupsourcespecifictimer_remove_entry(groupSourceSpecificQueriesAvl_t *avlTreeEntry);
 
 RC_t   ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t* eventData);
 

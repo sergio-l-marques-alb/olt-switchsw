@@ -454,13 +454,14 @@ void* ptin_mgmd_event_handle(void *param)
     {
       case PTIN_MGMD_EVENT_CODE_PACKET:
       {
-        PTIN_MGMD_EVENT_PACKET_t eventData = {0};
-
         if(PTIN_MGMD_ENABLE != igmpCfg.admin)
         {
           PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "MGMD is disabled: Packet event discarded");
           break;
         }
+
+        PTIN_MGMD_EVENT_PACKET_t eventData = {0};
+
         ptin_mgmd_measurement_timer_start(36,"PTIN_MGMD_EVENT_CODE_PACKET");
         ptin_mgmd_event_packet_parse(&eventMsg, &eventData);
         ptin_mgmd_event_packet(&eventData);
@@ -470,7 +471,14 @@ void* ptin_mgmd_event_handle(void *param)
       }
       case PTIN_MGMD_EVENT_CODE_TIMER:
       {
+        if(PTIN_MGMD_DISABLE == igmpCfg.admin) 
+        {
+          PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "MGMD is disabled: Timer event discarded");
+          break;
+        }
+
         PTIN_MGMD_EVENT_TIMER_t eventData = {0};
+
         ptin_mgmd_measurement_timer_start(37,"PTIN_MGMD_EVENT_CODE_TIMER");
         ptin_mgmd_event_timer_parse(&eventMsg, &eventData);
         ptin_mgmd_event_timer(&eventData);
@@ -483,6 +491,20 @@ void* ptin_mgmd_event_handle(void *param)
 
         ptin_mgmd_measurement_timer_start(38,"PTIN_MGMD_EVENT_CODE_CTRL");
         ptin_mgmd_event_ctrl_parse(&eventMsg, &eventData);
+        if((PTIN_MGMD_DISABLE == igmpCfg.admin) && ( (eventData.msgCode != PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET) && (eventData.msgCode != PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET)))
+        {
+          PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "MGMD is disabled: Control event discarded");
+          //Send the empty response to the CTRL
+          ptin_mgmd_event_ctrl_create(&eventMsg, eventData.msgCode, eventData.msgId, TABLE_IS_EMPTY, eventData.msgQueueId, eventData.data, 0);        
+          if (SUCCESS != ptin_mgmd_messageQueue_send(eventData.msgQueueId, &eventMsg))
+          {
+            ptin_mgmd_measurement_timer_stop(38);
+            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to write to txEventQueue");
+            continue; //Do not abort here..Instead, just continue to the next event
+          }
+          ptin_mgmd_measurement_timer_stop(38);
+          break;
+        }
         ptin_mgmd_event_ctrl(&eventData);
 
         //Send the result to the CTRL

@@ -71,8 +71,8 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
                    PTIN_MGMD_MAX_GROUPS, sizeof(ptinMgmdGroupInfoData_t), 0x10, sizeof(ptinMgmdGroupInfoDataKey_t));
 
   /* Create the FIFO queue for the sources */
-  ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORT_ID+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
-  for(i=0; i<((PTIN_MGMD_MAX_PORT_ID+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
+  ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
+  for(i=0; i<((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
   {
     ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));    
     
@@ -80,8 +80,8 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   }
 
   /* Create the Leaf Port Client Bitmap and the Leaf Source Client Bitmap*/
-  ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORT_ID+PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_SOURCES);
-  for(i=0; i<(PTIN_MGMD_MAX_PORT_ID*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORT_ID); ++i) 
+  ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORTS+PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES);
+  for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS); ++i) 
   {
     ptinMgmdLeafClient_t *new_element = (ptinMgmdLeafClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdLeafClient_t));   
     
@@ -453,7 +453,7 @@ void ptin_mgmd_process_memory_report(void)
     line = strtok(NULL, "\n");
   }
 
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"FP Currently Allocated Memory : %lu MB", vmrss_kb/1024);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Thread Memory Currently Allocated  : %lu MB", vmrss_kb/1024);
 }
 
 /*********************************************************************

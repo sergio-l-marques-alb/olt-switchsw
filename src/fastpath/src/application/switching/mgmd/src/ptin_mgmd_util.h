@@ -121,9 +121,13 @@ uint8     ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType);
 void      ptinMgmdDumpL3AvlTree(void);
 void      ptinMgmdCleanAllGroupAvlTree(void);
 void      ptinMgmdDumpGroupRecordAvlTree(void);
-void      ptinMgmdDumpGeneralQuery(void);
-void      ptinMgmdCleanAllGroupRecordAvlTree(void);
 RC_t      ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId);
+void      ptinMgmdCleanAllGroupRecordAvlTree(void);
+
+void      ptinMgmdDumpGeneralQuery(void);
+void      ptinMgmdCleanAllGeneralQuery(void);
+
+void      ptinMgmdCleanAllGroupSpecificQueriesAvlTree(void);
 void      ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText);
 void      ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 recordType);
 
