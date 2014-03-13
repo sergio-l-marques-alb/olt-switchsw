@@ -59,8 +59,8 @@ struct ptin_evc_client_s {
   L7_uint32  flags;         /* Client/flow flags */
 
   /* Counters/Profiles per client on stacked EVCs (S+C) */
-  void      *counter[2];    /* Pointer to a counter struct entry */
-  void      *bwprofile[2][L7_COS_INTF_QUEUE_MAX_COUNT];  /* Pointer to a BW profile struct entry */
+  void      *counter[2];    /* Pointer to a counter struct entry (Root + Leaf port) */
+  void      *bwprofile[2][L7_COS_INTF_QUEUE_MAX_COUNT];  /* Pointer to a BW profile struct entry (Root + Leaf port) */
 };  // sizeof=24
 
 #if 0
@@ -9103,7 +9103,8 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
+    if (!IS_EVC_QUATTRO(evc_id) && 
+        (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id)))
     #endif
     {
       profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
@@ -9150,7 +9151,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclientFlow->uni_ovid;
-          profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+          profile->inner_vlan_out = pclientFlow->uni_ovid;                /* ATTENTION: There should be no inner vlan (0) for traditionnal evcs, after packet leaves the port (leaf port in a stacked service) */
           *counters_ptr = &(pclientFlow->counter[PTIN_EVC_INTF_LEAF]);
         }
         else
