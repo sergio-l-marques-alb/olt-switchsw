@@ -540,7 +540,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     mgmdProxyCfg.host.robustness = igmpProxy->host.robustness;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", mgmdProxyCfg.host.robustness);
 
-    //Once this parameter is currently not configured on the Manager, we use the same parameter for the host
+    //Once this parameter is currently not configured on the Manager, we use the parameter configured for the host
     mgmdProxyCfg.querier.robustness = igmpProxy->host.robustness;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", mgmdProxyCfg.querier.robustness);
   }

@@ -40,7 +40,7 @@ void ptin_mgmd_statistics_memory_allocation(void)
  */
 void ptin_mgmd_statistics_reset_all(void)
 {
-  PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Sizeof [mgmd_stat_port:%u mgmd_stat_service:%u mgmd_stat_client:%u]", sizeof(mgmd_stat_port),sizeof(mgmd_stat_service),sizeof(mgmd_stat_client));
+//PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Sizeof [mgmd_stat_port:%u mgmd_stat_service:%u mgmd_stat_client:%u]", sizeof(mgmd_stat_port),sizeof(mgmd_stat_service),sizeof(mgmd_stat_client));
   memset(&mgmd_stat_port,0x00,sizeof(mgmd_stat_port));
   memset(&mgmd_stat_service,0x00,sizeof(mgmd_stat_service));
   memset(&mgmd_stat_client,0x00,sizeof(mgmd_stat_client));
@@ -128,7 +128,7 @@ RC_t ptin_mgmd_stats_service_clear(uint32 serviceId)
 
   for(arrayIdx = 0; arrayIdx < PTIN_MGMD_MAX_SERVICES; ++arrayIdx)
   {
-    if (mgmd_stat_service[arrayIdx][0].serviceId == serviceId)
+    if(mgmd_stat_service[arrayIdx][0].serviceId == serviceId)
     {
       for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
       {
