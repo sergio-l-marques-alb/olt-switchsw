@@ -27,7 +27,7 @@ Version 2.8.0-r1463
  - Fix OLTSWITCH-274/OLTTS-4627: Error disabling an entry in the multicast group list.
  - Fix OLTSWITCH-270/OLTTS-4586: Ranges for configurable values in MGMD Proxy differ from GL and FW.
  - Task OLTSWITCH-29: Makefiles and install scripts refactored and optimized.
-Version 2.8.0-r1483
+Version 2.8.0-r1484
  - Fix OLTSWITCH-270/OLTTS-4586: MGMD updated (configure script executed).
  - Req OLTSWITCH-219/OLTTS-3402: Added trap event.
  - Req OLTSWITCH-277/OLTTS-4585: ptin_msghandler.h updated.
@@ -35,3 +35,6 @@ Version 2.8.0-r1483
  - Fix OLTSWITCH-275/OLTTS-4654: Multicast Storm Control is being configured with minimal priority.
  - Fix OLTSWITCH-276/OLTTS-4655: Inband connection is removing Outer VLAN.
  - Req OLTSWITCH-219/OLTTS-3402: IPC functions visible across all modules and layers.
+Version 2.8.0-r1486
+ - Fix OLTSWITCH-280/OLTTS-4665: MGMD is not being notified when IGMP proxy is disabled.
+ - Req OLTSWITCH-253/OLTTS-3980: Updated according to the latest revision of MGMD.

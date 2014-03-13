@@ -156,9 +156,6 @@ static L7_uint32 pppoe_quattro_p2p_evcs = 0;
 /* PPPOE instances array */
 st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
 
-/* Reference of evcid using internal vlan as reference */
-static L7_uint8 pppoeInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
-
 /* Global PPPOE statistics at interface level */
 ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
@@ -267,9 +264,6 @@ L7_RC_t ptin_pppoe_init(void)
 
   /* Reset instances array */
   memset(pppoeInstances, 0x00, sizeof(pppoeInstances));
-
-  /* Initialize lookup tables */
-  memset(pppoeInst_fromEvcId, 0xFF, sizeof(pppoeInst_fromEvcId));
 
   /* Initialize global PPPOE statistics */
   memset(global_stats_intf,0x00,sizeof(global_stats_intf));
@@ -445,6 +439,13 @@ L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
+  /* Save direct referencing to pppoe index from evc ids */
+  if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Save data in free instance */
   pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
   pppoeInstances[pppoe_idx].nni_ovid  = 0;
@@ -456,13 +457,11 @@ L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
     memset(&pppoeInstances[pppoe_idx],0x00,sizeof(st_PppoeInstCfg_t));
+    ptin_evc_dhcpInst_set(evc_idx, PPPOE_INVALID_ENTRY);
     return L7_FAILURE;
   }
 
   /* PPPOE index in use */
-
-  /* Save direct referencing to pppoe index from evc ids */
-  pppoeInst_fromEvcId[evc_idx] = pppoe_idx;
 
   return L7_SUCCESS;
 }
@@ -506,14 +505,18 @@ L7_RC_t ptin_pppoe_instance_remove(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
+  /* Clear direct referencing to pppoe index from evc ids */
+  if (ptin_evc_pppoeInst_set(evc_idx, PPPOE_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting PPPoE instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Clear data and free instance */
   pppoeInstances[pppoe_idx].evc_idx   = 0;
   pppoeInstances[pppoe_idx].nni_ovid  = 0;
   pppoeInstances[pppoe_idx].n_evcs    = 0;
   pppoeInstances[pppoe_idx].inUse     = L7_FALSE;
-
-  /* Reset direct referencing to pppoe index from evc ids */
-  pppoeInst_fromEvcId[evc_idx] = PPPOE_INVALID_ENTRY;
 
   return L7_SUCCESS;
 }
@@ -596,6 +599,13 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     }
   }
 
+  /* Save direct referencing to pppoe index from evc ids */
+  if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   if (new_instance)
   {
     /* Save data in free instance */
@@ -614,12 +624,10 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     {
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
       memset(&pppoeInstances[pppoe_idx], 0x00, sizeof(st_PppoeInstCfg_t));
+      ptin_evc_pppoeInst_set(evc_idx, PPPOE_INVALID_ENTRY);
       return L7_FAILURE;
     }
   }
-
-  /* Save direct referencing to pppoe index from evc ids */
-  pppoeInst_fromEvcId[evc_idx] = pppoe_idx;
 
   /* One more EVC associated to this instance */
   pppoeInstances[pppoe_idx].n_evcs++;
@@ -701,11 +709,11 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 evc_idx)
   }
 
   /* Reset direct referencing to pppoe index from evc ids */
-  pppoeInst_fromEvcId[evc_idx] = PPPOE_INVALID_ENTRY;
-
-  /* One less EVC */
-  if (pppoeInstances[pppoe_idx].n_evcs > 0)
-    pppoeInstances[pppoe_idx].n_evcs--;
+  if (ptin_evc_pppoeInst_set(evc_idx, PPPOE_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting PPPoE instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
 
     /* Only clear instance, if there is no one using this NNI outer vlan */
   if ( remove_instance )
@@ -716,6 +724,10 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 evc_idx)
     pppoeInstances[pppoe_idx].n_evcs    = 0;
     pppoeInstances[pppoe_idx].inUse     = L7_FALSE;
   }
+
+  /* One less EVC */
+  if (pppoeInstances[pppoe_idx].n_evcs > 0)
+    pppoeInstances[pppoe_idx].n_evcs--;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
@@ -3369,7 +3381,8 @@ static L7_RC_t ptin_pppoe_instance_deleteAll_clients(L7_uint pppoe_idx)
  */
 static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCfg_t **pppoeInst, L7_uint *pppoeInst_idx)
 {
-  L7_uint32 evc_idx, pppoe_idx;
+  L7_uint32 evc_idx;
+  L7_uint8  pppoe_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
@@ -3379,10 +3392,8 @@ static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCf
     return L7_FAILURE;
   }
 
-  /* Check if the EVC has a PPPOE instance */
-  pppoe_idx = pppoeInst_fromEvcId[evc_idx];
-
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  if (ptin_evc_pppoeInst_get(evc_idx, &pppoe_idx) != L7_SUCCESS ||
+      pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"No PPPOE instance associated to evcId=%u (intVlan=%u)",evc_idx,intVlan);
@@ -3447,19 +3458,22 @@ static L7_RC_t ptin_pppoe_instance_find_free(L7_uint *pppoe_idx)
 static L7_RC_t ptin_pppoe_instance_find(L7_uint32 evc_idx, L7_uint *pppoe_idx)
 {
   #if 1
+  L7_uint8 pppoe_inst;
+
   /* Validate evc index */
   if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
   /* Check if there is an instance associated to this EVC */
-  if (pppoeInst_fromEvcId[evc_idx] >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  if (ptin_evc_pppoeInst_get(evc_idx, &pppoe_inst) != L7_SUCCESS ||
+      pppoe_inst >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
   {
     return L7_FAILURE;
   }
 
   /* Return index */
-  if (pppoe_idx!=L7_NULLPTR)  *pppoe_idx = pppoeInst_fromEvcId[evc_idx];
+  if (pppoe_idx!=L7_NULLPTR)  *pppoe_idx = pppoe_inst;
 
   return L7_SUCCESS;
   #else

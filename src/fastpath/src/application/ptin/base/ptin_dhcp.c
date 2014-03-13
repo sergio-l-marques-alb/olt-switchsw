@@ -156,9 +156,6 @@ static L7_uint32 dhcp_quattro_p2p_evcs = 0;
 /* DHCP instances array */
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
 
-/* Reference of evcid using internal vlan as reference */
-static L7_uint8 dhcpInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
-
 /* Global DHCP statistics at interface level */
 ptin_DHCP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
@@ -267,9 +264,6 @@ L7_RC_t ptin_dhcp_init(void)
 
   /* Reset instances array */
   memset(dhcpInstances, 0x00, sizeof(dhcpInstances));
-
-  /* Initialize lookup tables */
-  memset(dhcpInst_fromEvcId, 0xFF, sizeof(dhcpInst_fromEvcId));
 
   /* Initialize global DHCP statistics */
   memset(global_stats_intf,0x00,sizeof(global_stats_intf));
@@ -439,6 +433,13 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
+  /* Save direct referencing to dhcp index from evc ids */
+  if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Save data in free instance */
   dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
   dhcpInstances[dhcp_idx].nni_ovid = 0;
@@ -450,13 +451,11 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
     memset(&dhcpInstances[dhcp_idx],0x00,sizeof(st_DhcpInstCfg_t));
+    ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY);
     return L7_FAILURE;
   }
 
   /* DHCP index in use */
-
-  /* Save direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[evc_idx] = dhcp_idx;
 
   return L7_SUCCESS;
 }
@@ -500,14 +499,18 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
+  /* Save direct referencing to dhcp index from evc ids */
+  if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Clear data and free instance */
   dhcpInstances[dhcp_idx].evc_idx  = 0;
   dhcpInstances[dhcp_idx].nni_ovid = 0;
   dhcpInstances[dhcp_idx].n_evcs   = 0;
   dhcpInstances[dhcp_idx].inUse    = L7_FALSE;
-
-  /* Reset direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[evc_idx] = DHCP_INVALID_ENTRY;
 
   return L7_SUCCESS;
 }
@@ -597,6 +600,13 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     }
   }
 
+  /* Save direct referencing to dhcp index from evc ids */
+  if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Save data in free instance */
   if (new_instance)
   {
@@ -615,12 +625,10 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
       memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
+      ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY);
       return L7_FAILURE;
     }
   }
-
-  /* Save direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[evc_idx] = dhcp_idx;
 
   /* One more EVC associated to this instance */
   dhcpInstances[dhcp_idx].n_evcs++;
@@ -701,22 +709,26 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
     }
   }
 
-  /* Reset direct referencing to dhcp index from evc ids */
-  dhcpInst_fromEvcId[evc_idx] = DHCP_INVALID_ENTRY;
-
-  /* One less EVC */
-  if (dhcpInstances[dhcp_idx].n_evcs > 0)
-    dhcpInstances[dhcp_idx].n_evcs--;
+  /* Remove EVC index referencing */
+  if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
 
   /* Only clear instance, if there is no one using this NNI outer vlan */
   if (remove_instance)
   {
     /* Clear data and free instance */
-    dhcpInstances[dhcp_idx].evc_idx      = 0;
-    dhcpInstances[dhcp_idx].nni_ovid        = 0;
-    dhcpInstances[dhcp_idx].n_evcs          = 0;
-    dhcpInstances[dhcp_idx].inUse           = L7_FALSE;
+    dhcpInstances[dhcp_idx].evc_idx   = 0;
+    dhcpInstances[dhcp_idx].nni_ovid  = 0;
+    dhcpInstances[dhcp_idx].n_evcs    = 0;
+    dhcpInstances[dhcp_idx].inUse     = L7_FALSE;
   }
+
+  /* One less EVC */
+  if (dhcpInstances[dhcp_idx].n_evcs > 0)
+    dhcpInstances[dhcp_idx].n_evcs--;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
@@ -3375,7 +3387,8 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
  */
 static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_t **dhcpInst, L7_uint *dhcpInst_idx)
 {
-  L7_uint32 evc_idx, dhcp_idx;
+  L7_uint32 evc_idx;
+  L7_uint8  dhcp_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
@@ -3386,9 +3399,8 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   }
 
   /* Check if the EVC has a DHCP instance */
-  dhcp_idx = dhcpInst_fromEvcId[evc_idx];
-
-  if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
+  if (ptin_evc_dhcpInst_get(evc_idx, &dhcp_idx) != L7_SUCCESS ||
+      dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
@@ -3453,19 +3465,22 @@ static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *dhcp_idx)
 static L7_RC_t ptin_dhcp_instance_find(L7_uint32 evc_idx, L7_uint *dhcp_idx)
 {
   #if 1
+  L7_uint8 dhcp_inst;
+
   /* Validate evc index */
   if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
   /* Check if there is an instance associated to this EVC */
-  if (dhcpInst_fromEvcId[evc_idx] >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  if (ptin_evc_dhcpInst_get(evc_idx, &dhcp_inst) != L7_SUCCESS ||
+      dhcp_inst >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     return L7_FAILURE;
   }
 
   /* Return index */
-  if (dhcp_idx!=L7_NULLPTR)  *dhcp_idx = dhcpInst_fromEvcId[evc_idx];
+  if (dhcp_idx!=L7_NULLPTR)  *dhcp_idx = dhcp_inst;
 
   return L7_SUCCESS;
   #else

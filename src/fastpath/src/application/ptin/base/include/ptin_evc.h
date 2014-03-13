@@ -643,4 +643,75 @@ extern
 L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
                                  L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
 
+
+/*********************************************************** 
+ * IGMP/DHCP/PPPoE instances management
+ ***********************************************************/
+
+/**
+ * Set igmp instance for a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param igmp_inst 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint8 igmp_inst);
+
+/**
+ * Get igmp instance from a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param igmp_inst (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint8 *igmp_inst);
+
+/**
+ * Set dhcp instance for a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param dhcp_inst 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint8 dhcp_inst);
+
+/**
+ * Get dhcp instance from a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param dhcp_inst (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint8 *dhcp_inst);
+
+/**
+ * Set pppoe instance for a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param pppoe_inst 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst);
+
+/**
+ * Get pppoe instance from a particular evc
+ * 
+ * @param evc_ext_id 
+ * @param pppoe_inst (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst);
+
 #endif /* _PTIN_EVC_H */

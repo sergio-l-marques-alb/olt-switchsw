@@ -333,9 +333,6 @@ typedef struct {
 } mgmdQueryInstances_t;
 mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 
-/* Reference of evcid using internal vlan as reference */
-static L7_uint8 igmpInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
-
 /* Configuration structures */
 ptin_IgmpProxyCfg_t igmpProxyCfg;
 
@@ -525,7 +522,6 @@ L7_RC_t ptin_igmp_proxy_init(void)
   memset(igmpRoutersIntf, 0x00, sizeof(igmpRoutersIntf));
 
   /* Initialize lookup tables */
-  memset(igmpInst_fromEvcId, 0xFF, sizeof(igmpInst_fromEvcId));
   memset(igmpInst_fromRouterVlan, 0xFF, sizeof(igmpInst_fromRouterVlan));
   memset(igmpInst_fromUCVlan, 0xFF, sizeof(igmpInst_fromUCVlan));
 
@@ -1357,18 +1353,27 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Using free index %u",igmp_idx);
 
+  /* Save direct referencing to igmp index from evc ids */
+  if (ptin_evc_igmpInst_set(McastEvcId, igmp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error saving igmp instance to ext evc id %u", McastEvcId);
+    return L7_FAILURE;
+  }
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  if (ptin_evc_igmpInst_set(UcastEvcId, igmp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error saving igmp instance to ext evc id %u", UcastEvcId);
+    ptin_evc_igmpInst_set(McastEvcId, IGMP_INVALID_ENTRY);
+    return L7_FAILURE;
+  }
+  #endif
+
   /* Save data in free instance */
   igmpInstances[igmp_idx].McastEvcId      = McastEvcId;
   igmpInstances[igmp_idx].UcastEvcId      = UcastEvcId;
   igmpInstances[igmp_idx].nni_ovid        = 0;
   igmpInstances[igmp_idx].n_evcs          = 1;
   igmpInstances[igmp_idx].inUse           = L7_TRUE;
-
-  /* Save direct referencing to igmp index from evc ids */
-  igmpInst_fromEvcId[McastEvcId] = igmp_idx;
-  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  igmpInst_fromEvcId[UcastEvcId] = igmp_idx;
-  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMP index %u",igmp_idx);
 
@@ -1377,9 +1382,9 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting querier configuration for igmp_idx=%u",igmp_idx);
     memset(&igmpInstances[igmp_idx],0x00,sizeof(st_IgmpInstCfg_t));
-    igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
+    ptin_evc_igmpInst_set(McastEvcId, IGMP_INVALID_ENTRY);
     #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-    igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
+    ptin_evc_igmpInst_set(UcastEvcId, IGMP_INVALID_ENTRY);
     #endif
     return L7_FAILURE;
   }
@@ -1392,9 +1397,9 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
     ptin_igmp_querier_configure(igmp_idx,L7_DISABLE);
     memset(&igmpInstances[igmp_idx],0x00,sizeof(st_IgmpInstCfg_t));
-    igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
+    ptin_evc_igmpInst_set(McastEvcId, IGMP_INVALID_ENTRY);
     #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-    igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
+    ptin_evc_igmpInst_set(UcastEvcId, IGMP_INVALID_ENTRY);
     #endif
     return L7_FAILURE;
   }
@@ -1445,18 +1450,26 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
     return L7_FAILURE;
   }
 
+  /* Reset direct referencing to igmp index from evc ids */
+  if (ptin_evc_igmpInst_set(McastEvcId, IGMP_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting igmp instance to ext evc id %u", McastEvcId);
+    return L7_FAILURE;
+  }
+  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
+  if (ptin_evc_igmpInst_set(UcastEvcId, IGMP_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting igmp instance to ext evc id %u", UcastEvcId);
+    return L7_FAILURE;
+  }
+  #endif
+
   /* Clear data and free instance */
   igmpInstances[igmp_idx].McastEvcId      = 0;
   igmpInstances[igmp_idx].UcastEvcId      = 0;
   igmpInstances[igmp_idx].nni_ovid        = 0;
   igmpInstances[igmp_idx].n_evcs          = 0;
   igmpInstances[igmp_idx].inUse           = L7_FALSE;
-
-  /* Reset direct referencing to igmp index from evc ids */
-  igmpInst_fromEvcId[McastEvcId] = IGMP_INVALID_ENTRY;
-  #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  igmpInst_fromEvcId[UcastEvcId] = IGMP_INVALID_ENTRY;
-  #endif
 
 #ifdef PTIN_MGMD_MC_SERVICE_ID_IN_USE//This is only applicable when MGMD is configured to used the Multicast Service Id
   /* If we are removing the service, force a clear of all it's records on MGMD as well */
@@ -1636,6 +1649,13 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     }
   }
 
+  /* Save direct referencing to igmp index from evc ids */
+  if (ptin_evc_igmpInst_set(evc_idx, igmp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting igmp instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Save data in free instance */
   if (new_instance)
   {
@@ -1652,6 +1672,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting querier configuration for evc_idx=%u (igmp_idx=%u)",evc_idx,igmp_idx);
     if (new_instance)
       memset(&igmpInstances[igmp_idx], 0x00, sizeof(st_IgmpInstCfg_t));
+    ptin_evc_igmpInst_set(evc_idx, IGMP_INVALID_ENTRY);
     return L7_FAILURE;
   }
 
@@ -1667,13 +1688,11 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring IGMP snooping for igmp_idx=%u",igmp_idx);
       ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE);
       memset(&igmpInstances[igmp_idx], 0x00, sizeof(st_IgmpInstCfg_t));
+      ptin_evc_igmpInst_set(evc_idx, IGMP_INVALID_ENTRY);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success enabling trap rule of igmp_idx=%u",igmp_idx);
   }
-
-  /* Save direct referencing to igmp index from evc ids */
-  igmpInst_fromEvcId[evc_idx] = igmp_idx;
 
   /* One more EVC associated to this instance */
   igmpInstances[igmp_idx].n_evcs++;
@@ -1758,11 +1777,11 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
   }
 
   /* Reset direct referencing to igmp index from evc ids */
-  igmpInst_fromEvcId[evc_idx] = IGMP_INVALID_ENTRY;
-
-  /* One less EVC */
-  if (igmpInstances[igmp_idx].n_evcs > 0)
-    igmpInstances[igmp_idx].n_evcs--;
+  if (ptin_evc_igmpInst_set(evc_idx, IGMP_INVALID_ENTRY) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting igmp instance to ext evc id %u", evc_idx);
+    return L7_FAILURE;
+  }
 
   /* Only clear instance, if there is no one using this NNI outer vlan */
   if (remove_instance)
@@ -1773,6 +1792,10 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
     igmpInstances[igmp_idx].n_evcs          = 0;
     igmpInstances[igmp_idx].inUse           = L7_FALSE;
   }
+
+  /* One less EVC */
+  if (igmpInstances[igmp_idx].n_evcs > 0)
+    igmpInstances[igmp_idx].n_evcs--;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
@@ -1800,10 +1823,9 @@ L7_RC_t ptin_igmp_evcs_reactivate(void)
   /* Run all EVCs with IGMP instance association */
   for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EXTENDED_EVCS; evc_idx++)
   {
-    if (igmpInst_fromEvcId[evc_idx] >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+    if (ptin_evc_igmpInst_get(evc_idx, &igmp_idx) != L7_SUCCESS ||
+        igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
       continue;
-
-    igmp_idx = igmpInst_fromEvcId[evc_idx];
 
     /* Disable, and reenable querier for this instance */
     if (ptin_igmp_evc_querier_configure(evc_idx, L7_DISABLE)!=L7_SUCCESS)
@@ -6608,6 +6630,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
 {
   L7_uint32 i;
+  L7_uint8 igmp_inst;
 
   /* Validate arguments */
   if (igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
@@ -6648,9 +6671,10 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   /* Reset direct referencing to igmp index from evc ids */
   for (i=0; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
   {
-    if (igmpInst_fromEvcId[i] == igmp_idx)
+    if (ptin_evc_igmpInst_get(i, &igmp_inst) == L7_SUCCESS &&
+        igmp_inst == igmp_idx)
     {
-      igmpInst_fromEvcId[i] = IGMP_INVALID_ENTRY;
+      ptin_evc_igmpInst_set(i, IGMP_INVALID_ENTRY);
     }
   }
 
@@ -7829,7 +7853,8 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
  */
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx)
 {
-  L7_uint32 evc_idx, igmp_idx;
+  L7_uint32 evc_idx;
+  L7_uint8  igmp_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
@@ -7840,9 +7865,8 @@ static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_
   }
 
   /* Check if the EVC has a IGMP instance */
-  igmp_idx = igmpInst_fromEvcId[evc_idx];
-
-  if (igmp_idx>=PTIN_SYSTEM_N_IGMP_INSTANCES)
+  if (ptin_evc_igmpInst_get(evc_idx, &igmp_idx) != L7_SUCCESS ||
+      igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
 //  if (ptin_debug_igmp_snooping)
 //    LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
@@ -8429,15 +8453,19 @@ static L7_uint ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
 static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint16 UcastEvcId, L7_uint *igmp_idx)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint8 igmp_inst;
+
   if (McastEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
-  if (igmpInst_fromEvcId[McastEvcId] >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+
+  if (ptin_evc_igmpInst_get(McastEvcId, &igmp_inst) != L7_SUCCESS ||
+      igmp_inst >= PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
     return L7_FAILURE;
   }
-  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmpInst_fromEvcId[McastEvcId];
+  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmp_inst;
   #else
   L7_uint idx;
 
@@ -8473,15 +8501,19 @@ static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint16 UcastEvcI
 static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uint *igmp_idx)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint8 igmp_inst;
+
   if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
-  if (igmpInst_fromEvcId[evc_idx] >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+
+  if (ptin_evc_igmpInst_get(evc_idx, &igmp_inst) != L7_SUCCESS ||
+      igmp_inst >= PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
     return L7_FAILURE;
   }
-  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmpInst_fromEvcId[evc_idx];
+  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmp_inst;
   #else
 
   L7_uint idx;
@@ -8520,15 +8552,19 @@ static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uin
 static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint8 igmp_inst;
+
   if (McastEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     return L7_FAILURE;
   }
-  if (igmpInst_fromEvcId[McastEvcId] >= PTIN_SYSTEM_N_IGMP_INSTANCES)
+
+  if (ptin_evc_igmpInst_get(McastEvcId, &igmp_inst) != L7_SUCCESS ||
+      igmp_inst >= PTIN_SYSTEM_N_IGMP_INSTANCES)
   {
     return L7_FAILURE;
   }
-  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmpInst_fromEvcId[McastEvcId];
+  if (igmp_idx != L7_NULLPTR)  *igmp_idx = igmp_inst;
   #else
 
   L7_uint idx;
