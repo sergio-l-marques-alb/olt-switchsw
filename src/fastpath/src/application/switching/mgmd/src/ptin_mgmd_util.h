@@ -126,6 +126,8 @@ void      ptinMgmdCleanAllGroupRecordAvlTree(void);
 
 void      ptinMgmdDumpGeneralQuery(void);
 void      ptinMgmdCleanAllGeneralQuery(void);
+void      ptinMgmdStartAllGeneralQuery(void);
+void      ptinMgmdStopAllGeneralQuery(void);
 
 void      ptinMgmdCleanAllGroupSpecificQueriesAvlTree(void);
 void      ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText);

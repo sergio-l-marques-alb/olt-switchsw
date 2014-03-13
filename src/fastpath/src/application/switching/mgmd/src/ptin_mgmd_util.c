@@ -1321,12 +1321,14 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return FAILURE;
       }      
-           
+      ptin_mgmd_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
       if (ptinMgmdScheduleReportMessage(serviceId,&groupPtr->key.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,ptinMgmd_generate_random_response_delay(maxResponseTime),FALSE,1, groupPtr)!=SUCCESS)
       {
+       ptin_mgmd_measurement_timer_stop(30);
        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
        return FAILURE;
       }
+      ptin_mgmd_measurement_timer_stop(30);
       ++noOfRecords;      
     }
   }  
@@ -1363,8 +1365,7 @@ void ptinMgmdDumpGeneralQuery(void)
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
     printf("-----------------------------------------\n");
-    printf("General Query ServiceId:%u\n", avlTreeEntry->key.serviceId);  
-    printf("      |Active          :%s\n",avlTreeEntry->active?"Yes":"No");
+    printf("General Query ServiceId:%u\n", avlTreeEntry->key.serviceId);      
     printf("      |Timer Running   :%s\n", ptin_mgmd_querytimer_isRunning(&avlTreeEntry->querierTimer)?"Yes":"No");
     printf("      |Query Timer     :%u\n", ptin_mgmd_querytimer_timeleft(&avlTreeEntry->querierTimer));    
     printf("      |Startup Flag    :%s\n",avlTreeEntry->startUpQueryFlag?"True":"False");  
@@ -1376,7 +1377,7 @@ void ptinMgmdDumpGeneralQuery(void)
 
 
 /*************************************************************************
- * @purpose Dump Query AVL Tree
+ * @purpose Clean All Query AVL Tree
  *
  *
  *
@@ -1401,15 +1402,87 @@ void ptinMgmdCleanAllGeneralQuery(void)
   {    
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+    //Stop Query Timer   
+    ptin_mgmd_querytimer_stop(&avlTreeEntry->querierTimer);    
+    //Remove Query Entry      
+    ptinMgmdQueryEntryDelete(avlTreeKey.serviceId,PTIN_MGMD_AF_INET);
+  }  
+}
 
-       //Stop Query Timer
-      if (avlTreeEntry->active==TRUE)        
-      {
-        ptin_mgmd_querytimer_stop(&avlTreeEntry->querierTimer);
-      }
-      //Remove Query Entry
-      
-      ptinMgmdQueryEntryDelete(avlTreeKey.serviceId,PTIN_MGMD_AF_INET);
+
+/*************************************************************************
+ * @purpose Stop All Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdStopAllGeneralQuery(void)
+{
+  ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
+  ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_cb_t                *pMgmdCB;
+
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+  
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdCleanAllGeneralQuery");
+  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+    //Stop Query Timer   
+    ptin_mgmd_querytimer_stop(&avlTreeEntry->querierTimer);        
+  }  
+}
+
+/*************************************************************************
+ * @purpose Start All Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdStartAllGeneralQuery(void)
+{
+  ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
+  ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_cb_t                *pMgmdCB;
+  ptin_IgmpProxyCfg_t            igmpGlobalCfg;
+
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg)!=SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
+    return;
+  }
+  
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdCleanAllGeneralQuery");
+  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+
+    avlTreeEntry->startUpQueryFlag=TRUE;
+    avlTreeEntry->querierTimer.startUpQueryCount=0;
+
+    if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+      return;
+    }
   }  
 }
 
@@ -1566,7 +1639,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
     ptinMgmdGroupRecordPrint(avlTreeEntry->key.serviceId,avlTreeEntry->key.groupAddr.addr.ipv4.s_addr,avlTreeEntry->key.recordType);
 
   }
-  printf("Number of used Group Records: %u ", ptin_mgmd_avlTreeCount(&pSnoopEB->snoopPTinProxyGroupAvlTree));  
+  printf("Number of used Group Records: %u \n", ptin_mgmd_avlTreeCount(&pSnoopEB->snoopPTinProxyGroupAvlTree));  
 }
 
 /*************************************************************************
@@ -1779,21 +1852,25 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
     return FAILURE;
   }
   
+  ptin_mgmd_measurement_timer_start(32,"externalApi.portList_get");      
    /* Forward frame to all ports in this ServiceId with hosts attached */  
   if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)!=SUCCESS)
   {
+    ptin_mgmd_measurement_timer_stop(32);
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
     return ERROR;
   }
+  ptin_mgmd_measurement_timer_stop(32);
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
-      /* Send packet */        
+      /* Send packet */  
+      ptin_mgmd_measurement_timer_start(31,"ptinMgmdPacketPortSend");      
       ptinMgmdPacketPortSend(mcastPacket, igmp_type, portId);
-
+      ptin_mgmd_measurement_timer_stop(31);
       if(packetSent==FALSE)
         packetSent=TRUE;
     }

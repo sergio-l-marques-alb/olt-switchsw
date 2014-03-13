@@ -741,27 +741,25 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
     /* Prepare next key */
     memcpy(&key, &entry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u with state %u", entry->key.serviceId, entry->active);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
 
-    /* Ignore this entry if the status is not active */
-    if(PTIN_MGMD_ENABLE == entry->active)
+    
+    /* Stop Query Timer */
+    if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
     {
-      /* Stop Query Timer */
-      if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
-      {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to stop Query Timer (serviceId:%u family:%u)",entry->key.serviceId, ctrlData.family);
-        return FAILURE;
-      }
-
-      /* Restart the Query timer with the startup flag enabled */
-      entry->startUpQueryFlag               = TRUE;
-      entry->querierTimer.startUpQueryCount = 0;
-      if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
-      {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
-        return FAILURE;
-      }
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to stop Query Timer (serviceId:%u family:%u)",entry->key.serviceId, ctrlData.family);
+      return FAILURE;
     }
+
+    /* Restart the Query timer with the startup flag enabled */
+    entry->startUpQueryFlag               = TRUE;
+    entry->querierTimer.startUpQueryCount = 0;
+    if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+      return FAILURE;
+    }
+  
   }
 
   return SUCCESS;
@@ -787,7 +785,7 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
   RC_t                          rc = SUCCESS;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t data; 
   ptinMgmdQuerierInfoData_t     *pMgmdEntry=PTIN_NULLPTR;
-  BOOL                       newEntry;
+  BOOL                          newEntry;
 
   if (eventData==PTIN_NULLPTR || eventData->data==NULL ||  eventData->dataLength!=sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
   {
@@ -814,25 +812,13 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get ptinMgmdQueryEntryAdd()"); 
         return FAILURE;
       }
-      else if (newEntry==FALSE ||  pMgmdEntry->active==TRUE)
-      {
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"This Query is already enabled (serviceId:%u family:%u)",data.serviceId,data.family); 
-        return SUCCESS;
-      }      
-      pMgmdEntry->active=TRUE;
+            
       pMgmdEntry->startUpQueryFlag=TRUE;
       pMgmdEntry->querierTimer.startUpQueryCount=0;
 
       if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
-
-        //Remove Query Entry
-        if (ptinMgmdQueryEntryDelete(data.serviceId,data.family)!=SUCCESS)
-        {
-          PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to remove Query Entry (serviceId:%u family:%u)",data.serviceId,data.family);
-          return FAILURE;
-        }
         return FAILURE;
       }
       return rc;
@@ -847,16 +833,16 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
         return rc;
       }     
        //Stop Query Timer
-      if (pMgmdEntry->active==TRUE && ptin_mgmd_querytimer_stop(&pMgmdEntry->querierTimer)!=SUCCESS)
+      if (ptin_mgmd_querytimer_stop(&pMgmdEntry->querierTimer)!=SUCCESS)
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to stop Query Timer (serviceId:%u family:%u)",data.serviceId,data.family);
-        return FAILURE;
+//      return FAILURE;
       }
       //Remove Query Entry
       if (ptinMgmdQueryEntryDelete(data.serviceId,data.family)!=SUCCESS)
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to remove Query Entry (serviceId:%u family:%u)",data.serviceId,data.family); 
-        return FAILURE;
+//      return FAILURE;
       }
 
       break;

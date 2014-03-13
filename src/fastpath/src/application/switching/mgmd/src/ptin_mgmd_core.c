@@ -122,7 +122,9 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
       }
       else
       {
+        ptin_mgmd_measurement_timer_start(22,"ptin_mgmd_membership_query_process");
         rc = ptin_mgmd_membership_query_process(mcastPacket);
+        ptin_mgmd_measurement_timer_stop(22);
       }      
       break;
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
@@ -133,14 +135,18 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
       }
       else
       {
+        ptin_mgmd_measurement_timer_start(23,"ptin_mgmd_membership_report_v3_process");
         rc = ptin_mgmd_membership_report_v3_process(mcastPacket);         
+        ptin_mgmd_measurement_timer_stop(23);
       }      
       break;
 
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT: //Should we support these?
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_LEAVE_GROUP:
+      ptin_mgmd_measurement_timer_start(24,"ptin_mgmd_membership_report_v2_process");
       rc = ptin_mgmd_membership_report_v2_process(mcastPacket);
+      ptin_mgmd_measurement_timer_stop(24);
       break; 
 
     default:
@@ -542,8 +548,7 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   RC_t                         rc         = SUCCESS;
   uchar8                       version; 
   ptin_mgmd_externalapi_t      externalApi;
-  ptin_mgmd_port_type_t        portType;
-
+  
   if(ptin_mgmd_extended_debug)
   {
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
@@ -582,17 +587,21 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return FAILURE;
   }
 
+  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
+
+  ptin_mgmd_measurement_timer_start(33,"externalApi.portType_get"); 
   //Validate clientId (only for leaf ports)
-  if( (SUCCESS == externalApi.portType_get(serviceId, portId, &portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == portType) )
+  if( (SUCCESS == externalApi.portType_get(serviceId, portId, &mcastPacket.portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == mcastPacket.portType) )
   {
+    ptin_mgmd_measurement_timer_stop(33);
     if (/*clientId==0  ||*/ clientId >= PTIN_MGMD_MAX_CLIENTS)
     {    
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
       return FAILURE;
     }
   }
+  ptin_mgmd_measurement_timer_stop(33);
 
-  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
   mcastPacket.portId    = portId;
   mcastPacket.serviceId = serviceId;
   mcastPacket.clientId  = clientId;  
@@ -608,8 +617,10 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   version=((payload[0]&0xf0)>>4);
   if(version == PTIN_IP_VERSION) 
   {
+    ptin_mgmd_measurement_timer_start(20,"ptin_mgmd_igmp_packet_parse");
     if ( (rc=ptin_mgmd_igmp_packet_parse(payload, payloadLength, &mcastPacket)) != SUCCESS)
     {
+      ptin_mgmd_measurement_timer_stop(20);
       if (mcastPacket.ipPayload!=PTIN_NULLPTR)
       {
         ptin_mgmd_stat_increment_field(mcastPacket.portId, mcastPacket.serviceId, mcastPacket.clientId, ptinMgmdPacketType2IGMPStatField(mcastPacket.ipPayload[0], SNOOP_STAT_FIELD_DROPPED_RX));
@@ -624,8 +635,11 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
       }
       return SUCCESS;
     }
+    ptin_mgmd_measurement_timer_stop(20);
     
+    ptin_mgmd_measurement_timer_start(21,"ptin_mgmd_igmp_packet_process");
     rc = ptin_mgmd_igmp_packet_process(&mcastPacket);
+    ptin_mgmd_measurement_timer_stop(21);
   } 
   else if(version == PTIN_IPv6_VERSION)
   {
@@ -680,7 +694,6 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
 *********************************************************************/
 RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
 {
-  ptin_mgmd_port_type_t        portType;
   ptinMgmdGroupInfoData_t     *avlTreeEntry=PTIN_NULLPTR;
   uchar8                      *dataPtr = PTIN_NULL;
   uint32                       ipv4Addr, 
@@ -716,9 +729,9 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
   }
 
   /* Port must be root */  
-  if (externalApi.portType_get(mcastPacket->serviceId,mcastPacket->portId, &portType)!=SUCCESS || portType!=PTIN_MGMD_PORT_TYPE_ROOT)
+  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_ROOT)
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,portType);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType);
     return ERROR;
   }
 
@@ -1354,7 +1367,6 @@ uint8 ptinMgmdRecordType2IGMPStatField(uint8 recordType,uint8 fieldType)
 *****************************************************************************/
 RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
 {
-  ptin_mgmd_port_type_t     portType;
   uchar8                   *dataPtr;
   uchar8                    recType;
   uchar8                    auxDataLen;
@@ -1385,7 +1397,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
   }
   
   //Port must be leaf
-  if (externalApi.portType_get(mcastPacket->serviceId,mcastPacket->portId, &portType) != SUCCESS || portType!=PTIN_MGMD_PORT_TYPE_LEAF)
+  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Received a membership report on a root interface");
     return FAILURE;
@@ -1657,11 +1669,13 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
 #endif
       }
     case PTIN_MGMD_CHANGE_TO_INCLUDE_MODE:
-      {            
+      {         
+        ptin_mgmd_measurement_timer_start(25,"ptinMgmdMembershipReportToIncludeProcess");   
         if (SUCCESS != (rc=ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, noOfSources, sourceList, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");              
         }
+        ptin_mgmd_measurement_timer_stop(25);
         break;
       }
     case PTIN_MGMD_CHANGE_TO_EXCLUDE_MODE:
@@ -1674,10 +1688,12 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
         break;
 #else  //We assume the behaviour preconized in RFC 5790 Lightweight IGMPv3/MLDv2 
        //To_Ex{S} -> To_Ex{0} = Join(G)
+        ptin_mgmd_measurement_timer_start(26,"ptinMgmdMembershipReportToExcludeProcess");   
         if (SUCCESS != (rc=ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");              
         }
+        ptin_mgmd_measurement_timer_stop(26);
         break;
 #endif
       }
@@ -1752,11 +1768,14 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
   if (mcastPacket->ebHandle->noOfGroupRecordsToBeSent>0)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
+    ptin_mgmd_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
     if (ptinMgmdScheduleReportMessage(mcastPacket->serviceId,&mcastPacket->ebHandle->groupRecordPtr->key.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,0,FALSE,mcastPacket->ebHandle->noOfGroupRecordsToBeSent, mcastPacket->ebHandle->groupRecordPtr)!=SUCCESS)
     {
+      ptin_mgmd_measurement_timer_stop(30);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
       return ERROR;
     }
+    ptin_mgmd_measurement_timer_stop(30);
   }  
   if (flagAddClient!=flagRemoveClient)
   {
@@ -1788,7 +1807,6 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
 *****************************************************************************/
 RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
 {
-  ptin_mgmd_port_type_t     portType;
   uchar8                    *dataPtr;
   uchar8                    igmpType;
   RC_t                      rc = SUCCESS;
@@ -1811,7 +1829,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   }
   
   //Port must be leaf
-  if (externalApi.portType_get(mcastPacket->serviceId,mcastPacket->portId, &portType) != SUCCESS || portType!=PTIN_MGMD_PORT_TYPE_LEAF)
+  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Received a membership report on a root interface");
     return ERROR;
@@ -1868,10 +1886,12 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
 
       numberOfClients = snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients;
     
+      ptin_mgmd_measurement_timer_start(25,"ptinMgmdMembershipReportToIncludeProcess");   
       if (SUCCESS != (rc = ptinMgmdMembershipReportToIncludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");
       }
+      ptin_mgmd_measurement_timer_stop(26);
 
       break;
     }
@@ -1912,10 +1932,12 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
         ptinMgmdInitializeInterface(snoopEntry, mcastPacket->portId);
       }
 
+      ptin_mgmd_measurement_timer_start(26,"ptinMgmdMembershipReportToExcludeProcess");   
       if (SUCCESS != (rc = ptinMgmdMembershipReportToExcludeProcess(mcastPacket->ebHandle, snoopEntry, mcastPacket->portId, mcastPacket->clientId, 0, PTIN_NULLPTR, &mcastPacket->cbHandle->mgmdProxyCfg)))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportToExcludeProcess()");
       }
+      ptin_mgmd_measurement_timer_stop(26);
 
       break;
     }
@@ -1976,11 +1998,14 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   if (mcastPacket->ebHandle->noOfGroupRecordsToBeSent > 0)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
+    ptin_mgmd_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
     if (ptinMgmdScheduleReportMessage(mcastPacket->serviceId, &mcastPacket->ebHandle->groupRecordPtr->key.groupAddr, PTIN_IGMP_V3_MEMBERSHIP_REPORT, 0, FALSE, mcastPacket->ebHandle->noOfGroupRecordsToBeSent, mcastPacket->ebHandle->groupRecordPtr) != SUCCESS)
     {
+      ptin_mgmd_measurement_timer_stop(30);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinReportSchedule()");
       return ERROR;
     }
+    ptin_mgmd_measurement_timer_stop(30);
   } 
 
   if (flagAddClient != flagRemoveClient)

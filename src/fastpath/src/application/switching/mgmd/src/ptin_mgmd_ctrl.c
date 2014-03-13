@@ -81,7 +81,8 @@ RC_t ptin_mgmd_ctrl_mgmd_config_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     data.host.robustness                        = ptinIgmpProxy.host.robustness;
     data.host.unsolicitedReportInterval         = ptinIgmpProxy.host.unsolicited_report_interval;
     data.host.olderQuerierPresentTimeout        = ptinIgmpProxy.host.older_querier_present_timeout;
-
+    data.host.maxRecordsPerReport               = ptinIgmpProxy.host.max_records_per_report;
+   
     memcpy(eventData->data, &data, sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t)); 
   }
 

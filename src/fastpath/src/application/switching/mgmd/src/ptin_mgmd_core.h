@@ -528,6 +528,7 @@ typedef struct mgmdSnoopControlPkt_s
   uint32                  frameLength;//IP                  
   uchar8                 *ipPayload;//IGMP/MLD
   uint32                  ipPayloadLength;//IGMP/MLD
+  ptin_mgmd_port_type_t   portType;
 } ptinMgmdControlPkt_t; 
 
 void ptin_mgmd_core_memory_allocation(void);

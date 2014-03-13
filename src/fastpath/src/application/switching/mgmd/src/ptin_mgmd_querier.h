@@ -69,8 +69,7 @@ typedef struct ptinMgmdQuerierInfoData_s
   uchar8                        startUpQueryFlag;//True if Query is in the StartUp Mode 
   ptinMgmdL3Querytimer_t        querierTimer;  
 //ptin_IgmpV3QuerierCfg_t       *querierCfg;//Since we currently only support one global configuration per Query we save here the pointer to the configuration
-                                  //In the future we need to decide, wheter we use this struct for querier, or if we define a new one.                                            
-  uchar8                        active;//TRUE if the general querier is active 
+                                  //In the future we need to decide, wheter we use this struct for querier, or if we define a new one.                                              
 #endif
 
   void                          *next;
