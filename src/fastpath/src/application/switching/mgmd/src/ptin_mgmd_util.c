@@ -1416,7 +1416,7 @@ void ptinMgmdCleanAllGeneralQuery(void)
  *
  *
  *************************************************************************/
-void ptinMgmdStopAllGeneralQuery(void)
+void ptinMgmdGeneralQueryStopAll(void)
 {
   ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
   ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
@@ -1575,7 +1575,7 @@ void ptinMgmdDumpL3AvlTree(void)
  *
  *
  *************************************************************************/
-void ptinMgmdCleanAllGroupAvlTree(void)
+void ptinMgmdGroupRemoveAll(void)
 {
   ptin_mgmd_eb_t              *pSnoopEB;
   ptinMgmdGroupInfoData_t     *avlTreeEntry;  
@@ -1648,7 +1648,7 @@ void ptinMgmdDumpGroupRecordAvlTree(void)
  *
  *
  *************************************************************************/
-void ptinMgmdCleanAllGroupRecordAvlTree(void)
+void ptinMgmdGroupRecordRemoveAll(void)
 {
   ptin_mgmd_eb_t        *pSnoopEB;
 
@@ -1679,7 +1679,7 @@ void ptinMgmdCleanAllGroupRecordAvlTree(void)
  *
  *
  *************************************************************************/
-void ptinMgmdCleanAllGroupSpecificQueriesAvlTree(void)
+void ptinMgmdGroupSpecificQueriesRemoveAll(void)
 {
   ptin_mgmd_eb_t        *pMgmdEB;
 

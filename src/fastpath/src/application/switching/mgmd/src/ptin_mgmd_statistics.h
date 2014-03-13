@@ -383,4 +383,12 @@ RC_t ptin_mgmd_stat_intf_clear(uint32 serviceId, uint32 interfaceId);
 RC_t ptin_mgmd_stats_service_clear(uint32 serviceId);
 
 
+/**
+ * Reset all statistics 
+ * 
+ * 
+ */
+void ptin_mgmd_statistics_reset_all(void);
+
+
 #endif //_PTIN_MGMD_STATS_H     

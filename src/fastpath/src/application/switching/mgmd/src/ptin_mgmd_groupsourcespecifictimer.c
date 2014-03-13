@@ -750,7 +750,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   uint32                                 sourcesToSend = 0;
   ptin_IgmpProxyCfg_t                    igmpGlobalCfg;
 
-  PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group & Source Specific Timer Expired [groupAddr=0x%08X serviceId=%u portId=%u]", eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group & Source Specific Timer Expired [groupAddr=0x%08X serviceId=%u portId=%u]", eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
 
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&eventData->groupAddr, eventData->serviceId, eventData->portId, AVL_EXACT)))
   {
@@ -821,7 +821,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   }
   else
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "No more retransmissions left for this Group Specific Timer");
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "No more retransmissions left for this Group Specific Timer");
     if(SUCCESS != ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to delete Group Specific Timer [groupAddr=0x%08X serviceId=%u]", timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId);

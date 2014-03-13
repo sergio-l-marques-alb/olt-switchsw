@@ -27,6 +27,7 @@
 #include "ptin_mgmd_core.h"
 #include "ptin_mgmd_util.h"
 #include "ptin_mgmd_cnfgr.h"
+#include "ptin_mgmd_statistics.h"
 
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
@@ -332,11 +333,14 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  Admin:                                   %s", mgmdProxyCfg.admin != 0 ? "ON" : "OFF");     
     
     //Clean All Group Entries
-    ptinMgmdCleanAllGroupAvlTree();
+    ptinMgmdGroupRemoveAll();
     //Clean All Group Record Entries
-    ptinMgmdCleanAllGroupRecordAvlTree();
+    ptinMgmdGroupRecordRemoveAll();
     //Clean All Group Specific Query Entries
-    ptinMgmdCleanAllGroupSpecificQueriesAvlTree();
+    ptinMgmdGroupSpecificQueriesRemoveAll();
+
+    //Reset All Statistics
+    ptin_mgmd_statistics_reset_all();
 
     if(mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
     {
@@ -346,7 +350,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     else
     {
       //Stop All Existing General Queries
-      ptinMgmdStopAllGeneralQuery();
+      ptinMgmdGeneralQueryStopAll();
     }
 
     externalApi.igmp_admin_set(mgmdProxyCfg.admin); 
@@ -535,6 +539,10 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   {    
     mgmdProxyCfg.host.robustness = igmpProxy->host.robustness;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", mgmdProxyCfg.host.robustness);
+
+    //Once this parameter is currently not configured on the Manager, we use the same parameter for the host
+    mgmdProxyCfg.querier.robustness = igmpProxy->host.robustness;
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", mgmdProxyCfg.querier.robustness);
   }
 
   /* Unsolicited Report Interval */

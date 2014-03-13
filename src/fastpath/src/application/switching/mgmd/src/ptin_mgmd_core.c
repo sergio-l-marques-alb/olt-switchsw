@@ -1891,7 +1891,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinMembershipReportIsIncludeProcess()");
       }
-      ptin_mgmd_measurement_timer_stop(26);
+      ptin_mgmd_measurement_timer_stop(25);
 
       break;
     }
@@ -2428,7 +2428,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     }
     case PTIN_MGMD_EVENT_DEBUG_MCAST_GROUP_CLEAN:
     {
-      ptinMgmdCleanAllGroupAvlTree();
+      ptinMgmdGroupRemoveAll();
       break;
     }
     case PTIN_MGMD_EVENT_DEBUG_GROUP_RECORDS_DUMP:
@@ -2438,7 +2438,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     }
     case PTIN_MGMD_EVENT_DEBUG_GROUP_RECORDS_CLEAN:
     {
-      ptinMgmdCleanAllGroupRecordAvlTree();
+      ptinMgmdGroupRecordRemoveAll();
       break;
     }
     case PTIN_MGMD_EVENT_DEBUG_WHITELIST_DUMP:

@@ -119,17 +119,17 @@ ushort16  ptinMgmdCheckSum(ushort16 *addr, ushort16 len, ushort16 csum);
 uint8     ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType);
 
 void      ptinMgmdDumpL3AvlTree(void);
-void      ptinMgmdCleanAllGroupAvlTree(void);
+void      ptinMgmdGroupRemoveAll(void);
 void      ptinMgmdDumpGroupRecordAvlTree(void);
 RC_t      ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId);
-void      ptinMgmdCleanAllGroupRecordAvlTree(void);
+void      ptinMgmdGroupRecordRemoveAll(void);
 
 void      ptinMgmdDumpGeneralQuery(void);
 void      ptinMgmdCleanAllGeneralQuery(void);
 void      ptinMgmdStartAllGeneralQuery(void);
-void      ptinMgmdStopAllGeneralQuery(void);
+void      ptinMgmdGeneralQueryStopAll(void);
 
-void      ptinMgmdCleanAllGroupSpecificQueriesAvlTree(void);
+void      ptinMgmdGroupSpecificQueriesRemoveAll(void);
 void      ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText);
 void      ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 recordType);
 
