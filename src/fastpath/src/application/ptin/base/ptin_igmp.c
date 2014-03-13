@@ -6434,7 +6434,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
 static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
 {
   ptinIgmpPairInfoData_t *avl_infoData;
-  L7_uint16 i;
 
   /* Check if this key does not exists */
   if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *) avl_key, AVL_EXACT)) == L7_NULLPTR)
@@ -6444,6 +6443,9 @@ static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
     return L7_SUCCESS;
   }
 
+  #if 0
+  L7_uint16 i;
+
   printf("Printing provided key:");
   for (i=0; i<sizeof(ptinIgmpPairDataKey_t); i++)
   {
@@ -6451,6 +6453,7 @@ static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
     printf(" %02x",*(((L7_uchar8 *) avl_key)+i) );
   }
   printf("\r\ndone!\r\n");
+  #endif
 
   /* Remove key */
   if (avlDeleteEntry(&(igmpPairDB.igmpPairAvlTree), (void *) avl_key) == L7_NULLPTR)
