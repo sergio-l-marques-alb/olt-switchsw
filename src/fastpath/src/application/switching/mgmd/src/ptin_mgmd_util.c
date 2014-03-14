@@ -1430,7 +1430,7 @@ void ptinMgmdGeneralQueryStopAll(void)
   
   /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdCleanAllGeneralQuery");
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdGeneralQueryStopAll");
   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
@@ -1468,7 +1468,7 @@ void ptinMgmdStartAllGeneralQuery(void)
   
   /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdCleanAllGeneralQuery");
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdStartAllGeneralQuery");
   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
@@ -1893,6 +1893,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
         printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);
         for (i=0;i<mcastPacket->frameLength;i++)
           printf("%02x ",mcastPacket->framePayload[i]);
+
         printf("\n");    
       }
     }  

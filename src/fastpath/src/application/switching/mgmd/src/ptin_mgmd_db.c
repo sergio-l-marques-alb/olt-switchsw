@@ -1193,9 +1193,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   BOOL                     sendGroupSpecificQuery=FALSE;
 
   /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR))
+  if (pMgmdEB==PTIN_NULLPTR ||  groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR) || igmpCfg==PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments: [pMgmdEB=%p groupEntry=%p noOfSourcesInput=%u sourceList=%p igmpCfg=%p]",pMgmdEB,groupEntry,noOfSourcesInput,sourceList,igmpCfg);
     return FAILURE;
   }
 
@@ -1307,9 +1307,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     }
   }
   else /*To_In{0}=IGMPv2 Leave Group*/
-  {
+  {    
     /*If this client exists on this interface, remove the client from the clientSource bitmap and also from the clientInterface bitmap*/
-    if (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[portId].clients, clientId) == TRUE)
+    if (PTIN_MGMD_MANAGEMENT_CLIENT_ID != clientId &&  PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[portId].clients, clientId) == TRUE)
     {
       //Remove the client from any source in which it may be
       for (sourcePtr=groupEntry->ports[portId].firstSource, sourceId = 0; sourceId<groupEntry->ports[portId].numberOfSources && sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next, ++sourceId)      
@@ -1320,7 +1320,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
           return FAILURE;
         }
       }
-      
+         
       //Remove the client from the interface bitmap
       if (ERROR == snoopPTinClientInterfaceRemove(&groupEntry->ports[portId], clientId))
       {
@@ -1329,7 +1329,6 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       }      
     }
   }
-
   /* If filter-mode is EXCLUDE: send Q(G) */
   if (PTIN_MGMD_ROOT_PORT != portId)
   {
@@ -1341,7 +1340,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       ptin_mgmd_measurement_timer_stop(29);
     }
   }
-
+ 
   /* Send a Q(G,S) */
   if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
@@ -1392,10 +1391,10 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   BOOL                      newEntry;
   BOOL                      sendGroupSpecificQuery=FALSE;
 
-  /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR || (noOfSources > 0 && sourceList == PTIN_NULLPTR))
+  /* Argument validation */  
+  if (pMgmdEB==PTIN_NULLPTR ||  groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR) || igmpCfg==PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments: [pMgmdEB=%p groupEntry=%p noOfSourcesInput=%u sourceList=%p igmpCfg=%p]",pMgmdEB,groupEntry,noOfSourcesInput,sourceList,igmpCfg);
     return FAILURE;
   }
 
@@ -1774,9 +1773,9 @@ RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroup
   BOOL                      newEntry = FALSE;
 
   /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR || sourceList == PTIN_NULLPTR)
+  if (pMgmdEB==PTIN_NULLPTR ||  groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR) || igmpCfg==PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments: [pMgmdEB=%p groupEntry=%p noOfSourcesInput=%u sourceList=%p igmpCfg=%p]",pMgmdEB,groupEntry,noOfSourcesInput,sourceList,igmpCfg);
     return FAILURE;
   }
  
@@ -1904,9 +1903,9 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
   RC_t                    rc               = SUCCESS;
   
   /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR || sourceList == PTIN_NULLPTR /*||  groupPtr == PTIN_NULLPTR*/)
+  if (groupEntry == PTIN_NULLPTR || (noOfSourcesInput > 0 && sourceList == PTIN_NULLPTR) || igmpCfg==PTIN_NULLPTR)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments: [groupEntry=%p noOfSourcesInput=%u sourceList=%p igmpCfg=%p]",groupEntry,noOfSourcesInput,sourceList,igmpCfg);
     return FAILURE;
   }
 
@@ -3139,7 +3138,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
       {
         if (noOfSources == 0)
         {
-          rc = ptinMgmdMembershipReportToIncludeProcess(PTIN_NULLPTR, avlTreeEntry, portId, clientId, 0, PTIN_NULLPTR, &igmpCfg);
+          rc = ptinMgmdMembershipReportToIncludeProcess(pMgmdEB, avlTreeEntry, portId, clientId, 0, PTIN_NULLPTR, &igmpCfg);
         }
         else
         {

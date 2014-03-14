@@ -341,13 +341,13 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     ptinMgmdGroupSpecificQueriesRemoveAll();
 #endif
     
-    //Reset All Statistics
-    ptin_mgmd_statistics_reset_all();
-
     if(mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
     {
+      //Reset All Statistics
+      ptin_mgmd_statistics_reset_all();
+
       //Start All Existing General Queries
-      ptinMgmdStartAllGeneralQuery();
+      ptinMgmdStartAllGeneralQuery();      
     }
     else
     {
