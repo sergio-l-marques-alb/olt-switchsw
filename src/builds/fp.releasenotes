@@ -38,3 +38,9 @@ Version 2.8.0-r1484
 Version 2.8.0-r1486
  - Fix OLTSWITCH-280/OLTTS-4665: MGMD is not being notified when IGMP proxy is disabled.
  - Req OLTSWITCH-253/OLTTS-3980: Updated according to the latest revision of MGMD.
+Version 2.8.0-r1494
+ - Req OLTSWITCH-283: Extended to internal EVC id translation make use of a AVL tree.
+ - Fix OLTSWITCH-284/OLTTS-4686: Flow creation of "unstacked" Quattro services with DHCP flag is not possible.
+ - Fix OLTSWITCH-282/OLTTS-4698: Removed printf instructions which could cause delayed processing.
+ - Req OLTSWITCH-281/OLTTS-4249: MAC Bridge Service Counters functional.
+ - Req OLTSWITCH-253/OLTTS-3980: Several improvements and bugfixes.

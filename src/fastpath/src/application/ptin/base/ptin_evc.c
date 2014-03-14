@@ -517,8 +517,8 @@ L7_RC_t ptin_evc_init(void)
   /* Extended EVCids AVL tree */
   memset(&extEvcId_avlTree, 0x00, sizeof(ptinExtEvcIdAvlTree_t));
 
-  extEvcId_avlTree.extEvcIdTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_N_EXTENDED_EVCS*sizeof(avlTreeTables_t));
-  extEvcId_avlTree.extEvcIdDataHeap = (ptinExtEvcIdInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_N_EXTENDED_EVCS*sizeof(ptinExtEvcIdInfoData_t));
+  extEvcId_avlTree.extEvcIdTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_N_EVCS*sizeof(avlTreeTables_t));
+  extEvcId_avlTree.extEvcIdDataHeap = (ptinExtEvcIdInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_N_EVCS*sizeof(ptinExtEvcIdInfoData_t));
 
   if ((extEvcId_avlTree.extEvcIdTreeHeap == L7_NULLPTR) ||
       (extEvcId_avlTree.extEvcIdDataHeap == L7_NULLPTR))
@@ -529,14 +529,14 @@ L7_RC_t ptin_evc_init(void)
 
   /* Initialize the storage for all the AVL trees */
   memset (&extEvcId_avlTree.extEvcIdAvlTree, 0x00, sizeof(avlTree_t));
-  memset ( extEvcId_avlTree.extEvcIdTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_N_EXTENDED_EVCS);
-  memset ( extEvcId_avlTree.extEvcIdDataHeap, 0x00, sizeof(ptinExtEvcIdInfoData_t)*PTIN_SYSTEM_N_EXTENDED_EVCS);
+  memset ( extEvcId_avlTree.extEvcIdTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_N_EVCS);
+  memset ( extEvcId_avlTree.extEvcIdDataHeap, 0x00, sizeof(ptinExtEvcIdInfoData_t)*PTIN_SYSTEM_N_EVCS);
 
   // AVL Tree creations - snoopIpAvlTree
   avlCreateAvlTree(&(extEvcId_avlTree.extEvcIdAvlTree),
                    extEvcId_avlTree.extEvcIdTreeHeap,
                    extEvcId_avlTree.extEvcIdDataHeap,
-                   PTIN_SYSTEM_N_EXTENDED_EVCS,
+                   PTIN_SYSTEM_N_EVCS,
                    sizeof(ptinExtEvcIdInfoData_t),
                    0x10,
                    sizeof(ptinExtEvcIdDataKey_t));
@@ -6047,7 +6047,7 @@ static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
   }
 
   /* check if there is free space in AVL TREE */
-  if (extEvcId_avlTree.extEvcIdAvlTree.count >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (extEvcId_avlTree.extEvcIdAvlTree.count >= PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Np space in AVL TREE to add one more node");
     return L7_FAILURE;

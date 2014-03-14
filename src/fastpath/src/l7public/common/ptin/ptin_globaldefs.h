@@ -38,7 +38,7 @@
 #define PTIN_SYSTEM_MAX_N_PORTS         64
 #define PTIN_SYSTEM_MAX_N_LAGS          PTIN_SYSTEM_MAX_N_PORTS
 #define PTIN_SYSTEM_MTU_SIZE            2048
-#define PTIN_SYSTEM_N_EXTENDED_EVCS     (4*1024)
+#define PTIN_SYSTEM_N_EXTENDED_EVCS     (1UL << 17)     /* 17 bits will be used by management */
 
 #define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
 #define PTIN_IS_PORT_ETH(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)
