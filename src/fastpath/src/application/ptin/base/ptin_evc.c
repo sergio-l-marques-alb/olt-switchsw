@@ -9577,7 +9577,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
             LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
           }
           profile->outer_vlan_out = pclientFlow->uni_ovid;
-          profile->inner_vlan_out = pclientFlow->uni_ovid;                /* ATTENTION: There should be no inner vlan (0) for traditionnal evcs, after packet leaves the port (leaf port in a stacked service) */
+          profile->inner_vlan_out = 0;                /* No need to consider inner vlan at the egress */
           *counters_ptr = &(pclientFlow->counter[PTIN_EVC_INTF_LEAF]);
         }
         else
