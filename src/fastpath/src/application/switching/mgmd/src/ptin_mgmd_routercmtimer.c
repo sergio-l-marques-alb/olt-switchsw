@@ -117,6 +117,7 @@ RC_t ptin_mgmd_routercmtimer_stop(snoopPTinCMtimer_t* timerPtr)
   if (TRUE == ptin_mgmd_routercmtimer_isRunning(timerPtr))
   { 
     ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+    ptin_mgmd_timer_stop(timerPtr->timer);
     ptin_mgmd_measurement_timer_stop(1);
   }
   ptin_mgmd_timer_deinit(timerPtr->timer);  
