@@ -187,7 +187,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
         if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT))==PTIN_NULLPTR || 
             avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)            
         {
-          PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
+          PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
           return SUCCESS;          
         }
         if (reportType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
@@ -1189,7 +1189,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
     return PTIN_NULLPTR;
   }
 
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Building Current State Records of serviceId:%u",interfacePtr->key.serviceId);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Building Current State Records of serviceId:%u",interfacePtr->key.serviceId);
 /* Run all cells in AVL tree */    
 
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
@@ -1202,7 +1202,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
     if (groupEntry->ptinMgmdGroupInfoDataKey.serviceId==interfacePtr->key.serviceId && 
         groupEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE )        
     {
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Address Number %u",++groupIdx);
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Address Number %u",++groupIdx);
       if (groupEntry->ports[PTIN_MGMD_ROOT_PORT].filtermode==PTIN_MGMD_FILTERMODE_INCLUDE)
       {
         recordType=PTIN_MGMD_MODE_IS_INCLUDE;        
@@ -1241,7 +1241,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
 
       if (firstGroupAdded==FALSE && groupPtr!=PTIN_NULLPTR)
       {
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "First Group Ptr Added");
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "First Group Ptr Added");
         firstGroupAdded=TRUE;
         interfacePtr->firstGroupRecord=groupPtr;                
       }
@@ -1263,7 +1263,7 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
   }  
 
   *noOfRecordsPtr=noOfRecords;
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Number of Group Records to be sent :%u",*noOfRecordsPtr);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Number of Group Records to be sent :%u",*noOfRecordsPtr);
   return (interfacePtr->firstGroupRecord);       
 }
 
@@ -1589,7 +1589,7 @@ void ptinMgmdGroupRemoveAll(void)
  
   /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdGroupRemoveAll");
   printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {

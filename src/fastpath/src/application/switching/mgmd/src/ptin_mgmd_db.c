@@ -254,7 +254,7 @@ static BOOL snoopPTinZeroSourceClients(ptinMgmdGroupInfoData_t *groupEntry, ptin
         ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE &&
         sourcePtr->numberOfClients!=0)        
     {
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Existing Client @ interfaceIdx:%u, source:0x%x", portId, sourcePtr->sourceAddr);
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Existing Client @ interfaceIdx:%u, source:0x%x", portId, sourcePtr->sourceAddr);
       return FALSE;
     }
   }
@@ -1320,7 +1320,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
           return FAILURE;
         }
       }
-         
+      
       //Remove the client from the interface bitmap
       if (ERROR == snoopPTinClientInterfaceRemove(&groupEntry->ports[portId], clientId))
       {
@@ -1329,6 +1329,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       }      
     }
   }
+
   /* If filter-mode is EXCLUDE: send Q(G) */
   if (PTIN_MGMD_ROOT_PORT != portId)
   {
@@ -1340,7 +1341,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       ptin_mgmd_measurement_timer_stop(29);
     }
   }
- 
+
   /* Send a Q(G,S) */
   if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
@@ -2779,7 +2780,7 @@ static mgmdProxyInterface_t* snoopPTinPendingReport2GeneralQuery(uint32 serviceI
   if ((newEntry==FALSE) &&  (interfacePtr->timer.reportType==PTIN_IGMP_MEMBERSHIP_QUERY) && ((*pendingReport=ptin_mgmd_proxytimer_isRunning(&interfacePtr->timer))==TRUE))
   {    
     *timeout = ptin_mgmd_proxytimer_timeleft(&interfacePtr->timer);
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Pending report to general query exists (timeout %u)", *timeout);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Pending report to general query exists (timeout %u)", *timeout);
   }
   else
   {
@@ -2868,7 +2869,7 @@ static mgmdGroupRecord_t* snoopPTinPendingReport2GroupQuery(ptinMgmdGroupInfoDat
         (groupPtr->timer.reportType == PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || groupPtr->timer.reportType == PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY))
     {
       *timeout = ptin_mgmd_proxytimer_timeleft(&groupPtr->timer);
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Pending report to group query exists (timeout %u)", *timeout);
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Pending report to group query exists (timeout %u)", *timeout);
     }
     else
     {
@@ -2916,7 +2917,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
   }
 
   *activeGroups = FALSE;
-  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Verifying if there is any active group on serviceId:%u", serviceId);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Verifying if there is any active group on serviceId:%u", serviceId);
 
 /* Run all cells in AVL tree */
   memset(&avlTreeKey, 0x00, sizeof(avlTreeKey));
@@ -2929,7 +2930,7 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
     if (avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId == serviceId &&
         avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active == TRUE )        
     {
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have at least one active group within this vlan Id:%u", serviceId);
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have at least one active group within this vlan Id:%u", serviceId);
       *activeGroups = TRUE;
       break;
     }
