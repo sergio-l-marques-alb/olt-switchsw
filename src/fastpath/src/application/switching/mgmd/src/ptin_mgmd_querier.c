@@ -568,6 +568,8 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Inside ptinMgmdGeneralQuerySend");  
 
+  memset(&mcastPacket,0x00,sizeof(mcastPacket));
+
  /* Get Snoop Control Block */
   if (( mcastPacket.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
@@ -580,6 +582,8 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
     return;
   }
+  //Save mgmdProxyCfg
+  mcastPacket.cbHandle->mgmdProxyCfg=igmpGlobalCfg;
 
   version  = igmpGlobalCfg.clientVersion;
 
@@ -816,10 +820,13 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
       pMgmdEntry->startUpQueryFlag=TRUE;
       pMgmdEntry->querierTimer.startUpQueryCount=0;
 
-      if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)
+      if(igmpGlobalCfg.admin==PTIN_MGMD_ENABLE)
       {
-        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
-        return FAILURE;
+        if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)
+        {
+          PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+          return FAILURE;
+        }
       }
       return rc;
       break;

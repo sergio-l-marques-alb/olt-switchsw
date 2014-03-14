@@ -491,6 +491,7 @@ void* ptin_mgmd_event_handle(void *param)
 
         ptin_mgmd_measurement_timer_start(38,"PTIN_MGMD_EVENT_CODE_CTRL");
         ptin_mgmd_event_ctrl_parse(&eventMsg, &eventData);
+#if 0//We should support any configuration command, even if we are in Admin Down Mode
         if((PTIN_MGMD_DISABLE == igmpCfg.admin) && ( (eventData.msgCode != PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET) && (eventData.msgCode != PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET)))
         {
           PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "MGMD is disabled: Control event discarded");
@@ -505,6 +506,7 @@ void* ptin_mgmd_event_handle(void *param)
           ptin_mgmd_measurement_timer_stop(38);
           break;
         }
+#endif
         ptin_mgmd_event_ctrl(&eventData);
 
         //Send the result to the CTRL

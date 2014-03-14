@@ -233,6 +233,15 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
     return FAILURE;
   }
 
+  /* Get Snoop Control Block */
+  if (( queryPckt.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+  //Saving igmpCfg
+  queryPckt.cbHandle->mgmdProxyCfg=*igmpCfg;
+
   //Build IGMP Query header, without any sources
   buildQueryHeader(groupEntry->ports[portId].groupCMTimer.compatibilityMode, queryHeader, &queryHeaderLength, &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, FALSE);
 
@@ -360,6 +369,15 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ControlBlock has not been initialized yet!");
     return FAILURE;
   }
+
+  /* Get Snoop Control Block */
+  if (( queryPckt.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+  //Saving igmpCfg
+  queryPckt.cbHandle->mgmdProxyCfg=*igmpCfg;
 
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, AVL_EXACT)))
   {
@@ -748,8 +766,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   groupSourceSpecificQueriesSource_t    *iterator;
   groupSourceSpecificQueriesSource_t    *auxSourcePtr;
   uint32                                 sourcesToSend = 0;
-  ptin_IgmpProxyCfg_t                    igmpGlobalCfg;
-
+  
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group & Source Specific Timer Expired [groupAddr=0x%08X serviceId=%u portId=%u]", eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
 
   if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&eventData->groupAddr, eventData->serviceId, eventData->portId, AVL_EXACT)))
@@ -765,7 +782,14 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
     return FAILURE;
   }
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
+    /* Get Snoop Control Block */
+  if (( queryPckt.cbHandle = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+  //Saving igmpCfg
+  if (ptin_mgmd_igmp_proxy_config_get(&queryPckt.cbHandle->mgmdProxyCfg) != SUCCESS)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get IGMP Proxy Configurations");
     return FAILURE;

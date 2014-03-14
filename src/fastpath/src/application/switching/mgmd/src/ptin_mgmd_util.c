@@ -1759,65 +1759,68 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   ptin_mgmd_externalapi_t externalApi;
   RC_t rc = SUCCESS;
 
-  if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  if(mcastPacket->cbHandle != PTIN_NULLPTR && mcastPacket->cbHandle->mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
-    return FAILURE;
-  }
-
-  /* Send packet */        
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
-            mcastPacket->clientId, portId, mcastPacket->serviceId,mcastPacket->family);
-  if(SUCCESS != (rc = externalApi.tx_packet(mcastPacket->framePayload, mcastPacket->frameLength, mcastPacket->serviceId, portId, mcastPacket->clientId,mcastPacket->family)))
-  {
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to transmit packet [client_idx=%u portIdx=%u serviceId=%u family=%u]", 
-            mcastPacket->clientId, portId, mcastPacket->serviceId, mcastPacket->family);
-    return rc;
-  }
-
-   /* Update statistics*/
-  switch (igmp_type)
-  {
-    case PTIN_IGMP_MEMBERSHIP_QUERY:
+    if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
     {
-      PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
-      uint32                  clientIdx;
-
-      //Increment port and service statistics
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
-      
-      //Increment client statistics for this port
-      if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
-      {
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
-        return rc;
-      }
-      for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
-      {
-        if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
-        {
-          ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
-        }
-      }  
-      
-      break;      
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+      return FAILURE;
     }
-    case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
-      break;
-    case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
-      break;            
-    case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
-    case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
-      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_JOIN_TX);
-      break;
-    case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
-      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
-      break;
-    case PTIN_IGMP_V2_LEAVE_GROUP:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
-      break;
+
+    /* Send packet */        
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
+              mcastPacket->clientId, portId, mcastPacket->serviceId,mcastPacket->family);
+    if(SUCCESS != (rc = externalApi.tx_packet(mcastPacket->framePayload, mcastPacket->frameLength, mcastPacket->serviceId, portId, mcastPacket->clientId,mcastPacket->family)))
+    {
+      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to transmit packet [client_idx=%u portIdx=%u serviceId=%u family=%u]", 
+              mcastPacket->clientId, portId, mcastPacket->serviceId, mcastPacket->family);
+      return rc;
+    }
+
+     /* Update statistics*/
+    switch (igmp_type)
+    {
+      case PTIN_IGMP_MEMBERSHIP_QUERY:
+      {
+        PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
+        uint32                  clientIdx;
+
+        //Increment port and service statistics
+        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
+        
+        //Increment client statistics for this port
+        if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
+        {
+          PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
+          return rc;
+        }
+        for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
+        {
+          if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
+          {
+            ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
+          }
+        }  
+        
+        break;      
+      }
+      case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+        break;
+      case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
+        break;            
+      case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
+      case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
+        ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_JOIN_TX);
+        break;
+      case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
+        ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
+        break;
+      case PTIN_IGMP_V2_LEAVE_GROUP:
+        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
+        break;
+    }
   }
 
   return SUCCESS;
@@ -1846,50 +1849,54 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
   ptin_mgmd_externalapi_t externalApi;
   BOOL                    packetSent  = FALSE; 
 
-  if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  if(mcastPacket->cbHandle != PTIN_NULLPTR && mcastPacket->cbHandle->mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
-    return FAILURE;
-  }
-  
-  ptin_mgmd_measurement_timer_start(32,"externalApi.portList_get");      
-   /* Forward frame to all ports in this ServiceId with hosts attached */  
-  if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)!=SUCCESS)
-  {
-    ptin_mgmd_measurement_timer_stop(32);
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
-    return ERROR;
-  }
-  ptin_mgmd_measurement_timer_stop(32);
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
-  for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
-  {
-    if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+    if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
     {
-      /* Send packet */  
-      ptin_mgmd_measurement_timer_start(31,"ptinMgmdPacketPortSend");      
-      ptinMgmdPacketPortSend(mcastPacket, igmp_type, portId);
-      ptin_mgmd_measurement_timer_stop(31);
-      if(packetSent==FALSE)
-        packetSent=TRUE;
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+      return FAILURE;
     }
-  }
-  if(packetSent==FALSE)
-  {
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No packet sent! We do not have any active ports configured (serviceId=%u portType=%u client_idx=%u  family=%u)!",mcastPacket->serviceId,portType,mcastPacket->clientId,mcastPacket->family);
-  }
-  else //We only show the packet payload if we have sent the packet
-  {
-    if(ptin_mgmd_extended_debug)
-    {    
-      uint32 i;
-      printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);
-      for (i=0;i<mcastPacket->frameLength;i++)
-        printf("%02x ",mcastPacket->framePayload[i]);
-      printf("\n");    
+    
+    ptin_mgmd_measurement_timer_start(32,"externalApi.portList_get");      
+     /* Forward frame to all ports in this ServiceId with hosts attached */  
+    if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)!=SUCCESS)
+    {
+      ptin_mgmd_measurement_timer_stop(32);
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
+      return ERROR;
     }
-  }  
+    ptin_mgmd_measurement_timer_stop(32);
+
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
+    for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
+    {
+      if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+      {
+        /* Send packet */  
+        ptin_mgmd_measurement_timer_start(31,"ptinMgmdPacketPortSend");      
+        ptinMgmdPacketPortSend(mcastPacket, igmp_type, portId);
+        ptin_mgmd_measurement_timer_stop(31);
+        if(packetSent==FALSE)
+          packetSent=TRUE;
+      }
+    }
+    if(packetSent==FALSE)
+    {
+      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No packet sent! We do not have any active ports configured (serviceId=%u portType=%u client_idx=%u  family=%u)!",mcastPacket->serviceId,portType,mcastPacket->clientId,mcastPacket->family);
+    }
+    else //We only show the packet payload if we have sent the packet
+    {
+      if(ptin_mgmd_extended_debug)
+      {    
+        uint32 i;
+        printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);
+        for (i=0;i<mcastPacket->frameLength;i++)
+          printf("%02x ",mcastPacket->framePayload[i]);
+        printf("\n");    
+      }
+    }  
+  }
   return SUCCESS;
 }
 
