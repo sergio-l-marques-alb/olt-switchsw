@@ -569,11 +569,13 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     return L7_FAILURE;
   }
 
+  #if 0
   /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
   if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P)
   {
     nni_ovlan = 0;
   }
+  #endif
 
   /* Check if there is an instance with these parameters */
   if (ptin_pppoe_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
