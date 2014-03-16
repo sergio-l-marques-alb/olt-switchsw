@@ -26,7 +26,7 @@
 
 typedef struct ptinMgmdQuerierInfoDataKey_s
 {  
-  uint16      serviceId; //Service Identifier  
+  uint32      serviceId; //Service Identifier  
 }ptinMgmdQuerierInfoDataKey_t ;
 
 typedef struct ptinMgmdL3Querytimer_s

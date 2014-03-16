@@ -44,3 +44,11 @@ Version 2.8.0-r1494
  - Fix OLTSWITCH-282/OLTTS-4698: Removed printf instructions which could cause delayed processing.
  - Req OLTSWITCH-281/OLTTS-4249: MAC Bridge Service Counters functional.
  - Req OLTSWITCH-253/OLTTS-3980: Several improvements and bugfixes.
+Version 2.8.0-r1499
+ - Fix OLTSWITCH-285/OLTTS-4707: MGMD Fix-Added an extra validation for the case of ClientID is equal to the Id of Management.
+ - Req OLTSWITCH-253/OLTTS-3980: Updated according to the latest revision of MGMD.
+ - Req OLTSWITCH-253/OLTTS-3980: Modified MGMD Admin Behavior.
+ - Req OLTSWITCH-253/OLTTS-3980: Fixed ptin_mgmd_routercmtimer_stop routine, that was performing a timer_deinit without first doing timer_stop.
+ - Req OLTSWITCH-283: Extended EVC id validation was considering a very low maximum value. 2^17 possible values are considered now.
+Version 2.8.0-r1500
+ - Fix OLTSWITCH-253/OLTTS-3980: MGMD ready for 32 bit EVC (extended) identifiers.
