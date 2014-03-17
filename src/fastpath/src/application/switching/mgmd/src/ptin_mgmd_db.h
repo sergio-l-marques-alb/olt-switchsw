@@ -27,9 +27,9 @@ mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin
 mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 flag);
 mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL* newEntry);
 RC_t                        ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId);
-ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint16 serviceId, uchar8 family,uint32 flag);
-ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryAdd(uint16 sId,uchar8 family, BOOL* newEntry);
-RC_t                        ptinMgmdQueryEntryDelete(uint16 sId,uchar8 family);
+ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 family,uint32 flag);
+ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryAdd(uint32 serviceId,uchar8 family, BOOL* newEntry);
+RC_t                        ptinMgmdQueryEntryDelete(uint32 serviceId,uchar8 family);
 
 /******************************************************************************
  * API methods for the CTRL events
@@ -56,7 +56,7 @@ mgmdGroupRecord_t*         ptinMgmdGroupSourceSpecifcQueryProcess(ptinMgmdGroupI
  * MGMD utility methods for the internal structures
  ******************************************************************************/
 
-ptinMgmdSource_t*       ptinMgmdSourceFind(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr);
+ptinMgmdSource_t*          ptinMgmdSourceFind(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId, ptin_mgmd_inet_addr_t *sourceAddr);
 RC_t                       ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_mgmd_inet_addr_t* sourceAddr,ptinMgmdSource_t** sourcePtr,ptin_mgmd_externalapi_t*  externalApi);
 RC_t                       ptinMgmdSourceRemove(ptinMgmdGroupInfoData_t *avlTreeEntry,uint32 portId, ptinMgmdSource_t *sourcePtr);
 RC_t                       ptinMgmdInitializeInterface(ptinMgmdGroupInfoData_t* groupPtr, uint16 portId);
