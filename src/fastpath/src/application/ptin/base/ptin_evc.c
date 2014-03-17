@@ -2488,66 +2488,68 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removing port %u/%u...", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
 
+  /* Remove associated resources */
+  /* Clean service resources */
+  if (ptin_evc_intf_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_idx);
+    return L7_FAILURE;
+  }
+  /* Remove all clients/flows */
+  if (ptin_evc_intfclientsflows_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Check if there is allocated resources */
+  {
+   unsigned long j;
+   for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
+       if (evcs[evc_idx].intf[ptin_port].bwprofile[j]!= NULL) goto _ptin_evc_port_remove1;
+  }
+  if ((evcs[evc_idx].intf[ptin_port].counter   != NULL) ||
+      (evcs[evc_idx].intf[ptin_port].queue_probes.n_elems > 0))
+  {
+_ptin_evc_port_remove1:
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u has counter/BW profiles/Probes configured! Cannot remove it!",
+            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+  /* If clients/flows are attched to this port, also cannot remove this port */
+  if (evcs[evc_idx].intf[ptin_port].clients.n_elems > 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u still has clients/flows configured! Cannot remove it!",
+            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
+  if (IS_EVC_ETREE(evc_idx))
+  {
+    if (ptin_evc_etree_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove multipoint port %u/%u",
+              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+  }
+  /* Remove port */
+  if (ptin_evc_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove port %u/%u",
+            evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
   /* If there is only 1 port, EVC will be destroyed */
+  #if (PTIN_BOARD_IS_GPON)
+  if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) <= 1 || (evcs[evc_idx].n_leafs) == 0)
+  #else
   if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) <= 1)
+  #endif
   {
     ptin_evc_destroy(evc_ext_id);
-  }
-  else
-  {
-    /* Remove associated resources */
-    /* Clean service resources */
-    if (ptin_evc_intf_clean(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_idx);
-      return L7_FAILURE;
-    }
-    /* Remove all clients/flows */
-    if (ptin_evc_intfclientsflows_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
-      return L7_FAILURE;
-    }
-
-    /* Check if there is allocated resources */
-    {
-     unsigned long j;
-     for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
-         if (evcs[evc_idx].intf[ptin_port].bwprofile[j]!= NULL) goto _ptin_evc_port_remove1;
-    }
-    if ((evcs[evc_idx].intf[ptin_port].counter   != NULL) ||
-        (evcs[evc_idx].intf[ptin_port].queue_probes.n_elems > 0))
-    {
-_ptin_evc_port_remove1:
-      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u has counter/BW profiles/Probes configured! Cannot remove it!",
-              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
-    /* If clients/flows are attched to this port, also cannot remove this port */
-    if (evcs[evc_idx].intf[ptin_port].clients.n_elems > 0)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Port %u/%u still has clients/flows configured! Cannot remove it!",
-              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
-
-    /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-    if (IS_EVC_ETREE(evc_idx))
-    {
-      if (ptin_evc_etree_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove multipoint port %u/%u",
-                evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-        return L7_FAILURE;
-      }
-    }
-    /* Remove port */
-    if (ptin_evc_intf_remove(evc_idx, ptin_port) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC# %u: Cannot remove port %u/%u",
-              evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
-      return L7_FAILURE;
-    }
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removed port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
