@@ -91,7 +91,7 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId, ptin_mgmd_cb_t* pMgmdCB, pti
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exist(pMgmdCB->proxyCM[serviceId].timer))
+  if(FALSE == ptin_mgmd_timer_exists(pMgmdCB->proxyCM[serviceId].timer))
   {
     if(SUCCESS != ptin_mgmd_proxycmtimer_init(&(pMgmdCB->proxyCM[serviceId])))
     {
@@ -102,14 +102,14 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 serviceId, ptin_mgmd_cb_t* pMgmdCB, pti
 
   if(TRUE == ptin_mgmd_proxycmtimer_isRunning(&(pMgmdCB->proxyCM[serviceId])))
   {
-    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+    ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(pMgmdCB->proxyCM[serviceId].timer);
-    ptin_mgmd_measurement_timer_stop(1);
+    ptin_measurement_timer_stop(1);
   }
 
-  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
+  ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
   ret = ptin_mgmd_timer_start(pMgmdCB->proxyCM[serviceId].timer, igmpCfg->host.older_querier_present_timeout*1000, &pMgmdCB->proxyCM[serviceId]);
-  ptin_mgmd_measurement_timer_stop(0);
+  ptin_measurement_timer_stop(0);
   return ret;
 }
 
@@ -118,12 +118,12 @@ RC_t ptin_mgmd_proxycmtimer_stop(snoopPTinCMtimer_t* pTimer)
 {
   if (TRUE == ptin_mgmd_proxycmtimer_isRunning(pTimer))
   {
-    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+    ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(pTimer->timer);
-    ptin_mgmd_measurement_timer_stop(1);
+    ptin_measurement_timer_stop(1);
   }
   
-  ptin_mgmd_timer_deinit(pTimer->timer);
+  ptin_mgmd_timer_free(pTimer->timer);
   return SUCCESS;
 }
 
@@ -136,9 +136,9 @@ uint32 ptin_mgmd_proxycmtimer_timeleft(snoopPTinCMtimer_t* pTimer)
   }
   
   uint32 timeLeft;
-  ptin_mgmd_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
+  ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
   timeLeft=ptin_mgmd_timer_timeLeft(pTimer->timer)/1000;
-  ptin_mgmd_measurement_timer_stop(2);
+  ptin_measurement_timer_stop(2);
   return timeLeft;
 }
 

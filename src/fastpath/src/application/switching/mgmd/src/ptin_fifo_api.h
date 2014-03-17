@@ -13,8 +13,6 @@
 #ifndef _PTIN_FIFO_API_H_
 #define _PTIN_FIFO_API_H_
 
-#include "ptin_mgmd_defs.h"
-
 typedef void* PTIN_FIFO_ELEMENT_t;
 typedef void* PTIN_FIFO_t;
 
@@ -25,18 +23,18 @@ typedef void* PTIN_FIFO_t;
  * @param[in|out] fifoQueue   : Ptr to the FIFO queue 
  * @param[in]     numElements : Maximum number of elements in the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error.
  */
-RC_t ptin_fifo_create(PTIN_FIFO_t* fifoQueue, uint32 numElements);
+int ptin_fifo_create(PTIN_FIFO_t* fifoQueue, unsigned int numElements);
 
 /**
  * Create a new FIFO queue.
  * 
  * @param[in] fifoQueue : FIFO queue 
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error.
  */
-RC_t ptin_fifo_destroy(PTIN_FIFO_t fifoQueue);
+int ptin_fifo_destroy(PTIN_FIFO_t fifoQueue);
 
 /**
  * Return an element to the FIFO queue.
@@ -44,9 +42,9 @@ RC_t ptin_fifo_destroy(PTIN_FIFO_t fifoQueue);
  * @param[in] fifoQueue : FIFO queue 
  * @param[in] element   : Element to insert in the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element);
+int ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element);
 
 /**
  * Get an element from the FIFO queue.
@@ -54,27 +52,35 @@ RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element);
  * @param[in] fifoQueue : FIFO queue 
  * @param[in] element   : Ptr to element to get from the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element);
+int ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element);
 
 /**
  * Dump the contents of the FIFO queue
  * 
  * @param[in] fifoQueue : FIFO queue 
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-void dumpQueue(PTIN_FIFO_t fifoQueue);
+void ptin_fifo_dump(PTIN_FIFO_t fifoQueue);
 
 /**
- * Return the number of used elements in the FIFO.
+ * Return the number of used elements in the FIFO. 
+ *  
+ * @param[in] fifoQueue : FIFO queue 
+ *  
+ * @return Number of used elements.
  */
-uint32 ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue);
+unsigned int ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue);
 
 /**
- * Return the number of free elements in the FIFO.
+ * Return the number of free elements in the FIFO. 
+ *  
+ * @param[in] fifoQueue : FIFO queue 
+ *  
+ * @return Number of free elements. 
  */
-uint32 ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue);
+unsigned int ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue);
 
 #endif //_PTIN_FIFO_API_H_

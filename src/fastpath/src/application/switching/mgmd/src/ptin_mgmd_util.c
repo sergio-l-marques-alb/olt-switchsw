@@ -1321,14 +1321,14 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordGroupAdd()");
         return FAILURE;
       }      
-      ptin_mgmd_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
+      ptin_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
       if (ptinMgmdScheduleReportMessage(serviceId,&groupPtr->key.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,ptinMgmd_generate_random_response_delay(maxResponseTime),FALSE,1, groupPtr)!=SUCCESS)
       {
-       ptin_mgmd_measurement_timer_stop(30);
+       ptin_measurement_timer_stop(30);
        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
        return FAILURE;
       }
-      ptin_mgmd_measurement_timer_stop(30);
+      ptin_measurement_timer_stop(30);
       ++noOfRecords;      
     }
   }  
@@ -1858,15 +1858,15 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
       return FAILURE;
     }
     
-    ptin_mgmd_measurement_timer_start(32,"externalApi.portList_get");      
+    ptin_measurement_timer_start(32,"externalApi.portList_get");      
      /* Forward frame to all ports in this ServiceId with hosts attached */  
     if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)!=SUCCESS)
     {
-      ptin_mgmd_measurement_timer_stop(32);
+      ptin_measurement_timer_stop(32);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
       return ERROR;
     }
-    ptin_mgmd_measurement_timer_stop(32);
+    ptin_measurement_timer_stop(32);
 
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
     for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
@@ -1874,9 +1874,9 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
       if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         /* Send packet */  
-        ptin_mgmd_measurement_timer_start(31,"ptinMgmdPacketPortSend");      
+        ptin_measurement_timer_start(31,"ptinMgmdPacketPortSend");      
         ptinMgmdPacketPortSend(mcastPacket, igmp_type, portId);
-        ptin_mgmd_measurement_timer_stop(31);
+        ptin_measurement_timer_stop(31);
         if(packetSent==FALSE)
           packetSent=TRUE;
       }
@@ -2141,7 +2141,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
         {
           return FAILURE;
         }
-        ptin_mgmd_timer_deinit(queriesAvlTreeEntry->timerHandle);
+        ptin_mgmd_timer_free(queriesAvlTreeEntry->timerHandle);
       }
     }
   }

@@ -10,8 +10,7 @@
 #ifndef _PTIN_TIMER_API_H
 #define _PTIN_TIMER_API_H
 
-#include "ptin_mgmd_defs.h"
-
+#define PTIN_MEASUREMENT_TIMERS_ENABLE             1 //Set this to 0 to deactivate measurement timers
 #define PTIN_MEASUREMENT_TIMERS_NUM_MAX            40
 #define PTIN_MEASUREMENT_TIMER_MEASUREMENT_SAMPLES 5
 
@@ -31,14 +30,33 @@ typedef void* PTIN_MGMD_TIMER_CB_t;
  * Create a new controlBlock that will manage timer ticks in an 
  * independent thread. 
  * 
- * @param[in]  tickGranularity      : Timer granularity  
- * @param[in]  numTimers            : Max number of timers on the controlBlock
- * @param[in]  timerStackThreadSize : Stack size for callback functions. To disable threads, set to '0'
- * @param[out] controlBlock         : Pointer to the new controlBlock
+ * @param[in]  tickGranularity       : Timer granularity  
+ * @param[in]  numTimers             : Max number of timers on the controlBlock
+ * @param[in]  timerStackThreadSize  : Stack size for callback functions. To disable threads, set to '0' functions. To disable threads, set to '0'
+ * @param[in]  optimizationThreshold : Estimative of the time value from which the CB should start to serch for the timer at the end of the 
+ *                                     ordered list. Set to 0 if not desired.
+ * @param[out] controlBlock          : Pointer to the new controlBlock
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_timer_createCB(L7_TIMER_GRAN_t tickGranularity, uint32 numTimers, uint32 timerStackThreadSize, PTIN_MGMD_TIMER_CB_t *controlBlock);
+int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigned int numTimers, unsigned int timerStackThreadSize, unsigned int optimizationThreshold, PTIN_MGMD_TIMER_CB_t *controlBlock);
+
+/**
+ * Set the controlblock optimization threshold.
+ * 
+ * @param[in] controlBlock          : Pointer to the new controlBlock
+ * @param[in] optimizationThreshold : Optimization threshold
+ */
+void ptin_mgmd_timer_controlblock_optThr_set(PTIN_MGMD_TIMER_CB_t controlBlock, unsigned int optimizationThreshold);
+
+/**
+ * Destroy a controlBlock 
+ * 
+ * @param[in] controlBlock : Pointer to the new controlBlock
+ * 
+ * @return Returns 0 on success; any other value for error. 
+ */
+int ptin_mgmd_timer_controlblock_destroy(PTIN_MGMD_TIMER_CB_t controlBlock);
 
 
 /**
@@ -49,11 +67,9 @@ RC_t ptin_mgmd_timer_createCB(L7_TIMER_GRAN_t tickGranularity, uint32 numTimers,
  * @param[out] timerPtr     : Pointer to the new timer
  * @param[in]  funcPtr      : Callback to be invoked upon timer's expiral
  * 
- * @return RC_t 
- *  
- * @note: Timer's countdown MUST NOT start to decrement until ptin_timer_start is called.
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *timerPtr, void * (*funcPtr)(void* param));
+int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *timerPtr, void * (*funcPtr)(void* param));
 
 
 /**
@@ -61,9 +77,9 @@ RC_t ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *
  * 
  * @param[in] timerPtr : Pointer to the timer
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_timer_deinit(PTIN_MGMD_TIMER_t timerPtr);
+int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_t timerPtr);
 
 
 /**
@@ -74,9 +90,11 @@ RC_t ptin_mgmd_timer_deinit(PTIN_MGMD_TIMER_t timerPtr);
  * @param[in] timeout  : Timer's timeout (expressed accordingly to the controlBlock granularity)
  * @param[in] param    : Callback argument
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error.
+ *  
+ * @note The given timer MUST have been initialized before
  */
-RC_t ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, uint32 timeout, void *param);
+int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void *param);
 
 
 /**
@@ -84,9 +102,9 @@ RC_t ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, uint32 timeout, void *par
  * 
  * @param[in] timerPtr : Pointer to the timer
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr);
+int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr);
 
 
 /**
@@ -96,7 +114,7 @@ RC_t ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr);
  * 
  * @return uint32 
  */
-uint32 ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr);
+unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr);
 
 
 /**
@@ -104,19 +122,19 @@ uint32 ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr);
  * 
  * @param[in] timerPtr : Pointer to the timer 
  * 
- * @return BOOL 
+ * @return [0 - false; 1 - true] 
  */
-BOOL ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr);
+unsigned char ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr);
 
 
 /**
- * Check if the given timer exists.
+ * Check if the given timer was previously initialized.
  * 
  * @param[in] timerPtr : Pointer to the timer 
  * 
- * @return BOOL 
+ * @return [0 - false; 1 - true] 
  */
-BOOL ptin_mgmd_timer_exist(PTIN_MGMD_TIMER_t timerPtr);
+unsigned char ptin_mgmd_timer_exists(PTIN_MGMD_TIMER_t timerPtr);
 
 /**
  * Start a measurement timer.
@@ -124,18 +142,18 @@ BOOL ptin_mgmd_timer_exist(PTIN_MGMD_TIMER_t timerPtr);
  * @param[in] timerId          : Id of the requested measurement timer
  * @param[in] timerDescription : Measurement description 
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_measurement_timer_start(uint16 timerId, char *timerDescription);
+int ptin_measurement_timer_start(unsigned short timerId, char *timerDescription);
 
 /**
  * Stop a measurement timer.
  * 
  * @param[in] timerId : Id of the requested measurement timer
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_measurement_timer_stop(uint16 timerId);
+int ptin_measurement_timer_stop(unsigned short timerId);
 
 /**
  * Start a measurement timer.
@@ -145,15 +163,15 @@ RC_t ptin_mgmd_measurement_timer_stop(uint16 timerId);
  * @param[out] lastMeasurement  : Last time measurement  
  * @param[out] meanMeasurement  : Mean time measurements
  * 
- * @return RC_t 
+ * @return Returns 0 on success; any other value for error. 
  */
-RC_t ptin_mgmd_measurement_timer_get(uint16 timerId, char **timerDescription, uint32 *lastMeasurement, uint32 *meanMeasurement);
+int ptin_measurement_timer_get(unsigned short timerId, char **timerDescription, unsigned int *lastMeasurement, unsigned int *meanMeasurement);
 
 /**
  * Dump all current measurement timer values.
  * 
  * @note These values are printed to stdout
  */
-void ptin_mgmd_measurement_timer_dump(void);
+void ptin_measurement_timer_dump(void);
 
 #endif //_PTIN_TIMER_API_H

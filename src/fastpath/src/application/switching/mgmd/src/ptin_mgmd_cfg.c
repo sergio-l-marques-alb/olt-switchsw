@@ -28,6 +28,8 @@
 #include "ptin_mgmd_util.h"
 #include "ptin_mgmd_cnfgr.h"
 #include "ptin_mgmd_statistics.h"
+#include "ptin_mgmd_grouptimer.h"
+#include "ptin_mgmd_sourcetimer.h"
 
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
@@ -501,7 +503,13 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Last Member Query Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQI && mgmdProxyCfg.querier.last_member_query_interval != igmpProxy->querier.last_member_query_interval)
   {    
+    PTIN_MGMD_TIMER_CB_t timerCB;
+
     mgmdProxyCfg.querier.last_member_query_interval = igmpProxy->querier.last_member_query_interval;
+    ptin_mgmd_grouptimer_CB_get(&timerCB);
+    ptin_mgmd_timer_controlblock_optThr_set(timerCB, (mgmdProxyCfg.querier.last_member_query_interval*mgmdProxyCfg.querier.last_member_query_count)*100);
+    ptin_mgmd_sourcetimer_CB_get(&timerCB);
+    ptin_mgmd_timer_controlblock_optThr_set(timerCB, (mgmdProxyCfg.querier.last_member_query_interval*mgmdProxyCfg.querier.last_member_query_count)*100);
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Last Member Query Interval:            %u (1/10s)", mgmdProxyCfg.querier.last_member_query_interval);
   }
 
@@ -513,7 +521,13 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   }
   else */if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC && mgmdProxyCfg.querier.last_member_query_count != igmpProxy->querier.last_member_query_count)
   {    
+    PTIN_MGMD_TIMER_CB_t timerCB;
+
     mgmdProxyCfg.querier.last_member_query_count = igmpProxy->querier.last_member_query_count;
+    ptin_mgmd_grouptimer_CB_get(&timerCB);
+    ptin_mgmd_timer_controlblock_optThr_set(timerCB, (mgmdProxyCfg.querier.last_member_query_interval*mgmdProxyCfg.querier.last_member_query_count)*100);
+    ptin_mgmd_sourcetimer_CB_get(&timerCB);
+    ptin_mgmd_timer_controlblock_optThr_set(timerCB, (mgmdProxyCfg.querier.last_member_query_interval*mgmdProxyCfg.querier.last_member_query_count)*100);
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Last Member Query Count:               %u (s)", mgmdProxyCfg.querier.last_member_query_count);
   }
 

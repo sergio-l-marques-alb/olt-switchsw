@@ -116,7 +116,7 @@ RC_t ptin_mgmd_querytimer_init(PTIN_MGMD_TIMER_t *timerPtr)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exist(*timerPtr))
+  if(FALSE == ptin_mgmd_timer_exists(*timerPtr))
   {
     ret = ptin_mgmd_timer_init(__controlBlock, timerPtr, ptin_mgmd_querytimer_callback);
   }
@@ -154,9 +154,9 @@ RC_t ptin_mgmd_querytimer_start(ptinMgmdL3Querytimer_t* timer, uint32 timeout, v
   if (TRUE == ptin_mgmd_timer_isRunning(timer->newTimerHandle))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "This timer is already running. Going to stop it!");
-    ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+    ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     ptin_mgmd_timer_stop(timer->newTimerHandle);
-    ptin_mgmd_measurement_timer_stop(1);
+    ptin_measurement_timer_stop(1);
   }
   else
   {
@@ -166,9 +166,9 @@ RC_t ptin_mgmd_querytimer_start(ptinMgmdL3Querytimer_t* timer, uint32 timeout, v
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "New Query Timer (ServiceId:%u family:%u)", pMgmdEntry->key.serviceId,family);
   }
 
-  ptin_mgmd_measurement_timer_start(0,"ptin_mgmd_timer_start");
+  ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
   ret = ptin_mgmd_timer_start(timer->newTimerHandle, timeout*1000, timer);
-  ptin_mgmd_measurement_timer_stop(0);
+  ptin_measurement_timer_stop(0);
   return ret;
 }
 
@@ -179,11 +179,11 @@ RC_t ptin_mgmd_querytimer_stop(ptinMgmdL3Querytimer_t *timer)
   {
     if (TRUE == ptin_mgmd_timer_isRunning(timer->newTimerHandle))
     {
-      ptin_mgmd_measurement_timer_start(1,"ptin_mgmd_timer_stop");
+      ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
       ptin_mgmd_timer_stop(timer->newTimerHandle);
-      ptin_mgmd_measurement_timer_stop(1);
+      ptin_measurement_timer_stop(1);
     }
-    ptin_mgmd_timer_deinit(timer->newTimerHandle);
+    ptin_mgmd_timer_free(timer->newTimerHandle);
   }
   else
   {
@@ -202,9 +202,9 @@ uint32 ptin_mgmd_querytimer_timeleft(ptinMgmdL3Querytimer_t *timer)
   }
 
   uint32 timeLeft;
-  ptin_mgmd_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
+  ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
   timeLeft=ptin_mgmd_timer_timeLeft(timer->newTimerHandle)/1000;
-  ptin_mgmd_measurement_timer_stop(2);
+  ptin_measurement_timer_stop(2);
   return timeLeft;
 }
 

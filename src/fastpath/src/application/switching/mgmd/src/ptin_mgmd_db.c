@@ -1336,9 +1336,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_EXCLUDE && groupEntry->ports[portId].numberOfClients==0)
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
-      ptin_mgmd_measurement_timer_start(29,"ptin_mgmd_groupspecifictimer_start");
+      ptin_measurement_timer_start(29,"ptin_mgmd_groupspecifictimer_start");
       ptin_mgmd_groupspecifictimer_start(groupEntry, portId, igmpCfg);
-      ptin_mgmd_measurement_timer_stop(29);
+      ptin_measurement_timer_stop(29);
     }
   }
 
@@ -1649,15 +1649,15 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
         uint32 anySourceAddr = 0;  /*For the moment we consider anySource=>The source Addr and Family Addr is equal to Zero*/
         PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Opening L2 port portId:[%u] serviceId:[%u] groupAddr:[%s]", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
                    ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf));
-        ptin_mgmd_measurement_timer_start(28,"externalApi.port_open");
+        ptin_measurement_timer_start(28,"externalApi.port_open");
         /*Open L2 Port on Switch*/
         if (externalApi.port_open(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, anySourceAddr, groupEntry->ports[portId].isStatic) != SUCCESS)
         {
-          ptin_mgmd_measurement_timer_stop(28);
+          ptin_measurement_timer_stop(28);
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
           return FAILURE;
         }
-         ptin_mgmd_measurement_timer_stop(28);
+         ptin_measurement_timer_stop(28);
 
         ptin_mgmd_groupsourcespecifictimer_removegroup(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr,groupEntry->ptinMgmdGroupInfoDataKey.serviceId,portId);
       }
@@ -1719,15 +1719,15 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     return FAILURE;
   }
   
-  ptin_mgmd_measurement_timer_start(27,"ptin_mgmd_grouptimer_start");
+  ptin_measurement_timer_start(27,"ptin_mgmd_grouptimer_start");
   /* Set group-timer to GMI */
   if (SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, igmpCfg->querier.group_membership_interval*1000, groupEntry->ptinMgmdGroupInfoDataKey, portId))
   {
-    ptin_mgmd_measurement_timer_stop(27);
+    ptin_measurement_timer_stop(27);
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to start grouptimer");
     return FAILURE;
   }
-  ptin_mgmd_measurement_timer_stop(27);
+  ptin_measurement_timer_stop(27);
 
   if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
   {

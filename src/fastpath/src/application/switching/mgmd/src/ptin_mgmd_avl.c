@@ -210,9 +210,9 @@ void ptin_mgmd_avlPurgeAvlTree (ptin_mgmd_avlTree_t *avl_tree, uint32 max_entrie
 void * ptin_mgmd_avlInsertEntry (ptin_mgmd_avlTree_t *avl_tree, void *item)
 {
   void * rc;
-  ptin_mgmd_measurement_timer_start(10,"ptin_mgmd_avlInsertEntry"); 
+  ptin_measurement_timer_start(10,"ptin_mgmd_avlInsertEntry"); 
   rc = ptin_mgmd_avlAddEntry (avl_tree, item);
-  ptin_mgmd_measurement_timer_stop(10);
+  ptin_measurement_timer_stop(10);
 
   return(rc);
 }
@@ -237,9 +237,9 @@ void * ptin_mgmd_avlDeleteEntry (ptin_mgmd_avlTree_t *avl_tree, void *item)
 {
   void * rc;
 
-  ptin_mgmd_measurement_timer_start(12,"ptin_mgmd_avlDeleteEntry");
+  ptin_measurement_timer_start(12,"ptin_mgmd_avlDeleteEntry");
   rc = ptin_mgmd_avlRemoveEntry( avl_tree, item);
-  ptin_mgmd_measurement_timer_stop(12);
+  ptin_measurement_timer_stop(12);
 
   return(rc);
 }
@@ -286,7 +286,7 @@ void *ptin_mgmd_avlGetNextEntry(ptin_mgmd_avlTree_t *avlTree, ptin_mgmd_avlTreeT
 *****************************************************************/
 void * ptin_mgmd_avlSearchLVL7 (ptin_mgmd_avlTree_t *avl_tree, void *key, uint32 flags)
 {
-  ptin_mgmd_measurement_timer_start(11,"ptin_mgmd_avlSearchLVL7"); 
+  ptin_measurement_timer_start(11,"ptin_mgmd_avlSearchLVL7"); 
   int32        diff;
   uint32       found_equal;
   ptin_mgmd_avlTreeTables_t *ptr, *saved_node;
@@ -324,7 +324,7 @@ void * ptin_mgmd_avlSearchLVL7 (ptin_mgmd_avlTree_t *avl_tree, void *key, uint32
     }
   }   /* ptr */
 
-  ptin_mgmd_measurement_timer_stop(11);
+  ptin_measurement_timer_stop(11);
 
   if ( ( found_equal == TRUE) || 
        ( (flags & AVL_NEXT) && saved_node != PTIN_NULL) ) /* if found or doing a get next */

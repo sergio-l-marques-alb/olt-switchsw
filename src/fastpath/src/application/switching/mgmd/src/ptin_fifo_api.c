@@ -12,8 +12,10 @@
 **********************************************************************/
 
 #include "ptin_fifo_api.h"
-#include "ptin_mgmd_osapi.h"
-#include "ptin_mgmd_logger.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 typedef struct 
 {
@@ -38,56 +40,60 @@ typedef struct
  * 
  * @param[in] fifoQueue : FIFO queue 
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-void dumpQueue(PTIN_FIFO_t fifoQueue)
+void ptin_fifo_dump(PTIN_FIFO_t fifoQueue)
 {
   ELEMENT_t    *curr_element;
   FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
 
   //Used elements
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Used Elements:");
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\tFirst Used: %p", queue->first_used);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\tLast Used:  %p", queue->last_used);
+  printf("Used Elements:");
+  printf("\tFirst Used: %p", queue->first_used);
+  printf("\tLast Used:  %p", queue->last_used);
   curr_element = queue->first_used;
-  while(curr_element != PTIN_NULLPTR)
+  while(curr_element != NULL)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\tElement: %p", curr_element);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tData:    %p", curr_element->data);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tNext:    %p", curr_element->next);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tPrev:    %p", curr_element->prev);
+    printf("\t\tElement: %p", curr_element);
+    printf("\t\t\tData:    %p", curr_element->data);
+    printf("\t\t\tNext:    %p", curr_element->next);
+    printf("\t\t\tPrev:    %p", curr_element->prev);
 
     curr_element = curr_element->next;
   }
 
   //Free elements
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Queue (%p)", queue);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Free Elements:");
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\tFirst Free: %p", queue->first_free);
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\tLast Free:  %p", queue->last_free);
+  printf("Queue (%p)", queue);
+  printf("Free Elements:");
+  printf("\tFirst Free: %p", queue->first_free);
+  printf("\tLast Free:  %p", queue->last_free);
   curr_element = queue->first_free;
-  while(curr_element != PTIN_NULLPTR)
+  while(curr_element != NULL)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\tElement: %p", curr_element);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tData:    %p", curr_element->data);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tNext:    %p", curr_element->next);
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "\t\t\tPrev:    %p", curr_element->prev);
+    printf("\t\tElement: %p", curr_element);
+    printf("\t\t\tData:    %p", curr_element->data);
+    printf("\t\t\tNext:    %p", curr_element->next);
+    printf("\t\t\tPrev:    %p", curr_element->prev);
 
     curr_element = curr_element->next;
   }
 }
 
 /**
- * Return the number of used elements in the FIFO.
+ * Return the number of used elements in the FIFO. 
+ *  
+ * @param[in] fifoQueue : FIFO queue 
+ *  
+ * @return Number of used elements.
  */
-uint32 ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue)
+unsigned int ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue)
 {
-  uint32       num_elements = 0;
+  unsigned int  num_elements = 0;
   ELEMENT_t    *curr_element;
   FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
 
   curr_element = queue->first_used;
-  while(curr_element != PTIN_NULLPTR)
+  while(curr_element != NULL)
   {
     ++num_elements;
     curr_element = curr_element->next;
@@ -97,16 +103,20 @@ uint32 ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue)
 }
 
 /**
- * Return the number of free elements in the FIFO.
+ * Return the number of free elements in the FIFO. 
+ *  
+ * @param[in] fifoQueue : FIFO queue 
+ *  
+ * @return Number of free elements. 
  */
-uint32 ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue)
+unsigned int ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue)
 {
-  uint32       num_elements = 0;
+  unsigned int  num_elements = 0;
   ELEMENT_t    *curr_element;
   FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
 
   curr_element = queue->first_free;
-  while(curr_element != PTIN_NULLPTR)
+  while(curr_element != NULL)
   {
     ++num_elements;
     curr_element = curr_element->next;
@@ -121,34 +131,36 @@ uint32 ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue)
  * @param[in|out] fifoQueue   : Ptr to the FIFO queue 
  * @param[in]     numElements : Maximum number of elements in the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_create(PTIN_FIFO_t* fifoQueue, uint32 numElements)
+int ptin_fifo_create(PTIN_FIFO_t* fifoQueue, unsigned int numElements)
 {
-  uint32       i;
+  unsigned int  i;
   FIFO_QUEUE_t *queue;
 
   //Input validation
-  if(fifoQueue == PTIN_NULLPTR)
+  if(fifoQueue == NULL)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p]", fifoQueue);
-    return FAILURE;
+    printf("Error: Abnormal context [fifoQueue:%p]", fifoQueue);
+    return -1;
   }
 
   //Create a new queue
-  queue = (FIFO_QUEUE_t*) ptin_mgmd_malloc(sizeof(FIFO_QUEUE_t));
+  queue = (FIFO_QUEUE_t*) malloc(sizeof(FIFO_QUEUE_t));
+  memset(queue, 0x00, sizeof(FIFO_QUEUE_t));
     
   //Initialization
-  queue->first_used = PTIN_NULLPTR;
-  queue->last_used  = PTIN_NULLPTR;
-  queue->last_free  = PTIN_NULLPTR;
+  queue->first_used = NULL;
+  queue->last_used  = NULL;
+  queue->last_free  = NULL;
   for (i=0; i<numElements; ++i)
   {
-    ELEMENT_t *new_element = (ELEMENT_t*) ptin_mgmd_malloc(sizeof(ELEMENT_t));
+    ELEMENT_t *new_element = (ELEMENT_t*) malloc(sizeof(ELEMENT_t));
+    memset(new_element, 0x00, sizeof(ELEMENT_t));
 
     new_element->prev = queue->last_free;
-    new_element->next = PTIN_NULLPTR;
-    new_element->data = PTIN_NULLPTR;
+    new_element->next = NULL;
+    new_element->data = NULL;
     
     if(i == 0)
     {
@@ -163,7 +175,7 @@ RC_t ptin_fifo_create(PTIN_FIFO_t* fifoQueue, uint32 numElements)
 
   *fifoQueue = (PTIN_FIFO_t) queue;
 
-  return SUCCESS;
+  return 0;
 }
 
 
@@ -172,52 +184,37 @@ RC_t ptin_fifo_create(PTIN_FIFO_t* fifoQueue, uint32 numElements)
  * 
  * @param[in] fifoQueue : FIFO queue 
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_destroy(PTIN_FIFO_t fifoQueue)
+int ptin_fifo_destroy(PTIN_FIFO_t fifoQueue)
 {
-//FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
-//ELEMENT_t    *element;
+  FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
+  ELEMENT_t    *element;
 
   //Input validation
-  if(fifoQueue == PTIN_NULLPTR)
+  if(fifoQueue == NULL)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p]", fifoQueue);
-    return FAILURE;
+    printf("Error: Abnormal context [fifoQueue:%p]", fifoQueue);
+    return -1;
   }
-//
-///* If we were requested to destroy ourselvs, but we still have
-// * free elements, issue out a warning as it will create a memory leak */
-//if(queue->first_free != PTIN_NULLPTR)
-//{
-//  LOG_WARNING(LOG_CTX_PTIN_FIFO, "Memory leak: Destroying queue while some of its elements are still in use by others.", fifoQueue);
-//}
-//
-////Free data pointers
-//curr_element = fifoQueue->first_free;
-//while(curr_element != PTIN_NULLPTR)
-//{
-//  curr_element = curr_element->next;
-//}
-//
-////Free elements
-//LOG_TRACE(LOG_CTX_PTIN_FIFO, "Queue (%p)", fifoQueue);
-//LOG_TRACE(LOG_CTX_PTIN_FIFO, "\tFirst Used: %p", fifoQueue->first_used);
-//LOG_TRACE(LOG_CTX_PTIN_FIFO, "\tLast Used:  %p", fifoQueue->last_used);
-//curr_element = fifoQueue->first_used;
-//while(curr_element != PTIN_NULLPTR)
-//{
-//  LOG_TRACE(LOG_CTX_PTIN_FIFO, "\t\tElement: %p", curr_element);
-//  LOG_TRACE(LOG_CTX_PTIN_FIFO, "\t\t\tData:    %p", curr_element->data);
-//  LOG_TRACE(LOG_CTX_PTIN_FIFO, "\t\t\tNext:    %p", curr_element->next);
-//  LOG_TRACE(LOG_CTX_PTIN_FIFO, "\t\t\tPrev:    %p", curr_element->prev);
-//
-//  curr_element = curr_element->next;
-//}
-//
-//
 
-  return SUCCESS;
+  //Ensure that there are no free elements, as it would cause a memory leak
+  if(queue->first_used != NULL)
+  {
+    printf("Unable to destroy FIFO queue while it still has elements inside");
+  }
+
+  //Free allocated elements
+  while((element = queue->first_free) != NULL)
+  {
+    queue->first_free = element->next;
+    free(element);
+  }
+
+  //Free queue
+  free(queue);
+
+  return 0;
 }
 
 
@@ -227,37 +224,36 @@ RC_t ptin_fifo_destroy(PTIN_FIFO_t fifoQueue)
  * @param[in] fifoQueue : FIFO queue 
  * @param[in] element   : Element to insert in the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
+int ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
 {
-  FIFO_QUEUE_t* queue = (FIFO_QUEUE_t*) fifoQueue;
-  ELEMENT_t*    auxPtr;
+  FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
+  ELEMENT_t    *auxPtr;
 
   //Input validation
-  if( (fifoQueue == PTIN_NULLPTR) || (element == PTIN_NULLPTR) )
+  if( (fifoQueue == NULL) || (element == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
-    return FAILURE;
+    printf("Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
+    return -1;
   }
 
   //Validation
-  if(queue->first_free == PTIN_NULLPTR)
+  if(queue->first_free == NULL)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Exceeded maximum number of elements for which this queue was created");
-    return TABLE_IS_EMPTY;
+    return -1;
   }
 
   //Get element from the free queue
   auxPtr            = queue->first_free;
   queue->first_free = auxPtr->next;
-  if(queue->first_free == PTIN_NULLPTR)
+  if(queue->first_free == NULL)
   {
-    queue->last_free = PTIN_NULLPTR;
+    queue->last_free = NULL;
   }
   else
   {
-    queue->first_free->prev = PTIN_NULLPTR;
+    queue->first_free->prev = NULL;
   }
 
   //Restore data pointer
@@ -265,8 +261,8 @@ RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
 
   //Add element to the used queue
   auxPtr->next = queue->first_used;
-  auxPtr->prev = PTIN_NULLPTR;
-  if(queue->first_used == PTIN_NULLPTR)
+  auxPtr->prev = NULL;
+  if(queue->first_used == NULL)
   {
     queue->last_used = auxPtr;
   }
@@ -276,7 +272,7 @@ RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
   }
   queue->first_used = auxPtr;
 
-  return SUCCESS;
+  return 0;
 }
 
 
@@ -286,25 +282,24 @@ RC_t ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
  * @param[in]  fifoQueue : FIFO queue 
  * @param[out] element   : Ptr to element to get from the queue
  * 
- * @return RC_t 
+ * @return 0 for sucess; any other value for error. 
  */
-RC_t ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
+int ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
 {
-  FIFO_QUEUE_t* queue = (FIFO_QUEUE_t*) fifoQueue;
-  ELEMENT_t*    auxPtr;
+  FIFO_QUEUE_t *queue = (FIFO_QUEUE_t*) fifoQueue;
+  ELEMENT_t    *auxPtr;
 
   //Input validation
-  if( (fifoQueue == PTIN_NULLPTR) || (element == PTIN_NULLPTR) )
+  if( (fifoQueue == NULL) || (element == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
-    return FAILURE;
+    printf("Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
+    return -1;
   }
 
   //Validation
-  if(queue->first_used == PTIN_NULLPTR)
+  if(queue->first_used == NULL)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: No free elements left");
-    return TABLE_IS_FULL;
+    return -1;
   }
 
   *element = (PTIN_FIFO_ELEMENT_t*) queue->first_used->data;
@@ -312,22 +307,22 @@ RC_t ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
   //Remove element from the used queue
   auxPtr            = queue->first_used;
   queue->first_used = auxPtr->next;
-  if(queue->first_used == PTIN_NULLPTR)
+  if(queue->first_used == NULL)
   {
-    queue->last_used = PTIN_NULLPTR;
+    queue->last_used = NULL;
   }
   else
   {
-    queue->first_used->prev = PTIN_NULLPTR;
+    queue->first_used->prev = NULL;
   }
 
   //Remove data pointer
-  auxPtr->data = PTIN_NULLPTR;
+  auxPtr->data = NULL;
 
   //Add element to the free queue
   auxPtr->next = queue->first_free;
-  auxPtr->prev = PTIN_NULLPTR;
-  if(queue->first_free == PTIN_NULLPTR)
+  auxPtr->prev = NULL;
+  if(queue->first_free == NULL)
   {
     queue->last_free = auxPtr;
   }
@@ -337,6 +332,6 @@ RC_t ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
   }
   queue->first_free = auxPtr;
 
-  return SUCCESS;
+  return 0;
 }
 
