@@ -1,10 +1,4 @@
 Fastpath 6.3.0.2 Release Notes
-Version 2.8.0-r1463
- - Tsk OLTSWITCH-219/OLTTS-3402: Allow limiting the number of MAC addresses per service.
- - Req OLTSWITCH-253/OLTTS-3980: Adaptation of Fastpath to MGMD module.
- - Fix OLTSWITCH-274/OLTTS-4627: Error disabling an entry in the multicast group list.
- - Fix OLTSWITCH-270/OLTTS-4586: Ranges for configurable values in MGMD Proxy differ from GL and FW.
- - Task OLTSWITCH-29: Makefiles and install scripts refactored and optimized.
 Version 2.8.0-r1484
  - Fix OLTSWITCH-270/OLTTS-4586: MGMD updated (configure script executed).
  - Req OLTSWITCH-219/OLTTS-3402: Added trap event.
@@ -41,6 +35,9 @@ Version 2.8.0-r1511:
  - Req OLTSWITCH-253/OLTTS-3980: Several improvements and bugfixes.
  - Req OLTSWITCH-253/OLTTS-3980: Short Fix on Last Member Query Count; Added input validation on proxy timer.
  - Req OLTSWITCH-253/OLTTS-3980: Modified config file: max_service_identifier = 131071
-Version 2.8.0-r1513:
+Version 2.8.0-r1514:
+ - Fix OLTSWITCH-288: Several references to evc id at igmp/dhcp/pppoe modules using only 16 bits.
  - Fix OLTSWITCH-288: Structures at ptin_structs.h still use 16 bits for EVC id.
  - Fix OLTSWITCH-291/OLTTS-4651: Switch Fabric MAC removal is not working.
+Version 2.8.0-r1515:
+ - Req OLTSWITCH-253/OLTTS-3980: Fix Position Identifier.
