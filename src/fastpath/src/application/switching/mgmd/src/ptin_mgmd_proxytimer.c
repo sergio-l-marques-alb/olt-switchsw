@@ -126,9 +126,11 @@ RC_t ptin_mgmd_proxytimer_start(mgmdProxyInterfaceTimer_t* timer, uint32 timeout
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
     if(SUCCESS!=ptin_mgmd_timer_stop(__controlBlock, timer->newTimerHandle))
     {
+      ptin_measurement_timer_stop(1);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed ptin_timer_stop()!");
       return FAILURE;
     }
+    ptin_measurement_timer_stop(1);
   }
   else
   {
