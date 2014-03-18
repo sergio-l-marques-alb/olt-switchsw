@@ -1655,10 +1655,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcConf = (msg_HwEthMef10Evc_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_EVC_create(evcConf))
+      rc = ptin_msg_EVC_create(evcConf);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating EVC# %u", evcConf->id);
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1683,10 +1685,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16 n_structs = inbuffer->infoDim/sizeof(msg_HwEthMef10EvcRemove_t);
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_EVC_delete(evcConf, n_structs))
+      rc = ptin_msg_EVC_delete(evcConf, n_structs);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while deleting EVCs");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1710,10 +1714,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_ADD))
+      rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_ADD);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding port to EVC");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1737,10 +1743,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_REMOVE))
+      rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_REMOVE);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing port from EVC");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1764,10 +1772,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcBridge = (msg_HwEthEvcBridge_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_EVCBridge_add(evcBridge))
+      rc = ptin_msg_EVCBridge_add(evcBridge);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1821,10 +1831,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcFlow = (msg_HwEthEvcFlow_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_EVCFlow_add(evcFlow))
+      rc = ptin_msg_EVCFlow_add(evcFlow);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }

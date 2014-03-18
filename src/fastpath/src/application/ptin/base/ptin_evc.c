@@ -2460,7 +2460,7 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
   if (!evcs[evc_idx].in_use)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u / EVC %u not active", evc_ext_id, evc_idx);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* For unstacked P2P services, don't allow ports change */

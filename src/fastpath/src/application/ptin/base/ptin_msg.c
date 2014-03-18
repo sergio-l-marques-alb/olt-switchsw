@@ -2692,6 +2692,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
 {
   L7_uint i;
   ptin_HwEthMef10Intf_t ptinEvcPort;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
 
   /* Validate arguments */
   if (msgEvcPort == L7_NULLPTR)
@@ -2728,28 +2729,28 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     switch (oper)
     {
     case PTIN_MSG_OPER_ADD:
-      if (ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort) != L7_SUCCESS)
+      if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-        return L7_FAILURE;
+        rc_global = rc;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       break;
     case PTIN_MSG_OPER_REMOVE:
-      if (ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort) != L7_SUCCESS)
+      if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-        return L7_FAILURE;
+        rc_global = rc;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       break;
     default:
       LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown operation %u", oper);
-      return L7_FAILURE;
+      rc_global = L7_FAILURE;
     }
   }
 
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**
