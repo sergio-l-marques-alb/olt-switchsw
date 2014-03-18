@@ -195,6 +195,14 @@ RC_t ptin_mgmd_event_proxytimer(mgmdProxyInterfaceTimer_t *timerData)
 
   if(ptin_mgmd_extended_debug)
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+
+
+  if(timerData->groupData==PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupData is a null pointer [timerPtr:%p]",timerData);
+    return FAILURE;
+  }
+
   if (timerData->isInterface)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Proxy Interface timer expired (vlan:%u)",
