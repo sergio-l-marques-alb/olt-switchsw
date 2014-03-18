@@ -641,8 +641,8 @@ extern L7_RC_t ptin_igmp_channel_remove(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
 
 typedef struct
 {
-  L7_uint16 evc_uc;
-  L7_uint16 evc_mc;
+  L7_uint32 evc_uc;
+  L7_uint32 evc_mc;
   L7_inet_addr_t groupAddr;
   L7_inet_addr_t sourceAddr;
   L7_BOOL   is_static;
@@ -685,7 +685,7 @@ extern L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
+extern L7_RC_t igmp_assoc_channelList_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                            igmpAssoc_entry_t *channel_list,
                                            L7_uint16 *channels_number );
 
@@ -719,7 +719,7 @@ extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
+extern L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
                                           L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                           L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask);
 

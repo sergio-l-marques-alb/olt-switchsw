@@ -261,15 +261,15 @@ typedef struct
   #endif
 
   #if IGMPASSOC_CHANNEL_UC_EVC_ISOLATION
-  L7_uint16 evc_uc;
+  L7_uint32 evc_uc;
   #endif
 } ptinIgmpPairDataKey_t;
 
 typedef struct
 {
   ptinIgmpPairDataKey_t     igmpPairDataKey;
-  L7_uint16                 evc_mc;
-  L7_uint16                 evc_uc;
+  L7_uint32                 evc_mc;
+  L7_uint32                 evc_uc;
   L7_uint16                 igmp_idx;
   L7_BOOL                   is_static;
   void *next;
@@ -294,7 +294,7 @@ static L7_RC_t igmp_assoc_channelIP_prepare( L7_inet_addr_t *channel_in, L7_uint
                                              L7_inet_addr_t *channel_out, L7_uint32 *number_of_channels);
 static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node );
 static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key );
-static L7_RC_t igmp_assoc_avlTree_clear ( L7_uint16 evc_uc, L7_uint16 evc_mc );
+static L7_RC_t igmp_assoc_avlTree_clear ( L7_uint32 evc_uc, L7_uint32 evc_mc );
 static L7_RC_t igmp_assoc_avlTree_purge ( void );
 #endif
 
@@ -309,8 +309,8 @@ static L7_RC_t igmp_assoc_avlTree_purge ( void );
  *   3. the unicast VLAN cannot be used on multiple IGMP instances */ 
 typedef struct {
   L7_BOOL   inUse;
-  L7_uint16 McastEvcId;
-  L7_uint16 UcastEvcId;
+  L7_uint32 McastEvcId;
+  L7_uint32 UcastEvcId;
   L7_uint16 nni_ovid;         /* NNI outer vlan used for EVC aggregation in one instance */
   L7_uint16 n_evcs;
   ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
@@ -329,7 +329,7 @@ st_IgmpInstCfg_t  igmpInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
  *If modified please update also on snooping_mgmd_api.c! */
 typedef struct {
   L7_BOOL   inUse;  
-  L7_uint16 UcastEvcId;
+  L7_uint32 UcastEvcId;
 } mgmdQueryInstances_t;
 mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 
@@ -381,8 +381,8 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
 static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx);
 
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
-static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable);
-static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx);
+static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable);
+static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx);
 L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
 L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
 /* Not used */
@@ -391,10 +391,10 @@ static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx);
 #endif
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx);
 static L7_RC_t ptin_igmp_instance_find_free(L7_uint *idx);
-static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint16 UcastEvcId, L7_uint *igmp_idx);
+static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint32 UcastEvcId, L7_uint *igmp_idx);
 static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uint *igmp_idx);
 static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx);
-static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint16 UcastEvcId);
+static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx);
 
@@ -5817,7 +5817,7 @@ L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t igmp_assoc_channelList_get( L7_uint16 evc_uc, L7_uint16 evc_mc,
+L7_RC_t igmp_assoc_channelList_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                     igmpAssoc_entry_t *channel_list,
                                     L7_uint16 *channels_number )
 {
@@ -6115,7 +6115,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t igmp_assoc_channel_remove( L7_uint16 evc_uc,
+L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
                                    L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                    L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask)
 {
@@ -6501,7 +6501,7 @@ static L7_RC_t igmp_assoc_avlTree_remove( ptinIgmpPairDataKey_t *avl_key )
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE;
  */
-static L7_RC_t igmp_assoc_avlTree_clear( L7_uint16 evc_uc, L7_uint16 evc_mc )
+static L7_RC_t igmp_assoc_avlTree_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
 {
   ptinIgmpPairDataKey_t avl_key;
   ptinIgmpPairInfoData_t *avl_info;
@@ -8248,7 +8248,7 @@ void* ptin_mgmd_query_instances_get(void)
   return ((void*) &mgmdQueryInstances);  
 }
 
-static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
+static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable)
 {
   PTIN_MGMD_EVENT_t             reqMsg       = {0};
   PTIN_MGMD_EVENT_t             resMsg       = {0};
@@ -8302,7 +8302,7 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint evc_idx, L7_BOOL enable)
   return ctrlResMsg.res;
 }
 
-static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint evc_idx)
+static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx)
 {
   PTIN_MGMD_EVENT_t               reqMsg        = {0};
   PTIN_MGMD_EVENT_t               resMsg        = {0};
@@ -8450,7 +8450,7 @@ static L7_uint ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint16 UcastEvcId, L7_uint *igmp_idx)
+static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint32 UcastEvcId, L7_uint *igmp_idx)
 {
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint8 igmp_inst;
@@ -8597,7 +8597,7 @@ static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_u
  * @param UcastEvcId : Unicast EVC id
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint16 UcastEvcId)
+static L7_BOOL ptin_igmp_instance_conflictFree(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 {
   L7_uint idx;
 

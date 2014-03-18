@@ -135,7 +135,7 @@ typedef struct {
 /* PPPOE Instance config struct */
 typedef struct {
   L7_BOOL                     inUse;
-  L7_uint16                   evc_idx;
+  L7_uint32                   evc_idx;
   L7_uint16                   nni_ovid;          /* NNI outer vlan */
   L7_uint16                   n_evcs;
   ptinPppoeClients_t          pppoeClients;
