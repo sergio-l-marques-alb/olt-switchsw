@@ -552,8 +552,8 @@ typedef struct {
 } __attribute__((packed)) msg_switch_mac_intro_t;
 
 typedef struct {
-    L7_uint16             evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
-    L7_uint16             vlanId;         /* Vlan associated to this MAC entry */
+    L7_uint32             evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */   /* L7_uint32 */
+    L7_uint32             vlanId;         /* Vlan associated to this MAC entry */
     L7_uint8              addr[6];        /* MAC address */
     msg_HwEthInterface_t  intf;           /* Interface attached to this entry */
     L7_uint8              static_entry;   /* Is this entry static? */
@@ -568,7 +568,7 @@ typedef struct {
 typedef struct {
     msg_switch_mac_intro_t  intro;        /* Intro struct  used for requests will also be used for replies */
     struct {
-        L7_uint16   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
+        L7_uint32   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */   /* L7_uint32 */
         L7_uint16   vlanId;         /* Vlan associated to this MAC entry */
         L7_uint8    addr[6];        /* MAC address */
         msg_HwEthInterface_t intf;  /* Interface attached to this entry */
@@ -580,7 +580,7 @@ typedef struct {
 #if 0
 typedef struct {
   L7_uint16 mac_index;                // MAC index (from 0 to 254)
-  L7_uint16 flow_id;                  // EVC id
+  L7_uint16 flow_id;                  // EVC id                       /* XXX */
   L7_uint16 vlan_id;                  // service Vlan
   msg_HwEthInterface_t intf;           // Interface
   L7_uint8  mac_address[6];           // MAC address
@@ -676,7 +676,7 @@ typedef struct {
 /* EVC config */
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]                                 /* EVC id */
   L7_uint32 flags;        // 0x000001 - Bundling      (not implemented)
                           // 0x000002 - All to One    (not implemented)
                           // 0x000004 - Stacked       (PTin custom field)
@@ -708,7 +708,7 @@ typedef struct {
 typedef struct {
   L7_uint8  SlotId;
   L7_uint8  admin;
-  L7_uint32 serviceId;
+  L7_uint32 serviceId;                                /* EVC id */
   L7_uint32 portId;
   L7_uint32 groupAddr;
   L7_uint32 sourceAddr;
@@ -761,7 +761,7 @@ typedef struct {
 typedef struct
 {
   L7_uint8  slotId;
-  L7_uint32 evcId;
+  L7_uint32 evcId;        // EVC Id
 
   msg_HwEthMef10Intf_t intf;
 } __attribute__((packed)) msg_HWevcPort_t;
@@ -802,7 +802,7 @@ typedef struct {
 
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint16 evcId;                    // EVC index
+  L7_uint32 evcId;                    // EVC index                                /* L7_uint32 */
   L7_uint8  mask;                     // Configuration mask 
   L7_uint16 service_vlan;             // [mask=0x01] External Outer Vlan
   L7_uint16 client_vlan;              // [mask=0x02] Client (Inner) Vlan
@@ -813,7 +813,7 @@ typedef struct {
 
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint16 evcId;                    // EVC index
+  L7_uint32 evcId;                    // EVC index                                /* L7_uint32 */
   L7_uint8  mask;                     // Configuration mask 
   L7_uint16 service_vlan;             // [mask=0x01] External Outer Vlan
   L7_uint16 client_vlan;              // [mask=0x02] Client (Inner) Vlan
@@ -873,7 +873,7 @@ typedef struct {
 
 typedef struct {
   L7_uint8             SlotId;       // Indice da slot
-  L7_uint16            evc_id;       // Indice do Serviço do OLT
+  L7_uint32            evc_id;       // Indice do Serviço do OLT      /* L7_uint32 */
   L7_uint8             mask;         // Máscara de campos a utilizar
   msg_HwEthInterface_t intf;         // [mask=0x01] Interface
   L7_uint16            service_vlan; // [mask=0x02] (reservado para uso futuro)
@@ -926,7 +926,7 @@ typedef struct {
 /* DHCP Profile */
 typedef struct {
   L7_uchar8    slot_id;       /* Slot ID */ 
-  L7_uint16    evc_id;        /* EVC ID */
+  L7_uint32    evc_id;        /* EVC ID */                    /* L7_uint32 */
 
   L7_uint32    mask;          /* Mask */
 
@@ -961,7 +961,7 @@ typedef struct {                    /* Mask values used here come from the varia
 // Messages CCMSG_ETH_DHCP_PROFILE_GET, CCMSG_ETH_DHCP_PROFILE_ADD and CCMSG_ETH_DHCP_PROFILE_REMOVE
 typedef struct {
   L7_uint8              SlotId;       /* slot id */
-  L7_uint16             evc_id;       /* evc id */
+  L7_uint32             evc_id;       /* evc id */                              /* L7_uint32 */
   L7_uint8              mask;         /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;         /* [mask=0x01] Interface */
   msg_client_info_t     client;       /* [mask=0x02] Client reference */
@@ -1001,7 +1001,7 @@ typedef struct _st_DHCP_Statistics_t
 typedef struct _st_ClientDhcpStatistics
 {
   L7_uint8  SlotId;               /* slot */
-  L7_uint16 evc_id;               /* evc id */
+  L7_uint32 evc_id;               /* evc id */                                /* L7_uint32 */
   L7_uint8              mask;     /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
@@ -1012,7 +1012,7 @@ typedef struct _st_ClientDhcpStatistics
 // Messages CCMSG_ETH_DHCP_BIND_TABLE_GET and CCMSG_ETH_DHCP_BIND_TABLE_REMOVE
 typedef struct {
   L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
-  L7_uint16             evc_idx;                // EVCid
+  L7_uint32             evc_idx;                // EVCid                      /* L7_uint32 */
   L7_uint16             outer_vlan;             // Service vlan: not used yet
   L7_uint16             inner_vlan;             // Client clanId
   msg_HwEthInterface_t  intf;                   // Interface
@@ -1024,7 +1024,7 @@ typedef struct {
 
 typedef struct {
   L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
-  L7_uint16             evc_idx;                // EVCid
+  L7_uint32             evc_idx;                // EVCid                          /* L7_uint32 */
   L7_uint16             outer_vlan;             // Service vlan: not used yet
   L7_uint16             inner_vlan;             // Client clanId
   msg_HwEthInterface_t  intf;                   // Interface
@@ -1238,7 +1238,7 @@ typedef struct _st_IGMP_Statistics_t
 typedef struct _st_ClientIgmpStatistics
 {
   L7_uint8  SlotId;
-  uint16    mcEvcId;
+  L7_uint32 mcEvcId;              /* L7_uint32 */
   L7_uint8              mask;     /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
@@ -1262,7 +1262,7 @@ typedef struct _st_ClientIgmpStatistics
 typedef struct _msg_MCAssocChannel_t
 {
   L7_uint8  SlotId;                     // slot
-  L7_uint16 evcid_mc;                   // index: EVCid (MC)
+  L7_uint32 evcid_mc;                   // index: EVCid (MC)      /* L7_uint32 */
   L7_uint16 entry_idx;                  // Entry index: only for readings
   chmessage_ip_addr_t channel_dstIp;    // IP do canal a adicionar/remover
   L7_uint8            channel_dstmask;  // MAscara do canal em numero de bits (LSB)
@@ -1275,7 +1275,7 @@ typedef struct _msg_MCAssocChannel_t
 typedef struct _msg_MCStaticChannel_t
 {
   L7_uint8  SlotId;                    // slot
-  L7_uint16 evc_id;                    // index: EVCid
+  L7_uint32 evc_id;                    // index: EVCid      /* L7_uint32 */
   msg_in_addr_t channelIp;             // IP do canal a adicionar
 } __attribute__((packed)) msg_MCStaticChannel_t;
 
@@ -1285,7 +1285,7 @@ typedef struct _msg_MCStaticChannel_t
 typedef struct
 {
    L7_uint8          SlotId;                                                  
-   L7_uint16         evc_id; 
+   L7_uint32         evc_id;        /* L7_uint32 */
    msg_client_info_t client;       // Client information                                                
    L7_uint16         entryId;
 } __attribute__((packed)) msg_MCActiveChannelsRequest_t;
@@ -1304,7 +1304,7 @@ typedef struct
 typedef struct _st_MCActiveChannelClients
 {
   uint8  SlotId;                       // slot
-  uint16 evc_id;                       // index: EVCid
+  uint32 evc_id;                       // index: EVCid      /* L7_uint32 */
   msg_in_addr_t channelIp;             // IP do canal a consultar
   msg_in_addr_t sourceIp;              // IP do source Address
   L7_uint16 page_index;                // Indice da mensagem
