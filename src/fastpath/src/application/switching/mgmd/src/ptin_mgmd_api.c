@@ -158,7 +158,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
 
   //Proxy compatibility mode Timers
-  num_timers = PTIN_MGMD_MAX_SERVICE_ID;
+  num_timers = PTIN_MGMD_MAX_SERVICES;
   ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_controlblock_create(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, 0, &timersCB)))
   {

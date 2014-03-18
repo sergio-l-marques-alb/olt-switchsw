@@ -2297,7 +2297,7 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   if(ptin_mgmd_extended_debug)
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   /* Argument validation */
-  if (interfacePtr == PTIN_NULLPTR || interfacePtr->key.serviceId > PTIN_MGMD_MAX_SERVICE_ID ||  groupAddr == PTIN_NULLPTR)
+  if (interfacePtr == PTIN_NULLPTR  ||  groupAddr == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments}");
     return FAILURE;
@@ -3649,7 +3649,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
 
 
   /*Arguments Validation*/
-  if (serviceId > PTIN_MGMD_MAX_SERVICE_ID || groupAddr == PTIN_NULLPTR)
+  if (groupAddr == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
     return PTIN_NULLPTR;

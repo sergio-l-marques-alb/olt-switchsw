@@ -77,7 +77,7 @@ RC_t ptin_mgmd_grouptimer_init(ptinMgmdGroupTimer_t *pTimer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(pTimer->timerHandle))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pTimer->timerHandle))
   {
     ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timerHandle), ptin_mgmd_grouptimer_callback);
   }
@@ -106,7 +106,7 @@ RC_t ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *timer, uint32 timeout, pti
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",timer->newTimerHandle,ptin_mgmd_grouptimer_timeleft(timer));
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timer->timerHandle);
     ptin_measurement_timer_stop(1);
   }
   else
@@ -116,7 +116,7 @@ RC_t ptin_mgmd_grouptimer_start(ptinMgmdGroupTimer_t *timer, uint32 timeout, pti
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  ret = ptin_mgmd_timer_start(timer->timerHandle, timeout, timer);
+  ret = ptin_mgmd_timer_start(__controlBlock, timer->timerHandle, timeout, timer);
   ptin_measurement_timer_stop(0);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",timer->newTimerHandle,ptin_mgmd_grouptimer_timeleft(timer));
   return ret;
@@ -128,11 +128,11 @@ RC_t ptin_mgmd_grouptimer_stop(ptinMgmdGroupTimer_t *timer)
   if (TRUE == ptin_mgmd_grouptimer_isRunning(timer))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timer->timerHandle);
     ptin_measurement_timer_stop(1);
   }
   
-  ptin_mgmd_timer_free(timer->timerHandle);
+  ptin_mgmd_timer_free(__controlBlock, timer->timerHandle);
   return SUCCESS;
 }
 
@@ -145,7 +145,7 @@ uint32 ptin_mgmd_grouptimer_timeleft(ptinMgmdGroupTimer_t *timer)
   }
   uint32 timeLeft;
   ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
-  timeLeft=ptin_mgmd_timer_timeLeft(timer->timerHandle)/1000;
+  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, timer->timerHandle)/1000;
   ptin_measurement_timer_stop(2);
   return timeLeft;
 }
@@ -153,7 +153,7 @@ uint32 ptin_mgmd_grouptimer_timeleft(ptinMgmdGroupTimer_t *timer)
 
 BOOL ptin_mgmd_grouptimer_isRunning(ptinMgmdGroupTimer_t *timer)
 {
-  return ptin_mgmd_timer_isRunning(timer->timerHandle);
+  return ptin_mgmd_timer_isRunning(__controlBlock, timer->timerHandle);
 }
 
 

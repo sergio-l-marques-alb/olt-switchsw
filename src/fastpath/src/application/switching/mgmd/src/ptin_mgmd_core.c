@@ -70,6 +70,79 @@ static RC_t ptin_mgmd_mld_packet_process(void);
 /************************************************************************************************************/
 
 
+RC_t  ptin_mgmd_position_service_identifier_set(uint32 serviceId, uint32 *posId)
+{
+  ptin_mgmd_cb_t  *pMgmdCB;
+  uint32           iterator;
+
+  /* Get Snoop Control Block */
+  if (( pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
+  {
+    if(pMgmdCB->proxyCM[iterator].inUse==FALSE)
+    {
+      pMgmdCB->proxyCM[iterator].inUse=TRUE;
+      pMgmdCB->proxyCM[iterator].serviceId=serviceId;
+      (*posId)=iterator;
+      return SUCCESS;
+    }      
+  }
+  (*posId)=(uint32) -1;
+  return FAILURE;
+}
+
+RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId)
+{
+  ptin_mgmd_cb_t  *pMgmdCB;
+  uint32           iterator;    
+
+  /* Get Snoop Control Block */
+  if (( pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
+  {
+    if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
+    {      
+      (*posId)=iterator;
+      return SUCCESS;
+    }      
+  }
+  (*posId)=(uint32) -1;
+  return FAILURE;
+}
+
+RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId)
+{
+  ptin_mgmd_cb_t  *pMgmdCB;
+  uint32           iterator;
+
+  /* Get Snoop Control Block */
+  if (( pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
+  {
+    if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
+    {
+      pMgmdCB->proxyCM[iterator].inUse=FALSE;       
+      return SUCCESS;
+    }      
+  }
+  return SUCCESS;
+}
+
 void ptin_mgmd_core_memory_allocation(void)
 {
   ptin_mgmd_memory_allocation+=sizeof(sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD]);  
@@ -580,6 +653,9 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return FAILURE;
   }
 
+
+  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
+
   //Validate serviceId
   if (serviceId > PTIN_MGMD_MAX_SERVICE_ID)
   {    
@@ -587,7 +663,14 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return FAILURE;
   }
 
-  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
+  
+  
+  if( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId) != SUCCESS && 
+      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS )
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", mcastPacket.posId);    
+    return FAILURE;
+  }
 
   ptin_measurement_timer_start(33,"externalApi.portType_get"); 
   //Validate clientId (only for leaf ports)
@@ -789,11 +872,11 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
       incomingVersion = PTIN_IGMP_VERSION_3;
 
       //Switch interface compatibility mode
-      if(mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2 && 
-         ptin_mgmd_proxycmtimer_isRunning(&mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId])==PTIN_MGMD_FALSE)      
+      if(mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2 && 
+         ptin_mgmd_proxycmtimer_isRunning(&mcastPacket->cbHandle->proxyCM[mcastPacket->posId])==PTIN_MGMD_FALSE)      
       {
         //If we are here, it means that we were configured to operate at IGMPv3.
-        mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V3;        
+        mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V3;        
       }   
     }
     else 
@@ -832,14 +915,14 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
         
       //Switch proxy interface compatibility mode
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting compatibility mode to IGMPv2 on service [%u]",mcastPacket->serviceId);
-      mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V2;  
+      mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V2;  
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion==PTIN_IGMP_VERSION_3)
       {
-        ptin_mgmd_proxycmtimer_start(mcastPacket->serviceId, mcastPacket->cbHandle, &mcastPacket->cbHandle->mgmdProxyCfg);
+        ptin_mgmd_proxycmtimer_start(mcastPacket->posId, mcastPacket->cbHandle, &mcastPacket->cbHandle->mgmdProxyCfg);
       }
       else
       {
-        ptin_mgmd_proxycmtimer_stop(&mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId]);
+        ptin_mgmd_proxycmtimer_stop(&mcastPacket->cbHandle->proxyCM[mcastPacket->posId]);
       }
     }     
   }/* End IGMP pkt check */
@@ -1178,7 +1261,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
         ptinMgmdCleanUpGroupRecordAvlTree(mcastPacket->serviceId);
 //End cleanup
 
-        if(mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3)
+        if(mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3)
         {        
           if (mgmdBuildIgmpv2CSR(mcastPacket->serviceId,maxRespTime)!=SUCCESS)
           {
@@ -1596,7 +1679,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
     else
     { 
       if((numberOfClients=snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients)>0 && 
-            (mcastPacket->cbHandle->proxyCM[mcastPacket->serviceId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3))
+            (mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3))
         groupAlreadyExists=TRUE;
       else    
         groupAlreadyExists=FALSE;
@@ -1952,13 +2035,11 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
     snoopEntry->ports[mcastPacket->portId].groupCMTimer.compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
     snoopEntry->ports[mcastPacket->portId].groupCMTimer.groupKey=snoopEntry->ptinMgmdGroupInfoDataKey;
     if(mcastPacket->cbHandle->mgmdProxyCfg.clientVersion==PTIN_IGMP_VERSION_3)
-    {
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Vou fazer start");
+    {      
       ptin_mgmd_routercmtimer_start(snoopEntry, mcastPacket->portId, &mcastPacket->cbHandle->mgmdProxyCfg);
     }
     else
-    {
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Vou fazer stop");
+    {     
       ptin_mgmd_routercmtimer_stop(&snoopEntry->ports[mcastPacket->portId].groupCMTimer);
     }
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Setting compatibility mode to v%u", snoopEntry->ports[mcastPacket->portId].groupCMTimer.compatibilityMode);
@@ -2085,14 +2166,14 @@ RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData)
     case PTIN_MGMD_EVENT_TIMER_TYPE_ROUTERCM:
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a router compatibility mode timer event type");
-      ptin_mgmd_event_routercmtimer((snoopPTinCMtimer_t**)eventData->data);
+      ptin_mgmd_event_routercmtimer((ptinMgmdLeafCMtimer_t**)eventData->data);
 
       break;
     }
     case PTIN_MGMD_EVENT_TIMER_TYPE_PROXYCM:
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a proxy compatibility mode timer event type");
-      ptin_mgmd_event_proxycmtimer((snoopPTinCMtimer_t**)eventData->data);
+      ptin_mgmd_event_proxycmtimer((ptinMgmdRootCMtimer_t**)eventData->data);
 
       break;
     }    

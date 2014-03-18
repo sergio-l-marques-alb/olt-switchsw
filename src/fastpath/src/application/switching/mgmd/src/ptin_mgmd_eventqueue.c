@@ -365,7 +365,7 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
   currentThreadId = pthread_self();
   ctrlTimerHasExpired = FALSE;
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  ptin_mgmd_timer_start(ctrlTimer, PTIN_MGMD_CTRL_TIMEOUT*1000, PTIN_NULLPTR);
+  ptin_mgmd_timer_start(ctrlTimerCB, ctrlTimer, PTIN_MGMD_CTRL_TIMEOUT*1000, PTIN_NULLPTR);
   ptin_measurement_timer_stop(0);
   //Send event to the MGMD
   ptin_mgmd_eventQueue_tx(inEventMsg);
@@ -382,7 +382,7 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
   else
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(ctrlTimer);
+    ptin_mgmd_timer_stop(ctrlTimerCB, ctrlTimer);
     ptin_measurement_timer_stop(1);
   }
 

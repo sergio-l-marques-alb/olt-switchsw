@@ -17,6 +17,7 @@
 
 #include "ptin_timer_api.h"
 #include "ptin_fifo_api.h"
+#include "ptin_mgmd_logger.h"
 
 /* Defines */
 #define PTIN_WAKE_UP_CB_TIMER_SIGNAL 40
@@ -99,10 +100,10 @@ static void  __list_dump(PTIN_TIMER_STRUCT *firsttimer);
 
 void  __list_dump(PTIN_TIMER_STRUCT *firsttimer)
 {
-  return;
+  return; //This method is disabled for now
   while(firsttimer != NULL)
   {
-    //printf("Timer %p [P:%p N:%p]\n", firsttimer, firsttimer->prev, firsttimer->next);
+    printf("Timer %p [P:%p N:%p]\n", firsttimer, firsttimer->prev, firsttimer->next);
     firsttimer = firsttimer->next;
   }
 }
@@ -117,7 +118,7 @@ void __time_convert_timespec2int(struct timespec *original, unsigned long long *
 {
   if( (original == NULL) || (converted == NULL) )
   {
-//  printf("%s(%u): Abnormal context [original:%p converted:%p]\n", __FUNCTION__, __LINE__, original, converted);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [original:%p converted:%p]\n", original, converted);
     return;
   }
 
@@ -136,7 +137,7 @@ void __initialized_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-//  printf("%s(%u): Abnormal context [cb:%p timer:%p]\n", __FUNCTION__, __LINE__, cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
     return;
   }
 
@@ -154,7 +155,6 @@ void __initialized_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
   }
   cb->lastInitializedTimer = timer;
 
-  //printf("%s(%u): Print initialized list after insert %p [F:%p L:%p]\n", __FUNCTION__, __LINE__, timer, cb->firstInitializedTimer, cb->lastInitializedTimer);
   __list_dump(cb->firstInitializedTimer);
 }
 
@@ -170,7 +170,7 @@ void __initialized_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-//  printf("%s(%u): Abnormal context [cb:%p timer:%p]\n", __FUNCTION__, __LINE__, cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
     return;
   }
 
@@ -196,7 +196,6 @@ void __initialized_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
     ((PTIN_TIMER_STRUCT*)timer->next)->prev = timer->prev;
   }
 
-  //printf("%s(%u): Print initialized list after remove %p [F:%p L:%p]\n", __FUNCTION__, __LINE__, timer, cb->firstInitializedTimer, cb->lastInitializedTimer);
   __list_dump(cb->firstInitializedTimer);
 }
 
@@ -219,7 +218,7 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
 
   if( (cb == NULL) || (timer == NULL) )
   {
-//  printf("%s(%u): Abnormal context [cb:%p timer:%p]\n", __FUNCTION__, __LINE__, cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
     return;
   }
 
@@ -228,17 +227,13 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   {
     /* The timeout for this timer is relatively short. There is a high probability that it will be inserted next to the last timer below optimization threshold positions of the list */
 
-    //printf("%s(%u): %p Lower than threshold %u\n", __FUNCTION__, __LINE__, timer, cb->optimizationThreshold);
     /* Determine which timer in the list will be the upper neighbor of our timer, based on the absoluteTimeout */
     upperNeighbor = (cb->lastTimerBelowThreshold==NULL)?(cb->firstRunningTimer):(cb->lastTimerBelowThreshold);
     lowerNeighbor = (cb->lastTimerBelowThreshold==NULL)?(NULL):(cb->lastTimerBelowThreshold->prev);
-//  printf("%s(%u): %p - U:%p L:%p\n", __FUNCTION__, __LINE__, timer, upperNeighbor, lowerNeighbor);
     while(upperNeighbor != NULL)
     {
-//    printf("%s(%u): %p - U:%p L:%p\n", __FUNCTION__, __LINE__, timer, upperNeighbor, lowerNeighbor);
       if(upperNeighbor->absoluteTimeout > timer->absoluteTimeout)
       {
-//      printf("%s(%u): %p - Found pos\n", __FUNCTION__, __LINE__, timer);
         break;
       }
 
@@ -257,17 +252,13 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   {
     /* The timeout for this timer is relatively long. There is a high probability that it will be inserted in the last positions of the list */
 
-//  printf("%s(%u): %p Higher than threshold %u\n", __FUNCTION__, __LINE__, timer, cb->optimizationThreshold);
     /* Determine which timer in the list will be the upper neighbor of our timer, based on the absoluteTimeout */
     upperNeighbor = NULL;
     lowerNeighbor = cb->lastRunningTimer;
-//  printf("%s(%u): %p - U:%p L:%p\n", __FUNCTION__, __LINE__, timer, upperNeighbor, lowerNeighbor);
     while(lowerNeighbor != NULL)
     {
-//    printf("%s(%u): %p - U:%p L:%p\n", __FUNCTION__, __LINE__, timer, upperNeighbor, lowerNeighbor);
       if(lowerNeighbor->absoluteTimeout <= timer->absoluteTimeout)
       {
-//      printf("%s(%u): %p - Found pos\n", __FUNCTION__, __LINE__, timer);
         break;
       }
 
@@ -303,7 +294,6 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     upperNeighbor->prev = timer;
   }
 
-//printf("%s(%u): Print running list after insert %p [F:%p L:%p T:%p]\n", __FUNCTION__, __LINE__, timer, cb->firstRunningTimer, cb->lastRunningTimer, cb->lastTimerBelowThreshold);
   __list_dump(cb->firstRunningTimer);
 }
 
@@ -317,7 +307,7 @@ void __running_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-//  printf("%s(%u): Abnormal context [cb:%p timer:%p]\n", __FUNCTION__, __LINE__, cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
     return;
   }
 
@@ -346,7 +336,6 @@ void __running_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   /* If this is the last timer below threshold, update it */
   cb->lastTimerBelowThreshold = timer->prev;
 
-//printf("%s(%u): Print running list after remove %p [F:%p L:%p T:%p]\n", __FUNCTION__, __LINE__, timer, cb->firstRunningTimer, cb->lastRunningTimer, cb->lastTimerBelowThreshold);
   __list_dump(cb->firstRunningTimer);
 }
 
@@ -375,7 +364,6 @@ void* __controlblock_handler(void *param)
   unsigned long long         requiredConvertedTime;
   unsigned long long         currentConvertedTime;
 
-  //instalar sinal para os timers
   signal(PTIN_WAKE_UP_CB_TIMER_SIGNAL, __signal_handler);
 
   while (1)
@@ -403,20 +391,17 @@ void* __controlblock_handler(void *param)
 
       if(timer->absoluteTimeout <= currentConvertedTime)
       {
-//      printf("%s(%u): Timer %p already expired at %llu (%llu)\n", __FUNCTION__, __LINE__, timer, timer->absoluteTimeout, currentConvertedTime);
         requiredConvertedTime     = currentConvertedTime - timer->absoluteTimeout;
         requiredSleepTime.tv_sec  = requiredConvertedTime/1000000000;
         requiredSleepTime.tv_nsec = requiredConvertedTime%1000000000;
-        timer->funcPtr(timer->funcParam);
-//      printf("%s(%u): %p Callback called\n", __FUNCTION__, __LINE__, timer);
-//      printf("%s(%u): Next timer is %p\n", __FUNCTION__, __LINE__, cbPtr->firstRunningTimer);
         __running_list_remove(cbPtr, timer);
+        __initialized_list_insert(cbPtr, timer);
         timer->relativeTimeout = 0;
         timer->absoluteTimeout = 0;
-        timer->funcParam       = NULL;
         timer->state           = PTIN_TIMER_STATE_INITIALIZED;
         __initialized_list_insert(cbPtr, timer);
         pthread_mutex_unlock(&cbPtr->lock);
+        timer->funcPtr(timer->funcParam);
         continue;
       }
       else
@@ -424,23 +409,19 @@ void* __controlblock_handler(void *param)
         requiredConvertedTime     = timer->absoluteTimeout - currentConvertedTime;
         requiredSleepTime.tv_sec  = requiredConvertedTime/1000000000;
         requiredSleepTime.tv_nsec = requiredConvertedTime%1000000000;
-//      printf("%s(%u): Timer %p expires at %llu (%llu)\n", __FUNCTION__, __LINE__, timer, requiredConvertedTime, currentConvertedTime);
         pthread_mutex_unlock(&cbPtr->lock);
         if(nanosleep(&requiredSleepTime, NULL) == 0)
         {
           pthread_mutex_lock(&cbPtr->lock);
-          //printf("%s(%u): Timer %p expired\n", __FUNCTION__, __LINE__, timer);
           /* If we slept until the end, means out timer is still in the head and valid */
-          timer->funcPtr(timer->funcParam);
-          //printf("%s(%u): %p Callback called\n", __FUNCTION__, __LINE__, timer);
-          //printf("%s(%u): Next timer is %p\n", __FUNCTION__, __LINE__, cbPtr->firstRunningTimer);
           __running_list_remove(cbPtr, timer);
+          __initialized_list_insert(cbPtr, timer);
           timer->relativeTimeout = 0;
           timer->absoluteTimeout = 0;
-          timer->funcParam       = NULL;
           timer->state           = PTIN_TIMER_STATE_INITIALIZED;
           __initialized_list_insert(cbPtr, timer);
           pthread_mutex_unlock(&cbPtr->lock);
+          timer->funcPtr(timer->funcParam);
           continue;
         }
         else
@@ -476,7 +457,7 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
 
   if(controlBlock == NULL)
   {
-//  printf("%s(%u): Abnormal context [controlBlock:%p]\n", __FUNCTION__, __LINE__, controlBlock);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p]\n", controlBlock);
     return -1;
   }
 
@@ -495,7 +476,6 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   } 
   else 
   {
-//  printf("%s(%u): There are no more control blocks available!\n", __FUNCTION__, __LINE__);
     return -1;
   }
 
@@ -518,7 +498,6 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
     PTIN_TIMER_STRUCT *newTimer = (PTIN_TIMER_STRUCT*) malloc(sizeof(PTIN_TIMER_STRUCT));  
     if(0 != ptin_fifo_push(cbEntry[cbIdx].availableTimersPool, (PTIN_FIFO_ELEMENT_t)newTimer))
     {
-//    printf("%s(%u): Unable to push a timer to the available timers pool\n", __FUNCTION__, __LINE__);
       return -1;
     }
   }
@@ -526,25 +505,21 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   /* Thread setup */
   if (0 != pthread_attr_init(&cbEntry[cbIdx].attr)) 
   {
-//  printf("%s(%u): Unable to initialize thread attributes\n", __FUNCTION__, __LINE__);
     return -1;
   }
   if(0 != cbEntry[cbIdx].timerStackSize)
   {
     if (0 != pthread_attr_setstacksize(&cbEntry[cbIdx].attr, cbEntry[cbIdx].timerStackSize)) 
     {
-//    printf("%s(%u): Unable to set thread stack size to %u\n", __FUNCTION__, __LINE__, cbEntry[cbIdx].timerStackSize);
       return -1;
     }
   }
   if (0 != pthread_mutex_init(&cbEntry[cbIdx].lock, NULL)) 
   {
-//  printf("%s(%u): Unable to init thread mutex\n", __FUNCTION__, __LINE__);
     return -1;
   }
   if (0 != pthread_create(&cbEntry[cbIdx].thread_id, &cbEntry[cbIdx].attr, &__controlblock_handler, &cbEntry[cbIdx])) 
   {
-//  printf("%s(%u): Unable to start MGMD thread\n", __FUNCTION__, __LINE__);
     return -1;
   }
 
@@ -622,6 +597,8 @@ int ptin_mgmd_timer_controlblock_destroy(PTIN_MGMD_TIMER_CB_t controlBlock)
  * @param[in]  funcPtr      : Callback to be invoked upon timer's expiral
  * 
  * @return Returns 0 on success; any other value for error. 
+ *  
+ * @note The provided callback MUST not call ptin_mgmd_timer_free inside!
  */
 int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *timerPtr, void * (*funcPtr)(void* param)) 
 {
@@ -630,7 +607,7 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
 
   if( (timerPtr == NULL) || (funcPtr == NULL) )
   {
-//  printf("%s(%u): Abnormal context [timerPtr:%p funcPtr:%p]\n", __FUNCTION__, __LINE__, timerPtr, funcPtr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [timerPtr:%p funcPtr:%p]\n", timerPtr, funcPtr);
     return -1;
   }
 
@@ -639,7 +616,6 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
   if(0 != ptin_fifo_pop(cbPtr->availableTimersPool, (PTIN_FIFO_ELEMENT_t*)&newTimer))
   {
     pthread_mutex_unlock(&cbPtr->lock);
-//  printf("%s(%u): There are no more timers available!\n", __FUNCTION__, __LINE__);
     return -1;
   }
 
@@ -657,35 +633,45 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
 
 /**
  * Delete the given timer.
- * 
- * @param[in] timerPtr : Pointer to the timer
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management 
+ * @param[in] timerPtr     : Pointer to the timer
  * 
  * @return Returns 0 on success; any other value for error. 
+ *  
+ * @note This method MUST NOT be called from the timer callback! 
  */
-int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_t timerPtr) 
+int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
+  pthread_t                  cbThreadId;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
-//  printf("%s(%u): Abnormal context [timerPtr:%p]\n", __FUNCTION__, __LINE__, timerPtr);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    return -1;
+  }
+
+  /* Self destruction is not supported */
+  cbThreadId = cbPtr->thread_id;  
+  if ( pthread_equal(cbThreadId, pthread_self()) != 0) 
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Self destruction is not supported.");
     return -1;
   }
 
   /* Remove timer from the initialized list and return it to the availableTimersPool */
-  cbPtr = tmrPtr->controlBlockPtr;
   pthread_mutex_lock(&cbPtr->lock);
   if(tmrPtr->state == PTIN_TIMER_STATE_RUNNING)
   {
     pthread_mutex_unlock(&cbPtr->lock);
-    ptin_mgmd_timer_stop(timerPtr);
+    ptin_mgmd_timer_stop(controlBlock, timerPtr);
     pthread_mutex_lock(&cbPtr->lock);
   }
   else if(tmrPtr->state != PTIN_TIMER_STATE_INITIALIZED)
   {
     pthread_mutex_unlock(&cbPtr->lock);
-//  printf("%s(%u): Invalid state %u\n", __FUNCTION__, __LINE__, tmrPtr->state);
     return -1;
   }
   tmrPtr->state = PTIN_TIMER_STATE_UNKNOWN;
@@ -693,7 +679,6 @@ int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_t timerPtr)
   if(0 != ptin_fifo_push(cbPtr->availableTimersPool, (PTIN_FIFO_ELEMENT_t)tmrPtr))
   {
     pthread_mutex_unlock(&cbPtr->lock);
-//  printf("%s(%u): Unable to return timer to the availableTimersPool!\n", __FUNCTION__, __LINE__);
     return -1;
   }
   pthread_mutex_unlock(&cbPtr->lock);
@@ -705,29 +690,29 @@ int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_t timerPtr)
 /**
  * Start the given timer, which will expire after timeout, 
  * calling the registered funcPtr with param. 
- * 
- * @param[in] timerPtr : Pointer to the timer
- * @param[in] timeout  : Timer's timeout (expressed accordingly to the controlBlock granularity)
- * @param[in] param    : Callback argument
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management
+ * @param[in] timerPtr     : Pointer to the timer
+ * @param[in] timeout      : Timer's timeout (expressed accordingly to the controlBlock granularity)
+ * @param[in] param        : Callback argument
  * 
  * @return Returns 0 on success; any other value for error.
  *  
  * @note The given timer MUST have been initialized before
  */
-int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void *param) 
+int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void *param) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
   struct timespec            currentTime;
   pthread_t                  cbThreadId;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
-//  printf("%s(%u): Invalid context [timerPtr:%p]\n", __FUNCTION__, __LINE__, timerPtr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
     return -1;
   }
 
-  cbPtr      = tmrPtr->controlBlockPtr;
   cbThreadId = cbPtr->thread_id;
   pthread_mutex_lock(&cbPtr->lock);
 
@@ -738,9 +723,7 @@ int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void
     tmrPtr->relativeTimeout  = timeout;
     clock_gettime(CLOCK_MONOTONIC, &currentTime);
     __time_convert_timespec2int(&currentTime, &tmrPtr->absoluteTimeout);
-    //printf("%s(%u): Current time %llu\n", __FUNCTION__, __LINE__, tmrPtr->absoluteTimeout);
     tmrPtr->absoluteTimeout += tmrPtr->relativeTimeout * 1000000ULL;
-    //printf("%s(%u): Restarting running timer %p with timeout %u [expires:%llu]\n", __FUNCTION__, __LINE__, tmrPtr, tmrPtr->relativeTimeout, tmrPtr->absoluteTimeout);
     tmrPtr->funcParam        = param;
     tmrPtr->state            = PTIN_TIMER_STATE_RUNNING;
 
@@ -769,9 +752,7 @@ int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void
   tmrPtr->relativeTimeout  = timeout;
   clock_gettime(CLOCK_MONOTONIC, &currentTime);
   __time_convert_timespec2int(&currentTime, &tmrPtr->absoluteTimeout);
-  //printf("%s(%u): Current time %llu\n", __FUNCTION__, __LINE__, tmrPtr->absoluteTimeout);
   tmrPtr->absoluteTimeout += tmrPtr->relativeTimeout * 1000000ULL;
-  //printf("%s(%u): Starting timer %p with timeout %u [expires:%llu]\n", __FUNCTION__, __LINE__, tmrPtr, tmrPtr->relativeTimeout, tmrPtr->absoluteTimeout);
   tmrPtr->funcParam        = param;
   tmrPtr->state            = PTIN_TIMER_STATE_RUNNING;
 
@@ -795,37 +776,35 @@ int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_t timerPtr, unsigned int timeout, void
 
 /**
  * Stop the given timer.
- * 
- * @param[in] timerPtr : Pointer to the timer
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management  
+ * @param[in] timerPtr     : Pointer to the timer
  * 
  * @return Returns 0 on success; any other value for error.  
  */
-int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr) 
+int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
   pthread_t                  cbThreadId;
   unsigned char              wakeCB = 0;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
-//  printf("%s(%u): Invalid context [timerPtr:%p]\n", __FUNCTION__, __LINE__, timerPtr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
     return -1;
   }
 
   /* Is the timer running? */
-  cbPtr      = tmrPtr->controlBlockPtr;
   cbThreadId = cbPtr->thread_id;
   pthread_mutex_lock(&cbPtr->lock);
   if(tmrPtr->state != PTIN_TIMER_STATE_RUNNING)
   {
-//  printf("%s(%u): Unable to stop timer while it is on state %u\n", __FUNCTION__, __LINE__, tmrPtr->state);
     pthread_mutex_unlock(&cbPtr->lock);
     return 0;
   }
 
   /* Stop the timer. If it is the head of the running list, wake the CB thread */
-  //printf("%s(%u): Stopping timer %p\n", __FUNCTION__, __LINE__, tmrPtr);
   if(tmrPtr == cbPtr->firstRunningTimer)
   {
     wakeCB = 1;
@@ -838,7 +817,6 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr)
   pthread_mutex_unlock(&cbPtr->lock);
 
   /* Stop the timer. If it is the head of the running list, wake the CB thread */
-  //printf("%s(%u): Stopping timer %p\n", __FUNCTION__, __LINE__, tmrPtr);
   if(wakeCB == 1)
   {
     if(pthread_equal(cbThreadId, pthread_self()) == 0) 
@@ -852,32 +830,31 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_t timerPtr)
 
 /**
  * Return how much time the given timer has before expiring.
- * 
- * @param[in] timerPtr : Pointer to the timer 
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management  
+ * @param[in] timerPtr     : Pointer to the timer 
  * 
  * @return uint32 
  */
-unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr) 
+unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
   struct timespec            currentTime;
   unsigned long long         currentConvertedTime;
   unsigned long long         timeleft;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
-//  printf("%s(%u): Invalid context [timerPtr:%p]\n", __FUNCTION__, __LINE__, timerPtr);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
     return 0;
   }
-  cbPtr = tmrPtr->controlBlockPtr;
 
   /* Is the timer running? */
   pthread_mutex_lock(&cbPtr->lock);
   if(tmrPtr->state != PTIN_TIMER_STATE_RUNNING)
   {
     pthread_mutex_unlock(&cbPtr->lock);
-//  printf("%s(%u): Timer %p is not running: timeleft = 0\n", __FUNCTION__, __LINE__, tmrPtr);
     return 0;
   }
   cbPtr = tmrPtr->controlBlockPtr;
@@ -888,14 +865,12 @@ unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr)
   if(currentConvertedTime >= tmrPtr->absoluteTimeout)
   {
     pthread_mutex_unlock(&cbPtr->lock);
-    //printf("%s(%u): Timer %p should had expired at %llu (%llu)\n", __FUNCTION__, __LINE__, tmrPtr, tmrPtr->absoluteTimeout, currentConvertedTime);
     return 0;
   }
   else 
   {
     timeleft  = tmrPtr->absoluteTimeout - currentConvertedTime; //Nanoseconds
     timeleft /= (1000000 * cbPtr->tickGranularity); //Convert to the CB granularity time unit
-    //printf("%s(%u): %p Current %llu Expire %llu Timeout %u\n", __FUNCTION__, __LINE__, tmrPtr, currentConvertedTime, tmrPtr->absoluteTimeout, (unsigned int) timeleft);
     pthread_mutex_unlock(&cbPtr->lock);
     return (unsigned int)timeleft;
   }
@@ -904,22 +879,23 @@ unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_t timerPtr)
 
 /**
  * Check if the given timer is running.
- * 
- * @param[in] timerPtr : Pointer to the timer 
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management  
+ * @param[in] timerPtr     : Pointer to the timer 
  * 
  * @return [0 - false; 1 - true] 
  */
-unsigned char ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr) 
+unsigned char ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
   unsigned char              timerState;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
     return 0;
   }
-  cbPtr = tmrPtr->controlBlockPtr;
 
   pthread_mutex_lock(&cbPtr->lock);
   timerState = tmrPtr->state;
@@ -931,22 +907,23 @@ unsigned char ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_t timerPtr)
 
 /**
  * Check if the given timer was previously initialized.
- * 
- * @param[in] timerPtr : Pointer to the timer 
+ *  
+ * @param[in] controlBlock : ControlBlock responsible for this timer's management  
+ * @param[in] timerPtr     : Pointer to the timer 
  * 
  * @return [0 - false; 1 - true] 
  */
-unsigned char ptin_mgmd_timer_exists(PTIN_MGMD_TIMER_t timerPtr) 
+unsigned char ptin_mgmd_timer_exists(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t timerPtr) 
 {
-  PTIN_CONTROL_BLOCK_STRUCT *cbPtr;
-  PTIN_TIMER_STRUCT *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
-  unsigned char      timerState;
+  PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
+  PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
+  unsigned char              timerState;
 
-  if(timerPtr == NULL)
+  if((controlBlock == NULL) || (timerPtr == NULL))
   {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
     return 0;
   }
-  cbPtr = tmrPtr->controlBlockPtr;
 
   pthread_mutex_lock(&cbPtr->lock);
   timerState = tmrPtr->state;

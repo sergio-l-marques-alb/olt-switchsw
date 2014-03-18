@@ -376,7 +376,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     if(igmpProxy->networkVersion == PTIN_MGMD_COMPATIBILITY_V2)
     {   
      uint32 i;   
-     for(i=0; i<PTIN_MGMD_MAX_SERVICE_ID; ++i)
+     for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
      {
        pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
      }

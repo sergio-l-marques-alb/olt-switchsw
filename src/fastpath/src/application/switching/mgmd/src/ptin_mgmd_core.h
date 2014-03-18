@@ -197,7 +197,15 @@ typedef struct
   uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t
   ptinMgmdGroupInfoDataKey_t      groupKey;
   PTIN_MGMD_TIMER_t               timer;
-} snoopPTinCMtimer_t;
+} ptinMgmdLeafCMtimer_t;
+
+typedef struct
+{
+  BOOL                            inUse;
+  uint32                          serviceId;
+  uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t  
+  PTIN_MGMD_TIMER_t               timer;
+} ptinMgmdRootCMtimer_t;
 
 typedef struct
 {  
@@ -213,7 +221,7 @@ typedef struct
   uint16                     interfaceIdx;  
   ptinMgmdGroupInfoDataKey_t  groupKey;
 
-  PTIN_MGMD_TIMER_t          timerHandle; //Rename this after refractoring the rest of the struct..
+  PTIN_MGMD_TIMER_t          timerHandle; 
 } ptinMgmdGroupTimer_t;
 
 struct ptinMgmdLeafClient_s
@@ -248,7 +256,7 @@ typedef struct
   BOOL                            isStatic;
   uint8                           filtermode; //snoop_ptin_filtermode_t
 
-  snoopPTinCMtimer_t              groupCMTimer; //router compatibility-mode
+  ptinMgmdLeafCMtimer_t           groupCMTimer; //router compatibility-mode
 
   ptinMgmdGroupTimer_t            groupTimer;
                                  
@@ -480,11 +488,11 @@ typedef struct ptinMgmd_cb_s
   ptin_IgmpProxyCfg_t       mgmdProxyCfg;//We support different configurations [IGMP/MLD] per IP family address [IPv4/IPv6]
 
   /* AVL Tree data */
-  ptin_mgmd_avlTree_t       mgmdPTinQuerierAvlTree;
+  ptin_mgmd_avlTree_t        mgmdPTinQuerierAvlTree;
   ptin_mgmd_avlTreeTables_t *mgmdPTinQuerierTreeHeap;
   ptinMgmdQuerierInfoData_t *mgmdPTinQuerierDataHeap; 
 
-  snoopPTinCMtimer_t        proxyCM[PTIN_MGMD_MAX_SERVICE_ID]; //proxy compatibility-mode (per service)
+  ptinMgmdRootCMtimer_t      proxyCM[PTIN_MGMD_MAX_SERVICES]; //proxy compatibility-mode (per service)
 }ptin_mgmd_cb_t;
 
 #ifdef PTIN_MGMD_MLD_SUPPORT
@@ -516,6 +524,7 @@ typedef struct mgmdSnoopControlPkt_s
   ptin_mgmd_eb_t         *ebHandle;
   uint32                  portId;                   
   uint32                  serviceId;
+  uint32                  posId;//This is used only for the Compatibility Mode Timer
   uchar8                  family;                   
 //uchar8                  destMac[PTIN_MAC_ADDR_LEN];
   uint32                  clientId;               
@@ -545,5 +554,8 @@ RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData);
 
 uint8 ptinMgmdRecordType2IGMPStatField(uint8 recordType,uint8 fieldType);
 
+RC_t  ptin_mgmd_position_service_identifier_set(uint32 serviceId, uint32 *posId);
+RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId);
+RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId);
 #endif /* SNOOPING_H */
 

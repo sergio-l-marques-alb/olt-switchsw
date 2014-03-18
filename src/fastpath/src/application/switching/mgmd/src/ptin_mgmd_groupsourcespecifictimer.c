@@ -196,7 +196,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_init(PTIN_MGMD_TIMER_t *timerPtr)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(*timerPtr))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, *timerPtr))
   {
     ret = ptin_mgmd_timer_init(__controlBlock, timerPtr, ptin_mgmd_groupsourcespecifictimer_callback);
   }
@@ -318,7 +318,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Restarting groupspecific [groupAddr=0x%08X serviceId=%u portId=%u]", 
               groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timerData->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timerData->timerHandle);
     ptin_measurement_timer_stop(1);
     timerData->retransmissions = igmpCfg->querier.last_member_query_count-1;
 
@@ -332,7 +332,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
   {
     ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
     //Schedule a new source-speficic query
-    if(SUCCESS != ptin_mgmd_timer_start(timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
+    if(SUCCESS != ptin_mgmd_timer_start(__controlBlock, timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
     {
       ptin_measurement_timer_stop(0);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start group specific timer");
@@ -388,7 +388,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
   else
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timerData->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timerData->timerHandle);
     ptin_measurement_timer_stop(1);
   }
 
@@ -442,7 +442,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
       }
       ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
       //Schedule a new source-speficic query
-      if(SUCCESS != ptin_mgmd_timer_start(timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
+      if(SUCCESS != ptin_mgmd_timer_start(__controlBlock, timerData->timerHandle, igmpCfg->querier.last_member_query_interval*100, &timerData->key))
       {
         ptin_measurement_timer_stop(0);
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start group specific timer");
@@ -460,7 +460,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
               timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId, timerData->key.portId);
       return FAILURE;
     }
-    ptin_mgmd_timer_free(timerData->timerHandle);
+    ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
   }  
 
   return SUCCESS;
@@ -502,7 +502,7 @@ RC_t  ptin_mgmd_groupsourcespecifictimer_restart(groupSourceSpecificQueriesAvlKe
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  ret = ptin_mgmd_timer_start(timerData->timerHandle, igmpGlobalCfg.querier.last_member_query_interval*100, &timerData->key);
+  ret = ptin_mgmd_timer_start(__controlBlock, timerData->timerHandle, igmpGlobalCfg.querier.last_member_query_interval*100, &timerData->key);
   ptin_measurement_timer_stop(0);
   return ret;
 }
@@ -663,7 +663,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
 
         ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
     
-        ptin_mgmd_timer_free(timerData->timerHandle);
+        ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
       }
     }
     else //Group Specific Query
@@ -712,7 +712,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* group
   }
   ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
   
-  ptin_mgmd_timer_free(timerData->timerHandle);
+  ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
 
   return SUCCESS;
 }
@@ -738,17 +738,17 @@ RC_t ptin_mgmd_groupsourcespecifictimer_remove_entry(groupSourceSpecificQueriesA
   
   ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&avlTreeEntry->key.groupAddr, avlTreeEntry->key.serviceId, avlTreeEntry->key.portId);
 
-  ptin_mgmd_timer_free(avlTreeEntry->timerHandle);
+  ptin_mgmd_timer_free(__controlBlock, avlTreeEntry->timerHandle);
 
   return SUCCESS;
 }
 
 RC_t ptin_mgmd_groupsourcespecifictimer_stop(PTIN_MGMD_TIMER_t timer)
 {
-  if (TRUE == ptin_mgmd_timer_isRunning(timer))
+  if (TRUE == ptin_mgmd_timer_isRunning(__controlBlock, timer))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timer);  
+    ptin_mgmd_timer_stop(__controlBlock, timer);  
     ptin_measurement_timer_stop(1);
   }
   
@@ -851,7 +851,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to delete Group Specific Timer [groupAddr=0x%08X serviceId=%u]", timerData->key.groupAddr.addr.ipv4.s_addr, timerData->key.serviceId);
       return FAILURE;
     }
-    ptin_mgmd_timer_free(timerData->timerHandle);
+    ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
   }
 
   return SUCCESS;

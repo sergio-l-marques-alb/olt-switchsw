@@ -298,7 +298,7 @@ RC_t     ptinMgmdCBInit(uint32 cbIndex, uchar8 family)
    ptinMgmdGeneralQueryAVLTreeInit(family);
 
    //ProxyCM initialization
-   for(i=0; i<PTIN_MGMD_MAX_SERVICE_ID; ++i)
+   for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
    {
      pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3;
    }

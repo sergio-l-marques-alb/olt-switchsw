@@ -78,7 +78,7 @@ RC_t ptin_mgmd_sourcetimer_init(ptinMgmdSourcetimer_t *timer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(timer->timerHandle))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, timer->timerHandle))
   {
     ret = ptin_mgmd_timer_init(__controlBlock, &(timer->timerHandle), ptin_mgmd_sourcetimer_callback);
   }
@@ -105,7 +105,7 @@ RC_t ptin_mgmd_sourcetimer_start(ptinMgmdSourcetimer_t *timer, uint32 timeout, p
   if (TRUE == ptin_mgmd_sourcetimer_isRunning(timer))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timer->timerHandle);
     ptin_measurement_timer_stop(1);
   } 
   else
@@ -116,7 +116,7 @@ RC_t ptin_mgmd_sourcetimer_start(ptinMgmdSourcetimer_t *timer, uint32 timeout, p
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  ret = ptin_mgmd_timer_start(timer->timerHandle, timeout*1000, timer);
+  ret = ptin_mgmd_timer_start(__controlBlock, timer->timerHandle, timeout*1000, timer);
   ptin_measurement_timer_stop(0);
   return ret;
 }
@@ -127,11 +127,11 @@ RC_t ptin_mgmd_sourcetimer_stop(ptinMgmdSourcetimer_t *timer)
   if (TRUE == ptin_mgmd_sourcetimer_isRunning(timer))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timer->timerHandle);
+    ptin_mgmd_timer_stop(__controlBlock, timer->timerHandle);
     ptin_measurement_timer_stop(1);
   }
   
-  ptin_mgmd_timer_free(timer->timerHandle);
+  ptin_mgmd_timer_free(__controlBlock, timer->timerHandle);
   return SUCCESS;
 }
 
@@ -145,7 +145,7 @@ uint32 ptin_mgmd_sourcetimer_timeleft(ptinMgmdSourcetimer_t *timer)
  
   uint32 timeLeft;
   ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
-  timeLeft=ptin_mgmd_timer_timeLeft(timer->timerHandle)/1000;
+  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, timer->timerHandle)/1000;
   ptin_measurement_timer_stop(2);
   return timeLeft;
 }
@@ -153,17 +153,18 @@ uint32 ptin_mgmd_sourcetimer_timeleft(ptinMgmdSourcetimer_t *timer)
 
 BOOL ptin_mgmd_sourcetimer_isRunning(ptinMgmdSourcetimer_t *timer)
 {
-  return ptin_mgmd_timer_isRunning(timer->timerHandle);
+  return ptin_mgmd_timer_isRunning(__controlBlock, timer->timerHandle);
 }
 
 
 RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
 {
-  uint32                     intIfNum;
+  uint32                     portId;
   char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN],debug_buf2[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
-  ptinMgmdSource_t      *sourcePtr;
-  ptinMgmdGroupInfoData_t*    portData;
+  ptinMgmdSource_t          *sourcePtr;
+  ptinMgmdGroupInfoData_t*   portData;
   ptinMgmdPort_t            *portPtr;  
+  uint32                     posId;
 
   mgmdGroupRecord_t         *groupPtr;
   mgmdProxyInterface_t      *proxyInterfacePtr;
@@ -178,19 +179,19 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
   }   
     
   //Saving Timer Variables
-  intIfNum     = timerData->portId;
+  portId       = timerData->portId;
   sourcePtr    = timerData->sourcePtr;  
-  portPtr      = &portData->ports[intIfNum];          
+  portPtr      = &portData->ports[portId];          
   
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr:%s)", 
-            ptin_mgmd_inetAddrPrint(&(portData->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portData->ptinMgmdGroupInfoDataKey.serviceId, intIfNum, ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
+            ptin_mgmd_inetAddrPrint(&(portData->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portData->ptinMgmdGroupInfoDataKey.serviceId, portId, ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
 
   if (portPtr->filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
   {
     if (sourcePtr->isStatic==FALSE)
     {
-      if (intIfNum==PTIN_MGMD_ROOT_PORT)
+      if (portId==PTIN_MGMD_ROOT_PORT)
       {
         if ( (proxyInterfacePtr=ptinMgmdProxyInterfaceAdd(portData->ptinMgmdGroupInfoDataKey.serviceId)) ==PTIN_NULLPTR)                     
         {             
@@ -215,14 +216,21 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
         //Send a Block{}
         else  
         {
-           /* Get Mgmd Control Block */
-           if (( pMmgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
-           {
-             PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
-             return FAILURE;
-           }
+          /* Get Mgmd Control Block */
+          if (( pMmgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+          {
+           PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+           return FAILURE;
+          }
+
+          if( ptin_mgmd_position_service_identifier_get(portData->ptinMgmdGroupInfoDataKey.serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+          {
+            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", posId);    
+            return FAILURE;
+          }
+
           //We only send a Block Record if we are working in V3 Mode
-          if(pMmgmdCB->proxyCM[portData->ptinMgmdGroupInfoDataKey.serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
+          if(pMmgmdCB->proxyCM[posId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
           {
             if((groupPtr=ptinMgmdGroupRecordAdd(proxyInterfacePtr,PTIN_MGMD_BLOCK_OLD_SOURCES,&portData->ptinMgmdGroupInfoDataKey.groupAddr,&newEntry ))==PTIN_NULLPTR)
             {
@@ -249,14 +257,14 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Removing source %s", ptin_mgmd_inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));        
       
       /* Remove source */
-      ptinMgmdSourceRemove(portData,intIfNum, sourcePtr);          
+      ptinMgmdSourceRemove(portData,portId, sourcePtr);          
           
     }
     /* If no more sources remain, remove interface */
     if (portPtr->numberOfSources == 0 && portPtr->isStatic==FALSE)
     {
       PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Interface has no more sources, thus it is being removed.");
-      ptinMgmdInterfaceRemove(portData,intIfNum);
+      ptinMgmdInterfaceRemove(portData,portId);
     }
   }
   return SUCCESS;

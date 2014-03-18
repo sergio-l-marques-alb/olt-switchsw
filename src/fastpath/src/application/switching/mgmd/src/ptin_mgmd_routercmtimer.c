@@ -19,7 +19,7 @@
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;
 
 static void* ptin_mgmd_routercmtimer_callback(void *param);
-static RC_t  ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer);
+static RC_t  ptin_mgmd_routercmtimer_init(ptinMgmdLeafCMtimer_t* pTimer);
 
 
 void* ptin_mgmd_routercmtimer_callback(void *param)
@@ -27,7 +27,7 @@ void* ptin_mgmd_routercmtimer_callback(void *param)
   PTIN_MGMD_EVENT_t eventMsg = {0}; 
 
   //Create a new timer event
-  ptin_mgmd_event_timer_create(&eventMsg, PTIN_MGMD_EVENT_TIMER_TYPE_ROUTERCM, (void*) &param, sizeof(snoopPTinCMtimer_t*));
+  ptin_mgmd_event_timer_create(&eventMsg, PTIN_MGMD_EVENT_TIMER_TYPE_ROUTERCM, (void*) &param, sizeof(ptinMgmdLeafCMtimer_t*));
   if (SUCCESS != ptin_mgmd_eventQueue_tx(&eventMsg))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add event to the message queue");
@@ -56,7 +56,7 @@ RC_t ptin_mgmd_routercmtimer_CB_get(PTIN_MGMD_TIMER_CB_t* controlBlock)
 }
 
 
-RC_t ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer)
+RC_t ptin_mgmd_routercmtimer_init(ptinMgmdLeafCMtimer_t* pTimer)
 {
   RC_t ret = SUCCESS;
 
@@ -72,7 +72,7 @@ RC_t ptin_mgmd_routercmtimer_init(snoopPTinCMtimer_t* pTimer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(pTimer->timer))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pTimer->timer))
   {
     ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timer), ptin_mgmd_routercmtimer_callback);
   }
@@ -100,32 +100,32 @@ RC_t ptin_mgmd_routercmtimer_start(ptinMgmdGroupInfoData_t *groupData, uint32 po
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(groupData->ports[portId].groupCMTimer.timer);
+    ptin_mgmd_timer_stop(__controlBlock, groupData->ports[portId].groupCMTimer.timer);
     ptin_measurement_timer_stop(1);
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  rc = ptin_mgmd_timer_start(groupData->ports[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
+  rc = ptin_mgmd_timer_start(__controlBlock, groupData->ports[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
   ptin_measurement_timer_stop(0);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
   return rc;
 }
 
 
-RC_t ptin_mgmd_routercmtimer_stop(snoopPTinCMtimer_t* timerPtr)
+RC_t ptin_mgmd_routercmtimer_stop(ptinMgmdLeafCMtimer_t* timerPtr)
 {  
   if (TRUE == ptin_mgmd_routercmtimer_isRunning(timerPtr))
   { 
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(timerPtr->timer);
+    ptin_mgmd_timer_stop(__controlBlock, timerPtr->timer);
     ptin_measurement_timer_stop(1);
   }
-  ptin_mgmd_timer_free(timerPtr->timer);  
+  ptin_mgmd_timer_free(__controlBlock, timerPtr->timer);  
   return SUCCESS;
 }
 
 
-uint32 ptin_mgmd_routercmtimer_timeleft(snoopPTinCMtimer_t* pTimer)
+uint32 ptin_mgmd_routercmtimer_timeleft(ptinMgmdLeafCMtimer_t* pTimer)
 {
   if (FALSE == ptin_mgmd_routercmtimer_isRunning(pTimer))
   {
@@ -134,19 +134,19 @@ uint32 ptin_mgmd_routercmtimer_timeleft(snoopPTinCMtimer_t* pTimer)
  
   uint32 timeLeft;
   ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
-  timeLeft=ptin_mgmd_timer_timeLeft(pTimer->timer)/1000;
+  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, pTimer->timer)/1000;
   ptin_measurement_timer_stop(2);
   return timeLeft;
 }
 
 
-BOOL ptin_mgmd_routercmtimer_isRunning(snoopPTinCMtimer_t* pTimer)
+BOOL ptin_mgmd_routercmtimer_isRunning(ptinMgmdLeafCMtimer_t* pTimer)
 {
-  return ptin_mgmd_timer_isRunning(pTimer->timer);
+  return ptin_mgmd_timer_isRunning(__controlBlock, pTimer->timer);
 }
 
 
-RC_t ptin_mgmd_event_routercmtimer(snoopPTinCMtimer_t **timerData)
+RC_t ptin_mgmd_event_routercmtimer(ptinMgmdLeafCMtimer_t **timerData)
 {
   ptin_IgmpProxyCfg_t igmpGlobalCfg;
 

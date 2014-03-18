@@ -801,6 +801,12 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
     return FAILURE;
   }
+
+  if( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId)!=SUCCESS || mcastPacket.posId>PTIN_MGMD_MAX_SERVICES)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Service Identifier [%u]", mcastPacket.posId);    
+    return FAILURE;
+  }
  
   mcastPacket.serviceId = serviceId;  
   mcastPacket.clientId = (uint32) -1;
@@ -809,7 +815,7 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
   mcastPacket.srcAddr.family = PTIN_MGMD_AF_INET;
   mcastPacket.srcAddr.addr.ipv4.s_addr=igmpCfg->ipv4_addr;   
 
-  if(mcastPacket.cbHandle->proxyCM[serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
+  if(mcastPacket.cbHandle->proxyCM[mcastPacket.posId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
   {  
     mcastPacket.destAddr.family = PTIN_MGMD_AF_INET;
     mcastPacket.destAddr.addr.ipv4.s_addr =groupPtr->key.groupAddr.addr.ipv4.s_addr;
@@ -830,7 +836,7 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     /* Send Packet to root interfaces */   
     rc=ptinMgmdPacketSend(&mcastPacket, igmpType,PTIN_MGMD_PORT_TYPE_ROOT);
   }
-  else if (mcastPacket.cbHandle->proxyCM[serviceId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V2)
+  else if (mcastPacket.cbHandle->proxyCM[mcastPacket.posId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V2)
   {    
     /*Leave Group*/
     if(groupPtr->key.recordType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE)
@@ -878,12 +884,40 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
   }
   else
   {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid compatibility mode [%u] for service [%u], record silently ignored", mcastPacket.cbHandle->proxyCM[serviceId].compatibilityMode,serviceId);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid compatibility mode [%u] for service [%u], record silently ignored", mcastPacket.cbHandle->proxyCM[mcastPacket.posId].compatibilityMode,serviceId);
     return FAILURE;
   }   
   return rc;
 }
 
+/*************************************************************************
+ * @purpose Debug method that prints stored information for a specific
+ *          multicast group
+ *
+ * @param   groupAddr   Multicast group address
+ * @param   serviceId      Vlan Id
+ *
+ * @return  none
+ *
+ *************************************************************************/
+void ptinMgmdPositionIdDump(void)
+{
+  uint32           iterator;
+  ptin_mgmd_cb_t  *pMgmdCB;
+
+  if((pMgmdCB=mgmdCBGet(PTIN_MGMD_AF_INET))==PTIN_NULLPTR)
+  {   
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get pMgmdCB family:%u", PTIN_MGMD_AF_INET);   
+    return;
+  }
+
+  for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
+  {
+    printf("Position Service Identifier: %u\n", iterator); 
+    printf("Active : %s\n",pMgmdCB->proxyCM[iterator].inUse?"TRUE":"FALSE");
+    printf("Service Identifier: %u\n", pMgmdCB->proxyCM[iterator].serviceId);           
+  }
+}
 /*************************************************************************
  * @purpose Debug method that prints stored information for a specific
  *          multicast group
@@ -900,20 +934,21 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
   ptinMgmdGroupInfoData_t *groupEntry;
   ptinMgmdSource_t        *sourcePtr;
   ptin_mgmd_inet_addr_t    groupAddr;
-  ptin_mgmd_cb_t          *pMgmdCB = PTIN_NULLPTR; 
+  ptin_mgmd_cb_t          *pMgmdCB; 
+  uint32                   posId;
 
   memset(&groupAddr, 0x00, sizeof(groupAddr));
   groupAddr.family=PTIN_MGMD_AF_INET;
 
-  if (serviceId>PTIN_MGMD_MAX_SERVICE_ID)
-  {
-    printf("Invalid Arguments: %d", serviceId);  
-    return;
-  }
-
   if((pMgmdCB=mgmdCBGet(groupAddr.family))==PTIN_NULLPTR)
   {   
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get pMgmdCB family:%u", groupAddr.family);   
+    return;
+  }
+
+  if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
     return;
   }
 
@@ -925,7 +960,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
   {
     uint32 portId;
 
-    printf("Group: %s       serviceId: %u\n", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), groupEntry->ptinMgmdGroupInfoDataKey.serviceId);
+    printf("Group: %s       serviceId: %u positionId: %u\n", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), groupEntry->ptinMgmdGroupInfoDataKey.serviceId,posId);
     printf("-----------------------------------------\n");
 
     for (portId=0; portId<= PTIN_MGMD_MAX_PORT_ID; ++portId)
@@ -939,8 +974,8 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
         printf("              |Filter-Mode:        %s\n", groupEntry->ports[portId].filtermode==PTIN_MGMD_FILTERMODE_INCLUDE?"Include":"Exclude");
         if(PTIN_MGMD_ROOT_PORT == portId)
         {
-          printf("              |proxyCM:            %u\n", pMgmdCB->proxyCM[groupEntry->ptinMgmdGroupInfoDataKey.serviceId].compatibilityMode);
-          printf("              |proxyCM-Timer:      %u\n", ptin_mgmd_proxycmtimer_timeleft(&pMgmdCB->proxyCM[groupEntry->ptinMgmdGroupInfoDataKey.serviceId]));
+          printf("              |proxyCM:            %u\n", pMgmdCB->proxyCM[posId].compatibilityMode);
+          printf("              |proxyCM-Timer:      %u\n", ptin_mgmd_proxycmtimer_timeleft(&pMgmdCB->proxyCM[posId]));
         }
         else
         {
@@ -1017,12 +1052,6 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
   mgmdProxyInterface_t *interfacePtr;
   mgmdGroupRecord_t *groupPtr;    
   snoopPTinSourceRecord_t *sourcePtr;    
-
-  if (serviceId > PTIN_MGMD_MAX_SERVICE_ID)
-  {
-    printf("Invalid Arguments: %d", serviceId);  
-    return;
-  }
 
   if ((interfacePtr=ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT)) == PTIN_NULLPTR)
   {
@@ -2062,7 +2091,7 @@ uint8 ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType)
 
 RC_t ptinMgmdServiceRemove(uint32 serviceId)
 {
-  mgmdProxyInterface_t               *proxy_interface;
+  mgmdProxyInterface_t              *proxy_interface;
   char                               debugBuf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]; 
   ptin_mgmd_eb_t                    *pSnoopEB;
   ptin_mgmd_cb_t                    *pSnoopCB;
@@ -2070,6 +2099,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
   ptinMgmdGroupInfoDataKey_t         avlTreeKey;
   groupSourceSpecificQueriesAvl_t   *queriesAvlTreeEntry;
   groupSourceSpecificQueriesAvlKey_t queriesAvlTreeKey;
+  uint32                             posId;
 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Starting to remove service %u", serviceId);
 
@@ -2135,22 +2165,31 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
       if(queriesAvlTreeEntry->key.serviceId == serviceId)
       {
+        PTIN_MGMD_TIMER_CB_t controlBlock;
+
         // Triggering the removal of the root interface will remove the entire AVL entry
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&queriesAvlTreeEntry->key.groupAddr, debugBuf));
         if(SUCCESS != ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&queriesAvlTreeEntry->key.groupAddr, queriesAvlTreeEntry->key.serviceId, queriesAvlTreeEntry->key.portId))
         {
           return FAILURE;
         }
-        ptin_mgmd_timer_free(queriesAvlTreeEntry->timerHandle);
+        ptin_mgmd_groupsourcespecifictimer_CB_get(&controlBlock);
+        ptin_mgmd_timer_free(controlBlock, queriesAvlTreeEntry->timerHandle);
       }
     }
   }
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing compatibility-mode settings...", serviceId);
   {
+    if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
+      return FAILURE;
+    }
     //Restore compatibility-mode
-    ptin_mgmd_proxycmtimer_stop(&pSnoopCB->proxyCM[serviceId]);
-    pSnoopCB->proxyCM[serviceId].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; 
+    ptin_mgmd_proxycmtimer_stop(&pSnoopCB->proxyCM[posId]);
+    pSnoopCB->proxyCM[posId].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; 
+    ptin_mgmd_position_service_identifier_unset(serviceId);
   }
 
   return SUCCESS;
