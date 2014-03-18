@@ -3432,6 +3432,13 @@ unsigned long i, j, k, _1st_empty;
          table[i]=*entry; //overwrite
      }
      break;
+ case 4:
+     printf("DUMP IfN_vp_DB\n\r");
+     for (i=0; i<N; i++) {
+         if (EMPTY_IfN_VP(&table[i])) continue;
+         printf("%lu: intIfNum_vport=%lu pon=%u/%u gem_id=%u\n\r", i, table[i].intIfNum_vport, table[i].pon.intf_type, table[i].pon.intf_id, table[i].gem_id);
+     }
+     break;
  }//switch
 
  return 0;
@@ -3440,6 +3447,14 @@ unsigned long i, j, k, _1st_empty;
 #undef N
 
 
+
+
+
+
+
+
+
+void dump_IfN_vp_DB(void) {IfN_vp_DB(4,NULL);}
 
 
 

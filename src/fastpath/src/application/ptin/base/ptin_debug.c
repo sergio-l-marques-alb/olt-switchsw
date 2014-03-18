@@ -158,6 +158,8 @@ void ptin_debug(void)
   printf("  log_sev_set   <ctx_mask> <severity> - use log_help for more info\r\n");
   printf("  log_color_set <ctx_mask> <color>    - use log_help for more info\r\n");
   printf("\r\n");
+  printf("  dump_IfN_vp_DB                      - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
+  printf("\r\n");
 }
 
 void ptin_help(void)

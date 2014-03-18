@@ -603,6 +603,7 @@ typedef struct {
 } IfN_vp_entry_t;
 
 extern int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry);
+extern void dump_IfN_vp_DB(void);
 
 
 
