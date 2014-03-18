@@ -3506,7 +3506,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     {
       usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;                //1;
       usp.slot = (L7_uchar8)platSlotVlanPortSlotNumGet (); //L7_VLAN_PORT_SLOT_NUM;
-      usp.port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport); //BCM_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport); //pRequest->pIntfIdInfo->configSpecifier.vlanportId;
+      usp.port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport)-1; //BCM_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport); //pRequest->pIntfIdInfo->configSpecifier.vlanportId;
       //HAPI_BROAD_LPORT_TO_USP(bcmx_l2_addr->lport,&usp); unusable: UPORTS aren't fixed in case of virtual VLAN PORTs
       L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
     }
