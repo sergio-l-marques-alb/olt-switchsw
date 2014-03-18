@@ -4026,7 +4026,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     if (ptin_packet_debug_enable)
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
@@ -4191,7 +4191,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
@@ -4352,7 +4352,7 @@ L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf
   }
 
   /* Check if the EVC is stacked */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not stacked!!!", evc_id);
     return L7_FAILURE;
@@ -5119,7 +5119,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
     if (IS_EVC_QUATTRO(evc_id))
     {
       /* Clean client */
-      res = ptin_evc_flow_unconfig(evc_id, intf_idx, pclientFlow->int_ovid);
+      res = ptin_evc_flow_unconfig(evc_id, intf_idx, pclientFlow->uni_ovid);
       if ( res != L7_SUCCESS )
       {
         LOG_ERR(LOG_CTX_PTIN_EVC,"EVC #%u: Error removing flow",evc_id);
@@ -5189,7 +5189,7 @@ L7_RC_t ptin_evc_client_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 int
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... nothing to do!");
     return L7_SUCCESS;
@@ -5372,7 +5372,7 @@ L7_RC_t ptin_evc_allclients_clean( L7_uint evc_id, L7_BOOL force )
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* Run all interfaces */
@@ -5430,7 +5430,7 @@ L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* SEM CLIENTS UP */
@@ -5572,7 +5572,7 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"This is an unstacked EVC... nothing to do!");
     return L7_SUCCESS;
@@ -5971,7 +5971,7 @@ static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, struct ptin_evc_clien
     return L7_SUCCESS;
 
   /* Only stacked services have clients */
-  if (!IS_EVC_STACKED(evc_id))
+  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
     return L7_SUCCESS;
 
   /* Remove counters */
@@ -9198,7 +9198,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
           if (!evcs[evc_id].intf[port].in_use)  continue;
 
           /* Skip leaf interfaces of stacked services */
-          if (IS_EVC_INTF_LEAF(evc_id,port) && IS_EVC_STACKED(evc_id))  continue;
+          if (IS_EVC_INTF_LEAF(evc_id,port) && (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)))  continue;
 
           /* If outer vlan matches, we have a conflict */
           if (evcs[evc_id].intf[port].out_vlan   == evcConf->intf[i].vid &&
