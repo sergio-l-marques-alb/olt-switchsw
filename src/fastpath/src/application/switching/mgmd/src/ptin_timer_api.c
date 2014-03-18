@@ -399,7 +399,6 @@ void* __controlblock_handler(void *param)
         timer->relativeTimeout = 0;
         timer->absoluteTimeout = 0;
         timer->state           = PTIN_TIMER_STATE_INITIALIZED;
-        __initialized_list_insert(cbPtr, timer);
         pthread_mutex_unlock(&cbPtr->lock);
         timer->funcPtr(timer->funcParam);
         continue;
@@ -419,7 +418,6 @@ void* __controlblock_handler(void *param)
           timer->relativeTimeout = 0;
           timer->absoluteTimeout = 0;
           timer->state           = PTIN_TIMER_STATE_INITIALIZED;
-          __initialized_list_insert(cbPtr, timer);
           pthread_mutex_unlock(&cbPtr->lock);
           timer->funcPtr(timer->funcParam);
           continue;
