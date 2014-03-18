@@ -724,7 +724,7 @@ typedef struct {
 /* DHCP Binding Table */
 typedef struct {
   L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
-  L7_uint16             evc_idx;                // EVCid
+  L7_uint32             evc_idx;                // EVCid      /* L7_uint32 */
   ptin_intf_t           ptin_intf;              // Interface
   L7_uint16             outer_vlan;             // Outer vlan
   L7_uint16             inner_vlan;             // Inner vlan
@@ -737,7 +737,7 @@ typedef struct {
 /* DHCP Binding Table - IPv6 Compatible */
 typedef struct {
   L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
-  L7_uint16             evc_idx;                // EVCid
+  L7_uint32             evc_idx;                // EVCid      /* L7_uint32 */
   L7_uint16             outer_vlan;             // Service vlan: not used yet
   L7_uint16             inner_vlan;             // Client clanId
   ptin_intf_t           ptin_intf;              // Interface
@@ -752,7 +752,7 @@ typedef struct {
 
 typedef struct {
   L7_uint32   entryId;
-  L7_uint16   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
+  L7_uint32   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */   /* L7_uint32 */
   L7_uint16   vlanId;         /* Vlan associated to this MAC entry */
   L7_uint8    addr[6];        /* MAC address */
   ptin_intf_t intf;           /* Interface attached to this entry */

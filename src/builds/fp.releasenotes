@@ -33,9 +33,14 @@ Version 2.8.0-r1500
 Version 2.8.0-r1501M (+r1504)
  - Fix OLTSWITCH-287: When was left only one port to the EVC, it was not being removed (r1504).
  - Req OLTSWITCH-253/OLTTS-3980: Fixed General Query routines to support Service Identifier up to 32 bits (r1501).
-Version 2.8.0-r1505:
+Version 2.8.0-r1511:
+ - Fix OLTSWITCH-290: EVC clients/flows existence validation sometimes does not work.
  - Fix OLTSWITCH-289: EVC port add/remove is not returning the real error cause.
  - Fix OLTSWITCH-288: Messages to managente still use 16 bits for EVC id.
  - Req OLTSWITCH-277/OLTTS-4585: Empirically, it seems this fixes OLTTS-4730 (MAC Table - Switch - wrong port associated to a MAC).
  - Req OLTSWITCH-253/OLTTS-3980: Several improvements and bugfixes.
+ - Req OLTSWITCH-253/OLTTS-3980: Short Fix on Last Member Query Count; Added input validation on proxy timer.
  - Req OLTSWITCH-253/OLTTS-3980: Modified config file: max_service_identifier = 131071
+Version 2.8.0-r1513:
+ - Fix OLTSWITCH-288: Structures at ptin_structs.h still use 16 bits for EVC id.
+ - Fix OLTSWITCH-291/OLTTS-4651: Switch Fabric MAC removal is not working.
