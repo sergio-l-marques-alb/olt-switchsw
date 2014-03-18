@@ -41,3 +41,5 @@ Version 2.8.0-r1514:
  - Fix OLTSWITCH-291/OLTTS-4651: Switch Fabric MAC removal is not working.
 Version 2.8.0-r1515:
  - Req OLTSWITCH-253/OLTTS-3980: Fix Position Identifier.
+Version 2.8.0-r1517:
+ - Fix OLTSWITCH-289: EVC port remove does not return error 0x08030003 when EVC id does not exist.

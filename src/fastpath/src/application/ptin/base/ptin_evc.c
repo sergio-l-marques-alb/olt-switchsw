@@ -2453,13 +2453,6 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
   if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
-    return L7_FAILURE;
-  }
-
-  /* EVC must be active */
-  if (!evcs[evc_idx].in_use)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u / EVC %u not active", evc_ext_id, evc_idx);
     return L7_NOT_EXIST;
   }
 
@@ -5103,8 +5096,8 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
 
   /* Get all clients */
   pclientFlow = L7_NULLPTR;
-  dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow);
-  while (pclientFlow != L7_NULLPTR)
+  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow) != NOERR &&
+         pclientFlow != L7_NULLPTR)
   {
     /* Clean client */
     res = ptin_evc_pclientFlow_clean(evc_id, pclientFlow, L7_TRUE);
@@ -5145,9 +5138,6 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
                   evc_id, bridge.inn_vlan, bridge.intf.intf_type, bridge.intf.intf_id);
       }
     }
-
-    /* Next client/flow */
-    pclientFlow = (struct  ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t *) pclientFlow);
   }
 
   return rc;
@@ -5437,6 +5427,7 @@ L7_RC_t ptin_evc_intfclients_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8
   osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
   /* Get all clients */
+  pclientFlow = L7_NULLPTR;
   if (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow)==NOERR)
   {
     while ( pclientFlow != L7_NULLPTR )
@@ -6273,7 +6264,8 @@ static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id)
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
   /* Validate given extended evc id, and get pointer to AVL node */
-  if (ptin_evc_extEvcInfo_get(evc_ext_id, &ext_evcId_infoData) != L7_SUCCESS)
+  if (ptin_evc_extEvcInfo_get(evc_ext_id, &ext_evcId_infoData) != L7_SUCCESS ||
+      ext_evcId_infoData == L7_NULLPTR)
   {
     //LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ext_evc_id %u", evc_ext_id);
     return L7_FAILURE;
