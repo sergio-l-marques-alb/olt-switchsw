@@ -266,7 +266,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 //      SYSAPI_NET_MBUF_FREE(bufHandle);
 //      return SYSNET_PDU_RC_IGNORED;
-        client_idx = 0;
+        client_idx = (L7_uint) -1;
       }
     }
     else

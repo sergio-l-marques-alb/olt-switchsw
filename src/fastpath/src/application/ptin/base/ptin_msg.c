@@ -2326,9 +2326,9 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
 
   /* Copy MAC list to output message */
   if (2==struct1or2) {
-  msg_switch_mac_table2_t *p;
+      msg_switch_mac_table_t *p;
 
-      p= (msg_switch_mac_table2_t*)mac_table;
+      p= (msg_switch_mac_table_t*)mac_table;
 
       for (i=0; i<numEntries; i++)
       {

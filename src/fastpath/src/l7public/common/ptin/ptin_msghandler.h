@@ -553,9 +553,10 @@ typedef struct {
 
 typedef struct {
     L7_uint32             evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */   /* L7_uint32 */
-    L7_uint32             vlanId;         /* Vlan associated to this MAC entry */
+    L7_uint16             vlanId;         /* Vlan associated to this MAC entry */
     L7_uint8              addr[6];        /* MAC address */
     msg_HwEthInterface_t  intf;           /* Interface attached to this entry */
+    L7_uint16             gem_id;         /* When intf's a PON, GEMid identifies the ONU*/
     L7_uint8              static_entry;   /* Is this entry static? */
 } __attribute__((packed)) msg_switch_mac_entry;
 
@@ -563,19 +564,6 @@ typedef struct {
     msg_switch_mac_intro_t  intro;        /* Intro struct  used for requests will also be used for replies */
     msg_switch_mac_entry    entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
 } __attribute__((packed)) msg_switch_mac_table_t;
-
-#include <ptin_structs.h>
-typedef struct {
-    msg_switch_mac_intro_t  intro;        /* Intro struct  used for requests will also be used for replies */
-    struct {
-        L7_uint32   evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */   /* L7_uint32 */
-        L7_uint16   vlanId;         /* Vlan associated to this MAC entry */
-        L7_uint8    addr[6];        /* MAC address */
-        msg_HwEthInterface_t intf;  /* Interface attached to this entry */
-        L7_uint16   gem_id;         /* When intf's a PON, GEMid identifies the ONU*/
-        L7_uint8    static_entry;   /* Is this entry static? */
-    } __attribute__((packed)) entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
-} __attribute__((packed)) msg_switch_mac_table2_t;
 
 #if 0
 typedef struct {

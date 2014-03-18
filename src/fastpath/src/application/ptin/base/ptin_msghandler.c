@@ -1551,7 +1551,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = CCMSG_ETH_MAC_TABLE_SHOW==inbuffer->msgId? sizeof(msg_switch_mac_table_t): sizeof(msg_switch_mac_table2_t);
+      outbuffer->infoDim = sizeof(msg_switch_mac_table_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
