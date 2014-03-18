@@ -2452,7 +2452,7 @@ L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf
   /* Get the internal index based on the extended one */
   if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
     return L7_NOT_EXIST;
   }
 
@@ -5083,11 +5083,17 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
   }
 
   if (!evcs[evc_id].in_use || !evcs[evc_id].intf[intf_idx].in_use)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"EVC %u not active, or interface %u/%u not valid!", evc_id, intf_type, intf_id);
     return L7_SUCCESS;
+  }
 
   /* Only stacked services have clients */
   if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC,"EVC %u do not allow clients/flows!", evc_id);
     return L7_SUCCESS;
+  }
 
   bridge.index          = evcs[evc_id].extended_id;
   bridge.intf.intf_type = intf_idx < PTIN_SYSTEM_N_PORTS ? PTIN_EVC_INTF_PHYSICAL : PTIN_EVC_INTF_LOGICAL;
@@ -5096,9 +5102,11 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
 
   /* Get all clients */
   pclientFlow = L7_NULLPTR;
-  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow) != NOERR &&
+  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow)==NOERR &&
          pclientFlow != L7_NULLPTR)
   {
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Going to remove uni_ovid %u from intf %u/%u", pclientFlow->uni_ovid, intf_type, intf_id);
+
     /* Clean client */
     res = ptin_evc_pclientFlow_clean(evc_id, pclientFlow, L7_TRUE);
     if ( res != L7_SUCCESS )
