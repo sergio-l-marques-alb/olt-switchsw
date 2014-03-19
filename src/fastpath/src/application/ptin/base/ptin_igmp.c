@@ -4444,7 +4444,7 @@ L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   if (mc_intf_cfg.type!=PTIN_EVC_INTF_ROOT)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not root for mcEvcId=%u (intVlan=%u)",
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) is not root for mcEvcId=%u (intVlan=%u)",
               ptin_intf.intf_type,ptin_intf.intf_id,intIfNum, evc_id, intVlan);
     return L7_FAILURE;
   }

@@ -948,7 +948,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
     return;
   }
 
-  if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+  if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
     return;
@@ -2183,7 +2183,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing compatibility-mode settings...", serviceId);
   {
-    if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+    if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>=PTIN_MGMD_MAX_SERVICES)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
       return FAILURE;

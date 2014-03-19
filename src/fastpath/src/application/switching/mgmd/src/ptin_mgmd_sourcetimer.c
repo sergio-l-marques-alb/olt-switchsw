@@ -223,12 +223,11 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
            return FAILURE;
           }
 
-          if( ptin_mgmd_position_service_identifier_get(portData->ptinMgmdGroupInfoDataKey.serviceId, &posId)!=SUCCESS || posId>PTIN_MGMD_MAX_SERVICES)
+          if( ptin_mgmd_position_service_identifier_get(portData->ptinMgmdGroupInfoDataKey.serviceId, &posId)!=SUCCESS || posId>=PTIN_MGMD_MAX_SERVICES)
           {
             PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", posId);    
             return FAILURE;
           }
-
           //We only send a Block Record if we are working in V3 Mode
           if(pMmgmdCB->proxyCM[posId].compatibilityMode==PTIN_MGMD_COMPATIBILITY_V3)
           {
