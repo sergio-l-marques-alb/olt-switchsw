@@ -665,12 +665,12 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
 
   
   
-  if( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId) != SUCCESS && 
-      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS )
+  if (( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId) != SUCCESS && 
+      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS ) || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", mcastPacket.posId);    
     return FAILURE;
-  }
+  }  
 
   ptin_measurement_timer_start(33,"externalApi.portType_get"); 
   //Validate clientId (only for leaf ports)

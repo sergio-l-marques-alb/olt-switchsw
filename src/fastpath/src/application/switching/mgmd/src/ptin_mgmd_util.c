@@ -802,13 +802,14 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     return FAILURE;
   }
 
-  if( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId)!=SUCCESS &&
-      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS)
+  if (( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId)!=SUCCESS &&
+      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS) ||  
+    mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Service Identifier [%u]", mcastPacket.posId);    
     return FAILURE;
   }
- 
+   
   mcastPacket.serviceId = serviceId;  
   mcastPacket.clientId = (uint32) -1;
   mcastPacket.msgType = PTIN_MGMD_IP_PROT_IGMP;

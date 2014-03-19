@@ -150,7 +150,7 @@ RC_t ptin_mgmd_igmp_proxy_defaultcfg_load(void)
   igmpProxy.querier.startup_query_interval         = PTIN_IGMP_DEFAULT_STARTUPQUERYINTERVAL;
   igmpProxy.querier.startup_query_count            = PTIN_IGMP_DEFAULT_STARTUPQUERYCOUNT;
   igmpProxy.querier.last_member_query_interval     = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYINTERVAL;
-  igmpProxy.querier.last_member_query_count        = 1;//PTIN_IGMP_DEFAULT_LASTMEMBERQUERYCOUNT;
+  igmpProxy.querier.last_member_query_count        = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYCOUNT;
   igmpProxy.querier.older_host_present_timeout     = PTIN_IGMP_DEFAULT_OLDERHOSTPRESENTTIMEOUT;
 
   igmpProxy.host.mask                              = 0xFF;
@@ -522,8 +522,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   else */if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC && mgmdProxyCfg.querier.last_member_query_count != igmpProxy->querier.last_member_query_count)
   {    
     PTIN_MGMD_TIMER_CB_t timerCB;
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, " To be fixed!");
-    mgmdProxyCfg.querier.last_member_query_count = 1;//igmpProxy->querier.last_member_query_count;
+    mgmdProxyCfg.querier.last_member_query_count = igmpProxy->querier.last_member_query_count;
     ptin_mgmd_grouptimer_CB_get(&timerCB);
     ptin_mgmd_timer_controlblock_optThr_set(timerCB, (mgmdProxyCfg.querier.last_member_query_interval*mgmdProxyCfg.querier.last_member_query_count)*100);
     ptin_mgmd_sourcetimer_CB_get(&timerCB);
