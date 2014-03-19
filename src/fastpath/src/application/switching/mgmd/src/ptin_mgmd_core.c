@@ -120,6 +120,52 @@ RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId)
   return FAILURE;
 }
 
+RC_t  ptin_mgmd_position_service_identifier_get_or_set(uint32 serviceId, uint32 *posId)
+{
+  ptin_mgmd_cb_t  *pMgmdCB;
+  uint32           iterator;
+  BOOL             isFree=FALSE;    
+
+  /* Get Snoop Control Block */
+  if (( pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+    return FAILURE;
+  }
+
+  for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
+  {
+    if(pMgmdCB->proxyCM[iterator].inUse==TRUE)
+    {
+      if(pMgmdCB->proxyCM[iterator].serviceId==serviceId)
+      {      
+        (*posId)=iterator;
+        return SUCCESS;
+      }      
+    }
+    else
+    {
+      if(isFree==FALSE)
+      {
+        isFree=TRUE;
+        (*posId)=iterator;
+        pMgmdCB->proxyCM[iterator].serviceId=serviceId;
+      }
+    }    
+  }
+
+  if(isFree==FALSE)
+  {
+    (*posId)=(uint32) -1;
+    return FAILURE;
+  }
+  else
+  {
+    pMgmdCB->proxyCM[(*posId)].inUse=TRUE;
+    return SUCCESS;
+  }
+}
+
 RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId)
 {
   ptin_mgmd_cb_t  *pMgmdCB;
@@ -665,8 +711,8 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
 
   
   
-  if (( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId) != SUCCESS && 
-      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS ) || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
+  if (ptin_mgmd_position_service_identifier_get_or_set(serviceId, &mcastPacket.posId) != SUCCESS 
+         || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", mcastPacket.posId);    
     return FAILURE;

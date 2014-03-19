@@ -802,9 +802,8 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     return FAILURE;
   }
 
-  if (( ptin_mgmd_position_service_identifier_get(serviceId, &mcastPacket.posId)!=SUCCESS &&
-      ptin_mgmd_position_service_identifier_set(serviceId, &mcastPacket.posId) != SUCCESS) ||  
-    mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
+  if (ptin_mgmd_position_service_identifier_get_or_set(serviceId, &mcastPacket.posId) != SUCCESS 
+         || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Service Identifier [%u]", mcastPacket.posId);    
     return FAILURE;
@@ -948,7 +947,8 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
     return;
   }
 
-  if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>=PTIN_MGMD_MAX_SERVICES)
+  if (ptin_mgmd_position_service_identifier_get_or_set(serviceId, &posId) != SUCCESS 
+         || posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
     return;
@@ -2183,16 +2183,17 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing compatibility-mode settings...", serviceId);
   {
-    if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)!=SUCCESS || posId>=PTIN_MGMD_MAX_SERVICES)
+    if( ptin_mgmd_position_service_identifier_get(serviceId, &posId)==SUCCESS && posId<PTIN_MGMD_MAX_SERVICES)
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);    
-      return FAILURE;
+      //Restore compatibility-mode
+      ptin_mgmd_proxycmtimer_stop(&pSnoopCB->proxyCM[posId]);
+      pSnoopCB->proxyCM[posId].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; 
+      ptin_mgmd_position_service_identifier_unset(serviceId);
     }
-    //Restore compatibility-mode
-    ptin_mgmd_proxycmtimer_stop(&pSnoopCB->proxyCM[posId]);
-    pSnoopCB->proxyCM[posId].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3; 
-    ptin_mgmd_position_service_identifier_unset(serviceId);
+    else
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);          
+    }    
   }
-
   return SUCCESS;
 }
