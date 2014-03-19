@@ -26,7 +26,7 @@
 
 typedef struct {
   L7_BOOL   inUse;  
-  L7_uint16 UcastEvcId;
+  L7_uint32 UcastEvcId;
 } mgmdQueryInstances_t;
 
 //Internal Static Routines
@@ -366,7 +366,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
   L7_uint16             int_ivlan=0; 
-  
+   
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
   //Ignore if the port has link down
@@ -375,11 +375,29 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
     return SUCCESS;
   }
 
-  //Get outter internal vlan
-  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+  //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!       
+  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+  ptin_mgmd_port_type_t portType;
+  L7_uint32             groupAddress;  
+  if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
     return FAILURE;
+  }
+  //Get Group Address
+  groupAddress=*((L7_uint32*) (payload+28));   
+
+  //We only get the intRootVLAN here for the General Query and for the Membership Reports
+  //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
+  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT || groupAddress==0x00)
+  #endif
+  {   
+    //Get outter internal vlan
+    if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+      return FAILURE;
+    }
   }
 
   //Get destination MAC from destIpAddr
@@ -422,28 +440,15 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  ptin_mgmd_port_type_t portType;
-  if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
-    return FAILURE;
-  }
-
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
   #endif
-  {
-  
+  {  
     //Send packet
     snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
   }
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   else //To support sending one Membership Query Message per ONU (client_idx)
   {
-    L7_uint32 groupAddress;    
-    
-    //Get Group Address
-    groupAddress=*((L7_uint32*) (payload+28));   
-
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
     {
       mgmdQueryInstances_t *mgmdQueryInstances= (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
@@ -533,7 +538,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         /* An error ocurred */
         if (ptin_debug_igmp_snooping)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"No more transmissions for intIfNum=%u (intVlan=%u), rc=%u", portId, int_ovlan, rc);
         }
         break;
       }
