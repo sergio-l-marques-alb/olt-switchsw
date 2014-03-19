@@ -169,7 +169,9 @@ L7_RC_t osapi_waitq_enqueue(osapi_waitq_t *queue,
    self = pthread_getspecific(osapi_task_key);
 
    if (self == NULL) {
+#if 0//Added by MMelo
        osapi_printf("%s: invalid osapi_task_key\n", __FUNCTION__);
+#endif
        return L7_ERROR;
    }
 
