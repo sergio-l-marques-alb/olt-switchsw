@@ -382,6 +382,9 @@ typedef struct
 /* More debug for IGMP */
 extern L7_BOOL ptin_debug_igmp_snooping;
 
+/* Packet trace for IGMP */
+extern L7_BOOL ptin_debug_igmp_packet_trace;
+
 typedef enum
 {
   PTIN_DIR_NONE=0,

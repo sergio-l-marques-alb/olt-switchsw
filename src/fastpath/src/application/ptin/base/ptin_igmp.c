@@ -43,9 +43,16 @@
 
 L7_BOOL ptin_debug_igmp_snooping = 0;
 
+L7_BOOL ptin_debug_igmp_packet_trace = 0;
+
 void ptin_debug_igmp_enable(L7_BOOL enable)
 {
   ptin_debug_igmp_snooping = enable;
+}
+
+void ptin_debug_igmp_packet_trace_enable(L7_BOOL enable)
+{
+  ptin_debug_igmp_packet_trace = enable;
 }
 
 /******************************* 

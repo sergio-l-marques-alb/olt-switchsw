@@ -1311,7 +1311,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u+iVlan=%u (intVlan=%u) payloadLen=%u",
             intIfNum, extOVlan, extIVlan, vlanId, payloadLen);
 
-  if (ptin_debug_igmp_snooping)
+  if (ptin_debug_igmp_packet_trace)
   {
     if(payloadLen==0)
     {

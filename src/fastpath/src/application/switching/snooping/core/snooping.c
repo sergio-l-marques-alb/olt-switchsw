@@ -1353,7 +1353,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
         }
       }
 #endif
-      if (ptin_debug_igmp_snooping)
+      if (ptin_debug_igmp_packet_trace)
       {    
         L7_uint32 i;
         printf("Rx:PayloadLength:%d\n",mcastPacket.length);
