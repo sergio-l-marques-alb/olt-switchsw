@@ -25,7 +25,6 @@
 
 #include "ptin_mgmd_logger.h"
 
-extern BOOL ptin_mgmd_extended_debug;
 
 /*******************Static Methods**************************************************/
 

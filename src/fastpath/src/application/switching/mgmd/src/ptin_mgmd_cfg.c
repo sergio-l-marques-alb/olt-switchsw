@@ -34,8 +34,6 @@
 ptin_IgmpProxyCfg_t     mgmdProxyCfg;
 ptin_mgmd_externalapi_t ptin_mgmd_externalapi = {PTIN_NULLPTR};
 
-extern unsigned long     ptin_mgmd_memory_allocation;
-
 static RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy);
 
 

@@ -32,8 +32,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-extern BOOL ptin_mgmd_extended_debug;
-
 /*********************************************************************
 * Static Methods
 *********************************************************************/
@@ -1507,7 +1505,10 @@ void ptinMgmdStartAllGeneralQuery(void)
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
     avlTreeEntry->startUpQueryFlag=TRUE;
-    avlTreeEntry->querierTimer.startUpQueryCount=0;
+    avlTreeEntry->querierTimer.startUpQueryCount=1;
+
+    //Send Right Away a General Query
+    ptinMgmdGeneralQuerySend(avlTreeEntry->key.serviceId,PTIN_MGMD_AF_INET);
 
     if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
     {
@@ -1824,7 +1825,8 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
         {
           PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
           return rc;
-        }
+        }        
+
         for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
         {
           if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
@@ -1918,7 +1920,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
     }
     else //We only show the packet payload if we have sent the packet
     {
-      if(ptin_mgmd_extended_debug)
+      if(ptin_mgmd_packet_trace)
       {    
         uint32 i;
         printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);

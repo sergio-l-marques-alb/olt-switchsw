@@ -52,8 +52,8 @@
 
 
 /*********************Global Variables******************/
-BOOL                     ptin_mgmd_extended_debug = FALSE;
-extern unsigned long     ptin_mgmd_memory_allocation;
+BOOL              ptin_mgmd_extended_debug = FALSE;
+BOOL              ptin_mgmd_packet_trace   = FALSE;
 /*********************End Global Variables******************/
 
 
@@ -65,6 +65,7 @@ static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_
 /*********************Static Routines******************/
 static RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket);
 static RC_t ptin_mgmd_mld_packet_process(void);
+static inline void ptin_mgmd_packet_trace_enable(BOOL enable){ptin_mgmd_packet_trace=enable;};
 /*********************End Statid Routines******************/
 
 /************************************************************************************************************/
@@ -233,7 +234,15 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
   //Process the IGMP message
   switch (igmpType)
   {
-    case PTIN_IGMP_MEMBERSHIP_QUERY:     
+    case PTIN_IGMP_MEMBERSHIP_QUERY: 
+      /* Port must be root */  
+      if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_ROOT)
+      {
+        if(ptin_mgmd_extended_debug)
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u igmpType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType,igmpType);
+        return ERROR;
+      }
+      
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
       { 
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: Silently ignored...we are configured to operate at IGMPv2 only!");        
@@ -247,6 +256,14 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
       }      
       break;
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
+     //Port must be leaf
+      if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
+      {
+        if(ptin_mgmd_extended_debug)
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a leaf port (ServiceId=%u portId=%u portType=%u igmpType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType,igmpType);
+        return ERROR;
+      }
+
       if (mcastPacket->cbHandle->mgmdProxyCfg.clientVersion!=PTIN_IGMP_VERSION_3)//Drop the packet
       { 
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_REPORTv3: Silently ignored...we are configured to operate at IGMPv2 only!");
@@ -263,6 +280,13 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT: //Should we support these?
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_LEAVE_GROUP:
+      //Port must be leaf
+      if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
+      {
+        if(ptin_mgmd_extended_debug)
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a leaf port (ServiceId=%u portId=%u portType=%u igmpType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType,igmpType);
+        return ERROR;
+      }
       ptin_measurement_timer_start(24,"ptin_mgmd_membership_report_v2_process");
       rc = ptin_mgmd_membership_report_v2_process(mcastPacket);
       ptin_measurement_timer_stop(24);
@@ -668,9 +692,11 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
   uchar8                       version; 
   ptin_mgmd_externalapi_t      externalApi;
   
-  if(ptin_mgmd_extended_debug)
+  if (ptin_mgmd_extended_debug)
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
+
+  if(ptin_mgmd_packet_trace)
   {
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
   //If advanced debugging is enabled, dump packet in output  
     uint32 i;
     printf("Rx (%u bytes):\n", payloadLength);
@@ -855,13 +881,6 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Unable to get external API");
     return FAILURE;
-  }
-
-  /* Port must be root */  
-  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_ROOT)
-  {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType);
-    return ERROR;
   }
 
    /* Set pointer to IGMP message */
@@ -1525,13 +1544,6 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
     return ERROR;
   }
   
-  //Port must be leaf
-  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
-  {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Received a membership report on a root interface");
-    return FAILURE;
-  }
-
   //Validate destination address
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &mcastPacket->destAddr, &ipv4Addr);
   if (ipv4Addr != PTIN_MGMD_IGMPV3_REPORT_ADDR && ipv4Addr!=mcastPacket->cbHandle->mgmdProxyCfg.ipv4_addr)
@@ -1957,13 +1969,6 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
     return FAILURE;
   }
   
-  //Port must be leaf
-  if (mcastPacket->portType!=PTIN_MGMD_PORT_TYPE_LEAF)
-  {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid packet: Received a membership report on a root interface");
-    return ERROR;
-  }
-
   //Validate destination address (224.0.0.2 for Leave reports; group address for others)
   dataPtr = mcastPacket->ipPayload + 4;
   PTIN_MGMD_GET_ADDR(&groupAddr, dataPtr);

@@ -18,8 +18,6 @@
 #include "ptin_mgmd_db.h"
 #include "ptin_mgmd_logger.h"
 
-extern BOOL ptin_mgmd_extended_debug;
-
 static PTIN_MGMD_TIMER_CB_t __controlBlock = PTIN_NULLPTR;
 
 static void* ptin_mgmd_proxytimer_callback(void *param);

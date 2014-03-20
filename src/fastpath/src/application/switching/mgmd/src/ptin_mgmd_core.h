@@ -34,6 +34,13 @@
 #include "ptin_mgmd_whitelist.h"
 #include "ptin_fifo_api.h"
 
+
+//Global Variables
+extern BOOL                     ptin_mgmd_extended_debug;
+extern BOOL                     ptin_mgmd_packet_trace;
+extern unsigned long            ptin_mgmd_memory_allocation;
+//End Global Variables
+
 #define SNOOP_LITTLE_ENDIAN 0
 #define SNOOP_BIG_ENDIAN 1
 

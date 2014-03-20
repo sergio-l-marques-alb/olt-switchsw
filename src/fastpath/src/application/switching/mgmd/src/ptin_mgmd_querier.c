@@ -745,8 +745,10 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
     /* Prepare next key */
     memcpy(&key, &entry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
 
+    //Send right away the General Query
+    ptinMgmdGeneralQuerySend(entry->key.serviceId,ctrlData.family);
     
     /* Stop Query Timer */
     if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
@@ -757,7 +759,8 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
 
     /* Restart the Query timer with the startup flag enabled */
     entry->startUpQueryFlag               = TRUE;
-    entry->querierTimer.startUpQueryCount = 0;
+    entry->querierTimer.startUpQueryCount = 1;    
+
     if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
@@ -808,8 +811,11 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
   switch (data.admin)
   {
   case PTIN_MGMD_ENABLE:    
-    {
+    {      
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Going to enable Query (serviceId:%u family:%u)",data.serviceId,data.family); 
+      
+      //Send right away the General Query
+      ptinMgmdGeneralQuerySend(data.serviceId,data.family);
 
       if ((pMgmdEntry=ptinMgmdQueryEntryAdd(data.serviceId,data.family,&newEntry))==PTIN_NULLPTR)
       {
@@ -818,8 +824,8 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
       }
             
       pMgmdEntry->startUpQueryFlag=TRUE;
-      pMgmdEntry->querierTimer.startUpQueryCount=0;
-
+      pMgmdEntry->querierTimer.startUpQueryCount=1;
+      
       if(igmpGlobalCfg.admin==PTIN_MGMD_ENABLE)
       {
         if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)

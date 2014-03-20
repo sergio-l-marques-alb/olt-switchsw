@@ -26,7 +26,6 @@
 static ptin_mgmd_eb_t    mgmdEB;           /* Snoop execution block holder */
 static ptin_mgmd_cb_t   *mgmdCB = PTIN_NULLPTR;    /* Mgmd Control blocks holder */
 
-extern unsigned long     ptin_mgmd_memory_allocation;
 unsigned long            ptin_mgmd_number_of_timers=0;
 
 void ptin_mgmd_cnfgr_memory_allocation(void)
