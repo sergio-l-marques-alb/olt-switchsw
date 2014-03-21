@@ -53,7 +53,7 @@
 
 /* Default config values (based on RFC3376) */
 #define PTIN_IGMP_DEFAULT_ROBUSTNESS 2
-#define PTIN_MAX_ROBUSTNESS_VARIABLE 7 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
+#define PTIN_MAX_ROBUSTNESS_VARIABLE 9 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 #define PTIN_MIN_ROBUSTNESS_VARIABLE 1 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 
 

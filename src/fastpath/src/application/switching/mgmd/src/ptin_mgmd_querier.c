@@ -256,8 +256,20 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
 
   if (version == PTIN_IGMP_VERSION_3)
   {
+    /*RFC 3376 - Internet Group Management Protocol, Version 3 */
+    /*Section 4.1.6. QRV (Querier’s Robustness Variable)*/
+   /*If non-zero, the QRV field contains the [Robustness Variable]  used by the querier, i.e., the sender of the Query. If the querier’s [Robustness Variable] exceeds 7, the maximum value of the QRV field,
+the QRV is set to zero.*/
     /* QRV */
-    byteVal=igmpGlobalCfg.querier.robustness;  
+    if (igmpGlobalCfg.querier.robustness>PTIN_MAX_QUERIER_ROBUSTNESS_VARIABLE)
+    {
+      byteVal=0;
+    }
+    else
+    {
+      byteVal=igmpGlobalCfg.querier.robustness;
+    }
+    
     PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
@@ -745,7 +757,7 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
     /* Prepare next key */
     memcpy(&key, &entry->key, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
 
     //Send right away the General Query
     ptinMgmdGeneralQuerySend(entry->key.serviceId,ctrlData.family);
@@ -1162,8 +1174,16 @@ RC_t buildQueryHeader(uint8 igmpVersion, uchar8* queryHeader, uint32* headerLeng
     return SUCCESS;
   }
 
+  if (igmpCfg.querier.robustness>PTIN_MAX_QUERIER_ROBUSTNESS_VARIABLE)
+  {
+    value8=0;
+  }
+  else
+  {
+    value8=igmpCfg.querier.robustness;
+  }
   //Resv | S | QRV
-  value8 = 0 | (sFlag << 3) | igmpCfg.querier.robustness;
+  value8 = 0 | (sFlag << 3) | value8;
   PTIN_MGMD_PUT_BYTE(value8, queryHeader);
   *headerLength += 1;
 

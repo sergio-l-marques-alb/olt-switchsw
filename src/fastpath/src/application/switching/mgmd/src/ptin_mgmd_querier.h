@@ -24,6 +24,8 @@
 /************************************************************************************************************/
 /*Structures required for configuration Parameters of MGMD Querier*/
 
+#define PTIN_MAX_QUERIER_ROBUSTNESS_VARIABLE 7 
+
 typedef struct ptinMgmdQuerierInfoDataKey_s
 {  
   uint32      serviceId; //Service Identifier  
