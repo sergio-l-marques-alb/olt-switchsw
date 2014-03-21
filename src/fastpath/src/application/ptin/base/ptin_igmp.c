@@ -334,11 +334,14 @@ st_IgmpInstCfg_t  igmpInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
  * This structure is used to save the Query Instances currently configured on the MGMD
  *
  *If modified please update also on snooping_mgmd_api.c! */
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 typedef struct {
   L7_BOOL   inUse;  
   L7_uint32 UcastEvcId;
 } mgmdQueryInstances_t;
-mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
+mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_EVCS];
+L7_uint16             mgmdNumberOfQueryInstances=0;
+#endif
 
 /* Configuration structures */
 ptin_IgmpProxyCfg_t igmpProxyCfg;
@@ -8250,10 +8253,17 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
   return rc;
 }
 
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 void* ptin_mgmd_query_instances_get(void)
 {
   return ((void*) &mgmdQueryInstances);  
 }
+
+L7_uint16 ptin_mgmd_number_of_query_instances_get(void)
+{
+  return mgmdNumberOfQueryInstances;  
+}
+#endif
 
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable)
 {
@@ -8282,7 +8292,7 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable
   if(ctrlResMsg.res==L7_SUCCESS)
   {
     L7_uint16 iterator;
-    for (iterator=0; iterator<PTIN_SYSTEM_N_IGMP_INSTANCES; iterator++)
+    for (iterator=0; iterator<PTIN_SYSTEM_N_EVCS; iterator++)
     {
       if (enable==L7_TRUE)
       {
@@ -8290,14 +8300,16 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable
         {
           mgmdQueryInstances[iterator].UcastEvcId=evc_idx;
           mgmdQueryInstances[iterator].inUse=L7_TRUE;
+          ++mgmdNumberOfQueryInstances;
           break;
         }
       }
       else
       {
         if(mgmdQueryInstances[iterator].inUse==L7_TRUE && mgmdQueryInstances[iterator].UcastEvcId==evc_idx)
-        {
+        {          
           mgmdQueryInstances[iterator].inUse=L7_FALSE;
+          --mgmdNumberOfQueryInstances;
           break;
         }
       }

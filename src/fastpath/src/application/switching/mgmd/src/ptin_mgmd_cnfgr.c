@@ -328,8 +328,8 @@ RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
     return FAILURE;
   }
 
-  pMgmdCB->mgmdPTinQuerierTreeHeap = (ptin_mgmd_avlTreeTables_t *)           ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptin_mgmd_avlTreeTables_t));  
-  pMgmdCB->mgmdPTinQuerierDataHeap = (ptinMgmdQuerierInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_SERVICES*sizeof(ptinMgmdQuerierInfoData_t));  
+  pMgmdCB->mgmdPTinQuerierTreeHeap = (ptin_mgmd_avlTreeTables_t *)           ptin_mgmd_malloc(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CLIENTS*sizeof(ptin_mgmd_avlTreeTables_t));  
+  pMgmdCB->mgmdPTinQuerierDataHeap = (ptinMgmdQuerierInfoData_t *) ptin_mgmd_malloc(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CLIENTS*sizeof(ptinMgmdQuerierInfoData_t));  
 
   if ((pMgmdCB->mgmdPTinQuerierTreeHeap == PTIN_NULLPTR) || (pMgmdCB->mgmdPTinQuerierDataHeap == PTIN_NULLPTR))
   {
@@ -342,7 +342,7 @@ RC_t ptinMgmdGeneralQueryAVLTreeInit(uchar8 family)
 
   /* AVL Tree creations - snoopAvlTree*/
   ptin_mgmd_avlCreateAvlTree(&(pMgmdCB->mgmdPTinQuerierAvlTree), pMgmdCB->mgmdPTinQuerierTreeHeap, pMgmdCB->mgmdPTinQuerierDataHeap,
-                   PTIN_MGMD_MAX_SERVICES, sizeof(ptinMgmdQuerierInfoData_t), 0x10, sizeof(ptinMgmdQuerierInfoDataKey_t));
+                   PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CLIENTS, sizeof(ptinMgmdQuerierInfoData_t), 0x10, sizeof(ptinMgmdQuerierInfoDataKey_t));
 
   return SUCCESS;
 }

@@ -117,8 +117,8 @@ RC_t ptin_mgmd_timers_create(void)
     return res;
   }
 
-  //Query Timers
-  num_timers = PTIN_MGMD_MAX_SERVICES;
+  //General Query Timers  
+  num_timers = PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_CLIENTS;
   ptin_mgmd_number_of_timers+=num_timers;
   if (SUCCESS == (res = ptin_mgmd_timer_controlblock_create(PTIN_MGMD_TIMER_1MSEC, num_timers, 0, 0, &timersCB)))
   {

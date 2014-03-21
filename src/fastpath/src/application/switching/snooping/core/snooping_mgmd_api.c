@@ -23,11 +23,12 @@
 
 //#include "ipc.h"
 //#include "ptin_msghandler.h"
-
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 typedef struct {
   L7_BOOL   inUse;  
   L7_uint32 UcastEvcId;
 } mgmdQueryInstances_t;
+#endif
 
 //Internal Static Routines
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -366,6 +367,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
   L7_uint16             int_ivlan=0; 
+  ptin_IgmpProxyCfg_t   igmpCfg;
    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
@@ -373,6 +375,12 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
     return SUCCESS;
+  }
+
+  /* Get proxy configurations */
+  if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");        
   }
 
   //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!       
@@ -427,7 +435,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   shortVal = L7_ETYPE_8021Q;
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
-  shortVal = ((5 & 0x07)<<13) | (int_ovlan & 0x0fff);
+  shortVal = ((igmpCfg.igmp_cos & 0x07)<<13) | (int_ovlan & 0x0fff);
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
 
@@ -451,12 +459,13 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   {
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
     {
-      mgmdQueryInstances_t *mgmdQueryInstances= (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
+      mgmdQueryInstances_t *mgmdQueryInstances = (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
+      L7_uint16             mgmdNumberOfQueryInstances = ptin_mgmd_number_of_query_instances_get();
       L7_uint16 iterator;
 
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Send Group Specific Query");
 
-      for (iterator=0; iterator<PTIN_SYSTEM_N_IGMP_INSTANCES; iterator++)
+      for (iterator=0; iterator<PTIN_SYSTEM_N_EVCS; iterator++)
       {
         if (mgmdQueryInstances[iterator].inUse==L7_TRUE)
         {
@@ -468,6 +477,8 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
           }
           ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
         }
+        if(iterator>=mgmdNumberOfQueryInstances)
+          break;
       }
     }
     else //General Query
