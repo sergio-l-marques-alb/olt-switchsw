@@ -2222,6 +2222,9 @@ static void snoopIntfChangeProcess(L7_uint32 intIfNum, L7_uint32 event,
    }
   case L7_DOWN:
   case L7_INACTIVE:
+#if 1 /* Bypass MFDB port removal when MGMD is active and we receive a link down event */
+    break;
+#endif
     if (prevAcquired == L7_FALSE)
     {
       rc = snoopIntfInActive(intIfNum);
