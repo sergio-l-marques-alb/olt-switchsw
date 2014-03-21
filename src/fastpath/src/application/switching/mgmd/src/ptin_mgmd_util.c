@@ -1570,6 +1570,148 @@ void ptinMgmdDumpGroupSpecificQuery(void)
     }
   } 
 }
+
+/*************************************************************************
+ * @purpose Open Ports for Static Groups 
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdStaticGroupPortOpen(void)
+{
+  ptinMgmdGroupInfoData_t     *avlTreeEntry;  
+  ptinMgmdGroupInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_eb_t              *pSnoopEB;
+  ptin_mgmd_externalapi_t      externalApi;
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+
+  if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return;
+  }
+
+ /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to open ports for static entries");  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==TRUE)
+    {
+      uint32 portId;
+      for(portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
+      {
+        if(avlTreeEntry->ports[portId].active==TRUE && avlTreeEntry->ports[portId].isStatic==TRUE)
+        {
+          if (avlTreeEntry->ports[portId].numberOfSources==0)
+          {
+            /*Open L2 Port on Switch*/
+            if (externalApi.port_open(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST, avlTreeEntry->ports[portId].isStatic) != SUCCESS)
+            {
+              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
+              return;
+            }
+          }
+          else
+          { 
+            ptinMgmdSource_t    *sourcePtr;            
+            for (sourcePtr=avlTreeEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next)
+            { 
+              if(sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && sourcePtr->isStatic==TRUE)
+              {
+               /*Open L2 Port on Switch*/
+               if (externalApi.port_open(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, sourcePtr->sourceAddr.addr.ipv4.s_addr, sourcePtr->isStatic) != SUCCESS)
+               {
+                 PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
+                 return;
+               }
+              }              
+            }            
+          }
+        }
+      }
+    }
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
+  }  
+}
+
+
+/*************************************************************************
+ * @purpose Close Ports for Static Groups 
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdStaticGroupPortClose(void)
+{
+  ptinMgmdGroupInfoData_t     *avlTreeEntry;  
+  ptinMgmdGroupInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_eb_t              *pSnoopEB;
+  ptin_mgmd_externalapi_t      externalApi;
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+
+  if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return;
+  }
+
+ /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to close ports for static entries");  
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==TRUE)
+    {
+      uint32 portId;
+      for(portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
+      {
+        if(avlTreeEntry->ports[portId].active==TRUE && avlTreeEntry->ports[portId].isStatic==TRUE)
+        {
+          if (avlTreeEntry->ports[portId].numberOfSources==0)
+          {
+            /*Open L2 Port on Switch*/
+            if (externalApi.port_open(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST, avlTreeEntry->ports[portId].isStatic) != SUCCESS)
+            {
+              PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
+              return;
+            }
+          }
+          else
+          { 
+            ptinMgmdSource_t    *sourcePtr;           
+            for (sourcePtr=avlTreeEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next)
+            { 
+              if(sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && sourcePtr->isStatic==TRUE)
+              {
+               /*Open L2 Port on Switch*/
+               if (externalApi.port_close(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, sourcePtr->sourceAddr.addr.ipv4.s_addr) != SUCCESS)
+               {
+                 PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
+                 return;
+               }
+              }              
+            }            
+          }
+        }
+      }
+    }
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
+  }  
+}
+
 /*************************************************************************
  * @purpose Dump IGMPv3 AVL Tree
  *
@@ -1791,70 +1933,82 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   ptin_mgmd_externalapi_t externalApi;
   RC_t rc = SUCCESS;
 
-  if(mcastPacket->cbHandle != PTIN_NULLPTR && mcastPacket->cbHandle->mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
+
+  /* Send packet */        
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
+            mcastPacket->clientId, portId, mcastPacket->serviceId,mcastPacket->family);
+
+  if(mcastPacket->cbHandle != PTIN_NULLPTR && mcastPacket->cbHandle->mgmdProxyCfg.admin!=PTIN_MGMD_ENABLE)
   {
-    if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
-      return FAILURE;
-    }
-
-    /* Send packet */        
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
-              mcastPacket->clientId, portId, mcastPacket->serviceId,mcastPacket->family);
-    if(SUCCESS != (rc = externalApi.tx_packet(mcastPacket->framePayload, mcastPacket->frameLength, mcastPacket->serviceId, portId, mcastPacket->clientId,mcastPacket->family)))
-    {
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to transmit packet [client_idx=%u portIdx=%u serviceId=%u family=%u]", 
-              mcastPacket->clientId, portId, mcastPacket->serviceId, mcastPacket->family);
-      return rc;
-    }
-
-     /* Update statistics*/
-    switch (igmp_type)
-    {
-      case PTIN_IGMP_MEMBERSHIP_QUERY:
-      {
-        PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
-        uint32                  clientIdx;
-
-        //Increment port and service statistics
-        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
-        
-        //Increment client statistics for this port
-        if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
-        {
-          PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
-          return rc;
-        }        
-
-        for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
-        {
-          if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
-          {
-            ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
-          }
-        }  
-        
-        break;      
-      }
-      case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
-        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
-        break;
-      case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
-        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
-        break;            
-      case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
-      case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
-        ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_JOIN_TX);
-        break;
-      case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
-        ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
-        break;
-      case PTIN_IGMP_V2_LEAVE_GROUP:
-        ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
-        break;
-    }
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No packet sent! Proxy Admin=%u",mcastPacket->cbHandle->mgmdProxyCfg.admin?"Enable":"Disable");
+    return SUCCESS;
   }
+
+  
+  if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return FAILURE;
+  }
+  
+  if(SUCCESS != (rc = externalApi.tx_packet(mcastPacket->framePayload, mcastPacket->frameLength, mcastPacket->serviceId, portId, mcastPacket->clientId,mcastPacket->family)))
+  {
+    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to transmit packet [client_idx=%u portIdx=%u serviceId=%u family=%u]", 
+            mcastPacket->clientId, portId, mcastPacket->serviceId, mcastPacket->family);
+    return rc;
+  }
+
+   /* Update statistics*/
+  switch (igmp_type)
+  {
+    case PTIN_IGMP_MEMBERSHIP_QUERY:
+    {
+      PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
+      uint32                  clientIdx;
+
+#if 0 // Disabled general querier statistics per interface/service
+      //Increment port and service statistics
+      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
+#endif
+ 
+      //Increment client statistics for this port
+      if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
+      {
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
+        return rc;
+      }  
+      
+//    printf("ClientBMP:");
+//    for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
+//    {
+//      printf("%02X",clientBitmap.value[clientIdx]);
+//      if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
+//      {
+//        ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
+//      }
+//    }
+//    printf("\n");
+           
+      break;      
+    }
+    case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
+      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+      break;
+    case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
+      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
+      break;            
+    case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
+    case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
+      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_JOIN_TX);
+      break;
+    case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
+      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
+      break;
+    case PTIN_IGMP_V2_LEAVE_GROUP:
+      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
+      break;
+  }
+ 
 
   return SUCCESS;
 }

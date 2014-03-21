@@ -730,7 +730,7 @@ static RC_t mgmdSourceRecordRemove(mgmdSourceRecord_t *sources, ptin_inet_addr_t
 RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
 {
   char                    debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]   = {};
-  ptinMgmdSource_t    *sourcePtr,
+  ptinMgmdSource_t       *sourcePtr,
                          *sourcePtrAux;
   uint32                  portIdAux;                          
   ptin_mgmd_externalapi_t externalApi;
@@ -769,11 +769,9 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
 
     /*We have commented this verification, once it must be possible to close the port without clients*/
     /*if (avlTreeEntry->interfaces[intIfNum].numberOfClients>0)*/ 
-    {
-      uint32 anySourceAddr = 0;  /*For the moment we consider anySource=>The source Addr and Family Addr is equal to Zero*/
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to close this L2 Port (interfaceIdx:%u serviceId:%u groupAddr:%s)", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf));
-      memset(&anySourceAddr, 0x00, sizeof(anySourceAddr));
-      if (externalApi.port_close(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, anySourceAddr) != SUCCESS)
+    {      
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to close this L2 Port (interfaceIdx:%u serviceId:%u groupAddr:%s)", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf));     
+      if (externalApi.port_close(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST) != SUCCESS)
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_close()");
         return FAILURE;
@@ -1644,13 +1642,12 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     if (groupEntry->ports[portId].numberOfClients==0)
     {
       if(portId != PTIN_MGMD_ROOT_PORT)
-      {
-        uint32 anySourceAddr = 0;  /*For the moment we consider anySource=>The source Addr and Family Addr is equal to Zero*/
+      {        
         PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Opening L2 port portId:[%u] serviceId:[%u] groupAddr:[%s]", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
                    ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf));
         ptin_measurement_timer_start(28,"externalApi.port_open");
         /*Open L2 Port on Switch*/
-        if (externalApi.port_open(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, anySourceAddr, groupEntry->ports[portId].isStatic) != SUCCESS)
+        if (externalApi.port_open(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST, groupEntry->ports[portId].isStatic) != SUCCESS)
         {
           ptin_measurement_timer_stop(28);
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");

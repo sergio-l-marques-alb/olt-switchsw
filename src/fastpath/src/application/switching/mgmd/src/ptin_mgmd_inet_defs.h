@@ -26,6 +26,7 @@
 #include <netdb.h>
 
 #define PTIN_MGMD_IP_PROT_IGMP                      2
+#define PTIN_MGMD_ANY_IPv4_HOST                     0x00000000ul /*A way to specify "any IPv4-host at all"*/
 #define PTIN_MGMD_CLASS_D_ADDR_NETWORK              0xE0000000ul /* Class D (Multicast) */
 #define PTIN_MGMD_IP_MCAST_BASE_ADDR                0xE0000000ul
 #define PTIN_MGMD_IGMP_ALL_HOSTS_ADDR               0xE0000001ul /* 224.0.0.1 */

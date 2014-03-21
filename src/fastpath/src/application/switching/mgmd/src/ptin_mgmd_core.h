@@ -243,7 +243,7 @@ struct ptinMgmdRootClient_s
 
 struct ptinMgmdSource_s
 {
-  uint8                          status;
+  uint8                          status; //ptin_mgmd_sourcestate_t
   BOOL                           isStatic;
                                 
   ptin_mgmd_inet_addr_t          sourceAddr;

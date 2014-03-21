@@ -343,6 +343,9 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     
     if(mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
     {
+      //Open Ports for Static Groups Pre-Configured
+      ptinMgmdStaticGroupPortOpen();
+
       //Reset All Statistics
       ptin_mgmd_statistics_reset_all();
 

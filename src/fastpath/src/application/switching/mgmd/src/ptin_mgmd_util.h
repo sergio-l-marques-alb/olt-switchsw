@@ -135,4 +135,7 @@ void      ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 r
 
 RC_t      ptinMgmdServiceRemove(uint32 serviceId);
 
+void      ptinMgmdStaticGroupPortOpen(void);
+void      ptinMgmdStaticGroupPortClose(void);
+
 #endif /* SNOOPING_UTIL_H */
