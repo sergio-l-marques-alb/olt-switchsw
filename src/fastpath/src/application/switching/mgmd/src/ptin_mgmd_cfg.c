@@ -206,7 +206,7 @@ RC_t ptin_mgmd_igmp_proxy_config_validate(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Class-Of-Service (COS) */
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_COS && mgmdProxyCfg.igmp_cos != igmpProxy->igmp_cos)
   {
-    if( (igmpProxy->igmp_cos < PTIN_IGMP_COS_MIN) || ( igmpProxy->igmp_cos > PTIN_IGMP_COS_MAX) )
+    if ( igmpProxy->igmp_cos > PTIN_IGMP_COS_MAX) 
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  Invalid CoS Value:                       %u", mgmdProxyCfg.igmp_cos);
       return FAILURE;

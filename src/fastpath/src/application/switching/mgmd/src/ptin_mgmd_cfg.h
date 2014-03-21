@@ -57,7 +57,7 @@
 #define PTIN_MIN_ROBUSTNESS_VARIABLE 1 /*This value must serve two purposes: RV configured on the Management and the RV that came from the network*/
 
 
-#define PTIN_IGMP_COS_MIN                               1
+#define PTIN_IGMP_COS_MIN                               0
 #define PTIN_IGMP_COS_MAX                               7
 
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
