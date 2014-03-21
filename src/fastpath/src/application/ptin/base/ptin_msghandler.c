@@ -3052,19 +3052,52 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
+
+      msg_MCAssocChannel_t *ptr;
+      L7_uint16             n;
+
+      ptr = (msg_MCAssocChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+
+      /* Execute command */
+      rc  = ptin_msg_IGMP_ChannelAssoc_remove_all(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /* Add static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_ADD:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_ADD (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_MCStaticChannel_t);
+      CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
 
       msg_MCStaticChannel_t *ptr;
+      L7_uint16             n;
+
       ptr = (msg_MCStaticChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_staticChannel_add(ptr);
+      rc  = ptin_msg_IGMP_staticChannel_add(ptr, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -3086,13 +3119,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_MCStaticChannel_t);
+      CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
 
       msg_MCStaticChannel_t *ptr;
+      L7_uint16             n;
+
       ptr = (msg_MCStaticChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
 
       /* Execute command */
-      rc = ptin_msg_IGMP_channel_remove(ptr);
+      rc = ptin_msg_IGMP_channel_remove(ptr, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -3172,6 +3208,37 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       ptin_timer_stop(38);
+    }
+    break;
+
+    /* Remove static multicast channel */
+    case CCMSG_ETH_IGMP_STATIC_GROUP_REMALL:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMALL (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
+
+      msg_MCStaticChannel_t *ptr;
+      L7_uint16             n;
+
+      ptr = (msg_MCStaticChannel_t *) inbuffer->info;
+      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
+
+      /* Execute command */
+      rc = ptin_msg_IGMP_channel_remove_all(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
     

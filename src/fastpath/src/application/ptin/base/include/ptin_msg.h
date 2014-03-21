@@ -853,22 +853,34 @@ extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list
 extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
 
 /**
+ * Remove all channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels);
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel
+ * @param n_channels : Number of channels returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel);
+extern L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
 
 /**
  * Remove a static group channel from MFDB table
  * 
  * @param channel : static group channel
+ * @param n_channels : Number of channels returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel);
+extern L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
 
 /**
  * Consult list of multicast channels
@@ -887,6 +899,16 @@ extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inpu
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list);
+
+/**
+ * Remove all static group channel from MFDB table
+ * 
+ * @param channel : static group channel
+ * @param n_channels : Number of channels returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
 
 /**
  * Sync MGMD open ports

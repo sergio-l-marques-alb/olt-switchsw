@@ -141,13 +141,15 @@
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE 0x906C  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL 0x906D  // struct msg_MCAssocChannel_t
 
-#define CCMSG_ETH_IGMP_STATIC_SOURCE_ADD    0x907A  // struct msg_MCStaticChannel_t
-#define CCMSG_ETH_IGMP_STATIC_SOURCE_REMOVE 0x907F  // struct msg_MCStaticChannel_t
+//#define CCMSG_ETH_IGMP_STATIC_SOURCE_ADD    0x907A  // struct msg_MCStaticChannel_t
+//#define CCMSG_ETH_IGMP_STATIC_SOURCE_REMOVE 0x907F  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_STATIC_GROUP_ADD     0x907B  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE  0x907C  // struct msg_MCStaticChannel_t
 #define CCMSG_ETH_IGMP_GROUPS_GET           0x907D  // struct msg_MCActiveChannelsRequest_t
 #define CCMSG_ETH_IGMP_CLIENT_GROUPS_GET    0x907E  // struct msg_MCActiveChannelClients_t
+#define CCMSG_ETH_IGMP_STATIC_GROUP_REMALL  0x907F  // struct msg_MCStaticChannel_t
 
 #define CCMSG_ETH_IGMP_PROXY_GET            0x9070  // struct msg_IgmpProxyCfg_t
 #define CCMSG_ETH_IGMP_PROXY_SET            0x9071  // struct msg_IgmpProxyCfg_t

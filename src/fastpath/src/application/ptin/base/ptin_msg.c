@@ -5742,31 +5742,79 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
 }
 
 /**
+ * Remove all channels to white list
+ * 
+ * @param channel_list : Channel list array
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+{
+  L7_uint16 i;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (channel_list==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+
+    // TODO
+    #if 0
+    if (igmp_assoc_channel_clear( evc_uc, evc_mc ) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing groups to MC EVC %u", channel_list[i].evcid_mc);
+      return L7_FAILURE;
+    }
+    #endif
+  }
+
+  return rc;
+}
+
+/**
  * Add a static group channel to MFDB table
  * 
  * @param channel : static group channel
+ * @param n_channels : Number of channels returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
+L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
+  L7_uint16 i;
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
-            (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
-
-  staticGroup.serviceId = channel->evc_id;
-  staticGroup.groupIp   = channel->channelIp.s_addr;
-
-  rc = ptin_igmp_static_channel_add(&staticGroup);
-  if (rc!=L7_SUCCESS)
+  if (channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
-    return rc;
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
+              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
+
+    staticGroup.serviceId = channel[i].evc_id;
+    staticGroup.groupIp   = channel[i].channelIp.s_addr;
+
+    rc = ptin_igmp_static_channel_add(&staticGroup);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
+      return rc;
+    }
   }
 
   return L7_SUCCESS;
@@ -5776,28 +5824,39 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel)
  * Remove a static group channel from MFDB table
  * 
  * @param channel : static group channel
+ * @param n_channels : Number of channels returned
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel)
+L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
+  L7_uint16 i;
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
-            (channel->channelIp.s_addr>>24) & 0xff,(channel->channelIp.s_addr>>16) & 0xff,(channel->channelIp.s_addr>>8) & 0xff,channel->channelIp.s_addr & 0xff);
-
-  staticGroup.serviceId = channel->evc_id;
-  staticGroup.groupIp   = channel->channelIp.s_addr;
-
-  rc = ptin_igmp_channel_remove(&staticGroup);
-  if (rc!=L7_SUCCESS)
+  if (channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
-    return rc;
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
+              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
+
+    staticGroup.serviceId = channel[i].evc_id;
+    staticGroup.groupIp   = channel[i].channelIp.s_addr;
+
+    rc = ptin_igmp_channel_remove(&staticGroup);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
+      return rc;
+    }
   }
 
   return L7_SUCCESS;
@@ -5943,6 +6002,48 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_igmp_clientList_get");
     return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove all static group channel from MFDB table
+ * 
+ * @param channel : static group channel
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
+{
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
+  L7_uint16 i;
+  L7_RC_t rc;
+
+  if (channel==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    return L7_FAILURE;
+  }
+  for (i=0; i<n_channels; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
+
+    staticGroup.serviceId = channel[i].evc_id;
+    staticGroup.groupIp   = channel[i].channelIp.s_addr;
+
+    // TODO
+    rc = L7_SUCCESS;
+    #if 0
+    rc = ptin_igmp_channel_remove(&staticGroup);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
+      return rc;
+    }
+    #endif
   }
 
   return L7_SUCCESS;
