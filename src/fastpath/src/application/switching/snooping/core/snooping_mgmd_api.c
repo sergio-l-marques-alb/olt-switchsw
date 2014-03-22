@@ -23,12 +23,6 @@
 
 //#include "ipc.h"
 //#include "ptin_msghandler.h"
-#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-typedef struct {
-  L7_BOOL   inUse;  
-  L7_uint32 UcastEvcId;
-} mgmdQueryInstances_t;
-#endif
 
 //Internal Static Routines
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -459,13 +453,19 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   {
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
     {
-      mgmdQueryInstances_t *mgmdQueryInstances = (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
-      L7_uint16             mgmdNumberOfQueryInstances = ptin_mgmd_number_of_query_instances_get();
-      L7_uint16 iterator;
-      L7_uint16 numberOfQueriesFound=0;
+      mgmdQueryInstances_t *mgmdQueryInstances=L7_NULLPTR;
+      L7_uint32             mgmdNumberOfQueryInstances;
+      L7_uint32 iterator;
+      L7_uint32 numberOfQueriesFound=0;
+
+      ptin_mgmd_query_instances_get(mgmdQueryInstances,&mgmdNumberOfQueryInstances);
+      if(mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u]",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS);
+        mgmdNumberOfQueryInstances=0;
+      }
 
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Send Group Specific Query");
-
       for (iterator=0; iterator<PTIN_SYSTEM_N_EVCS; iterator++)
       {
         if (mgmdQueryInstances[iterator].inUse==L7_TRUE)

@@ -330,17 +330,10 @@ typedef struct {
  * by the interval VLANs. */ 
 st_IgmpInstCfg_t  igmpInstances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 
-/* MGMD Query Instance Array
- * This structure is used to save the Query Instances currently configured on the MGMD
- *
- *If modified please update also on snooping_mgmd_api.c! */
+/* MGMD Query Instance Array  */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-typedef struct {
-  L7_BOOL   inUse;  
-  L7_uint32 UcastEvcId;
-} mgmdQueryInstances_t;
 mgmdQueryInstances_t  mgmdQueryInstances[PTIN_SYSTEM_N_EVCS];
-L7_uint16             mgmdNumberOfQueryInstances=0;
+L7_uint32             mgmdNumberOfQueryInstances=0;
 #endif
 
 /* Configuration structures */
@@ -8253,14 +8246,11 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
 }
 
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-void* ptin_mgmd_query_instances_get(void)
+void ptin_mgmd_query_instances_get(mgmdQueryInstances_t *mgmdQueryInstancesPtr, L7_uint32 *mgmdNumberOfQueryInstancesPtr)
 {
-  return ((void*) &mgmdQueryInstances);  
-}
-
-L7_uint16 ptin_mgmd_number_of_query_instances_get(void)
-{
-  return mgmdNumberOfQueryInstances;  
+  mgmdQueryInstancesPtr=mgmdQueryInstances;
+  (*mgmdNumberOfQueryInstancesPtr)=mgmdNumberOfQueryInstances;
+  return;
 }
 #endif
 

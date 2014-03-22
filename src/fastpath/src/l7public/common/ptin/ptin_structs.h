@@ -842,6 +842,17 @@ typedef struct {
 
 } ptin_IgmpProxyCfg_t;
 
+/* MGMD Query Instance Array
+ * This structure is used to save the Query Instances currently configured on the MGMD
+  */
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+typedef struct {
+  L7_BOOL   inUse;  
+  L7_uint32 UcastEvcId;
+} mgmdQueryInstances_t;
+#endif
+
+
 typedef struct
 {
    L7_inet_addr_t groupAddr;
