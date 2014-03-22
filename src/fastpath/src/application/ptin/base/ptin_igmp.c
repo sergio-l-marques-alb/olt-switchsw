@@ -392,7 +392,6 @@ static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
 
 static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable);
-static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx);
 L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
 L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen);
 /* Not used */
@@ -8321,7 +8320,14 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable
   return ctrlResMsg.res;
 }
 
-static L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx)
+/**
+ * Removes all groups related to this Service ID
+ * 
+ * @param EvcId : Multicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx)
 {
   PTIN_MGMD_EVENT_t               reqMsg        = {0};
   PTIN_MGMD_EVENT_t               resMsg        = {0};

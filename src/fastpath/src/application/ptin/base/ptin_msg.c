@@ -5648,7 +5648,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
 
     if ((rc=igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
                                     &groupAddr , channel_list[i].channel_dstmask,
-                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE )) != L7_SUCCESS )
+                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE )) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
@@ -5656,9 +5656,11 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
               channel_list[i].evcid_mc);
       return rc;
     }
+
 #else
     rc = L7_NOT_SUPPORTED;
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    break;
 #endif
   }
 
@@ -5678,6 +5680,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
   L7_uint16 i;
   L7_inet_addr_t groupAddr, sourceAddr;
   L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   if (channel_list==L7_NULLPTR)
   {
@@ -5721,24 +5724,28 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
-    if (igmp_assoc_channel_remove( 0,
+    if ((rc = igmp_assoc_channel_remove( 0,
                                    &groupAddr , channel_list[i].channel_dstmask,
-                                   &sourceAddr, channel_list[i].channel_srcmask ) != L7_SUCCESS )
+                                   &sourceAddr, channel_list[i].channel_srcmask )) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+              rc,
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
               channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
               channel_list[i].evcid_mc);
-      return L7_FAILURE;
+      rc_global = rc;
+      continue;
     }
 
 #else
     rc = L7_NOT_SUPPORTED;
+    rc_global = L7_NOT_SUPPORTED;
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    break;
 #endif
   }
 
-  return rc;
+  return rc_global;
 }
 
 /**
@@ -5752,6 +5759,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
 {
   L7_uint16 i;
   L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   if (channel_list==L7_NULLPTR)
   {
@@ -5765,17 +5773,24 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
 
-    // TODO
-    #if 0
-    if (igmp_assoc_channel_clear( evc_uc, evc_mc ) != L7_SUCCESS )
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
+    if ((rc = igmp_assoc_channel_clear(-1, channel_list[i].evcid_mc)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing groups to MC EVC %u", channel_list[i].evcid_mc);
-      return L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing groups to MC EVC %u", rc, channel_list[i].evcid_mc);
+      rc_global = rc;
+      continue;
     }
-    #endif
+
+#else
+    rc = L7_NOT_SUPPORTED;
+    rc_global = L7_NOT_SUPPORTED;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    break;
+#endif
   }
 
-  return rc;
+  return rc_global;
 }
 
 /**
@@ -5790,7 +5805,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
 {
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
   L7_uint16 i;
-  L7_RC_t rc;
+  L7_RC_t rc = L7_SUCCESS;
 
   if (channel==L7_NULLPTR)
   {
@@ -5809,15 +5824,14 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
 
-    rc = ptin_igmp_static_channel_add(&staticGroup);
-    if (rc!=L7_SUCCESS)
+    if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding static channel");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
       return rc;
     }
   }
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -5833,6 +5847,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
   L7_uint16 i;
   L7_RC_t rc;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   if (channel==L7_NULLPTR)
   {
@@ -5851,15 +5866,15 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
 
-    rc = ptin_igmp_channel_remove(&staticGroup);
-    if (rc!=L7_SUCCESS)
+    if ((rc = ptin_igmp_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
-      return rc;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
+      rc_global = rc;
+      continue;
     }
   }
 
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**
@@ -6018,7 +6033,8 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
 {
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
   L7_uint16 i;
-  L7_RC_t rc;
+  L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   if (channel==L7_NULLPTR)
   {
@@ -6032,21 +6048,16 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
 
     staticGroup.serviceId = channel[i].evc_id;
-    staticGroup.groupIp   = channel[i].channelIp.s_addr;
-
-    // TODO
-    rc = L7_SUCCESS;
-    #if 0
-    rc = ptin_igmp_channel_remove(&staticGroup);
-    if (rc!=L7_SUCCESS)
+    
+    if ((ptin_igmp_mgmd_service_remove(channel[i].evc_id)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing channel");
-      return rc;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
+      rc_global = rc;
+      continue;
     }
-    #endif
   }
 
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**

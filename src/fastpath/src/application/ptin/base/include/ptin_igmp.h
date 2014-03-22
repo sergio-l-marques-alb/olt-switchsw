@@ -1046,6 +1046,15 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
 extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
 #endif
 
+/**
+ * Removes all groups related to this Service ID
+ * 
+ * @param EvcId : Multicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx);
+
 
 /**************************** 
  * IGMP statistics
