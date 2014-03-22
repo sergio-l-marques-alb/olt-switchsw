@@ -462,6 +462,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
       mgmdQueryInstances_t *mgmdQueryInstances = (mgmdQueryInstances_t*) ptin_mgmd_query_instances_get();
       L7_uint16             mgmdNumberOfQueryInstances = ptin_mgmd_number_of_query_instances_get();
       L7_uint16 iterator;
+      L7_uint16 numberOfQueriesFound=0;
 
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Send Group Specific Query");
 
@@ -469,6 +470,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
       {
         if (mgmdQueryInstances[iterator].inUse==L7_TRUE)
         {
+          ++numberOfQueriesFound;
           //Get outter internal vlan
           if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstances[iterator].UcastEvcId, &int_ovlan))
           {
@@ -477,7 +479,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
           }
           ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
         }
-        if(iterator>=mgmdNumberOfQueryInstances)
+        if(numberOfQueriesFound>=mgmdNumberOfQueryInstances)
           break;
       }
     }
