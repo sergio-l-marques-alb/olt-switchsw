@@ -279,7 +279,7 @@ typedef struct
 struct ptinMgmdGroupInfoData_s {
   ptinMgmdGroupInfoDataKey_t      ptinMgmdGroupInfoDataKey;
 //ptinMgmdRootPort_t              rootPort; // Iface id 0 is used to store Proxy information.
-  ptinMgmdPort_t                  ports[PTIN_MGMD_MAX_PORT_ID]; // Iface id 0 is used to store Proxy information.
+  ptinMgmdPort_t                  ports[PTIN_MGMD_MAX_PORT_ID]; // Port Id 0 is used to store the root Port
                                  
   void                           *next;
 }; 

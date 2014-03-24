@@ -1319,7 +1319,8 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       }
       
       //Remove the client from the interface bitmap
-      if (ERROR == snoopPTinClientInterfaceRemove(&groupEntry->ports[portId], clientId))
+      if ( (portId != PTIN_MGMD_ROOT_PORT || groupEntry->ports[clientId].numberOfClients==0) 
+            && ERROR == snoopPTinClientInterfaceRemove(&groupEntry->ports[portId], clientId) )
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Interface bitmap is empty");
         return FAILURE;

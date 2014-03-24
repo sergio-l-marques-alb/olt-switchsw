@@ -8248,8 +8248,8 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable)
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 void ptin_mgmd_query_instances_get(mgmdQueryInstances_t *mgmdQueryInstancesPtr, L7_uint32 *mgmdNumberOfQueryInstancesPtr)
 {
-  mgmdQueryInstancesPtr=mgmdQueryInstances;
-  (*mgmdNumberOfQueryInstancesPtr)=mgmdNumberOfQueryInstances;
+  mgmdQueryInstancesPtr            =(mgmdQueryInstances_t*)&mgmdQueryInstances;
+  (*mgmdNumberOfQueryInstancesPtr) =mgmdNumberOfQueryInstances;
   return;
 }
 #endif

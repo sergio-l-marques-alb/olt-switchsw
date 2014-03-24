@@ -455,32 +455,37 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
     {
       mgmdQueryInstances_t *mgmdQueryInstances=L7_NULLPTR;
       L7_uint32             mgmdNumberOfQueryInstances;
-      L7_uint32 iterator;
-      L7_uint32 numberOfQueriesFound=0;
+      L7_uint32             numberOfQueriesSent=0;
 
       ptin_mgmd_query_instances_get(mgmdQueryInstances,&mgmdNumberOfQueryInstances);
-      if(mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
+      if(mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS || mgmdQueryInstances==L7_NULLPTR)
       {
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u]",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS);
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstances);
         mgmdNumberOfQueryInstances=0;
+        return SUCCESS;
       }
-
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Send Group Specific Query");
-      for (iterator=0; iterator<PTIN_SYSTEM_N_EVCS; iterator++)
-      {
-        if (mgmdQueryInstances[iterator].inUse==L7_TRUE)
+      
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
+      while(mgmdQueryInstances!=L7_NULLPTR)
+      {        
+        if (mgmdQueryInstances->inUse==L7_TRUE)
         {
-          ++numberOfQueriesFound;
+          ++numberOfQueriesSent;
           //Get outter internal vlan
-          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstances[iterator].UcastEvcId, &int_ovlan))
+          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstances->UcastEvcId, &int_ovlan))
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
             return FAILURE;
           }
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Packet ToBe Sent");
           ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Packet Sent");
         }
-        if(numberOfQueriesFound>=mgmdNumberOfQueryInstances)
+        if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
+        {          
           break;
+        }
+        mgmdQueryInstances++;     
       }
     }
     else //General Query

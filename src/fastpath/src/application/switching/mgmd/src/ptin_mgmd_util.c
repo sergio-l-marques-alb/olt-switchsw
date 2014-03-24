@@ -1943,7 +1943,6 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No packet sent! Proxy Admin=%u",mcastPacket->cbHandle->mgmdProxyCfg.admin?"Enable":"Disable");
     return SUCCESS;
   }
-
   
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
@@ -1992,8 +1991,6 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
         }
       }
-      
-           
       break;      
     }
     case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
@@ -2013,7 +2010,6 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
       ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
       break;
   }
- 
 
   return SUCCESS;
 }
