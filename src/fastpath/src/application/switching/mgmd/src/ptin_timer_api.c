@@ -100,10 +100,11 @@ static void  __list_dump(PTIN_TIMER_STRUCT *firsttimer);
 
 void  __list_dump(PTIN_TIMER_STRUCT *firsttimer)
 {
-  return; //This method is disabled for now
+//return; //This method is disabled for now
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Dump for double linked list with first timer %p:", firsttimer);
   while(firsttimer != NULL)
   {
-    printf("Timer %p [P:%p N:%p]\n", firsttimer, firsttimer->prev, firsttimer->next);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p [P:%p N:%p]", firsttimer, firsttimer->prev, firsttimer->next);
     firsttimer = firsttimer->next;
   }
 }
@@ -118,7 +119,7 @@ void __time_convert_timespec2int(struct timespec *original, unsigned long long *
 {
   if( (original == NULL) || (converted == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [original:%p converted:%p]\n", original, converted);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [original:%p converted:%p]", original, converted);
     return;
   }
 
@@ -137,7 +138,7 @@ void __initialized_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]", cb, timer);
     return;
   }
 
@@ -155,6 +156,7 @@ void __initialized_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
   }
   cb->lastInitializedTimer = timer;
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p inserted [P:%p N:%p | F:%p L:%p]", timer, timer->prev, timer->next, cb->firstInitializedTimer, cb->lastInitializedTimer);
   __list_dump(cb->firstInitializedTimer);
 }
 
@@ -170,7 +172,7 @@ void __initialized_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]", cb, timer);
     return;
   }
 
@@ -196,6 +198,7 @@ void __initialized_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT 
     ((PTIN_TIMER_STRUCT*)timer->next)->prev = timer->prev;
   }
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p removed [P:%p N:%p | F:%p L:%p]", timer, timer->prev, timer->next, cb->firstInitializedTimer, cb->lastInitializedTimer);
   __list_dump(cb->firstInitializedTimer);
 }
 
@@ -218,7 +221,7 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
 
   if( (cb == NULL) || (timer == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]", cb, timer);
     return;
   }
 
@@ -226,6 +229,7 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   if(timer->relativeTimeout <= cb->optimizationThreshold)
   {
     /* The timeout for this timer is relatively short. There is a high probability that it will be inserted next to the last timer below optimization threshold positions of the list */
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer relative timeout is below threshold[%u]", cb->optimizationThreshold);
 
     /* Determine which timer in the list will be the upper neighbor of our timer, based on the absoluteTimeout */
     upperNeighbor = (cb->lastTimerBelowThreshold==NULL)?(cb->firstRunningTimer):(cb->lastTimerBelowThreshold);
@@ -251,6 +255,7 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   else
   {
     /* The timeout for this timer is relatively long. There is a high probability that it will be inserted in the last positions of the list */
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer relative timeout is above threshold[%u]", cb->optimizationThreshold);
 
     /* Determine which timer in the list will be the upper neighbor of our timer, based on the absoluteTimeout */
     upperNeighbor = NULL;
@@ -294,6 +299,7 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     upperNeighbor->prev = timer;
   }
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p inserted [P:%p N:%p | F:%p L:%p T:%p]", timer, timer->prev, timer->next, cb->firstRunningTimer, cb->lastRunningTimer, cb->lastTimerBelowThreshold);
   __list_dump(cb->firstRunningTimer);
 }
 
@@ -307,7 +313,7 @@ void __running_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
 {
   if( (cb == NULL) || (timer == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]\n", cb, timer);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [cb:%p timer:%p]", cb, timer);
     return;
   }
 
@@ -334,8 +340,12 @@ void __running_list_remove(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
   }
 
   /* If this is the last timer below threshold, update it */
-  cb->lastTimerBelowThreshold = timer->prev;
+  if(cb->lastTimerBelowThreshold == timer)
+  {
+    cb->lastTimerBelowThreshold = timer->prev;
+  }
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p removed [P:%p N:%p | F:%p L:%p T:%p]", timer, timer->prev, timer->next, cb->firstRunningTimer, cb->lastRunningTimer, cb->lastTimerBelowThreshold);
   __list_dump(cb->firstRunningTimer);
 }
 
@@ -388,9 +398,11 @@ void* __controlblock_handler(void *param)
     else
     {
       PTIN_TIMER_STRUCT *timer = cbPtr->firstRunningTimer;
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Head timer is %p for CB %p", timer, cbPtr);
 
       if(timer->absoluteTimeout <= currentConvertedTime)
       {
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p already expired", timer, cbPtr);
         requiredConvertedTime     = currentConvertedTime - timer->absoluteTimeout;
         requiredSleepTime.tv_sec  = requiredConvertedTime/1000000000;
         requiredSleepTime.tv_nsec = requiredConvertedTime%1000000000;
@@ -411,6 +423,7 @@ void* __controlblock_handler(void *param)
         pthread_mutex_unlock(&cbPtr->lock);
         if(nanosleep(&requiredSleepTime, NULL) == 0)
         {
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p woke up", timer, cbPtr);
           pthread_mutex_lock(&cbPtr->lock);
           /* If we slept until the end, means out timer is still in the head and valid */
           __running_list_remove(cbPtr, timer);
@@ -425,6 +438,7 @@ void* __controlblock_handler(void *param)
         else
         {
           /* We were interrupted. It's best to check again for the head of the running list */
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p interrupted", timer, cbPtr);
           continue;
         }
       }
@@ -455,13 +469,16 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
 
   if(controlBlock == NULL)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p]\n", controlBlock);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p]", controlBlock);
     return -1;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Creating control block");
 
   /* This is the first CB being created. Initialize memory */
   if (!numCBs) 
   {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Initializing all control blocks");
     for (cbIdx=1;cbIdx<MGMD_MAX_NUM_CONTROL_BLOCKS;cbIdx++) 
     {
       cbEntry[cbIdx].state = PTIN_CONTROL_BLOCK_STATE_FREE;
@@ -537,6 +554,8 @@ void ptin_mgmd_timer_controlblock_optThr_set(PTIN_MGMD_TIMER_CB_t controlBlock, 
 {
   PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Setting control block %p optimization threshold to %u", cbPtr, optimizationThreshold);
+
   cbPtr->optimizationThreshold = optimizationThreshold * cbPtr->tickGranularity;
 }
 
@@ -556,6 +575,8 @@ int ptin_mgmd_timer_controlblock_destroy(PTIN_MGMD_TIMER_CB_t controlBlock)
 
   /* Self destruction is not supported */
   cbThreadId = cbPtr->thread_id;
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Destroying control block %p", cbPtr);
 
   /* Ensure that there are no timers in the running and initialized lists or availableTimersPool */
   pthread_mutex_lock(&cbPtr->lock);
@@ -605,9 +626,11 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
 
   if( (timerPtr == NULL) || (funcPtr == NULL) )
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [timerPtr:%p funcPtr:%p]\n", timerPtr, funcPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [timerPtr:%p funcPtr:%p]", timerPtr, funcPtr);
     return -1;
   }
+
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Creating new timer for control block %p", controlBlock);
 
   /* Get a new timer from the availableTimersPool */
   pthread_mutex_lock(&cbPtr->lock);
@@ -625,6 +648,7 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
   pthread_mutex_unlock(&cbPtr->lock);
 
   *timerPtr = (PTIN_MGMD_TIMER_t)newTimer;
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Created new timer %p for control block %p", cbPtr, timerPtr);
   return 0;
 }
 
@@ -647,9 +671,11 @@ int ptin_mgmd_timer_free(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return -1;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Deleting timer %p for control block %p", timerPtr, controlBlock);
 
   /* Self destruction is not supported */
   cbThreadId = cbPtr->thread_id;  
@@ -707,9 +733,11 @@ int ptin_mgmd_timer_start(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t t
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return -1;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Starting timer %p for control block %p with timeout %u", timerPtr, controlBlock, timeout);
 
   cbThreadId = cbPtr->thread_id;
   pthread_mutex_lock(&cbPtr->lock);
@@ -789,9 +817,11 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return -1;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Stoping timer %p for control block %p", timerPtr, controlBlock);
 
   /* Is the timer running? */
   cbThreadId = cbPtr->thread_id;
@@ -844,9 +874,11 @@ unsigned int ptin_mgmd_timer_timeLeft(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MG
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return 0;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timeleft for timer %p on control block %p", timerPtr, controlBlock);
 
   /* Is the timer running? */
   pthread_mutex_lock(&cbPtr->lock);
@@ -891,9 +923,11 @@ unsigned char ptin_mgmd_timer_isRunning(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return 0;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "isRunning for timer %p on control block %p", timerPtr, controlBlock);
 
   pthread_mutex_lock(&cbPtr->lock);
   timerState = tmrPtr->state;
@@ -919,9 +953,11 @@ unsigned char ptin_mgmd_timer_exists(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGM
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]\n", controlBlock, timerPtr);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Abnormal context [controlBlock:%p timerPtr:%p]", controlBlock, timerPtr);
     return 0;
   }
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Exists for timer %p on control block %p", timerPtr, controlBlock);
 
   pthread_mutex_lock(&cbPtr->lock);
   timerState = tmrPtr->state;
