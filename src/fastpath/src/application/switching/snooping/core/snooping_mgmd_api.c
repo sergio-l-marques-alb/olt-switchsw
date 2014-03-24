@@ -452,40 +452,38 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
   else //To support sending one Membership Query Message per ONU (client_idx)
   {
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
-    {
-      mgmdQueryInstances_t *mgmdQueryInstances=L7_NULLPTR;
+    {     
+      mgmdQueryInstances_t *mgmdQueryInstancesPtr=L7_NULLPTR;
       L7_uint32             mgmdNumberOfQueryInstances;
       L7_uint32             numberOfQueriesSent=0;
 
-      ptin_mgmd_query_instances_get(mgmdQueryInstances,&mgmdNumberOfQueryInstances);
-      if(mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS || mgmdQueryInstances==L7_NULLPTR)
+      mgmdQueryInstancesPtr=ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
+      if ((mgmdNumberOfQueryInstances>0 && mgmdQueryInstancesPtr==L7_NULLPTR) || mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
       {
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstances);
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstancesPtr);
         mgmdNumberOfQueryInstances=0;
         return SUCCESS;
       }
       
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
-      while(mgmdQueryInstances!=L7_NULLPTR)
+      while(mgmdQueryInstancesPtr!=L7_NULLPTR)
       {        
-        if (mgmdQueryInstances->inUse==L7_TRUE)
+        if (mgmdQueryInstancesPtr->inUse==L7_TRUE)
         {
           ++numberOfQueriesSent;
           //Get outter internal vlan
-          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstances->UcastEvcId, &int_ovlan))
+          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstancesPtr->UcastEvcId, &int_ovlan))
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
             return FAILURE;
-          }
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Packet ToBe Sent");
+          }          
           ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Packet Sent");
         }
         if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
         {          
           break;
         }
-        mgmdQueryInstances++;     
+        mgmdQueryInstancesPtr++;     
       }
     }
     else //General Query

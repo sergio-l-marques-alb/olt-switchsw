@@ -1197,7 +1197,7 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
  * @return mgmdQueryInstances_t : 
  */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-void ptin_mgmd_query_instances_get(mgmdQueryInstances_t *mgmdQueryInstancesPtr, L7_uint32 *mgmdNumberOfQueryInstancesPtr);
+mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumberOfQueryInstancesPtr);
 #endif
 
 #endif
