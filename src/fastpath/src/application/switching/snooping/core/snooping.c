@@ -597,7 +597,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
     if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                   pduInfo->vlanId, pduInfo->innerVlanId,
-                                  L7_NULLPTR,
+                                  &data[L7_MAC_ADDR_LEN],
                                   &client_idx) != L7_SUCCESS)
     {
       client_idx = (L7_uint) -1;

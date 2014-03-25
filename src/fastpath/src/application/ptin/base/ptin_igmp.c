@@ -2781,8 +2781,8 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
   {
     if (ptin_debug_igmp_snooping)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,
-              "Error searching for client {mask=0x%02x,"
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,
+              "Client not found {mask=0x%02x,"
               "port=%u/%u,"
               "svlan=%u,"
               "cvlan=%u,"
@@ -7161,7 +7161,7 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
 
     if (ptin_debug_igmp_snooping)
     {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"This key {"
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"This key {"
                       #if (MC_CLIENT_INTERF_SUPPORTED)
                                     "port=%u,"
                   #endif
@@ -8704,7 +8704,7 @@ static L7_RC_t ptin_igmp_client_find(ptin_client_id_t *client_ref, ptinIgmpClien
   {
     if (ptin_debug_igmp_snooping)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Key {"
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Key {"
               #if (MC_CLIENT_INTERF_SUPPORTED)
                                 "port=%u"
               #endif
