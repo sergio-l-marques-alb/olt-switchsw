@@ -1037,7 +1037,13 @@ typedef struct _st_MCActiveChannelClients
   L7_uint16 n_pages_total;             // Numero de mensagens para transportar todos os canais
   L7_uint16 n_clients_total;           // Numero total de canais
   L7_uint16 n_clients_msg;             // Numero de canais presentes na mensagem
-  msg_client_info_t clients_list[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX]; // List of clients
+  struct
+  {
+    L7_uint8             mask;
+    L7_uint16            outer_vlan;       /* [mask=0x01] Outer vlan */
+    L7_uint16            inner_vlan;       /* [mask=0x02] Inner vlan */
+    msg_HwEthInterface_t intf;             /* [mask=0x04] interface  */  
+  } __attribute__((packed))  clients_list[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX]; // List of clients
 } __attribute__((packed)) msg_MCActiveChannelClients_t;
 
 typedef struct
