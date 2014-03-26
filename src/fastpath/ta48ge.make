@@ -2,8 +2,8 @@
 #                                           #
 # FastPath Makefile for the TA48GE card     #
 #                                           #
-#	Daniel Figueira, 2013               #
-#	daniel-f-figueira@ext.ptinovacao.pt #
+#  Daniel Figueira, 2013                    #
+#  daniel-f-figueira@ext.ptinovacao.pt      #
 #                                           #
 #############################################
 
@@ -43,15 +43,19 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
-.PHONY: welcome all install clean cleanall help h kernel
+export FP_CLI_PATH   := ../fastpath.cli
+export FP_SHELL_PATH := ../fastpath.shell
 
-all: welcome
+.PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
+
+all: welcome mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
 		echo "";\
 	fi;
+	#@$(MAKE) -C src/application/switching/mgmd
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
@@ -61,7 +65,13 @@ all: welcome
 		echo "Stripping $(BIN_FILE) binary...";\
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
+	@echo "Copying mgmd.cli to ipl directory..."
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
+
+mgmdconfig:
+	@sh mgmd_config_$(CARD).sh
 
 install:
 	sh ta48ge.install
@@ -74,8 +84,12 @@ help h:
 	@echo "Makefile Help"
 	@echo "	make     		"
 	@echo "	make clean		"
-	@echo "	make cleanall	"
+	@echo "	make cleanall           "
 	@echo "	make kernel		"
+	@echo " make cli                "
+	@echo " make shell              "
+	@echo " make cli_clean          "
+	@echo " make shell_clean        "
 	@echo ""
 
 welcome: 
@@ -95,8 +109,20 @@ welcome:
 	@echo "CARD FOLDER = $(OUTPATH)"
 	@echo "CPU = $(CPU)"
 	@echo ""
-	
-clean cleanall: welcome
+
+cli:
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta48ge.make
+
+shell:
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make
+
+cli_clean:
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta48ge.make clean
+
+shell_clean:
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make clean
+
+clean cleanall: welcome cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

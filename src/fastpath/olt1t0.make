@@ -25,12 +25,12 @@ BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
 #export TOOLCHAIN_BASE_DIR = /opt/broadcom
-export TOOLCHAIN_BASE_DIR = /opt/broadcom
+export TOOLCHAIN_BASE_DIR = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
-export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
+export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
 
 BOARD = OLT1T0
 CARD_FOLDER = FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$(BOARD)
@@ -46,9 +46,12 @@ export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-.PHONY: welcome all clean cleanall help h kernel transfer
+export FP_CLI_PATH   := ../fastpath.cli
+export FP_SHELL_PATH := ../fastpath.shell
 
-all: welcome
+.PHONY: welcome all clean cleanall help h kernel transfer cli cli_clean shell shell_clean
+
+all: welcome cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -102,8 +105,12 @@ help h:
 	@echo "Makefile Help"
 	@echo "	make     		"
 	@echo "	make clean		"
-	@echo "	make cleanall	"
+	@echo "	make cleanall           "
 	@echo "	make kernel		"
+	@echo " make cli		"
+	@echo " make shell              "
+	@echo " make cli_clean          "
+	@echo " make shell_clean        "
 	@echo ""
 
 welcome: 
@@ -123,8 +130,20 @@ welcome:
 	@echo "CARD FOLDER = $(OUTPATH)"
 	@echo "CPU = $(CPU)"
 	@echo ""
-	
-clean cleanall: welcome
+
+cli:
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-olt1t0.make
+
+shell:
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-olt1t0.make
+
+cli_clean:
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-olt1t0.make clean
+
+shell_clean:
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-olt1t0.make clean
+
+clean cleanall: welcome cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
