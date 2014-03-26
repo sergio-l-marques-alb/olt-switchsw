@@ -2834,7 +2834,7 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4;
       break;
 
-    case __BROADCOM_56643_ID: /* PTin added: new switch 56643 (Triumph3) */
+    case __BROADCOM_56640_ID: /* PTin added: new switch 5664x (Triumph3) */
     case __BROADCOM_56340_ID: /* PTin added: new switch 56340 (Helix4) */
       tType = L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5;      /* PTin added: XGS5 family supported */
       break;

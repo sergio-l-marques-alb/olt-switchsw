@@ -400,10 +400,10 @@
 #endif
 #endif
 
-/* PTin modified: new switch 56643 (Triumph3) */
+/* PTin modified: new switch 5664x (Triumph3) */
 #if defined(BCM_56640_A0) || defined(BCM_56640_B0) || defined(BCM_56643_A0) || defined(BCM_56643_B0)
 #define BCM_56640
-#define BCM_56643     /* PTin modified: new switch 56643 (Triumph3) */
+#define BCM_56643     /* PTin modified: new switch 5664x (Triumph3) */
 #define BCM_56840
 #define BCM_56634
 #define BCM_56624

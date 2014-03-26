@@ -609,7 +609,7 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         extern int _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps, int burst);
 #if defined (BCM_TRIUMPH2_SUPPORT) || defined (BCM_TRIUMPH3_SUPPORT)
         /* PTin added: new switch 56689 (Valkyrie2) */
-        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 5664x (Triumph3) */
         /* PTin removed: new switch 56843 (Trident) */
         if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) /*|| SOC_IS_TRIDENT(unit)*/ ||
             SOC_IS_TRIUMPH3(unit))
@@ -1343,7 +1343,7 @@ void hpcHardwareDefaultConfigApply(void)
 #ifdef L7_STACKING_PACKAGE
         static int xgs_stack_cos_map[] = {0,1,2,3,4,5,6,6};
         /* PTin added: new switch 56689 (Valkyrie2) */
-        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) ||
             SOC_IS_TRIUMPH3(i))
@@ -1585,7 +1585,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_switch_control_set (i, bcmSwitchCpuProtoBpduPriority, HAPI_BROAD_INGRESS_BPDU_COS);
         }
         /* PTin added: new switch 56689 (Valkyrie2) */
-        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 5664x (Triumph3) */
         /* PTin removed: new switch 56843 (Trident) */
         else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
                  SOC_IS_TRIUMPH3(i))
@@ -1667,7 +1667,7 @@ void hpcHardwareDefaultConfigApply(void)
         }
 
         /* PTin added: new switch 56689 (Valkyrie2) */
-        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
             !SOC_IS_TRIUMPH3(i))
@@ -1719,7 +1719,7 @@ void hpcHardwareDefaultConfigApply(void)
         }
 
         /* PTin added: new switch 56689 (Valkyrie2) */
-        /* PTin added: new switch 56643 (Triumph3) */
+        /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
             !SOC_IS_TRIUMPH3(i))
@@ -1810,11 +1810,11 @@ void hpcHardwareDefaultConfigApply(void)
         */
 
        rv = bcm_switch_control_get(i, bcmSwitchHashL2, &hashControl);
-       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: new switch 56643 (Triumph3) */
+       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: new switch 5664x (Triumph3) */
        {
           LOG_ERROR (rv);
        }
-       /* PTin added: new switch 56643 (Triumph3): Execute, only if success */
+       /* PTin added: new switch 5664x (Triumph3): Execute, only if success */
        if (rv == BCM_E_NONE)
        {
          if (hashControl == BCM_HASH_CRC32L)
@@ -1839,11 +1839,11 @@ void hpcHardwareDefaultConfigApply(void)
        if (soc_feature(i, soc_feature_l3))
        {
          rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
-         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: new switch 56643 (Triumph3) */
+         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: new switch 5664x (Triumph3) */
          {
             LOG_ERROR (rv);
          }
-         /* PTin added: new switch 56643 (Triumph3) - Execute, only if success */
+         /* PTin added: new switch 5664x (Triumph3) - Execute, only if success */
          if (rv == BCM_E_NONE)
          {
            if (hashControl == BCM_HASH_CRC32L)

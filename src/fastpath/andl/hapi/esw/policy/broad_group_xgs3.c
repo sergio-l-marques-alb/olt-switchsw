@@ -1391,7 +1391,7 @@ static int _policy_super_qset_init_ifp(int unit)
            SOC_IS_SCORPION(unit) ||
            SOC_IS_VALKYRIE2(unit)||
            SOC_IS_TRIDENT(unit)  || /* PTin added: new switch 56843 (Trident) */
-           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch 56643 (Triumph3) */
+           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch 5664x (Triumph3) */
          )
       {
         _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1444,7 +1444,7 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
   /* PTin added: new switch 56843 (Trident) */
-  /* PTin added: new switch 56643 (Triumph3) */
+  /* PTin added: new switch 5664x (Triumph3) */
   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
       SOC_IS_TRIUMPH3(unit))
   {
@@ -1585,7 +1585,7 @@ static int _policy_action_map_init(int unit)
       (SOC_IS_ENDURO(unit)) ||
       (SOC_IS_VALKYRIE2(unit)) ||
       (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
-      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch 56643 (Triumph3) */
+      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch 5664x (Triumph3) */
   {
     /* Modify action maps for certain actions. */
     memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],     &xgs4_ingress_set_cosq_action_map,     sizeof(action_map_entry_t));
@@ -2117,7 +2117,7 @@ int _policy_group_calc_qset(int                             unit,
                 if (temp16 & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
                 {
                   /* PTin added: new switch 56689 (Valkyrie2) */
-                  /* PTin added: new switch 56643 (Triumph3) */
+                  /* PTin added: new switch 5664x (Triumph3) */
                   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
                       SOC_IS_TRIUMPH3(unit))
                   {
@@ -3017,7 +3017,7 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
   if (mask & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
   {
     /* PTin added: new switch 56689 (Valkyrie2) */
-    /* PTin added: new switch 56643 (Triumph3) */
+    /* PTin added: new switch 5664x (Triumph3) */
     if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIUMPH3(unit))
     {
@@ -3670,7 +3670,7 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
       !SOC_IS_ENDURO(unit) &&
       !SOC_IS_VALKYRIE2(unit) &&
       !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
-      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch 56643 (Triumph3) */
+      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch 5664x (Triumph3) */
   {
     /* System rules in slice 0. */
     groupid_rev = 1;
@@ -3939,7 +3939,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)   ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch 56643 (Triumph3) */
+          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch 5664x (Triumph3) */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -3953,7 +3953,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
           SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch 56643 (Triumph3) */
+          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch 5664x (Triumph3) */
            && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
@@ -3991,7 +3991,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch 56643 (Triumph3) */
+          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch 5664x (Triumph3) */
         total_slices = 4;
       else  
         total_slices = 0;
@@ -4018,7 +4018,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 56643 (Triumph3) */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
     {
       supported = L7_TRUE;
     }
@@ -4037,7 +4037,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 56643 (Triumph3) */
+        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
     {
       supported = L7_TRUE;
     }
