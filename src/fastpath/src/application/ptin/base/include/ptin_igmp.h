@@ -611,13 +611,14 @@ extern L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t 
  * @param number_of_clients  : (in) Maximum number of clients 
  *                             (out) Number of clients 
  * @param client_list        : (out) Clients array 
+ * @param extendedEvcId      : (out) Extended EVC Id
  * @param total_clients      : (out) Total number of clients
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel,
-                                        L7_uint16 client_index, L7_uint16 *number_of_clients, ptin_client_id_t *client_list,
-                                        L7_uint16 *total_clients);
+                                 L7_uint16 client_index, L7_uint16 *number_of_clients, ptin_client_id_t *client_list,L7_uint32 *extendedEvcId, 
+                                 L7_uint16 *total_clients);
 
 /**
  * Add a new static channel

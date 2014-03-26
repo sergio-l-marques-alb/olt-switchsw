@@ -2219,7 +2219,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
  * @param number_of_clients  : (in) Maximum number of clients 
  *                             (out) Number of clients 
  * @param client_list        : (out) Clients array 
- * @param total_clients      : (out) Total number of clients
+ * @param evc_id             : (out) Extended EVC Id 
+ * @param total_clients      : (out) Total number of clients 
+ *  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -2227,7 +2229,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
 //static ptin_client_id_t clientList[PTIN_SYSTEM_IGMP_MAXONUS];
 
 L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel,
-                                 L7_uint16 client_index, L7_uint16 *number_of_clients, ptin_client_id_t *client_list,
+                                 L7_uint16 client_index, L7_uint16 *number_of_clients, ptin_client_id_t *client_list,L7_uint32 *extendedEvcId, 
                                  L7_uint16 *total_clients)
 {
   L7_uint                                igmp_idx;
@@ -2397,6 +2399,15 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
       ++currentClientId;
       continue;
     }
+
+    /*MAC Bridge Services Support*/
+    if(L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(tempKey.outerVlan,&extendedEvcId[clientBufferIdx]))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get external EVC Id :%u",tempKey.outerVlan);
+      extendedEvcId[clientBufferIdx]=(L7_uint32)-1;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "External EVC Id :%u (internal vlan:%u)",extendedEvcId[clientBufferIdx],tempKey.outerVlan);
+    /*End MAC Bridge Services Support*/
 
     /* Copy client contents */
     if(L7_SUCCESS != ptin_igmp_clientId_restore(&tempKey))
@@ -5737,10 +5748,18 @@ static L7_RC_t igmp_assoc_pair_get( L7_uint32 evc_uc,
 
   /* Check if this key does not exist */
   if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist!",group_address.addr.ipv4.s_addr);
-    return L7_FAILURE;
+  {    
+    //Let us verify if is there any default MC service gateway configured
+    inetAddressZeroSet(avl_key.channel_group.family,&avl_key.channel_group);
+    #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
+      inetAddressZeroSet(avl_key.channel_source.family,&avl_key.channel_source);
+    #endif
+     if ((avl_infoData=(ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
+     {
+       if (ptin_debug_igmp_snooping)
+         LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist! And no default Multicast Service Configured!",group_address.addr.ipv4.s_addr);
+       return L7_FAILURE;
+     }   
   }
 
   /* Return MC EVC */
@@ -5919,14 +5938,23 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   ptinIgmpPairInfoData_t avl_node;
   L7_RC_t rc;
 
-  /* Validate and prepare channel group Address*/
-  if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+  //Default MC Service Gateway
+  if(inetIsAddressZero(channel_group)==L7_TRUE && channel_grpMask==0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
-    //return L7_FAILURE;
-    return L7_SUCCESS;
+    group=*channel_group;
+    n_groups=1;
   }
-  /* Validate output ip address */
+  else
+  {
+    /* Validate and prepare channel group Address*/
+    if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
+      //return L7_FAILURE;
+      return L7_SUCCESS;
+    }
+    /* Validate output ip address */
+  }
   if ( n_groups == 0 )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Group address is not valid!");
@@ -5940,8 +5968,17 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   n_sources = 1;
 
   #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
-  /* Prepare source channel */
-  igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  //Default MC Gateway
+  if(inetIsAddressZero(channel_source)==L7_TRUE && channel_srcMask==0)
+  {
+    source=*channel_group;
+    n_sources=1;
+  }
+  else
+  {
+    /* Prepare source channel */
+    igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  }
   /* Validate output ip address */
   if ( n_sources == 0 )
   {
