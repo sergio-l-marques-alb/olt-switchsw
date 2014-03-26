@@ -235,7 +235,12 @@ L7_RC_t hpcConfigBoardSet()
         #endif
         break;
 
-      /* PTin added: new switch 56643 (Triumph3) */
+      /* PTin added: new switch 5664x (Triumph3) SF */
+      case UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID:
+        LOG_WARNING(LOG_CTX_STARTUP,"Triumph3-SF not ready to be started!");
+        break;
+
+      /* PTin added: new switch 5664x (Triumph3) */
       case UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID:
         /* Enable trunk_128 bit. This will enable 128 trunks */
         /* and fixes LAG issue on XGS3 stacking              */

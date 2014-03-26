@@ -103,6 +103,10 @@ extern int ptin_sys_number_of_ports;
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 #include "ptin_globaldefs_ta48ge.h"
 
+/* CXO160G */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#include "ptin_globaldefs_cxo160g.h"
+
 /* OLT360 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
 #include "ptin_globaldefs_cxo360g.h"

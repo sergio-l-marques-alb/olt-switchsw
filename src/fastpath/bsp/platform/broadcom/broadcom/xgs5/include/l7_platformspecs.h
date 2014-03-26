@@ -38,7 +38,7 @@
 #define L7_BCM_ENDURO                              5
 #define L7_BCM_VALKYRIE2                           6  /* PTin added: new switch 56689 (Valkyrie2) */
 #define L7_BCM_TRIDENT                             7  /* PTin added: new switch 56843 (Trident) */
-#define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch 56643 (Triumph3) */
+#define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch 5664x (Triumph3) */
 #define L7_BCM_HELIX4                              9  /* PTin added: new switch 56340 (Helix4) */
 
 /* PTin added: boards definition */
@@ -49,9 +49,10 @@
 #define PTIN_BOARD_CXO640G                         0x0010
 #define PTIN_BOARD_TA48GE                          0x0020
 #define PTIN_BOARD_OLT1T0                          0x0100
+#define PTIN_BOARD_CXO160G                         0x0200
 
 /* PTin added: board groups definition */
-#define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G)
+#define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G | PTIN_BOARD_CXO160G)
 #define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TA48GE )
 #define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B | PTIN_BOARD_OLT1T0)
 #define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G )
@@ -110,7 +111,7 @@
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           20
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           20
 
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) */
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    52
@@ -131,6 +132,13 @@
 #define L7_MAX_PORTS_PER_SLOT                    64
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           64  
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           64
+
+/* PTin added: new switch 5664x (Triumph3) SF */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
+#define L7_MAX_PORTS_PER_SLOT                    8
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           8  
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           8
 
 #else
 /* PTin end */
