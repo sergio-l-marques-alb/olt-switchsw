@@ -449,7 +449,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
     snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
   }
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  else //To support sending one Membership Query Message per ONU (client_idx)
+  else //To support sending one Membership Query Message per ONU (client_idx=-1)
   {
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
     {     
@@ -465,7 +465,7 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
         return SUCCESS;
       }
       
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
       while(mgmdQueryInstancesPtr!=L7_NULLPTR)
       {        
         if (mgmdQueryInstancesPtr->inUse==L7_TRUE)
@@ -524,6 +524,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
         if (!(clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
           continue;
 
+#if 0//Client Id is -1 for packets sent to the leaf ports
         /* Get client index */
         if (clientFlow.int_ivid != 0)
         {
@@ -538,6 +539,7 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
                       int_ivlan, client_idx, portId, int_ovlan);
           }
         }
+#endif
       }
       /* If clients are not supported, used null inner vlan */
       else if ( rc == L7_NOT_SUPPORTED )
