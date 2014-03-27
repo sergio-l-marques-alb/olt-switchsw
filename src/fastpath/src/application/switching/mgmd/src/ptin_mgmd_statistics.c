@@ -76,17 +76,18 @@ static RC_t ptin_mgmd_stats_service_find(uint32 serviceId, int16 *arrayIdx)
 }
 
 /**
- * Use this static method to find the array idx with the desired service ID
+ * Use this static method to find the array idx with the desired 
+ * service ID or to get a free idx
  * 
  * @param serviceId : Service ID
  * @param arrayIdx  : Index in the array with the requested service ID
  * 
  * @return RC_t 
- *  
- * @note: If not found, returns an empty position 
  */
-static RC_t ptin_mgmd_stats_service_getfree(uint32 serviceId, int16 *arrayIdx)
+static RC_t ptin_mgmd_stats_service_find_or_getfree(uint32 serviceId, int16 *arrayIdx)
 {
+  uint32 firstFreeIdx=(uint32)-1;
+
   // Validations
   if ( PTIN_NULLPTR == arrayIdx)
   {
@@ -97,17 +98,25 @@ static RC_t ptin_mgmd_stats_service_getfree(uint32 serviceId, int16 *arrayIdx)
   *arrayIdx = 0;
   for(*arrayIdx = 0; *arrayIdx < PTIN_MGMD_MAX_SERVICES; ++(*arrayIdx))
   {
-    if(mgmd_stat_service[*arrayIdx][0].used == FALSE)
+    if(mgmd_stat_service[*arrayIdx][0].serviceId == serviceId)
     {
-      uint32 portIdx;
-     
-      for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
-      {
-        memset(&mgmd_stat_service[*arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
-        mgmd_stat_service[*arrayIdx][portIdx].used      = TRUE;
-        mgmd_stat_service[*arrayIdx][portIdx].serviceId = serviceId;
-        return SUCCESS;
-      }
+      return SUCCESS;
+    }
+    if( (firstFreeIdx==(uint32)-1) && (mgmd_stat_service[*arrayIdx][0].used == FALSE))
+    {
+      firstFreeIdx=*arrayIdx;
+    }
+  }
+  if(firstFreeIdx!=(uint32)-1)
+  {
+    uint32 portIdx;
+    *arrayIdx=firstFreeIdx;
+    for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
+    {
+      memset(&mgmd_stat_service[*arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
+      mgmd_stat_service[*arrayIdx][portIdx].used      = TRUE;
+      mgmd_stat_service[*arrayIdx][portIdx].serviceId = serviceId;
+      return SUCCESS;
     }
   }
 
@@ -163,13 +172,10 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
   }
 
   // Get the index that holds the requested service ID. If not found, get a free index
-  if(SUCCESS != ptin_mgmd_stats_service_find(serviceId, &arrayIdx))
-  {
-    if(SUCCESS != ptin_mgmd_stats_service_getfree(serviceId, &arrayIdx))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u] and there are no free indexes left", serviceId);
-      return FAILURE;
-    }
+  if(SUCCESS != ptin_mgmd_stats_service_find_or_getfree(serviceId, &arrayIdx))
+  {    
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u] and there are no free indexes left", serviceId);
+    return FAILURE;    
   }
 
   switch (field) {
@@ -902,7 +908,7 @@ RC_t ptin_mgmd_stat_intf_get(uint32 serviceId, uint32 interfaceId, ptin_IGMP_Sta
   }
 
   // Get the index that holds the requested service ID. If not found, get a free index
-  if(SUCCESS != ptin_mgmd_stats_service_find(serviceId, &arrayIdx))
+  if(SUCCESS != ptin_mgmd_stats_service_find_or_getfree(serviceId, &arrayIdx))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u]", serviceId);
     memset(interfaceStats, 0x00, sizeof(ptin_IGMP_Statistics_t));
@@ -937,7 +943,7 @@ RC_t ptin_mgmd_stat_intf_clear(uint32 serviceId, uint32 portId)
   }
 
   // Get the index that holds the requested service ID. If not found, get a free index
-  if(SUCCESS != ptin_mgmd_stats_service_find(serviceId, &arrayIdx))
+  if(SUCCESS != ptin_mgmd_stats_service_find_or_getfree(serviceId, &arrayIdx))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u]", serviceId);
     return SUCCESS;
