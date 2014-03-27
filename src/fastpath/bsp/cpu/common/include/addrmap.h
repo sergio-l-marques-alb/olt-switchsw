@@ -56,6 +56,14 @@ extern "C"
 #else
 extern
 #endif
+void *AddrAlloc64(TAddrMap *AddrMap, long long AddrStart, long AddrLen);
+
+
+#ifdef __cplusplus
+extern "C"
+#else
+extern
+#endif
 //void *AddrFree(TAddrMap *AddrMap);
 int AddrFree(TAddrMap *AddrMap);
 
