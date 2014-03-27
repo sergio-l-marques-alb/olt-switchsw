@@ -626,70 +626,74 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       if (SUCCESS != (res = ptinMgmdgroupclients_get(request.serviceId, portId, &groupAddr, &sourceAddr, portClientList[portId], &numberOfClientsPerPort[portId])))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to update clientList");
-        res = FAILURE;
+        return SUCCESS;//FAILURE;        
       }
       numberOfClients+=numberOfClientsPerPort[portId];
     }
   }
-
-  if(SUCCESS == res)
+  else
   {
-    if((PTIN_MGMD_CTRL_GROUPCLIENTS_FIRST_ENTRY != request.entryId) && (request.entryId > numberOfClients) )
+    if(request.entryId > numberOfClients) 
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Invalid entryId [Max: %u]", numberOfClients);
-      res = NOT_EXIST;
+      return SUCCESS;//NOT_EXIST;
     }
   }
 
-  if(SUCCESS == res)
+
+  ++request.entryId; //Start searching the ID next to the requested
+  numOfClientsInMsg  = 0;
+  numberOfClientsAux = 0;
+  entryId            = 0;
+  for (portId=1; portId<=PTIN_MGMD_MAX_PORT_ID; portId++)
   {
-    ++request.entryId; //Start searching the ID next to the requested
-    numOfClientsInMsg  = 0;
-    numberOfClientsAux = 0;
-    entryId            = 0;
-    for (portId=1; portId<=PTIN_MGMD_MAX_PORT_ID; portId++)
+    //Ignore this interface if the requested entryId is higher than the number os clients for this interface
+    numberOfClientsAux += numberOfClientsPerPort[portId];
+    if(numberOfClientsAux < request.entryId)
     {
-      //Ignore this interface if the requested entryId is higher than the number os clients for this interface
-      numberOfClientsAux += numberOfClientsPerPort[portId];
-      if(numberOfClientsAux < request.entryId)
+      entryId += numberOfClientsPerPort[portId];
+      continue;
+    }      
+    
+    //
+    //Check each client in this interface
+    for (clientId=0; entryId<maxNumberOfEntries && entryId<numberOfClients && clientId<PTIN_MGMD_MAX_CLIENTS && numberOfClientsPerPort[portId]!=0; ++clientId)
+    {      
+      //Move forward 8 bits if this byte is 0 (no clients)
+      if(portClientList[portId][clientId/8] == 0)
+      {
+        clientId += 8; 
+        continue;
+      }             
+      //Move forward 1 bit if the requested entryId is still higher
+      ++numberOfClientsAux;
+      if(numberOfClientsAux <= request.entryId)
       {
         entryId += numberOfClientsPerPort[portId];
         continue;
-      }      
+      } 
+      
+      //Add a new client to the response if the bit is set
+      if(TRUE == PTIN_MGMD_CLIENT_IS_MASKBITSET(portClientList[portId], clientId))
+      {    
+        response.entryId  = entryId;
+        response.portId   = portId;
+        response.clientId = clientId;      
+        memcpy(eventData->data+entryId*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
-      //Check each client in this interface
-      for (clientId=0; entryId<maxNumberOfEntries && entryId<numberOfClients && clientId<numberOfClientsPerPort[portId]; ++clientId)
-      {
-        //Move forward 8 bits if this byte is 0 (no clients)
-        if(portClientList[portId][clientId/8] == 0)
+        ++entryId;
+        ++numOfClientsInMsg;
+        //All Clients have been already found
+        if(numOfClientsInMsg>=numberOfClientsPerPort[portId])
         {
-          clientId += 8; 
-          continue;
-        }        
-
-        //Move forward 1 bit if the requested entryId is still higher
-        ++numberOfClientsAux;
-        if(numberOfClientsAux <= request.entryId)
-        {
-          entryId += numberOfClientsPerPort[portId];
-          continue;
-        } 
-
-        //Add a new client to the response if the bit is set
-        if(TRUE == PTIN_MGMD_CLIENT_IS_MASKBITSET(portClientList[portId], clientId))
-        {    
-          response.entryId  = entryId;
-          response.portId   = portId;
-          response.clientId = clientId;
-          memcpy(eventData->data+entryId*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
-
-          ++entryId;
-          ++numOfClientsInMsg;
+          break;
         }
       }
     }
-    eventData->dataLength = numOfClientsInMsg*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
   }
+  eventData->dataLength = numOfClientsInMsg*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
+  
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Number of Clients (read:%u and in the message:%u)",numberOfClients,numOfClientsInMsg);
   return SUCCESS;
 }
 
