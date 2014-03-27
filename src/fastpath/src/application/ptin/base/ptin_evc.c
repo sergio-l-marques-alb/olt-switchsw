@@ -1335,6 +1335,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
       }
       else
       {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type, ptin_intf.intf_id);
         return L7_FAILURE;
       }
     }

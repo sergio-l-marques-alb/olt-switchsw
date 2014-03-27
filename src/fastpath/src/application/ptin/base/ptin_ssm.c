@@ -659,7 +659,7 @@ void ssmPDUSend(void)
 
   //LOG_INFO(LOG_CTX_PTIN_SSM,"This is the place where i will transmit SSM messages!");
 
-  for (slot=0; slot<SSM_N_SLOTS; slot++)
+  for (slot=0; slot<SSM_N_SLOTS && slot<PTIN_SYS_SLOTS_MAX; slot++)
   {
     for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
@@ -976,7 +976,7 @@ L7_RC_t ssmTimersUpdate(void)
   osapiSemaTake(ssmTimersSyncSema, L7_WAIT_FOREVER);
 
   /* Run all slots and timers */
-  for (slot=0; slot<SSM_N_SLOTS; slot++)
+  for (slot=0; slot<SSM_N_SLOTS && slot<PTIN_SYS_SLOTS_MAX; slot++)
   {
     for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {

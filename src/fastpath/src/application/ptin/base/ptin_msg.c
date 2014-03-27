@@ -7952,6 +7952,7 @@ int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
 
   if (L7_SUCCESS != ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum))
   {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptinp.intf_type, ptinp.intf_id);
     po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }

@@ -1083,12 +1083,14 @@ L7_RC_t ptin_intf_slotPort2IntIfNum(L7_uint16 slot, L7_uint16 port, L7_uint32 *i
   /* Get ptin_intf */
   if (ptin_intf_slotPort2ptintf(slot, port, &ptin_intf)!=L7_SUCCESS)
   {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent slot/port=%u/%u",slot,port);
     return L7_FAILURE;
   }
 
   /* Convert ptin_intf to intIfNum */
   if (ptin_intf_ptintf2intIfNum(&ptin_intf, intIfNum)!=L7_SUCCESS)
   {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
 

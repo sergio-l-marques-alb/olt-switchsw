@@ -1995,7 +1995,10 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
       return L7_FAILURE;
     }
     /* Extract Interface Number */
-    ptin_intf_ptintf2intIfNum(&client->ptin_intf,&intIfNum);
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf,&intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+    }
   }
   else
   {
@@ -4178,6 +4181,7 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
       }
       else
       {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
         return L7_FAILURE;
       }
     }
@@ -4265,6 +4269,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS ||
           ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
       {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
         return L7_FAILURE;
       }
 
