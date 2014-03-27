@@ -5,4 +5,14 @@ export PLATFORMS="CXO640G-MX CXO360G-MX TG16G TOLT8G TA48GE"
 
 export APPLICATION=fp
 
+#echo "Updating SVN..."
+#svn update
+
+echo "Compiling fastpath..."
+make -C ../fastpath all
+echo "Copying binaries to apps..."
+make -C ../fastpath install
+echo "Done... Going to prepare tarball."
+echo
+
 . ./fastpath.build $1

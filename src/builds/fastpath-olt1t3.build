@@ -5,4 +5,14 @@ export PLATFORMS="CXO640G-MX TG16G TA48GE"
 
 export APPLICATION=fp
 
+#echo "Updating SVN..."
+#svn update
+
+echo "Compiling fastpath for OLT1T3..."
+make -C ../fastpath -f olt640.make all
+echo "Copying binaries to apps..."
+make -C ../fastpath -f olt640.make install
+echo "Done... Going to prepare tarball."
+echo
+
 . ./fastpath.build $1

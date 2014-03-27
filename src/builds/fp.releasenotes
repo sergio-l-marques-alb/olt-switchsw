@@ -1,21 +1,4 @@
 Fastpath 6.3.0.2 Release Notes
-Version 2.8.0-r1484
- - Fix OLTSWITCH-270/OLTTS-4586: MGMD updated (configure script executed).
- - Req OLTSWITCH-219/OLTTS-3402: Added trap event.
- - Req OLTSWITCH-277/OLTTS-4585: ptin_msghandler.h updated.
- - Req OLTSWITCH-277/OLTTS-4585: Provide the ONU ID related to the learned MAC Address in Switch MAC table.
- - Fix OLTSWITCH-275/OLTTS-4654: Multicast Storm Control is being configured with minimal priority.
- - Fix OLTSWITCH-276/OLTTS-4655: Inband connection is removing Outer VLAN.
- - Req OLTSWITCH-219/OLTTS-3402: IPC functions visible across all modules and layers.
-Version 2.8.0-r1486
- - Fix OLTSWITCH-280/OLTTS-4665: MGMD is not being notified when IGMP proxy is disabled.
- - Req OLTSWITCH-253/OLTTS-3980: Updated according to the latest revision of MGMD.
-Version 2.8.0-r1494
- - Req OLTSWITCH-283: Extended to internal EVC id translation make use of a AVL tree.
- - Fix OLTSWITCH-284/OLTTS-4686: Flow creation of "unstacked" Quattro services with DHCP flag is not possible.
- - Fix OLTSWITCH-282/OLTTS-4698: Removed printf instructions which could cause delayed processing.
- - Req OLTSWITCH-281/OLTTS-4249: MAC Bridge Service Counters functional.
- - Req OLTSWITCH-253/OLTTS-3980: Several improvements and bugfixes.
 Version 2.8.0-r1499
  - Fix OLTSWITCH-285/OLTTS-4707: MGMD Fix-Added an extra validation for the case of ClientID is equal to the Id of Management.
  - Req OLTSWITCH-253/OLTTS-3980: Updated according to the latest revision of MGMD.
@@ -41,5 +24,29 @@ Version 2.8.0-r1514:
  - Fix OLTSWITCH-291/OLTTS-4651: Switch Fabric MAC removal is not working.
 Version 2.8.0-r1515:
  - Req OLTSWITCH-253/OLTTS-3980: Fix Position Identifier.
-Version 2.8.0-r1517:
- - Fix OLTSWITCH-289: EVC port remove does not return error 0x08030003 when EVC id does not exist.
+Version 2.8.0-r1519:
+ - Req OLTSWITCH-253/OLTTS-3980: Removed duplicated insert to the initialized timer list.
+ - Fix OLTSWITCH-289: EVC port remove is not returning error when EVC do not exist. Flows were also not being cleaned.
+Version 2.8.0-r1528:
+ - Req OLTSWITCH-253/OLTTS-3980: Added workaround to show IGMP Statistics on MAC Bridge Services.
+ - Req OLTSWITCH-253/OLTTS-3980: Removed First Query Startup Timeout; Moved Leaf and Root Packet validation to IGMP Packet Process.
+ - Req OLTSWITCH-253/OLTTS-3980: Added new routine to improve the performance of position identifier get.
+ - Fix OLTTS-4688/OLTSWITCH-292: Modified UcastEvcId of mgmdQueryInstances_t substructure to support up to 32 bits.
+ - Req OLTSWITCH-253/OLTTS-3980: Modified a log event from error to debug; Added a Validation on Internal Position Identifier.
+ - Req OLTSWITCH-253/OLTTS-3980: Restored Last Member Query Count; Added a Validation on Internal Position Identifier;
+ - Req OLTSWITCH-253/OLTTS-3980: Removed duplicated insert to the initialized Timers List.
+Version 2.8.0-r1535
+ - Fix OLTSWITCH-298/OLTTS-4783: Extended the number of allowed general queries to MAX_PORTS x MAX_CLIENTS.
+ - Fix OLTSWITCH-297/OLTTS-4674: Group List is not being updated when MC services are changed - Added bulk add/rem groups.
+ - Fix OLTSWITCH-296/OLTTS-4786: Added a routine to re-write the MFDB table with static groups and/or static group/source when the proxy admin is set to up.
+ - Req OLTSWITCH-295/OLTTS-4738: Client Service information in Multicast Active Users List.
+ - Fix OLTSWITCH-294/OLTTS-4789: Its not possible configure the values "8" and "9" in Robustness field.
+ - Fix OLTSWITCH-293/OLTTS-4787: Its not possible configure 0 in priority of IGMP proxy.
+ - Req OLTSWITCH-253/OLTTS-3980: Prevented SNOOPING module from removing MFDB ports when a link down event is detected.
+Version 2.8.0-r1541
+ - Req OLTSWITCH-253/OLTTS-3980: Fixed Abnormal Condition triggered by a Group Specific Query.
+ - Req OLTSWITCH-253/OLTTS-3980: Updated MGMD to the latest revision.
+ - Req OLTSWITCH-253/OLTTS-3980: Fixed Abnormal Condition triggered by a Group Specific Query.
+ - Req OLTSWITCH-253/OLTTS-3980: Improved the Group Specific Queries Send Packet Routine to use a Common Structure to obtain the Unicast Service Id.
+ - Fix OLTSWITCH-297/OLTTS-4674: Group List is not being updated when MC services are changed-'Remove All' messages implemented..
+ - Req OLTSWITCH-253/OLTTS-3980: Slightly improved Send_Group_Specific_Query.
