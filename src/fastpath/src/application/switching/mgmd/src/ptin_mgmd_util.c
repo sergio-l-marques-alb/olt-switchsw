@@ -95,7 +95,7 @@ int32 ptinMgmd_generate_random_response_delay (int32 maxResponseTime)
  * @see RFC 3376 6.6.3.1/6.6.3.2
  *
  *********************************************************************/
-RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, uint8  reportType,uint32 timeOut, BOOL isInterface,uint32 noOfRecords, void* ptr)
+RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, uint8  igmpType,uint32 timeOut, BOOL isInterface,uint32 noOfRecords, void* ptr)
 {
   ptin_IgmpProxyCfg_t        igmpCfg;  
   uint32                     newNoOfRecords=0;                             
@@ -104,7 +104,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   mgmdProxyInterface_t      *interfacePtr=PTIN_NULLPTR;
   void*                      ptrVoid; //groupPtr or interfacePtr
   mgmdProxyInterfaceTimer_t *proxyTimer;
-  ptinMgmdGroupInfoData_t     *avlTreeEntry;
+  ptinMgmdGroupInfoData_t   *avlTreeEntry;
   
   if(ptin_mgmd_extended_debug)
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "{");
@@ -122,7 +122,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "timeOut:%u; reportType:0x%x; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeOut,reportType,isInterface,noOfRecords,igmpCfg.host.robustness);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "timeOut:%u; reportType:0x%x; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeOut,igmpType,isInterface,noOfRecords,igmpCfg.host.robustness);
 
   if (isInterface==TRUE)
   {    
@@ -140,7 +140,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   if (timeOut!=0)
   {    
     /*Schedule a Membership Report Message to answer to a Query Event*/
-    if (ptin_mgmd_proxytimer_start(proxyTimer,timeOut,reportType, isInterface,noOfRecords,ptr)!=SUCCESS)
+    if (ptin_mgmd_proxytimer_start(proxyTimer,timeOut,igmpType, isInterface,noOfRecords,ptr)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()}");
       return FAILURE;
@@ -179,7 +179,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     //Response to a Group Specific Query or Group and Source
     else
     {      
-      if (reportType==PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || reportType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
+      if (igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
       {
         /*Let us verify if this group still has any clients*/
         if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT))==PTIN_NULLPTR || 
@@ -188,7 +188,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
           PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
           return SUCCESS;          
         }
-        if (reportType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
+        if (igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
         {
           if (groupPtr->numberOfSources==0)
           {
@@ -233,7 +233,18 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   }
 //________________________________________________________________________________________________________________
 
-  if ((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecords,groupPtr,&newNoOfRecords,igmpCfg.host.robustness))==PTIN_NULLPTR && newNoOfRecords>0)
+  //If this igmp packet is a response to a Query the robustness variable assumes the value of 1.  
+  uint8 robustness;
+  if(igmpType==PTIN_IGMP_MEMBERSHIP_GENERAL_QUERY || igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY || igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
+  {
+    robustness=1;
+  }
+  else
+  {
+    robustness=igmpCfg.host.robustness;
+  }
+
+  if ((newgroupPtr=snoopPTinGroupRecordIncrementTransmissions(noOfRecords,groupPtr,&newNoOfRecords,robustness))==PTIN_NULLPTR && newNoOfRecords>0)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinGroupRecordIncrementTransmissions()");
     return FAILURE;
@@ -249,7 +260,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
           ptrVoid=newgroupPtr;
           proxyTimer=&newgroupPtr->timer;
     }    
-    if (ptin_mgmd_proxytimer_start(proxyTimer,ptinMgmd_generate_random_response_delay(igmpCfg.host.unsolicited_report_interval*1000),reportType, isInterface,newNoOfRecords,ptrVoid)!=SUCCESS)
+    if (ptin_mgmd_proxytimer_start(proxyTimer,ptinMgmd_generate_random_response_delay(igmpCfg.host.unsolicited_report_interval*1000),igmpType, isInterface,newNoOfRecords,ptrVoid)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoop_ptin_proxytimer_start()");
       return FAILURE;
@@ -1931,8 +1942,8 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
 RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, uint16 portId)
 {
   ptin_mgmd_externalapi_t externalApi;
-  RC_t rc = SUCCESS;
-
+  RC_t                    rc = SUCCESS;
+  uint8                   igmp_stat_field;
 
   /* Send packet */        
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
@@ -1957,60 +1968,68 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
     return rc;
   }
 
+  if(ptin_mgmd_packet_trace)
+  {    
+    uint32 i;
+    printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);
+    for (i=0;i<mcastPacket->frameLength;i++)
+      printf("%02x ",mcastPacket->framePayload[i]);
+
+    printf("\n");    
+  }
+
    /* Update statistics*/
   switch (igmp_type)
   {
     case PTIN_IGMP_MEMBERSHIP_QUERY:
-    {
-      PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
-      uint32                  clientIdx;
-
-#if 0 // Disabled general querier statistics per interface/service
-      //Increment port and service statistics
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);     
-#endif
- 
-      //Increment client statistics for this port
-      if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
-      {
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
-        return rc;
-      }  
-
-//    printf("ClientBMP:");
-//    for (clientIdx=(PTIN_MGMD_CLIENT_BITMAP_SIZE-1); clientIdx>0; --clientIdx)
-//    {
-//      printf("%02X",clientBitmap.value[clientIdx]);
-//    }
-//    printf("\n");
-
-      for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
-      {        
-        if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
-        {
-          ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, SNOOP_STAT_FIELD_GENERAL_QUERY_TX);
-        }
-      }
-      break;      
-    }
+      igmp_stat_field=SNOOP_STAT_FIELD_GENERAL_QUERY_TX;
+      break;
     case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX);          
+      igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
       break;
     case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX);          
-      break;            
+      igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
+      break;
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
-      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_JOIN_TX);
+      igmp_stat_field=SNOOP_STAT_FIELD_JOIN_TX;
       break;
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
-      ptin_mgmd_stat_increment_field(portId,mcastPacket->serviceId,mcastPacket->clientId,SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX);
+      igmp_stat_field=SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX;
       break;
     case PTIN_IGMP_V2_LEAVE_GROUP:
-      ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_LEAVE_TX);
+      igmp_stat_field=SNOOP_STAT_FIELD_LEAVE_TX;
       break;
+    default:    
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unknown IGMP Type:%u",igmp_type);
+      return FAILURE;  
   }
 
+  if (mcastPacket->clientId == (uint32) -1) 
+  {
+    PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
+    uint32                  clientIdx;
+
+    //Increment client statistics for this port
+    if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
+    {
+      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
+      return rc;
+    }  
+
+    for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
+    {        
+      if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
+      {
+        ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
+      }
+    }   
+  }
+  else
+  {
+    ptin_mgmd_stat_increment_field(portId, mcastPacket->serviceId, mcastPacket->clientId, igmp_stat_field);
+  }
+    
   return SUCCESS;
 }
 
@@ -2072,19 +2091,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
     if(packetSent==FALSE)
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No packet sent! We do not have any active ports configured (serviceId=%u portType=%u client_idx=%u  family=%u)!",mcastPacket->serviceId,portType,mcastPacket->clientId,mcastPacket->family);
-    }
-    else //We only show the packet payload if we have sent the packet
-    {
-      if(ptin_mgmd_packet_trace)
-      {    
-        uint32 i;
-        printf("Tx:PayloadLength:%d\n",mcastPacket->frameLength);
-        for (i=0;i<mcastPacket->frameLength;i++)
-          printf("%02x ",mcastPacket->framePayload[i]);
-
-        printf("\n");    
-      }
-    }  
+    }    
   }
   return SUCCESS;
 }

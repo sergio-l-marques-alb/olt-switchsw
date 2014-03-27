@@ -37,6 +37,10 @@
 
 #define PTIN_MGMD_MC_SERVICE_ID_IN_USE 
 
+#define PTIN_CLIENT_IS_MASKBITSET(array,idx) ((array[(idx)/(sizeof(L7_uint8)*8)] >> ((idx)%(sizeof(L7_uint8)*8))) & 1)
+#define PTIN_CLIENT_SET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
+#define PTIN_CLIENT_UNSET_MASKBIT(array,idx) { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
+
 /******************************* 
  * Debug procedures
  *******************************/
@@ -11423,6 +11427,128 @@ void ptin_igmp_groupclients_dump(void)
 
   osapiSemaGive(ptin_igmp_clients_sem);
 }
+
+
+/**
+ * Get IGMP Client Bitmap
+ *  
+ * @param extendedEvcId       : Extended EVC Id
+ * @param intIfNum            : intIfNum
+ * @param clientBmpPtr        : Client Bitmap Pointer
+ * 
+ * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr)
+{
+  L7_uint32 i_client;
+  L7_uint32 clientIntIfNum;
+  L7_uint32 clientExtendedEvcId;
+  ptinIgmpClientDataKey_t avl_key;
+  ptinIgmpClientInfoData_t *avl_info;
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
+  if(ptin_debug_igmp_snooping)
+  {
+   LOG_DEBUG(LOG_CTX_PTIN_IGMP,"List of clients (%u clients):",igmpClients_unified.number_of_clients);
+  }
+
+  i_client = 0;
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  while ( ( avl_info = (ptinIgmpClientInfoData_t *)
+                        avlSearchLVL7(&igmpClients_unified.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+    
+    if(ptin_debug_igmp_snooping)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"      Client#%u: "
+             #if (MC_CLIENT_INTERF_SUPPORTED)
+             "ptin_port=%-2u "
+             #endif
+             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+             "svlan=%-4u (intVlan=%-4u) "
+             #endif
+             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+             "cvlan=%-4u "
+             #endif
+             #if (MC_CLIENT_IPADDR_SUPPORTED)
+             "IP=%03u.%03u.%03u.%03u "
+             #endif
+             #if (MC_CLIENT_MACADDR_SUPPORTED)
+             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+             #endif
+             ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] #channels=%u",
+             i_client,
+             #if (MC_CLIENT_INTERF_SUPPORTED)
+             avl_info->igmpClientDataKey.ptin_port,
+             #endif
+             #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+             avl_info->uni_ovid, avl_info->igmpClientDataKey.outerVlan,
+             #endif
+             #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+             avl_info->igmpClientDataKey.innerVlan,
+             #endif
+             #if (MC_CLIENT_IPADDR_SUPPORTED)
+             (avl_info->igmpClientDataKey.ipv4_addr>>24) & 0xff,
+              (avl_info->igmpClientDataKey.ipv4_addr>>16) & 0xff,
+               (avl_info->igmpClientDataKey.ipv4_addr>>8) & 0xff,
+                avl_info->igmpClientDataKey.ipv4_addr & 0xff,
+             #endif
+             #if (MC_CLIENT_MACADDR_SUPPORTED)
+             avl_info->igmpClientDataKey.macAddr[0],
+              avl_info->igmpClientDataKey.macAddr[1],
+               avl_info->igmpClientDataKey.macAddr[2],
+                avl_info->igmpClientDataKey.macAddr[3],
+                 avl_info->igmpClientDataKey.macAddr[4],
+                  avl_info->igmpClientDataKey.macAddr[5],
+             #endif
+             avl_info->ptin_port,
+             avl_info->client_index,
+             avl_info->uni_ovid, avl_info->uni_ivid,
+             ((avl_info->isDynamic) ? "dynamic" : "static "),
+             (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0);
+    }
+
+
+    #if (MC_CLIENT_INTERF_SUPPORTED)
+    if(ptin_intf_port2intIfNum(avl_info->igmpClientDataKey.ptin_port,&clientIntIfNum)!=SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert port2intIfNum :%u",avl_info->igmpClientDataKey.ptin_port);
+      continue;
+    }
+    if(clientIntIfNum==intIfNum)
+    #endif
+    {
+      #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+      if(L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(avl_info->igmpClientDataKey.outerVlan,&clientExtendedEvcId))
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get external EVC Id :%u",avl_info->igmpClientDataKey.outerVlan);
+        clientExtendedEvcId=avl_info->igmpClientDataKey.outerVlan;
+//      continue;
+      }
+      if(clientExtendedEvcId==extendedEvcId)
+      #endif
+      {
+        PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, avl_info->client_index);     
+        if(ptin_debug_igmp_snooping)
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client Found [ServiceId:%u PortId:%u ClientId:%u]",clientExtendedEvcId,clientIntIfNum,avl_info->client_index);
+      }            
+    }  
+
+    i_client++;
+  }
+  if(ptin_debug_igmp_snooping)
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Done!");
+  osapiSemaGive(ptin_igmp_clients_sem);
+
+  return SUCCESS;
+}
+
 
 /**
  * Dumps EVC detailed info 

@@ -62,6 +62,7 @@ typedef struct
 #define PTIN_MGMD_MANAGEMENT_CLIENT_ID                    (uint32)-1
 
 /*These values are not defined in RFC3376, altought it makes sense to have them in order to easily identify the type of packet to be sent*/
+#define PTIN_IGMP_MEMBERSHIP_GENERAL_QUERY                   PTIN_IGMP_MEMBERSHIP_QUERY
 #define PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY            0x10
 #define PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY 0x9
 /*End definition*/

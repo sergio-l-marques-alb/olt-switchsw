@@ -26,7 +26,7 @@
 
 //Internal Static Routines
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-static L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *packet, L7_uint32 packetLength,uchar8 family, L7_uint client_idx);
+L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
 #endif
 //End Static
 
@@ -180,6 +180,12 @@ RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_M
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
 
   memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
+
+  if(ptin_igmp_clients_bmp_get(serviceId, portId, clientList->value)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to obtain client bitmap [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+    return FAILURE;
+  }
 
   return SUCCESS;
 }
@@ -497,10 +503,16 @@ RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId,
 }
 
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *packet, L7_uint32 packetLength,uchar8 family, L7_uint client_idx)
+L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx)
 {
   ptin_HwEthEvcFlow_t   clientFlow;
   L7_RC_t               rc;
+  L7_uchar8             packet[L7_MAX_FRAME_SIZE];
+  L7_uint32             packetLength;
+
+  //Copy the payload  to the packet buffer
+  memcpy(packet, payload, payloadLength * sizeof(uchar8));
+  packetLength=payloadLength;
 
   /* To get the first client */
   memset(&clientFlow, 0x00, sizeof(clientFlow));

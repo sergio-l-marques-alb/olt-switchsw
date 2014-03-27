@@ -1198,8 +1198,19 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
  * @return mgmdQueryInstances_t : 
  */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumberOfQueryInstancesPtr);
+extern mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumberOfQueryInstancesPtr);
 #endif
+
+/**
+ * Get IGMP Client Bitmap
+ *  
+ * @param extendedEvcId       : Extended EVC Id
+ * @param intIfNum            : intIfNum
+ * @param clientBmpPtr        : Client Bitmap Pointer
+ * 
+ * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
+ */
+extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum,L7_uchar8 *clientBmpPtr);
 
 #endif
 

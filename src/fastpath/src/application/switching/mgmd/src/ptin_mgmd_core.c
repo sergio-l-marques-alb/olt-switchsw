@@ -2133,7 +2133,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Membership Report Message");
     ptin_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
-    if (ptinMgmdScheduleReportMessage(mcastPacket->serviceId, &mcastPacket->ebHandle->groupRecordPtr->key.groupAddr, PTIN_IGMP_V3_MEMBERSHIP_REPORT, 0, FALSE, mcastPacket->ebHandle->noOfGroupRecordsToBeSent, mcastPacket->ebHandle->groupRecordPtr) != SUCCESS)
+    if (ptinMgmdScheduleReportMessage(mcastPacket->serviceId, &mcastPacket->ebHandle->groupRecordPtr->key.groupAddr, igmpType, 0, FALSE, mcastPacket->ebHandle->noOfGroupRecordsToBeSent, mcastPacket->ebHandle->groupRecordPtr) != SUCCESS)
     {
       ptin_measurement_timer_stop(30);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed snoopPTinReportSchedule()");
