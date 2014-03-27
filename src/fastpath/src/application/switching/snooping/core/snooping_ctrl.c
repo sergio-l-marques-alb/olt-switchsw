@@ -108,7 +108,28 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode);
 /* PTin Added: MGMD integration */
 #endif
 
+/**
+ * Open an MFDB port for multicast forwarding.
+ * 
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr);
+
+/**
+ * Close an MFDB port for multicast forwarding.
+ * 
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr);
 
 static L7_uchar8 snoopMsgQueueSchedule();
@@ -1018,6 +1039,10 @@ static L7_RC_t snoopIntfMrouterApply(L7_uint32 intIfNum, L7_uint32 mrouter,
 static void snoopVlanModeChangeProcess(L7_uint32 vlanId, L7_uint32 mode,
                                        snoop_cb_t *pSnoopCB)
 {
+#if 1 /* Bypass MFDB port removal when MGMD is active and we receive a link down event */
+    return;
+#endif
+
   /* PTin removed: IGMP snooping */
   #if 0
   L7_uint32            intIfNum, vlanStatus;
@@ -3302,6 +3327,16 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
 }
 #endif /* L7_MCAST_PACKAGE */
 
+/**
+ * Open an MFDB port for multicast forwarding.
+ * 
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr)
 {
   L7_uint16      mcastRootVlan;
@@ -3321,6 +3356,16 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
   }
 }
 
+/**
+ * Close an MFDB port for multicast forwarding.
+ * 
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
 static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr)
 {
   L7_uint16      mcastRootVlan;

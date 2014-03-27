@@ -424,7 +424,7 @@ L7_RC_t mfdbEntryPortsDelete(mfdbMemberInfo_t *mfdbMemberInfo)
   L7_BOOL found = L7_FALSE;
   L7_RC_t rc;
   mfdbData_t pData;
-  
+  L7_uint32 activeFwdPorts;
 
   memset(&pData, 0, sizeof(mfdbData_t));
   vid = (L7_ushort16)mfdbMemberInfo->vlanId;
@@ -468,21 +468,28 @@ L7_RC_t mfdbEntryPortsDelete(mfdbMemberInfo_t *mfdbMemberInfo)
     /* turn 'off' bits in pData's filter mask that are 'on' in mfdbMemberInfo's filter mask */
     L7_INTF_MASKANDEQINV(pData.mfdbUser[index].fltPorts, mfdbMemberInfo->user.fltPorts);
 
-    /* update the tree entry */
-    rc = mfdbTreeEntryUpdate(&pData);
-    if (rc == L7_SUCCESS)
+    /* Is any fwd port still active for this entry? If yes, just update the mfdb entry. Otherwise, remove it */
+    L7_INTF_NONZEROMASK(pData.mfdbUser[index].fwdPorts, activeFwdPorts);
+    if(activeFwdPorts == 1)
     {
-      /*if (mfdbMemberInfo->user.type == L7_MFDB_TYPE_DYNAMIC)*/
+      rc = mfdbTreeEntryUpdate(&pData);
+      if (rc == L7_SUCCESS)
       {
-        /* call dtl from within mfdbDtlAdd() */
-        rc = mfdbDtlAdd(&pData);
+        /*if (mfdbMemberInfo->user.type == L7_MFDB_TYPE_DYNAMIC)*/
+        {
+          /* call dtl from within mfdbDtlAdd() */
+          rc = mfdbDtlAdd(&pData);
+        }
       }
-
       if (rc == L7_SUCCESS)
       {
         /* notify the entry user components */
         mfdbUserComponentsNotify(&pData, (L7_uint32)index, MFDB_ENTRY_PORT_DELETE_NOTIFY);
       }
+    }
+    else
+    {
+      rc = mfdbEntryDelete(mfdbMemberInfo);
     }
 
     return rc;
