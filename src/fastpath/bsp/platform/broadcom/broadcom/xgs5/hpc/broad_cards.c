@@ -1295,6 +1295,31 @@ HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 {      61,     14,     16,      2,     1 },
 {      62,     15,     17,      1,     1 },
 {      63,     15,     17,      2,     1 }};
+
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1[]=
+/*  Port mode / slot  *
+ * ------------------ */
+{ WC_SLOT_MODE_NONE,    /* Slot 1 */
+  WC_SLOT_MODE_1x40G,   /* Slot 2 */
+  WC_SLOT_MODE_1x40G,   /* Slot 3 */
+  WC_SLOT_MODE_1x40G,   /* Slot 4 */
+  WC_SLOT_MODE_NONE  }; /* Slot 5 */
+
+/* PTin added: new switch 5664x (Triumph3) SF */
+HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[] =
+/* portNum slotIdx  WC idx  WCLane Speed *
+ * ------- ------- ------- ------- ----- */
+{{      0,     -1,     -1,      0,    10 },
+{       1,     -1,     -1,      0,    10 },
+{       2,     -1,     -1,      0,    10 },
+{       3,     -1,     -1,      0,    10 },
+{       4,      2,     -1,      0,    40 },
+{       5,      3,     -1,      0,    40 },
+{       6,      4,     -1,      0,    40 },
+{       7,     -1,     -1,      0,     1 }};
+
 #endif
 
 HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1[] =
@@ -1925,6 +1950,10 @@ hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(L7_uint32),
+dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
+#endif
 };
 /* PTin added: new switch 5664x (Triumph3) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 = {

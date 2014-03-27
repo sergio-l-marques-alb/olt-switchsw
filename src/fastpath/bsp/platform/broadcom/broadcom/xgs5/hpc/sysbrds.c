@@ -13,6 +13,7 @@
 #define BCM_LEDPROC_SUPPORT
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <soc/drv.h>
 #include <soc/cm.h>
 
@@ -93,6 +94,9 @@ const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V2[] 
 {        17,        3,        0,       0,      15 }}; /* Lanes inverted for WC 17: slot 15 */
 
 L7_RC_t hpcBoardWCinit_bcm56846(void);
+
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+L7_RC_t hpcBoardWCinit_bcm56640(void);
 #endif
 
 int
@@ -237,7 +241,37 @@ L7_RC_t hpcConfigBoardSet()
 
       /* PTin added: new switch 5664x (Triumph3) SF */
       case UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID:
-        LOG_WARNING(LOG_CTX_STARTUP,"Triumph3-SF not ready to be started!");
+
+        /* Enable trunk_128 bit. This will enable 128 trunks */
+        /* and fixes LAG issue on XGS3 stacking              */
+        if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
+          return(L7_FAILURE);
+
+        /* Configure to use LCPLL reference clock */
+        if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
+          return(L7_FAILURE);
+
+        /* Ports mode */
+        if (sal_config_set(spn_BCM56640_3X42_4X32, "1") != 0)
+          return(L7_FAILURE);
+
+        /* XE ports configuration */
+        if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fffffe0") != 0)
+          return(L7_FAILURE);
+
+        /* For CXO640G */
+        #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+        if (hpcBoardWCinit_bcm56640() == L7_SUCCESS)
+        {
+          LOG_NOTICE(LOG_CTX_STARTUP,"WCs initialized successfully");
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_STARTUP,"Error initializing WCs");
+        }
+        #endif
+
+        LOG_WARNING(LOG_CTX_STARTUP,"Triumph3-SF ready to be started!");
         break;
 
       /* PTin added: new switch 5664x (Triumph3) */
@@ -849,7 +883,7 @@ L7_RC_t hpcConfigBoardPhyPostSet(int       portNo,
   return L7_SUCCESS;
 }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 /**
  * Read a filename with the WC mapping
  * 
@@ -860,7 +894,7 @@ L7_RC_t hpcConfigBoardPhyPostSet(int       portNo,
  * @return L7_RC_t : L7_SUCCESS - Success
  *                   L7_FAILURE - Error processing file
  */
-static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
+L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
 {
   FILE *fp;
   char seps[]=" ,\t\n";
@@ -928,7 +962,9 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
 
   return L7_SUCCESS;
 }
+#endif
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**
  * Validate map
  * 
@@ -1263,5 +1299,36 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 
   return L7_SUCCESS;
 }
-#endif
 
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+/**
+ * Initialize Warpcores for BCM56640
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hpcBoardWCinit_bcm56640(void)
+{
+  /* Specifies the number of lanes used by each port in the flex port group.
+   * portgroup_<port group>=<number of lanes>.
+   * Applicable to BCM566xx and BCM565xx device family */
+  if (sal_config_set(spn_PORTGROUP"_0", "4") != 0)    /* 40G ports */
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_1", "4") != 0)
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_2", "4") != 0)
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_3", "4") != 0)    /* 10G XSGMII ports */
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_4", "4") != 0)
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_5", "4") != 0)
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_6", "4") != 0)
+    return(L7_FAILURE);
+  if (sal_config_set(spn_PORTGROUP"_7", "1") != 0)
+    return(L7_FAILURE);
+
+  return L7_SUCCESS;
+}
+#endif

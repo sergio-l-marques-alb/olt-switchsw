@@ -651,5 +651,26 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 
   return L7_SUCCESS;
 }
+
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+/**
+ * Build a WC map from the array of port modes
+ * 
+ * @param slot_mode : Slot modes
+ * @param retMap    : Map to be returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS - Valid map 
+ *                   L7_NOT_SUPPORTED - Map not valid
+ *                   L7_FAILURE - Error processing file
+ */
+L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
+{
+  memcpy(retMap,
+         dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1,
+         sizeof(HAPI_WC_PORT_MAP_t)*L7_MAX_PHYSICAL_PORTS_PER_UNIT);
+
+  return L7_SUCCESS;
+}
 #endif
 

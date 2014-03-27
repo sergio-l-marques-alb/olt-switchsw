@@ -52,7 +52,7 @@ static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
 
 BROAD_POLICY_t inband_policyId = 0;
 
-#if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
  int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
  int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
  int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
@@ -182,7 +182,7 @@ L7_RC_t ptin_hapi_phy_init(void)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   int i, rv;
   L7_uint32 preemphasis;
 
@@ -204,21 +204,21 @@ L7_RC_t ptin_hapi_phy_init(void)
 
   for (i=1; i<=ptin_sys_number_of_ports; i++)
   {
-    /* Use these settings for all slots */
-    preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
-    
-    rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
-
-    if (!SOC_SUCCESS(rv))
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u", preemphasis, i);
-      rc = L7_FAILURE;
-      break;
-    }
-
     /* 10G ports: disable linkscan */
-    if (hapiWCMapPtr[i-1].wcSpeedG == 10)
+    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
     {
+      /* Use these settings for all slots */
+      preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
+      
+      rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
+
+      if (!SOC_SUCCESS(rv))
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u", preemphasis, i);
+        rc = L7_FAILURE;
+        break;
+      }
+
       #ifdef PTIN_LINKSCAN_CONTROL
       /* Enable linkscan */
       if (ptin_hapi_linkscan_execute(i, L7_DISABLE) != L7_SUCCESS)
@@ -695,7 +695,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -726,14 +726,16 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
   /* Speed of this interface should be 10G */
-  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries || hapiWCMapPtr[ptin_port].wcSpeedG != 10)
+  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
+      hapiWCMapPtr[ptin_port].slotNum < 0 ||                /* Not a backplane port */
+      hapiWCMapPtr[ptin_port].wcSpeedG != 10)               /* Not a 10G port */
   {
     LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
@@ -775,7 +777,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   bcm_pbmp_t pbmp;
   bcm_error_t rv;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -806,14 +808,16 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
   /* Speed of this interface should be 10G */
-  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries || hapiWCMapPtr[ptin_port].wcSpeedG != 10)
+  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||  /* Invalid port */
+      hapiWCMapPtr[ptin_port].slotNum < 0 ||              /* Not a backplane port */
+      hapiWCMapPtr[ptin_port].wcSpeedG != 10)             /* Not a 10G port */
   {
     LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
@@ -3251,7 +3255,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   L7_uint32                     slot, lane;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
   #endif
@@ -3260,12 +3264,12 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
   #endif
 
 /* Not necessary for CXO640G: sysbrds.c is already inverting slots for the protection matrix */
-#if (PTIN_BOARD==PTIN_BOARD_CXP360G)
+#if (PTIN_BOARD == PTIN_BOARD_CXP360G)
 #ifdef MAP_CPLD
   const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
@@ -3287,7 +3291,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   /* Initialize USP map */
   memset(usp_map, 0xff, sizeof(usp_map));   /* -1 for all values */
 
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Initialize slot/lane map */
   memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
@@ -3305,15 +3309,17 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
 
-    #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+    #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Only 10/140/100Gbps ports */
-    if ( hapiWCMapPtr[i].wcSpeedG > 1 )
+    if ( hapiWCMapPtr[i].slotNum >= 0 &&
+         hapiWCMapPtr[i].wcLane >= 0 &&
+         hapiWCMapPtr[i].wcSpeedG > 1 )
     {
       slot = hapiWCMapPtr[i].slotNum;
       lane = hapiWCMapPtr[i].wcLane;
-
+      
       /* Update slot/lane to port map */
-      if (slot<=PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
+      if (slot <= PTIN_SYS_SLOTS_MAX && lane < PTIN_SYS_INTFS_PER_SLOT_MAX)
       {
         ptin_sys_slotport_to_intf_map[slot][lane] = i;
         ptin_sys_intf_to_slot_map[i] = slot;
@@ -3325,7 +3331,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     LOG_INFO(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# bcm_port=%2u", i, usp_map[i].port);
   }
 
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   printf("Slot to intf mapping (%u interfaces):", ptin_sys_number_of_ports);
   for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
   {

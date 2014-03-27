@@ -4,12 +4,12 @@
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 /* To manage linkscan, uncomment this line */
-#define PTIN_LINKSCAN_CONTROL
+//#define PTIN_LINKSCAN_CONTROL
 
 #define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
-#define SYNC_SSM_IS_SUPPORTED
+//#define SYNC_SSM_IS_SUPPORTED
 #define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
 
 
@@ -18,8 +18,8 @@
 # define PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS   0xB720 /* main=50 post=13 */
 
 #define PTIN_SYS_LC_SLOT_MIN        2
-#define PTIN_SYS_LC_SLOT_MAX        19
-#define PTIN_SYS_SLOTS_MAX          20
+#define PTIN_SYS_LC_SLOT_MAX        4
+#define PTIN_SYS_SLOTS_MAX          5
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
 
@@ -27,7 +27,7 @@
 # define PTIN_SLOT_PROT                1
 
 # define PTIN_SYSTEM_N_PORTS           8
-# define PTIN_SYSTEM_N_PONS            0 
+# define PTIN_SYSTEM_N_PONS            0
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   (PTIN_SYSTEM_N_PORTS/2-1)
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
@@ -141,18 +141,18 @@
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-//# define MAP_CPLD
-# define CPLD_BASE_ADDR                0xFF500000
+# define MAP_CPLD
+# define CPLD_BASE_ADDR                0xFE0000000
 
 /* PLD map registers */
-# define CPLD_ID_CXO640G_V1            0x1259
-# define CPLD_ID                       0x1324
+# define CPLD_ID                       0x1377
 # define CPLD_ID0_REG                  0x0000
 # define CPLD_ID1_REG                  0x0001
 # define CPLD_VER_REG                  0x0002
 # define CPLD_HW_ID_REG                0x0008
 # define CPLD_CHASSIS_ID_REG           0x000C
 # define CPLD_SLOT_ID_REG              0x000F
+# define CPLD_MX_IS_ACTIVE             0x001E
 
 typedef union
 {
