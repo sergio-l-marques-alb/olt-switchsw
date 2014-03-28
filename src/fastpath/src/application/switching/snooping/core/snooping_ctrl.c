@@ -1039,7 +1039,7 @@ static L7_RC_t snoopIntfMrouterApply(L7_uint32 intIfNum, L7_uint32 mrouter,
 static void snoopVlanModeChangeProcess(L7_uint32 vlanId, L7_uint32 mode,
                                        snoop_cb_t *pSnoopCB)
 {
-#if 1 /* Bypass MFDB port removal when MGMD is active and we receive a link down event */
+#if 0 /* Bypass MFDB port removal when MGMD is active and we receive a link down event */
     return;
 #endif
 
