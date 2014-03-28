@@ -1910,7 +1910,7 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
      /* Get interface as intIfNum format */
     if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)==L7_SUCCESS)
     {
-      if (ptin_evc_extVlans_get(intIfNum, evc_idx, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                   client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan, uni_ovid, uni_ivid);
@@ -4842,7 +4842,7 @@ L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
   }
 
   /* Get external vlans */
-  if (ptin_evc_extVlans_get(intIfNum,igmpInst->McastEvcId,intIVlan,extMcastVlan,extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get(intIfNum,igmpInst->McastEvcId,(L7_uint32)-1,intIVlan,extMcastVlan,extIVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting external vlans to intIfNum=%u, intOVlan=%u, intIVlan=%u (MCEvcId=%u)",intIfNum,intOVlan,intIVlan,igmpInst->McastEvcId);
@@ -4877,7 +4877,7 @@ L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
   }
 
   /* Get external vlans */
-  if (ptin_evc_extVlans_get(intIfNum,igmpInst->UcastEvcId,intIVlan,extUcastVlan,extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get(intIfNum,igmpInst->UcastEvcId,(L7_uint32)-1,intIVlan,extUcastVlan,extIVlan)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting external vlans to intIfNum=%u, intOVlan=%u, intIVlan=%u (UCEvcId=%u)",intIfNum,intOVlan,intIVlan,igmpInst->UcastEvcId);

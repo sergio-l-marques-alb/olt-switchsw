@@ -1037,24 +1037,24 @@ L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_
  * Get the outer+inner external vlan for a specific 
  * interface+evc_id+innerVlan. 
  *  
- * @param intIfNum    : FP interface#
- * @param evc_ext_id : EVC extended index
- * @param innerVlan   : Inner vlan
- * @param extOVlan    : External outer-vlan 
- * @param extIVlan    : External inner-vlan (01 means that there 
+ * @param intIfNum        : FP interface# 
+ * @param evc_ext_id      : EVC extended index 
+ * @param evc_int_id      : EVC internal index  
+ * @param innerVlan       : Inner vlan
+ * @param extOVlan        : External outer-vlan 
+ * @param extIVlan        : External inner-vlan (01 means that there 
  *                      is no inner vlan)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
+L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
   L7_uint32 ptin_port;
   L7_uint16 ovid, ivid;
   struct ptin_evc_client_s *pclientFlow;
-  L7_uint32 evc_id;
 
   /* Validate arguments */
-  if (intIfNum == 0)
+  if (intIfNum == 0 || ( evc_int_id!=(L7_uint32)-1  && (evc_int_id<PTIN_VLAN_MIN || evc_int_id>PTIN_VLAN_MAX)))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
@@ -1067,11 +1067,15 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint1
     return L7_FAILURE;
   }
 
-  /* Is EVC in use? */
-  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  /*If the internal evc id is not given. We search for it*/
+  if(evc_int_id==(L7_uint32)-1)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_NOT_EXIST;
+    /* Is EVC in use? */
+    if (ptin_evc_ext2int(evc_ext_id, &evc_int_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+      return L7_NOT_EXIST;
+    }
   }
 
   /* Extract and validate intIfNum */
@@ -1080,17 +1084,17 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint1
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
-  if (!evcs[evc_id].intf[ptin_port].in_use)
+  if (!evcs[evc_int_id].intf[ptin_port].in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"IntIfNum=%u/ptin_port=%u is not used in EVC=%u",intIfNum,ptin_port,evc_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC,"IntIfNum=%u/ptin_port=%u is not used in EVC=%u",intIfNum,ptin_port,evc_int_id);
     return L7_FAILURE;
   }
 
   /* Initialize external outer+inner vlans */
-  ovid = evcs[evc_id].intf[ptin_port].out_vlan;
-  if (evcs[evc_id].intf[ptin_port].inner_vlan>0 && evcs[evc_id].intf[ptin_port].inner_vlan<4096)
+  ovid = evcs[evc_int_id].intf[ptin_port].out_vlan;
+  if (evcs[evc_int_id].intf[ptin_port].inner_vlan>0 && evcs[evc_int_id].intf[ptin_port].inner_vlan<4096)
   {
-    ivid = evcs[evc_id].intf[ptin_port].inner_vlan;
+    ivid = evcs[evc_int_id].intf[ptin_port].inner_vlan;
   }
   else
   {
@@ -1098,20 +1102,20 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint1
   }
 
   /* Look to clients/flows for Quattro or standard stacked evcs: */
-  if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
+  if (IS_EVC_QUATTRO(evc_int_id) || IS_EVC_STACKED(evc_int_id))
   {
     /* Interface is leaf? */
-    if (evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
+    if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
     {
       /* Find this client vlan in EVC */
-      ptin_evc_find_client(innerVlan, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+      ptin_evc_find_client(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_id);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
-      ivid = IS_EVC_QUATTRO(evc_id) ? pclientFlow->uni_ivid : 0;    /* Use only inner vid, if EVC is QUATTRO type */
+      ivid = IS_EVC_QUATTRO(evc_int_id) ? pclientFlow->uni_ivid : 0;    /* Use only inner vid, if EVC is QUATTRO type */
     }
   }
 
@@ -1409,7 +1413,7 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
  */
 L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
-  L7_uint evc_id;
+  L7_uint evc_int_id;
   L7_uint evc_ext_id;
 
   /* Validate arguments */
@@ -1420,17 +1424,17 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   }
 
   /* Get evc id and validate it */
-  evc_id = evcId_from_internalVlan[intOVlan];
-  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  evc_int_id = evcId_from_internalVlan[intOVlan];
+  if (evc_int_id>=PTIN_SYSTEM_N_EVCS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
     return L7_FAILURE;
   }
 
-  evc_ext_id = evcs[evc_id].extended_id;
+  evc_ext_id = evcs[evc_int_id].extended_id;
 
   /* Get external vlans */
-  if (ptin_evc_extVlans_get(intIfNum, evc_ext_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get(intIfNum, evc_ext_id,evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
     return L7_FAILURE;

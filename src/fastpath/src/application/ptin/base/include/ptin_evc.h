@@ -342,7 +342,8 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  * interface+evc_id+innerVlan. 
  *  
  * @param intIfNum   : FP interface#
- * @param evc_ext_id : EVC extended index
+ * @param evc_ext_id : EVC extended index 
+ * @param evc_ext_id : EVC internal index 
  * @param innerVlan  : Inner vlan
  * @param extOVlan   : External outer-vlan 
  * @param extIVlan   : External inner-vlan (01 means that there 
@@ -350,7 +351,7 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 #if 0
 /**
