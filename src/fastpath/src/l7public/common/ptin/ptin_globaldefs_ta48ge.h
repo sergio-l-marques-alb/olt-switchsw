@@ -223,5 +223,9 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_SERVER_IPADDR             0xC0A8C865  /* 192.168.200.101 Hardcoded!!! */
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */
 
+// MX IP address
+# define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
+# define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
+
 #endif /* _PTIN_GLOBALDEFS_TA48GE_H */
 

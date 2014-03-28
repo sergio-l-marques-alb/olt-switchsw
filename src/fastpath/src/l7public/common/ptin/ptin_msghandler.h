@@ -58,6 +58,7 @@
 
 #define CCMSG_MGMD_PORT_SYNC                0x9029  // struct msg_HwMgmdPortSync
 
+#define CCMSG_TYPEB_PROT_SWITCH_NOTIFY      0x902A  // struct msg_HwTypeBProtSwitchNotify_t
 #define CCMSG_TYPEB_PROT_INTF_CONFIG        0x902B  // struct msg_HwTypeBProtIntfConfig_t
 
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
@@ -697,14 +698,22 @@ typedef struct {
 // Messages CCMSG_MGMD_PORT_SYNC
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint8  admin;
-  L7_uint32 serviceId;                                /* EVC id */
+  L7_uint8  admin;      // [L7_ENABLE; L7_DISABLE]
+  L7_uint32 serviceId;  
   L7_uint32 portId;
   L7_uint32 groupAddr;
   L7_uint32 sourceAddr;
+  L7_uint8  groupType;  // [0-dynamic; 1-static] (ignored when admin is L7_DISABLE)
 } __attribute__((packed)) msg_HwMgmdPortSync;
 
 /* Type-B Protection */
+//Message CCMSG_TYPEB_PROT_SWITCH_NOTIFY
+typedef struct {
+  L7_uint8 slotId;
+  L7_uint8 portId;
+  L7_uint8 cmd;    // bit[0] [1-active; 0-inactive]
+} __attribute__((packed)) msg_HwTypeBProtSwitchNotify_t;;
+
 // Message CCMSG_TYPEB_PROT_INTF_CONFIG
 typedef struct {
   L7_uint8             slotId;

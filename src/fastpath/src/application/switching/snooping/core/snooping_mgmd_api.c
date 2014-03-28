@@ -21,15 +21,26 @@
 #include "snooping_proto.h"
 #include "snooping_db.h"
 
-//#include "ipc.h"
-//#include "ptin_msghandler.h"
+#include "ipc.h"
+#include "ptin_msghandler.h"
 
-//Internal Static Routines
+#define DANIEL_MGMD_PROTB_DISABLED //Defined to deactivate all code responsible for sync dynamic groups between protection cards and matrix
+
+
+/* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
 #endif
-//End Static
+#ifndef DANIEL_MGMD_PROTB_DISABLED
+static L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId);
+static L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr);
+#if PTIN_BOARD_IS_LINECARD
+static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+#endif
+static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+#endif
 
+/* Initialization of the external API struct */
 ptin_mgmd_externalapi_t mgmd_external_api = {
   .igmp_admin_set = snooping_igmp_admin_set,
   .mld_admin_set  = snooping_mld_admin_set,
@@ -42,12 +53,214 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .tx_packet      = snooping_tx_packet,
 };
 
-RC_t snooping_igmp_admin_set(uint8 admin)
+
+#ifndef DANIEL_MGMD_PROTB_DISABLED
+/**
+ * Get active/backup matrix slot id.
+ * 
+ * @param matrixType : Matrix type (1-active; 0-backup)
+ * @param slotId     : Variable where the matrix slotId will be written
+ * 
+ * @return L7_RC_t 
+ *  
+ * @note When this method is used in a linecard, the matrixType parameter is ignored and the slotId returned always belongs to the active matrix 
+ */
+L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
+{
+#if PTIN_BOARD_IS_MATRIX
+  L7_uint8 activeMatrixSlotId;
+  L7_uint8 backupMatrixSlotId;
+#endif
+
+  if(slotId == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid context [slotId:%p]", slotId);
+    return L7_FAILURE;
+  }
+
+#if PTIN_BOARD_IS_MATRIX
+  if((matrixType != 1) && (matrixType != 0))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix type [%u]", matrixType);
+    return L7_FAILURE;
+  }
+
+  if(cpld_map->reg.mx_is_active == 1)
+  {
+    activeMatrixSlotId = cpld_map->reg.slot_id;
+    backupMatrixSlotId = 21 - activeMatrixSlotId;
+  }
+  else
+  {
+    backupMatrixSlotId = cpld_map->reg.slot_id;
+    activeMatrixSlotId = 21 - backupMatrixSlotId;
+  }
+
+  if(matrixType == 1) //Return active matrix slot ID
+  {
+    *slotId = activeMatrixSlotId;
+  }
+  else if(matrixType == 0) //Return backup matrix slot ID
+  {
+    *slotId = backupMatrixSlotId;
+  }
+#elif PTIN_BOARD_IS_LINECARD
+  *slotId = cpld_map->reg.slot_matrix;
+#endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get active/backup matrix IP address.
+ * 
+ * @param matrixType : Matrix type (1-active; 0-backup)
+ * @param ipAddr     : Variable where the matrix IP will be written
+ * 
+ * @return L7_RC_t 
+ *  
+ * @note When this method is used in a linecard, the matrixType parameter is ignored and the IP address returned always belongs to the active matrix 
+ */
+L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr)
+{
+  L7_uint8 matrixSlotId;
+
+  if(ipAddr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid context [ipAddr:%p]", ipAddr);
+    return L7_FAILURE;
+  }
+
+#if PTIN_BOARD_IS_MATRIX
+  if((matrixType != 1) && (matrixType != 0))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix type [%u]", matrixType);
+    return L7_FAILURE;
+  }
+#endif
+
+  if(L7_SUCCESS != __matrix_slotid_get(matrixType, &matrixSlotId))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Unable to get matrix slot id");
+    return L7_FAILURE;
+  }
+
+  if(matrixSlotId == 1)
+  {
+    *ipAddr = IPC_MX_IPADDR_WORKING;
+  }
+  else if(matrixSlotId == 20)
+  {
+    *ipAddr = IPC_MX_IPADDR_PROTECTION;
+  }
+
+  return L7_SUCCESS;
+}
+
+#if PTIN_BOARD_IS_LINECARD
+/**
+ * Send CCMSG_MGMD_PORT_SYNC message to a remote slot to sync a MGMD MFDB port.
+ * 
+ * @param slotId     : Protection slot
+ * @param admin      : L7_ENABLE/L7_DISABLE
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID (intfnum)
+ * @param groupAddr  : Group IP
+ * @param sourceAddr : Source IP
+ * @param groupType  : Group type (0-dynamic; 1-static)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+{
+  msg_HwMgmdPortSync mgmdPortSync = {0};
+  L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+
+  /* Determine protection slot/ip/interface */
+  protectionSlotIp |= (slotId+1) & 0x000000FF;
+
+  /* Fill the sync structure */
+  mgmdPortSync.SlotId     = slotId;
+  mgmdPortSync.admin      = admin;
+  mgmdPortSync.serviceId  = serviceId;
+  mgmdPortSync.portId     = portId;
+  mgmdPortSync.groupAddr  = groupAddr;
+  mgmdPortSync.sourceAddr = sourceAddr;
+  mgmdPortSync.groupType  = groupType;
+
+  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to set port %u admin to %u", protectionSlotIp, slotId, portId, admin);
+
+  /* Send the mfdb port configurations to the remote slot */
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
+/**
+ * Send CCMSG_MGMD_PORT_SYNC message to a matrix (active or backup) to open/close a port in the MFDB.
+ * 
+ * @param admin      : L7_ENABLE/L7_DISABLE
+ * @param matrixType : Matrix type (1-active; 0-backup)
+ * @param serviceId  : Service ID
+ * @param slotId     : Slot ID
+ * @param groupAddr  : Group IP
+ * @param sourceAddr : Source IP
+ * @param groupType  : Group type (0-dynamic; 1-static)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+{
+  msg_HwMgmdPortSync mgmdPortSync = {0};
+  L7_uint32          matrixIpAddr = 0;
+  L7_uint8           matrixSlotId;
+
+  /* Determine active/backup matrix slotId and IP address */
+  if(L7_SUCCESS != __matrix_slotid_get(matrixType, &matrixSlotId))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Unable to get matrix slot ID");
+    return L7_FAILURE;
+  }
+  if(L7_SUCCESS != __matrix_ipaddr_get(matrixType, &matrixIpAddr))
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Unable to get matrix IP address");
+    return L7_FAILURE;
+  }
+
+  /* Fill the sync structure */
+  mgmdPortSync.SlotId     = matrixSlotId;
+  mgmdPortSync.admin      = admin;
+  mgmdPortSync.serviceId  = serviceId;
+  mgmdPortSync.portId     = portId;
+  mgmdPortSync.groupAddr  = groupAddr;
+  mgmdPortSync.sourceAddr = sourceAddr;
+  mgmdPortSync.groupType  = groupType;
+
+  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to set port %u admin to %u", matrixIpAddr, matrixSlotId, portId, admin);
+
+  /* Send the mfdb port configurations to the remote slot */
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+#endif //DANIEL_MGMD_PROTB_DISABLED
+
+
+unsigned int snooping_igmp_admin_set(unsigned char admin)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
 
   // Snooping global activation
-  if (L7_SUCCESS != usmDbSnoopAdminModeSet( 1, admin, L7_AF_INET))  {
+  if (L7_SUCCESS != usmDbSnoopAdminModeSet(1, admin, L7_AF_INET))  {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeSet");
     return FAILURE;
   }
@@ -55,12 +268,12 @@ RC_t snooping_igmp_admin_set(uint8 admin)
   return SUCCESS;
 }
 
-RC_t snooping_mld_admin_set(uint8 admin)
+unsigned int snooping_mld_admin_set(unsigned char admin)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
 
   // Snooping global activation
-  if (L7_SUCCESS != usmDbSnoopAdminModeSet( 1, admin, L7_AF_INET6))  {
+  if (L7_SUCCESS != usmDbSnoopAdminModeSet(1, admin, L7_AF_INET6))  {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeSet");
     return FAILURE;
   }
@@ -68,7 +281,7 @@ RC_t snooping_mld_admin_set(uint8 admin)
   return SUCCESS;
 }
 
-RC_t snooping_cos_set(uint8 cos)
+unsigned int snooping_cos_set(unsigned char cos)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [cos:%u]", cos);
 
@@ -82,7 +295,7 @@ RC_t snooping_cos_set(uint8 cos)
   return SUCCESS;
 }
 
-RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList)
+unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList)
 {
   L7_INTF_MASK_t interfaceBitmap = {{0}};
   L7_uint16      mcastRootVlan;
@@ -144,7 +357,7 @@ RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTI
   return SUCCESS;
 }
 
-RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType)
+unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
 {
   L7_uint16 mcastRootVlan;
 
@@ -175,8 +388,7 @@ RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_
   return SUCCESS;
 }
 
-
-RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList)
+unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
 
@@ -193,7 +405,7 @@ RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_M
   return SUCCESS;
 }
 
-RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic)
+unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic)
 {
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
@@ -235,47 +447,34 @@ RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint3
     }
   }
 
-#if (PTIN_BOARD_IS_MATRIX)
-#else
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
-
-  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
-  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+#ifndef DANIEL_MGMD_PROTB_DISABLED
+  /*
+   * Sync MFDB ports to the protection type-b linecard and backup matrix. 
+   * However, do this only for dynamic ports! Static ports are already sent to those cards by the management layer. 
+   */
+  if(isStatic != L7_TRUE)
   {
-//  msg_HwMgmdPortSync mgmdPortSync = {0};
-    L7_uint32          protectionSlotId;
-    L7_uint32          protectionIntfId;
-    L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+#if PTIN_BOARD_IS_MATRIX
+    /* Sync the status of this switch port on the backup backup matrix, if it exists */
+    __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
+#else
+    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
-    /* Determine protection slot/ip/interface */
-    protectionSlotId  = protTypebIntfConfig.pairSlotId;
-    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
-    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
-
-    /* Fill the sync structure */
-//  mgmdPortSync.SlotId     = protectionSlotId;
-//  mgmdPortSync.admin      = L7_ENABLE;
-//  mgmdPortSync.serviceId  = serviceId;
-//  mgmdPortSync.portId     = portId;
-//  mgmdPortSync.groupAddr  = groupAddr;
-//  mgmdPortSync.sourceAddr = sourceAddr;
-
-    LOG_INFO(LOG_CTX_PTIN_PROTB, "This port is the prot-typeb master of %u/%u", protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
-    LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to open port %u as well", protectionSlotIp, protectionSlotId, protectionIntfId);
-
-    /* Send the switch port configurations to the backup port */
-//  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
-//  }
-  }
+    /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+    ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+    if(protTypebIntfConfig.status == L7_ENABLE)
+    {
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr, sourceAddr, isStatic);
+      __matrix_mfdbport_sync(L7_ENABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, isStatic);
+    }
 #endif
+  }
+#endif //DANIEL_MGMD_PROTB_DISABLED
 
   return rc;
 }
 
-RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr)
+unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {
   L7_RC_t        rc = L7_SUCCESS;
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
@@ -317,59 +516,39 @@ RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
     }
   }
 
-#if (PTIN_BOARD_IS_MATRIX)
-#else
+#ifndef DANIEL_MGMD_PROTB_DISABLED
+#if PTIN_BOARD_IS_MATRIX
+  /* Sync the status of this switch port on the backup backup matrix, if it exists */
+  __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, portId, groupAddr, sourceAddr, L7_FALSE);
+#elif PTIN_BOARD_IS_LINECARD
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
   /* Sync the status of this switch port on the backup type-b protection port, if it exists */
   ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
-  if(protTypebIntfConfig.intfRole==PROT_TYPEB_ROLE_WORKING)
+  if(protTypebIntfConfig.status == L7_ENABLE)
   {
-//  msg_HwMgmdPortSync mgmdPortSync = {0};
-    L7_uint32          protectionSlotId;
-    L7_uint32          protectionIntfId;
-    L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
-
-    /* Determine protection slot/ip/interface */
-    protectionSlotId  = protTypebIntfConfig.pairSlotId;
-    protectionSlotIp |= (protectionSlotId+1) & 0x000000FF;
-    protectionIntfId  = protTypebIntfConfig.pairIntfNum;
-
-    /* Fill the sync structure */
-//  mgmdPortSync.SlotId     = protectionSlotId;
-//  mgmdPortSync.admin      = L7_DISABLE;
-//  mgmdPortSync.serviceId  = serviceId;
-//  mgmdPortSync.portId     = portId;
-//  mgmdPortSync.groupAddr  = groupAddr;
-//  mgmdPortSync.sourceAddr = sourceAddr;
-
-    LOG_INFO(LOG_CTX_PTIN_PROTB, "This port is the prot-typeb master of %u/%u", protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
-    LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to close port %u as well", protectionSlotIp, protectionSlotId, protectionIntfId);
-
-    /* Send the switch port configurations to the backup port */
-//  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
-//  }
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr, sourceAddr, L7_FALSE);
+    __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, L7_FALSE);
   }
 #endif
+#endif //DANIEL_MGMD_PROTB_DISABLED
 
   return rc;
 }
 
-RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family)
+unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family)
 {
-  L7_uint16             shortVal;
-  L7_uchar8             srcMac[L7_MAC_ADDR_LEN];
-  L7_uchar8             destMac[L7_MAC_ADDR_LEN];
-  L7_uchar8             packet[L7_MAX_FRAME_SIZE];
-  L7_uchar8             *dataPtr;
-  L7_uint32             packetLength = payloadLength;
-  L7_uint32             dstIpAddr;
-  L7_inet_addr_t        destIp;
-  L7_uint32             activeState;  
-  L7_uint16             int_ovlan; 
-  L7_uint16             int_ivlan=0; 
+  L7_uint16      shortVal;
+  L7_uchar8      srcMac[L7_MAC_ADDR_LEN];
+  L7_uchar8      destMac[L7_MAC_ADDR_LEN];
+  L7_uchar8      packet[L7_MAX_FRAME_SIZE];
+  L7_uchar8      *dataPtr;
+  L7_uint32      packetLength = payloadLength;
+  L7_uint32      dstIpAddr;
+  L7_inet_addr_t destIp;
+  L7_uint32      activeState;  
+  L7_uint16      int_ovlan; 
+  L7_uint16      int_ivlan=0; 
   ptin_IgmpProxyCfg_t   igmpCfg;
    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);

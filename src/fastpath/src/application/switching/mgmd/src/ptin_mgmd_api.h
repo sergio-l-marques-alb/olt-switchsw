@@ -40,20 +40,20 @@
 
 typedef struct
 {
-  RC_t (*igmp_admin_set) (uint8 admin);
-  RC_t (*mld_admin_set)  (uint8 admin);
+  unsigned int (*igmp_admin_set) (unsigned char admin);
+  unsigned int (*mld_admin_set)  (unsigned char admin);
 
-  RC_t (*cos_set)        (uint8 cos);
+  unsigned int (*cos_set)        (unsigned char cos);
                          
-  RC_t (*portList_get)   (uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
-  RC_t (*portType_get)   (uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);
+  unsigned int (*portList_get)   (unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
+  unsigned int (*portType_get)   (unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType);
                          
-  RC_t (*clientList_get) (uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
+  unsigned int (*clientList_get) (unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
                          
-  RC_t (*port_open)      (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
-  RC_t (*port_close)     (uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
+  unsigned int (*port_open)      (unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic);
+  unsigned int (*port_close)     (unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr);
                          
-  RC_t (*tx_packet)      (uchar8 *framePayload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+  unsigned int (*tx_packet)      (unsigned char *framePayload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family);
 } ptin_mgmd_externalapi_t;
 
 

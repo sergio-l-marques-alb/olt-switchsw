@@ -69,6 +69,15 @@ extern void ptin_msg_defaults_reset(void);
 extern L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg);
 
 /**
+ * TYPE B Protection interface switch notification
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg);
+
+/**
  * TYPE B Protection Interface Configuration
  * 
  * @param msg : (no meaning)

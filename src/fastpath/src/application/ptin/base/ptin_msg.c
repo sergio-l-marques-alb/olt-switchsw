@@ -177,6 +177,45 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 }
 
 /**
+ * TYPE B Protection interface switch notification
+ * 
+ * @param msg : (no meaning)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
+{
+  L7_RC_t   rc;
+  L7_uint32 portId;
+  L7_uint8  status;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Type-B Protection switch notification");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " slotId = %u"   , msg->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " portId = %u", msg->portId); //ptin_port format
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " cmd    = %08X" , msg->cmd);
+
+  /* Convert portId to intfNum */
+  if (ptin_intf_port2intIfNum(msg->portId, &portId)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    return L7_FAILURE;
+  }
+
+  /* Get interface status from the first bit of msg->cmd */
+  status = msg->cmd & 0x0001;
+
+  /* Update interface configurations */
+  rc = ptin_prottypeb_intf_switch_notify(portId, status);
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * TYPE B Protection Interface Configuration
  * 
  * @param msg : (no meaning)
@@ -245,10 +284,10 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
  */
 L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 {
-  #if (PTIN_BOARD_IS_MATRIX)
+  L7_RC_t   rc = L7_SUCCESS;
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint32 lag_idx;
   L7_uint32 intIfNum;
-  L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d)", msg->slot);
 
@@ -261,19 +300,22 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
       rc = fdbFlushByPort(intIfNum);
     }
   }
+  #endif
 
+#if PTIN_BOARD_IS_LINECARD
   /* Reset MGMD General Querier state */
   rc = ptin_igmp_generalquerier_reset();
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
   }
+#endif
 
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "return %d", rc);
   }
-  #endif
+  
 
   return L7_SUCCESS;
 }
@@ -6074,11 +6116,14 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
 L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
-  LOG_INFO(LOG_CTX_PTIN_MSG, " admin      = %u", port_sync_data->admin);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " serviceId  = %u", port_sync_data->serviceId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " portId     = %u", port_sync_data->portId);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
   LOG_INFO(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
   LOG_INFO(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
+  LOG_INFO(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
+
+  ptin_igmp_mgmd_port_sync(port_sync_data->admin, port_sync_data->serviceId, port_sync_data->portId, port_sync_data->groupAddr, port_sync_data->sourceAddr, port_sync_data->groupType);
 
   return L7_SUCCESS;
 }

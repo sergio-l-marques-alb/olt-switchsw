@@ -11015,6 +11015,62 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
 }
 
 
+/**
+ * Open/close ports on the switch for the requested channel 
+ *  
+ * @param admin      : Admin (L7_ENABLE; L7_DISABLE)
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID (intfNum)
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * @param groupType  : Dynamic or static port (0-dynamic; 1-static)
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_IGMP, "Received request to sync port");
+
+#if PTIN_BOARD_IS_MATRIX
+  L7_uint32 slotId;
+  L7_uint32 lagId;
+
+  /* 
+   * PortId is a slot in the matrix context. We need to convert it first, but only if this is the active matrix.
+   * The backup matrix only receives sync requests from the active matrix. Hence, the ports are already converted.
+   */
+  if(cpld_map->reg.mx_is_active == 1)
+  {
+    slotId = portId;
+    ptin_intf_slot2lagIdx(slotId, &lagId);
+    ptin_intf_lag2intIfNum(lagId, &portId);
+  }
+#endif
+
+  if(admin == L7_ENABLE)
+  {
+    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to open port");
+    rc = snooping_port_open(serviceId, portId, groupAddr, sourceAddr, groupType);
+    return rc;
+  }
+  else if(admin == L7_DISABLE)
+  {
+    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to close port");
+    rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
+    return rc;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
 /*********************************************************** 
  * QUEUES MANAGEMENT FUNCTIONS
  ***********************************************************/

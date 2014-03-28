@@ -1212,5 +1212,19 @@ extern mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumber
  */
 extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum,L7_uchar8 *clientBmpPtr);
 
+/**
+ * Open/close ports on the switch for the requested channel 
+ *  
+ * @param admin      : Admin (L7_ENABLE; L7_DISABLE)
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID (intfNum)
+ * @param groupAddr  : Group IP Address
+ * @param sourceAddr : Source IP Address
+ * @param groupType  : Dynamic or static port (0-dynamic; 1-static)
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+
 #endif
 

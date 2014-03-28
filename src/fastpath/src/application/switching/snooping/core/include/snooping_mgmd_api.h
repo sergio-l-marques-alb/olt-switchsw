@@ -15,20 +15,20 @@
 #include "ptin_mgmd_api.h"
 #include "ptin_mgmd_defs.h"
 
-RC_t snooping_igmp_admin_set(uint8 admin);
-RC_t snooping_mld_admin_set(uint8 admin);
+unsigned int snooping_igmp_admin_set(unsigned char admin);
+unsigned int snooping_mld_admin_set(unsigned char admin);
 
-RC_t snooping_cos_set(uint8 admin);
+unsigned int snooping_cos_set(unsigned char cos);
 
-RC_t snooping_portList_get(uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
-RC_t snooping_portType_get(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);
+unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
+unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType);
 
-RC_t snooping_clientList_get(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
+unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
 
-RC_t snooping_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
-RC_t snooping_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
+unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic);
+unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr);
 
-RC_t snooping_tx_packet(uchar8 *payload, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family);
 
 #endif /* SNOOPING_MGMD_API_H */
 
