@@ -1944,6 +1944,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   ptin_mgmd_externalapi_t externalApi;
   RC_t                    rc = SUCCESS;
   uint8                   igmp_stat_field;
+  BOOL                    clientListGet=FALSE;
 
   /* Send packet */        
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
@@ -1983,12 +1984,15 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   {
     case PTIN_IGMP_MEMBERSHIP_QUERY:
       igmp_stat_field=SNOOP_STAT_FIELD_GENERAL_QUERY_TX;
+      clientListGet=TRUE;      
       break;
     case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
       igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
+      clientListGet=TRUE;
       break;
     case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
       igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
+      clientListGet=TRUE;
       break;
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
@@ -2005,7 +2009,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
       return FAILURE;  
   }
 
-  if (mcastPacket->clientId == (uint32) -1) 
+  if (clientListGet==TRUE) 
   {
     PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
     uint32                  clientIdx;
