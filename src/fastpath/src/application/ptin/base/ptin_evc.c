@@ -1054,7 +1054,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
   struct ptin_evc_client_s *pclientFlow;
 
   /* Validate arguments */
-  if (intIfNum == 0 || ( evc_int_id!=(L7_uint32)-1  && (evc_int_id<PTIN_VLAN_MIN || evc_int_id>PTIN_VLAN_MAX)))
+  if (intIfNum == 0 || ( evc_int_id!=(L7_uint32)-1  && evc_int_id>=PTIN_SYSTEM_N_EVCS))
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
     return L7_FAILURE;
