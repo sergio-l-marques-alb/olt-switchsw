@@ -208,11 +208,11 @@ CFGFLAGS += -DBCM_PLATFORM_STRING=\"OLT_P2040\"
 #CFGFLAGS += -DSAL_BDE_32BIT_USER_64BIT_KERNEL
 CFGFLAGS += -DPHYS_ADDRS_ARE_64BITS
 #CFGFLAGS += -DSAL_BDE_USE_MMAP2
-#CFGFLAGS += -DSAL_BDE_CACHE_DMA_MEM
+CFGFLAGS += -DSAL_BDE_CACHE_DMA_MEM
 CFGFLAGS += -DSAL_BDE_DMA_MEM_DEFAULT=16
 #CFGFLAGS += -DNONCOHERENT_DMA_MEMORY
 #CFGFLAGS += -DREMAP_DMA_NONCACHED
-#CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ=1
+CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ=1
 #CFGFLAGS += -DPTRS_ARE_64BITS
 
 # Extra variables.
@@ -263,7 +263,7 @@ CFLAGS += -DBCM_PLX9656_LOCAL_BUS -DBDE_LINUX_NON_INTERRUPTIBLE
 endif
 
 ifeq (,$(KFLAGS))
-KFLAGS := -D__KERNEL__ -m32 -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -mhard-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
+KFLAGS := -D__KERNEL__ -m32 -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -mhard-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500mc -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
 endif
 
 # Use MSI interrupts if kernel is compiled with MSI support.
