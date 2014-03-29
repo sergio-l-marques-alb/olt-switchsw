@@ -26,7 +26,7 @@
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
 
-# define PTIN_SYSTEM_N_PORTS           8
+# define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            0
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   (PTIN_SYSTEM_N_PORTS/2-1)

@@ -192,7 +192,7 @@
     "BCM56640-4x10GE-4x40GE-1GIG",              /* cardModel  */
     "Broadcom BCM56640 - 4x10G + 4x40G + 1GIG Ethernet Switch-Fabric",  /* cardDescription  */
     SYSAPI_CARD_TYPE_LINE,            /* type       */
-    8,
+    17,
     SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
     SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */

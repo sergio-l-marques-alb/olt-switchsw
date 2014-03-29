@@ -136,9 +136,9 @@
 /* PTin added: new switch 5664x (Triumph3) SF */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    8
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           8  
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           8
+#define L7_MAX_PORTS_PER_SLOT                    17
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           17 
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           17
 
 #else
 /* PTin end */
