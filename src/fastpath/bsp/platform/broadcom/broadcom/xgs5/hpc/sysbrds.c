@@ -40,14 +40,12 @@
 
 #include "soc/drv.h"
 #include "broad_ids.h"
+#include "broad_hpc_db.h"
 
 #include "ptin_globaldefs.h"  /* PTin added */
 #include "logger.h"           /* PTin added */
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-#include "broad_hpc_db.h"
-
-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
 const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1[] =
 /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
@@ -1162,10 +1160,10 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 
   /* Read map from file */
   /* Get slot modes from file */
-  if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode)==L7_SUCCESS)
+  if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode) == L7_SUCCESS)
   {
     /* Test new map */
-    if (hpcConfigWCmap_build(slot_mode, L7_NULLPTR)==L7_SUCCESS)
+    if (hpcConfigWCmap_build(slot_mode, L7_NULLPTR) == L7_SUCCESS)
     {
       memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
       LOG_INFO(LOG_CTX_STARTUP,"Slot mode list is valid! Slot mode list updated successfully");
@@ -1303,20 +1301,262 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 
 /**
+ * Validate map
+ * 
+ * @param wcMap : WC map
+ * 
+ * @return L7_RC_t : L7_SUCCESS - Valid map 
+ *                   L7_NOT_SUPPORTED - Map not valid
+ *                   L7_FAILURE - Error processing file
+ */
+static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
+{
+  L7_int    port;
+
+  /* Validate arguments */
+  if (wcMap==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Run all ports */
+  for (port=0; port < L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
+  {
+    /* Should we validate this entry? */
+    if (wcMap[port].slotNum < 0 || wcMap[port].wcSpeedG == 0)
+      continue;
+
+    /* Validate slotnum */
+    if (wcMap[port].slotNum < PTIN_SYS_LC_SLOT_MIN || wcMap[port].slotNum > PTIN_SYS_LC_SLOT_MAX)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Invalid slot (%u) for port %u", wcMap[port].slotNum, port);
+      return L7_FAILURE;
+    }
+
+    /* Validate lane */
+    if (wcMap[port].wcLane < 0 || wcMap[port].wcLane >= WC_MAX_LANES)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Invalid lane (%u) for port %u", wcMap[port].wcLane, port);
+      return L7_FAILURE;
+    }
+    
+    /* Validate speed */
+    if (wcMap[port].wcSpeedG != 1 && wcMap[port].wcSpeedG != 10 && wcMap[port].wcSpeedG != 20 && wcMap[port].wcSpeedG != 40)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Invalid speed (%u) for port %u", wcMap[port].wcSpeedG, port);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Initialize Warpcores for BCM56640
  * 
  * @return L7_RC_t 
  */
 L7_RC_t hpcBoardWCinit_bcm56640(void)
 {
+  L7_int  fport_idx, port_idx, i;
+  L7_int  slot, lane, speed, portgroup;
+  HAPI_CARD_SLOT_MAP_t *dapiBroadBaseCardSlotMap;
+  HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
+  L7_uint32 slot_mode[PTIN_SYS_SLOTS_MAX];
+  char param_name[51], param_value[21];
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G   = {L7_PORT_DESC_BCOM_1G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_40G_KR4};
+
+  memset(wcMap, 0x00, sizeof(wcMap));
+  memset(slot_mode, 0x00, sizeof(slot_mode));
+
+  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (is_matrix_protection() ? "Protection" : "Working"));
+
+  /* Read map from file */
+  /* Get slot modes from file */
+  if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode) == L7_SUCCESS)
+  {
+    /* Test new map */
+    if (hpcConfigWCmap_build(slot_mode, L7_NULLPTR) == L7_SUCCESS)
+    {
+      memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1, slot_mode, sizeof(slot_mode));
+      LOG_INFO(LOG_CTX_STARTUP,"Slot mode list is valid! Slot mode list updated successfully");
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Error validating WC map! Assuming default slot mode list.");
+    }
+  }
+  else
+  {
+    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
+  }
+
+  /* Printing out slot mode list */
+  LOG_DEBUG(LOG_CTX_STARTUP,"Slot map:");
+  for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+  {
+    LOG_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i+1, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1[i]);
+  }
+
+  /* Create map */
+  if (hpcConfigWCmap_build(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1, wcMap) == L7_SUCCESS)
+  {
+    memcpy(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1, wcMap, sizeof(wcMap));
+    LOG_INFO(LOG_CTX_STARTUP,"WC map updated successfully");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
+    return L7_FAILURE;
+  }
+
+  /* Printing out port map */
+  LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
+  for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
+  {
+    LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%2d WCidx=%2d WClane=%d Speed=%2uG",
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].portNum,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].slotNum,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcIdx,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcLane,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcSpeedG);
+  }
+
+  /* Validate map */
+  if (hpcConfigWCmap_validate(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Not valid WC map!");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_STARTUP,"WC map is valid!");
+
+  /* Pointer to port list */
+  dapiBroadBaseCardSlotMap = dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1;
+
+  memset(dapiBroadBaseCardSlotMap, 0x00, sizeof(HAPI_CARD_SLOT_MAP_t)*L7_MAX_PHYSICAL_PORTS_PER_UNIT);
+
+  fport_idx = 0;
+  /* Portgroup mapping */
+  for (port_idx = 0; port_idx < L7_MAX_PHYSICAL_PORTS_PER_UNIT; port_idx++)
+  {
+    LOG_INFO(LOG_CTX_STARTUP,"port_idx=%d",port_idx);
+    slot  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].slotNum;
+    lane  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].wcLane;
+    speed = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].wcSpeedG;
+    LOG_INFO(LOG_CTX_STARTUP,"data obtained for port_idx=%2d: slot=%d, lane=%d, speed=%2d", port_idx, slot, lane, speed);
+
+    /* Speed == 0, signals end of port sweeping */
+    if (speed == 0)
+      break;
+
+    /* Backplane port */
+    if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
+    {
+      LOG_INFO(LOG_CTX_STARTUP,"Slot valid for port_idx=%d (%d)", port_idx, slot);
+
+      /* Calculate portgroup from slot id */
+      portgroup = (is_matrix_protection()) ? (PTIN_SYS_LC_SLOT_MAX - slot) : (slot - PTIN_SYS_LC_SLOT_MIN);
+
+      /* Only apply portgroup configuration once port WC */
+      if (lane == 0)
+      {
+        LOG_INFO(LOG_CTX_STARTUP, "port_idx=%d: portgroup=%d", port_idx, portgroup); 
+        sprintf(param_name, spn_PORTGROUP"_%u", portgroup);
+        sprintf(param_value, "%u", (speed == 40) ? 4 : ((speed == 20) ? 2 : 1));
+
+        LOG_INFO(LOG_CTX_STARTUP, "slot=%d: sal_config_set(%s,%s)", slot, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+      }
+
+      /* Update port list */
+      dapiBroadBaseCardSlotMap[port_idx].slotNum = 0;
+      dapiBroadBaseCardSlotMap[port_idx].portNum = port_idx;
+      dapiBroadBaseCardSlotMap[port_idx].bcm_cpuunit = 0;
+      dapiBroadBaseCardSlotMap[port_idx].bcm_port    = portgroup*4 + 5 + lane;
+    }
+    /* Not backplane ports */
+    else
+    {
+      /* Update port list */
+      dapiBroadBaseCardSlotMap[port_idx].slotNum = 0;
+      dapiBroadBaseCardSlotMap[port_idx].portNum = port_idx;
+      dapiBroadBaseCardSlotMap[port_idx].bcm_cpuunit = 0;
+
+      /* 10G ports */
+      if (speed > 1)
+      {
+        dapiBroadBaseCardSlotMap[port_idx].bcm_port = fport_idx * 4 + 17 + lane; 
+        fport_idx++;
+      }
+      /* 1G port */
+      else
+      {
+        dapiBroadBaseCardSlotMap[port_idx].bcm_port = 1;
+      }
+    }
+
+    /* Update phy mode */
+    switch (speed)
+    {
+      case 1:
+        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_1G;
+        break;
+      case 10:
+      case 20:
+        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_10G;
+        break;
+      case 40:
+      case 100:
+        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_40G;
+        break;
+      default:
+        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_10G;
+        break;
+    }
+  }
+
+  /* Printing out port list */
+  for (i = 0; i < port_idx; i++)
+  {
+    LOG_INFO(LOG_CTX_STARTUP, "slotNum=%u portNum=%2u bcm_cpuunit=%d bcm_port=%2d",
+             dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].slotNum,
+             dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].portNum,
+             dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].bcm_cpuunit,
+             dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[i].bcm_port);
+  }
+
+  /* Effective number of ports */
+  dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1.numOfSlotMapEntries = port_idx;
+  dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1.numOfPortMapEntries = port_idx;
+
+  /* Update maximum number of interfaces */
+  for (i = 0; i < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; i++)
+  {
+    sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(i));
+
+    if (sysapiHpcCardInfoPtr != L7_NULLPTR)
+      sysapiHpcCardInfoPtr->numOfNiPorts = port_idx;
+    else
+      LOG_ERR(LOG_CTX_STARTUP,"Error updating number of ports for slotIndex %u!", i);
+  }
+
+  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
+
+
+  #if 0
   /* Specifies the number of lanes used by each port in the flex port group.
    * portgroup_<port group>=<number of lanes>.
    * Applicable to BCM566xx and BCM565xx device family */
-  if (sal_config_set(spn_PORTGROUP"_0", "4") != 0)    /* 40G ports */
+  if (sal_config_set(spn_PORTGROUP"_0", "1") != 0)    /* 40G ports */
     return(L7_FAILURE);
-  if (sal_config_set(spn_PORTGROUP"_1", "4") != 0)
+  if (sal_config_set(spn_PORTGROUP"_1", "1") != 0)
     return(L7_FAILURE);
-  if (sal_config_set(spn_PORTGROUP"_2", "4") != 0)
+  if (sal_config_set(spn_PORTGROUP"_2", "1") != 0)
     return(L7_FAILURE);
   if (sal_config_set(spn_PORTGROUP"_3", "4") != 0)    /* 10G XSGMII ports */
     return(L7_FAILURE);
@@ -1328,7 +1568,9 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
     return(L7_FAILURE);
   if (sal_config_set(spn_PORTGROUP"_7", "1") != 0)
     return(L7_FAILURE);
+  #endif
 
   return L7_SUCCESS;
 }
 #endif
+

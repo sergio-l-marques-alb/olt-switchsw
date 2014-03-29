@@ -52,6 +52,8 @@ typedef struct
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
+#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
+
 #define WC_MAX_NUMBER          18
 #define WC_MAX_LANES            4
 #define WC_MAX_GROUPS           4
@@ -62,6 +64,8 @@ typedef struct
 #define WC_SEGMENT_N_GROUPS     2
 #define WC_SEGMENT_MAX_PORTS   32
 
+#define CXO160G_FRONTAL_PORTS     4
+#define CXO160G_BACKPLANE_PORTS  12    /* Maximum number of backplane ports */
 
 #define WC_SLOT_MODE_NONE   0
 #define WC_SLOT_MODE_2x10G  1
@@ -76,7 +80,9 @@ typedef struct
 #define WC_SLOT_MODE_2x1G   10
 #define WC_SLOT_MODE_3x1G   11
 #define WC_SLOT_MODE_4x1G   12
-#define WC_SLOT_MODE_MAX    13
+#define WC_SLOT_MODE_1x20G  13
+#define WC_SLOT_MODE_2x20G  14
+#define WC_SLOT_MODE_MAX    15
 
 /*******************************************************************************
 *
