@@ -120,6 +120,7 @@ uint8     ptinMgmdPacketType2IGMPStatField(uint8 packetType,uint8 fieldType);
 
 void      ptinMgmdDumpL3AvlTree(void);
 void      ptinMgmdGroupRemoveAll(void);
+void      ptinMgmdStaticOrDynamicGroupRemoveAll(BOOL isStatic);
 void      ptinMgmdDumpGroupRecordAvlTree(void);
 RC_t      ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId);
 void      ptinMgmdGroupRecordRemoveAll(void);

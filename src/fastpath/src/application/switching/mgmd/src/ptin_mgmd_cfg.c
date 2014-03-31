@@ -331,16 +331,7 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   { 
     mgmdProxyCfg.admin=igmpProxy->admin;   
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  Admin:                                   %s", mgmdProxyCfg.admin != 0 ? "ON" : "OFF");     
-    
-#if 0//Once the admin mode is just for enabling the trap of packets  it does not make sense to remove any existing entries
-    //Clean All Group Entries
-    ptinMgmdGroupRemoveAll();    
-    //Clean All Group Record Entries
-    ptinMgmdGroupRecordRemoveAll();
-    //Clean All Group Specific Query Entries
-    ptinMgmdGroupSpecificQueriesRemoveAll();
-#endif
-    
+   
     if(mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
     {
       //Open Ports for Static Groups Pre-Configured
@@ -354,6 +345,19 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
     }
     else
     {
+      //Clean All Group Record Entries
+      ptinMgmdGroupRecordRemoveAll();
+
+      //Clean All Group Specific Query Entries
+      ptinMgmdGroupSpecificQueriesRemoveAll();
+
+#if 0//Once the admin mode is just for enabling the trap of packets  it does not make sense to remove all existing entries group entries
+      //Clean All Group Entries
+      ptinMgmdGroupRemoveAll();       
+#else 
+      //Remove Only Dynamic Entries
+      ptinMgmdStaticOrDynamicGroupRemoveAll(FALSE);
+#endif
       //Stop All Existing General Queries
       ptinMgmdGeneralQueryStopAll();
     }

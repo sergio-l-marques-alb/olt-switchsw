@@ -1787,6 +1787,38 @@ void ptinMgmdGroupRemoveAll(void)
   ptinMgmdDumpL3AvlTree();
 }
 
+/*************************************************************************
+ * @purpose Clean Static or Dynamic Multicast Group Entries
+ *
+ * @param   isStatic    : Static: 1 / Dynamic: 0 
+ *
+ *************************************************************************/
+void ptinMgmdStaticOrDynamicGroupRemoveAll(BOOL isStatic)
+{
+  ptin_mgmd_eb_t              *pSnoopEB;
+  ptinMgmdGroupInfoData_t     *avlTreeEntry;  
+  ptinMgmdGroupInfoDataKey_t   avlTreeKey;
+
+  if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopEBGet()");
+    return;
+  }
+ 
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdGroupRemoveAll");
+  printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
+    if (avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==isStatic)
+    {
+       ptinMgmdInterfaceRemove(avlTreeEntry,PTIN_MGMD_ROOT_PORT); 
+    }        
+  } 
+}
 
 /*************************************************************************
  * @purpose Dump IGMPv3 Group Record AVL Tree
