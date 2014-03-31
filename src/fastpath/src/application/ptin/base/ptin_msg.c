@@ -5855,6 +5855,8 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     return L7_FAILURE;
   }
 
+     
+
   for (i=0; i<n_channels; i++)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
@@ -5871,6 +5873,24 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
       return rc;
     }
+
+    //Add Static Channel to (WhiteList) Group List 
+    msg_MCAssocChannel_t channel_list;  
+
+    channel_list.SlotId=channel[i].SlotId;
+    channel_list.evcid_mc=channel[i].evc_id;
+
+    channel_list.channel_dstIp.family=PTIN_AF_INET;
+    channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
+    channel_list.channel_dstmask=32;//32 Bits of Mask
+
+    //Currently not supported by the Manager
+    channel_list.channel_srcIp.family=PTIN_AF_INET;
+    channel_list.channel_srcIp.addr.ipv4=0x0000;
+    channel_list.channel_srcmask=0x00;
+    
+    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1);   
+   //End Static Channel Add
   }
 
   return rc;
