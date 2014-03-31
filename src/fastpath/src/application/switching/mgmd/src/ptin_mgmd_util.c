@@ -122,7 +122,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     return FAILURE;
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "timeOut:%u; reportType:0x%x; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeOut,igmpType,isInterface,noOfRecords,igmpCfg.host.robustness);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "timeOut:%u; igmpType:0x%x; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeOut,igmpType,isInterface,noOfRecords,igmpCfg.host.robustness);
 
   if (isInterface==TRUE)
   {    
@@ -1362,7 +1362,7 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
         return FAILURE;
       }      
       ptin_measurement_timer_start(30,"ptinMgmdScheduleReportMessage");
-      if (ptinMgmdScheduleReportMessage(serviceId,&groupPtr->key.groupAddr,PTIN_IGMP_V3_MEMBERSHIP_REPORT,ptinMgmd_generate_random_response_delay(maxResponseTime),FALSE,1, groupPtr)!=SUCCESS)
+      if (ptinMgmdScheduleReportMessage(serviceId,&groupPtr->key.groupAddr,PTIN_IGMP_MEMBERSHIP_QUERY,ptinMgmd_generate_random_response_delay(maxResponseTime),FALSE,1, groupPtr)!=SUCCESS)
       {
        ptin_measurement_timer_stop(30);
        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed snoopPTinReportSchedule()");
