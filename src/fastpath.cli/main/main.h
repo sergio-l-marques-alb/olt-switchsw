@@ -412,6 +412,7 @@ typedef struct {
     L7_uint16             vlanId;         /* Vlan associated to this MAC entry */
     L7_uint8              addr[6];        /* MAC address */
     msg_HwEthInterface_t  intf;           /* Interface attached to this entry */
+    L7_uint16             gem_id;         /* When intf's a PON, GEMid identifies the ONU*/
     L7_uint8              static_entry;   /* Is this entry static? */
 } __attribute__((packed)) msg_switch_mac_entry;
 
