@@ -12,6 +12,7 @@
 **********************************************************************/
 
 #include "ptin_fifo_api.h"
+#include "ptin_mgmd_logger.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -141,7 +142,7 @@ int ptin_fifo_create(PTIN_FIFO_t* fifoQueue, unsigned int numElements)
   //Input validation
   if(fifoQueue == NULL)
   {
-    printf("Error: Abnormal context [fifoQueue:%p]", fifoQueue);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p]", fifoQueue);
     return -1;
   }
 
@@ -194,14 +195,14 @@ int ptin_fifo_destroy(PTIN_FIFO_t fifoQueue)
   //Input validation
   if(fifoQueue == NULL)
   {
-    printf("Error: Abnormal context [fifoQueue:%p]", fifoQueue);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO,"Error: Abnormal context [fifoQueue:%p]", fifoQueue);
     return -1;
   }
 
   //Ensure that there are no free elements, as it would cause a memory leak
   if(queue->first_used != NULL)
   {
-    printf("Unable to destroy FIFO queue while it still has elements inside");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Unable to destroy FIFO queue while it still has elements inside");
   }
 
   //Free allocated elements
@@ -234,7 +235,7 @@ int ptin_fifo_push(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t element)
   //Input validation
   if( (fifoQueue == NULL) || (element == NULL) )
   {
-    printf("Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
     return -1;
   }
 
@@ -292,7 +293,7 @@ int ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
   //Input validation
   if( (fifoQueue == NULL) || (element == NULL) )
   {
-    printf("Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p element:%p]", fifoQueue, element);
     return -1;
   }
 
