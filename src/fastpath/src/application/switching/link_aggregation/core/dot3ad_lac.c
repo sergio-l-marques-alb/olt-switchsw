@@ -342,9 +342,15 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
   msg.intfData.nimInfo.event        = event;
   msg.intfData.nimInfo.correlator   = correlator;
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "Going to send message: event=%u, intIfNum=%u", event, intIfNum);
+  L7_int32 numMsg = -1;
+  osapiMsgQueueGetNumMsgs(dot3ad_queue, &numMsg);
+  LOG_INFO(LOG_CTX_PTIN_INTF, "Going to send message: event=%u, intIfNum=%u, msg_count=%d", event, intIfNum, numMsg);
 
   rc = osapiMessageSend(dot3ad_queue, &msg, (L7_uint32)DOT3AD_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+  numMsg = -1;
+  osapiMsgQueueGetNumMsgs(dot3ad_queue, &numMsg);
+  LOG_INFO(LOG_CTX_PTIN_INTF, "Message sent: msg_count=%d, rc=%d", numMsg, rc);
 
   return rc;
 }
@@ -658,6 +664,11 @@ void dot3ad_lac_task()
                                             (void*)&msg,
                                             (L7_uint32)DOT3AD_MSG_SIZE,
                                             L7_WAIT_FOREVER);
+
+    if (msg.event == lacNimIntfChange)
+    {
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Message received: event=%u, intIfNum=%u", msg.event, msg.intfData.nimInfo.intIfNum);
+    }
 
     rc = osapiSemaTake(dot3adTaskSyncSema, L7_WAIT_FOREVER);
     rc = LACDispatchCmd(msg);
@@ -1041,7 +1052,7 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
     break;
 
     case lacNimIntfChange:
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Going to call dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", msg.intfData.nimInfo.event, msg.intfData.nimInfo.intIfNum);
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Dispatching message-dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", msg.intfData.nimInfo.event, msg.intfData.nimInfo.intIfNum);
       rc = dot3adIntfChangeCallBackProcess(msg.intfData.nimInfo);
       break;
 
