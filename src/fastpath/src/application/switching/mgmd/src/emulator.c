@@ -42,6 +42,7 @@ static void sendMgmdQuerierReset(uint8 ipFamily);
 static void sendMgmdWhitelistAdd(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
 static void sendMgmdWhitelistRemove(uint16 serviceId, uint32 groupAddr, uint8 groupMask, uint32 sourceAddr, uint8 sourceMask);
 static void sendMgmdServiceRemove(uint16 serviceId);
+static void sendMgmdResetDefaults(uint8 family);
 static void sendMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug);
 static void sendMgmdTimerLogLvl(uint8 debugLvl);
 static void sendMcastGroupPrint(uint16 serviceId, uint32 groupAddr);
@@ -670,6 +671,23 @@ void sendMgmdServiceRemove(uint16 serviceId)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
 }
 
+void sendMgmdResetDefaults(uint8 family)
+{
+  PTIN_MGMD_EVENT_t               reqMsg        = {0};
+  PTIN_MGMD_EVENT_t               resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_RESET_DEFAULTS_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.family = family;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS, rand(), 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Response");
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+}
+
 void sendMgmdIgmpLogLvl(uint8 debugLvl, uint8 advancedDebug)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
@@ -859,6 +877,7 @@ void printHelpMenu(void)
   printf("\t 23  - WHITELIST_ADD            - $serviceId $groupAddr(hex) $groupMaskLen $SourceMaskLen $sourceAddr(hex)   \n");
   printf("\t 24  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMaskLen $sourceAddr(hex)  $sourceMaskLen  \n");
   printf("\t 25  - SERVICE_REMOVE           - $serviceId                                                                 \n");
+  printf("\t 26  - RESET_DEFAULTS           - $family                                                                    \n");
                                                                                                                    
   printf("\n-------------DEBUG-------                                                                                    \n");    
   printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                                                   \n"); 
@@ -1187,6 +1206,21 @@ int main(int argc, char **argv)
       serviceId = strtoul(argv[2], PTIN_NULLPTR, 10);
 
       sendMgmdServiceRemove(serviceId);
+      break;
+    }
+    case 26:
+    {
+      uint32 family;
+
+      if(argc < 3)
+      {
+        printHelpMenu();
+        return 0;
+      }
+
+      family = strtoul(argv[2], PTIN_NULLPTR, 10);
+
+      sendMgmdResetDefaults(family);
       break;
     }
     case 101:

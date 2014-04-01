@@ -139,4 +139,6 @@ RC_t      ptinMgmdServiceRemove(uint32 serviceId);
 void      ptinMgmdStaticGroupPortOpen(void);
 void      ptinMgmdStaticGroupPortClose(void);
 
+RC_t      ptinMgmdResetDefaults(uint8 family);
+
 #endif /* SNOOPING_UTIL_H */

@@ -640,6 +640,9 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
     return -1;
   }
 
+  /* Clean up the newTimer */
+  memset(newTimer, 0x00, sizeof(PTIN_TIMER_STRUCT));
+
   /* Initialize timer's properties and add it to the initialized list */
   newTimer->funcPtr         = funcPtr;
   newTimer->controlBlockPtr = cbPtr;

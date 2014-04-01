@@ -863,3 +863,31 @@ RC_t ptin_mgmd_ctrl_service_remove(PTIN_MGMD_EVENT_CTRL_t *eventData)
   return res;
 }
 
+/**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS message
+*  
+* @param  eventMsg[in] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_reset_defaults(PTIN_MGMD_EVENT_CTRL_t *eventData)
+{
+  RC_t                            res = SUCCESS;
+  PTIN_MGMD_CTRL_RESET_DEFAULTS_t request = {0};
+  
+  memcpy(&request, eventData->data, sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t));
+
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Resetting MGMD to default settings");
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP," Family = %u", request.family);
+
+  if (SUCCESS != (res = ptinMgmdResetDefaults(request.family)))
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error resetting MGMD to default settings");
+    return res;
+  }
+
+  return res;
+}
+

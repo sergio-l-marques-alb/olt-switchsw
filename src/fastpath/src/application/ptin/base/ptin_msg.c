@@ -148,6 +148,9 @@ void ptin_msg_defaults_reset(void)
   /* Remove all IGMP instances */
   ptin_igmp_clean_all();
 
+  /* Reset MGMD */
+  ptin_igmp_mgmd_resetdefaults();
+
   /* EVCs */
   ptin_evc_destroy_all();
 

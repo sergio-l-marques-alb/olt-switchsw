@@ -308,6 +308,14 @@ typedef struct
   uint32 serviceId;
 } __attribute__((packed)) PTIN_MGMD_CTRL_SERVICE_REMOVE_t; 
 
+// ----------------------------------------------
+// PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS
+// ----------------------------------------------
+typedef struct
+{
+  uint8 family; //[0-ALL; 4-IGMP; 6-MLD] 
+} __attribute__((packed)) PTIN_MGMD_CTRL_RESET_DEFAULTS_t; 
+
 
 /**
 * @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET message
@@ -462,6 +470,17 @@ RC_t ptin_mgmd_ctrl_whitelist_remove(PTIN_MGMD_EVENT_CTRL_t *eventData);
 * @notes none
 */
 RC_t ptin_mgmd_ctrl_service_remove(PTIN_MGMD_EVENT_CTRL_t *eventData);
+
+/**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS message
+*  
+* @param  eventMsg[in] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_reset_defaults(PTIN_MGMD_EVENT_CTRL_t *eventData);
 
 
 #endif //_PTIN_MGMD_CTRL_API_H_

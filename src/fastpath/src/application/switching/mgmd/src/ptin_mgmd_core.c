@@ -2508,7 +2508,23 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
         res = ptin_mgmd_ctrl_service_remove(eventData);
       }
       break;
-    } 
+    }
+    case PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS:
+    {
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+
+      //Validate message size
+      if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received message[%u bytes] does not have the expected size[%u bytes]", eventData->dataLength, sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t));
+        res = FAILURE;
+      }
+      if(SUCCESS == res)
+      {        
+        res = ptin_mgmd_ctrl_reset_defaults(eventData);
+      }
+      break;
+    }
     default:
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X] [ID: 0x%08X] - Unknown message", eventData->msgCode, eventData->msgId);

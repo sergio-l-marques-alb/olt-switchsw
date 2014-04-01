@@ -1534,6 +1534,25 @@ L7_RC_t ptin_igmp_clean_all(void)
 
 
 /**
+ * Reset MGMD
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_resetdefaults(void)
+{
+  PTIN_MGMD_EVENT_t               reqMsg        = {0};
+  PTIN_MGMD_EVENT_t               resMsg        = {0};
+  PTIN_MGMD_CTRL_RESET_DEFAULTS_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.family = 0; // Reset both IGMP and MLD
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Reactivate all IGMP instances
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE

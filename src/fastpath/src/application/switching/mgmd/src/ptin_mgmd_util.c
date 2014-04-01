@@ -2397,3 +2397,52 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
   }
   return SUCCESS;
 }
+
+/**
+* @purpose Resetting MGMD to default configurations
+*  
+* @param  family[in] : Specifies which version to reset [0-ALL; 4-IGMP; 6-MLD]
+*
+* @return RC_t 
+*  
+* @note Currently, the family input argument is ignored 
+*/
+RC_t ptinMgmdResetDefaults(uint8 family)
+{
+  _UNUSED_(family); //Currently, the family input argument is ignored 
+  ptin_mgmd_cb_t *pMgmdCB;
+  uint32          i;
+
+  if (( pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+   PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
+   return FAILURE;
+  }
+
+  //Remove all multicast groups
+  ptinMgmdGroupRemoveAll();
+
+  //Remove all pending group records
+  ptinMgmdGroupRecordRemoveAll();
+
+  //Remove all general queriers
+  ptinMgmdCleanAllGeneralQuery();
+
+  //Clean all whitelist entries
+  ptinMgmdWhitelistClean();
+
+  //Clear all recorded statistics
+  ptin_mgmd_statistics_reset_all();
+
+  //Stop all proxy CM timers
+  for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
+  {
+    ptin_mgmd_proxycmtimer_stop(&pMgmdCB->proxyCM[i]); //The stop method also frees the timer
+  }
+
+  //Load default configurations
+  ptin_mgmd_igmp_proxy_defaultcfg_load();
+
+  return SUCCESS;
+}
+
