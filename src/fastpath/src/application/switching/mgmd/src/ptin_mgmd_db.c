@@ -338,21 +338,21 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
       return FAILURE;
     }
 
-    if (ptin_fifo_pop(pMgmdEB->leafClientBitmap,(PTIN_FIFO_ELEMENT_t*)(*sourcePtr)->clients)!=SUCCESS)
+    if (ptin_fifo_pop(pMgmdEB->leafClientBitmap,(PTIN_FIFO_ELEMENT_t*)&(*sourcePtr)->clients)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
     }
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdLeafClient_t):%u",sizeof(ptinMgmdLeafClient_t));    
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdLeafClient_t):%u",sizeof(ptinMgmdLeafClient_t));    
   }
   else
   {    
-    if (ptin_fifo_pop(pMgmdEB->rootClientBitmap,(PTIN_FIFO_ELEMENT_t*)(*sourcePtr)->clients)!=SUCCESS)
+    if (ptin_fifo_pop(pMgmdEB->rootClientBitmap,(PTIN_FIFO_ELEMENT_t*)&(*sourcePtr)->clients)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
     }
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdRootClient_t):%u",sizeof(ptinMgmdRootClient_t));    
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdRootClient_t):%u",sizeof(ptinMgmdRootClient_t));    
   }
 
   return SUCCESS;
@@ -522,7 +522,8 @@ RC_t ptinMgmdInitializeInterface(ptinMgmdGroupInfoData_t *groupPtr, uint16 portI
 {
   ptinMgmdPort_t    *portPtr;
   char               debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN]     = {0};
-
+  ptin_mgmd_eb_t    *pMgmdEB;  
+ 
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Initializing interface[%u] groupAddr[%s] serviceId[%u]", portId, ptin_mgmd_inetAddrPrint(&groupPtr->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf), groupPtr->ptinMgmdGroupInfoDataKey.serviceId);
 
   /* Argument validation */
@@ -540,17 +541,42 @@ RC_t ptinMgmdInitializeInterface(ptinMgmdGroupInfoData_t *groupPtr, uint16 portI
     return SUCCESS;
   }
 
+  if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdEBGet()");
+    return FAILURE;
+  }
+
   memset(portPtr, 0x00, sizeof(*portPtr));
   portPtr->active                         = TRUE;
   portPtr->filtermode                     = PTIN_MGMD_FILTERMODE_INCLUDE;
   portPtr->groupCMTimer.compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3;
   portPtr->isStatic                       = FALSE;
   portPtr->numberOfClients                = 0;
+    
+  if (PTIN_MGMD_ROOT_PORT != portId)
+  {   
+    if (ptin_fifo_pop(pMgmdEB->leafClientBitmap,(PTIN_FIFO_ELEMENT_t*)&portPtr->clients)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
+      return FAILURE;
+    }    
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdLeafClient_t):%u",sizeof(ptinMgmdLeafClient_t));    
 
-  //Initialize root interface if necessary
-  if (PTIN_MGMD_ROOT_PORT != portId && groupPtr->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)
-  {
-    ptinMgmdInitializeInterface(groupPtr, PTIN_MGMD_ROOT_PORT);
+    //Initialize root interface if necessary
+    if(groupPtr->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)
+    {
+      ptinMgmdInitializeInterface(groupPtr, PTIN_MGMD_ROOT_PORT);
+    }
+  }
+  else
+  {    
+    if (ptin_fifo_pop(pMgmdEB->rootClientBitmap,(PTIN_FIFO_ELEMENT_t*)&portPtr->clients)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
+      return FAILURE;
+    }
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdRootClient_t):%u",sizeof(ptinMgmdRootClient_t)); 
   }
 
   return SUCCESS;
@@ -734,12 +760,20 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
                          *sourcePtrAux;
   uint32                  portIdAux;                          
   ptin_mgmd_externalapi_t externalApi;
+  PTIN_FIFO_t             fifoClientPtr;
+  ptin_mgmd_eb_t         *pMgmdEB; 
   RC_t                    rc;
-
+  
   /* Argument validation */
   if (groupEntry == PTIN_NULLPTR )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    return FAILURE;
+  }
+
+  if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdEBGet()");
     return FAILURE;
   }
 
@@ -783,6 +817,17 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
       return FAILURE;
     }    
+
+    //Clean Up Leaf Client Bitmap and return it to the FIFO
+    fifoClientPtr=pMgmdEB->leafClientBitmap;      
+    memset(groupEntry->ports[portId].clients, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));    
+
+    if(ptin_fifo_push(fifoClientPtr, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[portId].clients)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
+      return FAILURE;
+    }
+    //End Clean Up Leaf Client Bitmap
   }
   else //Root Port
   {
@@ -793,6 +838,18 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
         ptinMgmdInterfaceRemove(groupEntry,portIdAux);
       }
     }
+
+    //Clean Up Root Client Bitmap and return it to the FIFO
+    fifoClientPtr=pMgmdEB->rootClientBitmap;    
+    memset(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, 0x00, PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE * sizeof(uint8));
+
+    if(ptin_fifo_push(fifoClientPtr, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
+      return FAILURE;
+    }
+    //End Clean Up Root Client Bitmap
+
     memset(&groupEntry->ports[PTIN_MGMD_ROOT_PORT], 0x00, sizeof(groupEntry->ports[PTIN_MGMD_ROOT_PORT]));
     if (ptinMgmdL3EntryDelete(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr) != SUCCESS)
     {
@@ -800,6 +857,7 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
       return FAILURE;
     }
   }  
+
 
   return SUCCESS;
 }

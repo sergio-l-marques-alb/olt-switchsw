@@ -272,8 +272,8 @@ typedef struct
   ptinMgmdSource_t               *lastSource;
   uint16                          numberOfSources;
 
-  uint8                           clients[max(PTIN_MGMD_CLIENT_BITMAP_SIZE,PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE)];
-//uint8                          *clients;
+//uint8                           clients[max(PTIN_MGMD_CLIENT_BITMAP_SIZE,PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE)];
+  uint8                          *clients;
   uint16                          numberOfClients;
 } ptinMgmdPort_t;
 
