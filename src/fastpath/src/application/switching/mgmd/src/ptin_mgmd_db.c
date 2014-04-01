@@ -343,7 +343,6 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
     }
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdLeafClient_t):%u",sizeof(ptinMgmdLeafClient_t));    
   }
   else
   {    
@@ -352,7 +351,6 @@ RC_t ptinMgmdSourceAdd(ptinMgmdGroupInfoData_t* groupEntry, uint32 portId, ptin_
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
     }
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "sizeof(ptinMgmdRootClient_t):%u",sizeof(ptinMgmdRootClient_t));    
   }
 
   return SUCCESS;
@@ -759,8 +757,7 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
   ptinMgmdSource_t       *sourcePtr,
                          *sourcePtrAux;
   uint32                  portIdAux;                          
-  ptin_mgmd_externalapi_t externalApi;
-  PTIN_FIFO_t             fifoClientPtr;
+  ptin_mgmd_externalapi_t externalApi;  
   ptin_mgmd_eb_t         *pMgmdEB; 
   RC_t                    rc;
   
@@ -811,23 +808,21 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
         return FAILURE;
       }
     }
-    memset(&groupEntry->ports[portId], 0x00, sizeof(groupEntry->ports[portId]));
-    if (ERROR == (rc = snoopPTinClientInterfaceRemove(&groupEntry->ports[PTIN_MGMD_ROOT_PORT], portId)))
-    {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
-      return FAILURE;
-    }    
-
-    //Clean Up Leaf Client Bitmap and return it to the FIFO
-    fifoClientPtr=pMgmdEB->leafClientBitmap;      
-    memset(groupEntry->ports[portId].clients, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));    
-
-    if(ptin_fifo_push(fifoClientPtr, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[portId].clients)!=SUCCESS)
+    //Clean Up Leaf Client Bitmap and return it to the FIFO    
+    memset(groupEntry->ports[portId].clients, 0x00, sizeof(ptinMgmdLeafClient_t));    
+    if(ptin_fifo_push(pMgmdEB->leafClientBitmap, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[portId].clients)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
     }
     //End Clean Up Leaf Client Bitmap
+
+    memset(&groupEntry->ports[portId], 0x00, sizeof(groupEntry->ports[portId]));
+    if (ERROR == (rc = snoopPTinClientInterfaceRemove(&groupEntry->ports[PTIN_MGMD_ROOT_PORT], portId)))
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to remove Client from Interface bitmap");
+      return FAILURE;
+    }      
   }
   else //Root Port
   {
@@ -839,11 +834,9 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
       }
     }
 
-    //Clean Up Root Client Bitmap and return it to the FIFO
-    fifoClientPtr=pMgmdEB->rootClientBitmap;    
-    memset(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, 0x00, PTIN_MGMD_ROOT_CLIENT_BITMAP_SIZE * sizeof(uint8));
-
-    if(ptin_fifo_push(fifoClientPtr, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients)!=SUCCESS)
+    //Clean Up Root Client Bitmap and return it to the FIFO    
+    memset(groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients, 0x00, sizeof(ptinMgmdRootClient_t));
+    if(ptin_fifo_push(pMgmdEB->rootClientBitmap, (PTIN_FIFO_ELEMENT_t)groupEntry->ports[PTIN_MGMD_ROOT_PORT].clients)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_fifo_pop()");
       return FAILURE;
@@ -857,7 +850,6 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
       return FAILURE;
     }
   }  
-
 
   return SUCCESS;
 }
