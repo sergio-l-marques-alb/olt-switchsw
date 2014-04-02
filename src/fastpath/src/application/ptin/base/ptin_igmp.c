@@ -11513,7 +11513,7 @@ void ptin_igmp_groupclients_dump(void)
  * 
  * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr)
+L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
 {
   L7_uint32 i_client;
   L7_uint32 clientIntIfNum;
@@ -11523,12 +11523,19 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
+  if(clientBmpPtr == L7_NULLPTR || noOfClients == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid input parameters: [clientBmpPtrList=%p  noOfClients=%p]",clientBmpPtr,noOfClients);
+    return L7_FAILURE;
+  }
+
   if(ptin_debug_igmp_snooping)
   {
-   LOG_DEBUG(LOG_CTX_PTIN_IGMP,"List of clients (%u clients):",igmpClients_unified.number_of_clients);
+   LOG_TRACE(LOG_CTX_PTIN_IGMP,"List of clients (%u clients):",igmpClients_unified.number_of_clients);
   }
 
   i_client = 0;
+  *noOfClients=0;
 
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
@@ -11541,7 +11548,7 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
     
     if(ptin_debug_igmp_snooping)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"      Client#%u: "
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"      Client#%u: "
              #if (MC_CLIENT_INTERF_SUPPORTED)
              "ptin_port=%-2u "
              #endif
@@ -11610,15 +11617,16 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
       #endif
       {
         PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, avl_info->client_index);     
+        (*noOfClients)++;
         if(ptin_debug_igmp_snooping)
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client Found [ServiceId:%u PortId:%u ClientId:%u]",clientExtendedEvcId,clientIntIfNum,avl_info->client_index);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client Found [ServiceId:%u PortId:%u ClientId:%u]",clientExtendedEvcId,clientIntIfNum,avl_info->client_index);
       }            
     }  
 
     i_client++;
   }
   if(ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Done!");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Done!");
   osapiSemaGive(ptin_igmp_clients_sem);
 
   return SUCCESS;

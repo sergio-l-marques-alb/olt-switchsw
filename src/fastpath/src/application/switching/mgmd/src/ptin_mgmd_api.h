@@ -48,7 +48,7 @@ typedef struct
   unsigned int (*portList_get)   (unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
   unsigned int (*portType_get)   (unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType);
                          
-  unsigned int (*clientList_get) (unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
+  unsigned int (*clientList_get) (unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients);
                          
   unsigned int (*port_open)      (unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic);
   unsigned int (*port_close)     (unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr);

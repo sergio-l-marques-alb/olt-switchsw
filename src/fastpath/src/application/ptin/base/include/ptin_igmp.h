@@ -1217,7 +1217,7 @@ extern mgmdQueryInstances_t* ptin_mgmd_query_instances_get(L7_uint32 *mgmdNumber
  * 
  * @return  L7_RC_t           : L7_SUCCESS/L7_FAILURE 
  */
-extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum,L7_uchar8 *clientBmpPtr);
+extern L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum,L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients);
 
 /**
  * Open/close ports on the switch for the requested channel 

@@ -2044,22 +2044,34 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   if (clientListGet==TRUE) 
   {
     PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
+    uint32                  noOfClients=0;
+    uint32                  noOfClientsFound=0;
     uint32                  clientIdx;
 
     //Increment client statistics for this port
-    if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap)))
+    if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap,&noOfClients)))
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
       return rc;
     }  
 
-    for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
-    {        
-      if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
-      {
-        ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
-      }
-    }   
+    //If any client was found
+    if(noOfClients>0)
+    {
+      for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
+      {        
+        if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
+        {
+          noOfClientsFound++;
+          ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
+        }
+
+        if(noOfClientsFound>=noOfClients)
+        {
+          break;
+        }
+      }   
+    }
   }
   else
   {
