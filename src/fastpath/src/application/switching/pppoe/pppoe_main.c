@@ -701,10 +701,9 @@ L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId)
 ***********************************************************************/
 L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
 {
-  L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
+  L7_uint16         frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
   L7_netBufHandle   bufHandle;
-  L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
 
@@ -728,34 +727,44 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
   frame_len            = sysNetDataOffsetGet(frame) + sizeof(L7_pppoe_header_t) + pppoe_header->length;
 
-  /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum,vlanId,innerVlanId,&extOVlan,&extIVlan)==L7_SUCCESS)
-  {
-    /* Check if vlan belongs to a stacked EVC */
-    if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
-      is_vlan_stacked = L7_TRUE;
-    }
+  /* PTin added: PPPOE */
+  #if 1
+  L7_uint16 extOVlan = vlanId;
+  L7_uint16 extIVlan = 0;
+  //L7_int i;
 
-    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
-    if (is_vlan_stacked && extIVlan!=0)
-    {
-      memmove(&frame[20],&frame[16],frame_len);
-      frame[16] = 0x81;
-      frame[17] = 0x00;
-      frame[18] = extIVlan>>8;
-      frame[19] = extIVlan & 0xff;
-      frame_len += 4;
-    }
+  /* Extract external outer and inner vlan for this tx interface */
+  if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
+  {
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
       frame[14] &= 0xf0;
       frame[14] |= ((extOVlan>>8) & 0x0f);
       frame[15]  = extOVlan & 0xff;
+      //vlanId = extOVlan;
+    }
+    /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
+    if (extIVlan!=0)
+    {
+      //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
+            /* No inner tag? */
+      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
+          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
+          *((L7_uint16 *) &frame[16]) != 0x9100)
+      {
+        memmove(&frame[20],&frame[16],frame_len);
+        frame[16] = 0x81;
+        frame[17] = 0x00;
+        frame_len += 4;
+      }
+      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
+      frame[19] = extIVlan & 0xff;
+      //innerVlanId = extIVlan;
     }
   }
+  #endif
+
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
   memcpy(dataStart, frame, frame_len);
