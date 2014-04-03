@@ -50,7 +50,6 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
 };
 
 
-#ifndef DANIEL_MGMD_PROTB_DISABLED
 /**
  * Get active/backup matrix slot id.
  * 
@@ -248,8 +247,6 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
 
   return L7_SUCCESS;
 }
-#endif //DANIEL_MGMD_PROTB_DISABLED
-
 
 unsigned int snooping_igmp_admin_set(unsigned char admin)
 {
