@@ -1435,9 +1435,11 @@ typedef struct {
     dot3ad_pdu_t        pdu;
 } dot3ad_matrix_sync2_t;
 
+
+#if (PTIN_BOARD_IS_MATRIX)
 static time_t tx_sync_LACPDU[L7_MAX_INTERFACE_COUNT];
 static time_t rx_sync_LACPDU[L7_MAX_INTERFACE_COUNT];
-
+#endif
 
 
 
