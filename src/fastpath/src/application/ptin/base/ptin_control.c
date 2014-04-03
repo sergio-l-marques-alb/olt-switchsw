@@ -1435,6 +1435,9 @@ typedef struct {
     dot3ad_pdu_t        pdu;
 } dot3ad_matrix_sync2_t;
 
+static time_t tx_sync_LACPDU[L7_MAX_INTERFACE_COUNT];
+static time_t rx_sync_LACPDU[L7_MAX_INTERFACE_COUNT];
+
 
 
 
@@ -1447,6 +1450,14 @@ uint32 ip, len, i;
 #ifdef MAP_CPLD
     if (!cpld_map->reg.mx_is_active) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
+
+    {       //rate limit synchronizing LACPDUs between the 2 CXOs
+     time_t t;
+
+     t=time(NULL);
+     if (tx_sync_LACPDU[intf]==t) return 0;
+     tx_sync_LACPDU[intf]=t;
+    }
 
     stat.intf=  intf;
     memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
@@ -1473,7 +1484,7 @@ uint32 ip, len, i;
         else        i+=len;
 
         if (i+len>sizeof(dot3ad_matrix_sync2_t)) len=sizeof(dot3ad_matrix_sync2_t)-i;
-    } while (i<sizeof(dot3ad_matrix_sync2_t));
+    } while (0); //(i<sizeof(dot3ad_matrix_sync2_t));
 #endif
     return 0;
 }//tx_dot3ad_matrix_sync2_t
@@ -1506,6 +1517,14 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
     p2= (dot3ad_matrix_sync2_t *) pbuf;
 
+    {       //rate limit synchronizing LACPDUs between the 2 CXOs
+     time_t t;
+
+     t=time(NULL);
+     if (rx_sync_LACPDU[p2->intf]==t || t==tx_sync_LACPDU[p2->intf]) return;
+     rx_sync_LACPDU[p2->intf]=t;
+    }
+
     p = dot3adPortIntfFind(p2->intf);
     if (L7_NULLPTR == p) return;
 
@@ -1519,6 +1538,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
     memcpy(dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
     //memcpy(dot3adCfg.cfg.dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
+    //p->actorOperPortKey=p2->pdu.actorKey;
     dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
 
     LOG_TRACE(LOG_CTX_PTIN_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
