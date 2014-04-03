@@ -11080,13 +11080,13 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 
   if(admin == L7_ENABLE)
   {
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to open port");
+    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);
     rc = snooping_port_open(serviceId, portId, groupAddr, sourceAddr, groupType);
     return rc;
   }
   else if(admin == L7_DISABLE)
   {
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to close port");
+    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId);
     rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
     return rc;
   }

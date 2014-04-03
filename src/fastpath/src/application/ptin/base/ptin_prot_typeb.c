@@ -80,22 +80,15 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
     return L7_FAILURE;
   }
 
-  /* Set interface status based on its role */
-  if(data->intfRole == PROT_TYPEB_ROLE_WORKING)
-  {
-    data->status = L7_ENABLE;
-  }
-  else if(data->intfRole == PROT_TYPEB_ROLE_PROTECTION)
-  {
-    data->status = L7_DISABLE;
-  }
+  /* Ensure that we do not modify the 'status' variable. Only the CCMSG_TYPEB_PROT_SWITCH_NOTIFY message is allowed to do that */
+  data->status = prottypeb_interfaces[intfNum].status;
 
   /* Return the configurations for the desired interface */
   LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Setting intfNum[%u] type-b protection configurations", intfNum);
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "Configurations:");
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfNum    : %u", data->intfNum);
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "    intfRole   : %u", data->intfRole);
-  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    status     : %u", data->status);     
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "    status     : %u", data->status);
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairSlotId : %u", data->pairSlotId);
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "    pairIntfNum: %u", data->pairIntfNum);
   memcpy(&prottypeb_interfaces[intfNum], data, sizeof(ptin_prottypeb_intf_config_t));

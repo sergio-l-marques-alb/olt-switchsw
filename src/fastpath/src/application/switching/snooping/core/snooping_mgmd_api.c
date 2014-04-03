@@ -24,21 +24,17 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 
-#define DANIEL_MGMD_PROTB_DISABLED //Defined to deactivate all code responsible for sync dynamic groups between protection cards and matrix
-
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
 #endif
-#ifndef DANIEL_MGMD_PROTB_DISABLED
 static L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId);
 static L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr);
 #if PTIN_BOARD_IS_LINECARD
 static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
 static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
-#endif
 
 /* Initialization of the external API struct */
 ptin_mgmd_externalapi_t mgmd_external_api = {
@@ -87,13 +83,13 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
 
   if(cpld_map->reg.mx_is_active == 1)
   {
-    activeMatrixSlotId = cpld_map->reg.slot_id;
-    backupMatrixSlotId = 21 - activeMatrixSlotId;
+    activeMatrixSlotId = (cpld_map->reg.slot_id==0)?(PTIN_SYS_LC_SLOT_MIN-1):(PTIN_SYS_LC_SLOT_MAX+1);
+    backupMatrixSlotId = (PTIN_SYS_SLOTS_MAX+1) - activeMatrixSlotId;
   }
   else
   {
-    backupMatrixSlotId = cpld_map->reg.slot_id;
-    activeMatrixSlotId = 21 - backupMatrixSlotId;
+    backupMatrixSlotId = (cpld_map->reg.slot_id==0)?(PTIN_SYS_LC_SLOT_MIN-1):(PTIN_SYS_LC_SLOT_MAX+1);
+    activeMatrixSlotId = (PTIN_SYS_SLOTS_MAX+1) - backupMatrixSlotId;
   }
 
   if(matrixType == 1) //Return active matrix slot ID
@@ -105,7 +101,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     *slotId = backupMatrixSlotId;
   }
 #elif PTIN_BOARD_IS_LINECARD
-  *slotId = cpld_map->reg.slot_matrix;
+  *slotId = (cpld_map->reg.slot_matrix==0)?(PTIN_SYS_LC_SLOT_MAX+1):(PTIN_SYS_LC_SLOT_MIN-1);
 #endif
 
   return L7_SUCCESS;
@@ -188,7 +184,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 se
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to set port %u admin to %u", protectionSlotIp, slotId, portId, admin);
+  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, slotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
@@ -241,7 +237,7 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to %08X(%u) to set port %u admin to %u", matrixIpAddr, matrixSlotId, portId, admin);
+  LOG_INFO(LOG_CTX_PTIN_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
@@ -449,7 +445,6 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
     }
   }
 
-#ifndef DANIEL_MGMD_PROTB_DISABLED
   /*
    * Sync MFDB ports to the protection type-b linecard and backup matrix. 
    * However, do this only for dynamic ports! Static ports are already sent to those cards by the management layer. 
@@ -458,7 +453,10 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
   {
 #if PTIN_BOARD_IS_MATRIX
     /* Sync the status of this switch port on the backup backup matrix, if it exists */
-    __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
+    if(cpld_map->reg.mx_is_active == 1)
+    {
+      __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
+    }
 #else
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
@@ -471,7 +469,6 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
     }
 #endif
   }
-#endif //DANIEL_MGMD_PROTB_DISABLED
 
   return rc;
 }
@@ -518,10 +515,12 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     }
   }
 
-#ifndef DANIEL_MGMD_PROTB_DISABLED
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
-  __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, portId, groupAddr, sourceAddr, L7_FALSE);
+  if(cpld_map->reg.mx_is_active == 1)
+  {
+    __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, portId, groupAddr, sourceAddr, L7_FALSE);
+  }
 #elif PTIN_BOARD_IS_LINECARD
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
@@ -533,7 +532,6 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, L7_FALSE);
   }
 #endif
-#endif //DANIEL_MGMD_PROTB_DISABLED
 
   return rc;
 }
