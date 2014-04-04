@@ -80,6 +80,12 @@ L7_RC_t sysapiHpcInit(void)
   return(result);
 }
 
+/* PTin added: application control */
+void sysapiHpcFini(void)
+{
+  hpcFini();
+}
+
 /**************************************************************************
 *
 * @purpose  Retrieve information from the unit descriptor database for the

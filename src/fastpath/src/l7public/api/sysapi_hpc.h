@@ -418,6 +418,9 @@ HPC_UNIT_DESCRIPTOR_t *hpcLocalUnitDescriptorGet(void);
 *************************************************************************/
 L7_RC_t sysapiHpcInit(void);
 
+/* PTin added: application control */
+extern void sysapiHpcFini(void);
+
 /**************************************************************************
 *
 * @purpose  Retrieve information from the unit descriptor database for the

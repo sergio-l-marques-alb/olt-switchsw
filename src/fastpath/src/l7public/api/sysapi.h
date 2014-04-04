@@ -664,6 +664,9 @@ L7_uint32 sysapiDebugSupportFeatureHiddenModeGet(L7_int32 session);
 *************************************************************************/
 L7_RC_t sysapiSystemInit(void);
 
+/* PTin added: application control */
+extern void sysapiSystemFini(void);
+
 /**************************************************************************
 *
 * @purpose  Retrieve a network mbuf to the caller (and track the caller)

@@ -150,6 +150,12 @@ L7_RC_t hpcInit(void)
   return L7_SUCCESS;
 }
 
+/* PTin added: application control */
+void hpcFini(void)
+{
+  hpcHardwareFini();
+}
+
 /**************************************************************************
 *
 * @purpose  Gets the MAC address allocation policy for the platform.  The

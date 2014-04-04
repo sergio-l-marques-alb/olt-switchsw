@@ -284,6 +284,13 @@ void sysapiPrintf(const L7_char8 *format, ...)
   return;
 }
 
+/* PTin added: application control */
+void sysapiSystemFini(void)
+{
+  osapiTaskDelete(sysapiTimerTaskID);
+
+  sysapiHpcFini();
+}
 
 /**************************************************************************
  * @purpose  Initialize the sysapi component

@@ -137,6 +137,9 @@ L7_RC_t hpcDescriptorDbInit(void);
 *************************************************************************/
 L7_RC_t hpcInit(void);
 
+/* PTin added: application control */
+extern void hpcFini(void);
+
 /**************************************************************************
 *
 * @purpose  Gets the MAC address allocation policy for the platform.  The

@@ -97,6 +97,13 @@ sal_core_init(void)
     return 0;
 }
 
+/* PTin added: application control */
+void sal_core_term(void)
+{
+  sal_dpc_term();
+  sal_thread_exit(0);
+}
+
 /*
  * Function:
  *	sal_boot_flags_get

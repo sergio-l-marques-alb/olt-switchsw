@@ -779,11 +779,17 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
       exit(0);
   }
 
+  LOG_FATAL(LOG_CTX_LOGGER,"Terminating fastpath (sig=%d)!",sig);
+
   /*
    *become the highest priority task
    *so that we don't get preempted
    */
   if(0 > nice(-19)){}
+
+  /* PTin added: application control */
+  //sysapiSystemFini();
+
   /*
    *before we do anything dangerous
    *lets make sure we havent been here
