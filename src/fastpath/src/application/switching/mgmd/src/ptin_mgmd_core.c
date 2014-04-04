@@ -356,7 +356,7 @@ RC_t ptin_mgmd_mld_packet_process(void)
    Max Resp Time = (mant | 0x10) << (exp + 3)
 * @end
 *********************************************************************/
-static int32  ptin_mgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_code)
+static int32  ptin_mgmd_fp_decode_max_resp_code(int32 max_resp_code)
 {
   int32           max_resp_time = 0;
 
@@ -1043,7 +1043,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
    
   if(incomingVersion==PTIN_IGMP_VERSION_3)
   {    
-    maxRespTime = ptin_mgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
+    maxRespTime = ptin_mgmd_fp_decode_max_resp_code(maxRespCode);
   }
   else
   {
