@@ -6198,12 +6198,22 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
   L7_uint32             evc_mc;//Added to support MGMD
   L7_RC_t rc;
 
-  /* Validate and prepare channel group Address*/
-  if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+
+  //Default MC Service Gateway
+  if(inetIsAddressZero(channel_group)==L7_TRUE && channel_grpMask==0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
-    //return L7_FAILURE;
-    return L7_SUCCESS;
+    group=*channel_group;
+    n_groups=1;
+  }
+  else
+  {
+    /* Validate and prepare channel group Address*/
+    if (igmp_assoc_channelIP_prepare( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
+      //return L7_FAILURE;
+      return L7_SUCCESS;
+    }
   }
   /* Validate output ip address */
   if ( n_groups == 0 )
@@ -6219,8 +6229,17 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
   n_sources = 1;
 
   #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
-  /* Prepare source channel */
-  igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  //Default MC Gateway
+  if(inetIsAddressZero(channel_source)==L7_TRUE && channel_srcMask==0)
+  {
+    source=*channel_group;
+    n_sources=1;
+  }
+  else
+  {
+    /* Prepare source channel */
+    igmp_assoc_channelIP_prepare( channel_source, channel_srcMask, &source, &n_sources);
+  }
   /* Validate output ip address */
   if ( n_sources == 0 )
   {
@@ -6399,7 +6418,7 @@ static L7_RC_t igmp_assoc_channelIP_prepare( L7_inet_addr_t *channel_in, L7_uint
   }
 
   /* Invalid IP value */
-  if ( channel_in->addr.ipv4.s_addr == 0 || channel_in->addr.ipv4.s_addr == 0xffffffff )
+  if ( /*channel_in->addr.ipv4.s_addr == 0 ||*/ channel_in->addr.ipv4.s_addr == 0xffffffff )//Modified to support MC Default Service GW
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Not valid address: 0x%08x",channel_in->addr.ipv4.s_addr);
