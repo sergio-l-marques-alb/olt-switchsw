@@ -22,12 +22,12 @@
  ********************************************************************/
 
 /* Available resources for translation: This is for the 5668x switches */
-L7_uint16 resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
-L7_uint16 resources_xlate_egress  = FREE_RESOURCES_XLATE_EGRESS;
+static L7_uint16 resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
+static L7_uint16 resources_xlate_egress  = FREE_RESOURCES_XLATE_EGRESS;
 
 /* Variables used in all functions (saves stack allocations) */
-DAPI_PORT_t  *dapiPortPtr;
-BROAD_PORT_t *hapiPortPtr;
+static DAPI_PORT_t  *dapiPortPtr;
+static BROAD_PORT_t *hapiPortPtr;
 
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS

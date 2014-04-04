@@ -53,7 +53,8 @@ typedef struct {
     avlTreeTables_t            *treeHeap;
     ptinPppoeBindingInfoData_t *dataHeap;
 } ptinPppoeBindingAvlTree_t;
-ptinPppoeBindingAvlTree_t pppoeBindingTable;
+
+extern ptinPppoeBindingAvlTree_t pppoeBindingTable;
 
 #define PPPOE_PACKET_SIZE_MAX  1518
 typedef enum 

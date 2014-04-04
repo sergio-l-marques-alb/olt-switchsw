@@ -298,7 +298,7 @@ L7_uint8 igmpClientsIntf[PTIN_SYSTEM_N_INTERF];
 L7_uint8 igmpRoutersIntf[PTIN_SYSTEM_N_INTERF];
 
 /* Global IGMP statistics at interface level */
-ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
+static ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
 /* Lookup tables (invalid entry: 0xFF - IGMP_INVALID_ENTRY)
  * IMPORTANT:

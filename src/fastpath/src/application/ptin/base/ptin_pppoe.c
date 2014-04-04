@@ -160,7 +160,7 @@ st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
 static L7_uint8 pppoeInst_fromEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /* Global PPPOE statistics at interface level */
-ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
+static ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
 /* Semaphores */
 void *pppoe_sem = NULL;
