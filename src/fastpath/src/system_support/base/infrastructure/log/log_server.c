@@ -897,17 +897,14 @@ void l7_logf(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
   va_list ap;
   L7_int32 rc;
 
-  if (logf_debug)	/* PTin added: debug */
-  {
-    va_start(ap, format); 
-    rc = osapiVsnprintf(buf, sizeof(buf), format, ap);
-    va_end(ap);
+  va_start(ap, format); 
+  rc = osapiVsnprintf(buf, sizeof(buf), format, ap);
+  va_end(ap);
 
-    if (rc < 0)
-      l7_log(severity, component, fileName, lineNum, pLogMsgFmtError);
-    else
-      l7_log(severity, component, fileName, lineNum, buf);
-  }
+  if (rc < 0)
+    l7_log(severity, component, fileName, lineNum, pLogMsgFmtError);
+  else
+    l7_log(severity, component, fileName, lineNum, buf);
 }
 
 
@@ -1057,7 +1054,10 @@ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
   L7_BOOL    freeBuf = L7_FALSE;
   const L7_int32   bufsiz = L7_LOG_MESSAGE_LENGTH;
 
-  printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+  if (logf_debug)	/* PTin added: debug */
+  {
+    printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+  }
 
   /* NOTE: This function uses the fileName parm as is (caller is responsible
    *       for stripping off path info, if desired).
