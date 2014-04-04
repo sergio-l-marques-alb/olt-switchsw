@@ -982,19 +982,26 @@ typedef struct _st_DHCP_Statistics_t
   L7_uint32 dhcp_tx_failed;
 
   L7_uint32 dhcp_rx_client_requests_without_options;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   L7_uint32 dhcp_tx_client_requests_without_options;
+#endif
   L7_uint32 dhcp_tx_client_requests_with_option82;
   L7_uint32 dhcp_tx_client_requests_with_option37;
   L7_uint32 dhcp_tx_client_requests_with_option18;
   L7_uint32 dhcp_rx_server_replies_with_option82;
   L7_uint32 dhcp_rx_server_replies_with_option37;
   L7_uint32 dhcp_rx_server_replies_with_option18;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   L7_uint32 dhcp_rx_server_replies_without_options;
+#endif
   L7_uint32 dhcp_tx_server_replies_without_options;
 
   L7_uint32 dhcp_rx_client_pkts_onTrustedIntf;
   L7_uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+#if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
+  L7_uint32 dhcp_rx_server_pkts_withoutOps_onTrustedIntf;
+#endif
 } __attribute__((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics

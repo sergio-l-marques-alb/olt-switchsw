@@ -4328,19 +4328,26 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
 
   dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   dhcp_stats->stats.dhcp_tx_client_requests_without_options       = stats.dhcp_tx_client_requests_without_options;
+#endif
   dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   dhcp_stats->stats.dhcp_rx_server_replies_without_options        = stats.dhcp_rx_server_replies_without_options;
+#endif
   dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
 
   dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
   dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+#if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = 0;
+#endif
 
   return L7_SUCCESS;
 }
@@ -4493,19 +4500,26 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
 
   dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   dhcp_stats->stats.dhcp_tx_client_requests_without_options       = stats.dhcp_tx_client_requests_without_options;
+#endif
   dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
   dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
   dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
   dhcp_stats->stats.dhcp_rx_server_replies_without_options        = stats.dhcp_rx_server_replies_without_options;
+#endif
   dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
 
   dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
   dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+#if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = 0;
+#endif
 
   return L7_SUCCESS;
 }
