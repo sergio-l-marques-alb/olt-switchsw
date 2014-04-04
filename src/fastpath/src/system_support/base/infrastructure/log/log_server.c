@@ -879,6 +879,17 @@ void l7_log_event(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
  * @end
  *********************************************************************/
 
+/* PTin added: debug */
+#if 1
+static L7_BOOL logf_debug = L7_TRUE;
+
+void l7_logf_enable(L7_BOOL enable)
+{
+  logf_debug = enable;
+  printf("l7_logf enable set to %u!\r\n", enable);
+}
+#endif
+
 void l7_logf(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
              L7_char8 * fileName, L7_uint32 lineNum, L7_char8 * format, ...)
 {
@@ -886,14 +897,17 @@ void l7_logf(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
   va_list ap;
   L7_int32 rc;
 
-  va_start(ap, format);
-  rc = osapiVsnprintf(buf, sizeof(buf), format, ap);
-  va_end(ap);
+  if (logf_debug)	/* PTin added: debug */
+  {
+    va_start(ap, format); 
+    rc = osapiVsnprintf(buf, sizeof(buf), format, ap);
+    va_end(ap);
 
-  if (rc < 0)
-    l7_log(severity, component, fileName, lineNum, pLogMsgFmtError);
-  else
-    l7_log(severity, component, fileName, lineNum, buf);
+    if (rc < 0)
+      l7_log(severity, component, fileName, lineNum, pLogMsgFmtError);
+    else
+      l7_log(severity, component, fileName, lineNum, buf);
+  }
 }
 
 
