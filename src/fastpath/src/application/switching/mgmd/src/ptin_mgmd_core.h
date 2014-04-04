@@ -57,7 +57,6 @@ typedef struct
 #define PTIN_MGMD_ROOT_PORT                0
 #define SNOOP_PTIN_GROUP_AND_SOURCE_SPECIFC_QUERY_SUPPORT 0                 /*Currently we do not support sending Group and Source Specific Queries*/
 #define SNOOP_PTIN_LW_IGMPv3_MLDv2_MODE                   0                 /*To reduce the complexity of the IGMPv3 and MLDV2 we us the LW-IGMPv3/LW-MLDv2 (RFC 5790) */
-#define SNOOP_PTIN_CISCO_MAX_RESPONSE_CODE_BUG            0               /*We need to further verify if it does happen with IGMPv3 host*/
 
 #define PTIN_MGMD_MANAGEMENT_CLIENT_ID                    (uint32)-1
 

@@ -337,7 +337,6 @@ RC_t ptin_mgmd_mld_packet_process(void)
 
 /*****************************************************************
 * @purpose  Calculates the max response time from the max response code 
-* @purpose     and to convert to mS unit
 *
 * @param    max_resp_time @b{ (input) } the maximum response time
 *
@@ -361,7 +360,6 @@ static int32  ptin_mgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_co
 {
   int32           max_resp_time = 0;
 
-#if  !SNOOP_PTIN_CISCO_MAX_RESPONSE_CODE_BUG
   if (max_resp_code < 0x80)
   {
     max_resp_time= max_resp_code;
@@ -371,20 +369,7 @@ static int32  ptin_mgmd_fp_decode_max_resp_code(uchar8 family, int32 max_resp_co
    
     max_resp_time= ((max_resp_code & 0x0F) | 0x10) << (((max_resp_code & 0x70) >>4)+3);
   }
-#else
-  //Since Cisco equiments consider Max Response Code=Max Response Time, we will behave accordingly 
-  max_resp_time= max_resp_code;
-#endif
 
-  if (family == PTIN_MGMD_AF_INET)
-  {
-    //Convert from dS to mS
-    max_resp_time = max_resp_time*100;
-  }
-  else if (family == PTIN_MGMD_AF_INET6)
-  {
-    max_resp_time = max_resp_time;
-  }
   return max_resp_time;
 }
 
@@ -1057,14 +1042,15 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
   }
    
   if(incomingVersion==PTIN_IGMP_VERSION_3)
-  {
-    /*  As the packet has the max-respons-time in 1/10 of secs, convert it to milliseconds for further processing */
+  {    
     maxRespTime = ptin_mgmd_fp_decode_max_resp_code(mcastPacket->family, maxRespCode);
   }
   else
   {
     maxRespTime = maxRespCode;
   }
+  /*  As the packet has the max-respons-time in 1/10 of secs, convert it to milliseconds for further processing */
+  maxRespTime=maxRespTime*10;
 
 #if 0
   if (maxRespTime == 0)

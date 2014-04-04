@@ -2049,7 +2049,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
     uint32                  clientIdx;
 
     //Increment client statistics for this port
-    if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap,&noOfClients)))
+    if(SUCCESS != (rc = externalApi.clientList_get(mcastPacket->serviceId, portId, &clientBitmap, &noOfClients)))
     {
       PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to get service clients [serviceId=%u portIdx=%u]", mcastPacket->serviceId, portId);
       return rc;
@@ -2065,7 +2065,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
           noOfClientsFound++;
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
         }
-
+		//Break if all clients were already found
         if(noOfClientsFound>=noOfClients)
         {
           break;
