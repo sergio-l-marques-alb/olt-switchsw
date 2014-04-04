@@ -710,22 +710,24 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       case WC_SLOT_MODE_3x1G:
       case WC_SLOT_MODE_4x1G:
         speedG = 1;   total_lanes = 4;
+        slot_mode[slot-1] = WC_SLOT_MODE_4x1G;
         break;
       case WC_SLOT_MODE_1x10G:
       case WC_SLOT_MODE_2x10G:
       case WC_SLOT_MODE_3x10G:
       case WC_SLOT_MODE_4x10G:
         speedG = 10;  total_lanes = 4;
+        slot_mode[slot-1] = WC_SLOT_MODE_4x10G;
         break;
       case WC_SLOT_MODE_1x20G:
       case WC_SLOT_MODE_2x20G:
         speedG = 20;  total_lanes = 2;
-        break;
-      case WC_SLOT_MODE_1x40G:
-        speedG = 40;  total_lanes = 1;
+        slot_mode[slot-1] = WC_SLOT_MODE_2x20G;
         break;
       default:
-        speedG = 0;   total_lanes = 0;
+        speedG = 40;  total_lanes = 1;
+        slot_mode[slot-1] = WC_SLOT_MODE_1x40G;
+        break;
     }
 
     if (speedG==0 || total_lanes==0)
