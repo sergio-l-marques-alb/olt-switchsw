@@ -49,14 +49,13 @@ typedef struct
 
 } HAPI_CARD_SLOT_MAP_t ;
 
-
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-
-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
 #define WC_MAX_NUMBER          18
 #define WC_MAX_LANES            4
 #define WC_MAX_GROUPS           4
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
 #define WC_GROUP0_MAX_BW      164
 #define WC_GROUP_MAX_BW       160
@@ -64,8 +63,27 @@ typedef struct
 #define WC_SEGMENT_N_GROUPS     2
 #define WC_SEGMENT_MAX_PORTS   32
 
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+/* Maximum number of ports */
+#define CXO160G_GIGA_PORTS        1
 #define CXO160G_FRONTAL_PORTS     4
-#define CXO160G_BACKPLANE_PORTS  12    /* Maximum number of backplane ports */
+#define CXO160G_BACKPLANE_PORTS   12
+
+/* Number of local frontal ports */
+#define CXO160G_FRONTAL_PORTS_LOCAL (CXO160G_FRONTAL_PORTS/2)
+
+/* Maximum number of lanes */
+#define CXO160G_FRONTAL_PORT_LANES    4
+#define CXO160G_BACKPLANE_PORT_LANES  4
+
+/* BCM_PORT base*/
+#define CXO160G_GIGA_BCMPORT_BASE       1
+#define CXO160G_FRONTAL_BCMPORT_BASE    17
+#define CXO160G_BACKPLANE_BCMPORT_BASE  5
+#endif
+
+#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
 #define WC_SLOT_MODE_NONE   0
 #define WC_SLOT_MODE_2x10G  1

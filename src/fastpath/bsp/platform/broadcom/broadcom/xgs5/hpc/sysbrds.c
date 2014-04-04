@@ -249,6 +249,30 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
           return(L7_FAILURE);
 
+        #if 0
+        if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
+          return(L7_FAILURE);
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
+        #else
+        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
+        #endif
+
         /* Ports mode */
         if (sal_config_set(spn_BCM56640_3X42_4X32, "1") != 0)
           return(L7_FAILURE);
@@ -1359,16 +1383,17 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
  */
 L7_RC_t hpcBoardWCinit_bcm56640(void)
 {
-  L7_int  fport_idx, port_idx, i;
+  L7_int  gport_idx, fport_idx, bport_idx, port_idx, offset, i;
   L7_int  slot, lane, speed, portgroup;
   HAPI_CARD_SLOT_MAP_t *dapiBroadBaseCardSlotMap;
   HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
   L7_uint32 slot_mode[PTIN_SYS_SLOTS_MAX];
   char param_name[51], param_value[21];
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G   = {L7_PORT_DESC_BCOM_1G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_40G_KR4};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G     = {L7_PORT_DESC_BCOM_1G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G_AN = {L7_PORT_DESC_BCOM_XAUI_10G_1G};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G    = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G    = {L7_PORT_DESC_BCOM_40G_KR4};
 
   memset(wcMap, 0x00, sizeof(wcMap));
   memset(slot_mode, 0x00, sizeof(slot_mode));
@@ -1439,7 +1464,9 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
 
   memset(dapiBroadBaseCardSlotMap, 0x00, sizeof(HAPI_CARD_SLOT_MAP_t)*L7_MAX_PHYSICAL_PORTS_PER_UNIT);
 
+  bport_idx = 0;
   fport_idx = 0;
+  gport_idx = 0;
   /* Portgroup mapping */
   for (port_idx = 0; port_idx < L7_MAX_PHYSICAL_PORTS_PER_UNIT; port_idx++)
   {
@@ -1457,6 +1484,13 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
     if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
     {
       LOG_INFO(LOG_CTX_STARTUP,"Slot valid for port_idx=%d (%d)", port_idx, slot);
+
+      /* Validate frontal port index */
+      if (bport_idx >= CXO160G_BACKPLANE_PORTS)
+      {
+        LOG_INFO(LOG_CTX_STARTUP, "Only %u backplane ports are allowed!", CXO160G_BACKPLANE_PORTS);
+        return L7_FAILURE;
+      }
 
       /* Calculate portgroup from slot id */
       portgroup = (is_matrix_protection()) ? (PTIN_SYS_LC_SLOT_MAX - slot) : (slot - PTIN_SYS_LC_SLOT_MIN);
@@ -1477,7 +1511,9 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       dapiBroadBaseCardSlotMap[port_idx].slotNum = 0;
       dapiBroadBaseCardSlotMap[port_idx].portNum = port_idx;
       dapiBroadBaseCardSlotMap[port_idx].bcm_cpuunit = 0;
-      dapiBroadBaseCardSlotMap[port_idx].bcm_port    = portgroup*4 + 5 + lane;
+      dapiBroadBaseCardSlotMap[port_idx].bcm_port    = (portgroup * CXO160G_BACKPLANE_PORT_LANES) + CXO160G_BACKPLANE_BCMPORT_BASE + lane;
+
+      bport_idx++;
     }
     /* Not backplane ports */
     else
@@ -1487,16 +1523,51 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       dapiBroadBaseCardSlotMap[port_idx].portNum = port_idx;
       dapiBroadBaseCardSlotMap[port_idx].bcm_cpuunit = 0;
 
-      /* 10G ports */
+      /* Frontal 10G ports */
       if (speed > 1)
       {
-        dapiBroadBaseCardSlotMap[port_idx].bcm_port = fport_idx * 4 + 17 + lane; 
+        /* Validate frontal port index */
+        if (fport_idx >= CXO160G_FRONTAL_PORTS)
+        {
+          LOG_INFO(LOG_CTX_STARTUP, "Only %u frontal ports are allowed!", CXO160G_FRONTAL_PORTS);
+          return L7_FAILURE;
+        }
+
+        /* Get offset to calculate respective bcm_port */
+        if (fport_idx < CXO160G_FRONTAL_PORTS_LOCAL)
+        {
+          if (!is_matrix_protection())
+            offset = CXO160G_FRONTAL_BCMPORT_BASE;
+          else
+            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES);
+
+          offset += (fport_idx * CXO160G_FRONTAL_PORT_LANES);
+        }
+        else
+        {
+          if (!is_matrix_protection())
+            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES);
+          else
+            offset = CXO160G_FRONTAL_BCMPORT_BASE;
+
+          offset += ((fport_idx - CXO160G_FRONTAL_PORTS_LOCAL) * CXO160G_FRONTAL_PORT_LANES);
+        }
+
+        dapiBroadBaseCardSlotMap[port_idx].bcm_port = offset + lane;
         fport_idx++;
       }
       /* 1G port */
       else
       {
-        dapiBroadBaseCardSlotMap[port_idx].bcm_port = 1;
+        /* Validate giga port index */
+        if (gport_idx >= CXO160G_GIGA_PORTS)
+        {
+          LOG_INFO(LOG_CTX_STARTUP, "Only 4 giga ports are allowed!");
+          return L7_FAILURE;
+        }
+
+        dapiBroadBaseCardSlotMap[port_idx].bcm_port = gport_idx + CXO160G_GIGA_BCMPORT_BASE;
+        gport_idx++;
       }
     }
 
@@ -1507,6 +1578,8 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
         hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_1G;
         break;
       case 10:
+        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = (slot < 0) ? port_descriptor_10G_AN : port_descriptor_10G;
+        break;
       case 20:
         hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_10G;
         break;
