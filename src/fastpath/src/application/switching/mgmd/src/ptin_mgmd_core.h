@@ -203,7 +203,7 @@ typedef struct
 {
   uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t
   ptinMgmdGroupInfoDataKey_t      groupKey;
-  PTIN_MGMD_TIMER_t               timer;
+  PTIN_MGMD_TIMER_t               timerHandle;
 } ptinMgmdLeafCMtimer_t;
 
 typedef struct
@@ -211,7 +211,7 @@ typedef struct
   BOOL                            inUse;
   uint32                          serviceId;
   uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t  
-  PTIN_MGMD_TIMER_t               timer;
+  PTIN_MGMD_TIMER_t               timerHandle;
 } ptinMgmdRootCMtimer_t;
 
 typedef struct
@@ -296,7 +296,7 @@ typedef struct mgmdProxyInterfaceTimer_s
   BOOL           isFirstTransmission;
   BOOL           isInterface; 
 
-  PTIN_MGMD_TIMER_t  newTimerHandle;
+  PTIN_MGMD_TIMER_t  timerHandle;
 } mgmdProxyInterfaceTimer_t; 
 
 //typedef struct snoopPTinSourceRecordKey_s snoopPTinSourceRecordKey_t;

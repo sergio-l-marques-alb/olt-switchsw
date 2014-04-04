@@ -72,9 +72,9 @@ RC_t ptin_mgmd_routercmtimer_init(ptinMgmdLeafCMtimer_t* pTimer)
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pTimer->timer))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pTimer->timerHandle))
   {
-    ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timer), ptin_mgmd_routercmtimer_callback);
+    ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timerHandle), ptin_mgmd_routercmtimer_callback);
   }
   return ret;
 }
@@ -100,12 +100,12 @@ RC_t ptin_mgmd_routercmtimer_start(ptinMgmdGroupInfoData_t *groupData, uint32 po
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(__controlBlock, groupData->ports[portId].groupCMTimer.timer);
+    ptin_mgmd_timer_stop(__controlBlock, groupData->ports[portId].groupCMTimer.timerHandle);
     ptin_measurement_timer_stop(1);
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  rc = ptin_mgmd_timer_start(__controlBlock, groupData->ports[portId].groupCMTimer.timer, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
+  rc = ptin_mgmd_timer_start(__controlBlock, groupData->ports[portId].groupCMTimer.timerHandle, igmpCfg->querier.older_host_present_timeout*1000, &groupData->ports[portId].groupCMTimer);
   ptin_measurement_timer_stop(0);
 //LOG_DEBUG(LOG_CTX_PTIN_IGMP, "prt:[%p] timeleft:[%u]",groupData->interfaces[portId].groupCMTimer.timer,ptin_mgmd_routercmtimer_timeleft(&groupData->interfaces[portId].groupCMTimer));
   return rc;
@@ -117,10 +117,11 @@ RC_t ptin_mgmd_routercmtimer_stop(ptinMgmdLeafCMtimer_t* timerPtr)
   if (TRUE == ptin_mgmd_routercmtimer_isRunning(timerPtr))
   { 
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(__controlBlock, timerPtr->timer);
+    ptin_mgmd_timer_stop(__controlBlock, timerPtr->timerHandle);
     ptin_measurement_timer_stop(1);
   }
-  ptin_mgmd_timer_free(__controlBlock, timerPtr->timer);  
+  ptin_mgmd_timer_free(__controlBlock, timerPtr->timerHandle);  
+  timerPtr->timerHandle=PTIN_NULLPTR;
   return SUCCESS;
 }
 
@@ -134,7 +135,7 @@ uint32 ptin_mgmd_routercmtimer_timeleft(ptinMgmdLeafCMtimer_t* pTimer)
  
   uint32 timeLeft;
   ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
-  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, pTimer->timer)/1000;
+  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, pTimer->timerHandle)/1000;
   ptin_measurement_timer_stop(2);
   return timeLeft;
 }
@@ -142,7 +143,7 @@ uint32 ptin_mgmd_routercmtimer_timeleft(ptinMgmdLeafCMtimer_t* pTimer)
 
 BOOL ptin_mgmd_routercmtimer_isRunning(ptinMgmdLeafCMtimer_t* pTimer)
 {
-  return ptin_mgmd_timer_isRunning(__controlBlock, pTimer->timer);
+  return ptin_mgmd_timer_isRunning(__controlBlock, pTimer->timerHandle);
 }
 
 

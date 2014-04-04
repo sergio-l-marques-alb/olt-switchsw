@@ -133,6 +133,8 @@ RC_t ptin_mgmd_grouptimer_stop(ptinMgmdGroupTimer_t *timer)
   }
   
   ptin_mgmd_timer_free(__controlBlock, timer->timerHandle);
+  timer->timerHandle=PTIN_NULLPTR;
+
   return SUCCESS;
 }
 

@@ -461,6 +461,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
       return FAILURE;
     }
     ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
+    timerData->timerHandle=PTIN_NULLPTR;
   }  
 
   return SUCCESS;
@@ -664,6 +665,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
         ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
     
         ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
+        timerData->timerHandle=PTIN_NULLPTR;
       }
     }
     else //Group Specific Query
@@ -713,6 +715,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* group
   ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&timerData->key.groupAddr, timerData->key.serviceId, timerData->key.portId);
   
   ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
+  timerData->timerHandle=PTIN_NULLPTR;
 
   return SUCCESS;
 }
@@ -739,6 +742,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_remove_entry(groupSourceSpecificQueriesA
   ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(&avlTreeEntry->key.groupAddr, avlTreeEntry->key.serviceId, avlTreeEntry->key.portId);
 
   ptin_mgmd_timer_free(__controlBlock, avlTreeEntry->timerHandle);
+  avlTreeEntry->timerHandle=PTIN_NULLPTR;
 
   return SUCCESS;
 }
@@ -852,6 +856,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
       return FAILURE;
     }
     ptin_mgmd_timer_free(__controlBlock, timerData->timerHandle);
+    timerData->timerHandle=PTIN_NULLPTR;
   }
 
   return SUCCESS;

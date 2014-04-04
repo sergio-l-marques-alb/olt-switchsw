@@ -27,7 +27,7 @@ void* ptin_mgmd_proxycmtimer_callback(void *param)
   PTIN_MGMD_EVENT_t  eventMsg = {0}; 
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Timer expired for [timerPtr=%p serviceId=%u compatibilityMode=%u]", 
-            timerData->timer, timerData->serviceId, timerData->compatibilityMode);
+            timerData->timerHandle, timerData->serviceId, timerData->compatibilityMode);
 
   //Create a new timer event
   ptin_mgmd_event_timer_create(&eventMsg, PTIN_MGMD_EVENT_TIMER_TYPE_PROXYCM, (void*) &param, sizeof(ptinMgmdRootCMtimer_t*));
@@ -76,7 +76,7 @@ RC_t ptin_mgmd_proxycmtimer_init(ptinMgmdRootCMtimer_t* pTimer)
     return FAILURE;
   }
 
-  ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timer), ptin_mgmd_proxycmtimer_callback);
+  ret = ptin_mgmd_timer_init(__controlBlock, &(pTimer->timerHandle), ptin_mgmd_proxycmtimer_callback);
   return ret;
 }
 
@@ -91,7 +91,7 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 posId, ptin_mgmd_cb_t* pMgmdCB, ptin_Ig
     return FAILURE;
   }
 
-  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pMgmdCB->proxyCM[posId].timer))
+  if(FALSE == ptin_mgmd_timer_exists(__controlBlock, pMgmdCB->proxyCM[posId].timerHandle))
   {
     if(SUCCESS != ptin_mgmd_proxycmtimer_init(&(pMgmdCB->proxyCM[posId])))
     {
@@ -103,12 +103,12 @@ RC_t ptin_mgmd_proxycmtimer_start(uint32 posId, ptin_mgmd_cb_t* pMgmdCB, ptin_Ig
   if(TRUE == ptin_mgmd_proxycmtimer_isRunning(&(pMgmdCB->proxyCM[posId])))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(__controlBlock, pMgmdCB->proxyCM[posId].timer);
+    ptin_mgmd_timer_stop(__controlBlock, pMgmdCB->proxyCM[posId].timerHandle);
     ptin_measurement_timer_stop(1);
   }
 
   ptin_measurement_timer_start(0,"ptin_mgmd_timer_start");
-  ret = ptin_mgmd_timer_start(__controlBlock, pMgmdCB->proxyCM[posId].timer, igmpCfg->host.older_querier_present_timeout*1000, &pMgmdCB->proxyCM[posId]);
+  ret = ptin_mgmd_timer_start(__controlBlock, pMgmdCB->proxyCM[posId].timerHandle, igmpCfg->host.older_querier_present_timeout*1000, &pMgmdCB->proxyCM[posId]);
   ptin_measurement_timer_stop(0);
   return ret;
 }
@@ -119,11 +119,12 @@ RC_t ptin_mgmd_proxycmtimer_stop(ptinMgmdRootCMtimer_t* pTimer)
   if (TRUE == ptin_mgmd_proxycmtimer_isRunning(pTimer))
   {
     ptin_measurement_timer_start(1,"ptin_mgmd_timer_stop");
-    ptin_mgmd_timer_stop(__controlBlock, pTimer->timer);
+    ptin_mgmd_timer_stop(__controlBlock, pTimer->timerHandle);
     ptin_measurement_timer_stop(1);
   }
   
-  ptin_mgmd_timer_free(__controlBlock, pTimer->timer);
+  ptin_mgmd_timer_free(__controlBlock, pTimer->timerHandle);
+  pTimer->timerHandle=PTIN_NULLPTR;
   return SUCCESS;
 }
 
@@ -137,7 +138,7 @@ uint32 ptin_mgmd_proxycmtimer_timeleft(ptinMgmdRootCMtimer_t* pTimer)
   
   uint32 timeLeft;
   ptin_measurement_timer_start(2,"ptin_mgmd_timer_timeLeft");
-  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, pTimer->timer)/1000;
+  timeLeft=ptin_mgmd_timer_timeLeft(__controlBlock, pTimer->timerHandle)/1000;
   ptin_measurement_timer_stop(2);
   return timeLeft;
 }
@@ -145,7 +146,7 @@ uint32 ptin_mgmd_proxycmtimer_timeleft(ptinMgmdRootCMtimer_t* pTimer)
 
 BOOL ptin_mgmd_proxycmtimer_isRunning(ptinMgmdRootCMtimer_t* pTimer)
 {
-  return ptin_mgmd_timer_isRunning(__controlBlock, pTimer->timer);
+  return ptin_mgmd_timer_isRunning(__controlBlock, pTimer->timerHandle);
 }
 
 

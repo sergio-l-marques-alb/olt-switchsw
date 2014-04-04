@@ -1320,14 +1320,14 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
  *************************************************************************/
 RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
 {
-  ptinMgmdGroupInfoData_t    *avlTreeEntry;
-  ptinMgmdGroupInfoDataKey_t  avlTreeKey;
-  BOOL                      newEntry=FALSE;
-  char                      debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {};
-  mgmdGroupRecord_t        *groupPtr;                             
-  uint32                    noOfRecords = 0;  
-  mgmdProxyInterface_t*     interfacePtr;
-  ptin_mgmd_eb_t           *pSnoopEB; 
+  ptinMgmdGroupInfoData_t   *avlTreeEntry;
+  ptinMgmdGroupInfoDataKey_t avlTreeKey;
+  BOOL                       newEntry=FALSE;
+  char                       debug_buf[PTIN_MGMD_IPV6_DISP_ADDR_LEN] = {};
+  mgmdGroupRecord_t         *groupPtr;                             
+  uint32                     noOfRecords = 0;  
+  mgmdProxyInterface_t*      interfacePtr;
+  ptin_mgmd_eb_t            *pSnoopEB; 
   
 
   if ((pSnoopEB = mgmdEBGet()) == PTIN_NULLPTR)
@@ -1474,6 +1474,7 @@ void ptinMgmdGeneralQueryStopAll(void)
   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "TimerPointer:%p",avlTreeEntry->querierTimer.timerHandle);
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     //Stop Query Timer   
@@ -1509,7 +1510,7 @@ void ptinMgmdStartAllGeneralQuery(void)
   /* Run all cells in AVL tree */
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdStartAllGeneralQuery");
-  
+   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
     /* Prepare next key */
@@ -1521,11 +1522,13 @@ void ptinMgmdStartAllGeneralQuery(void)
     //Send Right Away a General Query
     ptinMgmdGeneralQuerySend(avlTreeEntry->key.serviceId,PTIN_MGMD_AF_INET);
 
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "TimerPointer:%p",avlTreeEntry->querierTimer.timerHandle);
+
     if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
       return;
-    }
+    }    
   }  
 }
 
@@ -2389,6 +2392,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
         }
         ptin_mgmd_groupsourcespecifictimer_CB_get(&controlBlock);
         ptin_mgmd_timer_free(controlBlock, queriesAvlTreeEntry->timerHandle);
+        queriesAvlTreeEntry->timerHandle=PTIN_NULLPTR;
       }
     }
   }

@@ -37,7 +37,7 @@ typedef struct ptinMgmdL3Querytimer_s
   uchar8        startUpQueryCount;//This value has only meaning if the startUpQueryFlag is active. In the remaining cases it is a don't care
   void*         queryData;//mgmdPTinQuerierInfoData_t
 
-  PTIN_MGMD_TIMER_t  newTimerHandle;
+  PTIN_MGMD_TIMER_t  timerHandle;
 
 }ptinMgmdL3Querytimer_t;
 
