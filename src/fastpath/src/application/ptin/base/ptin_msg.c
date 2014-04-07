@@ -5135,11 +5135,20 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
-  #if PTIN_BOARD_IS_LINECARD  
+  //Short Fix to Support Mac Bridge Services and Unicast Services
+  #if PTIN_BOARD_IS_LINECARD
   {
-    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;  
-    igmp_stats->client.outer_vlan=igmp_stats->client.inner_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Converting [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
+    #if 0
+    L7_BOOL isMacBridge;    
+    if (ptin_evc_mac_bridge_check(igmp_stats->mcEvcId, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
+    #else
+    if (igmp_stats->client.outer_vlan==0) 
+    #endif
+    {      
+      igmp_stats->client.outer_vlan=igmp_stats->client.inner_vlan;      
+    }
+    igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
   }
   #endif
 
@@ -6005,14 +6014,23 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.Intf  = %u/%u",    inputPtr->client.intf.intf_type,inputPtr->client.intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx=%u",            inputPtr->entryId);
 
-  #if PTIN_BOARD_IS_LINECARD 
+  //Short Fix to Support Mac Bridge Services and Unicast Services
+  #if PTIN_BOARD_IS_LINECARD
   {
-    inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;  
-    inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Converting [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
+    #if 0
+    L7_BOOL isMacBridge;    
+    if(ptin_evc_mac_bridge_check(inputPtr->evc_id, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
+    #else
+    if (inputPtr->client.outer_vlan==0) 
+    #endif
+    {        
+      inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;        
+    }
+    inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
   }
   #endif
-
+  
   /* Client info */
   memset(&client,0x00,sizeof(ptin_client_id_t));
   if (inputPtr->client.mask & MSG_CLIENT_INTF_MASK)

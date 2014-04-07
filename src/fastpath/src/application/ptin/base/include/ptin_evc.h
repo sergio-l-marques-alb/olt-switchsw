@@ -716,4 +716,16 @@ L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst);
 extern
 L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst);
 
+/**
+ * Verify if a particular evc is MAC Bridge
+ * 
+ * @param evc_ext_id 
+ * @param is_mac_bridge (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_mac_bridge_check(L7_uint32 evc_ext_id, L7_BOOL *is_mac_bridge);
+
+
 #endif /* _PTIN_EVC_H */

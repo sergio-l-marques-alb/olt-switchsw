@@ -5949,6 +5949,32 @@ L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Verify if a particular evc is MAC Bridge
+ * 
+ * @param evc_ext_id 
+ * @param is_mac_bridge (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern
+L7_RC_t ptin_evc_mac_bridge_check(L7_uint32 evc_ext_id, L7_BOOL *is_mac_bridge)
+{
+   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
+
+   /* Validate given extended evc id, and get pointer to AVL node */
+  if (ptin_evc_extEvcInfo_get(evc_ext_id, &ext_evcId_infoData) != L7_SUCCESS ||
+      ext_evcId_infoData == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ext_evc_id %u", evc_ext_id);
+    return L7_FAILURE;
+  }
+  (*is_mac_bridge)=IS_EVC_QUATTRO(ext_evcId_infoData->evc_id);
+
+  return L7_SUCCESS;
+}
+
 /****************************************************************************** 
  * STATIC FUNCTIONS
  ******************************************************************************/
