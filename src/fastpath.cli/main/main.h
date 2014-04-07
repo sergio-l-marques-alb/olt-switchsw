@@ -726,24 +726,25 @@ typedef struct _st_DHCP_Statistics_t
   uint32 dhcp_tx_forwarded;
   uint32 dhcp_tx_failed;
   uint32 dhcp_rx_client_requests_without_options;
-  uint32 dhcp_tx_client_requests_without_options;
+//uint32 dhcp_tx_client_requests_without_options;
   uint32 dhcp_tx_client_requests_with_option82;
   uint32 dhcp_tx_client_requests_with_option37;
   uint32 dhcp_tx_client_requests_with_option18;
   uint32 dhcp_rx_server_replies_with_option82;
   uint32 dhcp_rx_server_replies_with_option37;
   uint32 dhcp_rx_server_replies_with_option18;
-  uint32 dhcp_rx_server_replies_without_options;
+//uint32 dhcp_rx_server_replies_without_options;
   uint32 dhcp_tx_server_replies_without_options;
   uint32 dhcp_rx_client_pkts_onTrustedIntf;
   uint32 dhcp_rx_client_pkts_withOps_onUntrustedIntf;
   uint32 dhcp_rx_server_pkts_onUntrustedIntf;
+  uint32 garbage;
 } __attribute__ ((packed)) msg_DHCP_Statistics_t;
 
 typedef struct _st_ClientDhcpStatistics
 {
   L7_uint8  SlotId;               /* slot */
-  L7_uint16 evc_id;               /* evc id */
+  L7_uint32 evc_id;               /* evc id */
   L7_uint8              mask;     /* Mask of fields to be considered */
   msg_HwEthInterface_t  intf;     /* [mask=0x01] Interface */
   msg_client_info_t     client;   /* [mask=0x02] Client reference */
