@@ -2196,37 +2196,38 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
         LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
         LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
       }
-    }
-
-    if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
-      while((ctrlResMsg.dataLength > 0) && (groupCount < *number_of_channels))
+    
+      if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
       {
-        memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCount*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
+        while((ctrlResMsg.dataLength > 0) && (groupCount < *number_of_channels))
+        {
+          memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCount*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
 
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]", mgmdGroupsRes.entryId);
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Type:           %s",   mgmdGroupsRes.groupType==PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC? ("Dynamic"):("Static"));
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Filter-Mode:    %s",   mgmdGroupsRes.filterMode==PTIN_MGMD_CTRL_FILTERMODE_INCLUDE? ("Include"):("Exclude"));
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Group Timer:    %u",   mgmdGroupsRes.groupTimer);
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Groups Address: %08X", mgmdGroupsRes.groupIP);
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]", mgmdGroupsRes.entryId);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Type:           %s",   mgmdGroupsRes.groupType==PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC? ("Dynamic"):("Static"));
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Filter-Mode:    %s",   mgmdGroupsRes.filterMode==PTIN_MGMD_CTRL_FILTERMODE_INCLUDE? ("Include"):("Exclude"));
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Group Timer:    %u",   mgmdGroupsRes.groupTimer);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Groups Address: %08X", mgmdGroupsRes.groupIP);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
 
-        inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount].groupAddr);
-        inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount].sourceAddr);
-        channel_list[groupCount].static_type = mgmdGroupsRes.groupType;
+          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount].groupAddr);
+          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount].sourceAddr);
+          channel_list[groupCount].static_type = mgmdGroupsRes.groupType;
 
-        ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
-        ++groupCount;
+          ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
+          ++groupCount;
+        }
+
+        *number_of_channels = groupCount;
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]", ctrlResMsg.dataLength);
+        return L7_FAILURE;
       }
 
-      *number_of_channels = groupCount;
-    }
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]", ctrlResMsg.dataLength);
-      return L7_FAILURE;
     }
   }
 
@@ -9175,73 +9176,82 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
     return L7_FAILURE;
   }
 
-  for(clientId=0; clientId<(sizeof(clientInfo->client_bmp_list)*8); ++clientId)
+
+  L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientInfo);
+  if(noOfClients>0)
   {
-    if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
+    L7_uint16 noOfClientsFound=0;
+    for(clientId=0; clientId<(sizeof(clientInfo->client_bmp_list)*8); ++clientId)
     {
-      /* Request client statistics to MGMD */
-      mgmdStatsReqMsg.portId   = intIfNum;
-      mgmdStatsReqMsg.clientId = clientId;
-      ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
-      ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
-      ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
-
-      if(L7_SUCCESS != ctrlResMsg.res)
+      if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Error reading clientId[%u] statistics", clientId);
-        return ctrlResMsg.res;
-      }
+        /* Request client statistics to MGMD */
+        mgmdStatsReqMsg.portId   = intIfNum;
+        mgmdStatsReqMsg.clientId = clientId;
+        ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
+        ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+        ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
 
-      //Sum the current statistics on all set-top-boxes
-      memcpy(&mgmdStatsResMsg, ctrlResMsg.data, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
-      statistics->activeGroups                       += mgmdStatsResMsg.activeGroups;            
-      statistics->activeClients                      += mgmdStatsResMsg.activeClients; 
-                
-      statistics->igmpTx                             += mgmdStatsResMsg.igmpTx;
-      statistics->igmpValidRx                        += mgmdStatsResMsg.igmpValidRx;
-      statistics->igmpInvalidRx                      += mgmdStatsResMsg.igmpInvalidRx;    
-      statistics->igmpDroppedRx                      += mgmdStatsResMsg.igmpDroppedRx; 
-      statistics->igmpTotalRx                        += mgmdStatsResMsg.igmpTotalRx;  
-                                                         
-      statistics->v2.joinTx                          += mgmdStatsResMsg.v2.joinTx;               
-      statistics->v2.joinValidRx                     += mgmdStatsResMsg.v2.joinValidRx;   
-      statistics->v2.joinInvalidRx                   += mgmdStatsResMsg.v2.joinInvalidRx;    
-      statistics->v2.leaveTx                         += mgmdStatsResMsg.v2.leaveTx;              
-      statistics->v2.leaveValidRx                    += mgmdStatsResMsg.v2.leaveValidRx;    
-                                                         
-      statistics->v3.membershipReportTx              += mgmdStatsResMsg.v3.membershipReportTx; 
-      statistics->v3.membershipReportValidRx         += mgmdStatsResMsg.v3.membershipReportValidRx;      
-      statistics->v3.membershipReportInvalidRx       += mgmdStatsResMsg.v3.membershipReportInvalidRx;          
-      statistics->v3.groupRecords.allowTx            += mgmdStatsResMsg.v3.groupRecords.allowTx;
-      statistics->v3.groupRecords.allowValidRx       += mgmdStatsResMsg.v3.groupRecords.allowValidRx;
-      statistics->v3.groupRecords.allowInvalidRx     += mgmdStatsResMsg.v3.groupRecords.allowInvalidRx;
-      statistics->v3.groupRecords.blockTx            += mgmdStatsResMsg.v3.groupRecords.blockTx;
-      statistics->v3.groupRecords.blockValidRx       += mgmdStatsResMsg.v3.groupRecords.blockValidRx;
-      statistics->v3.groupRecords.blockInvalidRx     += mgmdStatsResMsg.v3.groupRecords.blockInvalidRx;
-      statistics->v3.groupRecords.isIncludeTx        += mgmdStatsResMsg.v3.groupRecords.isIncludeTx;
-      statistics->v3.groupRecords.isIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isIncludeValidRx;
-      statistics->v3.groupRecords.isIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isIncludeInvalidRx;
-      statistics->v3.groupRecords.isExcludeTx        += mgmdStatsResMsg.v3.groupRecords.isExcludeTx;
-      statistics->v3.groupRecords.isExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isExcludeValidRx;
-      statistics->v3.groupRecords.isExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isExcludeInvalidRx;
-      statistics->v3.groupRecords.toIncludeTx        += mgmdStatsResMsg.v3.groupRecords.toIncludeTx;
-      statistics->v3.groupRecords.toIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toIncludeValidRx;
-      statistics->v3.groupRecords.toIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toIncludeInvalidRx;
-      statistics->v3.groupRecords.toExcludeTx        += mgmdStatsResMsg.v3.groupRecords.toExcludeTx;
-      statistics->v3.groupRecords.toExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toExcludeValidRx;
-      statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
-                                                         
-      statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;     
-      statistics->query.generalQueryValidRx          += mgmdStatsResMsg.query.generalQueryValidRx;
-      statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx;       
-      statistics->query.groupQueryValidRx            += mgmdStatsResMsg.query.groupQueryValidRx;  
-      statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
-      statistics->query.sourceQueryValidRx           += mgmdStatsResMsg.query.sourceQueryValidRx; 
+        if(L7_SUCCESS != ctrlResMsg.res)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Error reading clientId[%u] statistics", clientId);
+          return ctrlResMsg.res;
+        }
+
+        //Sum the current statistics on all set-top-boxes
+        memcpy(&mgmdStatsResMsg, ctrlResMsg.data, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
+        statistics->activeGroups                       += mgmdStatsResMsg.activeGroups;            
+        statistics->activeClients                      += mgmdStatsResMsg.activeClients; 
+                  
+        statistics->igmpTx                             += mgmdStatsResMsg.igmpTx;
+        statistics->igmpValidRx                        += mgmdStatsResMsg.igmpValidRx;
+        statistics->igmpInvalidRx                      += mgmdStatsResMsg.igmpInvalidRx;    
+        statistics->igmpDroppedRx                      += mgmdStatsResMsg.igmpDroppedRx; 
+        statistics->igmpTotalRx                        += mgmdStatsResMsg.igmpTotalRx;  
+                                                           
+        statistics->v2.joinTx                          += mgmdStatsResMsg.v2.joinTx;               
+        statistics->v2.joinValidRx                     += mgmdStatsResMsg.v2.joinValidRx;   
+        statistics->v2.joinInvalidRx                   += mgmdStatsResMsg.v2.joinInvalidRx;    
+        statistics->v2.leaveTx                         += mgmdStatsResMsg.v2.leaveTx;              
+        statistics->v2.leaveValidRx                    += mgmdStatsResMsg.v2.leaveValidRx;    
+                                                           
+        statistics->v3.membershipReportTx              += mgmdStatsResMsg.v3.membershipReportTx; 
+        statistics->v3.membershipReportValidRx         += mgmdStatsResMsg.v3.membershipReportValidRx;      
+        statistics->v3.membershipReportInvalidRx       += mgmdStatsResMsg.v3.membershipReportInvalidRx;          
+        statistics->v3.groupRecords.allowTx            += mgmdStatsResMsg.v3.groupRecords.allowTx;
+        statistics->v3.groupRecords.allowValidRx       += mgmdStatsResMsg.v3.groupRecords.allowValidRx;
+        statistics->v3.groupRecords.allowInvalidRx     += mgmdStatsResMsg.v3.groupRecords.allowInvalidRx;
+        statistics->v3.groupRecords.blockTx            += mgmdStatsResMsg.v3.groupRecords.blockTx;
+        statistics->v3.groupRecords.blockValidRx       += mgmdStatsResMsg.v3.groupRecords.blockValidRx;
+        statistics->v3.groupRecords.blockInvalidRx     += mgmdStatsResMsg.v3.groupRecords.blockInvalidRx;
+        statistics->v3.groupRecords.isIncludeTx        += mgmdStatsResMsg.v3.groupRecords.isIncludeTx;
+        statistics->v3.groupRecords.isIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isIncludeValidRx;
+        statistics->v3.groupRecords.isIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isIncludeInvalidRx;
+        statistics->v3.groupRecords.isExcludeTx        += mgmdStatsResMsg.v3.groupRecords.isExcludeTx;
+        statistics->v3.groupRecords.isExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isExcludeValidRx;
+        statistics->v3.groupRecords.isExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isExcludeInvalidRx;
+        statistics->v3.groupRecords.toIncludeTx        += mgmdStatsResMsg.v3.groupRecords.toIncludeTx;
+        statistics->v3.groupRecords.toIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toIncludeValidRx;
+        statistics->v3.groupRecords.toIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toIncludeInvalidRx;
+        statistics->v3.groupRecords.toExcludeTx        += mgmdStatsResMsg.v3.groupRecords.toExcludeTx;
+        statistics->v3.groupRecords.toExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toExcludeValidRx;
+        statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
+                                                           
+        statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;     
+        statistics->query.generalQueryValidRx          += mgmdStatsResMsg.query.generalQueryValidRx;
+        statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx;       
+        statistics->query.groupQueryValidRx            += mgmdStatsResMsg.query.groupQueryValidRx;  
+        statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
+        statistics->query.sourceQueryValidRx           += mgmdStatsResMsg.query.sourceQueryValidRx; 
+
+        if(noOfClientsFound++>=noOfClients)
+          break;
+      }    
     }
   }
 
@@ -11659,6 +11669,114 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
   osapiSemaGive(ptin_igmp_clients_sem);
 
   return SUCCESS;
+}
+
+
+/**
+ * Get the id of the first client of each groupclient and fill 
+ * the bitmap with them
+ * 
+ * @param  intIfNum 
+ * @param *clientBmpPtr 
+ * @param *noOfClients 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
+{
+  L7_uint i_client=0, child_clients;
+  ptinIgmpClientDataKey_t        avl_key;
+  ptinIgmpClientGroupInfoData_t *clientGroup;
+  ptinIgmpClientDevice_t        *client_device;
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
+  if(ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"List of Group clients (%u clients):\n",igmpClientGroups.number_of_clients);
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  while ( ( clientGroup = (ptinIgmpClientGroupInfoData_t *)
+                        avlSearchLVL7(&igmpClientGroups.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &clientGroup->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+    
+    client_device = L7_NULLPTR;
+    if( (child_clients=igmp_clientDevice_get_devices_number(clientGroup))!=0 &&
+     (client_device=igmp_clientDevice_next(clientGroup, client_device)) != L7_NULLPTR)
+    {
+      #if (MC_CLIENT_INTERF_SUPPORTED)
+      L7_uint32 clientIntIfNum;
+      if(ptin_intf_port2intIfNum(clientGroup->igmpClientDataKey.ptin_port,&clientIntIfNum)!=SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert port2intIfNum :%u",clientGroup->igmpClientDataKey.ptin_port);
+        continue;
+      } 
+      if(clientIntIfNum==intIfNum)
+      #endif
+      {
+        PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, client_device->client->client_index);     
+        (*noOfClients)++;
+        if(ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client Found [PortId:%u ClientId:%u]",clientIntIfNum,client_device->client->client_index);
+      }
+    }
+
+    if(ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"      Client#%u: "
+       #if (MC_CLIENT_INTERF_SUPPORTED)
+       "ptin_port=%-2u "
+       #endif
+       #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+       "svlan=%-4u (intVlan=%-4u) "
+       #endif
+       #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+       "cvlan=%-4u "
+       #endif
+       #if (MC_CLIENT_IPADDR_SUPPORTED)
+       "IP=%03u.%03u.%03u.%03u "
+       #endif
+       #if (MC_CLIENT_MACADDR_SUPPORTED)
+       "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+       #endif
+       ": port=%-2u uni_vid=%4u+%-4u (#devices=%u)",
+       i_client++,
+       #if (MC_CLIENT_INTERF_SUPPORTED)
+       clientGroup->igmpClientDataKey.ptin_port,
+       #endif
+       #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+       clientGroup->uni_ovid, clientGroup->igmpClientDataKey.outerVlan,
+       #endif
+       #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+       clientGroup->igmpClientDataKey.innerVlan,
+       #endif
+       #if (MC_CLIENT_IPADDR_SUPPORTED)
+       (clientGroup->igmpClientDataKey.ipv4_addr>>24) & 0xff,
+        (clientGroup->igmpClientDataKey.ipv4_addr>>16) & 0xff,
+         (clientGroup->igmpClientDataKey.ipv4_addr>>8) & 0xff,
+          clientGroup->igmpClientDataKey.ipv4_addr & 0xff,
+       #endif
+       #if (MC_CLIENT_MACADDR_SUPPORTED)
+       clientGroup->igmpClientDataKey.macAddr[0],
+        clientGroup->igmpClientDataKey.macAddr[1],
+         clientGroup->igmpClientDataKey.macAddr[2],
+          clientGroup->igmpClientDataKey.macAddr[3],
+           clientGroup->igmpClientDataKey.macAddr[4],
+            clientGroup->igmpClientDataKey.macAddr[5],
+       #endif
+       clientGroup->ptin_port,
+       clientGroup->uni_ovid, clientGroup->uni_ivid,
+       child_clients);
+  }
+  if(ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Done!");
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+
+  return L7_SUCCESS;
 }
 
 

@@ -550,6 +550,7 @@ RC_t ptin_mgmd_ctrl_client_activegroups_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to update groupList");
       res = FAILURE;
     }
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Number of Groups read:%u",numberOfGroups);
   }
 
   if(SUCCESS == res)
