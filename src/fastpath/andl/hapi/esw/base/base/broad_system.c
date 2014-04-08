@@ -4945,8 +4945,8 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
         break;
       }
 
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_addr, exact_match);
-      if (result != L7_SUCCESS)  break;
+//    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_addr, exact_match);
+//    if (result != L7_SUCCESS)  break;
 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
@@ -4959,7 +4959,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
 
       /* Trap the frames to CPU, so that they are not switched */
       result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
-      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TS_TO_CPU, 0, 0, 0);
+//    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TS_TO_CPU, 0, 0, 0);
       if (result != L7_SUCCESS)  {
         break;
       }
