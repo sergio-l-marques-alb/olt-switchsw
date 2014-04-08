@@ -1122,7 +1122,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
              *discard
              */
 
-            #if 0 // _SUPPORT_FP_ROUTING_
+            #if __SUPPORT_FP_ROUTING__
             {
                /* For VLAN routing intf, Get the MAC address info from driver. */             
 
@@ -1207,7 +1207,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
              (activeState != L7_ACTIVE))
          {
 
-            #if 0 // _SUPPORT_FP_ROUTING_
+            #if __SUPPORT_FP_ROUTING__
             {
                /* For VLAN routing intf, Get the MAC address info from driver. */
                
