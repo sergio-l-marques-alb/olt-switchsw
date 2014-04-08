@@ -3823,6 +3823,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_intf_t ptin_intf;
   struct ptin_evc_client_s *pflow;
   L7_uint32 evc_ext_id;
+  L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
   if (evc_id >= PTIN_SYSTEM_N_EVCS || ptin_port >= PTIN_SYSTEM_N_INTERF /*|| flow_id >= PTIN_SYSTEM_N_FLOWS_MAX*/)
@@ -3874,7 +3875,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     if (ptin_igmp_clientGroup_remove(&clientId) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
-      return L7_FAILURE;
+      rc = L7_FAILURE;
     }
     else
     {
@@ -3896,7 +3897,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   /* Remove virtual port */
   if (L7_SUCCESS!=vlan_port_intIfNum_delete(pflow->intIfNum_vport)) {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port (application layer)", evc_id);
-      //return L7_FAILURE;
+      rc = L7_FAILURE;
   }
   {
   IfN_vp_entry_t e;
@@ -3907,7 +3908,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port", evc_id);
-    return L7_FAILURE;
+    rc = L7_FAILURE;
   }
 
   /* Delete client from the EVC struct */
@@ -3930,7 +3931,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
                                  ) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
-        return L7_FAILURE;
+        rc = L7_FAILURE;
       }
       else
       {
@@ -3948,7 +3949,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
       if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from DHCP instance", evc_id);
-        return L7_FAILURE;
+        rc = L7_FAILURE;
       }
       else
       {
@@ -3961,7 +3962,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
       if (ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
-        return L7_FAILURE;
+        rc = L7_FAILURE;
       }
       else
       {
@@ -3974,7 +3975,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed!", evc_id, client_vlan);
 
-  return L7_SUCCESS;
+  return rc;
 }
 #endif
 
@@ -5108,7 +5109,7 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7
 
   /* Get all clients */
   pclientFlow = L7_NULLPTR;
-  while (dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow)==NOERR &&
+  while (/* dl_queue_remove_head */dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow)==NOERR &&
          pclientFlow != L7_NULLPTR)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Going to remove uni_ovid %u from intf %u/%u", pclientFlow->uni_ovid, intf_type, intf_id);
