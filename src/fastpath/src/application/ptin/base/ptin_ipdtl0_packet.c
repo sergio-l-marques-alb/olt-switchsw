@@ -165,6 +165,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     L7_uint32                 dataLength;
     ptin_IPDTL0_PDU_Msg_t     msg;
     L7_RC_t                   rc = L7_SUCCESS;
+    L7_ushort16               etype = 0;
 
 
     if (ptin_ipdtl0_debug_enable)
@@ -180,6 +181,10 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     /* Check if this is for me */
     if (ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId] == PTIN_IPDTL0_UNUSED_VLAN_ENTRY)
     {
+        if (ptin_ipdtl0_debug_enable)
+        {
+            LOG_TRACE(LOG_CTX_PTIN_API, "Trapping is not enabled on this VLAN");
+        }
         rc = L7_FAILURE;
         return rc;
     }
@@ -187,6 +192,17 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     /* Get start and length of incoming frame */
     SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
     SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+
+    /* At this point, Packet is always tagged */
+    memcpy(&etype, &data[16], sizeof(etype));
+    etype = osapiNtohs(etype);
+
+//  if(etype != L7_ETYPE_ARP)
+//  {
+//      LOG_TRACE(LOG_CTX_PTIN_API, "This is NOT an ARP Packet");
+//      rc = L7_FAILURE;
+//      return rc;
+//  }
 
     if (ptin_ipdtl0_debug_enable)
     {
