@@ -2064,14 +2064,14 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
       for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
       {        
         if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
-        {
-          noOfClientsFound++;
+        {          
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
-        }
-		//Break if all clients were already found
-        if(noOfClientsFound>=noOfClients)
-        {
-          break;
+
+          //Break if all clients were already found
+          if(noOfClientsFound++>=noOfClients)
+          {
+            break;
+          }
         }
       }   
     }
