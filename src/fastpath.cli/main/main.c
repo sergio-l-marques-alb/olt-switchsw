@@ -5026,7 +5026,7 @@ int main (int argc, char *argv[])
               break;
             }
 
-            printf( " DHCP statistics for Slot=%u, EVC=%u, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",po->SlotId,
+            printf( " DHCP statistics for Slot=%u, EVC=%lu, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",po->SlotId,
                     po->evc_id, po->mask,
                     po->intf.intf_type,po->intf.intf_id,
                     po->client.mask, po->client.outer_vlan, po->client.inner_vlan, po->client.intf.intf_type,po->client.intf.intf_id);
