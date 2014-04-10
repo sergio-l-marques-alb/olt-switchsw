@@ -128,6 +128,7 @@ void      ptinMgmdGroupRecordRemoveAll(void);
 void      ptinMgmdDumpGeneralQuery(void);
 void      ptinMgmdCleanAllGeneralQuery(void);
 void      ptinMgmdStartAllGeneralQuery(void);
+void      ptinMgmdReStartAllGeneralQuery(void);
 void      ptinMgmdGeneralQueryStopAll(void);
 
 void      ptinMgmdGroupSpecificQueriesRemoveAll(void);

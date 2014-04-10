@@ -1493,7 +1493,7 @@ void ptinMgmdStartAllGeneralQuery(void)
   ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
   ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
   ptin_mgmd_cb_t                *pMgmdCB;
-  ptin_IgmpProxyCfg_t            igmpGlobalCfg;
+  ptin_IgmpProxyCfg_t            igmpProxyCfg;
 
   if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
   {
@@ -1501,7 +1501,60 @@ void ptinMgmdStartAllGeneralQuery(void)
     return;
   }
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg)!=SUCCESS)
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpProxyCfg)!=SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
+    return;
+  }
+  
+  //Set the Query Response Interval to Minimum Allowed Value
+  igmpProxyCfg.querier.query_response_interval=PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL;
+ 
+  /* Run all cells in AVL tree */
+  memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
+  PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "ptinMgmdStartAllGeneralQuery");
+   
+  while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
+  {    
+    /* Prepare next key */
+    memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
+
+    avlTreeEntry->startUpQueryFlag=TRUE;
+    avlTreeEntry->querierTimer.startUpQueryCount=1;
+
+    //Send Right Away a General Query
+    ptinMgmdGeneralQuerySend(avlTreeEntry->key.serviceId,PTIN_MGMD_AF_INET,&igmpProxyCfg);
+
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "TimerPointer:%p",avlTreeEntry->querierTimer.timerHandle);
+
+    if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpProxyCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+      return;
+    }    
+  }  
+}
+
+/*************************************************************************
+ * @purpose Re-Start All Query AVL Tree
+ *
+ *
+ *
+ *************************************************************************/
+void ptinMgmdReStartAllGeneralQuery(void)
+{
+  ptinMgmdQuerierInfoData_t     *avlTreeEntry;  
+  ptinMgmdQuerierInfoDataKey_t   avlTreeKey;
+  ptin_mgmd_cb_t                *pMgmdCB;
+  ptin_IgmpProxyCfg_t            igmpProxyCfg;
+
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdCBGet()");
+    return;
+  }
+
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpProxyCfg)!=SUCCESS)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
     return;
@@ -1516,19 +1569,16 @@ void ptinMgmdStartAllGeneralQuery(void)
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
-    avlTreeEntry->startUpQueryFlag=TRUE;
-    avlTreeEntry->querierTimer.startUpQueryCount=1;
-
-    //Send Right Away a General Query
-    ptinMgmdGeneralQuerySend(avlTreeEntry->key.serviceId,PTIN_MGMD_AF_INET);
-
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "TimerPointer:%p",avlTreeEntry->querierTimer.timerHandle);
 
-    if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
+    if(ptin_mgmd_querytimer_timeleft(&avlTreeEntry->querierTimer)>igmpProxyCfg.querier.query_interval)
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
-      return;
-    }    
+      if(ptin_mgmd_querytimer_start(&avlTreeEntry->querierTimer, igmpProxyCfg.querier.startup_query_interval,(void*) avlTreeEntry,PTIN_MGMD_AF_INET)!=SUCCESS)
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
+        return;
+      }    
+    }
   }  
 }
 

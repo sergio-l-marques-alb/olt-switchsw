@@ -235,8 +235,16 @@ RC_t ptin_mgmd_event_querytimer(mgmdPtinQuerierTimerKey_t* eventData)
   }
   else
   {
+    ptin_IgmpProxyCfg_t           igmpProxyCfg;
+
+    if (ptin_mgmd_igmp_proxy_config_get(&igmpProxyCfg)!=SUCCESS)
+    {
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
+      return FAILURE;
+    }
+
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Triggering a General Query (serviceId:%u family:%u)",querierTimerKey.querierKey.serviceId,querierTimerKey.family);
-    ptinMgmdGeneralQuerySend(querierTimerKey.querierKey.serviceId,querierTimerKey.family);
+    ptinMgmdGeneralQuerySend(querierTimerKey.querierKey.serviceId,querierTimerKey.family, &igmpProxyCfg);
   }  
 
   return SUCCESS;

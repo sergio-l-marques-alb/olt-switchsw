@@ -25,10 +25,6 @@
 
 #include "ptin_mgmd_logger.h"
 
-/*********************Static Variables******************/
-ptin_IgmpProxyCfg_t igmpGlobalCfg;
-/*********************End Static Variables******************/
-
 /*********************************************************************
 * @purpose  This function is used exclusively for encoding the floating
 *           point representation as described in RFC 3376 section 4.1.1
@@ -136,7 +132,8 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
                                 uchar8 type,
                                 ptin_mgmd_inet_addr_t* groupAddr,
                                 uchar8* buffer,
-                                uint32 version)
+                                uint32 version, 
+                                ptin_IgmpProxyCfg_t *igmpProxyCfg)
 {
   uchar8      *dataPtr, *tempPtr, *startPtr;
 
@@ -203,7 +200,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   PTIN_MGMD_PUT_SHORT(shortVal, dataPtr);
 
   querierAddr.family=PTIN_MGMD_AF_INET;
-  querierAddr.addr.ipv4.s_addr=igmpGlobalCfg.ipv4_addr;
+  querierAddr.addr.ipv4.s_addr=igmpProxyCfg->ipv4_addr;
   ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &querierAddr, &ipv4Addr);
   memcpy(dataPtr, &ipv4Addr, PTIN_IP_ADDR_LEN); dataPtr += PTIN_IP_ADDR_LEN;
 
@@ -235,7 +232,7 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
   /* Max response code */
   if (version >= PTIN_IGMP_VERSION_2)
   {
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, version, igmpGlobalCfg.querier.query_response_interval, &val);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET, version, igmpProxyCfg->querier.query_response_interval, &val);
     byteVal=val;
   }
   else
@@ -261,19 +258,19 @@ static RC_t ptinMgmdIGMPFrameBuild( ptin_mgmd_inet_addr_t* destIp,
    /*If non-zero, the QRV field contains the [Robustness Variable]  used by the querier, i.e., the sender of the Query. If the querier’s [Robustness Variable] exceeds 7, the maximum value of the QRV field,
 the QRV is set to zero.*/
     /* QRV */
-    if (igmpGlobalCfg.querier.robustness>PTIN_MAX_QUERIER_ROBUSTNESS_VARIABLE)
+    if (igmpProxyCfg->querier.robustness>PTIN_MAX_QUERIER_ROBUSTNESS_VARIABLE)
     {
       byteVal=0;
     }
     else
     {
-      byteVal=igmpGlobalCfg.querier.robustness;
+      byteVal=igmpProxyCfg->querier.robustness;
     }
     
     PTIN_MGMD_PUT_BYTE(byteVal, dataPtr);
 
     /* QQIC */
-    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,version,igmpGlobalCfg.querier.query_interval,&val);
+    ptin_mgmd_fp_encode(PTIN_MGMD_AF_INET,version,igmpProxyCfg->querier.query_interval,&val);
     PTIN_MGMD_PUT_BYTE(val, dataPtr);
 
     /*Number of Sources*/
@@ -560,7 +557,7 @@ RC_t ptinMgmdMLDFrameBuild(uint32       intIfNum,
 * @end
 *
 *********************************************************************/
-void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
+void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family, ptin_IgmpProxyCfg_t *igmpProxyCfg)
 {
   uchar8                 mgmdFrame[PTIN_MGMD_MAX_FRAME_SIZE]={0}; 
   uchar8                *dataStart=mgmdFrame, 
@@ -589,15 +586,10 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
     return;
   }
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg) != SUCCESS)
-  {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
-    return;
-  }
   //Save mgmdProxyCfg
-  mcastPacket.cbHandle->mgmdProxyCfg=igmpGlobalCfg;
+  mcastPacket.cbHandle->mgmdProxyCfg=*igmpProxyCfg;
 
-  version  = igmpGlobalCfg.clientVersion;
+  version  = igmpProxyCfg->clientVersion;
 
   if (family == PTIN_MGMD_AF_INET)
   {
@@ -630,7 +622,8 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
                                 type,       /* 0x11*/
                                 &groupAddr,   /* Group address for General query */      
                                 dataStart,    
-                                version);
+                                version,
+                                igmpProxyCfg);
 
 
   }
@@ -704,7 +697,7 @@ void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family)
   mcastPacket.clientId  = (uint32)-1;
   mcastPacket.frameLength      = frameLength;
   mcastPacket.family      = family;
-  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &igmpGlobalCfg.ipv4_addr, &mcastPacket.srcAddr);
+  ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &igmpProxyCfg->ipv4_addr, &mcastPacket.srcAddr);
   ipAddr = PTIN_MGMD_IGMP_ALL_HOSTS_ADDR;
   ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipAddr, &mcastPacket.destAddr);
   memcpy(mcastPacket.framePayload,dataStart,frameLength);
@@ -731,8 +724,9 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
   ptinMgmdQuerierInfoDataKey_t  key;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t ctrlData;
   ptin_mgmd_cb_t               *pMgmdCB;
-  ptin_IgmpProxyCfg_t           igmpCfg;
+  ptin_IgmpProxyCfg_t           igmpProxyCfg;
 
+  
   /* Parse CTRL data */
   memcpy(&ctrlData, eventData->data, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
 
@@ -744,11 +738,13 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
   }
 
   /* Get current IGMP configurations */
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg)!=SUCCESS)
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpProxyCfg)!=SUCCESS)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
     return FAILURE;
   }
+  //Set the Query Response Interval to Minimum Allowed Value
+  igmpProxyCfg.querier.query_response_interval=PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL;
 
   /* Run all cells in AVL tree */    
   memset(&key, 0x00, sizeof(key));
@@ -760,7 +756,7 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Found GeneralQuerier for service %u", entry->key.serviceId);
 
     //Send right away the General Query
-    ptinMgmdGeneralQuerySend(entry->key.serviceId,ctrlData.family);
+    ptinMgmdGeneralQuerySend(entry->key.serviceId,ctrlData.family, &igmpProxyCfg);
     
     /* Stop Query Timer */
     if (SUCCESS != ptin_mgmd_querytimer_stop(&entry->querierTimer))
@@ -773,14 +769,13 @@ RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData)
     entry->startUpQueryFlag               = TRUE;
     entry->querierTimer.startUpQueryCount = 1;    
 
-    if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpGlobalCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
+    if(SUCCESS != ptin_mgmd_querytimer_start(&entry->querierTimer, igmpProxyCfg.querier.startup_query_interval, (void*)entry, ctrlData.family))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
       return FAILURE;
-    }
-  
+    }  
   }
-
+ 
   return SUCCESS;
 }
 
@@ -803,8 +798,9 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
 {
   RC_t                          rc = SUCCESS;
   PTIN_MGMD_CTRL_QUERY_CONFIG_t data; 
-  ptinMgmdQuerierInfoData_t     *pMgmdEntry=PTIN_NULLPTR;
+  ptinMgmdQuerierInfoData_t    *pMgmdEntry=PTIN_NULLPTR;
   BOOL                          newEntry;
+  ptin_IgmpProxyCfg_t           igmpProxyCfg;
 
   if (eventData==PTIN_NULLPTR || eventData->data==NULL ||  eventData->dataLength!=sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
   {
@@ -814,7 +810,7 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
 
   memcpy(&data, eventData->data, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
 
-  if (ptin_mgmd_igmp_proxy_config_get(&igmpGlobalCfg)!=SUCCESS)
+  if (ptin_mgmd_igmp_proxy_config_get(&igmpProxyCfg)!=SUCCESS)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to get IGMP Proxy Configurations"); 
     return FAILURE;
@@ -827,7 +823,7 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Going to enable Query (serviceId:%u family:%u)",data.serviceId,data.family); 
       
       //Send right away the General Query
-      ptinMgmdGeneralQuerySend(data.serviceId,data.family);
+      ptinMgmdGeneralQuerySend(data.serviceId,data.family,&igmpProxyCfg);
 
       if ((pMgmdEntry=ptinMgmdQueryEntryAdd(data.serviceId,data.family,&newEntry))==PTIN_NULLPTR)
       {
@@ -838,9 +834,9 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
       pMgmdEntry->startUpQueryFlag=TRUE;
       pMgmdEntry->querierTimer.startUpQueryCount=1;
       
-      if(igmpGlobalCfg.admin==PTIN_MGMD_ENABLE)
+      if(igmpProxyCfg.admin==PTIN_MGMD_ENABLE)
       {
-        if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpGlobalCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)
+        if(ptin_mgmd_querytimer_start(&pMgmdEntry->querierTimer, igmpProxyCfg.querier.startup_query_interval,(void*) pMgmdEntry,data.family)!=SUCCESS)
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to start query timer()");
           return FAILURE;

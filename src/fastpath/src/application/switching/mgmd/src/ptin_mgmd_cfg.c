@@ -334,19 +334,19 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
    
     if(mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
     {
-      //Open Ports for Static Groups Pre-Configured
-      ptinMgmdStaticGroupPortOpen();
-
       //Reset All Statistics
       ptin_mgmd_statistics_reset_all();
+
+      //Open Ports for Static Groups Pre-Configured
+      ptinMgmdStaticGroupPortOpen();
 
       //Start All Existing General Queries
       ptinMgmdStartAllGeneralQuery();      
     }
     else
     {
-      //Clean All Group Record Entries
-      ptinMgmdGroupRecordRemoveAll();
+      //Stop All Existing General Queries
+      ptinMgmdGeneralQueryStopAll();
 
       //Clean All Group Specific Query Entries
       ptinMgmdGroupSpecificQueriesRemoveAll();
@@ -358,8 +358,9 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
       //Remove Only Dynamic Entries
       ptinMgmdStaticOrDynamicGroupRemoveAll(FALSE);
 #endif
-      //Stop All Existing General Queries
-      ptinMgmdGeneralQueryStopAll();
+      
+      //Clean All Group Record Entries
+      ptinMgmdGroupRecordRemoveAll();      
     }
 
     externalApi.igmp_admin_set(mgmdProxyCfg.admin); 
@@ -442,8 +443,21 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   /* Query Interval */
   if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI && mgmdProxyCfg.querier.query_interval != igmpProxy->querier.query_interval)
   {    
+    #if 0
+    //Save Query Interval
+    uint16 old_query_interval=mgmdProxyCfg.querier.query_interval;
+    #endif
+
     mgmdProxyCfg.querier.query_interval = igmpProxy->querier.query_interval;        
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "    Query Interval:                        %u (s)", mgmdProxyCfg.querier.query_interval);
+
+    #if 0//Due to performance issues we do not perform this action
+    if(old_query_interval > mgmdProxyCfg.querier.query_interval &&  mgmdProxyCfg.admin==PTIN_MGMD_ENABLE)
+    {
+      //Restart all General Queries with a different Query Interval
+      ptinMgmdReStartAllGeneralQuery(); 
+    }
+    #endif
   }
 
   /* Query Response Interval */

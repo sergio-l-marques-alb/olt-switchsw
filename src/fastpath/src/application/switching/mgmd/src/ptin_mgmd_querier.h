@@ -141,7 +141,7 @@ struct mgmdSnoopControlPkt_s;
 RC_t ptinMgmdGeneralQuerierReset(PTIN_MGMD_EVENT_CTRL_t *eventData);
 
 RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData);
-void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family);
+void ptinMgmdGeneralQuerySend(uint32 serviceId, uchar8 family, ptin_IgmpProxyCfg_t *igmpProxyCfg);
 
 /**
  * Create a IGMP Membership Report header. 
