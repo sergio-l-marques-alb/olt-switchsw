@@ -408,7 +408,7 @@ typedef struct {
 } __attribute__((packed)) msg_switch_mac_intro_t;
 
 typedef struct {
-    L7_uint16             evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
+    L7_uint32             evcId;          /* EVC id that belongs this MAC entry (if no EVC is associated its value will be 0xffff) */
     L7_uint16             vlanId;         /* Vlan associated to this MAC entry */
     L7_uint8              addr[6];        /* MAC address */
     msg_HwEthInterface_t  intf;           /* Interface attached to this entry */

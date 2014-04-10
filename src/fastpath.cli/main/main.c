@@ -4773,7 +4773,7 @@ int main (int argc, char *argv[])
           for (i=0; i<ptr->intro.numEntries; i++) {
             printf(" Id %-5lu, ",ptr->intro.startEntryId+i);
             if (ptr->entry[i].evcId!=(uint16)-1)
-              printf("EVC %-4u, ",ptr->entry[i].evcId);
+              printf("EVC %-4lu, ",ptr->entry[i].evcId);
             else
               printf("No EVC  , ");
             printf("VlanId %-4u, ",ptr->entry[i].vlanId);
