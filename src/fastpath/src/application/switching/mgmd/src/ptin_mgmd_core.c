@@ -54,12 +54,44 @@
 /*********************Global Variables******************/
 BOOL              ptin_mgmd_extended_debug = FALSE;
 BOOL              ptin_mgmd_packet_trace   = FALSE;
+
 /*********************End Global Variables******************/
 
 
 
 /*********************Static Variables******************/
 static ptin_mgmd_inet_addr_t sourceList[PTIN_IGMP_DEFAULT_MAX_SOURCES_PER_GROUP_RECORD];
+
+#if 0
+typedef struct ptinMgmdPortList_s
+{
+  uint8            portId;
+  uint8            isActive;
+} ptinMgmdPortList_t;
+
+static uint8     external2InternalPorId[PTIN_MGMD_MAX_PORT_ID];//External Port Id to Internal PortId;
+static uint8     internal2ExternalPorId[PTIN_MGMD_MAX_PORTS];//Internal PortId to External Port Id;
+
+void ptin_mgmd_get_internal_and_external_port_init(void)
+{
+  uint32 iterator;
+  for (iterator=0;iterator<)
+
+}
+uint8 ptin_mgmd_get_internal_port_id(uint8 externalPortId){
+  if(external2InternalPorId[externalPortId].isActive==FALSE)
+  {
+    external2InternalPorId[externalPortId].isActive=TRUE;
+    internal2ExternalPorId
+  }
+  return (external2InternalPorId[externalPortId].portId);
+}
+
+uint8 ptin_mgmd_get_external_port_id(uint8 internalPortId)
+{
+  if(external2InternalPorId[externalPortId].isActive==FALSE)
+}
+#endif
 /*********************End Static Variables******************/
 
 /*********************Static Routines******************/

@@ -2397,10 +2397,21 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
       memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
       if(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId == serviceId)
-      {
-        // Triggering the removal of the root interface will remove the entire AVL entry
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr, debugBuf));
-        ptinMgmdInterfaceRemove(avlTreeEntry, PTIN_MGMD_ROOT_PORT);
+      {        
+        if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE)
+        {
+          // Triggering the removal of the root interface will remove the entire AVL entry
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP," - Removing %s", ptin_mgmd_inetAddrPrint(&avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr, debugBuf));
+          ptinMgmdInterfaceRemove(avlTreeEntry, PTIN_MGMD_ROOT_PORT);  
+        }
+        else
+        {          
+          if (ptinMgmdL3EntryDelete(avlTreeEntry->ptinMgmdGroupInfoDataKey.serviceId, &avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr) != SUCCESS)
+          {
+            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinL3EntryDelete()");
+            return FAILURE;
+          }     
+        }
       }
     }
   }

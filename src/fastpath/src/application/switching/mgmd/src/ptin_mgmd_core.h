@@ -36,8 +36,8 @@
 
 
 //Global Variables
-extern BOOL                     ptin_mgmd_extended_debug;
-extern BOOL                     ptin_mgmd_packet_trace;
+extern uint8                    ptin_mgmd_extended_debug;
+extern uint8                    ptin_mgmd_packet_trace;
 extern unsigned long            ptin_mgmd_memory_allocation;
 //End Global Variables
 
@@ -208,7 +208,7 @@ typedef struct
 
 typedef struct
 {
-  BOOL                            inUse;
+  uint8                           inUse;
   uint32                          serviceId;
   uint8                           compatibilityMode;       //ptin_mgmd_compatibility_mode_t  
   PTIN_MGMD_TIMER_t               timerHandle;
@@ -244,7 +244,7 @@ struct ptinMgmdRootClient_s
 struct ptinMgmdSource_s
 {
   uint8                          status; //ptin_mgmd_sourcestate_t
-  BOOL                           isStatic;
+  uint8                          isStatic;
                                 
   ptin_mgmd_inet_addr_t          sourceAddr;
   ptinMgmdSourcetimer_t          sourceTimer;
@@ -260,7 +260,7 @@ struct ptinMgmdSource_s
 typedef struct
 {
   uint8                           active;
-  BOOL                            isStatic;
+  uint8                           isStatic;
   uint8                           filtermode; //snoop_ptin_filtermode_t
 
   ptinMgmdLeafCMtimer_t           groupCMTimer; //router compatibility-mode
@@ -293,8 +293,8 @@ typedef struct mgmdProxyInterfaceTimer_s
 
   uint32         noOfRecords;  
   uint8          reportType;
-  BOOL           isFirstTransmission;
-  BOOL           isInterface; 
+  uint8          isFirstTransmission;
+  uint8          isInterface; 
 
   PTIN_MGMD_TIMER_t  timerHandle;
 } mgmdProxyInterfaceTimer_t; 
@@ -478,7 +478,7 @@ typedef struct snoop_eb_s
   uchar8                             maxMgmdInstances;
 
   /* Flag to specify if IPv6 hop by hop option with rtr alert is supported supported or not */
-  BOOL                               ipv6OptionsSupport;
+  uint8                              ipv6OptionsSupport;
 
   /*Group Records*/
   mgmdProxyInterface_t              *interfacePtr;

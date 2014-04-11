@@ -762,12 +762,17 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
   RC_t                    rc;
   
   /* Argument validation */
-  if (groupEntry == PTIN_NULLPTR )
+  if (groupEntry == PTIN_NULLPTR || portId>=PTIN_MGMD_MAX_PORT_ID)
   {
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid arguments: groupEntry=%p portId=%u",groupEntry,portId);
     return FAILURE;
   }
 
+  if (groupEntry->ports[portId].active==FALSE)
+  {
+    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "This PortId:%u is Inactive",portId);
+    return SUCCESS;
+  }
   if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdEBGet()");
