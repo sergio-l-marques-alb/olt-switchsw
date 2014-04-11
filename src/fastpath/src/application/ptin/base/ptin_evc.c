@@ -9231,7 +9231,11 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
           if (!evcs[evc_id].intf[port].in_use)  continue;
 
           /* Skip leaf interfaces of stacked services */
-          if (IS_EVC_INTF_LEAF(evc_id,port) && (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)))  continue;
+          if (IS_EVC_INTF_LEAF(evc_id,port) && (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id) 
+          #ifdef PTIN_BOARD_ACTIVETH_FAMILY
+                                                || (evcConf->flags&PTIN_EVC_MASK_MC_IPTV) 
+          #endif
+                                                ))  continue;
 
           /* If outer vlan matches, we have a conflict */
           if (evcs[evc_id].intf[port].out_vlan   == evcConf->intf[i].vid &&
