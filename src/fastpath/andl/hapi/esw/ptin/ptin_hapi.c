@@ -1574,11 +1574,11 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       /* PTin modified: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
       soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
-      rx->etherStatsDropEvents = tmp1 + mtuePkts;                                     /* Drop Events */
+      rx->etherStatsDropEvents = tmp1;// + mtuePkts;                                     /* Drop Events */
       #else
       soc_counter_get(unit, port, GRDROPr          , 0, &tmp1);
       soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-      rx->etherStatsDropEvents = tmp1 + tmp2 + mtuePkts;                              /* Drop Events */
+      rx->etherStatsDropEvents = tmp1 + tmp2;// + mtuePkts;                              /* Drop Events */
       #endif
       soc_counter_get(unit, port, GRBYTr , 0, &tmp1);
       soc_counter_get(unit, port, RRBYTr , 0, &tmp2);
@@ -1657,10 +1657,10 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       #else
       soc_counter_get(unit, port, IRDROPr          , 0, &tmp1);
       soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-      tmp = tmp1 + tmp2 + tmp3;
+      tmp = tmp1 + tmp2 + tmp3; //tmp3 is here 0 (init @ top of function)
       #endif
-      ( tmp >= mtuePkts ) ? ( tmp -= mtuePkts ) : ( tmp = 0 );
-      rx->etherStatsDropEvents = tmp + mtuePkts;                                      /* Drop Events */
+      //( tmp >= mtuePkts ) ? ( tmp -= mtuePkts ) : ( tmp = 0 );
+      rx->etherStatsDropEvents = tmp;// + mtuePkts;                                      /* Drop Events */
       soc_counter_get(unit, port, IRBYTr , 0, &rx->etherStatsOctets);                 /* Octets */                   
       soc_counter_get(unit, port, IRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
       soc_counter_get(unit, port, IRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */               
@@ -1728,7 +1728,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
     soc_counter_get(unit, port, RDROPr           , 0, &tmp1);
     soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-    rx->etherStatsDropEvents = tmp1 + tmp2 + mtuePkts;                              /* Drop Events */
+    rx->etherStatsDropEvents = tmp1 + tmp2;// + mtuePkts;                              /* Drop Events */
     soc_counter_get(unit, port, RBYTr , 0, &rx->etherStatsOctets);
     //soc_counter_get(unit, port, RBYTr , 0, &tmp1);
     //soc_counter_get(unit, port, RBYTr , 0, &tmp2);
@@ -1800,7 +1800,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   }
 
 /* PTin debug: drop events are not correctly read. Override with zero until this problem is solved! */
-//LOG_WARNING(LOG_CTX_PTIN_HAPI, "RX and TX drop counters are always zero! Known bug to to solved!");
+//LOG_WARNING(LOG_CTX_PTIN_HAPI, "RX and TX drop counters are always zero! Known bug to be solved!");
 //rx->etherStatsDropEvents = 0;
 //tx->etherStatsDropEvents = 0;
 
