@@ -2055,10 +2055,10 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
 
       if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
       {
-        if (SUCCESS != ptinMgmdL3EntryAdd(mcastPacket->serviceId, &mcastPacket->destAddr))
+        if (mcastPacket->ebHandle->ptinMgmdGroupAvlTree.count>=PTIN_MGMD_MAX_GROUPS ||  SUCCESS != ptinMgmdL3EntryAdd(mcastPacket->serviceId, &mcastPacket->destAddr))
         {
           ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
-          PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add new group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
+          PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to add new group[%s]/service[%u] entry! Number of Existing Groups:%u", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId,mcastPacket->ebHandle->ptinMgmdGroupAvlTree.count);
           return ERROR;
         }
         else
