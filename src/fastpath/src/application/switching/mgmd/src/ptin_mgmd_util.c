@@ -157,7 +157,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
     //Response to a General Query 
     if (isInterface==TRUE)
     {             
-      if ((groupPtr=mgmdBuildIgmpv3CSR(interfacePtr,&noOfRecords))==PTIN_NULLPTR)
+      if ((newgroupPtr=groupPtr=mgmdBuildIgmpv3CSR(interfacePtr,&noOfRecords))==PTIN_NULLPTR)
       {
         if (noOfRecords>0)
         {
