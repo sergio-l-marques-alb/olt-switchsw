@@ -454,7 +454,7 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
     {
       __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
     }
-#else
+#elif PTIN_BOARD_IS_LINECARD
     ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
     /* Sync the status of this switch port on the backup type-b protection port, if it exists */
