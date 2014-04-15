@@ -300,6 +300,7 @@ int ptin_fifo_pop(PTIN_FIFO_t fifoQueue, PTIN_FIFO_ELEMENT_t* element)
   //Validation
   if(queue->first_used == NULL)
   {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Error: Abnormal context [fifoQueue:%p queue->first_used:%p  element:%p]", fifoQueue, queue->first_used, element);
     return -1;
   }
 

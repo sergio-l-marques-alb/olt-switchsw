@@ -773,6 +773,7 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "This PortId:%u is Inactive",portId);
     return SUCCESS;
   }
+
   if ((pMgmdEB = mgmdEBGet()) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to mgmdEBGet()");

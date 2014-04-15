@@ -630,12 +630,13 @@ int ptin_mgmd_timer_init(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t *t
     return -1;
   }
 
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Creating new timer for control block %p", controlBlock);
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Creating new timer for control block %p", controlBlock);
 
   /* Get a new timer from the availableTimersPool */
   pthread_mutex_lock(&cbPtr->lock);
   if(0 != ptin_fifo_pop(cbPtr->availableTimersPool, (PTIN_FIFO_ELEMENT_t*)&newTimer))
   {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed to get new timer from fifo [timerPtr:%p funcPtr:%p]", timerPtr, funcPtr);
     pthread_mutex_unlock(&cbPtr->lock);
     return -1;
   }

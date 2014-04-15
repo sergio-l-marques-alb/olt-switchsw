@@ -43,7 +43,7 @@ static const char *log_ctx_str[PTIN_MGMD_LOG_CONTEXT_LAST] = {
     "LOG  ",
     "MGMD ",
     "TIMER",
-    "FIFO",
+    "FIFO ",
 };
 
 /* Severity color */
