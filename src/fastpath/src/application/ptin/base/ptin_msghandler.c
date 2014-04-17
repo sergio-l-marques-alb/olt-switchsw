@@ -349,6 +349,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      * Misc Processing
      **************************************************************************/
 
+    /* Uplink protection command *********************************************/
+    case CHMSG_ETH_UPLINK_COMMAND:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
+
+      msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
+      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
+
+      rc = ptin_msg_uplink_protection_cmd(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /* CCMSG_BOARD_SHOW *******************************************************/
     case CCMSG_BOARD_SHOW:
     {

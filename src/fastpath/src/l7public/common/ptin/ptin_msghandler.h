@@ -93,6 +93,8 @@
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
 #define CCMSG_ETH_NTW_CONNECTIVITY_SET      0x9061  // struct msg_NtwConnectivity_t
 
+#define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
+
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
@@ -1552,6 +1554,18 @@ typedef struct {
   L7_uint8  port;
 } __attribute__ ((packed)) msg_erps_cmd_t;
 
+/**************************************************************************** 
+ * UPLINK PROTECTION
+ ****************************************************************************/
+
+/* Protection command received from MX control fw */
+// Message CHMSG_ETH_UPLINK_COMMAND
+typedef struct
+{
+  uint8 slotId;
+  uint8 port;                 // Port index
+  uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
+} __attribute__ ((packed)) msg_uplinkProtCmd;
 
 
 /***************************************************************************** 
