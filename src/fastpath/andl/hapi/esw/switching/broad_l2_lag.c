@@ -72,6 +72,7 @@
 #endif
 
 #include "logger.h"   /* PTin added: trunks */
+#include "ptin_globaldefs.h"
 
 extern DAPI_t *dapi_g;
 
@@ -99,7 +100,7 @@ extern L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp, DAPI_USP_t *toUs
 L7_RC_t hapiBroadLagHashToPsc(L7_uint32 hashMode, L7_int32 *bcmPsc);
 
 /* PTin added */
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if ( LAG_DIRECT_CONTROL_FEATURE )
 extern int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp);
 #define ACCESS_LAG_AT_SDK_LEVEL(command)    ((command)==cmd || !dapi_usp_is_internal_lag_member(usp))
 #else
@@ -794,11 +795,10 @@ L7_RC_t hapiBroadL2LagPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_CREATE       ] = (HAPICTLFUNCPTR_t)hapiBroadLagCreate;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_PORT_ADD     ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAdd;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_PORT_DELETE  ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortDelete;
-/* PTin added */
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  /* PTin added */
   dapiPortPtr->cmdTable[DAPI_CMD_INTERNAL_LAG_PORT_ADD     ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAsyncAdd;
   dapiPortPtr->cmdTable[DAPI_CMD_INTERNAL_LAG_PORT_DELETE  ] = (HAPICTLFUNCPTR_t)hapiBroadLagPortAsyncDelete;
-#endif
+  /* end of PTin added */
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_DELETE       ] = (HAPICTLFUNCPTR_t)hapiBroadLagDelete;
   dapiPortPtr->cmdTable[DAPI_CMD_AD_TRUNK_MODE_SET] = (HAPICTLFUNCPTR_t)hapiBroadADTrunkModeSet;
   dapiPortPtr->cmdTable[DAPI_CMD_LAG_HASHMODE_SET ] = (HAPICTLFUNCPTR_t)hapiBroadLagHashModeSet;
@@ -1093,6 +1093,13 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   bcm_chip_family_t             board_family=0; 
   usl_bcm_port_frame_size_t    maxFrameSize;
   
+  LOG_INFO(LOG_CTX_MISC, "This function was called");
+
+  if (!ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_ADD))
+  {
+    LOG_WARNING(LOG_CTX_MISC, "Cannot proceed!");
+    return L7_SUCCESS;
+  }
 
   memset(newMembers,0,sizeof(newMembers));
   memset(&bcmTrunkInfo, 0, sizeof(bcmTrunkInfo));
@@ -1437,12 +1444,12 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 
     /* then add the member ports */
     /* PTin modified */
-    if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_ADD)) {
-        rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
-        if (L7_BCMX_OK(rc) != L7_TRUE) {
-          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set info for trunk ID %d, rv = %d", tid, rc);
-        }
+    rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
+    if (L7_BCMX_OK(rc) != L7_TRUE) {
+      LOG_ERR(LOG_CTX_MISC, "Error adding port");
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set info for trunk ID %d, rv = %d", tid, rc);
     }
+    LOG_INFO(LOG_CTX_MISC, "Port added");
     /* PTin modified */
   }
 
@@ -1642,6 +1649,15 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   bcm_chip_family_t             board_family=0; 
   usl_bcm_port_frame_size_t    maxFrameSize;
   L7_BOOL cond0, cond1, cond2, cond3, cond;     /* PTin added: BUG correction */
+
+  LOG_INFO(LOG_CTX_MISC, "This function was called");
+
+  if (!ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE) &&
+      !ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_LAG_DELETE))
+  {
+    LOG_WARNING(LOG_CTX_MISC, "Cannot proceed!");
+    return L7_SUCCESS;
+  }
 
   memset(&bcmTrunkInfo, 0, sizeof(bcmTrunkInfo));
 
@@ -1912,25 +1928,26 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 //#ifdef L7_WIRELESS_PACKAGE
 //       (void)hapiBroadL2TunnelLagDeleteNotify(usp, dapi_g);
 //#endif
-      if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE)) {     /* PTin modified */
-          rc = usl_bcmx_trunk_destroy(usp->port, tid);
-          if (L7_BCMX_OK(rc) != L7_TRUE) {
-            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
-          }
-    
-          /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
-          rc = usl_bcmx_trunk_create(usp->port, &tid);
-          if (L7_BCMX_OK(rc) != L7_TRUE) {
-            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
-          }
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
-          hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
-          BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
-    
-          /* Need to apply learn mode now that we have a tgid */
-          usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
+      rc = usl_bcmx_trunk_destroy(usp->port, tid);
+      if (L7_BCMX_OK(rc) != L7_TRUE) {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
+        LOG_ERR(LOG_CTX_MISC, "Error removing port");
       }
+      LOG_INFO(LOG_CTX_MISC, "Port removed");
+
+      /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
+      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
+      rc = usl_bcmx_trunk_create(usp->port, &tid);
+      if (L7_BCMX_OK(rc) != L7_TRUE) {
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
+      }
+      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
+      hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
+      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
+
+      /* Need to apply learn mode now that we have a tgid */
+      usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
+
 
       /* PTin end */
 
@@ -1943,11 +1960,13 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     }
     /* otherwise set the membership to the remaining members */
     else
-    if (ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE)) {       /* PTin modified */
+    {
       rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
       if (L7_BCMX_OK(rc) != L7_TRUE) {
+        LOG_ERR(LOG_CTX_MISC, "Error removing port");
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set trunk info for ID %d, rv = %d", tid, rc);
       }
+      LOG_INFO(LOG_CTX_MISC, "Port removed");
     }
   }
 
@@ -2192,10 +2211,13 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   L7_ushort16            entry;
   L7_ushort16            intfCount;
   DAPI_USP_t             memberSetBuf[L7_MAX_MEMBERS_PER_LAG];
+  DAPI_LAG_MGMT_CMD_t    cmdLagPortDelete;
 
   /* PTin added: trunks */
   int           rc;
   BROAD_PORT_t *hapiLagPortPtr;
+
+  LOG_INFO(LOG_CTX_MISC, "This function was called");
 
   dapiPortPtr    = dapi_g->unit[usp->unit]->slot[usp->slot]->port[usp->port];
   hapiLagPortPtr = dapi_g->unit[usp->unit]->slot[usp->slot]->port[usp->port]->hapiPort;
@@ -2241,6 +2263,38 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     result = L7_FAILURE;
     return result;
   }
+
+  /* Going to remove LAG ports */
+  #if 1
+  memset(&cmdLagPortDelete, 0x00, sizeof(cmdLagPortDelete));
+  memset(memberSetBuf, 0x00, sizeof(memberSetBuf));
+
+  /* Find out how many ports are currently configured as LAG members. */
+  portLagSet = dapiPortPtr->modeparm.lag.memberSet;
+  intfCount = 0;
+  for (entry=0; entry < L7_MAX_MEMBERS_PER_LAG; entry++)
+  {
+    if (portLagSet[entry].inUse == L7_TRUE)
+    {
+      memberSetBuf[intfCount].unit = portLagSet[entry].usp.unit;
+      memberSetBuf[intfCount].slot = portLagSet[entry].usp.slot;
+      memberSetBuf[intfCount].port = portLagSet[entry].usp.port;
+
+      intfCount++;
+      LOG_INFO(LOG_CTX_MISC, "Going to remove port {%d,%d,%d}...",memberSetBuf[intfCount].unit, memberSetBuf[intfCount].slot, memberSetBuf[intfCount].port);
+    }
+  }
+  cmdLagPortDelete.cmdData.lagPortDelete.getOrSet     = DAPI_CMD_SET;
+  cmdLagPortDelete.cmdData.lagPortDelete.memberSet    = memberSetBuf;
+  cmdLagPortDelete.cmdData.lagPortDelete.numOfMembers = intfCount;
+
+  if (hapiBroadLagPortAsyncDelete(usp, cmd, &cmdLagPortDelete, dapi_g) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_MISC, "Error removing LAG ports!");
+    return L7_FAILURE;
+  }
+  #endif
+  LOG_INFO(LOG_CTX_MISC, "Going to destroy LAG...");
 
   do
   {
