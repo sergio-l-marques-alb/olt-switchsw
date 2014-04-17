@@ -219,12 +219,10 @@ DAPI_NAME_CONTAINER_t dapi_cmd_name_g[DAPI_NUM_OF_CMDS] =
 {DAPI_CMD_LAG_CREATE_NAME},
 {DAPI_CMD_LAG_PORT_ADD_NAME},
 {DAPI_CMD_LAG_PORT_DELETE_NAME},
-    /* PTin added */
-    #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-      {DAPI_CMD_INTERNAL_LAG_PORT_ADD_NAME},
-      {DAPI_CMD_INTERNAL_LAG_PORT_DELETE_NAME},
-    #endif
-    /* PTin added */
+/* PTin added */
+{DAPI_CMD_INTERNAL_LAG_PORT_ADD_NAME},
+{DAPI_CMD_INTERNAL_LAG_PORT_DELETE_NAME},
+/* PTin added */
 {DAPI_CMD_LAG_DELETE_NAME},
 {DAPI_CMD_AD_TRUNK_MODE_SET_NAME},
 {DAPI_CMD_LAG_HASHMODE_SET_NAME},
@@ -691,10 +689,8 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
     case DAPI_CMD_LAG_PORT_DELETE:
     case DAPI_CMD_LAG_DELETE:
 /* PTin added */
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
     case DAPI_CMD_INTERNAL_LAG_PORT_ADD:
     case DAPI_CMD_INTERNAL_LAG_PORT_DELETE:
-#endif
 /* PTin added */
     case DAPI_CMD_LAG_HASHMODE_SET:
     case DAPI_CMD_AD_TRUNK_MODE_SET:
@@ -1961,10 +1957,8 @@ L7_RC_t dapiCtlLagIntf(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
            (cmd == DAPI_CMD_LAG_PORT_ADD)           ||
            (cmd == DAPI_CMD_LAG_PORT_DELETE)        ||
 /* PTin added */
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
            (cmd == DAPI_CMD_INTERNAL_LAG_PORT_ADD)           ||
            (cmd == DAPI_CMD_INTERNAL_LAG_PORT_DELETE)        ||
-#endif
 /* PTin added */
            (cmd == DAPI_CMD_LAG_DELETE)             ||
            (cmd == DAPI_CMD_QVLAN_VLAN_PORT_ADD)    ||

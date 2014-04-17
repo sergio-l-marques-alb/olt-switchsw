@@ -1262,10 +1262,10 @@ void dapiDebugCommandDecode(DAPI_CMD_t cmd, void *cmdInfo, DAPI_t *dapi_g)
 
   case DAPI_CMD_LAG_PORT_ADD:
   case DAPI_CMD_LAG_PORT_DELETE:
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )         /* PTin added */
+  /* PTin added */
   case DAPI_CMD_INTERNAL_LAG_PORT_ADD:
   case DAPI_CMD_INTERNAL_LAG_PORT_DELETE:
-#endif
+  /* End of PTin added */
     dapiDebugSendMsg("App: 0x%08lX  (%s)  Number of members %d.\n", cmdLagMgmt->appHandle,
                       dapiDebugNameIgnoreSetGet[cmdLagMgmt->cmdData.lagPortDelete.getOrSet],
                       cmdLagMgmt->cmdData.lagPortDelete.numOfMembers);

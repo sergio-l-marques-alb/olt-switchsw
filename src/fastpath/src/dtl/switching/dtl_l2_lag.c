@@ -34,6 +34,7 @@
 #include "dtlinclude.h"
 #include "dot3ad_exports.h"
 
+#include "ptin_globaldefs.h"
 
 #if DTLCTRL_COMPONENT_L2_LAG
 
@@ -417,7 +418,7 @@ L7_RC_t dtlDot3adHashModeSet (L7_uint32 lagIfNum, L7_uint32 hashMode)
 
 
 /* PTin added */
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#if ( LAG_DIRECT_CONTROL_FEATURE )
 //#include "dapi_struct.h"
 //extern DAPI_t *dapi_g;
 //Please check dtlDot3adPort*() in "dtl_l2_lag.c"
@@ -507,7 +508,7 @@ L7_RC_t dtlDot3adInternalPortDelete(L7_uint32 lagIfNum,
 
   return rc;
 }
-#endif  //( PTIN_BOARD == PTIN_BOARD_TA48GE )
+#endif  //( LAG_DIRECT_CONTROL_FEATURE )
 
 /*
 **********************************************************************

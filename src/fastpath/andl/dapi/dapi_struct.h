@@ -189,10 +189,10 @@
 #define DAPI_CMD_LAG_CREATE_NAME                          "DAPI_CMD_LAG_CREATE"
 #define DAPI_CMD_LAG_PORT_ADD_NAME                        "DAPI_CMD_LAG_PORT_ADD"
 #define DAPI_CMD_LAG_PORT_DELETE_NAME                     "DAPI_CMD_LAG_PORT_DELETE"
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )         /* PTin added */
+/* PTin added */
 #define DAPI_CMD_INTERNAL_LAG_PORT_ADD_NAME                        "DAPI_CMD_INTERNAL_LAG_PORT_ADD"
 #define DAPI_CMD_INTERNAL_LAG_PORT_DELETE_NAME                     "DAPI_CMD_INTERNAL_LAG_PORT_DELETE"
-#endif
+/* End of PTin added */
 #define DAPI_CMD_LAG_DELETE_NAME                          "DAPI_CMD_LAG_DELETE"
 #define DAPI_CMD_AD_TRUNK_MODE_SET_NAME                   "DAPI_CMD_AD_TRUNK_MODE_SET"
 #define DAPI_CMD_LAG_HASHMODE_SET_NAME                    "DAPI_CMD_LAG_HASHMODE_SET"
