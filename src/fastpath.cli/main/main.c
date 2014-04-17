@@ -50,6 +50,7 @@ void help_oltBuga(void)
         "m 1011 port[0-17] - get switch port configuration\n\r"
         "m 1012 port[0-17] - Get Phy states\n\r"
         "m 1013 slot[2-19] - Apply linkscan procedure\n\r"
+        "m 1014 slot[2-19] port[0-3] cmd[0/1] - (Uplink) Protection command\n\r"
         "m 1015 [0-Phy,1-Lag]/[intf#] - Get port type definitions\r\n"
         "m 1016 slot=[0-17] intf=<[0-Phy;1-Lag]/intf#> defvid=[1-4095] defprio=[0-7] aftypes=[0/1] ifilter=[0/1] rvlanreg=[0/1] vlanaware=[0/1] type=[0/1/2]\r\n"
         "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] - Set port type definitions\r\n"
@@ -758,6 +759,47 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->generic_id = (uint8) valued;
+        }
+        break;
+
+      /* m 1014 slot[2-19] port[0-3] cmd[0/1] - (Uplink) Protection command */
+      case 1014:
+        {
+          msg_uplinkProtCmd *ptr;
+
+          // Validate number of arguments
+          if (argc<3+3)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          comando.msgId = CHMSG_ETH_UPLINK_COMMAND;
+          comando.infoDim = sizeof(msg_uplinkProtCmd);
+
+          // Pointer to data array
+          ptr = (msg_uplinkProtCmd *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_uplinkProtCmd));
+
+          // Slot id
+          if (StrToLongLong(argv[3+0], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->slotId = (uint8) valued;
+
+          // Port
+          if (StrToLongLong(argv[3+1], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->port = (uint8) valued;
+
+          // Command
+          if (StrToLongLong(argv[3+2], &valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protCmd = (uint8) valued;
         }
         break;
 
@@ -4462,6 +4504,13 @@ int main (int argc, char *argv[])
         printf(" Linkscan applied successfully\n\r");
       else
         printf(" Linkscan not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+      break;
+
+    case 1014:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" Protection command applied successfully\n\r");
+      else
+        printf(" Protection command not executed - error %08x\n\r", *(unsigned int*)resposta.info);
       break;
 
     case 1015:

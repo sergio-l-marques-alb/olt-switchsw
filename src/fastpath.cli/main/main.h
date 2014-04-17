@@ -8,11 +8,11 @@ extern int canal_buga;
 // retirado do ficheiro  u-boot-1.1.x/include/pci_ids.h
 #define PCI_VENDOR_ID_BROADCOM          0x14e4
 
-#define PTIN_SYSTEM_MAX_N_PORTS  64
-#define PTIN_SYSTEM_MAX_N_LAGS   PTIN_SYSTEM_MAX_N_PORTS
-#define PTIN_SYSTEM_N_PORTS  18
-#define PTIN_SYSTEM_N_LAGS   PTIN_SYSTEM_N_PORTS
-#define PTIN_SYSTEM_N_INTERF (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS)
+#define PTIN_SYSTEM_MAX_N_PORTS   64
+#define PTIN_SYSTEM_MAX_N_LAGS    PTIN_SYSTEM_MAX_N_PORTS
+#define PTIN_SYSTEM_N_PORTS       18
+#define PTIN_SYSTEM_N_LAGS        PTIN_SYSTEM_N_PORTS
+#define PTIN_SYSTEM_N_INTERF      (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS)
 
 #ifndef min
   #define min(x, y) (((x) < (y)) ? (x) : (y))
@@ -131,6 +131,8 @@ extern int canal_buga;
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
+
+#define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
@@ -1126,6 +1128,19 @@ typedef struct
   L7_uint16 flowCounters_available_entries;
   L7_uint16 flowProfiles_available_entries;
 } __attribute__((packed))msg_ptin_policy_resources;
+
+/**************************************************************************** 
+ * UPLINK PROTECTION
+ ****************************************************************************/
+
+/* Protection command received from MX control fw */
+// Message CHMSG_ETH_UPLINK_COMMAND
+typedef struct
+{
+  uint8 slotId;
+  uint8 port;                 // Port index
+  uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
+} __attribute__ ((packed)) msg_uplinkProtCmd;
 
 #endif //_MAIN_H_
 
