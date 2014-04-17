@@ -13,6 +13,7 @@
 #include "usmdb_qos_cos_api.h"
 #include "usmdb_mib_vlan_api.h"
 
+#include "dtlapi.h"
 #include "ptin_include.h"
 #include "ptin_control.h"
 #include "ptin_intf.h"
@@ -1625,6 +1626,66 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
   return L7_SUCCESS;
 }
 
+/**
+ * Convert intIfNum to LAG index
+ * 
+ * @param intIfNum  FP intIfNum
+ * @param lag_idx   LAG index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
+{
+  L7_uint32 ptin_port;
+  //L7_INTF_TYPES_t sysIntfType;
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  #if 0
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Can't get intIfNum %u type", intIfNum);
+    return L7_FAILURE;
+  }
+  /* This should be a LAG port */
+  if (sysIntfType != L7_LAG_INTF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u is not a lag (type=%u)", intIfNum, sysIntfType);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Get port index (ptin_port representation) */
+  ptin_port = map_intIfNum2port[intIfNum];
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is invalid", intIfNum, ptin_port);
+    return L7_FAILURE;
+  }
+  /* Check again for LAG type */
+  if (ptin_port < PTIN_SYSTEM_N_PORTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is physical type", intIfNum, ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Return lag_index */
+  if (lag_idx != L7_NULLPTR)
+  {
+    *lag_idx = ptin_port - PTIN_SYSTEM_N_PORTS;
+  }
+
+  return L7_SUCCESS;
+}
+
 #if PTIN_BOARD_IS_MATRIX
 /**
  * Converts Slot to LAG index [0..PTIN_SYSTEM_N_LAGS[
@@ -2148,6 +2209,25 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
       lagConf_data[lag_idx].members_pbmp64 |= (L7_uint64)1 << port;
       LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u added", port);
+
+      #if (PTIN_BOARD_IS_MATRIX)
+      if (newLag && lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+      {
+        /* Disable linkscan */
+        if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+        }
+        else if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
+        }
+        else
+        {
+          LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
+        }
+      }
+      #endif
     }
     /* Port not member (is it to be removed ?) */
     else
@@ -2339,6 +2419,17 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
          * not during normal operation (under production) */ 
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, i);
       }
+
+      #if (PTIN_BOARD_IS_MATRIX)
+      if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+      {
+        /* Disable linkscan */
+        if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF,"Error reenabling linkscan for intIfNum %u", intIfNum);
+        }
+      }
+      #endif
     }
   }
 
@@ -3815,6 +3906,8 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_uint32 lag_intIfNum, lag_port;
+  L7_BOOL   apply_config = L7_TRUE;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate input params */
@@ -3839,13 +3932,30 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       return L7_FAILURE;
     }
 
-    /* Linkscan procedure */
-    rc = ptin_intf_linkscan_set(intIfNum, enable);
+    /* Get belonging LAG */
+    if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
+        lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
+    {
+      /* ptin port format */
+      lag_port = map_intIfNum2port[lag_intIfNum];
 
-    if (rc != L7_SUCCESS)
-      LOG_ERR(LOG_CTX_PTIN_API,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
-    else
-      LOG_TRACE(LOG_CTX_PTIN_API,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
+      /* If special lag, skip procedure */
+      if (lag_port >= PTIN_SYSTEM_N_PORTS && (lag_port - PTIN_SYSTEM_N_PORTS) >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+      {
+        apply_config = L7_FALSE;
+      }
+    }
+
+    /* Linkscan procedure */
+    if (!enable || apply_config)
+    {
+      rc = ptin_intf_linkscan_set(intIfNum, enable); 
+
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_API,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+      else
+        LOG_TRACE(LOG_CTX_PTIN_API,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
+    }
   }
   /* Apply to all slot ports */
   else
@@ -3865,6 +3975,22 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       {
         LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
+      }
+
+      /* Get belonging LAG */
+      if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
+          lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
+      {
+        /* ptin port format */
+        lag_port = map_intIfNum2port[lag_intIfNum];
+
+        /* If special lag, skip procedure */
+        if (lag_port >= PTIN_SYSTEM_N_PORTS && (lag_port - PTIN_SYSTEM_N_PORTS) >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+        {
+          /* Only skip, if it is to enable linkscan */
+          if (enable)
+            continue;
+        }
       }
 
       /* Linkscan procedure */
@@ -4137,8 +4263,77 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
   return L7_FALSE;
 }
 
+/**
+ * Protection command
+ * 
+ * @param slot : board slot
+ * @param port : board port
+ * @param cmd : command
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
+{
+  #if (PTIN_BOARD_IS_MATRIX)
+  L7_uint lag_idx;
+  L7_uint32 ptin_port, intIfNum, lag_intIfNum;
 
+  /* Get intIfNum from slot/port */
+  if (ptin_intf_slotPort2IntIfNum(slot, port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Cannot find a valid intIfNum from slot/port=%u/%u", slot, port);
+    return L7_FAILURE;
+  }
 
+  /* Get lag which belongs this port */
+  if (dot3adAggGet(intIfNum, &lag_intIfNum) != L7_SUCCESS || lag_intIfNum == 0 || lag_intIfNum >= L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u does not belong to any lag", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port format, and validate it */
+  ptin_port = map_intIfNum2port[lag_intIfNum];
+
+  if (ptin_port < PTIN_SYSTEM_N_PORTS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is not a lag", intIfNum, ptin_port);
+    return L7_FAILURE;
+  }
+
+  lag_idx = ptin_port - PTIN_SYSTEM_N_PORTS;
+
+  /* Only apply commands to lags where the protection is related */
+  if (lag_idx < PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Protection not applicable to intIfNum %u / ptin_port %u (lag_idx=%u)", intIfNum, ptin_port, lag_idx);
+    return L7_FAILURE;
+  }
+
+  /* Activate command: add port */
+  if (cmd & 1)
+  {
+    if (dtlDot3adInternalPortAdd(lag_intIfNum, 1, &intIfNum, 1) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding intIfNum %u (ptin_port %u) to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) added to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+  }
+  /* Innactivate command: remove port */
+  else
+  {
+    if (dtlDot3adInternalPortDelete(lag_intIfNum, 1, &intIfNum, 1) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing intIfNum %u (ptin_port %u) from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) removed from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
 
 
 int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
@@ -4153,6 +4348,41 @@ L7_uint32 intIfNum;
    if (1==dusp->unit && 0==dusp->slot && dusp->port>=PTIN_SYSTEM_N_ETH && dusp->port<PTIN_SYSTEM_N_ETH+4) return 1;
    // (check usmDbIntIfNumFromUSPGet() call in ptin_intf_init())
 #endif
+#elif ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+   nimUSP_t usp;
+   L7_uint32 intIfNum, lag_idx;
+
+   /* Interface should be a LAG */
+   if (dusp->slot != L7_LAG_SLOT_NUM)
+   {
+     LOG_ERR(LOG_CTX_PTIN_INTF, "usp {%d,%d,%d} is not a LAG", usp.unit, usp.slot, usp.port);
+     return L7_FALSE;
+   }
+
+   /* Get intIfNum from dusp */
+   usp.unit = dusp->unit;
+   usp.slot = dusp->slot;
+   usp.port = dusp->port + 1;
+
+   if (nimGetIntIfNumFromUSP(&usp, &intIfNum) != L7_SUCCESS)
+   {
+     LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
+     return L7_FALSE;
+   }
+   /* Convert to lag index (management point of view) */
+   if (ptin_intf_intIfNum2lag(intIfNum, &lag_idx) != L7_SUCCESS)
+   {
+     LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
+     return L7_FALSE;
+   }
+
+   /* If LAG a lag protection? */
+   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+   {
+     LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u is a special port (lagIdx=%u)", intIfNum, lag_idx);
+     return L7_TRUE;
+   }
+   LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum %u is a regular LAG (lagIdx=%u)", intIfNum, lag_idx);
 #endif
  return 0;
 }

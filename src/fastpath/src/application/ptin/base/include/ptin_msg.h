@@ -920,6 +920,16 @@ extern L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client
 extern L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
 
 /**
+ * Uplink protection command
+ * 
+ * @param cmd : command array
+ * @param n : number of commands
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n);
+
+/**
  * Sync MGMD open ports
  * 
  * @param port_sync_data : MGMD port to sync

@@ -6183,6 +6183,39 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
 }
 
 /**
+ * Uplink protection command
+ * 
+ * @param cmd : command array
+ * @param n : number of commands 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
+{
+  L7_int i;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Apply all commands */
+  for (i = 0; i < n; i++)
+  {
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Received protection command: "); 
+    LOG_INFO(LOG_CTX_PTIN_MSG, " slot = %u", cmd[i].slotId);
+    LOG_INFO(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
+    LOG_INFO(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
+
+    rc = ptin_intf_protection_cmd(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
+
+    /* Update status error */
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+    }
+  }
+  
+  return rc_global;
+}
+
+/**
  * Sync MGMD open ports
  * 
  * @param port_sync_data : MGMD port to sync

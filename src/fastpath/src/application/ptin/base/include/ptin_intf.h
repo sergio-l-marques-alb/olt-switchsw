@@ -346,6 +346,16 @@ extern inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint3
  */
 extern inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
 
+/**
+ * Convert intIfNum to LAG index
+ * 
+ * @param intIfNum  FP intIfNum
+ * @param lag_idx   LAG index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx);
+
 #if PTIN_BOARD_IS_MATRIX
 /**
  * Converts Slot to LAG index [0..PTIN_SYSTEM_N_LAGS[
@@ -596,6 +606,17 @@ extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
+
+/**
+ * Protection command
+ * 
+ * @param slot : board slot
+ * @param port : board port
+ * @param cmd : command
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);
 
 /**
  The following 2 functions identify, respectively
