@@ -881,7 +881,7 @@ void l7_log_event(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
 
 /* PTin added: debug */
 #if 1
-static L7_BOOL logf_debug = L7_TRUE;
+static L7_BOOL logf_debug = L7_FALSE;
 
 void l7_logf_enable(L7_BOOL enable)
 {
