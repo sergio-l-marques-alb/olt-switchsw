@@ -5,6 +5,10 @@
 
 extern T_ETH_SRV_OAM oam;
 
+extern void dump_uplinkprot_traps(void);
+
+extern int send_also_uplinkprot_traps(L7_uint8 set1_clr0_init2, L7_uint16 slot, L7_uint16 port, L7_uint64 vid);
+
 extern void tst_send(void);
 
 extern int MEP_is_in_LOC(L7_ulong32 i_mep, L7_ulong32 i_rmep, T_ETH_SRV_OAM *p);

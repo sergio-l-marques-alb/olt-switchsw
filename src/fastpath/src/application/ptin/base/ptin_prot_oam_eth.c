@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <logger.h>
+#include <ipc.h>
 #include <ptin_cnfgr.h>
 #include <ptin_intf.h>
 #include <ethsrv_oam.h>
@@ -33,6 +34,128 @@ T_ETH_SRV_OAM oam;
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
 /* *******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+/* Protection alarms sent from linecard to MC control fw **********************************************************/
+#define IPC_CHANNEL_UPLINKPROT            6005
+#define TRAP_SW_ETH_UPLINKPROT_ALARMS  0x8008
+
+//#define UPLINK_LC_MAX_PORTS 4
+
+typedef enum
+{
+  ALARMS_CLEAR = 0x00,
+  LC_FAILURE   = 0x01,
+  PORT_LOS     = 0x02,
+  MEP_LOC      = 0x04,
+  MEP_RDI      = 0x08,
+  PORT_SD      = 0x10,
+  UNDEFINED3   = 0x20,
+  UNDEFINED4   = 0x40,
+  PON_NOT_SYNC = 0x80
+} PROT_PortAlarms_t;
+
+typedef struct {
+  uint8       slotId,
+              port,     //0..3
+              alarm;    //PROT_PortAlarms_t
+} __attribute__((packed)) msg_uplinkProtAlarms2mx_st;
+
+typedef struct {
+    unsigned char       active;
+    PROT_PortAlarms_t   a;
+    L7_uint64           vid;
+} T_UPLINKPROT_TRAPS;
+static T_UPLINKPROT_TRAPS uplinkprot_traps[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
+
+
+void dump_uplinkprot_traps(void) {
+L7_uint32 s, p;
+
+ printf("DUMP_UPLINKPROT_TRAPS()\n\r");
+ for (s=0; s<PTIN_SYS_SLOTS_MAX; s++)
+     for (p=0; p<PTIN_SYS_INTFS_PER_SLOT_MAX; p++)
+         if (uplinkprot_traps[s][p].active)
+             printf("slot=%u\tport=%u\tvid=%llu\talarm=%x\n\r", s, p, uplinkprot_traps[s][p].vid, uplinkprot_traps[s][p].a);
+}
+
+
+int send_also_uplinkprot_traps(L7_uint8 set1_clr0_init2, L7_uint16 slot, L7_uint16 port, L7_uint64 vid) {
+T_UPLINKPROT_TRAPS *p;
+
+    if (slot>=PTIN_SYS_SLOTS_MAX) return 1;
+    if (port>=PTIN_SYS_INTFS_PER_SLOT_MAX) return 2;
+
+    p=&uplinkprot_traps[slot][port];
+
+    switch (set1_clr0_init2) {
+    default:
+        p->active=0;
+        break;
+    case 1:
+        p->active=1;
+        break;
+    case 0:
+        //we may have several MEPs in this port, with different VIDs; only one to send these traps to
+        if (p->active && p->vid!=vid) return 3;
+        p->active=0;
+        break;
+    }
+    p->a=ALARMS_CLEAR;
+    p->vid=vid;
+    return 0;
+}
+
+
+
+
+static inline void send_trap_ETH_OAM_uplinkprot(L7_uint32 ptin_port, PROT_PortAlarms_t alarm, PROT_PortAlarms_t msk, L7_uint64 vid) {
+L7_uint16 slot, port;
+msg_uplinkProtAlarms2mx_st v;
+T_UPLINKPROT_TRAPS *p;
+
+ if (L7_SUCCESS!=ptin_intf_port2SlotPort(ptin_port, &slot, &port, L7_NULLPTR)) return;
+
+ p=&uplinkprot_traps[slot][port];
+
+ if (!p->active) return;
+ if (!p->vid!=vid) return;
+
+ switch (msk) {
+ default: return;
+ case MEP_LOC:
+     if (alarm) p->a |= MEP_LOC; else p->a &= ~MEP_LOC;
+     break;
+ case MEP_RDI:
+     if (alarm) p->a |= MEP_RDI; else p->a &= ~MEP_RDI;
+     break;
+ }
+
+ v.slotId=  slot;
+ v.port=    port;
+ v.alarm=   p->a;
+ send_ipc_message(IPC_CHANNEL_UPLINKPROT, IPC_LOCALHOST_IPADDR, TRAP_SW_ETH_UPLINKPROT_ALARMS, (char *)&v, NULL, sizeof(v));
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -69,8 +192,6 @@ typedef struct {
          unsigned char     meg_id_prefix[16];
 } __attribute__ ((packed)) st_RegEthOAMTrap;
 
-#include <ipc.h>
-
 static inline void ethsrv_oam_register(unsigned short alarm, unsigned short rmep_id, T_MEG_ID *meg_id, L7_uint16 mep_id, /*L7_uint16 mep_indx,*/ L7_uint16 porta, L7_uint64 vid) {
 st_RegEthOAMTrap v;
 
@@ -88,28 +209,40 @@ st_RegEthOAMTrap v;
 }
 void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
     ethsrv_oam_register(UNEXP_MEG, 0xffff, meg_id, mep_id, porta, vid);
+    LOG_TRACE(LOG_CTX_OAM,"UNEXP_MEG imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {
     ethsrv_oam_register(UNEXP_LVL, 0xffff, meg_id, mep_id, porta, vid);
+    LOG_TRACE(LOG_CTX_OAM,"UNEXP_LVL imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_T(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 period) {
     ethsrv_oam_register(UNEXP_T, 0xffff, meg_id, mep_id, porta, vid);
+    LOG_TRACE(LOG_CTX_OAM,"UNEXP_T imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
     ethsrv_oam_register(UNEXP_MEP, 0xffff, meg_id, mep_id, porta, vid);
+    LOG_TRACE(LOG_CTX_OAM,"UNEXP_MEP imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    //send_trap_ETH_OAM_uplinkprot(port, 0, MEP_LOC, vid);
     ethsrv_oam_register(ME_CONNECTION_UP, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+    LOG_TRACE(LOG_CTX_OAM,"ME_CONNECTION_UP imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    //send_trap_ETH_OAM_uplinkprot(port, MEP_RDI, MEP_RDI, vid);
     ethsrv_oam_register(ME_RDI, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+    LOG_TRACE(LOG_CTX_OAM,"ME_RDI imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    //send_trap_ETH_OAM_uplinkprot(port, 0, MEP_RDI, vid);
     ethsrv_oam_register(ME_RDI_END, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+    LOG_TRACE(LOG_CTX_OAM,"ME_RDI_END imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
+    //send_trap_ETH_OAM_uplinkprot(port, MEP_LOC, MEP_LOC, vid);
     ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
+    LOG_TRACE(LOG_CTX_OAM,"ME_CONNECTION_LOSS imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 
 
@@ -443,6 +576,11 @@ L7_uint32 i;
         ptin_ccm_packet_trap(oam.mep_db[i].prt, oam.mep_db[i].vid, oam.mep_db[i].level, 0);
     }
     init_eth_srv_oam(&oam);
+    {
+     unsigned long j;
+     for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+         for (j=0; j<PTIN_SYS_INTFS_PER_SLOT_MAX; j++) send_also_uplinkprot_traps(2,i,j,0ULL-1);
+    }
 }
 
 
@@ -476,6 +614,11 @@ L7_RC_t ptin_oam_eth_init(void)
 {
 
   init_eth_srv_oam(&oam);
+  {
+   unsigned long i, j;
+   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
+       for (j=0; j<PTIN_SYS_INTFS_PER_SLOT_MAX; j++) send_also_uplinkprot_traps(2,i,j,0ULL-1);
+  }
 
   ptin_ccm_packet_init(0xffff);
 

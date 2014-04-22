@@ -6693,6 +6693,16 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   porta = pi[i].bd.prt;
 
+  if ((pi[i].flags & 0x01)) {
+  L7_uint16 slot, port;
+
+    if (L7_SUCCESS!=ptin_intf_port2SlotPort(porta, &slot, &port, L7_NULLPTR)) return L7_FAILURE;
+    if (slot!=pi[i].tu_slot) {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_port=%lu => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
+        //return L7_FAILURE;
+    }
+    if (send_also_uplinkprot_traps(1, slot, port, pi[i].bd.vid)) return L7_FAILURE;
+  }
 
   switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam))
   {
@@ -6753,6 +6763,12 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   {
   case 0:    r=S_OK;
     ptin_ccm_packet_trap(prt, vid, level, 0);
+    {
+     L7_uint16 slot, port;
+
+      if (L7_SUCCESS==ptin_intf_port2SlotPort(prt, &slot, &port, L7_NULLPTR)) send_also_uplinkprot_traps(0, slot, port, vid);
+    }
+
     break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE;  break;
   default:   r=ERROR_CODE_INVALIDPARAM; break;

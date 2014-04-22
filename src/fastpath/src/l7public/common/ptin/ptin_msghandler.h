@@ -1453,6 +1453,9 @@ typedef T_MEP_HDR   msg_mep_hdr_t;
 typedef struct {
   _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MEPs-1
   msg_mep_hdr_t bd;
+
+  unsigned char     tu_slot;
+  unsigned char     flags;               // 0x01-enable Eth uplink prot.
 } __attribute__ ((packed)) msg_bd_mep_t;
 
 

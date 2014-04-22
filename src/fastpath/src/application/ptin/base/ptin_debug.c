@@ -159,6 +159,7 @@ void ptin_debug(void)
   printf("  log_color_set <ctx_mask> <color>    - use log_help for more info\r\n");
   printf("\r\n");
   printf("  dump_IfN_vp_DB                      - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
+  printf("  dump_uplinkprot_traps               - info about ports/MEPs with uplink protection port traps triggered");
   printf("\r\n");
 }
 
