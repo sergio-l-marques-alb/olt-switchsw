@@ -263,7 +263,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
 
   //Set group-timer to LMQT. If this is the only interface in the root port, set the root port group-timer to LMQT as well
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting interface timer to LMQT");
-  if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, lmqt, groupEntry->ptinMgmdGroupInfoDataKey, portId))
+  if(SUCCESS != ptin_mgmd_grouptimer_start(&groupEntry->ports[portId].groupTimer, lmqt+500, groupEntry->ptinMgmdGroupInfoDataKey, portId))
   {
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to restart group timer [groupAddr=0x%08X serviceId=%u portId=%u]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
     return FAILURE;
