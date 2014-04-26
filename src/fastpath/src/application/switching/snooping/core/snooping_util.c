@@ -1229,7 +1229,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   */
   if (snoopIntfCanBeEnabled(intIfNum, vlanId) != L7_TRUE)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u vlanId=%u] is down (or it is been used for routing, or even is a port mirror",intIfNum,vlanId );
     return;
   }
 
@@ -1237,15 +1237,16 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
        (sysIntfType == L7_CPU_INTF) )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed here");
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is a CPU interface",intIfNum);
     return;
   }
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Buffer handle is a null pointer");
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-           "snoopPacketSend: System out of netbuffs");
+           "snoopPacketSend: System out of netbuffs");    
     return;
   }
 
