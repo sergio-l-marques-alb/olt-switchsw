@@ -2662,7 +2662,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
   if (ivid != 0 && ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS)
   {
-    if ( ( (flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED) && !(ptin_igmp_rootIntfVlan_validate(intIfNum, intOVlan)) ) ||
+    if ( ( (flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED) && (ptin_igmp_rootIntfVlan_validate(intIfNum, intOVlan)==L7_SUCCESS) ) ||
          (!(flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED)) )
     {
       ivid = 0;
