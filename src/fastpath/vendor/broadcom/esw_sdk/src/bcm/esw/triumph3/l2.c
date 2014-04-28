@@ -7506,9 +7506,9 @@ bcm_tr3_l2_learn_port_class_set(int unit, bcm_gport_t port, int lclass)
     BCM_L2_LEARN_CLASSID_VALID(lclass);
 
     if (BCM_GPORT_IS_TRUNK(port)) {
-        BCM_IF_ERROR_RETURN
-            (soc_mem_field32_modify(unit, TRUNK_CBL_TABLEm, trunk_id,
-                                    PORT_LEARNING_CLASSf, lclass));
+        rv = soc_mem_field32_modify(unit, TRUNK_CBL_TABLEm, trunk_id,
+                                    PORT_LEARNING_CLASSf, lclass);
+        return rv;
     } else if (BCM_GPORT_IS_MODPORT(port)) {
         BCM_IF_ERROR_RETURN
             (soc_mem_field32_modify(unit, PORT_CBL_TABLEm, 
@@ -7612,6 +7612,7 @@ bcm_tr3_l2_learn_port_class_get(int unit,
                                                   trunk_id, &tr_entry));
         *lclass = soc_TRUNK_CBL_TABLEm_field32_get(unit, &tr_entry,
                                                    PORT_LEARNING_CLASSf);
+        return BCM_E_NONE;
     } else if (BCM_GPORT_IS_MODPORT(port)) {
         port_cbl_table_entry_t entry;
 
