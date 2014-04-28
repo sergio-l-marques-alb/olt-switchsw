@@ -4106,7 +4106,8 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 
     //Copy group/source if vlans match
     if (serviceId == avlTreeKey.serviceId &&
-        groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == TRUE)
+        groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == TRUE &&
+        groupEntry->ports[portId].active == TRUE)
     {
       uint16 sourceIdx;
 
@@ -4131,7 +4132,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
             channelList[*numChannels].sourceTimer = ptin_mgmd_sourcetimer_timeleft(&sourcePtr->sourceTimer);
 
             /* If group address is static, get static information to source channel */
-            if (groupEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic)
+            if (groupEntry->ports[portId].isStatic)
             {
               channelList[*numChannels].staticType = sourcePtr->isStatic;
             }
@@ -4152,7 +4153,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 
         ptin_mgmd_inetCopy(&channelList[*numChannels].groupAddr, &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr);
         ptin_mgmd_inetAddressReset(&channelList[*numChannels].sourceAddr);
-        channelList[*numChannels].staticType = groupEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic;
+        channelList[*numChannels].staticType = groupEntry->ports[portId].isStatic;
         channelList[*numChannels].sourceTimer = 0;
         ++(*numChannels);
       }
