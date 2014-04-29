@@ -29,9 +29,6 @@
  * FEATURES
  *******************************/
 
-/* Comment the follwing line, if you don't want to use client timers */
-#define CLIENT_TIMERS_SUPPORTED
-
 /******************************* 
  * Debug procedures
  *******************************/
@@ -387,8 +384,6 @@ typedef struct igmpTimerData_s
   L7_uint32         timerHandle;
 } igmpTimerData_t;
 
-L7_RC_t ptin_igmp_timersMng_init(void);
-L7_RC_t ptin_igmp_timersMng_deinit(void);
 L7_RC_t ptin_igmp_timer_start (L7_uint igmp_idx, L7_uint32 client_idx);
 L7_RC_t ptin_igmp_timer_update(L7_uint igmp_idx, L7_uint32 client_idx);
 L7_RC_t ptin_igmp_timer_stop  (L7_uint igmp_idx, L7_uint32 client_idx);
@@ -618,15 +613,6 @@ L7_RC_t ptin_igmp_proxy_init(void)
     return L7_FAILURE;
   }
 
-#ifdef CLIENT_TIMERS_SUPPORTED
-  /* Timers init */
-  if (ptin_igmp_timersMng_init()!=L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to initialize timers!");
-    return L7_FAILURE;
-  }
-#endif
-
   LOG_INFO(LOG_CTX_PTIN_IGMP, "IGMP init OK");
 
   return L7_SUCCESS;
@@ -639,11 +625,6 @@ L7_RC_t ptin_igmp_proxy_init(void)
  */
 L7_RC_t ptin_igmp_proxy_deinit(void)
 {
-#ifdef CLIENT_TIMERS_SUPPORTED
-  /* Timers init */
-  ptin_igmp_timersMng_deinit();
-#endif
-
   /* CLIENTS CLEANUP */
 
   /* Clean list of clients */

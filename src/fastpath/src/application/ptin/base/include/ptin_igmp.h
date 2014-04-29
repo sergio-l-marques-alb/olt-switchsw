@@ -16,6 +16,9 @@
 
 #define PTIN_IGMP_STATS_IN_EVCS 0
 
+/* Comment the follwing line, if you don't want to use client timers */
+#define CLIENT_TIMERS_SUPPORTED
+
 #define PTIN_IGMP_VERSION_1 1
 #define PTIN_IGMP_VERSION_2 2
 #define PTIN_IGMP_VERSION_3 3
@@ -1026,6 +1029,21 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
 extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
 #endif
 
+#ifdef CLIENT_TIMERS_SUPPORTED
+/**
+ * Initialize IGMP timers
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_igmp_timersMng_init(void);
+
+/**
+ * DeInitialize IGMP timers
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_igmp_timersMng_deinit(void);
+#endif
 
 /**************************** 
  * IGMP statistics

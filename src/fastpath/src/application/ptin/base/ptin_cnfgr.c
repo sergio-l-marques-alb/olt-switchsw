@@ -331,37 +331,8 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
 
-  /* Create PTin task */
-  if (osapiTaskCreate("PTin task", ptinTask, 0, 0,
-                      L7_DEFAULT_STACK_SIZE*10,
-                      L7_DEFAULT_TASK_PRIORITY,
-                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create PTin task!");
-
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
-    return L7_FAILURE;
-  }
-  /* Wait for task to be launched */
-  if (osapiWaitForTaskInit (L7_PTIN_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to start PTin task!");
-
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTin task launch OK");
-
-  /* Allocate SSM resources */
-  if (ssm_init() != L7_SUCCESS)
-  {
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
-    return L7_FAILURE;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM init OK");
+  /* Initialize EVC data structures */
+  ptin_evc_init();
 
   /* Initialize IGMP data structures (includes semaphores) */
   ptin_igmp_proxy_init();
@@ -371,16 +342,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize PPPoE data structures */
   ptin_pppoe_init();
-
-  /* Initialize ERPS data structures (includes semaphores and timer) */
-  #ifdef PTIN_ENABLE_ERPS
-  ptin_prot_erps_init();
-  #endif
-
-  /* IP dtl0 module initialization. */
-  #ifdef PTIN_ENABLE_DTL0TRAP
-  ptin_ipdtl0_init();
-  #endif
 
   #if ( PTIN_BOARD_IS_STANDALONE )
   /* Open shared memory to communicate with the GPON application */
@@ -395,24 +356,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     LOG_INFO(LOG_CTX_PTIN_CNFGR, "Shared memory OK");
   }
   #endif
-
-  /* Initialize IPC message runtime measurements */
-  CHMessage_runtime_meter_init((L7_uint) -1);
-
-  /* Open channel to communicate with the Manager */
-  while (OpenIPC() != S_OK)
-  {
-    LOG_CRITICAL(LOG_CTX_PTIN_CNFGR, "Error opening IPC channel! Retrying in %d seconds...", PTIN_T_RETRY_IPC);
-    sleep(PTIN_T_RETRY_IPC);
-  }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "IPC Communications channel OK");
-
-  /* Define signal trap callback */
-  if ( signal(SIGUSR1, main_sig_caught)==SIG_ERR )
-  {
-    LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
-    PTIN_CRASH();
-  }
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 
@@ -488,6 +431,70 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
 #endif
 
+  /* Create PTin task */
+  if (osapiTaskCreate("PTin task", ptinTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE*10,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create PTin task!");
+
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
+  }
+  /* Wait for task to be launched */
+  if (osapiWaitForTaskInit (L7_PTIN_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to start PTin task!");
+
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTin task launch OK");
+
+  /* Initialize OAM data structures (includes task and timer) */
+  ptin_oam_eth_init();
+
+#ifdef CLIENT_TIMERS_SUPPORTED
+  /* Timers init */
+  if (ptin_igmp_timersMng_init()!=L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to initialize timers!");
+    return L7_FAILURE;
+  }
+#endif
+
+  /* Allocate SSM resources */
+  if (ssm_init() != L7_SUCCESS)
+  {
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM init OK");
+
+    /* Initialize ERPS data structures (includes semaphores and timer) */
+#ifdef PTIN_ENABLE_ERPS
+  ptin_prot_erps_init();
+#endif
+
+  /* IP dtl0 module initialization. */
+#ifdef PTIN_ENABLE_DTL0TRAP
+  ptin_ipdtl0_init();
+#endif
+
+#if ( !PTIN_BOARD_IS_MATRIX )
+  if (ptin_packet_init() != L7_SUCCESS)
+  {
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_FATAL;
+    return L7_ERROR;
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
+#endif
+
 /* Only make interface state management, if CXO board */
 #ifdef PTIN_LINKSCAN_CONTROL
 #if (PTIN_BOARD_IS_MATRIX)
@@ -522,16 +529,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
 #endif
 #endif
-#endif
-
-#if ( !PTIN_BOARD_IS_MATRIX )
-  if (ptin_packet_init() != L7_SUCCESS)
-  {
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_FATAL;
-    return L7_ERROR;
-  }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
 #endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
@@ -580,11 +577,23 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
 
-  /* Initialize EVC data structures */
-  ptin_evc_init();
+  /* Initialize IPC message runtime measurements */
+  CHMessage_runtime_meter_init((L7_uint) -1);
 
-  /* Initialize OAM data structures (includes task and timer) */
-  ptin_oam_eth_init();
+  /* Open channel to communicate with the Manager */
+  while (OpenIPC() != S_OK)
+  {
+    LOG_CRITICAL(LOG_CTX_PTIN_CNFGR, "Error opening IPC channel! Retrying in %d seconds...", PTIN_T_RETRY_IPC);
+    sleep(PTIN_T_RETRY_IPC);
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "IPC Communications channel OK");
+
+  /* Define signal trap callback */
+  if ( signal(SIGUSR1, main_sig_caught)==SIG_ERR )
+  {
+    LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
+    PTIN_CRASH();
+  }
 
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 
@@ -609,9 +618,6 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 void ptinCnfgrFiniPhase1Process(void)
 {
   /* deallocate anything that was allocated */
-
-  /* Deallocate SSM resources */
-  ssm_fini();
 
   /* Deconfigure IGMP proxy */
   ptin_igmp_proxy_deinit();
@@ -642,10 +648,18 @@ void ptinCnfgrFiniPhase2Process(void)
    * member in the cosDeregister_g struct is set to L7_FALSE;
    */
 
-    #if ( !PTIN_BOARD_IS_MATRIX )
-    /* Deinit ptin packet module */
-    ptin_packet_deinit();
-    #endif
+#if ( !PTIN_BOARD_IS_MATRIX )
+  /* Deinit ptin packet module */
+  ptin_packet_deinit();
+#endif
+
+  /* Deallocate SSM resources */
+  ssm_fini();
+
+#ifdef CLIENT_TIMERS_SUPPORTED
+  /* Timers init */
+  ptin_igmp_timersMng_deinit();
+#endif
 
    ptinCnfgrState = PTIN_PHASE_INIT_1;
 }
@@ -671,6 +685,10 @@ void ptinCnfgrFiniPhase3Process(void)
   {
     /* keep going */
   }
+
+  /* Open channel to communicate with the Manager */
+  CloseIPC();
+
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 }
 
