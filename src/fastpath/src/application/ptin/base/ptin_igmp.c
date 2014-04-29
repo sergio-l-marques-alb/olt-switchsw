@@ -4127,13 +4127,13 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to create new client: intIfNum %u, intVlan %u, innerVlan %u",
-            intIfNum, intIfNum, innerVlan);
+            intIfNum, intVlan, innerVlan);
 
   /* Add client */
   rc = ptin_igmp_new_client(&client, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u",
-            intIfNum, intIfNum, innerVlan);
+            intIfNum, intVlan, innerVlan);
 
   if (rc!=L7_SUCCESS)
   {
