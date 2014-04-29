@@ -565,5 +565,6 @@ RC_t  ptin_mgmd_position_service_identifier_set(uint32 serviceId, uint32 *posId)
 RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId);
 RC_t  ptin_mgmd_position_service_identifier_get_or_set(uint32 serviceId, uint32 *posId);
 RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId);
+
 #endif /* SNOOPING_H */
 
