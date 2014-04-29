@@ -1775,7 +1775,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: P2P EVCs cannot have only root port and no leaf ports for 1:1 EVCs", evc_id);
     return L7_FAILURE;
   }
-  #endif
 
   /* For P2P topologies */
   if ((is_p2p || is_quattro) && ((n_leafs==0 && n_roots!=2) || (n_leafs>0 && n_roots!=1)))
@@ -1783,6 +1782,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: P2P/QUATTRO EVCs only 2 topologies: 1 root intf + leaf intfs OR only 2 root intfs (no leafs)", evc_ext_id);
     return L7_FAILURE;
   }
+  #endif
 
   /* Determine pair of ports for 1:1 EVCs (needed for unstacked EVCs) */
   p2p_port1 = -1;

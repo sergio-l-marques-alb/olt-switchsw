@@ -1424,7 +1424,7 @@ int main (int argc, char *argv[])
           ptr->intro.startEntryId = 0;
           ptr->intro.numEntries   = 1;
 
-          ptr->entry[0].evcId        = (L7_uint16)-1;
+          ptr->entry[0].evcId        = (uint32)-1;
           ptr->entry[0].static_entry = 1;
 
           // vlanId
@@ -1473,7 +1473,7 @@ int main (int argc, char *argv[])
           ptr->intro.startEntryId = 0;
           ptr->intro.numEntries   = 1;
 
-          ptr->entry[0].evcId = (L7_uint16)-1;
+          ptr->entry[0].evcId = (uint32)-1;
 
           // vlanId
           if (StrToLongLong(argv[3+0],&valued)<0)  {
@@ -1539,7 +1539,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
@@ -1596,7 +1596,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
@@ -1663,7 +1663,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
@@ -1776,7 +1776,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->mcEvcId = (uint16) valued;
+          ptr->mcEvcId = (uint32) valued;
 
           // Port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -1850,14 +1850,14 @@ int main (int argc, char *argv[])
           ptr->SlotId = (uint8)-1;
 
           // flow_id
-          ptr->mcEvcId = (uint16)-1;
+          ptr->mcEvcId = (uint32)-1;
           if (argc>=3+1)
           {
             if (StrToLongLong(argv[3+0],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr->mcEvcId = (uint16) valued;
+            ptr->mcEvcId = (uint32) valued;
           }
 
           // Port
@@ -1937,7 +1937,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
 
           // Port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -1993,14 +1993,14 @@ int main (int argc, char *argv[])
           ptr->SlotId = (uint8)-1;
 
           // flow_id
-          ptr->evc_id = (uint16)-1;
+          ptr->evc_id = (uint32)-1;
           if (argc>=3+1)
           {
             if (StrToLongLong(argv[3+0],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr->evc_id = (uint16) valued;
+            ptr->evc_id = (uint32) valued;
           }
 
           // Port
@@ -2211,7 +2211,7 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evcid_mc = (uint16) valued;
+        ptr->evcid_mc = (uint32) valued;
 
         /* Start index (default is zero) */
         if (argc>=3+2)
@@ -2256,7 +2256,7 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evcid_mc = (uint16) valued;
+        ptr->evcid_mc = (uint32) valued;
 
         // Group Address
         if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
@@ -2328,7 +2328,7 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->mcEvcId = (uint16) valued;
+        ptr->mcEvcId = (uint32) valued;
 
         // port
         if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -2794,7 +2794,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
 
           // Page index
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2864,7 +2864,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
 
           // Page index
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2909,7 +2909,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
 
           // Channel IP
           if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
@@ -2944,7 +2944,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint16) valued;
+          ptr->evc_id = (uint32) valued;
 
           // Channel IP
           if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
@@ -3395,7 +3395,8 @@ int main (int argc, char *argv[])
       case 1603:
       {
         msg_HWevcPort_t *ptr;
-        int slotId, evc_idx, i;
+        int slotId, i;
+        uint32 evc_idx;
 
         // Validate number of arguments
         if (argc<3+2)  {
@@ -3444,7 +3445,8 @@ int main (int argc, char *argv[])
       case 1604:
       {
         msg_HWevcPort_t *ptr;
-        int slotId, evc_idx, i;
+        int slotId, i;
+        uint32 evc_idx;
 
         // Validate number of arguments
         if (argc<3+2)  {
@@ -3855,7 +3857,7 @@ int main (int argc, char *argv[])
         memset(ptr,0x00,sizeof(msg_HwEthBwProfile_t));
 
         ptr->SlotId = (uint8)-1;
-        ptr->evcId = (uint16)-1;
+        ptr->evcId = (uint32)-1;
         ptr->profile.cir = (uint64)-1;
         ptr->profile.eir = (uint64)-1;
         ptr->profile.cbs = (uint64)-1;
@@ -3887,7 +3889,7 @@ int main (int argc, char *argv[])
               printf("Invalid evc value\r\n");
               exit(0);
             }
-            ptr->evcId = (uint16) valued;
+            ptr->evcId = (uint32) valued;
           }
           else if (strcmp(param,"intf")==0 || strcmp(param,"intfsrc")==0)
           {
@@ -4112,7 +4114,7 @@ int main (int argc, char *argv[])
           ptr = (msg_evcStats_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_evcStats_t));
           ptr->SlotId= (uint8)-1;
-          ptr->evc_id=(uint16)-1;
+          ptr->evc_id= (uint32)-1;
 
           for (index=(3+0); index<argc; index++)
           {
@@ -4140,7 +4142,7 @@ int main (int argc, char *argv[])
                 printf("Invalid evc value\r\n");
                 exit(0);
               }
-              ptr->evc_id = (uint16) valued;
+              ptr->evc_id = (uint32) valued;
             }
             else if (strcmp(param,"intf")==0)
             {
@@ -4821,7 +4823,7 @@ int main (int argc, char *argv[])
 
           for (i=0; i<ptr->intro.numEntries; i++) {
             printf(" Id %-5lu, ",ptr->intro.startEntryId+i);
-            if (ptr->entry[i].evcId!=(uint16)-1)
+            if (ptr->entry[i].evcId!=(uint32)-1)
               printf("EVC %-4lu, ",ptr->entry[i].evcId);
             else
               printf("No EVC  , ");
@@ -4876,7 +4878,7 @@ int main (int argc, char *argv[])
           ptr = (msg_HwEthernetDhcpOpt82Profile_t *) &resposta.info[0];
 
           printf(" DHCP profile (Slot=%u):\r\n",ptr->SlotId);
-          printf(" EVCid=%u\r\n",ptr->evc_id);
+          printf(" EVCid=%lu\r\n",ptr->evc_id);
           printf(" Mask =0x%02x\r\n",ptr->mask);
           printf(" Intf =%u/%u\r\n",ptr->intf.intf_type,ptr->intf.intf_id);
           printf(" Client.Mask  = 0x%02x\r\n",ptr->client.mask);
@@ -4924,8 +4926,8 @@ int main (int argc, char *argv[])
 
           for (i=0; i<ptr->bind_table_msg_size; i++) {
             printf(" Id %-5u, ",ptr->bind_table[i].entry_index);
-            if (ptr->bind_table[i].evc_idx!=(uint16)-1)
-              printf("EVC %-4u, ",ptr->bind_table[i].evc_idx);
+            if (ptr->bind_table[i].evc_idx!=(uint32)-1)
+              printf("EVC %-4lu, ",ptr->bind_table[i].evc_idx);
             else
               printf("No EVC  , ");
             printf("VlanId %-4u, ",ptr->bind_table[i].outer_vlan);
@@ -4978,7 +4980,7 @@ int main (int argc, char *argv[])
               break;
             }
 
-            printf( " IGMP statistics for Slot=%u, EVC=%u, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",po->SlotId,
+            printf( " IGMP statistics for Slot=%u, EVC=%lu, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",po->SlotId,
                     po->mcEvcId, po->mask,
                     po->intf.intf_type,po->intf.intf_id,
                     po->client.mask, po->client.outer_vlan, po->client.inner_vlan, po->client.intf.intf_type,po->client.intf.intf_id);
@@ -5147,7 +5149,7 @@ int main (int argc, char *argv[])
             printf("Printing list of IGMP associations for Slot=%u:\n\r",po->SlotId);
             for (index=0; index<n; index++)
             {
-              printf(" Idx %-4u: MC_evc=%-3u ->  Group:%03lu.%03lu.%03lu.%03lu/%-3u  Source:%03lu.%03lu.%03lu.%03lu/%-3u\r\n",
+              printf(" Idx %-4u: MC_evc=%-3lu ->  Group:%03lu.%03lu.%03lu.%03lu/%-3u  Source:%03lu.%03lu.%03lu.%03lu/%-3u\r\n",
                       po[index].entry_idx,
                       po[index].evcid_mc,
                      (po[index].channel_dstIp.addr.ipv4>>24) & 0xFF,
@@ -5305,7 +5307,7 @@ int main (int argc, char *argv[])
               printf(" Switch: Invalid structure size\r\n");
               break;
             }
-            printf(" MC clients for Slot=%u, EVC=%u and channel %03lu.%03lu.%03lu.%03lu (total=%u)\n\r",po->SlotId, po->evc_id,
+            printf(" MC clients for Slot=%u, EVC=%lu and channel %03lu.%03lu.%03lu.%03lu (total=%u)\n\r",po->SlotId, po->evc_id,
                    (po->channelIp.s_addr>>24) & 0xFF, (po->channelIp.s_addr>>16) & 0xFF, (po->channelIp.s_addr>>8) & 0xFF, po->channelIp.s_addr & 0xFF,
                    po->n_clients_total);
             printf("Page %u of %u:\r\n",po->page_index,po->n_pages_total);
@@ -5584,7 +5586,7 @@ int main (int argc, char *argv[])
           {
             msg_HwEthBwProfile_t *ptr = (msg_HwEthBwProfile_t *) &resposta.info[0];
 
-            printf(" Slot=%u EVCid=%u\r\n",ptr->SlotId,ptr->evcId);
+            printf(" Slot=%u EVCid=%lu\r\n",ptr->SlotId,ptr->evcId);
             if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
               printf(" SrcIntf=%u/%u\r\n",ptr->intf_src.intf_type,ptr->intf_src.intf_id);
             if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
@@ -5653,7 +5655,7 @@ int main (int argc, char *argv[])
             ptr = (msg_evcStats_t *) &resposta.info[0];
 
             printf(" Flow Counters:\r\n");
-            printf(" Slot=%u FlowId=%u\r\n",ptr->SlotId,ptr->evc_id);
+            printf(" Slot=%u FlowId=%lu\r\n",ptr->SlotId,ptr->evc_id);
             if (ptr->mask & MSG_EVC_COUNTERS_MASK_INTF)
               printf(" Intf   =%u/%u\r\n",ptr->intf.intf_type,ptr->intf.intf_id);
             if (ptr->mask & MSG_EVC_COUNTERS_MASK_SVLAN)
