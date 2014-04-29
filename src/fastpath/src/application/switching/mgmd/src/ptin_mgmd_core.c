@@ -97,8 +97,12 @@ uint8 ptin_mgmd_get_external_port_id(uint8 internalPortId)
 /*********************Static Routines******************/
 static RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket);
 static RC_t ptin_mgmd_mld_packet_process(void);
-static inline void ptin_mgmd_packet_trace_enable(BOOL enable){ptin_mgmd_packet_trace=enable;};
 /*********************End Statid Routines******************/
+
+/*********************Debug Routines******************/
+void ptin_mgmd_packet_trace_enable(BOOL enable){ptin_mgmd_packet_trace=enable;};
+void ptin_mgmd_extended_debug_enable(BOOL enable){ptin_mgmd_extended_debug=enable;};
+/*********************End Debug Routines******************/
 
 /************************************************************************************************************/
 
