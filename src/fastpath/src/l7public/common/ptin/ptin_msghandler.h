@@ -61,6 +61,9 @@
 #define CCMSG_TYPEB_PROT_SWITCH_NOTIFY      0x902A  // struct msg_HwTypeBProtSwitchNotify_t
 #define CCMSG_TYPEB_PROT_INTF_CONFIG        0x902B  // struct msg_HwTypeBProtIntfConfig_t
 
+#define CCMSG_MGMD_SNOOP_SYNC_REQUEST       0x902C  // struct msg_SnoopSyncRequest_t
+#define CCMSG_MGMD_SNOOP_SYNC_REPLY         0x902D  // struct msg_SnoopSyncReply_t
+
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
@@ -222,6 +225,8 @@
 
 #define CCMSG_WR_802_1X_AUTHSERV                    0x91C0
 
+/* Generic Flush Configuration Message */
+#define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END 0x91FE
 
 #define CCMSG_LAST_MSG_ID                           0x91FF
 
@@ -1328,6 +1333,32 @@ typedef struct _st_MCActiveChannelClients
     L7_uint32                evc_id;           /* [mask=0x08] Service Id */
   } __attribute__((packed))  clients_list[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX]; // List of clients
 } __attribute__((packed)) msg_MCActiveChannelClients_t;
+
+// Message CCMSG_MGMD_SNOOP_SYNC_REQUEST
+typedef struct
+{
+   L7_uint32          serviceId;  //Extended Service Id
+   L7_uint32          groupAddr; //IP Address of the Multicast Group  
+#if !PTIN_BOARD_IS_MATRIX  
+   L7_uint8           portId;
+#endif
+} __attribute__((packed)) msg_SnoopSyncRequest_t;
+
+// Message CCMSG_MGMD_SNOOP_SYNC_REPLY
+typedef struct 
+{
+  L7_uint32      serviceId; //Extended Service Id 
+  L7_uint32      groupAddr; //IP Address of the Multicast Group  
+  L7_uint8       isStatic;//Static Entry 
+#if PTIN_BOARD_IS_MATRIX
+  L7_uint8       numberOfActivePorts;
+#else
+  L7_uint8       portId;
+#endif  
+#if PTIN_BOARD_IS_MATRIX
+  L7_INTF_MASK_t snoopGrpMemberList;  //Physical and Logical Forwarding Port Bitmap  
+#endif
+} __attribute__((packed)) msg_SnoopSyncReply_t;
 
 /***************************************************** 
  * SLOT MODE CONFIGURATION

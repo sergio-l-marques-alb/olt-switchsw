@@ -3312,7 +3312,64 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_mgmd_sync_ports(ptr);
       outbuffer->infoDim = 1;
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with rc:%d bytes", rc);
+               "Message processed: response with rc:%d", rc);
+    }
+    break;
+
+    /* Request Snoop Sync between different cards/interfaces*/
+    case CCMSG_MGMD_SNOOP_SYNC_REQUEST:
+    {      
+      
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_SnoopSyncRequest_t);
+         
+      /* Execute command */
+      ptin_timer_start(38,"CCMSG_MGMD_SNOOP_SYNC_REQUEST");
+#if 0
+      rc = ptin_msg_snoop_sync_request((msg_SnoopSyncRequest_t *) inbuffer->info);
+#endif
+      ptin_timer_stop(38);
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);      
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Request Snoop Sync between different cards/interfaces*/
+    case CCMSG_MGMD_SNOOP_SYNC_REPLY:
+    {          
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REPLY (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_SnoopSyncReply_t);
+
+      /* Execute command */
+      ptin_timer_start(39,"CCMSG_MGMD_SNOOP_SYNC_REPLY");
+#if 0
+      rc = ptin_msg_snoop_sync_reply((msg_SnoopSyncReply_t *) inbuffer->info, inbuffer->infoDim/sizeof(msg_SnoopSyncReply_t));
+#endif
+      ptin_timer_stop(39);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+      
     }
     break;
 
@@ -3835,6 +3892,23 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 //CCMSG_ETH_DHCP_BIND_TABLE_GET
 //CCMSG_ETH_DHCP_BIND_TABLE_CLEAR
 
+    /* Signalling the end of a Equipment Flush Configuration*/
+    case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", inbuffer->msgId);
+      
+      /*Sending Ack*/  
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      /* Execute command */
+#if 0
+      ptin_msg_protection_matrix_configuration_flush_end();      
+#endif
+      
+    }
+    break;
 
     default:
     {
