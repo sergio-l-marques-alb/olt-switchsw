@@ -202,7 +202,7 @@ typedef union
 extern volatile st_fpga_map_t *fpga_map;
 #endif
 
-//# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
+# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR             0xC0A8C865  /* 192.168.200.101 Hardcoded!!! */
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */
 
