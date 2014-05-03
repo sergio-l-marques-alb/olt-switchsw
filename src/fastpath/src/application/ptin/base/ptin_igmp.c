@@ -2507,8 +2507,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get external EVC Id :%u",tempKey.outerVlan);
       extendedEvcId[clientBufferIdx]=(L7_uint32)-1;
-    }
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "External EVC Id :%u (internal vlan:%u)",extendedEvcId[clientBufferIdx],tempKey.outerVlan);
+    }    
     /*End MAC Bridge Services Support*/
 
     /* Copy client contents */
@@ -2523,6 +2522,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Intf:  %u/%u", tempKey.ptin_intf.intf_type, tempKey.ptin_intf.intf_id);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        oVlan: %u",    tempKey.outerVlan);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        iVlan: %u",    tempKey.innerVlan);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        eEVCId:%u",    extendedEvcId[clientBufferIdx]);
     memcpy(&client_list[clientBufferIdx], &tempKey, sizeof(tempKey));
 
     /* Increase the ID of the read clientGroup */
@@ -7166,7 +7166,7 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
     if ((client_idx=igmp_clientIndex_get_new(ptin_port)) >= PTIN_IGMP_CLIENTIDX_MAX)
     {
       osapiSemaGive(ptin_igmp_clients_sem);
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index for ptin_port %u", ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get new client index %u for ptin_port %u",client_idx, ptin_port);
       return L7_FAILURE;
     }
 

@@ -2420,7 +2420,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7
   if ( snoopEntry == L7_NULLPTR )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopEntryFind failed!");
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"snoopEntryFind failed!");
     return L7_SUCCESS;
   }
 
@@ -3154,6 +3154,17 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
              avl_info->global.number_of_clients);
       /* Ports information */
       printf("  Ports information:\r\n");
+      printf("  IntfNUm:");
+      uint32 intf;
+      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+      {
+       if (L7_INTF_ISMASKBITSET(avl_info->snoopGrpMemberList,intf))
+       {
+         printf(" %u",intf);
+       }
+      }
+      printf("\r\n");
+      
       printf("    port[#channels]=");
       for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
       {
@@ -3263,8 +3274,12 @@ void ptin_igmp_mfdb_dump(void)
     for (intIfNum=1; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
     {
       if (!L7_INTF_ISMASKBITSET(info.usmdbMfdbFwdMask,intIfNum))  continue;
-      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
+      if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue; 
+      #if 0          
       printf(" %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      #else      
+      printf(" %u",intIfNum);
+      #endif
     }
     printf("\r\n");
     printf("  Filter ports :");
@@ -3272,7 +3287,11 @@ void ptin_igmp_mfdb_dump(void)
     {
       if (!L7_INTF_ISMASKBITSET(info.usmdbMfdbFltMask,intIfNum))  continue;
       if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
+      #if 0      
       printf(" %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      #else
+      printf(" %u",intIfNum);
+      #endif
     }
     printf("\r\n");
     i++;
