@@ -6125,7 +6125,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
        (igmpPairDB.number_of_entries + n_groups*n_sources) > IGMPASSOC_CHANNELS_MAX )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels (already present: %u)", IGMPASSOC_CHANNELS_MAX, igmpPairDB.number_of_entries);
-    return L7_FAILURE;
+    return L7_TABLE_IS_FULL;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be added: %u", n_groups*n_sources);
