@@ -931,12 +931,21 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
   if (numberOfSnoopEntries>0)
   {    
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Reply Message to ipAddr:%08X with %u snoop Entries  to sync the protection matrix",ipAddr, numberOfSnoopEntries);
+    if(vlanId==0 && groupAddr==0)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Remaining Snoop Entries to be Sync:%u",avlTreeCount(&(snoopEBGet()->snoopAvlTree))-numberOfSnoopEntries);     
+    }
+    
     /*Send the snoop sync request to the protection matrix */  
     if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
     {
       LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to send Snoop Sync Reply Message");
       return L7_FAILURE;
     }
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "No more Snoop Entries Remaining to be Sync");    
   }
 
   return L7_SUCCESS; 

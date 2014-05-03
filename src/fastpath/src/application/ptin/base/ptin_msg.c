@@ -6094,6 +6094,9 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
  */
 L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 {
+  L7_uint16 mcastRootVlan = 0;
+  L7_RC_t   rc;
+
   if (snoopSyncRequest==L7_NULLPTR )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid input parameters snoopSyncRequest=%p",snoopSyncRequest);
@@ -6106,11 +6109,28 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 #if !PTIN_BOARD_IS_MATRIX  
   LOG_DEBUG(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncRequest->portId);
 #endif
+
+  if( (snoopSyncRequest->serviceId != 0 &&  snoopSyncRequest->groupAddr != 0)
+       && (L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(snoopSyncRequest->serviceId, &mcastRootVlan))))
+  {
+    if( rc != L7_NOT_EXIST)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId:%u",snoopSyncRequest->serviceId);
+      return rc;
+    }
+#if PTIN_BOARD_IS_MATRIX 
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
+#else
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
+#endif
+    return rc;
+  }
+
    
 #if PTIN_BOARD_IS_MATRIX    
-  return (ptin_snoop_sync_mx_process_request(snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr));            
+  return (ptin_snoop_sync_mx_process_request(mcastRootVlan, snoopSyncRequest->groupAddr));            
 #else    
-  return (ptin_snoop_sync_port_process_request(snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr,snoopSyncRequest->portId));           
+  return (ptin_snoop_sync_port_process_request(mcastRootVlan, snoopSyncRequest->groupAddr,snoopSyncRequest->portId));           
 #endif                
 }
 
@@ -6134,7 +6154,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Reply Message: numberOfSnoopEntries=%u",numberOfSnoopEntries);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Reply Message: numberOfSnoopEntries=%u | maxNumberOfSnoopEntries:%u",numberOfSnoopEntries,maxNumberOfSnoopEntries);
   
   if(numberOfSnoopEntries==0)
   {
@@ -6204,7 +6224,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   msg_SnoopSyncRequest_t   snoopSyncRequest;
   L7_uint32                ipAddr;
 
-  snoopSyncRequest.groupAddr = snoopSyncReply[numberOfSnoopEntries-1].groupAddr;
+  snoopSyncRequest.groupAddr    = snoopSyncReply[numberOfSnoopEntries-1].groupAddr;
   snoopSyncRequest.serviceId    = snoopSyncReply[numberOfSnoopEntries-1].serviceId;
 
 #if PTIN_BOARD_IS_MATRIX    
@@ -6221,7 +6241,9 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   else
   {
     ipAddr = IPC_MX_IPADDR_WORKING;
-  }         
+  }
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr);         
 #else
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
 
@@ -6238,9 +6260,11 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
 
   snoopSyncRequest.portId    = protTypebIntfConfig.pairIntfNum;     
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
 #endif
               
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message to ipAddr:%08X to Sync the Remaining Snoop Entries", ipAddr);
+  
   /*Send the snoop sync request to the protection matrix */  
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
   {
