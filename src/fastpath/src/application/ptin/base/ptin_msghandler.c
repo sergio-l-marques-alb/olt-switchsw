@@ -3200,8 +3200,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     /* Get list of multicast channels */
     case CCMSG_ETH_IGMP_GROUPS_GET:
-    {
-      ptin_timer_start(39,"CCMSG_ETH_IGMP_GROUPS_GET");
+    {      
       msg_MCActiveChannelsRequest_t *inputPtr;
       msg_MCActiveChannelsReply_t   *outputPtr;
       L7_uint16                     numberOfChannels;
@@ -3216,7 +3215,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       numberOfChannels =  IPCLIB_MAX_MSGSIZE/sizeof(msg_MCActiveChannelsReply_t); //IPC buffer size / struct size
 
       /* Execute command */
+      ptin_timer_start(40,"CCMSG_ETH_IGMP_GROUPS_GET");
       rc = ptin_msg_IGMP_channelList_get(inputPtr, outputPtr, &numberOfChannels);
+      ptin_timer_stop(40);
 
       if (L7_SUCCESS != rc)
       {
@@ -3228,15 +3229,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       outbuffer->infoDim = numberOfChannels * sizeof(msg_MCActiveChannelsReply_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
-       ptin_timer_stop(39);
+               "Message processed: response with %d bytes", outbuffer->infoDim);       
     }
     break;
 
     /* Get list of clients watching a multicast channel */
     case CCMSG_ETH_IGMP_CLIENT_GROUPS_GET:
-    {
-      ptin_timer_start(38,"CCMSG_ETH_IGMP_CLIENT_GROUPS_GET");
+    {      
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X)", inbuffer->msgId);
 
@@ -3248,7 +3247,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_MCActiveChannelClients_t));
 
       /* Execute command */
+      ptin_timer_start(41,"CCMSG_ETH_IGMP_CLIENT_GROUPS_GET");
       rc = ptin_msg_IGMP_clientList_get(ptr);
+      ptin_timer_stop(41);
 
       if (L7_SUCCESS != rc)
       {
@@ -3260,8 +3261,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       outbuffer->infoDim = sizeof(msg_MCActiveChannelClients_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
-      ptin_timer_stop(38);
+               "Message processed: response with %d bytes", outbuffer->infoDim);      
     }
     break;
 
@@ -3325,9 +3325,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       CHECK_INFO_SIZE(msg_SnoopSyncRequest_t);
          
       /* Execute command */
-      ptin_timer_start(38,"CCMSG_MGMD_SNOOP_SYNC_REQUEST");
+      ptin_timer_start(42,"CCMSG_MGMD_SNOOP_SYNC_REQUEST");
       rc = ptin_msg_snoop_sync_request((msg_SnoopSyncRequest_t *) inbuffer->info);
-      ptin_timer_stop(38);
+      ptin_timer_stop(42);
       if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
@@ -3350,9 +3350,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       CHECK_INFO_SIZE_MOD(msg_SnoopSyncReply_t);
 
       /* Execute command */
-      ptin_timer_start(39,"CCMSG_MGMD_SNOOP_SYNC_REPLY");
+      ptin_timer_start(43,"CCMSG_MGMD_SNOOP_SYNC_REPLY");
       rc = ptin_msg_snoop_sync_reply((msg_SnoopSyncReply_t *) inbuffer->info, inbuffer->infoDim/sizeof(msg_SnoopSyncReply_t));
-      ptin_timer_stop(39);
+      ptin_timer_stop(43);
 
       if (L7_SUCCESS != rc)
       {

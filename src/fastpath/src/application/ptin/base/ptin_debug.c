@@ -26,7 +26,7 @@ extern L7_uint32 hpcLocalCardIdGet(int slotNum);
  * EXTERNAL FUNCTIONS
  ***************************/
  
-#define TIMERS_MAX  40
+#define TIMERS_MAX  50
 
 /* Used for processing timing measure */
 typedef struct
