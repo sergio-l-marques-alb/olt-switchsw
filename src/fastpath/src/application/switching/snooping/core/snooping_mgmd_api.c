@@ -186,7 +186,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 se
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, slotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
   {
     LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
@@ -239,7 +239,7 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
   LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync)) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
   {
     LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
@@ -257,7 +257,7 @@ unsigned int snooping_igmp_admin_set(unsigned char admin)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeSet");
     return FAILURE;
   }
-
+  
   return SUCCESS;
 }
 
@@ -429,8 +429,10 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
   msg.vlanId        = serviceId;
   msg.groupAddress  = groupAddr;
   msg.sourceAddress = sourceAddr;
+  msg.client_idx    = isStatic; 
   msg.cbHandle      = pSnoopCB;
 
+  
   /* Send a Port_Open event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
   if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
@@ -768,5 +770,327 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
   } while (rc==L7_SUCCESS);   /* Next client? */  
   return rc;
 }
-
 #endif
+
+static msg_SnoopSyncReply_t snoopSyncReply[IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t)];
+
+#if PTIN_BOARD_IS_MATRIX 
+L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr)
+{
+  L7_uint32                maxNumberOfSnoopEntries  = IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size
+  L7_uint32                numberOfSnoopEntries     = avlTreeCount(&(snoopEBGet()->snoopAvlTree));  
+  L7_uint32                intIfNum;
+  L7_uint16                internalRootVlan = (L7_uint16) -1;
+  L7_uint16                internalRootVlanTmp;
+  L7_uint32                serviceId        = 0;//Invalid Extended Service Id
+  L7_uint32                channel;
+  
+  snoopInfoData_t         *snoopInfoData;
+  snoopInfoDataKey_t       snoopInfoDataKey;
+  snoopInfoDataKey_t      *snoopInfoDataKeyPtr;
+
+  L7_uint32                ipAddr;
+  
+  if(!cpld_map->reg.mx_is_active)//I'm Protection
+  { 
+    LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. I'm a protection Matrix!");
+    return L7_SUCCESS;
+  }
+  else
+  {
+    if(cpld_map->reg.slot_id==0)
+    {
+      ipAddr = IPC_MX_IPADDR_PROTECTION;
+    }
+    else
+    {
+      ipAddr = IPC_MX_IPADDR_WORKING;
+    }
+  }
+
+  if (numberOfSnoopEntries==0)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. Snoop Table is Empty");
+    return L7_SUCCESS;
+  }
+  else
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_PROTB,"Max Number of MAC MFDB Entries:%u",L7_MFDB_MAX_MAC_ENTRIES);
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_PROTB,"Number of Existing Snoop Entries (%u) | Maximum number of snoop entries (%u)",numberOfSnoopEntries,maxNumberOfSnoopEntries);
+
+    //Initialize SnoopSyncReply Structure
+    if(numberOfSnoopEntries<maxNumberOfSnoopEntries)
+    {
+      memset(snoopSyncReply, 0x00, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t));
+    }
+    else
+    {      
+      memset(snoopSyncReply, 0x00, maxNumberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t));
+    }    
+    numberOfSnoopEntries=0;
+  }
+   
+  /*First Snoop Entry*/
+  if(vlanId==0 && groupAddr==0)
+  {
+    memset(&snoopInfoDataKey,0x00,sizeof(snoopInfoDataKey_t));
+  }
+  else
+  {
+    /*IPv4 Support*/
+    snoopInfoDataKey.family=L7_AF_INET;
+
+    snoopInfoDataKey.vlanIdMacAddr[0]                       = (L7_uchar8) ((vlanId>>8) & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[1]                       = (L7_uchar8) (vlanId & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+0] = 0x01;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+1] = 0x00;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+2] = 0x5E;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+3] = (L7_uchar8) ((groupAddr>>16) & 0x7F);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+4] = (L7_uchar8) ((groupAddr>> 8) & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+5] = (L7_uchar8) ((groupAddr) & 0xFF);
+  }
+   
+  while ( ( snoopInfoData = (snoopInfoData_t *) avlSearchLVL7( &(snoopEBGet()->snoopAvlTree), (void *) &snoopInfoDataKey, AVL_NEXT) ) != L7_NULL && 
+          numberOfSnoopEntries<maxNumberOfSnoopEntries)
+  {
+    /* Prepare next key */
+    memcpy( &snoopInfoDataKey, &snoopInfoData->snoopInfoDataKey, sizeof(snoopInfoDataKey_t) );
+
+    snoopInfoDataKeyPtr  = &snoopInfoData->snoopInfoDataKey;    
+
+    internalRootVlanTmp = (L7_uint16) snoopInfoDataKeyPtr->vlanIdMacAddr[0]<<8 | (L7_uint16) snoopInfoDataKeyPtr->vlanIdMacAddr[1];
+
+    if( internalRootVlan != internalRootVlanTmp)
+    {
+      internalRootVlan = internalRootVlanTmp;
+
+      if (ptin_evc_get_evcIdfromIntVlan(internalRootVlan, &serviceId) != L7_SUCCESS)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"  Failed to obtain extended service Id from internal root vlan [internalRootVlan=%u]",internalRootVlan);
+        continue;
+      }
+    }
+    
+    if (ptin_debug_igmp_snooping)
+    {
+       /* Global information */    
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"  Family=%s     Vlan=%-4u MAC=%02x:%02x:%02x:%02x:%02x:%02x   %s",
+           ((snoopInfoDataKeyPtr->family==L7_AF_INET) ? "IPv4" : "IPv6"),
+           internalRootVlan,
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+0],
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+1],
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+2],
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+3],
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+4],
+           snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+5],
+           ((snoopInfoData->staticGroup) ? "Static" : "Dynamic"));    
+      /* Ports information */
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"  IntfNUm Ports information:");
+      for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
+      {
+        if (L7_INTF_ISMASKBITSET(snoopInfoData->snoopGrpMemberList,intIfNum))
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP," %u",intIfNum);
+        }
+      }
+    }
+
+    /* Channels information */
+    if (ptin_debug_igmp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"  Channels information:");
+    for (channel=0; channel<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel++)
+    {
+      //Only Sync Active Channels
+      if (!snoopInfoData->channel_list[channel].active)  continue;
+
+      //Only Sync Dynamic Channels
+      if (snoopInfoData->staticGroup == L7_FALSE) continue;
+
+      snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+      snoopSyncReply[numberOfSnoopEntries].groupAddr           = snoopInfoData->channel_list[channel].ipAddr;
+      snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup;
+      snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopInfoData->global.number_of_ports;
+     
+      memcpy(&snoopSyncReply[numberOfSnoopEntries].snoopGrpMemberList, &snoopInfoData->snoopGrpMemberList, sizeof(snoopInfoData->snoopGrpMemberList)); 
+
+      if (ptin_debug_igmp_snooping)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"    Channel#%-2u:       IpAddr=%u.%u.%u.%u",channel,
+             (snoopSyncReply[numberOfSnoopEntries].groupAddr>>24) & 0xff,
+             (snoopSyncReply[numberOfSnoopEntries].groupAddr>>16) & 0xff,
+             (snoopSyncReply[numberOfSnoopEntries].groupAddr>>8) & 0xff,
+             snoopSyncReply[numberOfSnoopEntries].groupAddr & 0xff);            
+      }
+      /* Next Snoop entry */
+      numberOfSnoopEntries++;       
+    }
+  }
+
+  if (numberOfSnoopEntries>0)
+  {    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Reply Message to ipAddr:%08X with %u snoop Entries  to sync the protection matrix",ipAddr, numberOfSnoopEntries);
+    /*Send the snoop sync request to the protection matrix */  
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to send Snoop Sync Reply Message");
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS; 
+}
+
+#else//!PTIN_BOARD_IS_MATRIX 
+L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAddr, L7_uint32 portId)
+{
+  L7_uint32                      maxNumberOfSnoopEntries  = IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size
+  L7_uint32                      numberOfSnoopEntries     = avlTreeCount(&(snoopEBGet()->snoopAvlTree));  
+  L7_uint32                      channel;
+  L7_uint16                      internalRootVlan = (L7_uint16) -1;
+  L7_uint16                      internalRootVlanTmp;
+  L7_uint32                      serviceId        = 0;//Invalid Extended Service Id
+    
+  snoopInfoData_t               *snoopInfoData;
+  snoopInfoDataKey_t             snoopInfoDataKey;
+  snoopInfoDataKey_t            *snoopInfoDataKeyPtr;
+  L7_uint32                      ipAddr;  
+                             
+  ptin_prottypeb_intf_config_t   protTypebIntfConfig = {0};
+  
+  /* Get the configuration of this portId for the Type B Scheme Protection */
+  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);   
+
+  if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
+  {
+    /* Determine the IP address of the protection port/slot */
+    ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
+  }
+  else
+  { //I'm Protection
+    LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. I'm a Protection Port");
+    return L7_SUCCESS;
+  }
+
+  if (numberOfSnoopEntries==0)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. Snoop Table is Empty");
+    return L7_SUCCESS;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_PROTB,"Max Number of MAC MFDB Entries:%u",L7_MFDB_MAX_MAC_ENTRIES);
+
+    LOG_TRACE(LOG_CTX_PTIN_PROTB,"Number of Existing Snoop Entries (%u) | Maximum number of snoop entries (%u)",numberOfSnoopEntries,maxNumberOfSnoopEntries);
+    //Initialize SnoopSyncReply Structure
+    if(numberOfSnoopEntries<maxNumberOfSnoopEntries)
+    {
+      memset(snoopSyncReply, 0x00, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t));
+    }
+    else
+    {      
+      memset(snoopSyncReply, 0x00, maxNumberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t));
+    }    
+    numberOfSnoopEntries=0;
+  }
+  
+  
+
+  /*First Snoop Entry*/
+  if(vlanId==0 && groupAddr==0)
+  {
+    memset(&snoopInfoDataKey,0x00,sizeof(snoopInfoDataKey_t));
+  }
+  else
+  {
+    /*IPv4 Support*/
+    snoopInfoDataKey.family=L7_AF_INET;
+
+    snoopInfoDataKey.vlanIdMacAddr[0]                       = (L7_uchar8) ((vlanId>>8) & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[1]                       = (L7_uchar8) (vlanId & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+0] = 0x01;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+1] = 0x00;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+2] = 0x5E;
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+3] = (L7_uchar8) ((groupAddr>>16) & 0x7F);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+4] = (L7_uchar8) ((groupAddr>> 8) & 0xFF);
+    snoopInfoDataKey.vlanIdMacAddr[L7_FDB_IVL_ID_LEN+5] = (L7_uchar8) ((groupAddr) & 0xFF);
+  }
+   
+  while ( ( snoopInfoData = (snoopInfoData_t *) avlSearchLVL7( &(snoopEBGet()->snoopAvlTree), (void *) &snoopInfoDataKey, AVL_NEXT) ) != L7_NULL && 
+          numberOfSnoopEntries<maxNumberOfSnoopEntries)
+  {
+    /* Prepare next key */
+    memcpy( &snoopInfoDataKey, &snoopInfoData->snoopInfoDataKey, sizeof(snoopInfoDataKey_t) );
+
+    snoopInfoDataKeyPtr  = &snoopInfoData->snoopInfoDataKey;    
+
+    if (L7_INTF_ISMASKBITSET(snoopInfoData->snoopGrpMemberList,portId))
+    {
+      internalRootVlanTmp = (L7_uint16) snoopInfoDataKeyPtr->vlanIdMacAddr[0]<<8 | (L7_uint16) snoopInfoDataKeyPtr->vlanIdMacAddr[1];
+
+      if (internalRootVlan != internalRootVlanTmp)
+      {
+        internalRootVlan = internalRootVlanTmp;
+
+        if (ptin_evc_get_evcIdfromIntVlan(internalRootVlan, &serviceId) != L7_SUCCESS)
+        {
+          LOG_WARNING(LOG_CTX_PTIN_IGMP,"  Failed to obtain extended service Id from internal root vlan [internalRootVlan=%u]",internalRootVlan);
+          continue;
+        }
+      }
+
+      /* Global information */    
+      LOG_TRACE(LOG_CTX_PTIN_PROTB,"  Family=%s     Vlan=%-4u MAC=%02x:%02x:%02x:%02x:%02x:%02x   %s",
+             ((snoopInfoDataKeyPtr->family==L7_AF_INET) ? "IPv4" : "IPv6"),
+             internalRootVlan,
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+0],
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+1],
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+2],
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+3],
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+4],
+             snoopInfoDataKeyPtr->vlanIdMacAddr[L7_FDB_IVL_ID_LEN+5],
+             ((snoopInfoData->staticGroup) ? "Static" : "Dynamic"));               
+      
+      /* Channels information */
+      LOG_TRACE(LOG_CTX_PTIN_PROTB,"  Channels information:");
+      for (channel=0; channel<SNOOP_MAX_CHANNELS_PER_SNOOP_ENTRY; channel++)
+      {
+        //Only Sync Active Channels
+        if (!snoopInfoData->channel_list[channel].active)  continue;
+
+        //Only Sync Dynamic Channels
+        if (snoopInfoData->staticGroup == L7_FALSE) continue;
+
+        snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+        snoopSyncReply[numberOfSnoopEntries].groupAddr           = snoopInfoData->channel_list[channel].ipAddr;
+        snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup;    
+        snoopSyncReply[numberOfSnoopEntries].portId              = protTypebIntfConfig.pairIntfNum;
+
+        LOG_TRACE(LOG_CTX_PTIN_PROTB,"    Channel#%-2u:       IpAddr=%u.%u.%u.%u",channel,
+               (snoopSyncReply[numberOfSnoopEntries].groupAddr>>24) & 0xff,
+               (snoopSyncReply[numberOfSnoopEntries].groupAddr>>16) & 0xff,
+               (snoopSyncReply[numberOfSnoopEntries].groupAddr>>8) & 0xff,
+               snoopSyncReply[numberOfSnoopEntries].groupAddr & 0xff);            
+          /* Next Snoop entry */
+        numberOfSnoopEntries++;       
+      }
+    }
+  }
+
+  if (numberOfSnoopEntries>0)
+  {
+    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Reply Message ipAddr:%08X with %u Snoop Entries  to sync slot/port:%u/%u",ipAddr, numberOfSnoopEntries, protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
+    /*Send the snoop sync request to the protection matrix */  
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to send Snoop Sync Reply Message");
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS; 
+}
+
+#endif//!PTIN_BOARD_IS_MATRIX 

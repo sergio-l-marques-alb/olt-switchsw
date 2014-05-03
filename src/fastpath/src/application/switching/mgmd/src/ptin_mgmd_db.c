@@ -1700,8 +1700,8 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     {
       if(portId != PTIN_MGMD_ROOT_PORT)
       {        
-        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Opening L2 port portId:[%u] serviceId:[%u] groupAddr:[%s]", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
-                   ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf));
+        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Opening L2 port portId:[%u] serviceId:[%u] groupAddr:[%s] isStatic:%u", portId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, 
+                   ptin_mgmd_inetAddrPrint(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, debug_buf), groupEntry->ports[portId].isStatic);
         ptin_measurement_timer_start(28,"externalApi.port_open");
         /*Open L2 Port on Switch*/
         if (externalApi.port_open(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST, groupEntry->ports[portId].isStatic) != SUCCESS)
@@ -1738,7 +1738,22 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
         //End New Code
         
       }
-    }   
+    }
+    else /*To acommodate the situation where the group was first dynamically added*/
+    {
+       if (portId != PTIN_MGMD_ROOT_PORT && clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID)
+       {
+          ptin_measurement_timer_start(28,"externalApi.port_open");
+          /*Open L2 Port on Switch*/
+          if (externalApi.port_open(groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, PTIN_MGMD_ANY_IPv4_HOST, groupEntry->ports[portId].isStatic) != SUCCESS)
+          {
+            ptin_measurement_timer_stop(28);
+            PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to ptin_mgmd_port_open()");
+            return FAILURE;
+          }
+          ptin_measurement_timer_stop(28);
+       }
+    }
   }
 
   /*

@@ -363,11 +363,12 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
  * @param msg_id 
  * @param request 
  * @param answer 
- * @param infoDim 
+ * @param infoDimRequest 
+ * @param infoDimRequestAnswer  
  * 
  * @return int : negative if error
  */
-int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDim)
+int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDimRequest, uint32 *infoDimAnswer)
 {
   ipc_msg	comando, resposta;
   int ret;
@@ -381,8 +382,8 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   comando.flags		  = IPCLIB_FLAGS_CMD;
   comando.counter     = GetMsgCounter ();
   comando.msgId		  = msg_id;
-  comando.infoDim     = infoDim;
-  memcpy(comando.info, request, infoDim);
+  comando.infoDim     = infoDimRequest;
+  memcpy(comando.info, request, infoDimRequest);
 
   ret=send_data(g_iInterfaceSW, porto, ipaddr, (ipc_msg *)&comando, NULL==answer? NULL:(ipc_msg *)&resposta);
   if(ret<0)
@@ -399,15 +400,30 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
     return -1;
   }
 
-  /* Check info */
-  if (resposta.infoDim != infoDim)
-  {
-    LOG_ERR(LOG_CTX_IPC,"Wrong infodim (received %u bytes VS expected %u bytes)", infoDim, resposta.infoDim);
-    return -1;
-  }
 
-  /* Return answer */
-  memcpy(answer, resposta.info, infoDim);
+  /* Check info */
+  if (infoDimAnswer==NULL)    
+  {
+    if  (resposta.infoDim != infoDimRequest)
+    {
+      LOG_ERR(LOG_CTX_IPC,"Wrong infodim (received %u bytes VS expected %u bytes)", infoDimRequest, resposta.infoDim);    
+      return -1;
+    }
+     /* Return answer */
+    memcpy(answer, resposta.info, infoDimRequest); 
+  }
+  else
+  {
+    if( resposta.infoDim>IPCLIB_MAX_MSGSIZE || 0 != (resposta.infoDim % (*infoDimAnswer)))
+    {
+      LOG_ERR(LOG_CTX_IPC,"Infodim (%u) higher than the maximum allowed value (IPCLIB_MAX_MSGSIZE=%u)",resposta.infoDim, IPCLIB_MAX_MSGSIZE);    
+      return -1;
+    }
+    
+     /* Return answer */
+    memcpy(answer, resposta.info, resposta.infoDim); 
+    *infoDimAnswer=resposta.infoDim;
+  }
 
   return(ret);
 }

@@ -142,7 +142,7 @@ T_UPLINKPROT_TRAPS *p;
  v.slotId=  slot;
  v.port=    port;
  v.alarm=   p->a;
- send_ipc_message(IPC_CHANNEL_UPLINKPROT, IPC_LOCALHOST_IPADDR, TRAP_SW_ETH_UPLINKPROT_ALARMS, (char *)&v, NULL, sizeof(v));
+ send_ipc_message(IPC_CHANNEL_UPLINKPROT, IPC_LOCALHOST_IPADDR, TRAP_SW_ETH_UPLINKPROT_ALARMS, (char *)&v, NULL, sizeof(v), NULL);
 }
 
 

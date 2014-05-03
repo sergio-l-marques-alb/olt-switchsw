@@ -945,7 +945,8 @@ void ptin_control_switchover_monitor(void)
                        CCMSG_HW_INTF_INFO_GET,
                        (char *) &ports_info,
                        (char *) &ports_info,
-                       sizeof(msg_HwIntfInfo_t)) < 0)
+                       sizeof(msg_HwIntfInfo_t),
+                       NULL) < 0)
   {
     LOG_ERR(LOG_CTX_PTIN_CONTROL, "Failed to send interfaces query!");
     return;
@@ -1477,7 +1478,8 @@ uint32 ip, len, i;
                              CCMSG_ETH_LACP_MATRIXES_SYNC2,
                              &((char *) &stat)[i],
                              NULL,//answer,
-                             len) < 0) {
+                             len,
+                             NULL) < 0) {
             LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Failed syncing(2) matrixes .3ad wise");
             //return 1;
         }

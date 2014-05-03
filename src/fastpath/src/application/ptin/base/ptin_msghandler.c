@@ -3326,9 +3326,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
          
       /* Execute command */
       ptin_timer_start(38,"CCMSG_MGMD_SNOOP_SYNC_REQUEST");
-#if 0
       rc = ptin_msg_snoop_sync_request((msg_SnoopSyncRequest_t *) inbuffer->info);
-#endif
       ptin_timer_stop(38);
       if (L7_SUCCESS != rc)
       {
@@ -3353,9 +3351,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Execute command */
       ptin_timer_start(39,"CCMSG_MGMD_SNOOP_SYNC_REPLY");
-#if 0
       rc = ptin_msg_snoop_sync_reply((msg_SnoopSyncReply_t *) inbuffer->info, inbuffer->infoDim/sizeof(msg_SnoopSyncReply_t));
-#endif
       ptin_timer_stop(39);
 
       if (L7_SUCCESS != rc)
@@ -3903,9 +3899,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       /* Execute command */
-#if 0
       ptin_msg_protection_matrix_configuration_flush_end();      
-#endif
       
     }
     break;

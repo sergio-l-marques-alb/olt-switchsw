@@ -131,6 +131,7 @@ struct ptin_evc_s {
                              *  PTIN_EVC_MASK_STACKED         0x00000004
                              *  PTIN_EVC_MASK_MACLEARNING     0x00000008
                              *  PTIN_EVC_MASK_CPU_TRAPPING    0x00000010
+                             *  PTIN_EVC_MASK_MC_IPTV         0x00000020
                              *  PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
                              *  PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
                              *  PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400

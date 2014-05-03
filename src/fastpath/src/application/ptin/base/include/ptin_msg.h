@@ -901,6 +901,25 @@ extern L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_u
 extern L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels);
 
 /**
+ * Process Snoop Sync Request Message
+ * 
+ * @param msg_SnoopSyncRequest_t : 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest);
+
+/**
+ * Process Snoop Sync Reply Message
+ * 
+ * @param msg_SnoopSyncReply_t : 
+ * @param numberOfSnoopEntries :  
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint32 numberOfSnoopEntries);
+
+/**
  * Consult list of clients of a particular multicast channel
  * 
  * @param client_list : list of client vlans
@@ -1157,5 +1176,14 @@ extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 extern int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 
 extern int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
+
+/**
+ * This routine is a place holder to trigger events that require 
+ * the protection matrix  to be in the state of end 
+ * of flush configuration 
+ * 
+ */
+extern void ptin_msg_protection_matrix_configuration_flush_end(void);
+
 #endif /* _PTIN_MSG_H */
 

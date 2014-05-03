@@ -37,6 +37,7 @@
 
 #include "ptin_acl.h"
 
+#include "snooping_api.h"
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -189,7 +190,7 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 {
   L7_RC_t   rc;
-  L7_uint32 portId;
+  L7_uint32 intIfNum;
   L7_uint8  status;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Type-B Protection switch notification");
@@ -198,7 +199,7 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " cmd    = %08X" , msg->cmd);
 
   /* Convert portId to intfNum */
-  if (ptin_intf_port2intIfNum(msg->portId, &portId)!=L7_SUCCESS)
+  if (ptin_intf_port2intIfNum(msg->portId, &intIfNum)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
     return L7_FAILURE;
@@ -208,7 +209,7 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   status = msg->cmd & 0x0001;
 
   /* Update interface configurations */
-  rc = ptin_prottypeb_intf_switch_notify(portId, status);
+  rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
   if (rc!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
@@ -266,6 +267,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
 
   ptin_intfConfig.pairSlotId = msg->pairSlotId;
   ptin_intfConfig.intfRole   = msg->intfRole;
+  ptin_intfConfig.slotId     = msg->slotId;
 
   /* Save interface configurations */
   rc = ptin_prottypeb_intf_config_set(&ptin_intfConfig);
@@ -274,7 +276,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
     return L7_FAILURE;
   }
-
+ 
   return L7_SUCCESS;
 }
 
@@ -6057,9 +6059,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   if (rc==L7_SUCCESS)
   {
-    *numberOfChannels = number_of_channels;
-
-    /* Copy channels to message */
+     /* Copy channels to message */
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {
       LOG_TRACE(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
@@ -6068,11 +6068,13 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
       outputPtr[i].chType  = clist[i].static_type;
     }
+     *numberOfChannels = i;
+     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Read %u channels and retrieving %u channels.",number_of_channels,*numberOfChannels);
   }
   else if (rc==L7_NOT_EXIST)
   {
     *numberOfChannels = 0;
-    LOG_WARNING(LOG_CTX_PTIN_MSG, "No channels to retrieve");
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "No channels to retrieve");
   }
   else
   {
@@ -6080,6 +6082,172 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     return rc;
   }
 
+  return L7_SUCCESS;
+}
+
+/**
+ * Process Snoop Sync Message Request
+ * 
+ * @param msg_SnoopSyncRequest_t : 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
+{
+  if (snoopSyncRequest==L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid input parameters snoopSyncRequest=%p",snoopSyncRequest);
+    return L7_FAILURE;
+  }
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Request Message");     
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncRequest->serviceId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncRequest->groupAddr);
+#if !PTIN_BOARD_IS_MATRIX  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncRequest->portId);
+#endif
+   
+#if PTIN_BOARD_IS_MATRIX    
+  return (ptin_snoop_sync_mx_process_request(snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr));            
+#else    
+  return (ptin_snoop_sync_port_process_request(snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr,snoopSyncRequest->portId));           
+#endif                
+}
+
+/**
+ * Process Snoop Sync Message Reply
+ * 
+ * @param msg_SnoopSyncReply_t : 
+ * @param numberOfSnoopEntries :
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint32 numberOfSnoopEntries)
+{
+  L7_uint32  maxNumberOfSnoopEntries  =  IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size 
+  L7_uint32  iterator; 
+  L7_uint32  sourceAddr = 0x0;
+  
+  if (snoopSyncReply==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters: snoopSyncReply=%p",snoopSyncReply);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Reply Message: numberOfSnoopEntries=%u",numberOfSnoopEntries);
+  
+  if(numberOfSnoopEntries==0)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_MSG,"The number of snoop entries is equal to zero. Silently ignoring this reply message.");
+    return L7_SUCCESS;
+  }
+    
+  #if PTIN_BOARD_IS_MATRIX
+  {
+    L7_uint32 intIfNum;
+    L7_uint32 numberOfActivePorts;
+
+    for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");
+      LOG_TRACE(LOG_CTX_PTIN_MSG," numberOfActivePorts=%u",snoopSyncReply[iterator].numberOfActivePorts);
+      numberOfActivePorts=0;
+      if(snoopSyncReply[iterator].numberOfActivePorts>0)
+      {
+        for (intIfNum=1;intIfNum<L7_MAX_INTERFACE_COUNT;intIfNum++)
+        {   
+          if (L7_INTF_ISMASKBITSET(snoopSyncReply[iterator].snoopGrpMemberList,intIfNum))
+          {
+            LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Snoop Port Open :%u", intIfNum);
+            if(snooping_port_open(snoopSyncReply[iterator].serviceId, intIfNum, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
+            {
+              LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
+              return L7_FAILURE;
+            }
+
+            if(++numberOfActivePorts>=snoopSyncReply[iterator].numberOfActivePorts)
+            {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  #else
+  {
+    for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
+    { 
+      LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");   
+      LOG_TRACE(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncReply->portId);
+      
+      if(snooping_port_open(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
+        return L7_FAILURE;
+      }
+    }
+  }
+  #endif
+
+  //Request the remaining snoop entries
+  if(numberOfSnoopEntries!=maxNumberOfSnoopEntries)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "This is the Last Snoop Sync Reply Message Received");
+    return L7_SUCCESS;
+  }
+
+  msg_SnoopSyncRequest_t   snoopSyncRequest;
+  L7_uint32                ipAddr;
+
+  snoopSyncRequest.groupAddr = snoopSyncReply[numberOfSnoopEntries-1].groupAddr;
+  snoopSyncRequest.serviceId    = snoopSyncReply[numberOfSnoopEntries-1].serviceId;
+
+#if PTIN_BOARD_IS_MATRIX    
+  if(cpld_map->reg.mx_is_active)//If I'm a Working Matrix
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working Matrix on slotId:%u",cpld_map->reg.slot_id);
+    return SUCCESS;
+  }
+
+  if(cpld_map->reg.slot_id==0)
+  {
+    ipAddr = IPC_MX_IPADDR_PROTECTION;
+  }
+  else
+  {
+    ipAddr = IPC_MX_IPADDR_WORKING;
+  }         
+#else
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
+
+  /*  Get the configuration of this portId for the Type B Scheme Protection */
+  ptin_prottypeb_intf_config_get(snoopSyncReply[numberOfSnoopEntries-1].portId, &protTypebIntfConfig);    
+
+  if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+    return SUCCESS;
+  }
+    
+  /* Determine the IP address of the working port/slot */
+  ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
+
+  snoopSyncRequest.portId    = protTypebIntfConfig.pairIntfNum;     
+#endif
+              
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message to ipAddr:%08X to Sync the Remaining Snoop Entries", ipAddr);
+  /*Send the snoop sync request to the protection matrix */  
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to Send Snoop Sync Request Message");
+    return L7_FAILURE;
+  }
+  
   return L7_SUCCESS;
 }
 
@@ -8417,3 +8585,52 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
 } //msg_wr_802_1x_AuthServ
 #endif //__802_1x__
 
+
+/**
+ * This routine is a place holder to trigger events that require 
+ * the protection matrix  to be in the state of end 
+ * of flush configuration 
+ * 
+ */
+void ptin_msg_protection_matrix_configuration_flush_end(void)
+{
+  /*Add your code here. In case of error please  let this routine process until the end*/
+  {
+
+  }
+
+  { /*Trigger the Sync of the Snooping Table*/   
+  #if PTIN_BOARD_IS_MATRIX    
+    if(!cpld_map->reg.mx_is_active)//If I'm a Protection Matrix
+    {
+      msg_SnoopSyncRequest_t   snoopSyncRequest = {0};
+      L7_uint32                ipAddr; 
+    
+      if(cpld_map->reg.slot_id==0)
+      {
+        ipAddr = IPC_MX_IPADDR_PROTECTION;
+      }
+      else
+      {
+        ipAddr = IPC_MX_IPADDR_WORKING;
+      }   
+
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X", ipAddr);
+
+      /*Send the snoop sync request to the protection matrix */  
+      if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to send Snoop Sync Request Message");
+//      return;
+      }         
+    }
+    else
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Snoop Sync Request Message. Since, I'm not a protection matrix");      
+//    return
+    }
+  #endif
+  }
+
+  return;
+}

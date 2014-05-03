@@ -28,6 +28,7 @@
 
 typedef struct {
   L7_uint32 intfNum;
+  L7_uint32 slotId;
   L7_uint8  intfRole; /* [PROT_TYPEB_ROLE_NONE, PROT_TYPEB_ROLE_WORKING, PROT_TYPEB_ROLE_PROTECTION] */
   L7_uint8  status;   /* [1-active; 0-inactive] */
 

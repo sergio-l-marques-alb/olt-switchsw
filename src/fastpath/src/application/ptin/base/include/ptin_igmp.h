@@ -1235,5 +1235,12 @@ extern L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 intIfNum, L7_uchar8 *cli
  */
 L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 
+#if PTIN_BOARD_IS_MATRIX
+extern L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr);
+#else
+extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAddr, L7_uint32 portId);
 #endif
+
+
+#endif//_PTIN_IGMP_H
 

@@ -99,7 +99,7 @@ extern uint8 ptin_board_slotId;
    EXTERN_C int send_trap_switch_event(unsigned char intfType, int interface, int code, int status, int param);
    EXTERN_C int send_trap_to_linecard(unsigned char intfType, int porto, int code, int status, int param);
    EXTERN_C int send_trap_ETH_OAM(void *param, int param_size);
-   EXTERN_C int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDim);
+   EXTERN_C int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDimRequest, uint32 *infoDimAnswer);
 
    EXTERN_C void EnableHandling        (BOOLEAN enable);
    EXTERN_C void SwapIPCHeader         (ipc_msg *inbuffer, ipc_msg *outbuffer);
