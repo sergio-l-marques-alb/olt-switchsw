@@ -761,16 +761,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if(ptin_debug_igmp_snooping)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send message to queue");
-  }
 
-  L7_int32 n_msg = -1;
-  if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
-  {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Size of IGMP queue = %u messages",n_msg);
-  }
-  else
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error reading IGMP queue size");
+    L7_int32 n_msg = -1;
+    if (osapiMsgQueueGetNumMsgs(pSnoopCB->snoopExec->snoopIGMPQueue, &n_msg)==L7_SUCCESS)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Size of IGMP queue = %u messages",n_msg);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error reading IGMP queue size");
+    }
   }
 
   memcpy(msg.snoopBuffer, data, dataLength);
@@ -797,18 +797,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT,
                           L7_MSG_PRIORITY_NORM);
   }
-#endif
 
-  if (rc != L7_SUCCESS)
-  {
-#if 0 /* PTin removed: MGMD integration*/
-    bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"osapiMessageSend failed\n");
-#else
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"mgmdPacketSend failed\n");
-#endif
-  }
-  else
+  if (rc == L7_SUCCESS)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Message sent to queue");
     if (osapiSemaGive(pSnoopCB->snoopExec->snoopMsgQSema) != L7_SUCCESS)
@@ -816,17 +806,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to give msgQueue semaphore");
     }
   }
-  bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
-
-  /* If any error, packet will be dropped */
-  if (rc!=L7_SUCCESS)
+  else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Packet will be dropped");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to post a %s message to queue",pSnoopCB->family==L7_AF_INET?"IGMP":"MLD");
   }
+#endif
+
+  bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"}");
-  return rc;
+
+  return L7_SUCCESS;
 }
 /*************************************************************************
 * @purpose Parse and place the information in a data structure for
