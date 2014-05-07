@@ -6395,7 +6395,8 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
     LOG_INFO(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
     LOG_INFO(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
 
-    rc = ptin_intf_protection_cmd(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
+    //rc = ptin_intf_protection_cmd(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
+    rc = ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
 
     /* Update status error */
     if (rc != L7_SUCCESS)

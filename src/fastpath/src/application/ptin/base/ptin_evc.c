@@ -7786,6 +7786,15 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
     return L7_FAILURE;
   }
 
+  /* Uplink protection */
+  #if 1
+  /* If this is a protection port, remove port from the vlan (only at hardware level) */
+  if (ptin_intf_is_uplinkProtection(root_intf))
+  {
+    ptin_vlan_port_remove(root_intf, int_vlan);
+  }
+  #endif
+
   return L7_SUCCESS;
 }
 

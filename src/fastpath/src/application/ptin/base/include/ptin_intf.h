@@ -378,6 +378,17 @@ extern inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx);
 extern inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
 
 
+/**
+ * Check if a particular port is used for uplink protection
+ * 
+ * @author mruas (5/2/2014)
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_BOOL 
+ */
+extern L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port);
+
 /*
  * LAGs Manipulation Functions
  */ 
@@ -617,6 +628,7 @@ extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);
+extern L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd);
 
 /**
  The following 2 functions identify, respectively

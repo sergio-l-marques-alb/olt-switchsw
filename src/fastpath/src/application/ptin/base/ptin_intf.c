@@ -19,8 +19,15 @@
 #include "ptin_intf.h"
 #include "ptin_evc.h"
 #include "ptin_xlate_api.h"
+#include "ptin_xconnect_api.h"
 #include "ptin_cnfgr.h"
 #include "fw_shm.h"
+
+/* Uplink protection */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+static L7_uint64 uplink_protection_ports_bmp = 0;
+static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
+#endif
 
 L7_BOOL linkscan_update_control = L7_TRUE;
 void ptin_linkscan_control_global(L7_BOOL enable)
@@ -1782,6 +1789,24 @@ L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
 }
 
 /**
+ * Check if a particular port is used for uplink protection
+ * 
+ * @author mruas (5/2/2014)
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
+{
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  return (((uplink_protection_ports_bmp >> ptin_port) & 1) == 1);
+  #else
+  return L7_FALSE;
+  #endif
+}
+
+/**
  * Creates a LAG 
  *  
  * NOTES: 
@@ -1833,6 +1858,60 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
+
+  /* Uplink protection */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* For Uplink ports, only disable linkscan and force link */
+  if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+  {
+    members_pbmp = lagInfo->members_pbmp64;
+
+    /* Remove protection ports */
+    uplink_protection_ports_bmp &= ~lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE];
+    /* Clear lag bitmap */
+    lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] = 0;
+    
+    /* Loop through all the phy ports and check if any is being added or removed */
+    for (port = 0; port < ptin_sys_number_of_ports; port++, members_pbmp>>=1)
+    {
+      if (!(members_pbmp & 1))
+        continue;
+
+      /* Disable linkscan */
+      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting port %u to intIfNum", port);
+        continue;
+      }
+
+      #if 1
+      /* Remove port from all vlans at hardware */
+      ptin_vlan_port_remove(port, 0);
+      #endif
+
+      if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+      }
+      else if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
+      }
+      else
+      {
+        LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
+      }
+
+      /* Save port to lag bitmap */
+      lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] |= (L7_uint64) 1 << port;
+    }
+    /* Upfate general bitmap */
+    uplink_protection_ports_bmp |= lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE];
+
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "Ignoring lag id %u", lag_idx);
+    return L7_SUCCESS;
+  }
+#endif
 
   /* If members list is empty, report error */
   if (lagInfo->members_pbmp64 == 0)
@@ -2210,7 +2289,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       lagConf_data[lag_idx].members_pbmp64 |= (L7_uint64)1 << port;
       LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u added", port);
 
-      #if (PTIN_BOARD_IS_MATRIX)
+      /* Uplink protection */
+      #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
       if (newLag && lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
       {
         /* Disable linkscan */
@@ -2372,6 +2452,52 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     return L7_FAILURE;
   }
 
+  /* Uplink protection */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  L7_uint   port;
+
+  /* For Uplink ports, only disable linkscan and force link */
+  if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+  {
+    ptin_pbmp = lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE];
+
+    /* Loop through all the phy ports and check if any is being added or removed */
+    for (port = 0; port < ptin_sys_number_of_ports; port++, ptin_pbmp>>=1)
+    {
+      if (!(ptin_pbmp & 1))
+        continue;
+
+      /* Disable linkscan */
+      if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting port %u to intIfNum", port);
+        continue;
+      }
+
+      if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error enabling linkscan for intIfNum %u", intIfNum);
+      }
+      else
+      {
+        LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
+      }
+
+      #if 1
+      /* Remove port from all vlans at hardware */
+      ptin_vlan_port_add(port, 0);
+      #endif
+    }
+    /* Clear lag ports at general bitmap */
+    uplink_protection_ports_bmp &= ~lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE];
+    /* Clear lag bitmap */
+    lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] = 0;
+    
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "Ignoring lag id %u", lag_idx);
+    return L7_SUCCESS;
+  }
+#endif
+
   /* Check if LAG really exists */
   if (!ptin_intf_lag_exists(lag_idx))
   {
@@ -2420,7 +2546,8 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, i);
       }
 
-      #if (PTIN_BOARD_IS_MATRIX)
+      /* Uplink protection */
+      #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
       if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
       {
         /* Disable linkscan */
@@ -3906,7 +4033,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
-  L7_uint32 lag_intIfNum, lag_port;
+  //L7_uint32 lag_intIfNum, lag_port;
   L7_BOOL   apply_config = L7_TRUE;
   L7_RC_t   rc = L7_SUCCESS;
 
@@ -3932,6 +4059,8 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       return L7_FAILURE;
     }
 
+    /* Uplink protection */
+    #if 0
     /* Get belonging LAG */
     if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
         lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
@@ -3945,6 +4074,12 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
         apply_config = L7_FALSE;
       }
     }
+    #else
+    if (ptin_intf_is_uplinkProtection(ptin_port))
+    {
+      apply_config = L7_FALSE;
+    }
+    #endif
 
     /* Linkscan procedure */
     if (!enable || apply_config)
@@ -3977,6 +4112,8 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
         return L7_FAILURE;
       }
 
+      /* Uplink protection */
+      #if 0
       /* Get belonging LAG */
       if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
           lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
@@ -3992,6 +4129,12 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
             continue;
         }
       }
+      #else
+      if (ptin_intf_is_uplinkProtection(ptin_port) && enable)
+      {
+        continue;
+      }
+      #endif
 
       /* Linkscan procedure */
       rc = ptin_intf_linkscan_set(intIfNum, enable);
@@ -4274,7 +4417,7 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
  */
 L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 {
-  #if (PTIN_BOARD_IS_MATRIX)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   L7_uint lag_idx;
   L7_uint32 ptin_port, intIfNum, lag_intIfNum;
 
@@ -4336,6 +4479,53 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 }
 
 
+/**
+ * Protection command
+ * 
+ * @param slot : board slot
+ * @param port : board port
+ * @param cmd : command
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
+{
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  L7_uint32 ptin_port /*, intIfNum*/;
+
+  /* Get intIfNum from slot/port */
+  if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot, port);
+    return L7_FAILURE;
+  }
+
+  /* Activate command: add port */
+  if (cmd & 1)
+  {
+    if (ptin_vlan_port_add(ptin_port, 0) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding port %u to all vlans", ptin_port);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u added to all vlans", ptin_port);
+  }
+  /* Innactivate command: remove port */
+  else
+  {
+    if (ptin_vlan_port_remove(ptin_port, 0) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing port %u from all vlans", ptin_port);
+      return L7_FAILURE;
+    }
+    //fdbFlushByPort(intIfNum);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u removed from all vlans", ptin_port);
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
 int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
@@ -4350,7 +4540,7 @@ L7_uint32 intIfNum;
 #endif
 #elif ( PTIN_BOARD == PTIN_BOARD_CXO640G )
    nimUSP_t usp;
-   L7_uint32 intIfNum, lag_idx;
+   L7_uint32 intIfNum;
 
    /* Interface should be a LAG */
    if (dusp->slot != L7_LAG_SLOT_NUM)
@@ -4369,6 +4559,11 @@ L7_uint32 intIfNum;
      LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
      return L7_FALSE;
    }
+
+   /* Uplink protection */
+   #if 0
+   L7_uint32 lag_idx;
+
    /* Convert to lag index (management point of view) */
    if (ptin_intf_intIfNum2lag(intIfNum, &lag_idx) != L7_SUCCESS)
    {
@@ -4383,6 +4578,8 @@ L7_uint32 intIfNum;
      return L7_TRUE;
    }
    LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum %u is a regular LAG (lagIdx=%u)", intIfNum, lag_idx);
+   #endif
+   
 #endif
  return 0;
 }
