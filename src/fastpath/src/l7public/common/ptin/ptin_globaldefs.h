@@ -18,10 +18,6 @@
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
   #define PTIN_ENABLE_DTL0TRAP
-
-  #define PTIN_SYSTEM_INTERNAL_LAGID_BASE   18
-  #define PTIN_SYSTEM_PROTECTION_LAGID_BASE 40
-
 #endif  // PTIN_BOARD_IS_MATRIX
 
 /* ************************** */
