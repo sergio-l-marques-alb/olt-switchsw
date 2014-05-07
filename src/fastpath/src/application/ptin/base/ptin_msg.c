@@ -3106,7 +3106,7 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
  */
 L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_bw_profile_t profile;
   L7_RC_t   rc;
 
