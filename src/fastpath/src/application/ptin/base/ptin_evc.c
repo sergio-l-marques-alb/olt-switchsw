@@ -380,8 +380,8 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, struct ptin_evc_client_s *pclientFlow, L7_BOOL force );
 
 static void    ptin_evc_entry_init(L7_uint evc_id);
-static L7_RC_t ptin_evc_entry_allocate(L7_uint evc_ext_id, L7_uint *evc_id);
-static L7_RC_t ptin_evc_entry_free(L7_uint evc_ext_id);
+static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id);
+static L7_RC_t ptin_evc_entry_free(L7_uint32 evc_ext_id);
 
 static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoData_t **infoData);
@@ -659,8 +659,8 @@ L7_RC_t ptin_evc_intfCfg_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_
  */
 L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
 {
-  L7_uint evc_id;
-  L7_uint evc_ext_id;
+  L7_uint   evc_id;
+  L7_uint32 evc_ext_id;
   L7_uint i;
 
   evc_ext_id = evcConf->index;
@@ -1003,8 +1003,8 @@ L7_RC_t ptin_evc_flags_get(L7_uint32 evc_ext_id, L7_uint32 *flags, L7_uint32 *mc
  */
 L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_uint32 *mc_flood)
 {
-  L7_uint evc_id;
-  L7_uint evc_ext_id;
+  L7_uint   evc_id;
+  L7_uint32 evc_ext_id;
 
   /* Validate arguments */
   if (intOVlan < PTIN_VLAN_MIN || intOVlan > PTIN_VLAN_MAX)
@@ -1414,8 +1414,8 @@ L7_RC_t ptin_evc_intfType_getList(L7_uint16 intVlan, L7_uint8 type, NIM_INTF_MAS
  */
 L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
 {
-  L7_uint evc_int_id;
-  L7_uint evc_ext_id;
+  L7_uint   evc_int_id;
+  L7_uint32 evc_ext_id;
 
   /* Validate arguments */
   if (intIfNum==0 || intOVlan<PTIN_VLAN_MIN || intOVlan>PTIN_VLAN_MAX)
@@ -2334,7 +2334,7 @@ _ptin_evc_create1:
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_port_add(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
+L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
 {
   L7_uint evc_idx;
   L7_uint ptin_port;
@@ -2433,7 +2433,7 @@ L7_RC_t ptin_evc_port_add(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_port_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
+L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
 {
   L7_uint evc_idx;
   L7_uint ptin_port;
@@ -2563,7 +2563,7 @@ _ptin_evc_port_remove1:
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
+L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 {
   L7_uint evc_id;
 
@@ -2787,7 +2787,7 @@ L7_RC_t ptin_evc_delete(L7_uint evc_ext_id)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_destroy(L7_uint evc_ext_id)
+L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 {
   L7_uint     intf_idx;
   L7_uint     evc_id;
@@ -4630,7 +4630,7 @@ L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_ext_id, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
 {
   ptin_bw_policy_t **policy_loc=L7_NULLPTR;
   ptin_bw_policy_t *policy_old, *policy_new;
@@ -4712,7 +4712,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint evc_ext_id, ptin_bw_profile_t *profile)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_delete(L7_uint evc_ext_id, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
 {
   ptin_bw_policy_t **policy_loc=L7_NULLPTR;
   L7_RC_t rc = L7_SUCCESS;
@@ -5619,7 +5619,7 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf
  *  L7_NOT_SUPPORTED tells this evc does not support clients
  *  L7_FAILURE in case of error
  */
-L7_RC_t ptin_evc_client_next( L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
+L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next)
 {
   L7_uint evc_id;
   L7_uint vid_ref;
@@ -6163,7 +6163,7 @@ static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
  */
-static L7_RC_t ptin_evc_entry_free(L7_uint evc_ext_id)
+static L7_RC_t ptin_evc_entry_free(L7_uint32 evc_ext_id)
 {
   L7_RC_t rc;
   L7_uint evc_id;
@@ -8168,7 +8168,7 @@ L7_RC_t ptin_evc_igmp_stats_get_fromIntVlan(L7_uint16 intVlan, L7_uint32 intIfNu
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
  */
-L7_RC_t ptin_evc_igmp_stats_get(L7_uint evc_ext_id, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf)
+L7_RC_t ptin_evc_igmp_stats_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin_IGMP_Statistics_t *stats_intf)
 {
   L7_uint32 ptin_port;
   L7_uint32 evc_id;

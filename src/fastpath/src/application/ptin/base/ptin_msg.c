@@ -3056,7 +3056,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
  */
 L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_bw_profile_t profile;
   L7_RC_t   rc;
 
@@ -3185,7 +3185,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
  */
 L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned int msgId)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_bw_profile_t profile;
   L7_RC_t   rc;
 
@@ -3506,7 +3506,7 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
  */
 L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_evcStats_profile_t  profile;
   ptin_evcStats_counters_t counters;
   L7_RC_t rc=L7_SUCCESS;
@@ -3607,7 +3607,7 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
  */
 L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_evcStats_profile_t profile;
   L7_RC_t   rc=L7_SUCCESS;
 
@@ -3657,7 +3657,7 @@ L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
  */
 L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
 {
-  L7_uint16 evcId;
+  L7_uint32 evcId;
   ptin_evcStats_profile_t profile;
   L7_RC_t   rc=L7_SUCCESS;
 
@@ -3819,8 +3819,8 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
  */
 L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
 {
-  L7_uint           evc_idx;
-  L7_RC_t           rc;
+  L7_uint32 evc_idx;
+  L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
 
@@ -4003,7 +4003,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
  */
 L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 {
-  L7_uint                 evc_idx;
+  L7_uint32               evc_idx;
   ptin_client_id_t        client;
   ptin_clientCircuitId_t  circuitId_data;
   L7_RC_t           rc;
@@ -4082,7 +4082,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
  */
 L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_uint n_clients)
 {
-  L7_uint                 i, evc_idx;
+  L7_uint32               i, evc_idx;
   ptin_client_id_t        client;
   ptin_clientCircuitId_t  circuitId;
   L7_RC_t                 rc = L7_SUCCESS;
@@ -4185,7 +4185,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
  */
 L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_uint n_clients)
 {
-  L7_uint           i, evc_idx;
+  L7_uint32         i, evc_idx;
   ptin_client_id_t  client;
   L7_RC_t           rc;
 
