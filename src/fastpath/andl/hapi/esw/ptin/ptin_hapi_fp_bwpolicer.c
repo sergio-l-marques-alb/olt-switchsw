@@ -123,17 +123,18 @@ L7_RC_t hapi_ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *po
  */
 L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **policer, DAPI_t *dapi_g)
 {
-  ptin_bw_policy_t *policer_ptr;
-  BROAD_POLICY_t      policyId;
-  BROAD_POLICY_RULE_t ruleId  = BROAD_POLICY_RULE_INVALID, pcp_ruleId[8];
-  BROAD_METER_ENTRY_t meterInfo;
-  BROAD_POLICY_TYPE_t policyType = BROAD_POLICY_TYPE_PTIN;
-  L7_uint8            drop = 0;
-  L7_uint8            mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  ptin_bw_policy_t     *policer_ptr;
+  BROAD_POLICY_t       policyId;
+  BROAD_POLICY_RULE_t  ruleId  = BROAD_POLICY_RULE_INVALID, pcp_ruleId[8];
+  BROAD_METER_ENTRY_t  meterInfo;
+  BROAD_POLICY_TYPE_t  policyType = BROAD_POLICY_TYPE_PTIN;
+  L7_uint8             drop = 0;
+  L7_uint8             mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-  L7_RC_t             result;
-  ptin_hapi_intf_t    portDescriptor;
-  pbmp_t        pbm, pbm_mask;
+  L7_RC_t              result;
+  ptin_hapi_intf_t     portDescriptor;
+  pbmp_t               pbm, pbm_mask;
+  BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Starting processing...");
 
@@ -193,11 +194,13 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     policer_ptr = ptin_hapi_policy_find(profile, L7_NULLPTR, bwp_db);
     if (policer_ptr!=L7_NULLPTR)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u and IVID_in=%u found!",profile->outer_vlan_in,profile->inner_vlan_in);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u found!", 
+                profile->outer_vlan_in, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u and IVID_in=%u not found!",profile->outer_vlan_in,profile->inner_vlan_in);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u not found!", 
+                profile->outer_vlan_in, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
     }
   }
 
@@ -206,6 +209,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   /* If there is not enough input parameters, remove policer and leave */
   if ( (profile==L7_NULLPTR) ||
        ((profile->ddUsp_src.unit<0 && profile->ddUsp_src.slot<0 && profile->ddUsp_src.port<0) &&
+        (profile->ddUsp_dst.unit<0 && profile->ddUsp_dst.slot<0 && profile->ddUsp_dst.port<0) &&
         (profile->outer_vlan_in==0 || profile->outer_vlan_in>=4096) && (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096)) ||
        (profile->meter.cir>=BW_MAX ) )
   {
@@ -224,21 +228,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     return L7_SUCCESS;
   }
 
-  /* Interfaces mask (for inports field) */
-  hapi_ptin_allportsbmp_get(&pbm_mask);
-
-  BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport    = -1;
-  portDescriptor.bcm_port = -1;
-  portDescriptor.trunk_id = -1;
-
-  if (ptin_hapi_portDescriptor_get(&(profile->ddUsp_src),dapi_g,&portDescriptor,&pbm)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
-    return L7_FAILURE;
-  }
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d class_port=%d",portDescriptor.trunk_id,portDescriptor.bcm_port,portDescriptor.class_port);
-
   /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
 
   /* If we are using a valid database entry, compare input parameters */
@@ -249,10 +238,12 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     if ( ( policer_ptr->ddUsp_src.unit !=profile->ddUsp_src.unit ) ||
          ( policer_ptr->ddUsp_src.slot !=profile->ddUsp_src.slot ) ||
          ( policer_ptr->ddUsp_src.port !=profile->ddUsp_src.port ) ||
+         ( policer_ptr->ddUsp_dst.slot !=profile->ddUsp_dst.slot ) ||
+         ( policer_ptr->ddUsp_dst.port !=profile->ddUsp_dst.port ) ||
          ( policer_ptr->outer_vlan_in  != profile->outer_vlan_in ) ||
-         /*( policer_ptr->outer_vlan_out != profile->outer_vlan_out) ||*/
+         ( policer_ptr->outer_vlan_out != profile->outer_vlan_out) ||
          ( policer_ptr->inner_vlan_in  != profile->inner_vlan_in ) ||
-         /*( policer_ptr->inner_vlan_out != profile->inner_vlan_out) ||*/
+         ( policer_ptr->inner_vlan_out != profile->inner_vlan_out) ||
          ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
@@ -313,6 +304,29 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"New policy created!");
 
+  /* Decide if this policer is to be applied at the ingress OR at the egress */
+  if ((profile->ddUsp_src.slot >= 0) && (profile->ddUsp_src.port >= 0))
+  {
+    stage = BROAD_POLICY_STAGE_INGRESS;
+  }
+  else if ((profile->ddUsp_dst.slot >= 0) && (profile->ddUsp_dst.port >= 0))
+  {
+    stage = BROAD_POLICY_STAGE_EGRESS;
+  }
+  else{
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"No interface provided!");
+    return L7_FAILURE;
+  }
+
+  /* Set FP stage */
+  if ((result=hapiBroadPolicyStageSet(stage))!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting stage %u",stage);
+    return result;
+  }
+
+  result = L7_SUCCESS;
+
   if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
@@ -321,52 +335,126 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"New rule added!");
 
-  if (portDescriptor.trunk_id>=0)
+  /* Init interfaces mask (for inports field) */
+  hapi_ptin_allportsbmp_get(&pbm_mask);
+
+  BCM_PBMP_CLEAR(pbm);
+  portDescriptor.lport    = -1;
+  portDescriptor.bcm_port = -1;
+  portDescriptor.trunk_id = -1;
+
+  if (stage == BROAD_POLICY_STAGE_INGRESS)
   {
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRCTRUNK, (L7_uint8 *)&portDescriptor.trunk_id, (L7_uint8 *) mask))!=L7_SUCCESS)
+    if (ptin_hapi_portDescriptor_get(&(profile->ddUsp_src), dapi_g, &portDescriptor, &pbm) != L7_SUCCESS)
     {
-      hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(SRCTRUNK)");
-      return result;
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
+      return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"TrunkId qualifier added");
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d class_port=%d", portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.class_port);
+
+    if (portDescriptor.bcm_port>=0)
+    {
+      #if 0
+      printf("%s(%d) value = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
+             pbm.pbits[0],pbm.pbits[1],pbm.pbits[2]);
+      printf("%s(%d) mask  = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
+             pbm_mask.pbits[0],pbm_mask.pbits[1],pbm_mask.pbits[2]);
+      #endif
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"InPorts qualifier added");
+    }
+    /* Trunk id field */
+    else if (portDescriptor.trunk_id>=0)
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRCTRUNK, (L7_uint8 *)&portDescriptor.trunk_id, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(SRCTRUNK)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"TrunkId qualifier added");
+    }
+
+    /* Internal vlans */
+    if (profile->outer_vlan_in>0 && profile->outer_vlan_in<4096)
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"SVid qualifier added");
+    }
+    if (profile->inner_vlan_in>0 && profile->inner_vlan_in<4096)
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uint8 *)&profile->inner_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"IVID qualifier added");
+    }
   }
-  if (portDescriptor.bcm_port>=0)
+  else if (stage == BROAD_POLICY_STAGE_EGRESS)
   {
-    #if 0
-    printf("%s(%d) value = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
-           pbm.pbits[0],pbm.pbits[1],pbm.pbits[2]);
-    printf("%s(%d) mask  = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
-           pbm_mask.pbits[0],pbm_mask.pbits[1],pbm_mask.pbits[2]);
-    #endif
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
+    if (ptin_hapi_portDescriptor_get(&(profile->ddUsp_dst), dapi_g, &portDescriptor, &pbm) != L7_SUCCESS)
     {
-      hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
-      return result;
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
+      return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"InPorts qualifier added");
-  }
-  if (profile->outer_vlan_in>0 && profile->outer_vlan_in<4096)
-  {
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d class_port=%d", portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.class_port);
+
+    /* Physical port */
+    if (portDescriptor.bcm_port >= 0)
     {
-      hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID)");
-      return result;
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OUTPORT)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"SVid qualifier added");
-  }
-  if (profile->inner_vlan_in>0 && profile->inner_vlan_in<4096)
-  {
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uint8 *)&profile->inner_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+    /* Class port */
+    else if (portDescriptor.class_port > 0)
     {
-      hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID)");
-      return result;
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Port class qualifier added");
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"IVID qualifier added");
+
+    /* External vlans */
+    if (profile->outer_vlan_out>0 && profile->outer_vlan_out<4096)
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_out, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"SVid qualifier added");
+    }
+    if (profile->inner_vlan_out>0 && profile->inner_vlan_out<4096)
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uint8 *)&profile->inner_vlan_out, (L7_uint8 *) mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"IVID qualifier added");
+    }
   }
+
   if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uint8 *)&drop, (L7_uint8 *) mask))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
@@ -374,6 +462,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     return result;
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Drop qualifier added");
+
   //hapiBroadPolicyRuleExceedActionAdd (ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
   if ((result=hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0))!=L7_SUCCESS)
   {
@@ -389,12 +478,13 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Meter added");
 
-  if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT) {
-   L7_uint8 i, cos, n_pcps;
-   L7_uchar8 v;
-   //ptin_intf_t ptin_intf;
-   //ptin_Qos_intf_t intfQos;//msg_QoSConfiguration_t qos;
-   BROAD_PORT_t *hapiPortPtr;
+  if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT)
+  {
+      L7_uint8 i, cos, n_pcps;
+      L7_uchar8 v;
+      //ptin_intf_t ptin_intf;
+      //ptin_Qos_intf_t intfQos;//msg_QoSConfiguration_t qos;
+      BROAD_PORT_t *hapiPortPtr;
 
       //ptin_QoS_intf_config_get(&ptin_intf, &intfQos)//ptin_msg_CoS_get(&qos);
       hapiPortPtr = HAPI_PORT_GET(&profile->ddUsp_src, dapi_g);
@@ -600,13 +690,18 @@ static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
       profile->ddUsp_src.slot!=ptr->ddUsp_src.slot ||
       profile->ddUsp_src.port!=ptr->ddUsp_src.port)  return L7_FALSE;
 
+  /* Verify src interface */
+  if (profile->ddUsp_dst.unit!=ptr->ddUsp_dst.unit ||
+      profile->ddUsp_dst.slot!=ptr->ddUsp_dst.slot ||
+      profile->ddUsp_dst.port!=ptr->ddUsp_dst.port)  return L7_FALSE;
+
   /* Verify SVID*/
   if (profile->outer_vlan_in !=ptr->outer_vlan_in )  return L7_FALSE;
-  //if (profile->outer_vlan_out!=ptr->outer_vlan_out)  return L7_FALSE;
+  if (profile->outer_vlan_out!=ptr->outer_vlan_out)  return L7_FALSE;
 
   /* Verify IVID */
   if (profile->inner_vlan_in !=ptr->inner_vlan_in )  return L7_FALSE;
-  //if (profile->inner_vlan_out!=ptr->inner_vlan_out)  return L7_FALSE;
+  if (profile->inner_vlan_out!=ptr->inner_vlan_out)  return L7_FALSE;
 
   if (profile->cos !=ptr->cos)  return L7_FALSE;
 

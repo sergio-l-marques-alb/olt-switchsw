@@ -6673,27 +6673,31 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   /* SVID */
   profile->outer_vlan_in  = 0;
   profile->outer_vlan_out = 0;
-  if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
-      (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
-  {
-    profile->outer_vlan_in = msgBwProfile->service_vlan;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
-  }
 
   /* CVID */
   profile->inner_vlan_in  = 0;
   profile->inner_vlan_out = 0;
-  if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
-      (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
-  {
-    profile->inner_vlan_in = msgBwProfile->client_vlan;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
-  }
 
   /* Source interface */
   profile->ddUsp_src.unit = profile->ddUsp_src.slot = profile->ddUsp_src.port = -1;
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
   {
+    /* SVID */
+    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
+        (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
+    {
+      profile->outer_vlan_in = msgBwProfile->service_vlan;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
+    }
+
+    /* CVID */
+    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
+        (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
+    {
+      profile->inner_vlan_in = msgBwProfile->client_vlan;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
+    }
+
     /* Get ptin_port */
     if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id, &ptin_port)!=L7_SUCCESS)
     {
@@ -6723,6 +6727,22 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   profile->ddUsp_dst.unit = profile->ddUsp_dst.slot = profile->ddUsp_dst.port = -1;
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
   {
+    /* SVID */
+    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
+        (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
+    {
+      profile->outer_vlan_out = msgBwProfile->service_vlan;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
+    }
+
+    /* CVID */
+    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
+        (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
+    {
+      profile->inner_vlan_out = msgBwProfile->client_vlan;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
+    }
+
     /* Get ptin_port */
     if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id, &ptin_port)!=L7_SUCCESS)
     {

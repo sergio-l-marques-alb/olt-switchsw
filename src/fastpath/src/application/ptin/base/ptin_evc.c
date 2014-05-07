@@ -9422,15 +9422,8 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     profile->outer_vlan_in = evcs[evc_id].intf[ptin_port].int_vlan;
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_in);
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
-  /* If source interface is not provided... */
-  else
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Source interface is not speficied");
-    return L7_FAILURE;
-  } /* else (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
-
   /* If destination interface is provided, validate it */
-  if (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0)
+  else if (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing destination interface");
     /* Get USP interface */
@@ -9461,11 +9454,88 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
       return L7_NOT_EXIST;
     }
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Destination interface is present in EVC");
-  } /* if (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0) */
+
+    /* Verify Svlan*/
+    if (profile->outer_vlan_in>0 &&
+        evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
+    {
+      if (profile->outer_vlan_in!=evcs[evc_id].intf[ptin_port].out_vlan)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_id].intf[ptin_port].out_vlan);
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Destination interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
+    }
+
+    /* Default outer and inner vlan at egress:
+       - the outer vlan is the defined for each interface
+       - the inner vlan is the same as the internal inner vlan
+       If interface is leaf and EVC is stacked, the outer and inner vlans at egress should not be considered */
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
+    #endif
+    {
+      profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
+      profile->inner_vlan_out = profile->inner_vlan_in;
+    }
+
+    /* If bwPolicer_ptr is not null, we should provide a pointer to the location where the bwPolicer address will be stored */
+    if (bwPolicer_ptr!=L7_NULLPTR)
+    {
+      /* If inner_vlan is null, use the general policer for the interface */
+      if (!IS_EVC_QUATTRO(evc_id) && (profile->inner_vlan_out==0))
+      {
+        *bwPolicer_ptr = &(evcs[evc_id].intf[ptin_port].bwprofile[BWPROFILE_INDX(profile->cos)]);
+      } /* if (profile->inner_vlan_in==0) */
+      /* If valid, find the specified client, and provide the policer location */
+      else
+      {
+        /* Find the specified cvlan in all EVC clients */
+        for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
+        {
+          if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
+              (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
+          {
+            if (IS_EVC_QUATTRO(evc_id))
+            {
+              /* profile->outer_vlan_out is the GEM id related to the flow */
+              ptin_evc_find_flow(profile->outer_vlan_out, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **)&pclientFlow);
+            }
+            else
+            {
+              ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **)&pclientFlow); 
+            }
+          }
+        }
+        /* Client not found */
+        if (pclientFlow==L7_NULLPTR)
+        {
+          LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
+          return L7_NOT_EXIST;
+        }
+        /* If interface is a leaf... */
+        if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
+        {
+          profile->outer_vlan_out = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
+          profile->inner_vlan_out = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF][BWPROFILE_INDX(profile->cos)]);
+        }
+        else
+        {
+          *bwPolicer_ptr = &(pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][BWPROFILE_INDX(profile->cos)]);
+        }
+      } /* else (profile->inner_vlan_in==0) */
+    } /* if (bwPolicer_ptr!=L7_NULLPTR) */
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_out=%u, IVid_out=%u", ptin_port, profile->outer_vlan_out, profile->inner_vlan_out);
+
+  } /* else if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
+  /* If neither source neither destination interface is provided... */
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Destination interface is not speficied");
-  } /* else (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0) */
+    LOG_ERR(LOG_CTX_PTIN_EVC,"No Interface speficied");
+    return L7_FAILURE;
+  }
 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Final bw profile data:");
   LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_id);

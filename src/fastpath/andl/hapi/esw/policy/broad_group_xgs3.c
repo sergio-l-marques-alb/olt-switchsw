@@ -1534,6 +1534,7 @@ static int _policy_super_qset_init_efp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
@@ -3751,15 +3752,15 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
       /* PTin added: policer */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 0;
       /* PTin end */
 
       /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups-3;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups-2;
 
       /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups-2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups-1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups-1;
       /* PTin end */
 
