@@ -107,6 +107,15 @@ extern L7_RC_t dtlPtinVlanSettings( ptin_vlan_mode_t *vlan_mode );
 extern L7_RC_t dtlPtinVlanDefinitions( ptin_bridge_vlan_mode_t *vlan_mode );
 
 /**
+ * Vlan specific configurations
+ * 
+ * @param vlan_mode : descriptor with vlan configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t dtlPtinVlanPortControl( L7_uint32 intIfNum, ptin_vlan_mode_t *vlan_mode );
+
+/**
  * Cross-connections 
  *  
  * @param intIfNum : First interface for the cross-connection 

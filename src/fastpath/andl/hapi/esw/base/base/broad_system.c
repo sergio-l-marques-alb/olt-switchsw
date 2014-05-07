@@ -234,6 +234,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_COUNTERS_ACTIVITY_GET        ] = (HAPICTLFUNCPTR_t)hapiBroadPtinCountersActivityGet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_SETTINGS                ] = (HAPICTLFUNCPTR_t)hapiBroadPtinVlanModeSet;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_DEFS                    ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBridgeVlanModeSet;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_PORT_CONTROL            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBridgeVlanPortControl;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_XLATE                   ] = (HAPICTLFUNCPTR_t)hapiBroadPtinVlanTranslate;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_XLATE_EGRESS_PORTGROUP  ] = (HAPICTLFUNCPTR_t)hapiBroadPtinVlanTranslatePortGroups;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_VLAN_CROSSCONNECT            ] = (HAPICTLFUNCPTR_t)hapiBroadPtinBridgeCrossconnect;

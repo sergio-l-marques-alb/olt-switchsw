@@ -13,6 +13,26 @@
 extern L7_RC_t ptin_vlan_cpu_set(L7_uint16 vlanId, L7_BOOL enable);
 
 /**
+ * Add ports to a specific vlan
+ *  
+ * @param ptin_port : PTIN port format
+ * @param vlanId : Vlan Id (0 to apply to all existent)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlan_port_add(L7_uint32 ptin_port, L7_uint16 vlanId);
+
+/**
+ * Remove port from a specific vlan
+ *  
+ * @param ptin_port : PTIN port format
+ * @param vlanId : Vlan Id (0 to apply to all existent)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlan_port_remove(L7_uint32 ptin_port, L7_uint16 vlanId);
+
+/**
  * Create a multicast group
  * 
  * @param mcast_group : Multicast group id to be returned.

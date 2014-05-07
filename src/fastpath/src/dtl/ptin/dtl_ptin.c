@@ -296,6 +296,42 @@ L7_RC_t dtlPtinVlanDefinitions( ptin_bridge_vlan_mode_t *vlan_mode )
 }
 
 /**
+ * Vlan specific configurations
+ * 
+ * @param vlan_mode : descriptor with vlan configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t dtlPtinVlanPortControl( L7_uint32 intIfNum, ptin_vlan_mode_t *vlan_mode )
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+  L7_RC_t rc;
+
+  if (intIfNum==L7_ALL_INTERFACES)
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_PORT_CONTROL, (void *) vlan_mode);
+  if (rc != L7_SUCCESS)
+    return rc;
+
+  return L7_SUCCESS;
+}
+
+/**
  * Cross-connections 
  *  
  * @param intIfNum : First interface for the cross-connection 

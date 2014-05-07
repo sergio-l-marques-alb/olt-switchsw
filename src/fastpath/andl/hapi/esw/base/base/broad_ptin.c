@@ -10,6 +10,8 @@
 #include "ptin_structs.h"
 #include "ptin_globaldefs.h"
 #include "broad_common.h"
+#include "broad_l2_vlan.h"
+#include "broad_l2_std.h"
 
 #include <dapi_db.h>
 #include <hpc_db.h>
@@ -631,6 +633,70 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished: rc=%d", rc);
 
   return rc;
+}
+
+/**
+ * Define vlan port settings
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data : ptin_bridge_vlan_mode_t structure
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  ptin_vlan_mode_t *vlan_mode = (ptin_vlan_mode_t *) data;
+  DAPI_ADDR_MGMT_CMD_t flushCmd;
+
+  //LOG_INFO(LOG_CTX_PTIN_HAPI, "Nothing done to port {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  //return L7_SUCCESS;
+
+  if (vlan_mode->oper == DAPI_CMD_SET)
+  {
+    if (vlan_mode->vlanId == 0 || vlan_mode->vlanId > 4095)
+    {
+      /* Add the port to all vlans */
+      hapiBroadAddRemovePortFromVlans(usp, 1, dapi_g);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} added to all VLANS", usp->unit, usp->slot, usp->port);
+    }
+    else
+    {
+      hapiBroadL2VlanAddPortToVlanHw(usp, vlan_mode->vlanId, L7_TRUE, dapi_g);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} added to VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
+    }
+  }
+  else if (vlan_mode->oper == DAPI_CMD_CLEAR)
+  {
+    if (vlan_mode->vlanId == 0 || vlan_mode->vlanId > 4095)
+    {
+      /* Remove the port to all vlans */
+      hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
+      /* Flush MAc entries */
+      hapiBroadAddrFlush(usp, DAPI_CMD_ADDR_FLUSH, (void*)&flushCmd, dapi_g);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from all VLANS", usp->unit, usp->slot, usp->port);
+    }
+    else
+    {
+      hapiBroadL2VlanRemovePortFromVlanHw(usp, vlan_mode->vlanId, dapi_g);
+      /* Flush MAc entries */
+      hapiBroadAddrFlush(usp, DAPI_CMD_ADDR_FLUSH, (void*)&flushCmd, dapi_g);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
+    }
+  }
+  else if (vlan_mode->oper == DAPI_CMD_CLEAR_ALL)
+  {
+    /* Remove the port to all vlans */
+    hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
+
+    /* Flush MAc entries */
+    hapiBroadAddrFlush(usp, DAPI_CMD_ADDR_FLUSH, (void*)&flushCmd, dapi_g);
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from all VLANS", usp->unit, usp->slot, usp->port);
+  }
+
+  return L7_SUCCESS;
 }
 
 /**

@@ -324,6 +324,7 @@ typedef struct
 /* Struct used ti configure vlan parameters via DTL */
 typedef struct
 {
+  DAPI_CMD_GET_SET_t oper;
   L7_uint16 vlanId;
   L7_BOOL cpu_include;
 } ptin_vlan_mode_t;
