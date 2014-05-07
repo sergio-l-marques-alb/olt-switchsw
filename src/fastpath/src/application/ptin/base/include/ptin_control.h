@@ -11,6 +11,9 @@
 
 #include "ptin_include.h"
 
+/* Traffic activity bits for external module access */
+extern L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];
+
 /**
  * Initialize interface changes notifier
  * 

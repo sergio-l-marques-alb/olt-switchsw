@@ -38,6 +38,9 @@
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_ISLOADING;
 
+/* Traffic activity bits for external module access */
+L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];  /* maps each phy port */
+
 static L7_uint32 ptin_loop_handle = 0, _10ms_loop_handle=0;  /* periodic timer handle */
 
 static L7_int    linkStatus[PTIN_SYSTEM_N_INTERF];        /* Link status of each interface */
@@ -437,6 +440,9 @@ static void monitor_alarms(void)
   if (ptin_intf_counters_activity_get(&portActivity)==L7_SUCCESS)
   {
     portActivity_valid = L7_TRUE;
+
+    /* Update traffic activity bits for external module access */
+    memcpy(ptin_control_port_activity, portActivity.activity_bmap, sizeof(L7_uint32)*PTIN_SYSTEM_N_PORTS);
   }
   else
   {
