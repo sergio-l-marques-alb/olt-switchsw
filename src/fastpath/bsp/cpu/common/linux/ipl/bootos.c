@@ -267,12 +267,12 @@ static L7_RC_t hapi_ptin_fpga_map(void)
 
   // Load FPGA
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  fpga_map = (volatile st_fpga_map_t *) AddrAlloc64((void *) &fpga_AddrMap, (long long) FPGA_BASE_ADDR, sizeof(st_fpga_map_t))
+  fpga_map = (volatile st_fpga_map_t *) AddrAlloc64((void *) &fpga_AddrMap, (long long) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
   #else
-  fpga_map = (volatile st_fpga_map_t *) AddrAlloc((void *) &fpga_AddrMap, (int) FPGA_BASE_ADDR, sizeof(st_fpga_map_t))
+  fpga_map = (volatile st_fpga_map_t *) AddrAlloc((void *) &fpga_AddrMap, (int) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
   #endif
 
-  if (() != MAP_FAILED)
+  if (fpga_map != MAP_FAILED)
   {
     /* If FPGA id is not valid, free FPGA map */
     if ((fpga_map->map[FPGA_ID1_REG] != FPGA_ID1_VAL) ||
