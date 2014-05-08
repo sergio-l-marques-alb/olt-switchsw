@@ -91,6 +91,33 @@ L7_RC_t ptin_vlan_port_remove(L7_uint32 ptin_port, L7_uint16 vlanId)
 }
 
 /**
+ * Remove port from a specific vlan, and flush mac table
+ *  
+ * @param ptin_port : PTIN port format
+ * @param vlanId : Vlan Id (0 to apply to all existent)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_vlan_port_removeFlush(L7_uint32 ptin_port, L7_uint16 vlanId)
+{
+  L7_uint32 intIfNum;
+  ptin_vlan_mode_t vlan_mode;
+
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  vlan_mode.oper = DAPI_CMD_CLEAR_ALL;
+  vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
+  vlan_mode.cpu_include = 0;
+
+  return dtlPtinVlanPortControl(intIfNum, &vlan_mode);
+}
+
+/**
  * Associate a multicast group to a vlan
  * 
  * @param vlanId : Vlan id

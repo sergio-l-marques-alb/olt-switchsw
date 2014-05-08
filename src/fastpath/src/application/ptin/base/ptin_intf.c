@@ -1886,7 +1886,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
       #if 1
       /* Remove port from all vlans at hardware */
-      ptin_vlan_port_remove(port, 0);
+      ptin_vlan_port_removeFlush(port, 0);
       #endif
 
       if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
@@ -4513,7 +4513,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   /* Innactivate command: remove port */
   else
   {
-    if (ptin_vlan_port_remove(ptin_port, 0) != L7_SUCCESS)
+    if (ptin_vlan_port_removeFlush(ptin_port, 0) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing port %u from all vlans", ptin_port);
       return L7_FAILURE;
