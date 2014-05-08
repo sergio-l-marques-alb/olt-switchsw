@@ -1033,7 +1033,7 @@ L7_RC_t usmDbDsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipAddr   @b((input))  client IP address.
+* @param    ipv4Addr @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -1045,12 +1045,18 @@ L7_RC_t usmDbDsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 L7_RC_t usmDbIpsgStaticEntryAdd(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipAddr)
+                           L7_uint32 ipv4Addr)
 {
+#if 0//Added to implement IPv6 support
+  L7_inet_addr_t ipAddr;
+
+  inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
+#endif
+
   return ipsgStaticEntryAdd(intIfNum,
                                vlanId,
                                macAddr,
-                               ipAddr);
+                               ipv4Addr);
 }
 #endif
 
@@ -1096,7 +1102,7 @@ L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr)
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipAddr   @b((input))  client IP address.
+* @param    ipv4Addr @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -1108,12 +1114,18 @@ L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr)
 L7_RC_t usmDbIpsgStaticEntryRemove(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipAddr)
+                           L7_uint32 ipv4Addr)
 {
+#if 0//Added to implement IPv6 support
+  L7_inet_addr_t ipAddr;
+
+  inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
+#endif
+
   return ipsgStaticEntryRemove(intIfNum,
                                vlanId,
                                macAddr,
-                               ipAddr);
+                               ipv4Addr);
 }
 #endif
 
@@ -1437,18 +1449,33 @@ L7_RC_t usmDbIpsgVerifySourceSet(L7_uint32 intIfNum,
 * @param    macAddr    @b((input/output)) authorized source MAC address
 *
 * @returns  L7_SUCCESS
+*           L7_NOT_IMPLEMENTED_YET when a IPv6 entry is found
 *
 * @notes    none
 *
 * @end
 *********************************************************************/
 L7_RC_t usmDbIpsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId, 
-                                L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
+                                L7_uint32 *ipv4Addr, L7_enetMacAddr_t *macAddr,
                                 L7_uint32 *entryType)
 {
-  return ipsgBindingGetNext(intIfNum, vlanId, ipAddr, macAddr,
-                            entryType,
-                            L7_MATCH_GETNEXT);
+  L7_inet_addr_t ipAddr;
+  L7_RC_t        rc;
+
+  rc=ipsgBindingGetNext(intIfNum, vlanId, &ipAddr, macAddr,
+                            entryType,L7_MATCH_GETNEXT);
+
+  if(ipAddr.family == L7_AF_INET)
+  {
+    *ipv4Addr=ipAddr.addr.ipv4.s_addr;
+     return rc;
+  }
+  else
+  {
+    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Implemented Yet- %d", ipAddr.family);
+    return L7_NOT_IMPLEMENTED_YET;
+  }    
 }
 
 /*********************************************************************
@@ -1460,17 +1487,33 @@ L7_RC_t usmDbIpsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
 * @param    macAddr    @b((input/output)) authorized source MAC address
 *
 * @returns  L7_SUCCESS
+*           L7_NOT_IMPLEMENTED_YET when a IPv6 entry is found
 *
 * @notes    none
 *
 * @end
 *********************************************************************/
 L7_RC_t usmDbIpsgBindingGet(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
-                                L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
+                                L7_uint32 *ipv4Addr, L7_enetMacAddr_t *macAddr,
                                 L7_uint32 *entryType)
-{
-  return ipsgBindingGetNext(intIfNum, vlanId, ipAddr, macAddr,
+{  
+  L7_inet_addr_t ipAddr;
+  L7_RC_t        rc;
+
+  rc=ipsgBindingGetNext(intIfNum, vlanId, &ipAddr, macAddr,
                             entryType,L7_MATCH_EXACT);
+
+  if(ipAddr.family == L7_AF_INET)
+  {
+    *ipv4Addr=ipAddr.addr.ipv4.s_addr;
+     return rc;
+  }
+  else
+  {
+    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Implemented Yet- %d", ipAddr.family);
+    return L7_NOT_IMPLEMENTED_YET;
+  }    
 }
 
 /*********************************************************************
@@ -1489,22 +1532,30 @@ L7_RC_t usmDbIpsgBindingGet(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
 * @end
 *********************************************************************/
 L7_RC_t usmDbIpsgBindingGetByType(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
-                                L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
+                                L7_uint32 *ipv4Addr, L7_enetMacAddr_t *macAddr,
                                 L7_uint32 entryType)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_uint32 entryTypeIn;
-
-  entryTypeIn = entryType; 
-  rc = ipsgBindingGetNext(intIfNum, vlanId, ipAddr, macAddr,
-                            &entryTypeIn,L7_MATCH_EXACT);
-
-  if ( (rc == L7_SUCCESS)&& (entryTypeIn == entryType))
+  L7_RC_t        rc;            
+  L7_uint32      entryTypeIn = entryType;
+  L7_inet_addr_t ipAddr;
+  
+  while (1)
   {
-    return rc;
-  } 
-  else
-    return L7_FAILURE;
+    rc=ipsgBindingGetNext(intIfNum, vlanId, &ipAddr, macAddr,
+                            &entryTypeIn, L7_MATCH_EXACT);
+
+    if (rc != L7_SUCCESS)
+    {
+      break;
+    }
+
+    if( (rc == L7_SUCCESS) && (entryTypeIn == entryType) && (ipAddr.family == L7_AF_INET))
+    {
+      *ipv4Addr=ipAddr.addr.ipv4.s_addr;
+      break;
+    }
+  }
+  return rc;
 }
 
 /*********************************************************************
@@ -1523,22 +1574,24 @@ L7_RC_t usmDbIpsgBindingGetByType(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
 * @end
 *********************************************************************/
 L7_RC_t usmDbIpsgBindingGetNextByType(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
-                                L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
+                                L7_uint32 *ipv4Addr, L7_enetMacAddr_t *macAddr,
                                 L7_uint32 entryType)
 {
-  L7_RC_t rc = L7_FAILURE;
-  L7_uint32 entryTypeIn;
+  L7_RC_t        rc;
+  L7_uint32      entryTypeIn;
+  L7_inet_addr_t ipAddr;
 
   while (1)
   {
-    rc = ipsgBindingGetNext(intIfNum, vlanId, ipAddr, macAddr,
-                            &entryTypeIn,L7_MATCH_GETNEXT);
-    if (rc == L7_FAILURE)
+    rc = ipsgBindingGetNext(intIfNum, vlanId, &ipAddr, macAddr,
+                            &entryTypeIn, L7_MATCH_GETNEXT);
+    if (rc != L7_SUCCESS)
     {
-      break;
+       break;
     }
-    if ( (rc == L7_SUCCESS)&& (entryTypeIn == entryType))
+    if ( (rc == L7_SUCCESS)&& (entryTypeIn == entryType)  && (ipAddr.family == L7_AF_INET) )
     {
+      *ipv4Addr = ipAddr.addr.ipv4.s_addr;
       break;
     }
   }

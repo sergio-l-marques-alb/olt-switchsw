@@ -82,7 +82,7 @@ L7_RC_t ipsgEntryTableCreate(void)
            "Unable to allocate the IPSG entry table data heap.");
     return L7_FAILURE;
   }
- memset(ipsgInfo->ipsgEntryTable.treeHeap, 0, (size_t)treeHeapSize);
+  memset(ipsgInfo->ipsgEntryTable.treeHeap, 0, (size_t)treeHeapSize);
   memset(ipsgInfo->ipsgEntryTable.dataHeap, 0, (size_t)dataHeapSize);
   memset(&ipsgInfo->ipsgEntryTable.treeData, 0, sizeof(ipsgInfo->ipsgEntryTable.treeData));
 
@@ -148,9 +148,7 @@ static void ipsgEntryCopy (ipsgEntryTreeNode_t *desti,
           L7_ENET_MAC_ADDR_LEN);
   desti->ipsgEntryKey.intIfNum = source->ipsgEntryKey.intIfNum;
   desti->ipsgEntryKey.vlanId = source->ipsgEntryKey.vlanId;
-  desti->ipsgEntryKey.ipAddr = source->ipsgEntryKey.ipAddr;
-
-
+  memcpy(&desti->ipsgEntryKey.ipAddr, &source->ipsgEntryKey.ipAddr, sizeof(L7_inet_addr_t));      
 }
 
 
@@ -173,7 +171,7 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
                      L7_uint32 intIfNum,
                      L7_ushort16 vlanId,
                      L7_enetMacAddr_t *macAddr,
-                     L7_uint32 ipAddr)
+                     L7_inet_addr_t *ipAddr)
 {
   L7_INTF_STATES_t intIfState;
   ipsgEntryTreeNode_t  ipsgEntry, *pNode;
@@ -192,7 +190,7 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
   memcpy(&ipsgEntry.ipsgEntryKey.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
   ipsgEntry.ipsgEntryKey.intIfNum = intIfNum;
   ipsgEntry.ipsgEntryKey.vlanId = vlanId;
-  ipsgEntry.ipsgEntryKey.ipAddr = ipAddr;
+  memcpy(&ipsgEntry.ipsgEntryKey.ipAddr, ipAddr, sizeof(L7_inet_addr_t));    
 
   pNode = avlInsertEntry(&ipsgInfo->ipsgEntryTable.treeData, (void *)&ipsgEntry);
   if (pNode == L7_NULLPTR)
@@ -223,17 +221,17 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
     }
 
     if (entryType == IPSG_ENTRY_STATIC)
-    ipsgInfo->ipsgEntryTable.currentStaticBindings++;
+      ipsgInfo->ipsgEntryTable.currentStaticBindings++;
 
     if (dsCfgData->dsTraceFlags & DS_TRACE_BINDING)
     {
       L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
       L7_uchar8 macAddrStr[DS_MAC_STR_LEN];
       L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       dsMacToString(macAddr->addr, macAddrStr);
-      osapiInetNtoa(ipAddr, ipAddrStr);
+      inetAddrPrint(ipAddr, ipAddrStr);
       osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN,
                     "IPSG added %d binding for %s to %s on interface %s in VLAN %u.",
                    entryType, macAddrStr, ipAddrStr, ifName, vlanId);
@@ -285,6 +283,7 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
 * @param    type        @b((input/output)) Entry type of the row
 *
 * @returns  L7_SUCCESS
+*           L7_NOT_IMPLEMENTED_YET when IPv6 entries is found
 *           L7_FAILURE when no more entries
 *
 *
@@ -316,22 +315,27 @@ L7_RC_t ipsgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
         break;
       }
     }
-   memcpy(&key.ipsgEntryKey.macAddr, &pNode->ipsgEntryKey.macAddr,
-                                             L7_ENET_MAC_ADDR_LEN);
-   key.ipsgEntryKey.intIfNum = pNode->ipsgEntryKey.intIfNum;
-   key.ipsgEntryKey.vlanId = pNode->ipsgEntryKey.vlanId;
-   key.ipsgEntryKey.ipAddr = pNode->ipsgEntryKey.ipAddr;
-
+    memcpy(&key.ipsgEntryKey.macAddr, &pNode->ipsgEntryKey.macAddr,
+                                              L7_ENET_MAC_ADDR_LEN);
+    key.ipsgEntryKey.intIfNum = pNode->ipsgEntryKey.intIfNum;
+    key.ipsgEntryKey.vlanId = pNode->ipsgEntryKey.vlanId;
+    memcpy(&key.ipsgEntryKey.ipAddr, &pNode->ipsgEntryKey.ipAddr, sizeof(L7_inet_addr_t));    
   }
-    memcpy(&ipsgBinding->macAddr, &pNode->ipsgEntryKey.macAddr,
-                                             L7_ENET_MAC_ADDR_LEN);
-   ipsgBinding->intIfNum = pNode->ipsgEntryKey.intIfNum;
-   ipsgBinding->vlanId = pNode->ipsgEntryKey.vlanId;
-   ipsgBinding->ipAddr = pNode->ipsgEntryKey.ipAddr;
+
+
+  if (L7_AF_INET != pNode->ipsgEntryKey.ipAddr.family)
+  {
+    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Implemented Yet- %d", pNode->ipsgEntryKey.ipAddr.family);
+    return L7_NOT_IMPLEMENTED_YET;
+  }
+  memcpy(&ipsgBinding->macAddr, &pNode->ipsgEntryKey.macAddr,
+                                           L7_ENET_MAC_ADDR_LEN);
+  ipsgBinding->intIfNum = pNode->ipsgEntryKey.intIfNum;
+  ipsgBinding->vlanId = pNode->ipsgEntryKey.vlanId;
+  ipsgBinding->ipAddr = pNode->ipsgEntryKey.ipAddr.addr.ipv4.s_addr;
 
   return L7_SUCCESS;
-
-
 }
 
 
@@ -356,7 +360,7 @@ L7_RC_t ipsgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
 *********************************************************************/
 L7_RC_t ipsgEntryTreeSearch( L7_uint32 intIfNum,
                              L7_uint32 vlanId,
-                             L7_enetMacAddr_t *macAddr,L7_uint32 ipAddr,
+                             L7_enetMacAddr_t *macAddr,L7_inet_addr_t *ipAddr,
                              L7_uint32 matchType,
                              ipsgEntryTreeNode_t **ipsgEntry)
 {
@@ -365,8 +369,9 @@ L7_RC_t ipsgEntryTreeSearch( L7_uint32 intIfNum,
   memset((L7_uchar8 *)&key, 0, sizeof(ipsgEntryTreeNode_t));
   memcpy(key.ipsgEntryKey.macAddr.addr,macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.ipsgEntryKey.intIfNum = intIfNum;
-  key.ipsgEntryKey.vlanId = vlanId;
-  key.ipsgEntryKey.ipAddr = ipAddr;
+  key.ipsgEntryKey.vlanId = vlanId;  
+  memcpy(&key.ipsgEntryKey.ipAddr, ipAddr, sizeof(L7_inet_addr_t));
+   
   pNode = avlSearchLVL7(&ipsgInfo->ipsgEntryTable.treeData, &key,
                          (L7_uint32)((matchType == L7_MATCH_EXACT) ? AVL_EXACT : AVL_NEXT));
 
@@ -429,10 +434,14 @@ L7_uint32 _ipsgStaticEntriesCount(void)
 *********************************************************************/
 L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
 {
-  L7_in_addr_t clientIpAddr;
-  L7_enetMacAddr_t clientMacAddr;
-  ipsgEntryTreeNode_t *pNode, key;
-  L7_RC_t rc;
+  L7_inet_addr_t       clientIpAddr;
+  L7_enetMacAddr_t     clientMacAddr;
+  ipsgEntryTreeNode_t *pNode;
+  ipsgEntryTreeNode_t  key;
+  L7_RC_t              rc;
+
+  LOG_TRACE(LOG_CTX_IPSG, "Enabling IPSG on intIfNum %u addingMacFilter:%s",
+            intIfNum,addingMacFilter==L7_TRUE?"Yes":"No");
 
   if (dsCfgData->dsTraceFlags & DS_TRACE_IPSG_PORT)
   {
@@ -459,7 +468,7 @@ L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
   while ( (ipsgEntryTreeSearch (key.ipsgEntryKey.intIfNum,
                                 key.ipsgEntryKey.vlanId,
                                 &key.ipsgEntryKey.macAddr,
-                                key.ipsgEntryKey.ipAddr,
+                                &key.ipsgEntryKey.ipAddr,
                                 L7_MATCH_GETNEXT, &pNode)) == L7_SUCCESS)
   {
     if (pNode->ipsgEntryKey.intIfNum != intIfNum)
@@ -467,19 +476,45 @@ L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
       ipsgEntryCopy (&key, pNode);
       continue;
     }
-
-    clientIpAddr.s_addr = osapiHtonl(pNode->ipsgEntryKey.ipAddr);
+   
+    inetAddrHton(&pNode->ipsgEntryKey.ipAddr, &clientIpAddr);
     if (addingMacFilter)
     {
-      /* first delete existing classifier entry (w/ all 0s MAC addr) */
-      dtlIpsgIpv4ClientRemove(intIfNum, clientIpAddr);
+        /* first delete existing classifier entry (w/ all 0s MAC addr) */
+       if (L7_AF_INET == clientIpAddr.family)
+       {
+         dtlIpsgIpv4ClientRemove(intIfNum, clientIpAddr.addr.ipv4);
+       }
+       else if (L7_AF_INET6 == clientIpAddr.family)
+       {
+         dtlIpsgIpv6ClientRemove(intIfNum, clientIpAddr.addr.ipv6);
+       }
+       else
+       {
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Supported - %u", clientIpAddr.family);
+       }
     }
-    if (ipsgPsIsEnabled(intIfNum))
+    if (ipsgPsIsEnabled(intIfNum))  
       memcpy(&clientMacAddr.addr, &pNode->ipsgEntryKey.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
     else
       memset(&clientMacAddr.addr, 0, L7_ENET_MAC_ADDR_LEN);
+     
+    if (L7_AF_INET == clientIpAddr.family)
+    {
+      rc = dtlIpsgIpv4ClientAdd(intIfNum, clientIpAddr.addr.ipv4, clientMacAddr);
+    }
+    else if (L7_AF_INET6 == clientIpAddr.family)
+    {
+      rc = dtlIpsgIpv6ClientAdd(intIfNum, clientIpAddr.addr.ipv6, clientMacAddr);
+    }
+    else
+    {
+       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Supported - %u", clientIpAddr.family);
+       rc = L7_NOT_SUPPORTED;
+    }
 
-    rc = dtlIpsgIpv4ClientAdd(intIfNum, clientIpAddr, clientMacAddr);
     if (L7_ALREADY_CONFIGURED == rc)
     {
       /* Treat already configured entry as success */
@@ -489,13 +524,13 @@ L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
     if (rc != L7_SUCCESS)
     {
       L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-      L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+      L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
       static L7_uint32 lastMsg = 0;
       if (osapiUpTimeRaw() > lastMsg)
       {
         lastMsg = osapiUpTimeRaw();
         nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-        osapiInetNtoa(pNode->ipsgEntryKey.ipAddr, ipAddrStr);
+        inetAddrPrint(&pNode->ipsgEntryKey.ipAddr, ipAddrStr);
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
                 "Failed to install IPSG binding for %s on interface %s in hardware."
                 " This message appears on failure of adding the IPSG entry.",
@@ -537,11 +572,11 @@ L7_RC_t ipsgIntfDisableApply(L7_uint32 intIfNum)
     dsTraceWrite(traceMsg);
   }
 
-   memset((L7_uchar8 *)&key, 0, sizeof(key));
+  memset((L7_uchar8 *)&key, 0, sizeof(key));
   while ( (ipsgEntryTreeSearch (key.ipsgEntryKey.intIfNum,
                                 key.ipsgEntryKey.vlanId,
                                 &key.ipsgEntryKey.macAddr,
-                                key.ipsgEntryKey.ipAddr,
+                                &key.ipsgEntryKey.ipAddr,
                                 L7_MATCH_GETNEXT, &pNode)) == L7_SUCCESS)
   {
     if ( (pNode->ipsgEntryKey.intIfNum == intIfNum)
@@ -549,13 +584,12 @@ L7_RC_t ipsgIntfDisableApply(L7_uint32 intIfNum)
          (pNode->ipsgEntryHwStatus == L7_TRUE)
        )
     {
-      ipsgBindingHwRemove(intIfNum, pNode->ipsgEntryKey.ipAddr);
+      ipsgBindingHwRemove(intIfNum, &pNode->ipsgEntryKey.ipAddr);
       /* Find one free entry and add him from IPSG table */
       if ( ipsgFindHwFreeEntry(&freeNode) == L7_SUCCESS)
-      {
-
+      {      
        if(ipsgBindingHwAdd (freeNode->ipsgEntryKey.intIfNum,
-                          freeNode->ipsgEntryKey.ipAddr,
+                          &freeNode->ipsgEntryKey.ipAddr,
                          &freeNode->ipsgEntryKey.macAddr) == L7_SUCCESS)
        {
          freeNode->ipsgEntryHwStatus = L7_TRUE;
@@ -716,33 +750,49 @@ L7_RC_t ipsgValidate(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_uint32 ipAddr,
+L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr,
                          L7_enetMacAddr_t *macAddr)
 {
-  L7_in_addr_t clientIpAddr;
+  L7_inet_addr_t   clientIpAddr;
   L7_enetMacAddr_t clientMacAddr;
-  L7_RC_t rc;
+  L7_RC_t          rc;
 
   /* If IPSG not enabled on bindings' interface, nothing to do. */
   if (!ipsgIsEnabled(intIfNum))
   {
+    LOG_NOTICE(LOG_CTX_IPSG, "IPSG not enabled on bindings' interface, nothing to do.");
     return L7_FAILURE;
   }
 
   /* Only install bindings with non-zero IP address. Ignore tentative
    * bindings */
-  if (ipAddr == 0)
+  if (inetIsAddressZero(ipAddr) == L7_TRUE)
   {
     return L7_FAILURE;
   }
+  
+  inetAddrHton(ipAddr, &clientIpAddr);
 
-  clientIpAddr.s_addr = osapiHtonl(ipAddr);
   if (ipsgPsIsEnabled(intIfNum))
     memcpy(&clientMacAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   else
     memset(&clientMacAddr.addr, 0, L7_ENET_MAC_ADDR_LEN);
 
-  rc = dtlIpsgIpv4ClientAdd(intIfNum, clientIpAddr, clientMacAddr);
+  if (L7_AF_INET == ipAddr->family)
+  {
+    rc = dtlIpsgIpv4ClientAdd(intIfNum, clientIpAddr.addr.ipv4, clientMacAddr);
+  }
+  else if (L7_AF_INET6 == ipAddr->family)
+  {
+    rc = dtlIpsgIpv6ClientAdd(intIfNum, clientIpAddr.addr.ipv6, clientMacAddr);
+  }
+  else
+  {
+    rc = L7_NOT_SUPPORTED;
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Supported - %u", ipAddr->family);
+  }
+  
 
   if (L7_ALREADY_CONFIGURED == rc)
   {
@@ -752,13 +802,13 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_uint32 ipAddr,
 
   if (rc != L7_SUCCESS)
   {
-    L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+    L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];    
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     static L7_uint32 lastMsg = 0;
     if (osapiUpTimeRaw() > lastMsg)
     {
       lastMsg = osapiUpTimeRaw();
-      osapiInetNtoa(ipAddr, ipAddrStr);
+      inetAddrPrint(ipAddr, ipAddrStr);
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
               "Failed to add IPSG binding for %s for interface %s in hardware.",
@@ -780,9 +830,10 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_uint32 ipAddr,
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_uint32 ipAddr)
+L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr)
 {
-  L7_in_addr_t clientIpAddr;
+  L7_inet_addr_t clientIpAddr;
+  L7_RC_t        rc;
 
   /* If IPSG not enabled on bindings' interface, nothing to do. */
   if (!ipsgIsEnabled(intIfNum))
@@ -800,17 +851,32 @@ L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_uint32 ipAddr)
     return L7_FAILURE;
   }
 
-  clientIpAddr.s_addr = osapiHtonl(ipAddr);
+  inetAddrHton(ipAddr, &clientIpAddr);
 
-  if (dtlIpsgIpv4ClientRemove(intIfNum, clientIpAddr) != L7_SUCCESS)
+  if (L7_AF_INET == ipAddr->family)
   {
-    L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+    rc = dtlIpsgIpv4ClientRemove(intIfNum, clientIpAddr.addr.ipv4);
+  }
+  else if (L7_AF_INET6 == ipAddr->family)
+  {
+    rc = dtlIpsgIpv6ClientRemove(intIfNum, clientIpAddr.addr.ipv6);
+  }
+  else
+  {
+    rc = L7_NOT_SUPPORTED;
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Supported - %d", ipAddr->family);
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     static L7_uint32 lastMsg = 0;
     if (osapiUpTimeRaw() > lastMsg)
     {
       lastMsg = osapiUpTimeRaw();
-      osapiInetNtoa(ipAddr, ipAddrStr);
+      inetAddrPrint(ipAddr, ipAddrStr);
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
               "Failed to remove IPSG binding for %s on interface %s from hardware.",
@@ -846,7 +912,7 @@ L7_RC_t ipsgFindHwFreeEntry(ipsgEntryTreeNode_t **ipsgEntry)
   while ( (ipsgEntryTreeSearch (key.ipsgEntryKey.intIfNum,
                                 key.ipsgEntryKey.vlanId,
                                 &key.ipsgEntryKey.macAddr,
-                                key.ipsgEntryKey.ipAddr,
+                                &key.ipsgEntryKey.ipAddr,
                                 L7_MATCH_GETNEXT, &pNode)) == L7_SUCCESS)
   {
 
@@ -900,7 +966,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
                      L7_uint32 intIfNum,
                      L7_ushort16 vlanId,
                      L7_enetMacAddr_t *macAddr,
-                     L7_uint32 ipAddr)
+                     L7_inet_addr_t* ipAddr)
 
 {
 
@@ -910,12 +976,12 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
 
   {
     L7_uchar8 macStr[DS_MAC_STR_LEN];
-    L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+    L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
 
 
-    dsMacToString(macAddr->addr, macStr);
-    osapiInetNtoa(ipAddr, ipAddrStr);
+    dsMacToString(macAddr->addr, macStr);    
+    inetAddrPrint(ipAddr, ipAddrStr);
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
   }
 
@@ -939,26 +1005,40 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
          &&
         (pNode->ipsgEntryType == IPSG_ENTRY_STATIC))
     {
-        if (ipsgInfo->ipsgEntryTable.currentStaticBindings)
+      if (ipsgInfo->ipsgEntryTable.currentStaticBindings)
         ipsgInfo->ipsgEntryTable.currentStaticBindings--;
-        memset((L7_uchar8 *)&dsNode, 0, sizeof(dsNode));
-        memcpy(&dsNode.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+      memset((L7_uchar8 *)&dsNode, 0, sizeof(dsNode));
+      memcpy(&dsNode.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
 
-        /* Check if there exists an Dynamic Entry */
-        if (dsBindingFind(&dsNode,L7_MATCH_EXACT) == L7_SUCCESS)
+      /* Check if there exists an Dynamic Entry */
+      if (dsBindingFind(&dsNode,L7_MATCH_EXACT) == L7_SUCCESS)
+      {
+        L7_inet_addr_t dsIpAddr;
+
+        if(dsNode.ipFamily == L7_AF_INET)
         {
-
-          if ( (dsNode.ipAddr == ipAddr) &&
-               (dsNode.vlanId == vlanId) &&
-               (dsNode.intIfNum == intIfNum) )
-          {
-             pNode->ipsgEntryType = IPSG_ENTRY_DYNAMIC;
-             dsConfigDataChange();
-             return L7_SUCCESS;
-          }
-
+          inetAddressSet(L7_AF_INET, &dsNode.ipAddr, &dsIpAddr);
+        }
+        else if (dsNode.ipFamily == L7_AF_INET6)
+        {
+          inetAddressSet(L7_AF_INET6, &dsNode.ipv6Addr, &dsIpAddr);
+        }
+        else
+        {
+          L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+              "INET_ADDR:Invalid FamilyType - %d", dsNode.ipFamily);
+          return L7_FAILURE;
         }
 
+        if ( L7_INET_ADDR_COMPARE(&dsIpAddr,ipAddr) == 0  &&
+             (dsNode.vlanId == vlanId) &&
+             (dsNode.intIfNum == intIfNum) )
+        {
+           pNode->ipsgEntryType = IPSG_ENTRY_DYNAMIC;
+           dsConfigDataChange();
+           return L7_SUCCESS;
+        }
+      }
     }
 
     /* Remove the entry from the HW */
@@ -977,7 +1057,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
     {
 
      if(ipsgBindingHwAdd (freeNode->ipsgEntryKey.intIfNum,
-                          freeNode->ipsgEntryKey.ipAddr,
+                          &freeNode->ipsgEntryKey.ipAddr,
                          &freeNode->ipsgEntryKey.macAddr) == L7_SUCCESS)
      {
        freeNode->ipsgEntryHwStatus = L7_TRUE;
@@ -1029,14 +1109,14 @@ L7_RC_t _ipsgEntryClear(L7_uint32 intIfNum)
   while ((ipsgEntryTreeSearch (key.ipsgEntryKey.intIfNum,
                                key.ipsgEntryKey.vlanId,
                                &key.ipsgEntryKey.macAddr,
-                               key.ipsgEntryKey.ipAddr,
+                               &key.ipsgEntryKey.ipAddr,
                                L7_MATCH_GETNEXT, &entry)) == L7_SUCCESS)
  {
    rc = ipsgEntryRemove ( entry->ipsgEntryType,
                      entry->ipsgEntryKey.intIfNum,
                      entry->ipsgEntryKey.vlanId,
                      &entry->ipsgEntryKey.macAddr,
-                     entry->ipsgEntryKey.ipAddr);
+                     &entry->ipsgEntryKey.ipAddr);
    if ( rc != L7_SUCCESS)
    {
      return L7_FAILURE;
@@ -1076,33 +1156,33 @@ void ipsgEntryTableShow(void)
   }
 
   printf("\n IPSG entries table contains (%u) entries: ", count);
-  printf("\nMAC Address        IP Address        VLAN      Port      Type     HW Status\n");
-  printf("-----------------  ---------------  ------ ----------- ---------  -----------\n");
+  printf("\nMAC Address        IP Address                                    VLAN      Port      Type     HW Status\n");
+  printf("-----------------  ---------------------------------------------  ------ ----------- ---------  -----------\n");
 
   memset((L7_uchar8 *)&key, 0, sizeof(key));
 
    while ( (ipsgEntryTreeSearch (key.ipsgEntryKey.intIfNum,
                                 key.ipsgEntryKey.vlanId,
                                 &key.ipsgEntryKey.macAddr,
-                                key.ipsgEntryKey.ipAddr,
+                                &key.ipsgEntryKey.ipAddr,
                                 L7_MATCH_GETNEXT, &entry)) == L7_SUCCESS)
 
   {
     L7_uchar8 macStr[DS_MAC_STR_LEN];
-    L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
+    L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
 
     /* store key for use in next search */
     memcpy(&macAddr, &entry->ipsgEntryKey.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
 
     dsMacToString(entry->ipsgEntryKey.macAddr.addr, macStr);
-    osapiInetNtoa(entry->ipsgEntryKey.ipAddr, ipAddrStr);
+    inetAddrPrint(&entry->ipsgEntryKey.ipAddr, ipAddrStr);    
     nimGetIntfName(entry->ipsgEntryKey.intIfNum, L7_SYSNAME, ifName);
     {
       remainingLease = 0;
     }
 
-    printf("%17s  %-15s  %6u  %10s %12d  %u\n",
+    printf("%17s  %-45s  %6u  %10s %12d  %u\n",
            macStr, ipAddrStr, entry->ipsgEntryKey.vlanId, ifName,
            entry->ipsgEntryType, entry->ipsgEntryHwStatus);
    ipsgEntryCopy (&key, entry);
