@@ -38,6 +38,10 @@ extern "C" {
 #include "flex.h"
 #endif
 
+#ifndef _LOGGER_H
+#include <ptin/logger.h>
+#endif
+
 /* Maximum message log size */
 #define LOG_MSG_MAX_MSG_SIZE                   512
 #define L7_LOG_FORMAT_BUF_SIZE                 LOG_MSG_MAX_MSG_SIZE
@@ -64,6 +68,9 @@ extern "C" {
 #define L7_EMAIL_ALERT_SMTP_TLS_PORT 465
 #define L7_EMAIL_ALERT_SMTP_NORMAL_PORT 25
 
+#ifndef _USE_PTIN_LOG_MESSAGE_
+#define _USE_PTIN_LOG_MESSAGE_
+#endif
 
 /* Log behavior for buffered log. */
 typedef enum
@@ -190,6 +197,14 @@ typedef enum
 } L7_LOG_EMAIL_ALERT_ERROR_t;
 
 
+#ifdef _USE_PTIN_LOG_MESSAGE_
+/*Used to convert FP verbosity to PTIN verbosity*/
+log_severity_t fp_to_ptin_logger_verbosity(L7_LOG_SEVERITY_t fp_verbosity);
+
+/*Used to convert FP Component Id to PTIN. If the component is not defined by PTIN considered MISC*/
+log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component);
+#endif
+
 /*-------------------------------------------------------------------*/
 /*
  *  DEBUG TRACE MACROS:
@@ -207,14 +222,22 @@ typedef enum
  */
 /*-------------------------------------------------------------------*/
 
+#ifndef _USE_PTIN_LOG_MESSAGE_
 #define LOG_USER_TRACE(__comp__,__fmt__, __args__... )                      \
   if (logCnfgrStateCheck() == L7_TRUE)                                      \
-  {                                                                        \
-    l7_logf(L7_LOG_SEVERITY_DEBUG, __comp__,                               \
+  {                                                                         \
+    l7_logf(L7_LOG_SEVERITY_DEBUG, __comp__,                                \
             __FILE__, __LINE__, __fmt__, ## __args__);                      \
   }
+#else
+#define LOG_USER_TRACE(__comp__,__fmt__, __args__... )                      \
+  if (logCnfgrStateCheck() == L7_TRUE)                                      \
+  {                                                                         \
+    log_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(L7_LOG_SEVERITY_DEBUG) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ );\
+  }
+#endif
 
-/*-------------------------------------------------------------------*/
+  /*-------------------------------------------------------------------*/
 /*
  *  BASIC SYSLOG MACROS:
  *
@@ -228,15 +251,15 @@ typedef enum
 /* Extra casts are for cpp support */
 
 /* PTin modified */
-/*#define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
-          l7_logf(__sev__, __comp__, (L7_char8 *)__FILE__, __LINE__, (L7_char8 *)__fmt__, ## __args__)*/
-
-#include <ptin/logger.h>
-//extern void log_print(unsigned int ctx, unsigned int sev, char const *file,
-//               char const *func, int line, char const *fmt, ...);
+#ifndef _USE_PTIN_LOG_MESSAGE_
 #define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
-log_print( LOG_CTX_MISC, (log_severity_t) (__sev__+1), NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ )
-/* PTin modified */
+        l7_logf(__sev__, __comp__, (L7_char8 *)__FILE__, __LINE__, (L7_char8 *)__fmt__, ## __args__)
+#else
+#define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
+        log_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(__sev__) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ )
+#endif
+
+
 /*_------------------------------------------------------------------*/
 /*
  *  BONUS SYSLOG MACROS:

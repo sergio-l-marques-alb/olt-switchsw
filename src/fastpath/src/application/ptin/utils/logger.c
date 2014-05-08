@@ -63,7 +63,8 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "MISC ",
     "OAM  ",
     "ERPS ",
-    "START",
+    "IPSG ",
+    "START",    
 };
 
 /* Severity color */
@@ -148,7 +149,8 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_MISC,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},    
+    {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},    
 };
 
 typedef enum {
