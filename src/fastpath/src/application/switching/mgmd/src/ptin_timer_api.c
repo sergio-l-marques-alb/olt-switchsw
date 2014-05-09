@@ -57,8 +57,9 @@ typedef struct {
 
   PTIN_TIMER_STRUCT *firstRunningTimer;
   PTIN_TIMER_STRUCT *lastRunningTimer;
+  unsigned char      firstRunningTimerRemoved;  //Used to signal CB thread handler that the first running timer was removed, and as such, the callback should not be called
 
-  unsigned int       optimizationThreshold; //Used to determine if the ordered insertion of the timer should start at the end/start of the used timers list
+  unsigned int       optimizationThreshold;     //Used to determine if the ordered insertion of the timer should start at the end/start of the used timers list
   PTIN_TIMER_STRUCT *lastTimerBelowThreshold;
 
   PTIN_TIMER_STRUCT *firstInitializedTimer;
@@ -86,6 +87,9 @@ unsigned short            numCBs=0;
 PTIN_CONTROL_BLOCK_STRUCT cbEntry[MGMD_MAX_NUM_CONTROL_BLOCKS];
 PTIN_MEASUREMENT_TIMER_T  measurement_timers[PTIN_MEASUREMENT_TIMERS_NUM_MAX] = {{{0}}};
 
+/* Extern variables */
+extern unsigned char      ptin_mgmd_extended_debug;
+
 
 /* Static methods */
 static void  __signal_handler(int sig);
@@ -100,12 +104,14 @@ static void  __list_dump(PTIN_TIMER_STRUCT *firsttimer);
 
 void  __list_dump(PTIN_TIMER_STRUCT *firsttimer)
 {
-//return; //This method is disabled for now
-  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Dump for double linked list with first timer %p:", firsttimer);
-  while(firsttimer != NULL)
+  if(ptin_mgmd_extended_debug)
   {
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p [P:%p N:%p]", firsttimer, firsttimer->prev, firsttimer->next);
-    firsttimer = firsttimer->next;
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Dump for double linked list with first timer %p:", firsttimer);
+    while(firsttimer != NULL)
+    {
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p [P:%p N:%p]", firsttimer, firsttimer->prev, firsttimer->next);
+      firsttimer = firsttimer->next;
+    }
   }
 }
 
@@ -424,8 +430,19 @@ void* __controlblock_handler(void *param)
         if(nanosleep(&requiredSleepTime, NULL) == 0)
         {
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p woke up", timer, cbPtr);
+
           pthread_mutex_lock(&cbPtr->lock);
-          /* If we slept until the end, means out timer is still in the head and valid */
+
+          /* If the first timer was removed, ignore it and check again for the head of the running list */
+          if(cbPtr->firstRunningTimerRemoved == 1)
+          {
+            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p was removed from the head of the running list. Ignored.", timer, cbPtr);
+            cbPtr->firstRunningTimerRemoved = 0;
+            pthread_mutex_unlock(&cbPtr->lock);
+            continue;
+          }
+          
+          /* If we slept until the end and made it here, means out timer is still in the head and valid */
           __running_list_remove(cbPtr, timer);
           __initialized_list_insert(cbPtr, timer);
           timer->relativeTimeout = 0;
@@ -438,7 +455,7 @@ void* __controlblock_handler(void *param)
         else
         {
           /* We were interrupted. It's best to check again for the head of the running list */
-          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p interrupted", timer, cbPtr);
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Timer %p on CB %p interrupted. Ignored", timer, cbPtr);
           continue;
         }
       }
@@ -495,16 +512,17 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   }
 
   /* Control block initialization */
-  cbEntry[cbIdx].tickGranularity         = tickGranularity;
-  cbEntry[cbIdx].timerStackSize          = (size_t)timerStackThreadSize;
-  cbEntry[cbIdx].state                   = PTIN_CONTROL_BLOCK_STATE_USED;
-  cbEntry[cbIdx].timersNumMax            = numTimers;
-  cbEntry[cbIdx].optimizationThreshold   = optimizationThreshold * tickGranularity;
-  cbEntry[cbIdx].firstRunningTimer       = NULL;
-  cbEntry[cbIdx].lastRunningTimer        = NULL;
-  cbEntry[cbIdx].lastTimerBelowThreshold = NULL;
-  cbEntry[cbIdx].firstInitializedTimer   = NULL;
-  cbEntry[cbIdx].lastInitializedTimer    = NULL;
+  cbEntry[cbIdx].tickGranularity          = tickGranularity;
+  cbEntry[cbIdx].timerStackSize           = (size_t)timerStackThreadSize;
+  cbEntry[cbIdx].state                    = PTIN_CONTROL_BLOCK_STATE_USED;
+  cbEntry[cbIdx].timersNumMax             = numTimers;
+  cbEntry[cbIdx].optimizationThreshold    = optimizationThreshold * tickGranularity;
+  cbEntry[cbIdx].firstRunningTimer        = NULL;
+  cbEntry[cbIdx].lastRunningTimer         = NULL;
+  cbEntry[cbIdx].firstRunningTimerRemoved = 0;
+  cbEntry[cbIdx].lastTimerBelowThreshold  = NULL;
+  cbEntry[cbIdx].firstInitializedTimer    = NULL;
+  cbEntry[cbIdx].lastInitializedTimer     = NULL;
 
   /* Available timers pool initialization */
   ptin_fifo_create(&cbEntry[cbIdx].availableTimersPool, cbEntry[cbIdx].timersNumMax);
@@ -817,7 +835,6 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
   PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
   pthread_t                  cbThreadId;
-  unsigned char              wakeCB = 0;
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
@@ -836,10 +853,11 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
     return 0;
   }
 
-  /* Stop the timer. If it is the head of the running list, wake the CB thread */
+  /* Stop the timer. If it is the head of the running list, set the 'firstRunningTimerRemoved' flag to true to force the CB handler to ignore this timer */
   if(tmrPtr == cbPtr->firstRunningTimer)
   {
-    wakeCB = 1;
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Setting CB %p flag 'firstRunningTimerRemoved' to 1", controlBlock);
+    cbPtr->firstRunningTimerRemoved = 1;
   }
   __running_list_remove(cbPtr, tmrPtr);
   __initialized_list_insert(cbPtr, tmrPtr);
@@ -847,15 +865,6 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
   tmrPtr->absoluteTimeout = 0;
   tmrPtr->relativeTimeout = 0;
   pthread_mutex_unlock(&cbPtr->lock);
-
-  /* Stop the timer. If it is the head of the running list, wake the CB thread */
-  if(wakeCB == 1)
-  {
-    if(pthread_equal(cbThreadId, pthread_self()) == 0) 
-    {
-      pthread_kill(cbThreadId, PTIN_WAKE_UP_CB_TIMER_SIGNAL);
-    }
-  }
 
   return 0;
 }
