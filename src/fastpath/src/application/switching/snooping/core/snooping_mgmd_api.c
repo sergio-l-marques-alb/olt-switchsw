@@ -691,14 +691,14 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
   L7_uint32             packetLength;
 
-  //Copy the payload  to the packet buffer
-  memcpy(packet, payload, payloadLength * sizeof(uchar8));
-  packetLength=payloadLength;
-
   /* To get the first client */
   memset(&clientFlow, 0x00, sizeof(clientFlow));
   do
   {
+    //Copy the payload  to the packet buffer
+    memcpy(packet, payload, payloadLength);
+    packetLength=payloadLength;
+
     #if (defined IGMP_QUERIER_IN_UC_EVC)
     {
       /* First client/flow */
