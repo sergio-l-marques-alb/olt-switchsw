@@ -420,6 +420,15 @@ extern L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo);
 extern L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo);
 
 /**
+ * Deletes all LAGs
+ * 
+ * @param 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_Lag_delete_all(void);
+
+/**
  * Gets a LAG status
  * 
  * @param lagStatus Pointer to the output structure (or array)

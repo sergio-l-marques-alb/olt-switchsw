@@ -458,8 +458,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
+      msg_HwGenReq_t *config;
+      config = (msg_HwGenReq_t *) inbuffer->info;
+
       /* Execute command */
-      ptin_msg_defaults_reset();
+      ptin_msg_defaults_reset(config->param);
 
       SETIPCACKOK(outbuffer);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,

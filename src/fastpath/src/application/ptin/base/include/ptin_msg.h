@@ -57,7 +57,7 @@ extern L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo);
  * Actions: 
  *  - EVCs are destroyed (including counter, bw profiles, clientes, etc)
  */
-extern void ptin_msg_defaults_reset(void);
+extern void ptin_msg_defaults_reset(L7_char8 mode);
 
 /**
  * Reset Multicast Machine

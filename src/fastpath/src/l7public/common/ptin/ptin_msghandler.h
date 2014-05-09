@@ -235,6 +235,12 @@
  * NOTE: By default they are 'packed' to avoid empty gaps
  *****************************************************************************/
 
+typedef enum
+{
+  DEFATUL_RESET_MODE_FULL =     0x00,
+  DEFATUL_RESET_MODE_PARTIAL =  0xFF
+} defaults_reset_mode_t;
+
 typedef struct {
   L7_uint8  slot_id;    // Slot ID
   L7_uint8  generic_id; // ID used for any purpose (context of each message)

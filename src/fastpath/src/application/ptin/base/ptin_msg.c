@@ -138,7 +138,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
  *  - EVCs are destroyed (including counter, bw profiles, clientes, etc)
  *  - ERPS intances are destroyed
  */
-void ptin_msg_defaults_reset(void)
+void ptin_msg_defaults_reset(L7_char8 mode)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration");
 
@@ -162,6 +162,18 @@ void ptin_msg_defaults_reset(void)
 #endif
 
   ptin_aclCleanAll();
+
+  if (mode == DEFATUL_RESET_MODE_FULL)
+  {
+    ptin_NtwConnectivity_t ptinNtwConn;
+
+    /* Unconfig Connectivity */
+    memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
+    ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
+    ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
+
+    ptin_intf_Lag_delete_all();
+  }
 
   return;
 }

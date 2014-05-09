@@ -2576,6 +2576,24 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 }
 
 /**
+ * Deletes all LAGs
+ * 
+ * @param 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_Lag_delete_all(void)
+{
+  L7_uint32 lag_idx;
+
+  for (lag_idx = 0; lag_idx < PTIN_SYSTEM_N_LAGS; lag_idx++)
+  {
+    ptin_intf_Lag_delete(&lagConf_data[lag_idx]);
+  }
+  return L7_SUCCESS;
+}
+
+/**
  * Gets a LAG status
  * 
  * @param lagStatus Pointer to the output structure (or array)
