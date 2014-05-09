@@ -498,7 +498,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
     }
 
     /* A binding for this MAC already exists. Delete existing binding from HW. */
-    if (!inetIsInAddressAny(&pNode->ipAddr))
+    if ((pNode->ipAddr.family == L7_AF_INET6) && !inetIsInAddressAny(&pNode->ipAddr))
     {
        if (pNode->bindingType == DS_BINDING_DYNAMIC)
        {
@@ -613,7 +613,7 @@ L7_RC_t dsBindingRemove(L7_enetMacAddr_t *macAddr)
   /* If IPSG enabled, remove binding from HW */
   if (dsBindingTreeSearch(macAddr, L7_MATCH_EXACT, &pNode) == L7_SUCCESS)
   {
-    if (!inetIsInAddressAny(&pNode->ipAddr))
+    if ( (pNode->ipAddr.family == L7_AF_INET || pNode->ipAddr.family == L7_AF_INET6) &&  (!inetIsInAddressAny(&pNode->ipAddr)) )
     {
 
       if (pNode->bindingType == DS_BINDING_DYNAMIC)
@@ -959,7 +959,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
     return L7_SUCCESS;
   }
 
-  if (!inetIsInAddressAny(&binding->ipAddr))
+  if ( (binding->ipAddr.family == L7_AF_INET || binding->ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&binding->ipAddr)))
   {
     dsInfo->dsDbDataChanged = L7_TRUE;
 #ifdef L7_IPSG_PACKAGE
@@ -1028,7 +1028,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr)
     return L7_SUCCESS;
   }
 
-  if (!inetIsInAddressAny(&binding->ipAddr))
+  if ( (binding->ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&binding->ipAddr) ))
   {
     dsInfo->dsDbDataChanged = L7_TRUE;
   #ifdef L7_IPSG_PACKAGE
@@ -1042,7 +1042,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr)
     /* ipsgBindingHwRemove(binding->intIfNum, binding->ipAddr);*/
   }
   memcpy(&binding->ipAddr, &ipAddr, sizeof(L7_inet_addr_t));
-  if (!inetIsInAddressAny(&ipAddr))
+  if ((ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&ipAddr)))
   {
    dsInfo->dsDbDataChanged = L7_TRUE;
    binding->bindingType = DS_BINDING_DYNAMIC;

@@ -760,7 +760,7 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr,
   /* If IPSG not enabled on bindings' interface, nothing to do. */
   if (!ipsgIsEnabled(intIfNum))
   {
-    LOG_NOTICE(LOG_CTX_IPSG, "IPSG not enabled on bindings' interface, nothing to do.");
+    LOG_TRACE(LOG_CTX_IPSG, "IPSG not enabled on bindings' interface, nothing to do.");
     return L7_FAILURE;
   }
 

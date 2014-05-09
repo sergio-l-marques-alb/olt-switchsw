@@ -2101,15 +2101,19 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
 
-   //Add a new dynamic entry in the binding table
-   dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
-   dsBindingLeaseSet(&client_mac_addr, lease_time);
-   dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
+   
 
    //Remove the entry in the binding table if the client has previously sent a release
    if(dhcp_binding.leaseStatus == DS_LEASESTATUS_V6_RELEASE)
    {
      dsBindingRemove(&client_mac_addr);
+   }
+   else
+   {
+     //Add a new dynamic entry in the binding table
+     dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
+     dsBindingLeaseSet(&client_mac_addr, lease_time);
+     dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
    }
 
    return L7_SUCCESS;
