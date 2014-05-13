@@ -19,7 +19,7 @@
 /* Message processing time measuring */
 
 #define CCMSG_ID_MIN  0x9000
-#define CCMSG_ID_MAX  0x90FF
+#define CCMSG_ID_MAX  0x91FF
 
 typedef struct
 {
