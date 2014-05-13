@@ -140,7 +140,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
  */
 void ptin_msg_defaults_reset(L7_char8 mode)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration");
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration (mode %x)", mode);
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
   eth_srv_oam_msg_defaults_reset();
