@@ -17,6 +17,51 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+int ptin_l2_replace_port(bcm_port_t bcm_port_old, bcm_port_t bcm_port_new)
+{
+  bcm_l2_addr_t bcm_l2_addr;
+  bcm_error_t rv;
+
+  memset(&bcm_l2_addr, 0x00, sizeof(bcm_l2_addr));
+
+  bcm_l2_addr.flags = 0;
+  bcm_l2_addr.modid = 0;
+  bcm_l2_addr.port  = bcm_port_old;
+  bcm_l2_addr.tgid  = -1;
+
+  if ((rv = bcm_l2_replace(0, BCM_L2_REPLACE_MATCH_DEST, &bcm_l2_addr, 0, bcm_port_new, -1)) != BCM_E_NONE)
+  {
+    printf("Error applying bcm_l2_replace\r\n");
+    return -1;
+  }
+
+  printf("Success applying bcm_l2_replace\r\n");
+  return 0;
+}
+
+int ptin_l2_replace_trunk(bcm_trunk_t tgid_old, bcm_trunk_t tgid_new)
+{
+  bcm_l2_addr_t bcm_l2_addr;
+  bcm_error_t rv;
+
+  memset(&bcm_l2_addr, 0x00, sizeof(bcm_l2_addr));
+
+  bcm_l2_addr.flags = BCM_L2_TRUNK_MEMBER;
+  bcm_l2_addr.modid = 0;
+  bcm_l2_addr.port  = 0;
+  bcm_l2_addr.tgid  = tgid_old;
+
+  if ((rv = bcm_l2_replace(0, BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NEW_TRUNK, &bcm_l2_addr, 0, 0, tgid_new)) != BCM_E_NONE)
+  {
+    printf("Error applying bcm_l2_replace to trunk\r\n");
+    return -1;
+  }
+
+  printf("Success applying bcm_l2_replace to trunk\r\n");
+  return 0;
+}
+
+
 int ptin_link_notify(bcm_port_t bcm_port)
 {
   int link_status;
