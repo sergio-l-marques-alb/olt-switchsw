@@ -180,6 +180,7 @@ static L7_RC_t ptin_pppoe_circuitid_set_instance(L7_uint32 pppoe_idx, L7_char8 *
                                                  L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 static void    ptin_pppoe_circuitId_build(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_pppoe_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
+static L7_RC_t ptin_pppoe_reconf_instance(L7_uint32 pppoe_instance_idx, L7_uint8 pppoe_flag, L7_uint32 options);
 
 #if PPPOE_ACCEPT_UNSTACKED_PACKETS
 static L7_RC_t ptin_pppoe_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
@@ -763,11 +764,9 @@ L7_RC_t ptin_pppoe_evc_destroy(L7_uint32 evcId)
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_evc_reconf(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 options)
+L7_RC_t ptin_pppoe_reconf_evc(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 options)
 {
    L7_uint pppoe_idx;
-   ptinPppoeClientDataKey_t avl_key;
-   ptinPppoeClientInfoData_t *avl_info;
 
    /* Get PPPOE instance index */
    if (ptin_pppoe_instance_find(evcId, &pppoe_idx) != L7_SUCCESS)
@@ -776,33 +775,30 @@ L7_RC_t ptin_pppoe_evc_reconf(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 op
     return L7_FAILURE;
    }
 
-   /* Validate pppoe instance */
-   if (!pppoeInstances[pppoe_idx].inUse)
-   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE, "PPPOE instance %u is not in use", pppoe_idx);
-    return L7_FAILURE;
-   }
+   return ptin_pppoe_reconf_instance(pppoe_idx, pppoe_flag, options);
+}
 
-   /* Save EVC PPPOE Options */
-   pppoeInstances[pppoe_idx].evcPppoeOptions = options;
+/**
+ * Reconfigure global PPPOE EVC (using root vlan)
+ *
+ * @param rootVid       : root vlan
+ * @param pppoe_flag    : PPPOE flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_pppoe_reconf_rootVid(L7_uint32 rootVid, L7_uint8 pppoe_flag, L7_uint32 options)
+{
+  L7_uint pppoe_idx;
 
-   /* Run all cells in AVL tree */
-   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
-   while ( ( avl_info = (ptinPppoeClientInfoData_t *)
-                       avlSearchLVL7(&pppoeInstances[pppoe_idx].pppoeClients.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-         ) != L7_NULLPTR )
-   {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+  /* Get DHCP instance index */
+  if (ptin_pppoe_instance_find_agg(rootVid, &pppoe_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no PPPOE instance for root Vid %u", rootVid);
+    return L7_NOT_EXIST;
+  }
 
-      /* Reconfigure PPPOE options for clients that are using Global EVC PPPOE options */
-      if(L7_TRUE == avl_info->client_data.useEvcPppoeOptions)
-      {
-         avl_info->client_data.pppoe_options = options;
-      }
-   }
-
-   return L7_SUCCESS;
+  return ptin_pppoe_reconf_instance(pppoe_idx, pppoe_flag, options);
 }
 
 /**
@@ -3686,6 +3682,40 @@ void ptin_pppoe_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repl
 
     found_pos = &circuitid_str[aux_len];
   }
+}
+
+L7_RC_t ptin_pppoe_reconf_instance(L7_uint32 pppoe_instance_idx, L7_uint8 pppoe_flag, L7_uint32 options)
+{
+   ptinPppoeClientDataKey_t avl_key;
+   ptinPppoeClientInfoData_t *avl_info;
+
+   /* Validate pppoe instance */
+   if (!pppoeInstances[pppoe_instance_idx].inUse)
+   {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "PPPOE instance %u is not in use", pppoe_instance_idx);
+    return L7_FAILURE;
+   }
+
+   /* Save EVC PPPOE Options */
+   pppoeInstances[pppoe_instance_idx].evcPppoeOptions = options;
+
+   /* Run all cells in AVL tree */
+   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+   while ( ( avl_info = (ptinPppoeClientInfoData_t *)
+                       avlSearchLVL7(&pppoeInstances[pppoe_instance_idx].pppoeClients.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+         ) != L7_NULLPTR )
+   {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+
+      /* Reconfigure PPPOE options for clients that are using Global EVC PPPOE options */
+      if(L7_TRUE == avl_info->client_data.useEvcPppoeOptions)
+      {
+         avl_info->client_data.pppoe_options = options;
+      }
+   }
+
+   return L7_SUCCESS;
 }
 
 /* DEBUG Functions ************************************************************/
