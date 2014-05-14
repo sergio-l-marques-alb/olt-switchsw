@@ -1116,7 +1116,7 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
     return PTIN_NULLPTR;
   }
 
-  if (externalApi.portList_get(groupPtr->key.serviceId,PTIN_MGMD_PORT_TYPE_ROOT,  &portList)!=SUCCESS)
+  if (externalApi.portList_get(groupPtr->key.serviceId, PTIN_MGMD_PORT_TYPE_ROOT, &portList)==FAILURE)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed ptin_igmp_rootIntfs_getList()");
     return PTIN_NULLPTR;
@@ -1130,7 +1130,7 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
     /*Increment IGMPv3 Stats*/
     for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
     {
-      if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
+      if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
       }
@@ -2168,7 +2168,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
     
     ptin_measurement_timer_start(32,"externalApi.portList_get");      
      /* Forward frame to all ports in this ServiceId with hosts attached */  
-    if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)!=SUCCESS)
+    if (externalApi.portList_get(mcastPacket->serviceId, portType, &portList)==FAILURE)
     {
       ptin_measurement_timer_stop(32);
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");

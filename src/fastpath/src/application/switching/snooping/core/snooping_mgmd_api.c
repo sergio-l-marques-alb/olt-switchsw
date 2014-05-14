@@ -299,7 +299,8 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
-    return FAILURE;
+    memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+    return NOT_EXIST;
   } 
 
   /* Request portList to FP */
@@ -312,9 +313,10 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
     res = ptin_igmp_rootIntfs_getList(mcastRootVlan, &interfaceBitmap);
   }
   else
-  {
+  {   
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
-    return FAILURE;
+    memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+    return NOT_SUPPORTED;
   }
 
 #if 0

@@ -3049,7 +3049,7 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
   }
   
    /* Get leaf ports */  
-  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)!=SUCCESS)
+  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)==FAILURE)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
     return ERROR;
@@ -3193,7 +3193,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
   }
   
    /* Get leaf ports */  
-  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)!=SUCCESS)
+  if (externalApi.portList_get(serviceId, PTIN_MGMD_PORT_TYPE_LEAF, &portList)==FAILURE)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to get ptin_mgmd_port_getList()");
     return FAILURE;
