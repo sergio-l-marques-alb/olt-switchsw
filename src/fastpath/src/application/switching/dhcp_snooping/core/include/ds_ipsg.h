@@ -39,11 +39,8 @@ typedef struct ipsgEntryKey_s
   L7_ushort16 vlanId;
 
   /* IP address assigned to the station */
-#if 1 /* PTin modified: IPSGv6 */
-  L7_inet_addr_t ipAddr;
-#else
   L7_uint32 ipAddr;
-#endif
+
   /* A MAC address uniquely identifies a node in the bindings tree. */
   L7_enetMacAddr_t macAddr;
 
@@ -74,14 +71,14 @@ L7_RC_t ipsgIntfDisableApply(L7_uint32 intIfNum);
 L7_BOOL ipsgIsEnabled(L7_uint32 intIfNum);
 L7_BOOL ipsgPsIsEnabled(L7_uint32 intIfNum);
 L7_RC_t ipsgVerifySourceApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter);
-L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum,L7_inet_addr_t* ipAddr,L7_enetMacAddr_t *macAddr);
-L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr);
+L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum,L7_uint32 ipAddr,L7_enetMacAddr_t *macAddr);
+L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_uint32 ipAddr);
 
 L7_RC_t ipsgEntryTableCreate(void);
 L7_RC_t ipsgEntryTableDelete(void);
 
 L7_RC_t ipsgEntryTreeSearch(L7_uint32 intIfNum, L7_uint32 vlanId,
-                                   L7_enetMacAddr_t *macAddr,L7_inet_addr_t* ipAddr,
+                                   L7_enetMacAddr_t *macAddr,L7_uint32 ipAddr,
                                    L7_uint32 matchType,ipsgEntryTreeNode_t **ipsgEntry);
 L7_RC_t ipsgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
                                L7_uint32 n,
@@ -90,7 +87,7 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
                      L7_uint32 intIfNum,
                      L7_ushort16 vlanId,
                      L7_enetMacAddr_t *macAddr,
-                        L7_inet_addr_t *ipAddr);
+                        L7_uint32 ipAddr);
 L7_uint32 _ipsgEntriesCount(void);
 L7_uint32 _ipsgStaticEntriesCount(void);
 L7_RC_t ipsgFindHwFreeEntry(ipsgEntryTreeNode_t **ipsgEntry);
@@ -98,7 +95,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
                      L7_uint32 intIfNum,
                      L7_ushort16 vlanId,
                      L7_enetMacAddr_t *macAddr,
-                     L7_inet_addr_t* ipAddr);
+                     L7_uint32 ipAddr);
 void ipsgEntryTableShow(void);
 L7_RC_t _ipsgEntryClear(L7_uint32 intIfNum);
 
@@ -107,7 +104,7 @@ L7_RC_t _ipsgEntryClear(L7_uint32 intIfNum);
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipv4Addr @b((input))  client IP address.
+* @param    ipAddr   @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -119,14 +116,14 @@ L7_RC_t _ipsgEntryClear(L7_uint32 intIfNum);
 L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipv4Addr);
+                           L7_uint32 ipAddr);
 
 /*********************************************************************
 * @purpose  Remove a static entry to the IPSG entries database.
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipv4Addr @b((input))  client IP address.
+* @param    ipAddr   @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -138,7 +135,7 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipv4Addr);
+                           L7_uint32 ipAddr);
 
 
 

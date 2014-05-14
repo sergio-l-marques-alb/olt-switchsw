@@ -1167,7 +1167,7 @@ L7_RC_t ipsgVerifySourceSet(L7_uint32 intIfNum,
 * @end
 *********************************************************************/
 L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId, 
-                           L7_inet_addr_t *ipAddr, L7_enetMacAddr_t *macAddr,
+                           L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
                            L7_uint32 *entryType, L7_uint32 matchType);
 
 

@@ -300,7 +300,7 @@ L7_RC_t dsTraceWrite(L7_uchar8 *dsTrace)
 
   osapiSnprintf(debugMsg, DS_MAX_TRACE_LEN, "\n%d.%03d (%d,%d) %s",
                 secs, msecs, eventQLen, pktQLen, dsTrace);
-  printf("%s\r\n", debugMsg);
+  printf("%s", debugMsg);
   return L7_SUCCESS;
 }
 

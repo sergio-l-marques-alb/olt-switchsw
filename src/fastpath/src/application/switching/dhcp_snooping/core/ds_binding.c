@@ -174,16 +174,10 @@ L7_RC_t dsBindingsTableDelete(void)
 * @end
 *********************************************************************/
 L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
-                     L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr,
+                     L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
                      L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum)
 {
   dsBindingTreeNode_t  binding, *pNode;
-
-#ifdef L7_IPSG_PACKAGE
-  L7_inet_addr_t ipAddr;
-  inetAddressReset(&ipAddr);
-  inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
-#endif
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
@@ -207,7 +201,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
     }
     pNode->bindingType = bindingType;
     pNode->ipAddr.family = L7_AF_INET;
-    pNode->ipAddr.addr.ipv4.s_addr = ipv4Addr;
+    pNode->ipAddr.addr.ipv4.s_addr = ipAddr;
     pNode->vlanId = vlanId;
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
     pNode->intIfNum = intIfNum;
@@ -227,12 +221,12 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
          dsInfo->cfgDataChanged = L7_TRUE;
        }
 
-#ifdef L7_IPSG_PACKAGE     
+#ifdef L7_IPSG_PACKAGE
        ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
                      intIfNum,
                      vlanId,
                      macAddr,
-                     &ipAddr);
+                     ipAddr);
 #endif
       /*ipsgBindingHwAdd(intIfNum, ipAddr, macAddr);*/
     }
@@ -249,7 +243,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
       L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       dsMacToString(macAddr->addr, macAddrStr);
-      osapiInetNtoa(ipv4Addr, ipAddrStr);
+      osapiInetNtoa(ipAddr, ipAddrStr);
       osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN,
                     "DHCP snooping added %s binding for %s to %s on interface %s in VLAN %u.",
                     dsBindingTypeNames[bindingType], macAddrStr, ipAddrStr, ifName, vlanId);
@@ -298,7 +292,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
                      pNode->intIfNum,
                      pNode->vlanId,
                      macAddr,
-                     &pNode->ipAddr);
+                     pNode->ipAddr.addr.ipv4.s_addr);
 #endif
       /* ipsgBindingHwRemove(pNode->intIfNum, pNode->ipAddr);*/
 
@@ -314,7 +308,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
     /* update binding */
     pNode->bindingType = bindingType;
     pNode->ipAddr.family = L7_AF_INET;
-    pNode->ipAddr.addr.ipv4.s_addr = ipv4Addr;
+    pNode->ipAddr.addr.ipv4.s_addr = ipAddr;
     pNode->vlanId = vlanId;
     pNode->intIfNum = intIfNum;
 
@@ -330,12 +324,12 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
          dsInfo->cfgDataChanged = L7_TRUE;
        }
 
-#ifdef L7_IPSG_PACKAGE  
+#ifdef L7_IPSG_PACKAGE
        ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
                      intIfNum,
                      vlanId,
                      macAddr,
-                     &ipAddr);
+                     ipAddr);
 #endif
 
       /* ipsgBindingHwAdd(intIfNum, ipAddr, macAddr);*/
@@ -361,7 +355,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
       L7_uchar8 ipAddrStr[OSAPI_INET_NTOA_BUF_SIZE];
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       dsMacToString(macAddr->addr, macAddrStr);
-      osapiInetNtoa(ipv4Addr, ipAddrStr);
+      osapiInetNtoa(ipAddr, ipAddrStr);
       osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN,
                     "DHCP snooping updated %s binding for %s to %s on interface %s in VLAN %u.",
                     dsBindingTypeNames[bindingType], macAddrStr, ipAddrStr, ifName, vlanId);
@@ -444,11 +438,11 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
        }
 
 #ifdef L7_IPSG_PACKAGE
-       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
-                     intIfNum,
-                     vlanId,
-                     macAddr,
-                     &ipAddr);
+//       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
+//                     intIfNum,
+//                     vlanId,
+//                     macAddr,
+//                     ipAddr);
 #endif
       /*ipsgBindingHwAdd(intIfNum, ipAddr, macAddr);*/
     }
@@ -498,7 +492,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
     }
 
     /* A binding for this MAC already exists. Delete existing binding from HW. */
-    if ((pNode->ipAddr.family == L7_AF_INET6) && !inetIsInAddressAny(&pNode->ipAddr))
+    if (!inetIsInAddressAny(&pNode->ipAddr))
     {
        if (pNode->bindingType == DS_BINDING_DYNAMIC)
        {
@@ -510,11 +504,11 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
        }
 
 #ifdef L7_IPSG_PACKAGE
-       ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
-                     pNode->intIfNum,
-                     pNode->vlanId,
-                     macAddr,
-                     &pNode->ipAddr);
+//       ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
+//                     pNode->intIfNum,
+//                     pNode->vlanId,
+//                     macAddr,
+//                     pNode->ipAddr.addr.ipv4.s_addr);
 #endif
       /* ipsgBindingHwRemove(pNode->intIfNum, pNode->ipAddr);*/
 
@@ -546,11 +540,11 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
        }
 
 #ifdef L7_IPSG_PACKAGE
-       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
-                     intIfNum,
-                     vlanId,
-                     macAddr,
-                     &ipAddr);
+//       ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
+//                     intIfNum,
+//                     vlanId,
+//                     macAddr,
+//                     ipAddr);
 #endif
 
       /* ipsgBindingHwAdd(intIfNum, ipAddr, macAddr);*/
@@ -613,7 +607,7 @@ L7_RC_t dsBindingRemove(L7_enetMacAddr_t *macAddr)
   /* If IPSG enabled, remove binding from HW */
   if (dsBindingTreeSearch(macAddr, L7_MATCH_EXACT, &pNode) == L7_SUCCESS)
   {
-    if ( (pNode->ipAddr.family == L7_AF_INET || pNode->ipAddr.family == L7_AF_INET6) &&  (!inetIsInAddressAny(&pNode->ipAddr)) )
+    if (!inetIsInAddressAny(&pNode->ipAddr))
     {
 
       if (pNode->bindingType == DS_BINDING_DYNAMIC)
@@ -625,12 +619,15 @@ L7_RC_t dsBindingRemove(L7_enetMacAddr_t *macAddr)
         dsInfo->cfgDataChanged = L7_TRUE;
       }
 
-#ifdef L7_IPSG_PACKAGE    
-     ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
-                    pNode->intIfNum,
-                    pNode->vlanId,
-                    macAddr,
-                    &pNode->ipAddr);  
+#ifdef L7_IPSG_PACKAGE
+      if(L7_AF_INET == pNode->ipAddr.family)
+      {
+         ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
+                        pNode->intIfNum,
+                        pNode->vlanId,
+                        macAddr,
+                        pNode->ipAddr.addr.ipv4.s_addr);
+      }
 #endif
       /* ipsgBindingHwRemove(pNode->intIfNum, pNode->ipAddr);*/
     }
@@ -959,7 +956,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
     return L7_SUCCESS;
   }
 
-  if ( (binding->ipAddr.family == L7_AF_INET || binding->ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&binding->ipAddr)))
+  if (!inetIsInAddressAny(&binding->ipAddr))
   {
     dsInfo->dsDbDataChanged = L7_TRUE;
 #ifdef L7_IPSG_PACKAGE
@@ -967,7 +964,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
                      binding->intIfNum,
                      binding->vlanId,
                      &binding->macAddr,
-                     &binding->ipAddr);
+                     binding->ipAddr.addr.ipv4.s_addr);
 #endif
 
     /* ipsgBindingHwRemove(binding->intIfNum, binding->ipAddr);*/
@@ -984,7 +981,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
                  binding->intIfNum,
                  binding->vlanId,
                  &binding->macAddr,
-                 &binding->ipAddr);
+                 binding->ipAddr.addr.ipv4.s_addr);
 #endif
 
     /* ipsgBindingHwAdd(binding->intIfNum, binding->ipAddr, &binding->macAddr); */
@@ -1028,32 +1025,32 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr)
     return L7_SUCCESS;
   }
 
-  if ( (binding->ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&binding->ipAddr) ))
+  if (!inetIsInAddressAny(&binding->ipAddr))
   {
     dsInfo->dsDbDataChanged = L7_TRUE;
-  #ifdef L7_IPSG_PACKAGE
-      ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
-                       binding->intIfNum,
-                       binding->vlanId,
-                       &binding->macAddr,
-                       &binding->ipAddr);
-  #endif
+//#ifdef L7_IPSG_PACKAGE
+//    ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
+//                     binding->intIfNum,
+//                     binding->vlanId,
+//                     &binding->macAddr,
+//                     binding->ipAddr.addr.ipv4.s_addr);
+//#endif
 
     /* ipsgBindingHwRemove(binding->intIfNum, binding->ipAddr);*/
   }
   memcpy(&binding->ipAddr, &ipAddr, sizeof(L7_inet_addr_t));
-  if ((ipAddr.family == L7_AF_INET6) && (!inetIsInAddressAny(&ipAddr)))
+  if (!inetIsInAddressAny(&ipAddr))
   {
    dsInfo->dsDbDataChanged = L7_TRUE;
    binding->bindingType = DS_BINDING_DYNAMIC;
 
-  #ifdef L7_IPSG_PACKAGE
-     ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
-                   binding->intIfNum,
-                   binding->vlanId,
-                   &binding->macAddr,
-                   &binding->ipAddr);
-  #endif
+//#ifdef L7_IPSG_PACKAGE
+//   ipsgEntryAdd (IPSG_ENTRY_DYNAMIC,
+//                 binding->intIfNum,
+//                 binding->vlanId,
+//                 &binding->macAddr,
+//                 binding->ipAddr.addr.ipv4.s_addr);
+//#endif
 
     /* ipsgBindingHwAdd(binding->intIfNum, binding->ipAddr, &binding->macAddr); */
 
