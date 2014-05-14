@@ -36,7 +36,6 @@
 #include "fdb_api.h"
 
 #include "ptin_acl.h"
-#include "ptin_routing.h"
 
 #include "snooping_api.h"
 
