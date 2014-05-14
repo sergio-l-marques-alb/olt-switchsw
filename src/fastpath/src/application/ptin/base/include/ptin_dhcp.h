@@ -182,15 +182,26 @@ extern L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx);
 extern L7_RC_t ptin_dhcp_evc_destroy(L7_uint32 evc_idx);
 
 /**
- * Reconfigure global DHCP EVC
+ * Reconfigure global DHCP EVC (using evc id)
  *
- * @param evc_idx         : evc index
+ * @param evc_idx       : evc index
  * @param dhcp_flag     : DHCP flag (not used)
  * @param options       : options
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_reconf(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options);
+extern L7_RC_t ptin_dhcp_reconf_evc(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options);
+
+/**
+ * Reconfigure global DHCP EVC (using root vlan)
+ *
+ * @param rootVid   : root vlan
+ * @param dhcp_flag : DHCP flag (not used)
+ * @param options   : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint32 options);
 
 /**
  * Set DHCP circuit-id global data from EVC id

@@ -180,6 +180,7 @@ static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *te
                                                 L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 static void    ptin_dhcp_circuitId_build(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
+static L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_flag, L7_uint32 options);
 
 #if DHCP_ACCEPT_UNSTACKED_PACKETS
 static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
@@ -765,11 +766,9 @@ L7_RC_t ptin_dhcp_evc_destroy(L7_uint32 evc_idx)
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_reconf(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options)
+L7_RC_t ptin_dhcp_reconf_evc(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 options)
 {
    L7_uint dhcp_idx;
-   ptinDhcpClientDataKey_t avl_key;
-   ptinDhcpClientInfoData_t *avl_info;
 
    /* Get DHCP instance index */
    if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
@@ -778,34 +777,30 @@ L7_RC_t ptin_dhcp_evc_reconf(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 op
     return L7_FAILURE;
    }
 
-   /* Validate dhcp instance */
-   if (!dhcpInstances[dhcp_idx].inUse)
-   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
-    return L7_FAILURE;
-   }
+   return ptin_dhcp_reconf_instance(dhcp_idx, dhcp_flag, options);
+}
 
-   /* Save EVC DHCP Options */
-   dhcpInstances[dhcp_idx].evcDhcpOptions = options;
+/**
+ * Reconfigure global DHCP EVC (using root vlan)
+ *
+ * @param rootVid   : root vlan
+ * @param dhcp_flag : DHCP flag (not used)
+ * @param options   : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint32 options)
+{
+  L7_uint dhcp_idx;
 
-   /* Run all cells in AVL tree */
-   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
-   while ( ( avl_info = (ptinDhcpClientInfoData_t *)
-                       avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-         ) != L7_NULLPTR )
-   {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find_agg(rootVid, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for root Vid %u", rootVid);
+    return L7_NOT_EXIST;
+  }
 
-      /* Reconfigure DHCP options for clients that are using Global EVC DHCP options */
-      if(L7_TRUE == avl_info->client_data.useEvcDhcpOptions)
-      {
-         avl_info->client_data.dhcp_options = options;
-      }
-   }
-
-
-   return L7_SUCCESS;
+  return ptin_dhcp_reconf_instance(dhcp_idx, dhcp_flag, options);
 }
 
 /**
@@ -3677,6 +3672,49 @@ void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repla
 
     found_pos = &circuitid_str[aux_len];
   }
+}
+
+/**
+ * Reconfigure global DHCP EVC (using instance id)
+ *
+ * @param dhcp_instance_idx : dhcp instance index
+ * @param dhcp_flag         : DHCP flag (not used)
+ * @param options           : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_flag, L7_uint32 options)
+{
+   ptinDhcpClientDataKey_t   avl_key;
+   ptinDhcpClientInfoData_t *avl_info;
+
+   /* Validate dhcp instance */
+   if (!dhcpInstances[dhcp_instance_idx].inUse)
+   {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_instance_idx);
+    return L7_FAILURE;
+   }
+
+   /* Save EVC DHCP Options */
+   dhcpInstances[dhcp_instance_idx].evcDhcpOptions = options;
+
+   /* Run all cells in AVL tree */
+   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+   while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                       avlSearchLVL7(&dhcpInstances[dhcp_instance_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+         ) != L7_NULLPTR )
+   {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+      /* Reconfigure DHCP options for clients that are using Global EVC DHCP options */
+      if(L7_TRUE == avl_info->client_data.useEvcDhcpOptions)
+      {
+         avl_info->client_data.dhcp_options = options;
+      }
+   }
+
+   return L7_SUCCESS;
 }
 
 /* DEBUG Functions ************************************************************/

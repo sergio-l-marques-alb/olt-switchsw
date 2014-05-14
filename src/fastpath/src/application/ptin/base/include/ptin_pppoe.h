@@ -180,15 +180,26 @@ extern L7_RC_t ptin_pppoe_evc_remove(L7_uint32 evc_idx);
 extern L7_RC_t ptin_pppoe_evc_destroy(L7_uint32 evcId);
 
 /**
- * Reconfigure global PPPOE EVC
+ * Reconfigure global PPPOE EVC (using evc id)
  *
  * @param evcId         : evc index
- * @param pppoe_flag     : PPPOE flag (not used)
+ * @param pppoe_flag    : PPPOE flag (not used)
  * @param options       : options
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_pppoe_evc_reconf(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 options);
+extern L7_RC_t ptin_pppoe_reconf_evc(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 options);
+
+/**
+ * Reconfigure global PPPOE EVC (using root vlan)
+ *
+ * @param rootVid       : root vlan
+ * @param pppoe_flag    : PPPOE flag (not used)
+ * @param options       : options
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pppoe_reconf_rootVid(L7_uint32 rootVid, L7_uint8 pppoe_flag, L7_uint32 options);
 
 /**
  * Set PPPOE circuit-id global data from EVC id

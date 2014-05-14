@@ -36,6 +36,7 @@
 #include "fdb_api.h"
 
 #include "ptin_acl.h"
+#include "ptin_routing.h"
 
 #include "snooping_api.h"
 
@@ -3831,7 +3832,6 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
  */
 L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
 {
-  L7_uint32 evc_idx;
   L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
@@ -3843,30 +3843,38 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  EVC Id     = %u",      dhcpEvcInfo->evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID Type    = %u",      dhcpEvcInfo->idType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID         = %u",      dhcpEvcInfo->id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %s",      dhcpEvcInfo->dhcp_flag);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %u",      dhcpEvcInfo->dhcp_flag);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
 
-  /* Extract input data */
-  evc_idx = dhcpEvcInfo->evc_id;
-
-  /* TODO: To be reworked */
-  rc = ptin_dhcp_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-  if (rc!=L7_SUCCESS)
+  if (dhcpEvcInfo->idType == MSG_ID_DEF_TYPE ||
+      dhcpEvcInfo->idType == MSG_ID_EVC_TYPE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
-    return rc;
+    rc = ptin_dhcp_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
+      return rc;
+    }
+    rc = ptin_pppoe_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
   }
-  rc = ptin_pppoe_evc_reconf(evc_idx, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
-  /* TODO */
-#if 0
-  if (rc!=L7_SUCCESS)
+  else if (dhcpEvcInfo->idType == MSG_ID_NNIVID_TYPE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global PPPoE EVC");
-    return rc;
+    rc = ptin_dhcp_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    if (rc!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP Instance");
+      return rc;
+    }
+    rc = ptin_pppoe_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
   }
-#endif
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid id %u", dhcpEvcInfo->idType);
+    return L7_FAILURE;
+  }
 
   return L7_SUCCESS;
 }
@@ -4660,6 +4668,12 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   L7_ushort16 i, page, first, entries, size;
   L7_RC_t     rc;
 
+  /* Debug */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Binding table get:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  SlotId = %u",   input->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Page   = %u",   input->page);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask   = %02X", input->mask);
+
   page = input->page;
 
   // For index null, read all mac entries
@@ -4687,15 +4701,19 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
 
   first   = page*128;
   entries = dhcp_bindtable_entries-first;   // Calculate remaining entries to be read
-  if (entries>128)  entries = 128;          // Overgoes 128? If so, limit to 128
+  if (entries>128)  
+  {
+    entries = 128;          // Overgoes 128? If so, limit to 128
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "There at least %u entries left", entries);
 
   output->bind_table_msg_size      = entries;
   output->bind_table_total_entries = dhcp_bindtable_entries;
 
   // Copy binding table entries
-  for (i=0; i<entries; i++)
+  for (i=0; i<entries; ++i)
   {
-    memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
+//  memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
 
     output->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
     output->bind_table[i].evc_idx        = dhcpv4v6_bindtable[first+i].evc_idx;
@@ -4707,6 +4725,18 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
     memcpy(&output->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));
     output->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
     output->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Entry %u:", first+i);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  entry_index = %u",    output->bind_table[i].entry_index);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  evc_idx     = %u",    output->bind_table[i].evc_idx);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  intf        = %u/%u", output->bind_table[i].intf.intf_type, output->bind_table[i].intf.intf_id);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  outer_vlan  = %u",    output->bind_table[i].outer_vlan);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  inner_vlan  = %u",    output->bind_table[i].inner_vlan);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  macAddr     = %02X:%02X:%02X:%02X:%02X:%02X", output->bind_table[i].macAddr[0], output->bind_table[i].macAddr[1], 
+              output->bind_table[i].macAddr[2], output->bind_table[i].macAddr[3], output->bind_table[i].macAddr[4], output->bind_table[i].macAddr[5]);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  ipAddr      = %08X",  output->bind_table[i].ipAddr);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  remLeave    = %u",    output->bind_table[i].remLeave);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "  bindingType = %u",    output->bind_table[i].bindingType);
   }
 
   return L7_SUCCESS;
