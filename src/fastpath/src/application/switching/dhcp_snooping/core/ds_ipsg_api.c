@@ -204,7 +204,7 @@ L7_RC_t ipsgVerifySourceSet(L7_uint32 intIfNum,
 * @end
 *********************************************************************/
 L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId, 
-                           L7_inet_addr_t *ipAddr, L7_enetMacAddr_t *macAddr,
+                           L7_uint32 *ipAddr, L7_enetMacAddr_t *macAddr,
                            L7_uint32 *entryType,
                            L7_uint32 matchType)
 {
@@ -219,7 +219,7 @@ L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
   while ( ipsgEntryTreeSearch (*intIfNum,
                                *vlanId,
                                macAddr,
-                               ipAddr,
+                               *ipAddr,
                                matchType,                             
                                &ipsgEntry) == L7_SUCCESS)
 
@@ -227,8 +227,8 @@ L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
     {
       /* IPSG is enabled on interface associated with binding. */
       *intIfNum = ipsgEntry->ipsgEntryKey.intIfNum;
-      *vlanId = ipsgEntry->ipsgEntryKey.vlanId;      
-      memcpy(ipAddr, &ipsgEntry->ipsgEntryKey.ipAddr, sizeof(L7_inet_addr_t));
+      *vlanId = ipsgEntry->ipsgEntryKey.vlanId;
+      *ipAddr = ipsgEntry->ipsgEntryKey.ipAddr;
       memcpy( macAddr->addr, 
               ipsgEntry->ipsgEntryKey.macAddr.addr,
               L7_ENET_MAC_ADDR_LEN);
@@ -264,12 +264,11 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
 {
   L7_BOOL auth = L7_FALSE;
   L7_uint32 entryType;
-  L7_inet_addr_t ipAddr;
+  L7_uint32 ipAddr = 0;
   L7_enetMacAddr_t tmpMacAddr;
   L7_ushort16 tmpVlanId;
   L7_uint32 tmpIntIfNum;
   
-  memset(&ipAddr, 0x00, sizeof(ipAddr));
 
   if (osapiReadLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS) 
     return L7_FALSE;
@@ -311,7 +310,7 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipv4Addr @b((input))  client IP address.
+* @param    ipAddr   @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -323,15 +322,14 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
 L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipv4Addr)
+                           L7_uint32 ipAddr)
 {
-  L7_RC_t        rc;
-  L7_inet_addr_t ipAddr;
+  L7_RC_t rc;
 
   /* Validate IP address. Don't allow 0, mcast or above, loopback. */
-  if ((ipv4Addr == 0) ||
-      (ipv4Addr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
-      (((ipv4Addr & 0xff000000) >> 24) == 127))
+  if ((ipAddr == 0) ||
+      (ipAddr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
+      (((ipAddr & 0xff000000) >> 24) == 127))
   {
     return L7_ERROR;
   }
@@ -356,9 +354,7 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
     return L7_FAILURE;
 
-  inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
-
-  rc = ipsgEntryAdd(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, &ipAddr);
+  rc = ipsgEntryAdd(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, ipAddr);
 
   osapiWriteLockGive(dsCfgRWLock);
   return rc;
@@ -369,7 +365,7 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipv4Addr @b((input))  client IP address.
+* @param    ipAddr   @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
@@ -381,15 +377,14 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
-                           L7_uint32 ipv4Addr)
+                           L7_uint32 ipAddr)
 {
-  L7_RC_t        rc;
-  L7_inet_addr_t ipAddr;
+  L7_RC_t rc;
 
   /* Validate IP address. Don't allow 0, mcast or above, loopback. */
-  if ((ipv4Addr == 0) ||
-      (ipv4Addr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
-      (((ipv4Addr & 0xff000000) >> 24) == 127))
+  if ((ipAddr == 0) ||
+      (ipAddr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
+      (((ipAddr & 0xff000000) >> 24) == 127))
   {
     return L7_ERROR;
   }
@@ -414,9 +409,7 @@ L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
     return L7_FAILURE;
 
-  inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
-
-  rc = ipsgEntryRemove(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, &ipAddr);
+  rc = ipsgEntryRemove(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, ipAddr);
 
   osapiWriteLockGive(dsCfgRWLock);
   return rc;
