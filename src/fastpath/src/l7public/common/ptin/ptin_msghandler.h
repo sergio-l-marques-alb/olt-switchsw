@@ -938,7 +938,10 @@ typedef struct {
 /* DHCP Profile */
 typedef struct {
   L7_uchar8    slot_id;       /* Slot ID */ 
-  L7_uint32    evc_id;        /* EVC ID */                    /* L7_uint32 */
+
+  L7_uint8     idType;        // idType=1 [evcId]; idType=2 [rootVlan (S')] 
+  L7_uint32    id;            // idType=1 [evcId]; idType=2 [rootVlan (S')]
+
 
   L7_uint32    mask;          /* Mask */
 
