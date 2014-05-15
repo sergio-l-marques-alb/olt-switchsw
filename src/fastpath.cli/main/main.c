@@ -95,6 +95,14 @@ void help_oltBuga(void)
         "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
         "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
         "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
+        "m 1440 intf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
+        "m 1441 intf[2-Rtr]/[intf#] routingVID[1-4095] - Remove routing interface\r\n"
+        "m 1442 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
+        "m 1443 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
+        "m 1444 intf[2-Rtr]/[intf#] - Get route table\r\n"
+        "m 1445 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
+        "m 1446 index[0-15] - Query ping session\r\n"
+        "m 1447 index[0-15] - Free ping session\r\n"
         "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
         "m 1501 lag_index[0-17] static_mode[0/1] load_balance[0..6] port_bmp[XXXXXh] - Create LAG\r\n"
         "m 1502 lag_index[0-17] - Destroy LAG\r\n"
@@ -2958,6 +2966,319 @@ int main (int argc, char *argv[])
         }
         break;
 
+      case 1440:
+        {
+          msg_RoutingIntfCreate *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingIntfCreate *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntfCreate));
+
+          ptr->slotId = (uint8)-1;
+
+          // Port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // Routing vlan
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->routingVlanId = (uint16) valued;
+
+          // EVC ID
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evcId = (uint16) valued;
+
+          // IP address
+          if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ipAddress = valued;
+
+          // Subnet Mask
+          if (convert_ipaddr2uint64(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->subnetMask = valued;
+
+          comando.msgId = CCMSG_ROUTING_INTF_CREATE;
+          comando.infoDim = sizeof(msg_RoutingIntfCreate);
+        }
+        break;
+
+      case 1441:
+        {
+          msg_RoutingIntfRemove *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+2)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingIntfRemove *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntfRemove));
+
+          ptr->slotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // Routing vlan
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->routingVlanId = (uint16) valued;
+
+          comando.msgId = CCMSG_ROUTING_INTF_REMOVE;
+          comando.infoDim = sizeof(msg_RoutingIntfRemove);
+        }
+        break;
+
+      case 1442:
+        {
+          msg_RoutingArpTableRequest *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingArpTableRequest *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingArpTableRequest));
+
+          ptr->slotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          ptr->lastIndex = (L7_uint32)-1;
+
+          comando.msgId = CCMSG_ROUTING_ARPTABLE_GET;
+          comando.infoDim = sizeof(msg_RoutingArpTableRequest);
+        }
+        break;
+
+      case 1443:
+        {
+          msg_RoutingArpEntryPurge *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+2)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingArpEntryPurge *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingArpEntryPurge));
+
+          ptr->slotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // IP address
+          if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ipAddr = valued;
+
+          comando.msgId = CCMSG_ROUTING_ARPENTRY_PURGE;
+          comando.infoDim = sizeof(msg_RoutingArpEntryPurge);
+        }
+        break;
+
+      case 1444:
+        {
+          msg_RoutingRouteTableRequest *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingRouteTableRequest *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingRouteTableRequest));
+
+          ptr->slotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          ptr->lastIndex = (L7_uint32)-1;
+
+          comando.msgId = CCMSG_ROUTING_ROUTETABLE_GET;
+          comando.infoDim = sizeof(msg_RoutingRouteTableRequest);
+        }
+        break;
+
+      case 1445:
+        {
+          msg_RoutingPingSessionCreate *ptr;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingPingSessionCreate *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingPingSessionCreate));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->index = valued;
+
+          // Dst IP address
+          if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dstIpAddr = valued;
+
+          // Probe count
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probeCount = valued;
+
+          // Probe size
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probeSize = valued;
+
+          // Probe interval
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probeInterval = valued;
+
+          comando.msgId   = CCMSG_ROUTING_PINGSESSION_CREATE;
+          comando.infoDim = sizeof(msg_RoutingPingSessionCreate);
+        }
+        break;
+
+      case 1446:
+        {
+          msg_RoutingPingSessionQuery *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingPingSessionQuery *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingPingSessionQuery));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->index = valued;
+
+          comando.msgId   = CCMSG_ROUTING_PINGSESSION_QUERY;
+          comando.infoDim = sizeof(msg_RoutingPingSessionQuery);
+        }
+        break;
+
+      case 1447:
+        {
+          msg_RoutingPingSessionFree *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingPingSessionFree *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingPingSessionFree));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->index = valued;
+
+          comando.msgId   = CCMSG_ROUTING_PINGSESSION_FREE;
+          comando.infoDim = sizeof(msg_RoutingPingSessionFree);
+        }
+        break;
+
       case 1500:
         {
           msg_LACPLagInfo_t *ptr;
@@ -5338,6 +5659,128 @@ int main (int argc, char *argv[])
           printf(" Switch: Static MC Channel removed successfully\n\r");
         else
           printf(" Switch: Static MC Channel NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+
+      case 1440:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Sucessefully created new routing interface\n\r");
+        else
+          printf(" Error %08x while creating new routing interface\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1441:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Sucessefully removed routing interface\n\r");
+        else
+          printf(" Error %08x while removing routing interface\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1442:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {  
+          msg_RoutingArpTableResponse *ptr;
+          uint8 entries, i;
+
+          entries = resposta.infoDim/sizeof(msg_RoutingArpTableResponse);
+
+          if (entries==0) {
+            printf(" ARP Table: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingArpTableResponse));
+            break;
+          }
+
+          for (i=0; i<entries; ++i) {
+            ptr = &((msg_RoutingArpTableResponse *) &resposta.info[0])[i];
+            printf("------------------------\r\n");
+            printf("  Index       = %u\r\n",    ptr->index);
+            printf("  Intf        = %u/%u\r\n", ptr->intf.intf_type, ptr->intf.intf_id);
+            printf("  Type        = %u\r\n",    ptr->type);
+            printf("  Age         = %u\r\n",    (unsigned int)ptr->age);
+            printf("  Ip Address  = 0x%08X\r\n",(unsigned int)ptr->ipAddr);
+            printf("  MAC Address = %02X:%02X:%02X:%02X:%02X:%02X\r\n", ptr->macAddr[0], ptr->macAddr[1], ptr->macAddr[2], ptr->macAddr[3], ptr->macAddr[4], ptr->macAddr[5]);
+          }
+        }
+        else
+          printf(" ARP Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1443:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Sucessefully removed ARP entry\n\r");
+        else
+          printf(" Error %08x while removing ARP entry\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1444:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {  
+          msg_RoutingRouteTableResponse *ptr;
+          uint8 entries, i;
+
+          entries = resposta.infoDim/sizeof(msg_RoutingRouteTableResponse);
+
+          if (entries==0) {
+            printf(" Route Table: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingRouteTableResponse));
+            break;
+          }
+
+          for (i=0; i<entries; ++i) {
+            ptr = &((msg_RoutingRouteTableResponse *) &resposta.info[0])[i];
+            printf("------------------------\r\n");
+            printf("  Index       = %u\r\n",           ptr->index);
+            printf("  Intf        = %u/%u\r\n",        ptr->intf.intf_type, ptr->intf.intf_id);
+            printf("  Protocol    = %u\r\n",           ptr->protocol);
+            printf("  Update Time = %udays %uh%um%us\r\n", (unsigned int)ptr->updateTime.days, (unsigned int)ptr->updateTime.hours, (unsigned int)ptr->updateTime.minutes, (unsigned int)ptr->updateTime.seconds);
+            printf("  Ip Address  = 0x%08X\r\n",       (unsigned int)ptr->ipAddr);
+            printf("  Subnet Mask = %u\r\n",           (unsigned int)ptr->subnetMask);
+            printf("  Preference  = %u\r\n",           (unsigned int)ptr->preference);
+            printf("  Metric      = %u\r\n",           (unsigned int)ptr->metric);
+          }
+        }
+        else
+          printf(" Route Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1445:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Sucessefully created ping session\n\r");
+        else
+          printf(" Error %08x while creating ping session\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1446:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {  
+          msg_RoutingPingSessionQuery *ptr;
+          uint8 entries;
+
+          entries = resposta.infoDim/sizeof(msg_RoutingPingSessionQuery);
+
+          if (entries==0) {
+            printf(" Ping session query: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingPingSessionQuery));
+            break;
+          }
+
+          ptr = (msg_RoutingPingSessionQuery *) &(resposta.info[0]);
+          printf("------------------------\r\n");
+          printf("  Index     = %u\r\n",  ptr->index);
+          printf("  isRunning = %u\r\n",  ptr->isRunning);
+          printf("  probeSent = %u\r\n",  ptr->probeSent);
+          printf("  probeSucc = %u\r\n",  ptr->probeSucc);
+          printf("  probeFail = %u\r\n",  ptr->probeFail);
+          printf("  minRtt    = %lu\r\n", ptr->minRtt);
+          printf("  maxRtt    = %lu\r\n", ptr->maxRtt);
+          printf("  avgRtt    = %lu\r\n", ptr->avgRtt);
+        }
+        else
+          printf(" Ping session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1447:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Sucessefully freed ping session\n\r");
+        else
+          printf(" Error %08x while freeing ping session\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1500:

@@ -3372,6 +3372,247 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    /***************************************************** 
+     * Routing messages
+     ****************************************************/
+    /* CCMSG_ROUTING_INTF_CREATE ****************************************/
+    case CCMSG_ROUTING_INTF_CREATE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", CCMSG_ROUTING_INTF_CREATE);
+
+      CHECK_INFO_SIZE(msg_RoutingIntfCreate);
+
+      msg_RoutingIntfCreate *data;
+      data = (msg_RoutingIntfCreate *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntfCreate));
+
+      /* Execute command */
+      rc = ptin_msg_routing_intf_create(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating new routing interface");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingIntfCreate);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_INTF_REMOVE ****************************************/
+    case CCMSG_ROUTING_INTF_REMOVE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", CCMSG_ROUTING_INTF_REMOVE);
+
+      CHECK_INFO_SIZE(msg_RoutingIntfRemove);
+
+      msg_RoutingIntfRemove *data;
+      data = (msg_RoutingIntfRemove *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntfRemove));
+
+      /* Execute command */
+      rc = ptin_msg_routing_intf_remove(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingIntfRemove);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_ARPTABLE_GET ****************************************/
+    case CCMSG_ROUTING_ARPTABLE_GET:
+    {
+      msg_RoutingArpTableRequest  *inputPtr;
+      msg_RoutingArpTableResponse *outputPtr;
+      L7_uint32                   maxEntries;
+      L7_uint32                   readEntries;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingArpTableRequest);
+
+      inputPtr   = (msg_RoutingArpTableRequest *)  inbuffer->info;
+      outputPtr  = (msg_RoutingArpTableResponse *) outbuffer->info;
+      maxEntries = IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse); //IPC buffer size / struct size
+
+      /* Execute command */
+      rc = ptin_msg_routing_arptable_get(inputPtr, outputPtr, maxEntries, &readEntries);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = readEntries * sizeof(msg_RoutingArpTableResponse);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      break;    
+    }
+
+    /* CCMSG_ROUTING_ARPENTRY_PURGE ****************************************/
+    case CCMSG_ROUTING_ARPENTRY_PURGE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", CCMSG_ROUTING_ARPENTRY_PURGE);
+
+      CHECK_INFO_SIZE(msg_RoutingArpEntryPurge);
+
+      msg_RoutingArpEntryPurge *data;
+      data = (msg_RoutingArpEntryPurge *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingArpEntryPurge));
+
+      /* Execute command */
+      rc = ptin_msg_routing_arpentry_purge(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing arp entry");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingArpEntryPurge);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_ROUTETABLE_GET ****************************************/
+    case CCMSG_ROUTING_ROUTETABLE_GET:
+    {
+      msg_RoutingRouteTableRequest  *inputPtr;
+      msg_RoutingRouteTableResponse *outputPtr;
+      L7_uint32                      maxEntries;
+      L7_uint32                      readEntries;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ROUTETABLE_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingRouteTableRequest);
+
+      inputPtr   = (msg_RoutingRouteTableRequest *)  inbuffer->info;
+      outputPtr  = (msg_RoutingRouteTableResponse *) outbuffer->info;
+      maxEntries = IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingRouteTableResponse); //IPC buffer size / struct size
+
+      /* Execute command */
+      rc = ptin_msg_routing_routetable_get(inputPtr, outputPtr, maxEntries, &readEntries);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = readEntries * sizeof(msg_RoutingRouteTableResponse);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      break;    
+    }
+
+    /* CCMSG_ROUTING_PINGSESSION_CREATE ****************************************/
+    case CCMSG_ROUTING_PINGSESSION_CREATE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", CCMSG_ROUTING_PINGSESSION_CREATE);
+
+      CHECK_INFO_SIZE(msg_RoutingPingSessionCreate);
+
+      msg_RoutingPingSessionCreate *data;
+      data = (msg_RoutingPingSessionCreate *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingPingSessionCreate));
+
+      /* Execute command */
+      rc = ptin_msg_routing_pingsession_create(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingPingSessionCreate);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_PINGSESSION_QUERY ****************************************/
+    case CCMSG_ROUTING_PINGSESSION_QUERY:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", CCMSG_ROUTING_PINGSESSION_QUERY);
+
+      CHECK_INFO_SIZE(msg_RoutingPingSessionQuery);
+
+      msg_RoutingPingSessionQuery *data;
+      data = (msg_RoutingPingSessionQuery *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingPingSessionQuery));
+
+      /* Execute command */
+      rc = ptin_msg_routing_pingsession_query(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingPingSessionQuery);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_PINGSESSION_FREE ****************************************/
+    case CCMSG_ROUTING_PINGSESSION_FREE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", CCMSG_ROUTING_PINGSESSION_FREE);
+
+      CHECK_INFO_SIZE(msg_RoutingPingSessionFree);
+
+      msg_RoutingPingSessionFree *data;
+      data = (msg_RoutingPingSessionFree *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingPingSessionFree));
+
+      /* Execute command */
+      rc = ptin_msg_routing_pingsession_free(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingPingSessionFree);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
     /* Set PRBS mode */
     case CCMSG_ETH_PCS_PRBS_ENABLE:
     {

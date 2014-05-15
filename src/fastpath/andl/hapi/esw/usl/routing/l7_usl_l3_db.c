@@ -2364,6 +2364,8 @@ int usl_db_l3_intf_create(USL_DB_TYPE_t dbType,
     if (dbHandle[id_idx].isValid == L7_FALSE)
       index_to_use = id_idx;
 
+    printf("%s (%d): l3a_intf_id %d\n", __FUNCTION__, __LINE__, info->bcm_data.l3a_intf_id);
+
     if ((dbHandle[id_idx].intfInfo.bcm_data.l3a_intf_id == info->bcm_data.l3a_intf_id) &&
         (dbHandle[id_idx].isValid == L7_TRUE))
     {

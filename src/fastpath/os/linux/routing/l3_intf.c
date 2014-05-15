@@ -154,6 +154,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
    pEtype = pdataStart + L7_ENET_HDR_SIZE;
    bcopy (pEtype, (L7_uchar8 *)&protocolType, sizeof(L7_ushort16));
    protocolType = ntohs(protocolType);
+#if 0 /* Ptin removed - routing support (Removed this because the ARP packet now arrives here with the dtl0 vlan) */
    if (protocolType == L7_ETYPE_8021Q)
    {
      L7_int32 index;
@@ -177,6 +178,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
      /* Set the new data length */
      SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, messageLen);
    }
+#endif
 
    offset = sysNetDataOffsetGet(pdataStart);
 

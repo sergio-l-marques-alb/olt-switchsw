@@ -1393,6 +1393,26 @@ extern L7_RC_t nimGetIntfAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_ucha
 * @end
 *********************************************************************/
 extern L7_RC_t nimSetIntfAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *macAddr);
+
+/*********************************************************************
+* @purpose  Sets a new L3 MAC address to the specified interface
+*
+* @param    intIfNum    Internal Interface Number
+* @param    addrType    address type requested (L7_SYSMAC_BIA, L7_SYSMAC_LAA,
+*                       or L7_NULL) L7_NULL will return currently configured
+*                       MAC Address
+* @param    macAddr     pointer to MAC Address,
+*                       (@b{Returns: 6 byte mac address})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+extern L7_RC_t nimSetIntfL3MacAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *macAddr);
 #endif
 
 /*********************************************************************

@@ -1092,6 +1092,9 @@ ipMapIntfEnable (L7_uint32 intIfNum,
     return L7_FAILURE;
   }
 
+  printf("Got intfnum:%u mac address to %02X:%02X:%02X:%02X:%02X:%02X\n", intIfNum,
+               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
   if (enableMode == IPMAP_RTR_INTF_ENABLE_HOST)
   {
     pCfg->flags |= L7_RTR_INTF_HOST;
@@ -1583,6 +1586,8 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   IPMAP_RTR_INTF_ENABLE_MODE_t enableMode;
   L7_INTF_IP_ADDR_METHOD_t method;
 
+  printf("%s(%u): intfNum:%u\n", __FUNCTION__, __LINE__, intIfNum);
+
   /* Assume no asych event generated unless we determine otherwise. */
   if (eventCompleted)
     *eventCompleted = L7_TRUE;
@@ -1590,6 +1595,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   /* validate we have ifnum to cfgid mapping */
   if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
   {
+    printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
     return(L7_SUCCESS);
   }
 
@@ -1602,7 +1608,10 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     if (rtrIntf == 0)
     {
       if (ipMapRoutingIntfCreate(intIfNum) != L7_SUCCESS)
+      {
+        printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
         return L7_FAILURE;
+      }
     }
   }
 
@@ -1622,8 +1631,10 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   /* Check if interface is down and should be up or if interface is up and
    * should be down. */
   enableMode = ipMapMayEnableInterface(intIfNum);
+  printf("%s(%u): ENABLE MODE IS: %u\n", __FUNCTION__, __LINE__, enableMode);
   if (enableMode == IPMAP_RTR_INTF_ENABLE_ROUTING)
   {
+    printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
     if (ipMapTraceFlags & IPMAP_TRACE_INTF_STATE_CHANGE)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
@@ -1636,6 +1647,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     /* Translate a Host interface to a Routing interface */
     if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_HOST_MODE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       ipMapIntfDisable(intIfNum);
       pIpMapInfo->operIntf[intIfNum].lastNotify = L7_RTR_INTF_DISABLE;
     }
@@ -1647,11 +1659,13 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
       if ((!pIpMapInfo->operIntf[intIfNum].asyncPending) &&
           (!pIpMapInfo->operRtr.asyncPending))
       {
+        printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
         return ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_ROUTING, method);
       }
     }
     else if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_ENABLE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       pIpMapInfo->operIntf[intIfNum].lastNotify = L7_RTR_INTF_DISABLE_PENDING;
       pIpMapInfo->operIntf[intIfNum].asyncPending = L7_TRUE;
       ipMapRoutingEventChangeNotify (intIfNum, L7_RTR_INTF_DISABLE_PENDING,
@@ -1664,11 +1678,13 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     }
     else
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Do Nothing */
     }
   }
   else if (enableMode == IPMAP_RTR_INTF_ENABLE_HOST)
   {
+    printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
     if (ipMapTraceFlags & IPMAP_TRACE_INTF_STATE_CHANGE)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
@@ -1681,6 +1697,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     /* Interface should be enabled */
     if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_DISABLE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Interface is not enabled. If no async event is pending for this
        * interface or for the router, bring up the interface. */
       if (!pIpMapInfo->operIntf[intIfNum].asyncPending &&
@@ -1689,12 +1706,14 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
         if ((pIpMapInfo->operIntf[intIfNum].stackEnabled != L7_TRUE) ||
             ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) != 0))
         {
+          printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
           return ipMapIntfEnable(intIfNum, IPMAP_RTR_INTF_ENABLE_HOST, method);
         }
       }
     }
     else if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_ENABLE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       pIpMapInfo->operIntf[intIfNum].lastNotify = L7_RTR_INTF_DISABLE_PENDING;
       pIpMapInfo->operIntf[intIfNum].asyncPending = L7_TRUE;
       ipMapRoutingEventChangeNotify (intIfNum, L7_RTR_INTF_DISABLE_PENDING,
@@ -1707,6 +1726,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     }
     else if (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_HOST_MODE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Interface is in Host Mode. Need to bring it down.
        * Assuming that no other protocols are interested in receiving Host Mode
        * notifications, directly disabling the interface here instead of posting
@@ -1717,11 +1737,13 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     }
     else
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Do Nothing */
     }
   }
   else
   {
+    printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
     if (ipMapTraceFlags & IPMAP_TRACE_INTF_STATE_CHANGE)
     {
       L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
@@ -1736,6 +1758,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
      * the interface or the router, no need to send the interface down. */
     if (pIpMapInfo->operIntf[intIfNum].asyncPending || pIpMapInfo->operRtr.asyncPending)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* tell caller not to respond to NIM. IP MAP can't process this NIM event yet
        * because another async event is still in progress. */
       if (eventCompleted)
@@ -1746,6 +1769,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     else if ((rtrIntf != 0) &&
              (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_ENABLE))
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Interface is enabled. Need to bring it down. */
       ipMapRoutingEventChangeNotify(intIfNum, L7_RTR_INTF_DISABLE_PENDING,
                                     L7_TRUE, L7_NULL);
@@ -1761,6 +1785,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     else if ((rtrIntf != 0) &&
              (pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_HOST_MODE))
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Interface is in Host Mode. Need to bring it down.
        * Assuming that no other protocols are interested in receiving Host Mode
        * notifications, directly disabling the interface here instead of posting
@@ -1776,8 +1801,10 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
   if ((pIpMapInfo->operIntf[intIfNum].lastNotify == L7_RTR_INTF_DISABLE) &&
       (rtrIntf > 0))
   {
+    printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
     if (pIpMapInfo->operIntf[intIfNum].stackEnabled == L7_TRUE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       ipMapIntfDisable(intIfNum);
     }
 
@@ -1785,6 +1812,7 @@ L7_RC_t ipMapIntfUpdate(L7_uint32 intIfNum, L7_uint32 *eventCompleted)
     if ((pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE) !=
         L7_RTR_INTF_ADMIN_MODE_ENABLE)
     {
+      printf("%s(%u): HERE\n", __FUNCTION__, __LINE__);
       /* Tell IPv4 software forwarding code that interface is gone. */
       (void)rtIfNetDelete(intIfNum);
 
@@ -1836,26 +1864,33 @@ ipMapMayEnableInterface (L7_uint32 intIfNum)
 
   if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
   {
+    printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
     return IPMAP_RTR_INTF_NO_ENABLE;
   }
 
   if ((pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE) == 0)
+  {
+    printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE (%08X)\n", __FUNCTION__, __LINE__, pCfg->flags);
     return IPMAP_RTR_INTF_NO_ENABLE;
+  }
 
   if (mirrorIsActiveProbePort(intIfNum) ||
       dot3adIsLagActiveMember(intIfNum))
   {
+    printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
     return IPMAP_RTR_INTF_NO_ENABLE;
   }
 
   if (ipMapIntfIsAttached(intIfNum) == L7_FALSE)
   {
+    printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
     return IPMAP_RTR_INTF_NO_ENABLE;
   }
 
   rc = nimGetIntfActiveState (intIfNum, &linkState);          
   if ((rc != L7_SUCCESS) || (linkState != L7_ACTIVE))
   {
+    printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
     return IPMAP_RTR_INTF_NO_ENABLE;
   }
 
@@ -1865,10 +1900,12 @@ ipMapMayEnableInterface (L7_uint32 intIfNum)
     if (((pCfg->addrs[0].ipAddr == 0) || (pCfg->addrs[0].ipMask == 0)) &&
         ((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0))
     {
+      printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
       return IPMAP_RTR_INTF_NO_ENABLE;
     }
     else
     {
+      printf("%s(%u): IPMAP_RTR_INTF_ENABLE_HOST\n", __FUNCTION__, __LINE__);
       return IPMAP_RTR_INTF_ENABLE_HOST;
     }
   }
@@ -1877,10 +1914,12 @@ ipMapMayEnableInterface (L7_uint32 intIfNum)
     if (((pCfg->flags & L7_RTR_INTF_ADDR_METHOD_DHCP) == 0) &&
        ((pCfg->addrs[0].ipAddr == 0) || (pCfg->addrs[0].ipMask == 0)))
     {
+      printf("%s(%u): IPMAP_RTR_INTF_NO_ENABLE\n", __FUNCTION__, __LINE__);
       return IPMAP_RTR_INTF_NO_ENABLE;
     }
   }
 
+  printf("%s(%u): IPMAP_RTR_INTF_ENABLE_ROUTING\n", __FUNCTION__, __LINE__);
   return IPMAP_RTR_INTF_ENABLE_ROUTING;
 }
 

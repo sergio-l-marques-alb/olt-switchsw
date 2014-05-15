@@ -92,6 +92,8 @@ void l3intfAddRoute(L7_uint32 network, L7_uint32 gateway, L7_uint32 netmask)
    int    sock;
    struct rtentry  rtEntry;
  
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
    {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LAYER3_COMPONENT_ID,
@@ -148,6 +150,8 @@ void l3intfDeleteRoute(L7_uint32 network, L7_uint32 gateway,
    int    sock;
    struct rtentry  rtEntry;
  
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
    {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LAYER3_COMPONENT_ID,
@@ -196,6 +200,8 @@ void l3BestRouteReport(L7_routeEntry_t *routeEntry,
   L7_uint32 netmask,ipAddr,gw;
   L7_uint32 routeCmd;
   L7_uint32 intIfNum;   /* outgoing interface to next hop router */
+
+  printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
   netmask = routeEntry->subnetMask;
   ipAddr = routeEntry->ipAddr;
@@ -306,6 +312,7 @@ void l3BestRouteReport(L7_routeEntry_t *routeEntry,
 
 
 #if !defined(L3INTF_USE_TAP)
+ascfacva
 /*********************************************************************
 * @purpose  Add the VRRP Ip address
 *
@@ -714,6 +721,7 @@ void l3intfVrrpFromMaster(L7_uint32 intIfNum)
 #endif
 
 #if !defined(L3INTF_USE_TAP)
+adasdasasd
 /*********************************************************************
 * @purpose  Filter out packets destined to the system IP address
 *
@@ -824,6 +832,8 @@ ipmRouterIfInitPhase1Process(L7_uint32 max_interfaces)
 {
     L7_uint32 i;
     L3INTF_INFO *ifInfo;
+
+    printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
     if (RouterIntfInitDone == L7_TRUE) 
     {
@@ -975,6 +985,7 @@ L7_RC_t ipmRouterIfCreate(L7_uint32 index, L7_uint32 intIfNum,
    L7_uint32 rtoGateway;
    char solicit_message[80];
 
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
    if (RouterIntfInitDone == L7_FALSE)
    {
@@ -1147,6 +1158,8 @@ L7_RC_t ipmRouterIfRemove(L7_uint32 intIfNum)
    L3INTF_INFO *ifInfo;
    L7_uint32 ipa;        /*ipaddr in host byte order */
 
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if (RouterIntfInitDone == L7_FALSE)
    {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LAYER3_COMPONENT_ID,
@@ -1253,6 +1266,8 @@ ipmRouterIfMapCreate ( L7_uint32 index, L7_uint32 intIfNum )
    L7_RC_t rc = L7_SUCCESS;
    struct ifreq ifr;
 
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if (RouterIntfInitDone == L7_FALSE)
      return L7_ERROR;
 
@@ -1338,6 +1353,8 @@ ipmRouterIfMapDelete ( L7_uint32 index, L7_uint32 intIfNum )
 {
    L3INTF_INFO *ifInfo;
 
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if (RouterIntfInitDone == L7_FALSE) {
 
       return L7_ERROR;
@@ -1408,6 +1425,8 @@ L7_RC_t ipmRouterIfSecondaryAddrAdd(L7_uint32 intIfNum, L7_uint32 ip,
 	L7_uint32 rtoGateway;
 	L7_uint32 rtrIfNum;
 	L7_uchar8 ifname[IFNAMSIZ];
+
+    printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
 	memset(&ifr, 0x00, sizeof(struct ifreq));
 	memset(ifname, 0x00, sizeof(ifname));
@@ -1550,6 +1569,8 @@ L7_RC_t ipmRouterIfSecondaryAddrDelete(L7_uint32 intIfNum, L7_uint32 ip,
 	L3INTF_INFO *ifInfo;
 	L7_uchar8 ifname[IFNAMSIZ];
 
+    printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
 	/* Cleanup data structures */
 
 	memset(ifname, 0x00, sizeof(ifname));
@@ -1691,6 +1712,8 @@ L7_uint32 ipmRouterIfDefaultGatewayGet (L7_uint32 intIfNum) {
  
 	L7_uint32 ifIndex;
  
+    printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
 	if (_ipMapIntIfNumToRtrIntf(intIfNum, &ifIndex) != L7_SUCCESS)
 	{
 		return 0;
@@ -1754,6 +1777,8 @@ L7_RC_t ipmRouterIfMetricGet(L7_uint32 intIfNum, L7_uint32 *metric)
 {
    struct ifreq ifr;
    L7_uint32 adminState, activeState;
+
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
    if (osapiIfNameStringGet(intIfNum, ifr.ifr_name,IFNAMSIZ) != L7_SUCCESS) {
 
@@ -1860,6 +1885,8 @@ ipmRouterIfDrvUp ( L7_uint32 intIfNum)
 
    rc = L7_SUCCESS;
 
+   printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
+
    if (osapiIfNameStringGet(intIfNum,ifr.ifr_name,IFNAMSIZ) != L7_SUCCESS)
    {
        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_IP_MAP_COMPONENT_ID,
@@ -1929,6 +1956,8 @@ L7_RC_t
 ipmRouterIfDrvDown ( L7_uint32 intIfNum)
 {
   struct ifreq ifr;
+
+  printf("\n ************* JVM: %s ************* \n", __FUNCTION__); fflush(stdout);
 
   if (osapiIfNameStringGet(intIfNum,ifr.ifr_name,IFNAMSIZ) != L7_SUCCESS)
   {

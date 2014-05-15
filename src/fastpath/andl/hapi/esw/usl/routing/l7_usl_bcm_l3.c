@@ -80,6 +80,8 @@ void l7_l3route_to_bcm(usl_bcm_l3_route_t *l7BcmRoute, bcm_l3_route_t *bcmRoute)
 {
   bcm_l3_route_t_init(bcmRoute);
  
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   bcmRoute->l3a_flags = l7BcmRoute->l3a_flags;
   bcmRoute->l3a_intf = l7BcmRoute->l3a_intf;
   bcmRoute->l3a_pri  = l7BcmRoute->l3a_pri;
@@ -166,16 +168,22 @@ int usl_bcm_l3_intf_create (usl_bcm_l3_intf_t *intf)
   int rv = BCM_E_NONE;
   L7_uint32 i;
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_INTF_DB_ID) == L7_TRUE)
   {
+    printf("%s (%d)\n", __FUNCTION__, __LINE__);
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
     {
+      printf("%s (%d)\n", __FUNCTION__, __LINE__);
       if (!SOC_IS_XGS_FABRIC(i))
       {
+        printf("%s (%d)\n", __FUNCTION__, __LINE__);
         rv = bcm_l3_intf_create (i, &(intf->bcm_data));
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
+          printf("%s (%d)\n", __FUNCTION__, __LINE__);
           break;
         }
       }
@@ -186,10 +194,12 @@ int usl_bcm_l3_intf_create (usl_bcm_l3_intf_t *intf)
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
       (USL_BCM_CONFIGURE_DB(USL_L3_INTF_DB_ID) == L7_TRUE))
   {
+    printf("%s (%d): l3a_intf_id=%d\n", __FUNCTION__, __LINE__, intf->bcm_data.l3a_intf_id);
+
     rv = usl_db_l3_intf_create(USL_CURRENT_DB, intf); 
   }
- 
 
+  printf("%s (%d): rv=%d\n", __FUNCTION__, __LINE__, rv);
   return rv;
 }
 
@@ -207,6 +217,8 @@ int usl_bcm_l3_intf_delete (usl_bcm_l3_intf_t *intf)
 {
   int rv = BCM_E_NONE, db_rv = BCM_E_NONE;
   L7_uint32 i;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_INTF_DB_ID) == L7_TRUE)
@@ -256,12 +268,15 @@ int usl_bcm_l3_host_add (usl_bcm_l3_host_t  *pHostInfo)
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_HOST_DB_ID) == L7_TRUE)
   {
+    printf("usl_bcm_l3_host_add (%d)\n", __LINE__);
+
     /* Add each of the host entries to all the local units */
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
         rv = bcm_l3_host_add (i, &bcmHostInfo);
+        printf("usl_bcm_l3_host_add (%d): rv=%d\n", __LINE__, rv);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;
@@ -269,14 +284,19 @@ int usl_bcm_l3_host_add (usl_bcm_l3_host_t  *pHostInfo)
       }
     }
   }
+
+  printf("usl_bcm_l3_host_add (%d)\n", __LINE__);
  
   /* Update the USL Db */
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
       (USL_BCM_CONFIGURE_DB(USL_L3_HOST_DB_ID) == L7_TRUE))
   {
+    printf("usl_bcm_l3_host_add (%d)\n", __LINE__);
     rv = usl_db_l3_host_add(USL_CURRENT_DB, pHostInfo);
+    printf("usl_bcm_l3_host_add (%d): rv=%d\n", __LINE__, rv);
   }
     
+  printf("usl_bcm_l3_host_add (%d): rv=%d\n", __LINE__, rv);
   return rv;
 }
 
@@ -293,6 +313,8 @@ int usl_bcm_l3_host_delete (usl_bcm_l3_host_t  *pHostInfo)
 {
   bcm_l3_host_t bcmHostInfo;
   L7_int32      i, rv = BCM_E_NONE, db_rv = BCM_E_NONE; 
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Convert from usl_bcm_l3_host_t to bcm_l3_host_t */
   l7_l3host_to_bcm(pHostInfo, &bcmHostInfo);
@@ -415,6 +437,7 @@ int usl_bcm_l3_route_delete (usl_bcm_l3_route_t  *pRouteInfo)
   /* Convert l7_bcm_route_t structure to bcm_l3_route_t */
   l7_l3route_to_bcm(pRouteInfo, &bcmRouteInfo);
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
     if (uslDebugL3Enable)
     {
@@ -505,6 +528,7 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
   int       rv = BCM_E_NONE;
   L7_uint32 i;
 
+  printf("usl_bcm_l3_egress_create (%d)\n", __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_EGR_NHOP_DB_ID) == L7_TRUE)
@@ -514,12 +538,22 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
     {
       if (!SOC_IS_XGS_FABRIC(i))
       {
+        /* PTIN Added */
+        egr->bcm_data.mpls_label = -1;
+        egr->bcm_data.dynamic_scaling_factor=-1;
+        egr->bcm_data.dynamic_load_weight=-1;
+
         rv = bcm_l3_egress_create (i, flags, &(egr->bcm_data), egrId);
+
+        printf("usl_bcm_l3_egress_create (%d): rv=%d\n", __LINE__, rv);
 
         /* PTin added: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         if (rv == BCM_E_UNAVAIL)
         {
+
+          printf("usl_bcm_l3_egress_create (%d): rv=%d\n", __LINE__, rv);
+
           LOG_WARNING(LOG_CTX_PTIN_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
           rv = BCM_E_INIT;
         }
@@ -527,6 +561,9 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
+
+          printf("usl_bcm_l3_egress_create (%d): rv=%d\n", __LINE__, rv);
+
           break;
         }
       }
@@ -537,9 +574,13 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
       (USL_BCM_CONFIGURE_DB(USL_L3_EGR_NHOP_DB_ID)  == L7_TRUE))
   {
+
+    printf("usl_bcm_l3_egress_create (%d): rv=%d\n", __LINE__, rv);
+
     rv = usl_db_l3_egress_create(USL_CURRENT_DB, *egrId, egr);
   }
 
+  printf("usl_bcm_l3_egress_create (%d): rv=%d\n", __LINE__, rv);
   return rv;
 }
 
@@ -560,6 +601,8 @@ int usl_bcm_l3_egress_destroy (usl_bcm_l3_egress_t *pBcmInfo, bcm_if_t egrId)
 {
   int       rv = BCM_E_NONE, db_rv = BCM_E_NONE;
   L7_uint32 i;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_EGR_NHOP_DB_ID) == L7_TRUE)
@@ -617,6 +660,8 @@ int usl_bcm_l3_egress_multipath_create (L7_uint32 flags,
   int       rv = BCM_E_NONE;
   L7_uint32 i;
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_MPATH_EGR_NHOP_DB_ID) == L7_TRUE)
   {
@@ -664,6 +709,8 @@ int usl_bcm_l3_egress_multipath_destroy (bcm_if_t mpIntf)
 {
   int       rv = BCM_E_NONE, db_rv = BCM_E_NONE;
   L7_uint32 i;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_MPATH_EGR_NHOP_DB_ID) == L7_TRUE)
@@ -715,6 +762,8 @@ int usl_bcm_l3_tunnel_initiator_set (bcm_l3_intf_t *intf,
   L7_uint32 i;
   int       rv = BCM_E_NONE;
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_TUNNEL_INITIATOR_DB_ID) == L7_TRUE)
   {
@@ -754,6 +803,8 @@ int usl_bcm_l3_tunnel_initiator_clear (bcm_l3_intf_t *intf)
 {
   L7_uint32 i;
   int       rv = BCM_E_NONE, db_rv = BCM_E_NONE;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_TUNNEL_INITIATOR_DB_ID) == L7_TRUE)
@@ -795,6 +846,8 @@ int usl_bcm_l3_tunnel_terminator_add(bcm_tunnel_terminator_t *terminator)
   bcm_port_config_t config;
   L7_uint32         i;
   int               rv = BCM_E_NONE;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_TUNNEL_TERMINATOR_DB_ID) == L7_TRUE)
@@ -841,6 +894,8 @@ int usl_bcm_l3_tunnel_terminator_delete(bcm_tunnel_terminator_t *terminator)
   bcm_port_config_t config;
   L7_uint32 i;
   int rv = BCM_E_NONE;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   /* Check if hw should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_L3_TUNNEL_TERMINATOR_DB_ID) == L7_TRUE)

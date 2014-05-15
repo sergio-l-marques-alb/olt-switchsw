@@ -820,7 +820,6 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
       break; /* goto while (0) */
     }
 
-
     /* setup the request block pointers */
     nimRequest.pDefaultCfg  = &defaultCfg;
     nimRequest.pIntfDescr   = &intfDescr;
@@ -830,7 +829,6 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
     /* setup the output block  */
     nimOutput.handle      = &handle;
     nimOutput.intIfNum    = pIntIfNum;
-
 
     /* Tell the system about the interface */
     if ((rc = nimIntfCreate(&nimRequest,&nimOutput)) != L7_SUCCESS)

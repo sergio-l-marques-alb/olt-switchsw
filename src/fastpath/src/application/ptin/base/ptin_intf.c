@@ -1544,26 +1544,44 @@ inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_por
  */
 inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
 {
-  L7_uint32 ptin_port;
-  L7_RC_t rc;
+  L7_uint32       ptin_port;
+  L7_RC_t         rc;
+  L7_INTF_TYPES_t intfType;
 
-  /* Get ptin_port*/
-  if ((rc=ptin_intf_intIfNum2port(intIfNum, &ptin_port))!=L7_SUCCESS)
-    return rc;
-
-  /* Validate ptin_port */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
-      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+  if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
-  /* Convert ptin_port to type+id format */
-  if (ptin_intf_port2ptintf(ptin_port,ptin_intf)!=L7_SUCCESS)
+  if(intfType == L7_LOGICAL_VLAN_INTF)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
-    return L7_FAILURE;
+    L7_uint32 minimum, maximum;
+    nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
+
+    ptin_intf->intf_type = PTIN_EVC_INTF_ROUTING;
+    ptin_intf->intf_id   = intIfNum - minimum;
+  }
+  else
+  {
+    /* Get ptin_port*/
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, &ptin_port))!=L7_SUCCESS)
+      return rc;
+
+    /* Validate ptin_port */
+    if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+        (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+      return L7_FAILURE;
+    }
+
+    /* Convert ptin_port to type+id format */
+    if (ptin_intf_port2ptintf(ptin_port,ptin_intf)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -1580,8 +1598,8 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
  */
 inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
 {
-  L7_uint32 ptin_port=0, intIfNum0;
-  L7_RC_t rc;
+  L7_uint32       ptin_port=0, intIfNum0;
+  L7_RC_t         rc;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -1590,25 +1608,42 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint32 *intI
     return L7_FAILURE;
   }
 
-  /* Calculate ptin_port index */
-  if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+  if(ptin_intf->intf_type == PTIN_EVC_INTF_ROUTING)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_intf %u/%u to ptin_port", ptin_intf->intf_type,ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
+    if(ptin_intf->intf_id == (L7_uint8)-1)
+    {
+      *intIfNum = (L7_uint32)-1;
+    }
+    else
+    {
+      L7_uint32 minimum, maximum;
 
-  /* Get interface# */
-  if ((rc=ptin_intf_port2intIfNum(ptin_port,&intIfNum0))!=L7_SUCCESS)
-    return rc;
-  /* Validate intIfNum */
-  if (intIfNum0==0 || intIfNum0>=L7_MAX_INTERFACE_COUNT)
+      nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
+      *intIfNum = minimum + ptin_intf->intf_id;
+    }
+  }
+  else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "IntIfNum is out of range (%u)",intIfNum);
-    return L7_FAILURE;
-  }
+    /* Calculate ptin_port index */
+    if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_intf %u/%u to ptin_port", ptin_intf->intf_type,ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
 
-  /* Return intIfNum */
-  if (intIfNum!=L7_NULLPTR)  *intIfNum = intIfNum0;
+    /* Get interface# */
+    if ((rc=ptin_intf_port2intIfNum(ptin_port,&intIfNum0))!=L7_SUCCESS)
+      return rc;
+    /* Validate intIfNum */
+    if (intIfNum0==0 || intIfNum0>=L7_MAX_INTERFACE_COUNT)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "IntIfNum is out of range (%u)",intIfNum);
+      return L7_FAILURE;
+    }
+
+    /* Return intIfNum */
+    if (intIfNum!=L7_NULLPTR)  *intIfNum = intIfNum0;
+  }
 
   return L7_SUCCESS;
 }

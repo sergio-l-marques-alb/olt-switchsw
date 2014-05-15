@@ -284,6 +284,8 @@ int usl_bcmx_l3_intf_create(usl_bcm_l3_intf_t *info)
 
   USL_L3_INTF_BCMX_LOCK_TAKE();
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   do
   {
     /* Allocate L3 Id */
@@ -299,6 +301,8 @@ int usl_bcmx_l3_intf_create(usl_bcm_l3_intf_t *info)
       info->bcm_data.l3a_flags |= BCM_L3_WITH_ID;
     }
     
+    printf("%s (%d): l3a_intf_id=%d\n", __FUNCTION__, __LINE__, info->bcm_data.l3a_intf_id);
+
     /* Check if the hardware should be configured */
     if (USL_BCMX_CONFIGURE_HW(USL_L3_INTF_DB_ID) == L7_TRUE)
     {
@@ -468,6 +472,8 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
 
   USL_L3_EGR_NHOP_BCMX_LOCK_TAKE();  
 
+  printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
+
   do
   {
     usl_trace_sync_detail(USL_L3_EGR_NHOP_DB_ID, 
@@ -488,6 +494,9 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
       /* Allocate Egress nhop Id if not already given */
       if ((pFlags[i] & BCM_L3_WITH_ID) == L7_FALSE)
       {
+
+        printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
+
         rv[i] = usl_l3_egr_nhop_hw_id_allocate(tmpBcmInfo, &index);
         if (rv[i] != BCM_E_NONE)
         {
@@ -505,6 +514,8 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
                               uslStr);
         pEgrIntf[i] = index;
         pFlags[i] |= BCM_L3_WITH_ID;
+
+        printf("%s (%d): Egress nhop Id=%d\n\r", __FUNCTION__, __LINE__, index);
       }
 
       tmpBcmInfo++;
@@ -528,6 +539,7 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
                             "Calling RPC Api...\n");
       result = l7_rpc_client_l3_egress_create(pFlags, pBcmInfo, count,
                                               pEgrIntf, rv, 0, L7_NULL);
+      printf("%s (%d): result=%d\n\r", __FUNCTION__, __LINE__, result);
     }
     else /* Populate the output parameters */
     {
@@ -540,6 +552,8 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
 
     if (result == L7_FAILURE)
       break;
+
+    printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
 
     tmpBcmInfo = pBcmInfo;
     for (i=0; i < count; i++, tmpBcmInfo++)
@@ -558,6 +572,7 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
       {
         usl_trace_sync_detail(USL_L3_EGR_NHOP_DB_ID, 
                               "Updating Db..\n");
+        printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
         rv[i] = usl_db_l3_egress_create(USL_CURRENT_DB, pEgrIntf[i], tmpBcmInfo);
         if (L7_BCMX_OK(rv[i]) != L7_TRUE)
         {
@@ -578,6 +593,7 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
                         pEgrIntf[i]); 
           usl_trace_sync_detail(USL_L3_EGR_NHOP_DB_ID, 
                                 uslStr);
+          printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
           usl_l3_egr_nhop_hw_id_free(pEgrIntf[i]);    
         }
       }
@@ -587,6 +603,7 @@ L7_RC_t usl_bcmx_l3_egress_create(L7_uint32 *pFlags,
 
   USL_L3_EGR_NHOP_BCMX_LOCK_GIVE();
 
+  printf("%s (%d)\n\r", __FUNCTION__, __LINE__);
   return result;
 }
 
@@ -902,12 +919,18 @@ L7_RC_t usl_bcmx_l3_host_add(usl_bcm_l3_host_t *info, L7_uint32 count, L7_int32 
     if (USL_BCMX_CONFIGURE_HW(USL_L3_HOST_DB_ID) == L7_TRUE)
     {
       result = l7_rpc_client_l3_host_add(info, count, rv, 0, L7_NULL);
+
+      for (i=0; i < count; i++)
+      {
+        USL_LOG_MSG(USL_BCM_E_LOG, "JVM: %d USL: Error adding ARP/NDP entry of IP(%s) to Hw, rv[%d]=%d, result=%d\n", __LINE__, addr_str, i, rv[i], result);
+      }
     }
     else /* Populate the output parameters */
     {
       result = L7_SUCCESS;
       for (i=0; i < count; i++)
       {
+        USL_LOG_MSG(USL_BCM_E_LOG, "JVM: %d USL: Error adding ARP/NDP entry of IP(%s) to Hw, rv[%d]=%d, result=%d\n", __LINE__, addr_str, i, rv[i], result);
         rv[i] = BCM_E_NONE;
       }
     }
@@ -935,8 +958,8 @@ L7_RC_t usl_bcmx_l3_host_add(usl_bcm_l3_host_t *info, L7_uint32 count, L7_int32 
                        : (void *)&info->hostKey.addr.l3a_ip_addr),
                        addr_str, sizeof(addr_str));
           USL_LOG_MSG(USL_BCM_E_LOG,
-                      "USL: Error adding ARP/NDP entry of IP(%s) to Hw, rv=%d\n",
-                      addr_str, rv[i]);
+                      "USL: Error adding ARP/NDP entry of IP(%s) to Hw, rv[%d]=%d\n",
+                      addr_str, i, rv[i]);
         }
       }
       else

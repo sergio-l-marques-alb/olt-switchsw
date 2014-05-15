@@ -62,7 +62,7 @@
 /* PTin added: inband */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      1
-#define __SUPPORT_FP_ROUTING__                0
+#define __SUPPORT_FP_ROUTING__                1
 #define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #else
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      1
@@ -70,6 +70,7 @@
 
 #define DTL0INBANDVID 4093
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
+extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 
@@ -976,6 +977,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    /* PTin added: Initialize L2 flags */
    info->dtlCmdInfo.cmdType.L2.flags = 0;
 
+   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Packet... (vid=%d)\n\r", dtl0Vid);
+
    /*
     *zero out the dtlCmd structure
     */
@@ -1014,18 +1017,19 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       }
       else
       {
-         #if __SUPPORT_FP_ROUTING__
-
-          vid = dtl0Vid;
-
-         #else
-
+//       #if __SUPPORT_FP_ROUTING__
+//
+//        vid = dtl0Vid;
+//
+//       #else
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): dtl0Vid:%u\n\r", dtl0Vid);
          vid = ptin_ipdtl0_getOuterVid(dtl0Vid);      /* This is the packet outer VID */
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): vid:%u\n\r", vid);
 
          ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
 
-
          vid = ptin_ipdtl0_getInternalVid(dtl0Vid);   /* This is the internal VID */
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): internalVid:%u\n\r", vid);
          if (vid == 0)
          {
             if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
@@ -1036,7 +1040,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
             goto dtlSendCmdExit;
          }
 
-         #endif
+//       #endif
       }
    }
    else
@@ -1140,7 +1144,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                /* Search for this key: if not found, return success */
                if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
                {
-                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                keyToFind[0], keyToFind[1],
                                keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
                }
@@ -1219,12 +1223,12 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                /* Vlan+MAC to search for */
                memcpy(&keyToFind[0], &vid, sizeof(L7_uint16));
-               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[6], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
+               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
             
                /* Search for this key: if not found, return success */
                if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
                {
-                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                keyToFind[0], keyToFind[1],
                                keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
                }

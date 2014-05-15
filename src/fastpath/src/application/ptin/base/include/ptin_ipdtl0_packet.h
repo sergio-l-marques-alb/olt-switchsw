@@ -82,12 +82,13 @@ L7_RC_t ptin_ipdtl0_deinit(void);
  * 
  * @param dtl0Vid 
  * @param outerVid 
+ * @param internalVid 
  * @param intfNum 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 intfNum, L7_BOOL enable);
+L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 intfNum, L7_BOOL enable);
 
 /**
  * Enables/Disables IP/ARP packets through dtl0
@@ -102,6 +103,17 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 int
  * @return L7_RC_t 
  */
 L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, L7_BOOL enable);
+
+/**
+ * Get dtl9 VLAN ID from internal VLAN ID
+ * 
+ * @author daniel (15/4/2013)
+ * 
+ * @param intVid 
+ * 
+ * @return L7_uint16 dtl0Vid
+ */
+L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 intVid);
 
 /**
  * Get Internal VLAN ID from dtl0 VLAN ID
@@ -128,6 +140,7 @@ L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 #endif  /* _PTIN_IP_DTL0_PACKET_H */
 
 #else
+L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 intVid);
 L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
 L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid);
 #endif /* PTIN_ENABLE_DTL0TRAP */

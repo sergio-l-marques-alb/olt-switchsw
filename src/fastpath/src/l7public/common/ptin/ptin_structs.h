@@ -394,6 +394,7 @@ typedef struct
 /* EVC details per interface */
 #define PTIN_EVC_INTF_PHYSICAL      0
 #define PTIN_EVC_INTF_LOGICAL       1
+#define PTIN_EVC_INTF_ROUTING       2
 #define PTIN_EVC_INTF_ROOT          0
 #define PTIN_EVC_INTF_LEAF          1
 

@@ -183,6 +183,8 @@ int l7_rpc_client_l3_intf_create(usl_bcm_l3_intf_t *info,
     rpcIntfResp[i].data_len = 0;
   }
 
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
+
   result = hpcHardwareRpc (L7_ALL_UNITS,
                            L7_RPC_L3_INTF_CREATE,
                            &rpc_data,
@@ -207,6 +209,8 @@ int l7_rpc_client_l3_intf_create(usl_bcm_l3_intf_t *info,
           if (rpcIntfResp[i].data_len == sizeof(bcm_if_t))
           {
             info->bcm_data.l3a_intf_id = *(bcm_if_t *)rpcIntfResp[i].buf;
+
+            printf("%s (%d): l3a_intf_id=%d\n", __FUNCTION__, __LINE__, info->bcm_data.l3a_intf_id);
           }
           else 
             rv = BCM_E_INTERNAL;
@@ -246,6 +250,8 @@ L7_RC_t l7_rpc_server_l3_intf_create (L7_uint32 transaction_id,
 {
   int rv = BCM_E_NONE;
   usl_bcm_l3_intf_t intf;
+
+  printf("%s (%d)\n", __FUNCTION__, __LINE__);
 
   memcpy(&intf, rpc_data->buf, sizeof(intf));
 
@@ -377,9 +383,12 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
   usl_bcm_l3_host_t *pBcmHostInfo;
   L7_int32 *pResp;
 
+  L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): ******************* JVM *******************\n", __LINE__);
+
   if ((count == 0) || (count > l7_custom_rpc_l3_max_host_get()))
   {
     /* No data or too much data */
+    L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add: (%d) count=%d\n", __LINE__, count);
     return L7_FAILURE;
   }
 
@@ -411,6 +420,9 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
 
   if (result != L7_SUCCESS)
   {
+
+    L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): No response from unit %d, result=%d\n", __LINE__, i, result);
+
     return L7_FAILURE;
   }
 
@@ -430,8 +442,8 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
       /* Process the response and application status */
       if ((app_status[i] == L7_SUCCESS) && (rpcHostResp[i].data_len > 0))
       {
-        L7_RPC_L3_DEBUG("l7_rpc_server_l3_host_add: Received %d resp from unit %d\n",
-                        rpcHostResp[i].data_len, i);
+        L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): Received %d resp from unit %d\n",
+                        __LINE__, rpcHostResp[i].data_len, i);
 
         /* Check response length */
         if (rpcHostResp[i].data_len == (count * sizeof(L7_int32)))
@@ -447,11 +459,14 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
           }
         }
         else
+        {
+          L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): No response from unit %d, result=%d\n", __LINE__, i, result);
           result = L7_FAILURE; /* Didn't get the expected response */
+        }
       }
       else
       {
-        L7_RPC_L3_DEBUG("l7_rpc_server_l3_host_add: No response from unit %d\n", i);
+        L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): No response from unit %d, result=%d\n", __LINE__, i, result);
         result = L7_FAILURE;
       }
     }
@@ -460,6 +475,9 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
   /* Check the overall result of the transaction */
   if (result == L7_FAILURE)
   {
+
+    L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): No response from unit %d, result=%d\n", __LINE__, i, result);
+
     /* Here if RPC didn't complete on all existing units, or we didn't get
      * expected reponse from existing units. Fail all the entries so that
      * all units are in sync.
@@ -470,6 +488,7 @@ L7_RC_t l7_rpc_client_l3_host_add(usl_bcm_l3_host_t * info,
     }
   }
  
+  L7_RPC_L3_DEBUG("l7_rpc_client_l3_host_add (%d): JVM, result=%d\n", __LINE__, result);
   return result;
 }
 
@@ -493,6 +512,8 @@ L7_RC_t l7_rpc_server_l3_host_add (L7_uint32 transaction_id,
   L7_int32 rv;
   L7_int32 *pResp;
   L7_uint32 resp_len = 0;
+
+  L7_RPC_L3_DEBUG("l7_rpc_server_l3_host_add (%d): ******************* JVM *******************\n", __LINE__);
 
   if (rpc_data->data_len == 0) /* No data */
   {
@@ -528,9 +549,10 @@ L7_RC_t l7_rpc_server_l3_host_add (L7_uint32 transaction_id,
     pResp[j] = rv;
     resp_len += sizeof(rv);
     pHostInfo++;
+
+    L7_RPC_L3_DEBUG("l7_rpc_server_l3_host_add: count %d, returning rv %d, resp %d\n", count, rv, resp_len);
   }
 
-  L7_RPC_L3_DEBUG("l7_rpc_server_l3_host_add: returning resp %d\n", resp_len);
 
   rpc_resp->data_len = resp_len;
  
@@ -1137,6 +1159,10 @@ L7_RC_t l7_rpc_client_l3_egress_create(L7_uint32 *pFlags, usl_bcm_l3_egress_t *p
   L7_int32 app_status [L7_MAX_UNITS_PER_STACK + 1];
   l7RpcEgrInfo_t *pRpcEgrInfo;
   l7RpcEgrResp_t *pRpcEgrResp;
+
+  printf("l7_rpc_client_l3_egress_create (%d): pFlags=0x%x, mac %.2x:%.2x:%.2x:%.2x:%.2x:%.2x, intf=%d, port=%d\n", 
+		   __LINE__, *pFlags, pBcmInfo->bcm_data.mac_addr[0], pBcmInfo->bcm_data.mac_addr[1], pBcmInfo->bcm_data.mac_addr[2], 
+         pBcmInfo->bcm_data.mac_addr[3], pBcmInfo->bcm_data.mac_addr[4], pBcmInfo->bcm_data.mac_addr[5], pBcmInfo->bcm_data.intf, pBcmInfo->bcm_data.port);
 
   if ((count == 0) || (count > l7_custom_rpc_l3_max_egress_nhop_get()))
   {

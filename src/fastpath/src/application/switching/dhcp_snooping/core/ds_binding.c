@@ -889,20 +889,8 @@ static L7_RC_t dsLeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint inetFamily
     return L7_SUCCESS;
   }
 
-  if(L7_AF_INET == inetFamily)
-  {
-    dsInfo->dsDbDataChanged = L7_TRUE;
-    binding->leaseStatus    = messageType;
-  }
-  else if(L7_AF_INET6 == inetFamily)
-  {
-    /* 
-     * DHCPv6 message types start at value 1.
-     * However, in our enum DHCPv6 lease status start at 11. So, we must add an hardcoded 10 to the mesage type
-     */
-    dsInfo->dsDbDataChanged = L7_TRUE;
-    binding->leaseStatus    = messageType + 10; 
-  }
+  dsInfo->dsDbDataChanged = L7_TRUE;
+  binding->leaseStatus    = messageType;
 
   return L7_SUCCESS;
 }
@@ -1104,6 +1092,12 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 *********************************************************************/
 L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 {
+  /* 
+   * DHCPv6 message types start at value 1.
+   * However, in our enum DHCPv6 lease status start at 11. So, we must add an hardcoded 10 to the mesage type
+   */
+  messageType += 10; 
+
   return dsLeaseStatusUpdate(macAddr, L7_AF_INET6, messageType);
 }
 

@@ -73,6 +73,15 @@ extern int canal_buga;
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_REMOVE       0x9042  // struct msg_evcStats_t
 
+#define CCMSG_ROUTING_INTF_CREATE           0x9043  // struct msg_RoutingIntfCreate
+#define CCMSG_ROUTING_INTF_REMOVE           0x9044  // struct msg_RoutingIntfRemove
+#define CCMSG_ROUTING_ARPTABLE_GET          0x9045  // struct msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
+#define CCMSG_ROUTING_ARPENTRY_PURGE        0x9046  // struct msg_RoutingArpEntryPurge
+#define CCMSG_ROUTING_ROUTETABLE_GET        0x9047  // struct msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
+#define CCMSG_ROUTING_PINGSESSION_CREATE    0x9048  // struct msg_RoutingPingSessionCreate
+#define CCMSG_ROUTING_PINGSESSION_QUERY     0x9049  // struct msg_RoutingPingSessionQuery
+#define CCMSG_ROUTING_PINGSESSION_FREE      0x904A  // struct msg_RoutingPingSessionFree
+
 #define CCMSG_ETH_BW_PROFILE_SET            0x9050  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
@@ -143,6 +152,7 @@ extern int canal_buga;
 typedef uint8    L7_uint8;
 typedef uint16   L7_uint16;
 typedef uint32   L7_uint32;
+typedef int32    L7_int32;
 typedef uint64   L7_uint64;
 
 
@@ -499,6 +509,120 @@ typedef struct {
   L7_uint32 LACPdus_rx;          // LACPdu's received
   L7_uint32 LACPdus_tx;          // LACPdu's transmitted
 } __attribute__((packed)) msg_LACPStats_t;
+
+/***************************************************** 
+ * Routing messages
+ ****************************************************/
+
+// Message CCMSG_ROUTING_INTF_CREATE
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t intf;
+   L7_uint16            routingVlanId;
+   L7_uint32            evcId;
+   L7_uint32            ipAddress;
+   L7_uint32            subnetMask;
+} __attribute__((packed)) msg_RoutingIntfCreate;
+
+// Message CCMSG_ROUTING_INTF_REMOVE
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t intf;
+   L7_uint16            routingVlanId;
+} __attribute__((packed)) msg_RoutingIntfRemove;
+
+// Message CCMSG_ROUTING_ARPTABLE_GET
+#define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC   1
+#define CCMSG_ROUTING_ARPTABLE_TYPE_DYNAMIC  2
+#define CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL    3
+#define CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY  4
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t intf;
+   L7_uint32            lastIndex;
+} __attribute__((packed)) msg_RoutingArpTableRequest;
+typedef struct
+{
+   L7_uint16            index;
+   msg_HwEthInterface_t intf;
+   L7_uint8             type;
+   L7_uint32            age;
+   L7_uint32            ipAddr;
+   L7_uint8             macAddr[6];
+} __attribute__((packed)) msg_RoutingArpTableResponse;
+
+// Message CCMSG_ROUTING_ARPENTRY_PURGE
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t intf;
+   L7_int32             ipAddr;
+} __attribute__((packed)) msg_RoutingArpEntryPurge;
+
+// Message CCMSG_ROUTING_ROUTETABLE_GET
+#define CCMSG_ROUTING_ROUTETABLE_PROTOCOL_LOCAL   1
+#define CCMSG_ROUTING_ROUTETABLE_PROTOCOL_STATIC  2
+#define CCMSG_ROUTING_ROUTETABLE_PROTOCOL_MPLS    3
+#define CCMSG_ROUTING_ROUTETABLE_PROTOCOL_RIP     16
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t intf;
+   L7_uint32            lastIndex;
+} __attribute__((packed)) msg_RoutingRouteTableRequest;
+typedef struct
+{
+   L7_uint16            index;
+   msg_HwEthInterface_t intf;
+   L7_uint8             protocol;
+   struct
+   {
+      L7_uint32 days;
+      L7_uint32 hours;
+      L7_uint32 minutes;
+      L7_uint32 seconds;
+   }                    updateTime;
+   L7_uint32            ipAddr;
+   L7_uint32            subnetMask;
+   L7_uint32            preference;
+   L7_uint32            metric;
+} __attribute__((packed)) msg_RoutingRouteTableResponse;
+
+// Message CCMSG_ROUTING_PINGSESSION_CREATE
+typedef struct
+{
+   L7_uint16 slotId;
+   L7_uint16 index;
+   L7_uint32 dstIpAddr; 
+   L7_uint16 probeCount; 
+   L7_uint16 probeSize; 
+   L7_uint16 probeInterval;
+} __attribute__((packed)) msg_RoutingPingSessionCreate;
+
+// Message CCMSG_ROUTING_PINGSESSION_QUERY
+typedef struct
+{
+   L7_uint16 slotId;
+   L7_uint16 index;
+   L7_uint8  isRunning;
+   L7_uint16 probeSent;
+   L7_uint16 probeSucc;
+   L7_uint16 probeFail;
+   L7_uint32 minRtt; 
+   L7_uint32 maxRtt; 
+   L7_uint32 avgRtt; 
+} __attribute__((packed)) msg_RoutingPingSessionQuery;
+
+// Message CCMSG_ROUTING_PINGSESSION_FREE
+typedef struct
+{
+   L7_uint16 slotId;
+   L7_uint16 index;
+} __attribute__((packed)) msg_RoutingPingSessionFree;
+
 
 /***************************************************** 
  * EVCs messages

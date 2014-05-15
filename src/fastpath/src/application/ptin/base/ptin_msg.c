@@ -36,6 +36,7 @@
 #include "fdb_api.h"
 
 #include "ptin_acl.h"
+#include "ptin_routing.h"
 
 #include "snooping_api.h"
 
@@ -2655,7 +2656,7 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
 
-    #if 0 //(PTIN_BOARD_IS_MATRIX)
+    #if (PTIN_BOARD_IS_MATRIX)
     /* PTP: Workaround */
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
@@ -8670,6 +8671,306 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
   return 0;
 } //msg_wr_802_1x_AuthServ
 #endif //__802_1x__
+
+/**
+ * Create new routing interface.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntfCreate* data)
+{
+  ptin_intf_t intf;
+  L7_uint16   internalRootVlan;
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new routing interface:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf          = %u/%u", data->intf.intf_type, data->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingVlanId = %u",    data->routingVlanId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
+
+  intf.intf_type = data->intf.intf_type;
+  intf.intf_id   = data->intf.intf_id;
+
+  if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to convert evc_id to internal root vlan");
+    return L7_FAILURE;
+  }
+
+  if(L7_SUCCESS != ptin_routing_intf_create(&intf, data->routingVlanId, internalRootVlan))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
+    return L7_FAILURE;
+  }
+
+  if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&intf, L7_AF_INET, data->ipAddress, data->subnetMask))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove an existing routing interface.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data)
+{
+  ptin_intf_t intf;
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing an existing routing interface:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf          = %u/%u", data->intf.intf_type, data->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingVlanId = %u",    data->routingVlanId);
+
+  intf.intf_type = data->intf.intf_type;
+  intf.intf_id   = data->intf.intf_id;
+
+  if(L7_SUCCESS != ptin_routing_intf_remove(&intf, data->routingVlanId))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove the existing routing interface");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get ARP table.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries)
+{
+  ptin_intf_t intf;
+  L7_uint32   intfNum;
+
+  if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting ARP table:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    maxEntries);
+
+  intf.intf_type = inBuffer->intf.intf_type;
+  intf.intf_id   = inBuffer->intf.intf_id;
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /*
+   I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
+   However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
+  */
+  if(L7_SUCCESS != ptin_routing_arptable_get(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get the ARP table");
+    return L7_FAILURE;
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Delete ARP entry.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
+{
+  ptin_intf_t intf;
+  L7_uint32   intfNum;
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ARP entry:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Intf       = %u/%u", data->intf.intf_type, data->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Address = %08X",  data->ipAddr);
+
+  intf.intf_type = data->intf.intf_type;
+  intf.intf_id   = data->intf.intf_id;
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  if(L7_SUCCESS != ptin_routing_arpentry_purge(intfNum, data->ipAddr))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove the existing ARP entry");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get route table.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, msg_RoutingRouteTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries)
+{
+  ptin_intf_t intf;
+  L7_uint32   intfNum;
+
+  if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting route table:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    maxEntries);
+
+  intf.intf_type = inBuffer->intf.intf_type;
+  intf.intf_id   = inBuffer->intf.intf_id;
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /*
+   I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
+   However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
+  */
+  if(L7_SUCCESS != ptin_routing_routetable_get(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get the route table");
+    return L7_FAILURE;
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Start a ping request.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_create(msg_RoutingPingSessionCreate* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new ping session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index         = %u", data->index);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %u", data->dstIpAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeCount    = %u", data->probeCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u", data->probeSize);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u", data->probeInterval);
+
+  if(L7_SUCCESS != ptin_routing_pingsession_create(data->index, data->dstIpAddr, data->probeCount, data->probeSize, data->probeInterval))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create new ping session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get ping session status.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Querying ping session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index = %u", data->index);
+
+  /*
+   I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
+   However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
+   */
+  if(L7_SUCCESS != ptin_routing_pingsession_query(data))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to query ping session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Free existing ping session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing ping session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index = %u", data->index);
+
+  if(L7_SUCCESS != ptin_routing_pingsession_free(data->index))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 
 
 /**

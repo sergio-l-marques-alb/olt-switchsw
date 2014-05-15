@@ -31,6 +31,7 @@
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
 #include "ptin_prot_typeb.h"
+#include "ptin_routing.h"
 #include "ptin_ssm.h"
 #include "ptin_prot_erps.h"
 #include "ptin_ipdtl0_packet.h"
@@ -401,6 +402,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
   #endif
 
+  /* Create a new TxQueue to handle responses from MGMD */
+  ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
+
   /* Initialize IPC message runtime measurements */
   CHMessage_runtime_meter_init((L7_uint) -1);
 
@@ -418,9 +422,6 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
     PTIN_CRASH();
   }
-
-  /* Create a new TxQueue to handle responses from MGMD */
-  ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 
@@ -585,6 +586,9 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize OAM data structures (includes task and timer) */
   ptin_oam_eth_init();
+
+  /* Initialize Routing data structures */
+  ptin_routing_init();
 
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 

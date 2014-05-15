@@ -1185,5 +1185,88 @@ extern int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 
  */
 extern void ptin_msg_protection_matrix_configuration_flush_end(void);
 
+/****************************************************************************** 
+ * Routing
+ ******************************************************************************/
+
+/**
+ * Create new routing interface.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntfCreate* data);
+
+/**
+ * Remove an existing routing interface.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data);
+
+/**
+ * Get ARP table.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries);
+
+/**
+ * Delete ARP entry.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data);
+
+/**
+ * Get route table.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, msg_RoutingRouteTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries);
+
+/**
+ * Start a ping request.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_create(msg_RoutingPingSessionCreate* data);
+
+/**
+ * Get ping session status.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data);
+
+/**
+ * Free existing ping session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data);
+
+
 #endif /* _PTIN_MSG_H */
 
