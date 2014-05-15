@@ -761,6 +761,9 @@ void sysapiSetMacAddress(L7_uchar8  *portMac,L7_uchar8 *sysMac, L7_uint32 portNu
   L7_uint32     portMacLs4b, sysMacLs4b;
   L7_ushort16   portMacMs2b, sysMacMs2b;
 
+  printf("%s(%u) portNumber:%u SysMac:%02X:%02X:%02X:%02X:%02X:%02X\n", __FUNCTION__, __LINE__, portNumber,
+         sysMac[0], sysMac[1], sysMac[2], sysMac[3], sysMac[4], sysMac[5]);
+
   portMacMs2b = (portMac[0] << 8) | portMac[1];
   portMacLs4b = (portMac[2] << 24) | (portMac[3] << 16) | (portMac[4] << 8) | (portMac[5]);
 
@@ -787,6 +790,8 @@ void sysapiSetMacAddress(L7_uchar8  *portMac,L7_uchar8 *sysMac, L7_uint32 portNu
   portMac[4] = (portMacLs4b >> 8)  & 0x000000ff;
   portMac[5] = (portMacLs4b )      & 0x000000ff;
 
+  printf("%s(%u) portMac:%02X:%02X:%02X:%02X:%02X:%02X\n", __FUNCTION__, __LINE__,
+         portMac[0], portMac[1], portMac[2], portMac[3], portMac[4], portMac[5]);
 }
 
 /*********************************************************************

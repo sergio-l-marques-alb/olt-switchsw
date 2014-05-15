@@ -273,6 +273,10 @@ extern L7_RC_t pingSessionSync( pingSessionTable_t *pingEntry );
 extern L7_RC_t pingSessionAsync( void );
 extern L7_BOOL pingDebugPathTraceFlagGet();
 extern void pingDebugPathTraceFlagSet(L7_BOOL flag);
+
+
+//#define PING_PATH_TRACE printf
+
 #define PING_PATH_TRACE(__fmt__, __args__... )                              \
   if (pingDebugPathTraceFlagGet() == L7_TRUE)                  \
 {                                                                 \

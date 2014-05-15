@@ -2070,6 +2070,23 @@ L7_RC_t nimGetIntfAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *mac
 
 /* PTin added: MAC address */
 #if 1
+void nimSetIntfAddressDaniel(L7_uint32 intIfNum, L7_uint terminator)
+{
+  L7_uchar8 addr[L7_ENET_MAC_ADDR_LEN];
+
+  /* MARTELADA */
+  addr[0] = 0x00;
+  addr[1] = 0x06;
+  addr[2] = 0x91;
+  addr[3] = 0x55;
+  addr[4] = 0x55;
+  addr[5] = terminator;
+
+  printf("Setting intfnum:%u mac address to %02X:%02X:%02X:%02X:%02X:%02X\n", intIfNum,
+           addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+  nimSetIntfAddress(intIfNum, L7_NULL, addr);
+}
 /*********************************************************************
 * @purpose  Sets a new MAC address to the specified interface
 *
@@ -2119,6 +2136,68 @@ L7_RC_t nimSetIntfAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *mac
       else if (addrType == L7_SYSMAC_BIA)
       {
         memcpy(nimCtlBlk_g->nimPorts[intIfNum].operInfo.macAddr.addr, macAddr, L7_MAC_ADDR_LEN);
+      }
+      else
+      {
+        memcpy(nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.LAAMacAddr.addr, macAddr, L7_MAC_ADDR_LEN);
+      }
+    }
+
+    NIM_CRIT_SEC_READ_EXIT();
+  }
+
+  return(rc);
+}
+
+/*********************************************************************
+* @purpose  Sets a new L3 MAC address to the specified interface
+*
+* @param    intIfNum    Internal Interface Number
+* @param    addrType    address type requested (L7_SYSMAC_BIA, L7_SYSMAC_LAA,
+*                       or L7_NULL) L7_NULL will return currently configured
+*                       MAC Address
+* @param    macAddr     pointer to MAC Address,
+*                       (@b{Returns: 6 byte mac address})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t nimSetIntfL3MacAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *macAddr)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (nimPhaseStatusCheck() != L7_TRUE)
+  {
+    rc = (L7_FAILURE);
+    NIM_LOG_MSG("NIM: incorrect phase for operation\n");
+  }
+  else
+  {
+    NIM_CRIT_SEC_READ_ENTER();
+
+    IS_INTIFNUM_PRESENT(intIfNum,rc);
+
+    if (rc == L7_SUCCESS)
+    {
+      if (addrType == L7_NULL)
+      {
+        if (nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.addrType == L7_SYSMAC_BIA)
+        {
+          memcpy(nimCtlBlk_g->nimPorts[intIfNum].operInfo.l3MacAddr.addr, macAddr, L7_MAC_ADDR_LEN);
+        }
+        else
+        {
+          memcpy(nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.LAAMacAddr.addr, macAddr, L7_MAC_ADDR_LEN);
+        }
+      }
+      else if (addrType == L7_SYSMAC_BIA)
+      {
+        memcpy(nimCtlBlk_g->nimPorts[intIfNum].operInfo.l3MacAddr.addr, macAddr, L7_MAC_ADDR_LEN);
       }
       else
       {
