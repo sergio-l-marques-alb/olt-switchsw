@@ -159,7 +159,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
     return;
   }
 
-  HAPI_BROAD_L3_ASYNC_DBG("hapiBroadL3AsyncNhopWlistProcess has work\n\r");
+  HAPI_BROAD_L3_ASYNC_DBG("hapiBroadL3AsyncNhopWlistProcess has work");
 
   do
   {
@@ -209,19 +209,12 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
                        
           hapiPortPtr = HAPI_PORT_GET(&(pNhop->key.addrUsp.usp), dapi_g);
           pNhop->l3_intf_id = hapiPortPtr->l3_interface_id;
-
-          printf("%s (%d): l3_intf_id=%d\n", __FUNCTION__, __LINE__, pNhop->l3_intf_id);
         }
-
-        printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhop->flags);
 
         /* Local next hops should go to CPU */
         if ((pNhop->flags & BROAD_L3_NH_RESOLVED) && 
             !(pNhop->flags & BROAD_L3_NH_LOCAL))
         {
-
-          printf("%s (%d)\n", __FUNCTION__, __LINE__);
-
           /* Next hop is resolved. Use the actual L3 interface */
           hapiPortPtr = HAPI_PORT_GET(&(pMac->usp), dapi_g);
 
@@ -257,9 +250,6 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
         }
         else
         {
-
-          printf("%s (%d)\n", __FUNCTION__, __LINE__);
-
           /* Next hop is not resolved or is local. Point it to CPU L3 interface */
           cpuHapiPortPtr = hapiBroadL3CpuHapiPortGet(dapi_g);
           bcmEgrObj.bcm_data.vlan = HPC_STACKING_VLAN_ID;

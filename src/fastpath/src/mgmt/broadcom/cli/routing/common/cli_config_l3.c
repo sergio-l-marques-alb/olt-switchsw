@@ -993,7 +993,6 @@ const L7_char8 *commandIpAddress(EwsContext ewsContext, L7_uint32 argc, const L7
           }
           else
           {
-            printf("\n######################Setting %u for %u to %08X / %08X\n", unit, iface,  IPaddr, subnetMask);
             rc = usmDbIpRtrIntfIPAddressSet(unit, iface,  IPaddr, subnetMask,
                                             L7_INTF_IP_ADDR_METHOD_CONFIG);
           }
@@ -1933,8 +1932,6 @@ const L7_char8 *commandInterfaceRouting(EwsContext ewsContext, L7_uint32 argc, c
         continue;
       }
 
-      printf("Checking intf %u on unit %u\n", intIface, unit);
-
       if (cliValidateRtrIntf(ewsContext, intIface) != L7_SUCCESS )
       {
         status = L7_FAILURE;
@@ -1942,7 +1939,6 @@ const L7_char8 *commandInterfaceRouting(EwsContext ewsContext, L7_uint32 argc, c
         ewsTelnetWriteAddBlanks (1, 1, 0, 0, pStrErr_common_CouldNot,  ewsContext, pStrErr_common_CantGetValidIntf);
         continue;
       }
-      printf("Setting intf %u mode to L7_ENABLE\n", intIface);
       if ( usmDbIpRtrIntfModeSet(unit, intIface, intMode) != L7_SUCCESS )
       {
         status = L7_FAILURE;

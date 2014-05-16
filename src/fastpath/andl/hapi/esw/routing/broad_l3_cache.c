@@ -389,8 +389,6 @@ void hapiBroadL3NhopCacheCommit (void)
     return;
   }
 
-  printf("%s (%d)", __FUNCTION__, __LINE__);
-
   pBcmInfo = hapiBroadL3NhopCache.pBcmInfo;
   pEgrIntf  = hapiBroadL3NhopCache.pEgressId;
   pFlags    = hapiBroadL3NhopCache.pFlags;
@@ -402,8 +400,6 @@ void hapiBroadL3NhopCacheCommit (void)
   {
     result = usl_bcmx_l3_egress_create(pFlags, pBcmInfo,
                                        count, pEgrIntf, rv_array);
-
-    printf("%s (%d); result=%d", __FUNCTION__, __LINE__, result);
 
     if (result != L7_SUCCESS)
     {

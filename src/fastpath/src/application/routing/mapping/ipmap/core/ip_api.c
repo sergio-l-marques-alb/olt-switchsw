@@ -1806,15 +1806,9 @@ L7_RC_t ipMapRtrIntfModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
   }
 
   if (pCfg->flags & L7_RTR_INTF_ADMIN_MODE_ENABLE)
-  {
-    printf("%s(%u): intIfNum:%u L7_ENABLE (%08X)\n", __FUNCTION__, __LINE__, intIfNum, pCfg->flags);
     *mode = L7_ENABLE;
-  }
   else
-  {
-    printf("%s(%u): intIfNum:%u L7_DISABLE (%08X)\n", __FUNCTION__, __LINE__, intIfNum, pCfg->flags);
     *mode = L7_DISABLE;
-  }
 
   ipMapLockGive(IPMAP_READ_LOCK, __FUNCTION__);
   return L7_SUCCESS;
@@ -1840,8 +1834,6 @@ L7_RC_t ipMapRtrIntfModeSet( L7_uint32 intIfNum, L7_uint32 mode)
   L7_rtrCfgCkt_t *pCfg;
   L7_uint32 currentMode;
   L7_uint32 oldFlags;
-
-  printf("%s(%u): intIfNum:%u mode:%u\n", __FUNCTION__, __LINE__, intIfNum, mode);
 
   /*    Validity Checking     */
   if ((mode != L7_ENABLE) && (mode != L7_DISABLE))
@@ -2398,18 +2390,12 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
   L7_uint32 j;
   L7_RC_t rc;
 
-  printf("%s(%u): intIfNum:%u ipAddress:%08X subnetMask:%08X\n", __FUNCTION__, __LINE__, intIfNum, ipAddress, subnetMask);
-
   if (ipMapLockTake(IPMAP_WRITE_LOCK, IPMAP_LOCK_WAIT, __FUNCTION__) != L7_SUCCESS)
-  {
-    printf("%s(%u): FAILURE ipMapLockTake\n", __FUNCTION__, __LINE__);
     return L7_FAILURE;
-  }
 
   if (ipMapMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE ipMapMapIntfIsConfigurable\n", __FUNCTION__, __LINE__);
     return L7_FAILURE;
   }
 
@@ -2417,7 +2403,6 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
   if ((pCfg->flags & L7_RTR_INTF_UNNUMBERED) != 0)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): NOT_EXIST\n", __FUNCTION__, __LINE__);
     return L7_NOT_EXIST;        /* stretching to find an unnused code! */
   }
 
@@ -2425,7 +2410,6 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
   if (ipMapRtrIntfIpAddressValidityCheck(ipAddress, subnetMask) != L7_SUCCESS)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE ipMapRtrIntfIpAddressValidityCheck\n", __FUNCTION__, __LINE__);
     return L7_FAILURE;
   }
 
@@ -2441,7 +2425,6 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
       ipMapRtrIntfAddressConflictFind(intIfNum, ipAddress, subnetMask))
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE ipMapMgmtPortConflict || ipMapRtrIntfAddressConflictFind\n", __FUNCTION__, __LINE__);
     return L7_ERROR;
   }
 
@@ -2449,7 +2432,6 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
   if (ipMapSrNextHopIpAddressConflictCheck(ipAddress) == L7_TRUE)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE ipMapSrNextHopIpAddressConflictCheck\n", __FUNCTION__, __LINE__);
     return L7_REQUEST_DENIED;
   }
 
@@ -2458,7 +2440,6 @@ L7_RC_t ipMapRtrIntfIpAddressSet(L7_uint32 intIfNum,
   if (ipMapStaticArpIpAddressConflictCheck(ipAddress) == L7_TRUE)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE ipMapStaticArpIpAddressConflictCheck\n", __FUNCTION__, __LINE__);
     return L7_REQUEST_DENIED;
   }
 
@@ -2472,7 +2453,6 @@ are configured. See defect 48936.
     if (pCfg->addrs[j].ipAddr != L7_NULL_IP_ADDR)
     {
       ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      printf("%s(%u): ALREADY_CONFIGURED\n", __FUNCTION__, __LINE__);
       return L7_ALREADY_CONFIGURED;
     }
   }
@@ -2509,7 +2489,6 @@ are configured. See defect 48936.
               "Failed removing IP address from interface %s. Error %d.",
               ifName, rc);
       ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-      printf("%s(%u): FAILURE ipMapRtrIntfIpAddressRemoveProcess\n", __FUNCTION__, __LINE__);
       return L7_FAILURE;
     }
   }
@@ -2518,7 +2497,6 @@ are configured. See defect 48936.
   if (rtoRouteReserve() != L7_SUCCESS)
   {
     ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-    printf("%s(%u): FAILURE rtoRouteReserve\n", __FUNCTION__, __LINE__);
     return L7_TABLE_IS_FULL;
   }
 
@@ -2542,7 +2520,6 @@ are configured. See defect 48936.
     rtoRouteUnReserve();
   }
   ipMapLockGive(IPMAP_WRITE_LOCK, __FUNCTION__);
-  printf("%s(%u): RETURN %u\n", __FUNCTION__, __LINE__, rc);
   return rc;
 }
 

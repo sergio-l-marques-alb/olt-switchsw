@@ -1371,8 +1371,6 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
 
   vid = dapiCmd->cmdData.rtrIntfAdd.vlanID;
 
-  printf("%s (%d)\n", __FUNCTION__, __LINE__);
-
   HAPI_BROAD_L3_DEBUG(broadL3Debug,
                       "hapiBroadL3IntfCreate - "
                       "usp = %u.%u.%u, vid = %d, "
@@ -3186,8 +3184,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
     return L7_FAILURE;
   }
 
-  printf("%s (%d): flags=0x%x\n\r", __FUNCTION__, __LINE__, dapiCmd->cmdData.arpAdd.flags);
-
   /* if this host entry is not resolved, don't add it */
   if ((dapiCmd->cmdData.arpAdd.flags & DAPI_ROUTING_ARP_DEST_KNOWN) == 0)
   {
@@ -3275,8 +3271,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
   pMacEntry = hapiBroadL3MacEntryAdd(usp, &(dapiCmd->cmdData.arpAdd.macAddr),
                                      dapi_g);
 
-  printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, dapiCmd->cmdData.arpAdd.flags);
-
   /* Check if MAC entry resolves to a tunnel */
   if (pMacEntry->pTunnelEntry != L7_NULL)
   {
@@ -3306,8 +3300,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
   {
     /* Create the next hop entry */
     pNhopEntry = hapiBroadL3NhopEntryAdd(&nhKey, dapi_g);
-
-    printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
   }
   else
   {
@@ -3320,15 +3312,9 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
   if (pNhopEntry->pMac == L7_NULL)
   {
     hapiBroadL3MacNhopLink (pNhopEntry, pMacEntry);
-
-
-    printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
   }
   else
   {
-
-    printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
-
     /* Here, if the next hop for this host already had a MAC address.
      * See notes. A host add can be issued on a existing host entry
      * instead of a modify
@@ -3340,8 +3326,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
        /* Unlink the nhop from old MAC entry and link it to the new MAC */
        hapiBroadL3MacNhopUnlink(pNhopEntry);
        hapiBroadL3MacNhopLink (pNhopEntry, pMacEntry);
-
-       printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
      }
      else
      {
@@ -3349,12 +3333,10 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
        if (pNhopEntry->pMac->resolved == L7_TRUE)
        {
          pNhopEntry->flags |= BROAD_L3_NH_RESOLVED;
-         printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
        }
        else
        {
          pNhopEntry->flags &= ~BROAD_L3_NH_RESOLVED;
-         printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
        }
      }
   }
@@ -3401,7 +3383,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
     /* Host entry not found. Create it */
     pHostEntry = hapiBroadL3AvlInsert(&hapiBroadL3HostTree, &host);
 
-    printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
     if (pHostEntry != L7_NULL)
     {
       pHostEntry->pNhop = pNhopEntry;
@@ -3413,8 +3394,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
         pHostEntry->flags |= BROAD_L3_HOST_LOCAL;
         pNhopEntry->flags |= BROAD_L3_NH_LOCAL;
       }
-
-      printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
 
       /* Enqueue the host to the work list */
       pHostEntry->wl.cmd = BROAD_L3_HOST_CMD_ADD;
@@ -3431,13 +3410,11 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
       pHostEntry->flags |= BROAD_L3_HOST_TUNNEL;
       pHostEntry->pTunNhop = pTunNhop;
       hapiBroadL3TunnelHostMacLink(pHostEntry, pMacEntry);
-      printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
     }
   }
 
   /* Modify the next hop to resolve any routes dependent on this host */
   hapiBroadL3NhopEntryUpdate(pNhopEntry, BROAD_L3_NH_CMD_MODIFY);
-  printf("%s (%d): flags=0x%x\n", __FUNCTION__, __LINE__, pNhopEntry->flags);
 
   HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
 
@@ -3464,7 +3441,6 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
 * @end
 *
 *******************************************************************************/
-#include <unistd.h>
 static BROAD_L3_MAC_ENTRY_t * hapiBroadL3MacEntryAdd(DAPI_USP_t *usp,
                                                      L7_enetMacAddr_t *pMacAddr,
                                                      DAPI_t *dapi_g)
@@ -3527,13 +3503,11 @@ static BROAD_L3_MAC_ENTRY_t * hapiBroadL3MacEntryAdd(DAPI_USP_t *usp,
       {
         /* Treat all MACs on port based routing interface as resolved */
         pMacEntry->resolved = L7_TRUE;
-        printf("%s (%d): resolved = %d\n", __FUNCTION__, __LINE__, pMacEntry->resolved);
       }
       else
       {
         /* For VLAN intf, next hop is resolved if L2 MAC entry is resolved */
         pMacEntry->resolved = L7_FALSE; /* Init to unresolved */
-        printf("%s (%d): resolved = %d\n", __FUNCTION__, __LINE__, pMacEntry->resolved);
       }
 
       /*
@@ -3726,9 +3700,6 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   /* Note: The BCMX call returns as soon as the L2 entry is found on one of the
    * units (local units first)
    */
-
-  printf("%s (%d): mac=0x%.2x:%.2x:%.2x:%.2x:%.2x:%.2x, VLAN ID=%d\n", __FUNCTION__, __LINE__,
-         pMac->key.macAddr[0], pMac->key.macAddr[1], pMac->key.macAddr[2], pMac->key.macAddr[3], pMac->key.macAddr[4], pMac->key.macAddr[5], pMac->key.vlanId);
 
   for (local_bcm_unit = 0;
        local_bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES);

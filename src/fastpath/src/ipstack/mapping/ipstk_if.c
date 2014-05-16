@@ -857,7 +857,6 @@ L7_RC_t ipstkStackIfIndexGet(L7_uchar8 *ifname, L7_uint32 *ifIndex)
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if(fd < 0)
     {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID, "JVM: ipstkStackIfIndexGet (%d): Failed to get interface index from IP stack for interface %s.", __LINE__, ifname);
         return L7_FAILURE;
     }
 
@@ -866,7 +865,6 @@ L7_RC_t ipstkStackIfIndexGet(L7_uchar8 *ifname, L7_uint32 *ifIndex)
     if (ioctl(fd, SIOCGIFINDEX, &ifreq) < 0)
     {
         (void)close(fd);
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID, "JVM: ipstkStackIfIndexGet (%d): Failed to get interface index from IP stack for interface %s.", __LINE__, ifname);
         return L7_FAILURE;
     }
     *ifIndex = ifreq.ifr_ifindex;

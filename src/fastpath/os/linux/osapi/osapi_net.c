@@ -997,8 +997,6 @@ L7_RC_t osapiIfIpv4MtuSet(L7_uint32 intIfNum, L7_uint32 ipv4Mtu)
     strcpy(ifreq.ifr_name, ifName);
     ifreq.ifr_ifru.ifru_mtu = ipv4Mtu;
 
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSAPI_COMPONENT_ID, "osapiIfIpv4MtuSet: ifName %s, MTU %d\n",ifName, ipv4Mtu);
-
     if (ioctl(fd, SIOCSIFMTU, &ifreq) < 0)
     {
         (void)close(fd);

@@ -28,9 +28,6 @@
 #include <linux/if.h>
 
 
-#include "ping_exports.h" //Remove...
-
-
 /*********************************************************** 
  * Defines
  ***********************************************************/
@@ -90,6 +87,32 @@ typedef struct ptin_routing_pingsession_s
   L7_uint32 maxRtt; 
   L7_uint32 avgRtt; 
 } ptin_routing_pingsession_t;
+
+typedef struct ptin_routing_traceroutesession_s
+{
+  L7_uint8  index;
+
+  /* Session configuration */
+  L7_uint32 ipAddr; 
+  L7_uint16 probePerHop; 
+  L7_uint16 probeSize; 
+  L7_uint16 probeInterval;
+  L7_BOOL   dontFrag;
+  L7_uint16 port;
+  L7_uint16 maxTtl;
+  L7_uint16 initTtl;
+  L7_uint16 maxFail;
+
+  /* Session status */
+  L7_uint16 handle;
+  L7_BOOL   isRunning;
+  L7_uint16 probeSent;
+  L7_uint16 probeSucc;
+  L7_uint16 probeFail;
+  L7_uint32 minRtt; 
+  L7_uint32 maxRtt; 
+  L7_uint32 avgRtt; 
+} ptin_routing_traceroutesession_t;
 
 
 /*********************************************************** 

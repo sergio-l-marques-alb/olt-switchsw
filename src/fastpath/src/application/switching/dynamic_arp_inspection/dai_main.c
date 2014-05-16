@@ -1554,8 +1554,6 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uchar8 vidMac[L7_FDB_KEY_SIZE], vrId;
   dot1dTpFdbData_t fdbEntry;
 
-  printf("%s(%u) Forwarding frame with vlan %u\n", __FUNCTION__, __LINE__, vlanId);
-
   offset = sysNetDataOffsetGet(frame);
   arp_pkt = (L7_ether_arp_t *)(frame + offset);
 
@@ -1668,7 +1666,6 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   memset(vidMac, 0, L7_FDB_KEY_SIZE);
   (void)usmDbEntryVidMacCombine(vlanId, eth_header->dest.addr, vidMac);
 
-  printf("%s(%u) Searching entry\n", __FUNCTION__, __LINE__);
   memset(&fdbEntry, 0, sizeof(fdbEntry));
   if(L7_SUCCESS == fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry))
   {
@@ -1678,7 +1675,6 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* If Destination mac is not found in FDB table, flood the ARP Request/Reply
    * packet to other ports in the VLAN as is done in the h/w */
 
-  printf("%s(%u) Flooding frame with vlan %u\n", __FUNCTION__, __LINE__, vlanId);
   return daiFrameFlood(intIfNum, vlanId, frame, frameLen);
 }
 
@@ -1811,7 +1807,6 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     return L7_SUCCESS;
   }
 
-  /* JVM TRACE */
   {
     L7_uchar8 daiTrace[DAI_MAX_TRACE_LEN];
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
@@ -1848,7 +1843,6 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   memcpy(dataStart, frame, frameLen);
   SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
 
-  printf("#################### Entrei aqui!\n");
   return dtlIpBufSend(intIfNum, vlanId, bufHandle);
 }
 

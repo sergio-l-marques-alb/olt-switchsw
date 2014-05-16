@@ -2070,23 +2070,6 @@ L7_RC_t nimGetIntfAddress(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *mac
 
 /* PTin added: MAC address */
 #if 1
-void nimSetIntfAddressDaniel(L7_uint32 intIfNum, L7_uint terminator)
-{
-  L7_uchar8 addr[L7_ENET_MAC_ADDR_LEN];
-
-  /* MARTELADA */
-  addr[0] = 0x00;
-  addr[1] = 0x06;
-  addr[2] = 0x91;
-  addr[3] = 0x55;
-  addr[4] = 0x55;
-  addr[5] = terminator;
-
-  printf("Setting intfnum:%u mac address to %02X:%02X:%02X:%02X:%02X:%02X\n", intIfNum,
-           addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-
-  nimSetIntfAddress(intIfNum, L7_NULL, addr);
-}
 /*********************************************************************
 * @purpose  Sets a new MAC address to the specified interface
 *

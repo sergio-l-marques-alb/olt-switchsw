@@ -1026,10 +1026,8 @@ L7_RC_t usmDbIpRtrIntfIPAddressSet(L7_uint32 UnitIndex,
 {
   L7_uint32 intfType;
 
-  printf("%s(%u): UnitIndex:%u intfNum:%u ipAddress:%08X subnetMask:%08X\n", __FUNCTION__, __LINE__, UnitIndex, intIfNum, ipAddress, subnetMask);
   if (usmDbIntfTypeGet(intIfNum, &intfType) != L7_SUCCESS)
   {
-      printf("%s(%u): FAILURE usmDbIntfTypeGet\n", __FUNCTION__, __LINE__);
       return L7_FAILURE;
   }
   else if( (intfType == L7_PHYSICAL_INTF)
@@ -1037,12 +1035,10 @@ L7_RC_t usmDbIpRtrIntfIPAddressSet(L7_uint32 UnitIndex,
   {
       /* Block configuration of  an IP address to a physical port if VLAN
          routing is enabled.  */
-      printf("%s(%u): NOT_SUPPORTED usmDbComponentPresentCheck\n", __FUNCTION__, __LINE__);
       return L7_NOT_SUPPORTED;
   }
   else
   {
-      printf("%s(%u): ipMapRtrIntfIpAddressSet\n", __FUNCTION__, __LINE__);
       return(ipMapRtrIntfIpAddressSet(intIfNum,  ipAddress, subnetMask, method));
   }
 }
