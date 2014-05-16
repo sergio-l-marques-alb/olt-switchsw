@@ -514,7 +514,7 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
-    if (PTIN_MGMD_CLIENT_IS_MASKBITSET(portList.value,portId))
+    if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       ptin_mgmd_stat_increment_field(portId, serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
   }  
   
