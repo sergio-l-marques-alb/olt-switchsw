@@ -1391,7 +1391,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
       ptin_measurement_timer_start(29,"ptin_mgmd_groupspecifictimer_start");
-      ptin_mgmd_groupspecifictimer_start(groupEntry, portId, igmpCfg);
+      ptin_mgmd_groupspecifictimer_start(groupEntry, portId, clientId, igmpCfg);
       ptin_measurement_timer_stop(29);
     }
   }
@@ -1400,7 +1400,7 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
-    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
+    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId, clientId, igmpCfg);
   }
 
   //Recursivly call ourselvs to add this entry in the root interface
@@ -1776,7 +1776,7 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   if (sendGroupSpecificQuery==TRUE && PTIN_MGMD_ROOT_PORT != portId)
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));    
-    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
+    ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId, clientId, igmpCfg);
   }
 
   /* Add client to the interface bitmap if it does not exist */
@@ -2036,7 +2036,7 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
     {
       //Send the Q(G,S)
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
-      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
+      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId, clientId, igmpCfg);
     }
   }
   else if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_EXCLUDE)
@@ -2090,7 +2090,7 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
     if (PTIN_MGMD_ROOT_PORT != portId)
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Schedule Group & Source Specific Query G=%s", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf));
-      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId,igmpCfg);
+      ptin_mgmd_groupsourcespecifictimer_start(groupEntry, portId, clientId, igmpCfg);
     }
 
     /* Add client to the interface bitmap if it does not exist */

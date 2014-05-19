@@ -22,8 +22,8 @@ typedef struct groupSourceSpecificQueriesSource_s groupSourceSpecificQueriesSour
 typedef struct
 {  
   ptin_mgmd_inet_addr_t  groupAddr;
-  uint32            serviceId;
-  uint16            portId;
+  uint32                 serviceId;  
+  uint16                 portId;
 } groupSourceSpecificQueriesAvlKey_t;
 
 struct groupSourceSpecificQueriesSource_s
@@ -32,7 +32,7 @@ struct groupSourceSpecificQueriesSource_s
   groupSourceSpecificQueriesSource_t  *prev;
 
   ptin_mgmd_inet_addr_t                sourceAddr;
-  uint8                                retransmissions;
+  uint8                                retransmissions;  
 };
 
 typedef struct
@@ -48,6 +48,8 @@ typedef struct
   uint8                                 retransmissions;
   BOOL                                  supressRouterSideProcessing;
   uint8                                 compatibilityMode;       //ptin_mgmd_compatibility_mode_t
+
+  uint32                                clientId;
 
   PTIN_MGMD_TIMER_t                     timerHandle;
 

@@ -204,7 +204,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_init(PTIN_MGMD_TIMER_t *timerPtr)
 }
 
 
-RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId, ptin_IgmpProxyCfg_t *igmpCfg)
+RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId, uint32 clientId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
   groupSourceSpecificQueriesAvl_t *timerData; 
   uchar8                           queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
@@ -250,7 +250,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
 
   //Send Group-Source specific query to all leaf ports for this service
   queryPckt.serviceId  = groupEntry->ptinMgmdGroupInfoDataKey.serviceId;  
-  queryPckt.clientId = (uint32)-1;
+  queryPckt.clientId   = clientId;
   queryPckt.family     = PTIN_MGMD_AF_INET;
   if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, portId))
   {
@@ -294,7 +294,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
       }
       timerData->retransmissions = igmpCfg->querier.last_member_query_count-1;
       timerData->compatibilityMode = groupEntry->ports[portId].groupCMTimer.compatibilityMode;
-
+      timerData->clientId          = clientId;      
       if(gtTimeLeft > lmqt)
       {
         timerData->supressRouterSideProcessing = TRUE;
@@ -321,6 +321,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
     ptin_mgmd_timer_stop(__controlBlock, timerData->timerHandle);
     ptin_measurement_timer_stop(1);
     timerData->retransmissions = igmpCfg->querier.last_member_query_count-1;
+    timerData->clientId        = clientId;
 
     if(igmpCfg->querier.last_member_query_count==1)
     {
@@ -345,7 +346,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
 }
 
 
-RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId,ptin_IgmpProxyCfg_t *igmpCfg)
+RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uint16 portId, uint32 clientId, ptin_IgmpProxyCfg_t *igmpCfg)
 {
   uchar8                                 queryHeader[PTIN_MGMD_MAX_FRAME_SIZE] = {0};
   uint32                                 queryHeaderLength = 0;
@@ -393,6 +394,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
   }
 
   timerData->compatibilityMode = groupEntry->ports[portId].groupCMTimer.compatibilityMode;
+  timerData->clientId          = clientId;
   if(timerData->numberOfSources != 0)
   {
     if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
@@ -433,7 +435,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
 
       //Send Group-Source specific query to all leaf ports for this service
       queryPckt.serviceId  = timerData->key.serviceId;  
-      queryPckt.clientId = (uint32)-1;
+      queryPckt.clientId   = clientId;
       queryPckt.family     = PTIN_MGMD_AF_INET;
       if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, timerData->key.portId))
       {
@@ -829,7 +831,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
 
     //Send Group-Source specific query to all leaf ports for this service
     queryPckt.serviceId  = timerData->key.serviceId;  
-    queryPckt.clientId = (uint32)-1;
+    queryPckt.clientId   = timerData->clientId;
     queryPckt.family     = PTIN_MGMD_AF_INET;
     if(SUCCESS != ptinMgmdPacketPortSend(&queryPckt, PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY, timerData->key.portId))
     {

@@ -11761,12 +11761,14 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
  * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
  *  
  */
-L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
+L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
 {
-  L7_uint i_client=0, child_clients;
+  L7_uint                        i_client = 0;            
+  L7_uint                        child_clients;
   ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpClientGroupInfoData_t *clientGroup;
   ptinIgmpClientDevice_t        *client_device;
+  L7_uint32                      clientExtendedEvcId;
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
@@ -11795,11 +11797,20 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 intIfNum, L7_uchar8 *clientBmpP
       } 
       if(clientIntIfNum==intIfNum)
       #endif
+
+      #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+      if(L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(clientGroup->igmpClientDataKey.outerVlan,&clientExtendedEvcId))
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get external EVC Id for outerVlan:%u", clientGroup->igmpClientDataKey.outerVlan);        
+        continue;
+      }
+      if(clientExtendedEvcId==extendedEvcId)
+      #endif
       {
         PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, client_device->client->client_index);     
         (*noOfClients)++;
         if(ptin_debug_igmp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client Found [PortId:%u ClientId:%u]",clientIntIfNum,client_device->client->client_index);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Client Found [ServiceId:%u PortId:%u ClientId:%u]",clientExtendedEvcId, clientIntIfNum,client_device->client->client_index);
       }
     }
 
