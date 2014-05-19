@@ -8896,13 +8896,13 @@ L7_RC_t ptin_msg_routing_pingsession_create(msg_RoutingPingSessionCreate* data)
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index         = %u", data->index);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %u", data->dstIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeCount    = %u", data->probeCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u", data->probeSize);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u", data->probeInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeCount    = %u",   data->probeCount);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u",   data->probeSize);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u",   data->probeInterval);
 
-  if(L7_SUCCESS != ptin_routing_pingsession_create(data->index, data->dstIpAddr, data->probeCount, data->probeSize, data->probeInterval))
+  if(L7_SUCCESS != ptin_routing_pingsession_create(data->sessionIdx, data->dstIpAddr, data->probeCount, data->probeSize, data->probeInterval))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create new ping session");
     return L7_FAILURE;
@@ -8928,7 +8928,7 @@ L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data)
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Querying ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index = %u", data->index);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -8960,11 +8960,146 @@ L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  index = %u", data->index);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
 
-  if(L7_SUCCESS != ptin_routing_pingsession_free(data->index))
+  if(L7_SUCCESS != ptin_routing_pingsession_free(data->sessionIdx))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Start a traceroute session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_create(msg_RoutingTracertSessionCreate* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new traceroute session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probePerHop   = %u",   data->probePerHop);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u",   data->probeSize);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u",   data->probeInterval);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dontFrag      = %u",   data->dontFrag);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  port          = %u",   data->port);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxTtl        = %u",   data->maxTtl);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  initTtl       = %u",   data->initTtl);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxFail       = %u",   data->maxFail);
+
+  if(L7_SUCCESS != ptin_routing_traceroutesession_create(data->sessionIdx, data->dstIpAddr, data->probeSize, data->probePerHop, data->probeInterval, data->dontFrag, data->port, data->maxTtl, data->initTtl, data->maxFail))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create new traceroute session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get traceroute session status.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_query(msg_RoutingTracertSessionQuery* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Querying traceroute session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+
+  /*
+   I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
+   However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
+   */
+  if(L7_SUCCESS != ptin_routing_traceroutesession_query(data))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to query traceroute session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get current hops of a given traceroute session.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsRequest* inBuffer, msg_RoutingTracertSessionHopsResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries)
+{
+  if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting traceroute hops:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", inBuffer->sessionIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u", inBuffer->lastIndex);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u", maxEntries);
+
+  /*
+   I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
+   However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
+  */
+  if(L7_SUCCESS != ptin_routing_traceroutesession_gethops(inBuffer->sessionIdx, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get traceroute session hops");
+    return L7_FAILURE;
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Free existing traceroute session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing traceroute session:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+
+  if(L7_SUCCESS != ptin_routing_traceroutesession_free(data->sessionIdx))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute session");
     return L7_FAILURE;
   }
 

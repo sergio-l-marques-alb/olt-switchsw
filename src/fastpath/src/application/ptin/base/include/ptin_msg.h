@@ -1267,6 +1267,45 @@ L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data);
  */
 L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data);
 
+/**
+ * Start a traceroute session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_create(msg_RoutingTracertSessionCreate* data);
+
+/**
+ * Get traceroute session status.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_query(msg_RoutingTracertSessionQuery* data);
+
+/**
+ * Get current hops of a given traceroute session.
+ * 
+ * @param inBuffer
+ * @param outBuffer
+ * @param maxEntries
+ * @param readEntries
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsRequest* inBuffer, msg_RoutingTracertSessionHopsResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries);
+
+/**
+ * Free existing traceroute session.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data);
+
 
 #endif /* _PTIN_MSG_H */
 

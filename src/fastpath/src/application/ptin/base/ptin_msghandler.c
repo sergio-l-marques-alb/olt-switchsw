@@ -3378,7 +3378,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_CREATE ****************************************/
     case CCMSG_ROUTING_INTF_CREATE:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", CCMSG_ROUTING_INTF_CREATE);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntfCreate);
 
@@ -3407,7 +3407,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_REMOVE ****************************************/
     case CCMSG_ROUTING_INTF_REMOVE:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", CCMSG_ROUTING_INTF_REMOVE);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntfRemove);
 
@@ -3468,7 +3468,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_ARPENTRY_PURGE ****************************************/
     case CCMSG_ROUTING_ARPENTRY_PURGE:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", CCMSG_ROUTING_ARPENTRY_PURGE);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingArpEntryPurge);
 
@@ -3529,7 +3529,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_CREATE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_CREATE:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", CCMSG_ROUTING_PINGSESSION_CREATE);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionCreate);
 
@@ -3558,7 +3558,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_QUERY ****************************************/
     case CCMSG_ROUTING_PINGSESSION_QUERY:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", CCMSG_ROUTING_PINGSESSION_QUERY);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionQuery);
 
@@ -3587,7 +3587,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_FREE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_FREE:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", CCMSG_ROUTING_PINGSESSION_FREE);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionFree);
 
@@ -3608,6 +3608,125 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionFree);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_TRACERTSESSION_CREATE ****************************************/
+    case CCMSG_ROUTING_TRACERTSESSION_CREATE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_CREATE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingTracertSessionCreate);
+
+      msg_RoutingTracertSessionCreate *data;
+      data = (msg_RoutingTracertSessionCreate *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingTracertSessionCreate));
+
+      /* Execute command */
+      rc = ptin_msg_routing_tracertsession_create(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating traceroute session");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionCreate);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_TRACERTSESSION_QUERY ****************************************/
+    case CCMSG_ROUTING_TRACERTSESSION_QUERY:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_QUERY (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingTracertSessionQuery);
+
+      msg_RoutingTracertSessionQuery *data;
+      data = (msg_RoutingTracertSessionQuery *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingTracertSessionQuery));
+
+      /* Execute command */
+      rc = ptin_msg_routing_tracertsession_query(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while querying traceroute session");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionQuery);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_TRACERTSESSION_GETHOPS ****************************************/
+    case CCMSG_ROUTING_TRACERTSESSION_GETHOPS:
+    {
+      msg_RoutingTracertSessionHopsRequest  *inputPtr;
+      msg_RoutingTracertSessionHopsResponse *outputPtr;
+      L7_uint32                              maxEntries;
+      L7_uint32                              readEntries;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_GETHOPS (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingTracertSessionHopsRequest);
+
+      inputPtr   = (msg_RoutingTracertSessionHopsRequest *)  inbuffer->info;
+      outputPtr  = (msg_RoutingTracertSessionHopsResponse *) outbuffer->info;
+      maxEntries = IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingTracertSessionHopsResponse); //IPC buffer size / struct size
+
+      /* Execute command */
+      rc = ptin_msg_routing_tracertsession_gethops(inputPtr, outputPtr, maxEntries, &readEntries);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = readEntries * sizeof(msg_RoutingTracertSessionHopsResponse);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      break;    
+    }
+
+    /* CCMSG_ROUTING_TRACERTSESSION_FREE ****************************************/
+    case CCMSG_ROUTING_TRACERTSESSION_FREE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_FREE (0x%04X)", CCMSG_ROUTING_TRACERTSESSION_FREE);
+
+      CHECK_INFO_SIZE(msg_RoutingTracertSessionFree);
+
+      msg_RoutingTracertSessionFree *data;
+      data = (msg_RoutingTracertSessionFree *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingTracertSessionFree));
+
+      /* Execute command */
+      rc = ptin_msg_routing_tracertsession_free(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while querying traceroute session");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionFree);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;

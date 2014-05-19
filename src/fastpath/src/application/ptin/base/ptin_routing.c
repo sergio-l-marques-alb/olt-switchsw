@@ -1,11 +1,9 @@
 /**
-      printf("dl_queue_add_tail(queue=0x%x, elem=0x%x)\n", queue, elem);
-      printf("dl_queue_add_tail(queue=0x%x, elem=0x%x)\n", queue, elem);
- * ptin_routing.c
+ * ptin_routing.h
  *  
  * Implements the Routing interface module 
  *
- * Created on: 2014/04/216
+ * Created on: 2014/04/16
  * Author: Daniel Figueira
  *  
  * Notes:
@@ -18,6 +16,9 @@
 #include "l7_ipmap_arp_api.h"
 #include "usmdb_1213_api.h"
 #include "usmdb_ping_api.h"
+#include "usmdb_traceroute_api.h"
+#include "ping_exports.h"
+#include "traceroute_exports.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,7 +34,8 @@
  ***********************************************************/
 #define PTIN_DTL0_INTERFACE_NAME            "dtl0"
 #define PTIN_DTL0_MTU_DEFAULT               2500
-#define PTIN_ROUTING_INTERFACE_NAME_PREFIX  "rt1_2_"
+#define PTIN_ROUTING_INTERFACE_NAME_PREFIX  "rt1_2_"  /* This is derived from rt$UNIT_$SLOT_ */
+#define PTIN_ROUTING_TRACEROUTE_MAX_HOPS    (TRACEROUTE_DEFAULT_MAX_TTL - TRACEROUTE_DEFAULT_INIT_TTL)  /* This is a copy from traceroute.h, which I can't include here */
 
 
 /*********************************************************** 
@@ -88,7 +90,7 @@ typedef struct ptin_routing_pingsession_s
   L7_uint32 avgRtt; 
 } ptin_routing_pingsession_t;
 
-typedef struct ptin_routing_traceroutesession_s
+typedef struct ptin_routing_traceroutesession_t
 {
   L7_uint8  index;
 
@@ -96,7 +98,7 @@ typedef struct ptin_routing_traceroutesession_s
   L7_uint32 ipAddr; 
   L7_uint16 probePerHop; 
   L7_uint16 probeSize; 
-  L7_uint16 probeInterval;
+  L7_uint32 probeInterval;
   L7_BOOL   dontFrag;
   L7_uint16 port;
   L7_uint16 maxTtl;
@@ -106,26 +108,48 @@ typedef struct ptin_routing_traceroutesession_s
   /* Session status */
   L7_uint16 handle;
   L7_BOOL   isRunning;
-  L7_uint16 probeSent;
-  L7_uint16 probeSucc;
-  L7_uint16 probeFail;
-  L7_uint32 minRtt; 
-  L7_uint32 maxRtt; 
-  L7_uint32 avgRtt; 
+  L7_uint16 currTtl;
+  L7_uint16 currHopCount;
+  L7_uint16 currProbeCount;
+  L7_uint16 testAttempt; 
+  L7_uint16 testSuccess; 
 } ptin_routing_traceroutesession_t;
+
+typedef struct ptin_routing_traceroutehop_s
+{
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_routing_arptable_s *next;
+  struct ptin_routing_arptable_s *prev;
+
+  L7_uint16 sessionHandle;
+  L7_uint16 ttl;
+  L7_uint32 ipAddr;
+  L7_uint32 minRtt;
+  L7_uint32 maxRtt;
+  L7_uint32 avgRtt;
+  L7_uint16 probeSent;
+  L7_uint16 probeRecv;
+} ptin_routing_traceroutehop_t;
 
 
 /*********************************************************** 
  * Data
  ***********************************************************/
-L7_uint32                   __ioctl_socket_fd = 0;
-L7_BOOL                     __is_dtl0_enabled = L7_FALSE;
-dl_queue_t                  __arptable_pool;              //Pool that holds free elements to use in the __arptable_snapshot queue
-dl_queue_t                  __arptable_snapshot;          //Each element is of type ptin_routing_arptable_t
-dl_queue_t                  __routetable_pool;            //Pool that holds free elements to use in the __routetable_snapshot queue
-dl_queue_t                  __routetable_snapshot;        //Each element is of type ptin_routing_arptable_t
-ptin_routing_pingsession_t* __ping_sessions;
-L7_uint32                   __ping_sessions_max;
+L7_uint32                         __ioctl_socket_fd = 0;
+L7_BOOL                           __is_dtl0_enabled = L7_FALSE;
+dl_queue_t                        __arptable_pool;              //Pool that holds free elements to use in the __arptable_snapshot queue
+dl_queue_t                        __arptable_snapshot;          //Each element is of type ptin_routing_arptable_t
+L7_uint32                         __arptable_entries_max;          
+dl_queue_t                        __routetable_pool;            //Pool that holds free elements to use in the __routetable_snapshot queue
+dl_queue_t                        __routetable_snapshot;        //Each element is of type ptin_routing_arptable_t
+L7_uint32                         __routetable_entries_max;          
+ptin_routing_pingsession_t*       __ping_sessions;
+L7_uint32                         __ping_sessions_max;
+ptin_routing_traceroutesession_t* __traceroute_sessions;
+L7_uint32                         __traceroute_sessions_max;
+L7_uint32                         __traceroute_hops_max;
+dl_queue_t                        __traceroutehops_pool;        //Pool that holds free elements to use in the __traceroutehops_snapshot queue
+dl_queue_t                        __traceroutehops_snapshot;    //Each element is of type ptin_routing_traceroutehop_t
 
 
 /*********************************************************** 
@@ -268,6 +292,20 @@ static L7_RC_t __ping_sessions_init(void);
  */
 static L7_RC_t __ping_session_finish_callback(void *userParam);
 
+/**
+ * Initialize the traceroute sessions array. 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+static L7_RC_t __traceroute_sessions_init(void);
+
+/**
+ * Refresh the current traceroute hops snapshot. 
+ *  
+ * @param sessionIdx : Traceroute session index
+ */
+static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx);
+
 
 /*********************************************************** 
  * Functions
@@ -295,6 +333,11 @@ L7_RC_t ptin_routing_init(void)
   if(__ping_sessions_init() != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize ping session array");
+    return L7_FAILURE;
+  }
+  if(__traceroute_sessions_init() != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize traceroute session array");
     return L7_FAILURE;
   }
 
@@ -592,7 +635,7 @@ L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* ma
  */
 L7_RC_t ptin_routing_arptable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_uint32 maxEntries, L7_uint32* readEntries, msg_RoutingArpTableResponse* buffer)
 {
-  L7_uint32                  currentIndex = 0;
+  L7_uint32                 currentIndex = 0;
   ptin_routing_arptable_t  *snapshotIterator;
   char                      ipAddrStr[IPV6_DISP_ADDR_LEN];
   ptin_intf_t               intf;
@@ -613,6 +656,7 @@ L7_RC_t ptin_routing_arptable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_uint
   if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
     LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "ARP table snapshot is empty");
+    *readEntries = 0;
     return L7_SUCCESS;
   }
 
@@ -709,6 +753,7 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
   if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
     LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Route table snapshot is empty");
+    *readEntries = 0;
     return L7_SUCCESS;
   }
 
@@ -758,7 +803,7 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
 /**
  * Start a ping request.
  * 
- * @param index         : Ping session index
+ * @param sessionIdx    : Ping session index
  * @param ipAddr        : IP address to ping
  * @param probeCount    : Probe count
  * @param probeSize     : Probe size
@@ -766,33 +811,38 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_pingsession_create(L7_uint8 index, L7_uint32 ipAddr, L7_uint16 probeCount, L7_uint16 probeSize, L7_uint16 probeInterval)
+L7_RC_t ptin_routing_pingsession_create(L7_uint8 sessionIdx, L7_uint32 ipAddr, L7_uint16 probeCount, L7_uint16 probeSize, L7_uint16 probeInterval)
 {
-  if(index > __ping_sessions_max)
+  L7_uchar8 bufferStr[PING_MAX_INDEX_LEN];
+
+  if(sessionIdx > __ping_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a ping session not in use */
-  if(__ping_sessions[index].isRunning == L7_TRUE)
+  if(__ping_sessions[sessionIdx].isRunning == L7_TRUE)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is already being used in an active ping session [index:%u]", index);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is already being used in an active ping session [index:%u]", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Save session configurations */
-  __ping_sessions[index].index         = index;
-  __ping_sessions[index].isRunning     = L7_TRUE;
-  __ping_sessions[index].ipAddr        = ipAddr;
-  __ping_sessions[index].probeCount    = probeCount;
-  __ping_sessions[index].probeSize     = probeSize;
-  __ping_sessions[index].probeInterval = probeInterval;
+  __ping_sessions[sessionIdx].index         = sessionIdx;
+  __ping_sessions[sessionIdx].isRunning     = L7_TRUE;
+  __ping_sessions[sessionIdx].ipAddr        = ipAddr;
+  __ping_sessions[sessionIdx].probeCount    = probeCount;
+  __ping_sessions[sessionIdx].probeSize     = probeSize;
+  __ping_sessions[sessionIdx].probeInterval = probeInterval;
+  memset(bufferStr, 0x00, PING_MAX_INDEX_LEN * sizeof(L7_uchar8));
+  snprintf(bufferStr, PING_MAX_INDEX_LEN, "ping#%u", sessionIdx); //We need a session name that differs in all created sessions
 
   /* Start a new ping session */
-  if(L7_SUCCESS != usmDbPingStart("", "", L7_FALSE, 0, ipAddr, probeCount, probeSize, probeInterval, 0, L7_NULLPTR, __ping_session_finish_callback, (void*)&__ping_sessions[index].index, &__ping_sessions[index].handle))
+  if(L7_SUCCESS != usmDbPingStart(bufferStr, bufferStr, L7_FALSE, 0, ipAddr, probeCount, probeSize, probeInterval, 
+                                  0, L7_NULLPTR, __ping_session_finish_callback, (void*)&__ping_sessions[sessionIdx].index, &__ping_sessions[sessionIdx].handle))
   {
-    memset(&__ping_sessions[index], 0x00, sizeof(ptin_routing_pingsession_t));
+    memset(&__ping_sessions[sessionIdx], 0x00, sizeof(ptin_routing_pingsession_t));
 
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to start a new ping session");
     return L7_FAILURE;
@@ -819,7 +869,7 @@ L7_RC_t ptin_routing_pingsession_query(msg_RoutingPingSessionQuery* buffer)
     return L7_ERROR;
   }
 
-  index = buffer->index;
+  index = buffer->sessionIdx;
   if(index > __ping_sessions_max)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
@@ -852,27 +902,263 @@ L7_RC_t ptin_routing_pingsession_query(msg_RoutingPingSessionQuery* buffer)
 /**
  * Free an existing ping session.
  * 
- * @param index : Ping session index
+ * @param sessionIdx : Ping session index
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_pingsession_free(L7_uint8 index)
+L7_RC_t ptin_routing_pingsession_free(L7_uint8 sessionIdx)
 {
-  if(index > __ping_sessions_max)
+  if(sessionIdx > __ping_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
+    return L7_FAILURE;
+  }
+
+  /* Ensure that the requested index belongs to a created session */
+  if(__ping_sessions[sessionIdx].handle == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
+    return L7_FAILURE;
+  }
+
+  usmDbPingSessionFree(__ping_sessions[sessionIdx].handle);
+  memset(&__ping_sessions[sessionIdx], 0x00, sizeof(ptin_routing_pingsession_t));
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Start a traceroute request.
+ * 
+ * @param sessionIdx    : Traceroute session index
+ * @param ipAddr        : IP address to ping
+ * @param probeSize     : Probe size
+ * @param probePerHop   : Probes per hop
+ * @param probeInterval : Probe interval
+ * @param dontFrag      : Don't frag
+ * @param port          : Destination port
+ * @param maxTtl        : Max ttl
+ * @param initTtl       : Initial ttl
+ * @param maxFail       : Max fails
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_create(L7_uint8 sessionIdx, L7_uint32 ipAddr, L7_uint16 probeSize, L7_uint16 probePerHop, L7_uint32 probeInterval,
+                                              L7_BOOL dontFrag, L7_uint16 port, L7_ushort16 maxTtl, L7_ushort16 initTtl, L7_ushort16 maxFail)
+{
+  L7_uchar8 bufferStr[TRACEROUTE_MAX_INDEX_LEN];
+
+  if(sessionIdx > __traceroute_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
+    return L7_FAILURE;
+  }
+
+  /* Ensure that the requested index belongs to a traceroute session not in use */
+  if(__traceroute_sessions[sessionIdx].isRunning == L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is already being used in an active traceroute session [index:%u]", index);
+    return L7_FAILURE;
+  }
+
+  /* Save session configurations */
+  __traceroute_sessions[sessionIdx].index         = sessionIdx;
+  __traceroute_sessions[sessionIdx].isRunning     = L7_TRUE;
+  __traceroute_sessions[sessionIdx].ipAddr        = ipAddr;
+  __traceroute_sessions[sessionIdx].probeSize     = probeSize;
+  __traceroute_sessions[sessionIdx].probePerHop   = probePerHop;
+  __traceroute_sessions[sessionIdx].probeInterval = probeInterval;
+  __traceroute_sessions[sessionIdx].dontFrag      = dontFrag;
+  __traceroute_sessions[sessionIdx].port          = port;
+  __traceroute_sessions[sessionIdx].maxTtl        = maxTtl;
+  __traceroute_sessions[sessionIdx].initTtl       = initTtl;
+  __traceroute_sessions[sessionIdx].maxFail       = maxFail;
+  memset(bufferStr, 0x00, TRACEROUTE_MAX_INDEX_LEN * sizeof(L7_uchar8));
+  snprintf(bufferStr, TRACEROUTE_MAX_INDEX_LEN, "traceroute#%u", sessionIdx); //We need a session name that differs in all created sessions
+
+  /* Start a new traceroute session */
+  if(L7_SUCCESS != usmDbTraceRoute(bufferStr, bufferStr, L7_FALSE, 0, ipAddr, probeSize, probePerHop, probeInterval, dontFrag, port, maxTtl, initTtl, maxFail,
+                                   L7_NULLPTR, (void*)&__traceroute_sessions[sessionIdx].index, &__traceroute_sessions[sessionIdx].handle))
+  {
+    memset(&__traceroute_sessions[sessionIdx], 0x00, sizeof(ptin_routing_traceroutesession_t));
+
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to start a new traceroute session");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Query an existing traceroute session.
+ * 
+ * @param buffer : Ptr to the struct array where each entry will be placed
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_query(msg_RoutingTracertSessionQuery* buffer)
+{
+  ptin_routing_traceroutesession_t *session;
+
+  if( (buffer == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [buffer:%p]", buffer);
+    return L7_ERROR;
+  }
+
+  if(buffer->sessionIdx > __traceroute_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", buffer->sessionIdx);
+    return L7_FAILURE;
+  }
+
+  /* Ensure that the requested index belongs to a created session */
+  if(__traceroute_sessions[buffer->sessionIdx].handle == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", buffer->sessionIdx);
+    return L7_FAILURE;
+  }
+  session = &__traceroute_sessions[buffer->sessionIdx];
+
+  /* Get session status */
+  usmDbTraceRouteQuery(session->handle, &session->isRunning, 
+                       &session->currTtl, &session->currHopCount, &session->currProbeCount, 
+                       &session->testAttempt, &session->testSuccess);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Query [index:%u]",  buffer->sessionIdx);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Handle:       %u", session->handle);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Status:       %u", session->isRunning);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  CurrTtl:      %u", session->currTtl);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Hop Count:    %u", session->currHopCount);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Count:  %u", session->currProbeCount);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Test Attempt: %u", session->testAttempt);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Test Success: %u", session->testSuccess);
+  buffer->isRunning      = session->isRunning;
+  buffer->currTtl        = session->currTtl;
+  buffer->currHopCount   = session->currHopCount;
+  buffer->currProbeCount = session->currProbeCount;
+  buffer->testAttempt    = session->testAttempt;
+  buffer->testSuccess    = session->testSuccess;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get known hops for an existing traceroute session.
+ * 
+ * @param sessionIdx  : Desired intfNum. Use -1 if no filtering is desired
+ * @param firstIdx    : Index of the first entry to copy
+ * @param maxEntries  : Max number of entries to read
+ * @param readEntries : Ptr to number of read entries
+ * @param buffer      : Ptr to the struct array where each entry will be placed
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 firstIdx, L7_uint32 maxEntries, L7_uint32* readEntries, msg_RoutingTracertSessionHopsResponse* buffer)
+{
+  L7_uint32                     currentIndex = 0;
+  ptin_routing_traceroutehop_t *snapshotIterator;
+
+  if( (readEntries == L7_NULLPTR) || (buffer == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
+    return L7_ERROR;
+  }
+
+  if(sessionIdx > __traceroute_sessions_max)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
-  if(__ping_sessions[index].handle == 0)
+  if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", index);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
     return L7_FAILURE;
   }
 
-  usmDbPingSessionFree(__ping_sessions[index].handle);
-  memset(&__ping_sessions[index], 0x00, sizeof(ptin_routing_pingsession_t));
+  /* If the first requested index is -1, refresh the local snapshot */
+  if(firstIdx == (L7_uint16)-1)
+  {
+    __traceroutehops_snapshot_refresh(sessionIdx);
+  }
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__traceroutehops_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    *readEntries = 0;
+    return L7_SUCCESS;
+  }
+
+  /* Ensure that the local snapshot contents belong to the requested session */
+  if((snapshotIterator != NULL) && (snapshotIterator->sessionHandle != __traceroute_sessions[sessionIdx].handle))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Local snapshot handle does not match with the requested session [local:%u requested:%u]!", snapshotIterator->sessionHandle, __traceroute_sessions[sessionIdx].handle);
+    *readEntries = 0;
+    return L7_FAILURE;
+  }
+
+  /* Copy local snapshot contents */
+  firstIdx += 1;
+  while( (currentIndex < maxEntries) && (snapshotIterator != NULL) )
+  {
+    if(currentIndex >= firstIdx)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Copying Hop[idx:%u]", currentIndex);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  TTL:        %u",    snapshotIterator->ttl);      
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  IP Address: %08X",  snapshotIterator->ipAddr);   
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Min rtt:    %u",    snapshotIterator->minRtt);   
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Max rtt:    %u",    snapshotIterator->maxRtt);   
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Avg rtt:    %u",    snapshotIterator->avgRtt);   
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Sent: %u",    snapshotIterator->probeSent);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Rcvd: %u",    snapshotIterator->probeRecv);
+
+      buffer->hopIdx     = currentIndex;
+      buffer->ttl        = snapshotIterator->ttl;        
+      buffer->ipAddr     = snapshotIterator->ipAddr;     
+      buffer->minRtt     = snapshotIterator->minRtt;     
+      buffer->maxRtt     = snapshotIterator->maxRtt;     
+      buffer->avgRtt     = snapshotIterator->avgRtt;     
+      buffer->probeSent  = snapshotIterator->probeSent;  
+      buffer->probeRecv  = snapshotIterator->probeRecv;  
+
+      ++buffer;
+    }
+
+    /* Get next entry */
+    snapshotIterator = (ptin_routing_traceroutehop_t*) dl_queue_get_next(&__traceroutehops_snapshot, (dl_queue_elem_t*)snapshotIterator);
+    ++currentIndex;
+  }
+  *readEntries = currentIndex;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Free an existing traceroute session.
+ * 
+ * @param sessionIdx : Traceroute session index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx)
+{
+  if(sessionIdx > __traceroute_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
+    return L7_FAILURE;
+  }
+
+  /* Ensure that the requested index belongs to a created session */
+  if(__traceroute_sessions[sessionIdx].handle == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
+    return L7_FAILURE;
+  }
+
+  usmDbTraceRouteFree(__traceroute_sessions[sessionIdx].handle);
+  memset(&__traceroute_sessions[sessionIdx], 0x00, sizeof(ptin_routing_traceroutesession_t));
 
   return L7_SUCCESS;
 }
@@ -1200,6 +1486,7 @@ static L7_RC_t __arptable_snapshot_init(void)
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for arp table snapshot");
     return L7_FAILURE;
   }
+  __arptable_entries_max = arpTableStats.cacheMax;
 
   return L7_SUCCESS;
 }
@@ -1215,11 +1502,12 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
 {
   L7_arpEntry_t            arpTablepEntry;
   ptin_routing_arptable_t *localSnapshotEntry;
+  L7_uint32                insertedEntries = 0;
 
   memset(&arpTablepEntry, 0x00, sizeof(L7_arpEntry_t));
 
-  /* Clear the current __arptable_snapshot */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the __arptable_pool");
+  /* Clear the current snapshot */
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
   while(dl_queue_remove_tail(&__arptable_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
   {
     dl_queue_add_tail(&__arptable_pool, (dl_queue_elem_t*)localSnapshotEntry);
@@ -1234,7 +1522,15 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
       continue;
     }
 
-    /* Get free element from the __arptable_pool */
+    /* Do we have enough space in our local snapshot to save this entry? */
+    ++insertedEntries;
+    if(insertedEntries > __arptable_entries_max)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __arptable_entries_max:%u]", insertedEntries, __arptable_entries_max);
+      return;
+    }
+
+    /* Get free element from the pool */
     dl_queue_remove_tail(&__arptable_pool, (dl_queue_elem_t**)&localSnapshotEntry);
 
     localSnapshotEntry->intfNum = arpTablepEntry.intIfNum;
@@ -1295,6 +1591,7 @@ static L7_RC_t __routetable_snapshot_init(void)
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for route table snapshot");
     return L7_FAILURE;
   }
+  __routetable_entries_max = routeTableMaxEntries;
 
   return L7_SUCCESS;
 }
@@ -1311,11 +1608,12 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
   L7_routeEntry_t            routeTablepEntry;
   ptin_routing_routetable_t *localSnapshotEntry;
   L7_uint32                  currentTime;
+  L7_uint32                  insertedEntries = 0;
 
   memset(&routeTablepEntry, 0x00, sizeof(L7_routeEntry_t));
 
-  /* Clear the current __arptable_snapshot */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the __routetable_pool");
+  /* Clear the current snapshot */
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
   while(dl_queue_remove_tail(&__routetable_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
   {
     dl_queue_add_tail(&__routetable_pool, (dl_queue_elem_t*)localSnapshotEntry);
@@ -1338,7 +1636,15 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
       continue;
     }
 
-    /* Get free element from the __routetable_pool */
+    /* Do we have enough space in our local snapshot to save this entry? */
+    ++insertedEntries;
+    if(insertedEntries > __routetable_entries_max)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __routetable_entries_max:%u]", insertedEntries, __routetable_entries_max);
+      return;
+    }
+
+    /* Get free element from the pool */
     dl_queue_remove_tail(&__routetable_pool, (dl_queue_elem_t**)&localSnapshotEntry);
 
     localSnapshotEntry->intfNum    = routeTablepEntry.ecmpRoutes.equalCostPath[0].arpEntry.intIfNum;
@@ -1361,16 +1667,16 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
  */
 static L7_RC_t __ping_sessions_init(void)
 {
-  L7_uint32 max_ping_sessions;
+  L7_uint32 max_sessions;
 
-  if(L7_SUCCESS != usmDbMaxPingSessionsGet(&max_ping_sessions))
+  if(L7_SUCCESS != usmDbMaxPingSessionsGet(&max_sessions))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to determine max number of ping sessions");
     return L7_FAILURE;
   }
 
-  __ping_sessions_max = max_ping_sessions;
-  __ping_sessions     = (ptin_routing_pingsession_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, max_ping_sessions * sizeof(ptin_routing_pingsession_t));
+  __ping_sessions_max = max_sessions;
+  __ping_sessions     = (ptin_routing_pingsession_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, max_sessions * sizeof(ptin_routing_pingsession_t));
 
   return L7_SUCCESS;
 }
@@ -1399,10 +1705,199 @@ static L7_RC_t __ping_session_finish_callback(void *userParam)
   return L7_SUCCESS;
 }
 
+/**
+ * Initialize the traceroute sessions array. 
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+static L7_RC_t __traceroute_sessions_init(void)
+{
+  L7_uint32 max_sessions;
+  L7_uint32 i;
+
+  if(L7_SUCCESS != usmDbTraceRouteMaxSessionsGet(&max_sessions))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to determine max number of traceroute sessions");
+    return L7_FAILURE;
+  }
+
+  __traceroute_sessions_max = max_sessions;
+  __traceroute_sessions     = (ptin_routing_traceroutesession_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, max_sessions * sizeof(ptin_routing_traceroutesession_t));
+  __traceroute_hops_max     = PTIN_ROUTING_TRACEROUTE_MAX_HOPS;
+
+  /* Create pool of free elements to use in the '__traceroutehops_snapshot' */
+  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Creating pool of %u elements for the __traceroutehops_snapshot", __traceroute_hops_max);
+  if(NOERR != dl_queue_init(&__traceroutehops_pool))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
+    return L7_FAILURE;
+  }
+  for (i=0; i<__traceroute_hops_max; ++i)
+  {
+    ptin_routing_traceroutehop_t *new_element = (ptin_routing_traceroutehop_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, sizeof(ptin_routing_traceroutehop_t));
+    dl_queue_add(&__traceroutehops_pool, (dl_queue_elem_t*)new_element);
+  }
+
+  /* Create the local snapshot queue */
+  if(NOERR != dl_queue_init(&__traceroutehops_snapshot))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Refresh the current traceroute hops snapshot. 
+ *  
+ * @param sessionIdx : Traceroute session index
+ */
+static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx)
+{
+  ptin_routing_traceroutehop_t *localSnapshotEntry;
+  L7_uint16                     sessionHandle;
+  L7_uint16                     lastHopIdx;
+  L7_uint16                     ttl;
+  L7_uint32                     ipAddr;
+  L7_uint32                     minRtt, avgRtt, maxRtt;
+  L7_uint16                     probeSent, probeRecv;
+  L7_uint32                     insertedEntries = 0;
+
+  /* Clear the current snapshot */
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
+  while(dl_queue_remove_tail(&__traceroutehops_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
+  {
+    dl_queue_add_tail(&__traceroutehops_pool, (dl_queue_elem_t*)localSnapshotEntry);
+  }
+
+  /* Get the handle for this traceroute session */
+  if(sessionIdx > __traceroute_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    return;
+  }
+  if(__traceroute_sessions[sessionIdx].handle == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
+    return;
+  }
+  sessionHandle = __traceroute_sessions[sessionIdx].handle;
+
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
+  insertedEntries = 0;
+  lastHopIdx      = (L7_uint16)-1;
+  while((L7_SUCCESS == usmDbTraceRouteHopGetNext(sessionHandle, &lastHopIdx, &ttl, &ipAddr,  &minRtt, &maxRtt, &avgRtt, &probeSent, &probeRecv)))
+  {
+    /* Do we have enough space in our local snapshot to save this entry? */
+    ++insertedEntries;
+    if(insertedEntries > __traceroute_hops_max)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __traceroute_hops_max:%u]", insertedEntries, __traceroute_hops_max);
+      return;
+    }
+
+    /* Get free element from the pool */
+    dl_queue_remove_tail(&__traceroutehops_pool, (dl_queue_elem_t**)&localSnapshotEntry);
+
+    localSnapshotEntry->sessionHandle = sessionHandle; 
+    localSnapshotEntry->ttl           = ttl; 
+    localSnapshotEntry->ipAddr        = ipAddr; 
+    localSnapshotEntry->minRtt        = minRtt; 
+    localSnapshotEntry->maxRtt        = maxRtt; 
+    localSnapshotEntry->avgRtt        = avgRtt; 
+    localSnapshotEntry->probeSent     = probeSent; 
+    localSnapshotEntry->probeRecv     = probeRecv;
+
+    /* Add element to the local snapshot */
+    dl_queue_add_tail(&__traceroutehops_snapshot, (dl_queue_elem_t*)localSnapshotEntry);
+  }
+}
 
 /*********************************************************** 
  * Debug methods
  ***********************************************************/
+
+/**
+ * Dump the local ARP table snapshot.
+ */
+void ptin_routing_arptablesnapshot_dump(void)
+{
+  L7_uint32                currentIndex = 0;
+  ptin_routing_arptable_t *snapshotIterator;
+  char                     ipAddrStr[IPV6_DISP_ADDR_LEN];
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    return;
+  }
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "ARP table snapshot is empty");
+    return;
+  }
+
+  /* Copy local snapshot contents */
+  while(snapshotIterator != NULL)
+  {
+    printf("Copying local entry [idx:%u]\n"            , currentIndex);
+    printf("  intfNum: %u\n"                           , snapshotIterator->intfNum);
+    printf("  type:    %u\n"                           , snapshotIterator->type);
+    printf("  age:     %u\n"                           , snapshotIterator->age);
+    printf("  ipAddr:  %s\n"                           , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
+    printf("  macAddr: %02X:%02X:%02X:%02X:%02X:%02X\n", snapshotIterator->macAddr.addr[0], snapshotIterator->macAddr.addr[1], snapshotIterator->macAddr.addr[2], 
+                                                       snapshotIterator->macAddr.addr[3], snapshotIterator->macAddr.addr[4], snapshotIterator->macAddr.addr[5]);
+
+    /* Get next entry */
+    snapshotIterator = (ptin_routing_arptable_t*) dl_queue_get_next(&__routetable_snapshot, (dl_queue_elem_t*)snapshotIterator);
+    ++currentIndex;
+  }
+}
+
+/**
+ * Dump the local Route table snapshot.
+ */
+void ptin_routing_routetablesnapshot_dump(void)
+{
+  L7_uint32                  currentIndex = 0;
+  ptin_routing_routetable_t *snapshotIterator;
+  char                       ipAddrStr[IPV6_DISP_ADDR_LEN];
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    return;
+  }
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Route table snapshot is empty");
+    return;
+  }
+
+  /* Copy local snapshot contents */
+  while(snapshotIterator != NULL)
+  {
+    printf("Copying local entry [idx:%u]\n" , currentIndex);
+    printf("  intfNum:    %u\n"             , snapshotIterator->intfNum);
+    printf("  protocol:   %u\n"             , snapshotIterator->protocol);
+    printf("  updateTime: %ud %uh %um %us\n", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
+    printf("  ipAddr:     %s\n"             , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
+    printf("  subnetMask: %u\n"             , snapshotIterator->subnetMask);
+    printf("  preference: %u\n"             , snapshotIterator->preference);
+    printf("  metric:     %u\n"             , snapshotIterator->metric);
+
+    /* Get next entry */
+    snapshotIterator = (ptin_routing_routetable_t*) dl_queue_get_next(&__routetable_snapshot, (dl_queue_elem_t*)snapshotIterator);
+    ++currentIndex;
+  }
+}
 
 /**
  * Dump the current status of the ping sessions array.
@@ -1423,17 +1918,17 @@ void ptin_routing_pingsession_dump(L7_uint8 index)
   {
     printf("Index[%u]--------------------\n", index);
     printf("Configurations:\n");
-    printf("  IP Address:        %08X\n",     __ping_sessions[index].ipAddr);
-    printf("  Probe Count:       %u\n",       __ping_sessions[index].probeCount);
-    printf("  Probe Size:        %u\n",       __ping_sessions[index].probeSize);
-    printf("  Probe Interval:    %u\n",       __ping_sessions[index].probeInterval);
+    printf("  IP Address:        %08X\n",      __ping_sessions[index].ipAddr);
+    printf("  Probe Count:       %u\n",        __ping_sessions[index].probeCount);
+    printf("  Probe Size:        %u\n",        __ping_sessions[index].probeSize);
+    printf("  Probe Interval:    %u\n",        __ping_sessions[index].probeInterval);
     printf("Status:\n");
-    printf("  Handle:            %08X\n",     __ping_sessions[index].handle);
-    printf("  Is running:        %u\n",       __ping_sessions[index].isRunning);
-    printf("  Probe Sent:        %u\n",       __ping_sessions[index].probeSent);
-    printf("  Probe Success:     %u\n",       __ping_sessions[index].probeSucc);
-    printf("  Probe Fail:        %u\n",       __ping_sessions[index].probeFail);
-    printf("  Rtt (min/avg/max): %u/%u/%u\n", __ping_sessions[index].minRtt, __ping_sessions[index].avgRtt, __ping_sessions[index].maxRtt);
+    printf("  Handle:             %08X\n",     __ping_sessions[index].handle);
+    printf("  Is running:        %u\n",        __ping_sessions[index].isRunning);
+    printf("  Probe Sent:        %u\n",        __ping_sessions[index].probeSent);
+    printf("  Probe Success:     %u\n",        __ping_sessions[index].probeSucc);
+    printf("  Probe Fail:        %u\n",        __ping_sessions[index].probeFail);
+    printf("  Rtt (min/avg/max): %u/%u/%u\n",  __ping_sessions[index].minRtt, __ping_sessions[index].avgRtt, __ping_sessions[index].maxRtt);
   }
   else
   {
@@ -1441,18 +1936,116 @@ void ptin_routing_pingsession_dump(L7_uint8 index)
     {
       printf("Index[%u]--------------------\n", i);
       printf("Configurations:\n");
-      printf("  IP Address:        %08X\n",     __ping_sessions[i].ipAddr);
-      printf("  Probe Count:       %u\n",       __ping_sessions[i].probeCount);
-      printf("  Probe Size:        %u\n",       __ping_sessions[i].probeSize);
-      printf("  Probe Interval:    %u\n",       __ping_sessions[i].probeInterval);
+      printf("  IP Address:        %08X\n",       __ping_sessions[i].ipAddr);
+      printf("  Probe Count:       %u\n",         __ping_sessions[i].probeCount);
+      printf("  Probe Size:        %u\n",         __ping_sessions[i].probeSize);
+      printf("  Probe Interval:    %u\n",         __ping_sessions[i].probeInterval);
       printf("Status:\n");
-      printf("  Handle:            %08X\n",     __ping_sessions[i].handle);
-      printf("  Is running:        %u\n",       __ping_sessions[i].isRunning);
-      printf("  Probe Sent:        %u\n",       __ping_sessions[i].probeSent);
-      printf("  Probe Success:     %u\n",       __ping_sessions[i].probeSucc);
-      printf("  Probe Fail:        %u\n",       __ping_sessions[i].probeFail);
-      printf("  Rtt (min/avg/max): %u/%u/%u\n", __ping_sessions[i].minRtt, __ping_sessions[i].avgRtt, __ping_sessions[i].maxRtt);
+      printf("  Handle:            0x%08X\n",     __ping_sessions[i].handle);
+      printf("  Is running:        %u\n",         __ping_sessions[i].isRunning);
+      printf("  Probe Sent:        %u\n",         __ping_sessions[i].probeSent);
+      printf("  Probe Success:     %u\n",         __ping_sessions[i].probeSucc);
+      printf("  Probe Fail:        %u\n",         __ping_sessions[i].probeFail);
+      printf("  Rtt (min/avg/max): %u/%u/%u\n",   __ping_sessions[i].minRtt, __ping_sessions[i].avgRtt, __ping_sessions[i].maxRtt);
     }
+  }
+}
+
+/**
+ * Dump the current status of the traceroute sessions array.
+ * 
+ * @param index : Traceroute session index. Use -1 to dump all sessions
+ */
+void ptin_routing_traceroutesession_dump(L7_uint8 index)
+{
+  L7_uint8 i;
+
+  if(index > __traceroute_sessions_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", index);
+    return;
+  }
+
+  if(index != (L7_uint8)-1)
+  {
+    printf("Index[%u]--------------------\n", index);
+    printf("Configurations:\n");
+    printf("  IP Address:          %08X\n",   __traceroute_sessions[index].ipAddr);
+    printf("  Probe Count:         %u\n",     __traceroute_sessions[index].probePerHop);
+    printf("  Probe Size:          %u\n",     __traceroute_sessions[index].probeSize);
+    printf("  Probe Interval:      %u\n",     __traceroute_sessions[index].probeInterval);
+    printf("  Don't Frag:          %u\n",     __traceroute_sessions[index].dontFrag);
+    printf("  Port:                %u\n",     __traceroute_sessions[index].port);
+    printf("  Max TTL:             %u\n",     __traceroute_sessions[index].maxTtl);
+    printf("  Init TTL:            %u\n",     __traceroute_sessions[index].initTtl);
+    printf("  Max Fail:            %u\n",     __traceroute_sessions[index].maxFail);
+    printf("Status:\n");           
+    printf("  Handle:              0x%08X\n", __traceroute_sessions[index].handle);
+    printf("  Is running:          %u\n",     __traceroute_sessions[index].isRunning);
+    printf("  Current TTL:         %u\n",     __traceroute_sessions[index].currTtl);
+    printf("  Current Hop Count:   %u\n",     __traceroute_sessions[index].currHopCount);
+    printf("  Current Probe Count: %u\n",     __traceroute_sessions[index].currProbeCount);
+    printf("  Test Attempts:       %u\n",     __traceroute_sessions[index].testAttempt);
+    printf("  Test Success:        %u\n",     __traceroute_sessions[index].testSuccess);
+  }
+  else
+  {
+    for(i=0; i<__traceroute_sessions_max; ++i)
+    {
+      printf("Index[%u]--------------------\n", i);
+      printf("Configurations:\n");
+      printf("  IP Address:          %08X\n",   __traceroute_sessions[i].ipAddr);
+      printf("  Probe Count:         %u\n",     __traceroute_sessions[i].probePerHop);
+      printf("  Probe Size:          %u\n",     __traceroute_sessions[i].probeSize);
+      printf("  Probe Interval:      %u\n",     __traceroute_sessions[i].probeInterval);
+      printf("  Don't Frag:          %u\n",     __traceroute_sessions[i].dontFrag);
+      printf("  Port:                %u\n",     __traceroute_sessions[i].port);
+      printf("  Max TTL:             %u\n",     __traceroute_sessions[i].maxTtl);
+      printf("  Init TTL:            %u\n",     __traceroute_sessions[i].initTtl);
+      printf("  Max Fail:            %u\n",     __traceroute_sessions[i].maxFail);
+      printf("Status:\n");           
+      printf("  Handle:              0x%08X\n", __traceroute_sessions[i].handle);
+      printf("  Is running:          %u\n",     __traceroute_sessions[i].isRunning);
+      printf("  Current TTL:         %u\n",     __traceroute_sessions[i].currTtl);
+      printf("  Current Hop Count:   %u\n",     __traceroute_sessions[i].currHopCount);
+      printf("  Current Probe Count: %u\n",     __traceroute_sessions[i].currProbeCount);
+      printf("  Test Attempts:       %u\n",     __traceroute_sessions[i].testAttempt);
+      printf("  Test Success:        %u\n",     __traceroute_sessions[i].testSuccess);
+    }
+  }
+}
+
+/**
+ * Dump the local traceroute hops snapshot.
+ */
+void ptin_routing_traceroutehopssnapshot_dump(void)
+{
+  L7_uint32                     currentIndex = 0;
+  ptin_routing_traceroutehop_t *snapshotIterator;
+
+  /* Get pointer to the first element */
+  if(NOERR != dl_queue_get_head(&__traceroutehops_snapshot, (dl_queue_elem_t**)&snapshotIterator))
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    return;
+  }
+
+  /* Copy local snapshot contents */
+  while(snapshotIterator != NULL)
+  {
+    printf("Copying Hop[idx:%u]\n",  currentIndex);
+    printf("  Handle:     0x%08X\n", snapshotIterator->sessionHandle);      
+    printf("  TTL:        %u\n",     snapshotIterator->ttl);      
+    printf("  IP Address: %08X\n",   snapshotIterator->ipAddr);   
+    printf("  Min rtt:    %u\n",     snapshotIterator->minRtt);   
+    printf("  Max rtt:    %u\n",     snapshotIterator->maxRtt);   
+    printf("  Avg rtt:    %u\n",     snapshotIterator->avgRtt);   
+    printf("  Probe Sent: %u\n",     snapshotIterator->probeSent);
+    printf("  Probe Rcvd: %u\n",     snapshotIterator->probeRecv);
+
+    /* Get next entry */
+    snapshotIterator = (ptin_routing_traceroutehop_t*) dl_queue_get_next(&__traceroutehops_snapshot, (dl_queue_elem_t*)snapshotIterator);
+    ++currentIndex;
   }
 }
 
