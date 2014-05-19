@@ -86,6 +86,7 @@ L7_RC_t ptin_vlan_port_remove(L7_uint32 ptin_port, L7_uint16 vlanId)
   vlan_mode.oper = DAPI_CMD_CLEAR;
   vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
   vlan_mode.cpu_include = 0;
+  vlan_mode.ddUsp.unit = vlan_mode.ddUsp.slot = vlan_mode.ddUsp.port = -1;
 
   return dtlPtinVlanPortControl(intIfNum, &vlan_mode);
 }
@@ -113,8 +114,53 @@ L7_RC_t ptin_vlan_port_removeFlush(L7_uint32 ptin_port, L7_uint16 vlanId)
   vlan_mode.oper = DAPI_CMD_CLEAR_ALL;
   vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
   vlan_mode.cpu_include = 0;
+  vlan_mode.ddUsp.unit = vlan_mode.ddUsp.slot = vlan_mode.ddUsp.port = -1;
 
   return dtlPtinVlanPortControl(intIfNum, &vlan_mode);
+}
+
+/**
+ * Remove port from a specific vlan, and flush mac table
+ *  
+ * @param ptin_port_old : Previous port 
+ * @param ptin_port_new : New port 
+ * @param vlanId : Vlan Id (0 to apply to all existent)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, L7_uint16 vlanId)
+{
+  nimUSP_t usp;
+  L7_uint32 intIfNum_new, intIfNum_prev;
+  ptin_vlan_mode_t vlan_mode;
+
+  if (ptin_port_old >= PTIN_SYSTEM_N_INTERF ||
+      ptin_intf_port2intIfNum(ptin_port_old, &intIfNum_prev) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port_old %u", ptin_port_old);
+    return L7_FAILURE;
+  }
+
+  if (ptin_port_new >= PTIN_SYSTEM_N_INTERF ||
+      ptin_intf_port2intIfNum(ptin_port_new, &intIfNum_new) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port_new %u", ptin_port_new);
+    return L7_FAILURE;
+  }
+
+  /* Port to be removed */
+  if (nimGetUnitSlotPort(intIfNum_prev, &usp) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  vlan_mode.ddUsp.unit = usp.unit;
+  vlan_mode.ddUsp.slot = usp.slot;
+  vlan_mode.ddUsp.port = usp.port - 1;
+
+  vlan_mode.oper = DAPI_CMD_SET;
+  vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
+  vlan_mode.cpu_include = 0;
+
+  return dtlPtinVlanPortControl(intIfNum_new, &vlan_mode);
 }
 
 /**

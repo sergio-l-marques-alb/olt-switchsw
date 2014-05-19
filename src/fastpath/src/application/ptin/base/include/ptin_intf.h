@@ -638,6 +638,7 @@ extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_
  */
 extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);
 extern L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd);
+extern L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new);
 
 /**
  The following 2 functions identify, respectively
