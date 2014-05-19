@@ -539,17 +539,17 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
 
 unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family)
 {
-  L7_uint16      shortVal;
-  L7_uchar8      srcMac[L7_MAC_ADDR_LEN];
-  L7_uchar8      destMac[L7_MAC_ADDR_LEN];
-  L7_uchar8      packet[L7_MAX_FRAME_SIZE];
-  L7_uchar8      *dataPtr;
-  L7_uint32      packetLength = payloadLength;
-  L7_uint32      dstIpAddr;
-  L7_inet_addr_t destIp;
-  L7_uint32      activeState;  
-  L7_uint16      int_ovlan; 
-  L7_uint16      int_ivlan=0; 
+  L7_uint16             shortVal;
+  L7_uchar8             srcMac[L7_MAC_ADDR_LEN];
+  L7_uchar8             destMac[L7_MAC_ADDR_LEN];
+  L7_uchar8             packet[L7_MAX_FRAME_SIZE];
+  L7_uchar8            *dataPtr;
+  L7_uint32             packetLength = payloadLength;
+  L7_uint32             dstIpAddr;
+  L7_inet_addr_t        destIp;
+  L7_uint32             activeState;  
+  L7_uint16             int_ovlan; 
+  L7_uint16             int_ivlan    = 0; 
   ptin_IgmpProxyCfg_t   igmpCfg;
    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
@@ -641,7 +641,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   else //To support sending one Membership Query Message per ONU (client_idx=-1)
   {
     if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
-    {     
+    { 
+#if 1          
       mgmdQueryInstances_t *mgmdQueryInstancesPtr=L7_NULLPTR;
       L7_uint32             mgmdNumberOfQueryInstances;
       L7_uint32             numberOfQueriesSent=0;
@@ -665,8 +666,12 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
             return FAILURE;
-          }          
-          ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+          }
+          #if 0          
+            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+          #else
+            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, (L7_uint) -1);
+          #endif
         }
         if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
         {          
@@ -674,6 +679,10 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
         }
         mgmdQueryInstancesPtr++;     
       }
+#else
+      //Send packet
+      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+#endif
     }
     else //General Query
     {
