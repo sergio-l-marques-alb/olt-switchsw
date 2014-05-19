@@ -1550,7 +1550,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
 
   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
