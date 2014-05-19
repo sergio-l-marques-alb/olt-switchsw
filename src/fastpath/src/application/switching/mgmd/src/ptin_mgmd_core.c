@@ -278,18 +278,21 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u igmpType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType,igmpType);
         return ERROR;
       }
-      
+      /*RFC 2236 of IGMPv2 Section 2.5 "Other Fields" - states that IGMP messages may be longer than 8 octect, especially future backwards-compatible.
+      As long as the type is recognized, an IGMPv2 implementation MUST process the first 8 octets of the packet.*/
+      /* According to RFC 3376 of IGMPv3 - Query messages MUST be sent using type 0x11, which is a known type of IGMPv2, and with a minimum packet length of 12 octets.
+      Therefore any device supporting IGMPv2 MUST support processing also Query packets with a size of 12 octets.*/
+
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
       { 
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: Silently ignored...we are configured to operate at IGMPv2 only!");        
-        rc=ERROR;//We are configured to operate at IGMPv2         
+        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Received a Membership Queryv3, while configured to operate at IGMPv2. Processing only the first 8 octets of the packet");               
+        mcastPacket->ipPayloadLength=IGMP_PKT_MIN_LENGTH;
       }
-      else
-      {
-        ptin_measurement_timer_start(22,"ptin_mgmd_membership_query_process");
-        rc = ptin_mgmd_membership_query_process(mcastPacket);
-        ptin_measurement_timer_stop(22);
-      }      
+      
+      ptin_measurement_timer_start(22,"ptin_mgmd_membership_query_process");
+      rc = ptin_mgmd_membership_query_process(mcastPacket);
+      ptin_measurement_timer_stop(22);
+            
       break;
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
      //Port must be leaf
