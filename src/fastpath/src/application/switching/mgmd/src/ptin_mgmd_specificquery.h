@@ -22,8 +22,8 @@ typedef struct groupSourceSpecificQueriesSource_s groupSourceSpecificQueriesSour
 typedef struct
 {  
   ptin_mgmd_inet_addr_t  groupAddr;
-  uint32                 serviceId;  
-  uint16                 portId;
+  uint32            serviceId;  
+  uint16            portId;
 } groupSourceSpecificQueriesAvlKey_t;
 
 struct groupSourceSpecificQueriesSource_s

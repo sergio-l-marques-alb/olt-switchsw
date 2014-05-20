@@ -23,6 +23,7 @@
 
 #include "ipc.h"
 #include "ptin_msghandler.h"
+#include "ptin_intf.h"
 
 
 /* Static Methods */
@@ -565,7 +566,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");        
   }
-
   //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!       
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   ptin_mgmd_port_type_t portType;
@@ -577,7 +577,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   }
   //Get Group Address
   groupAddress=*((L7_uint32*) (payload+28));   
-
   //We only get the intRootVLAN here for the General Query and for the Membership Reports
   //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT || groupAddress==0x00)
@@ -590,6 +589,31 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       return FAILURE;
     }
   }
+  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+  else
+  {
+    if (clientId != (unsigned int) -1)
+    {
+      L7_uint32 ptin_port;    
+
+      /* Convert to ptin_port format */
+      if (ptin_intf_intIfNum2port(portId, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot convert intIfNum %u to ptin_port format", portId);
+        return L7_FAILURE;
+      }
+
+      if( igmp_intVlan_from_clientId_get(ptin_port, clientId, &int_ovlan) != L7_SUCCESS  
+          || int_ovlan<PTIN_VLAN_MIN || int_ovlan>PTIN_VLAN_MAX)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot obtain int_ovlan (%u) from client id:%u", int_ovlan, clientId);              
+        return L7_FAILURE;
+      }
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Obtained int_ovlan (%u) from client id:%u", int_ovlan, clientId);  
+    }     
+  }
+  #endif
 
   //Get destination MAC from destIpAddr
   dstIpAddr = *((L7_uint32*) (payload+16));
@@ -638,51 +662,53 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
   }
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  else //To support sending one Membership Query Message per ONU (client_idx=-1)
+  else //To support sending one Membership Query Message per ONU 
   {
-    if (groupAddress !=0x0 ) //Membership Group or Group and Source Specific Query Message
+    if (groupAddress != 0x0 ) //Membership Group or Group and Source Specific Query Message
     { 
-#if 1          
-      mgmdQueryInstances_t *mgmdQueryInstancesPtr=L7_NULLPTR;
-      L7_uint32             mgmdNumberOfQueryInstances;
-      L7_uint32             numberOfQueriesSent=0;
-
-      mgmdQueryInstancesPtr=ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
-      if ((mgmdNumberOfQueryInstances>0 && mgmdQueryInstancesPtr==L7_NULLPTR) || mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
-      {
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstancesPtr);
-        mgmdNumberOfQueryInstances=0;
-        return SUCCESS;
-      }
-      
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
-      while(mgmdQueryInstancesPtr!=L7_NULLPTR)
+      if (clientId == (unsigned int) -1)//No Client Id is provided
       {        
-        if (mgmdQueryInstancesPtr->inUse==L7_TRUE)
+        mgmdQueryInstances_t *mgmdQueryInstancesPtr=L7_NULLPTR;
+      
+        L7_uint32             mgmdNumberOfQueryInstances;
+        L7_uint32             numberOfQueriesSent=0;
+
+        mgmdQueryInstancesPtr=ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
+        if ((mgmdNumberOfQueryInstances>0 && mgmdQueryInstancesPtr==L7_NULLPTR) || mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
         {
-          ++numberOfQueriesSent;
-          //Get outter internal vlan
-          if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstancesPtr->UcastEvcId, &int_ovlan))
+          LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstancesPtr);
+          mgmdNumberOfQueryInstances=0;
+          return SUCCESS;
+        }
+
+        if (ptin_debug_igmp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
+      
+        while(mgmdQueryInstancesPtr!=L7_NULLPTR)
+        {        
+          if (mgmdQueryInstancesPtr->inUse==L7_TRUE)
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
-            return FAILURE;
-          }
-          #if 0          
+            ++numberOfQueriesSent;
+            //Get outter internal vlan
+            if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstancesPtr->UcastEvcId, &int_ovlan))
+            {
+              LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+              return FAILURE;
+            }          
             ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
-          #else
-            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, (L7_uint) -1);
-          #endif
+          }
+          if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
+          {          
+            break;
+          }
+          mgmdQueryInstancesPtr++;     
         }
-        if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
-        {          
-          break;
-        }
-        mgmdQueryInstancesPtr++;     
       }
-#else
-      //Send packet
-      snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
-#endif
+      else//Client Id is provided
+      {
+        //Send packet
+        snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+      }
     }
     else //General Query
     {

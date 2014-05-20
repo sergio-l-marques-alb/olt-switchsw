@@ -1241,6 +1241,10 @@ extern L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 gr
 extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAddr, L7_uint32 portId);
 #endif
 
+/**
+ * Get intVlan from Client Id
+ */
+extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_idx, L7_uint16 *intVlan);
 
 #endif//_PTIN_IGMP_H
 
