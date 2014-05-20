@@ -225,14 +225,14 @@ void ptin_routing_routetablesnapshot_dump(void);
  * 
  * @param index : Ping session index. Use -1 to dump all sessions
  */
-void ptin_routing_pingsession_dump(L7_uint8 index);
+void ptin_routing_pingsession_dump(L7_uint32 index);
 
 /**
  * Dump the current status of the traceroute sessions array.
  * 
  * @param index : Traceroute session index. Use -1 to dump all sessions
  */
-void ptin_routing_traceroutesession_dump(L7_uint8 index);
+void ptin_routing_traceroutesession_dump(L7_uint32 index);
 
 /**
  * Dump the local traceroute hops snapshot.

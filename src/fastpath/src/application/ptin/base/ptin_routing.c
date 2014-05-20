@@ -12,6 +12,7 @@
 #include "ptin_routing.h"
 #include "ptin_utils.h"
 #include "ptin_intf.h"
+#include "ptin_evc.h"
 #include "ptin_ipdtl0_packet.h"
 #include "l7_ipmap_arp_api.h"
 #include "usmdb_1213_api.h"
@@ -417,9 +418,12 @@ L7_RC_t ptin_routing_deinit(void)
  */
 L7_RC_t ptin_routing_intf_create(ptin_intf_t* intf, L7_uint16 routingVlanId, L7_uint16 internalVlanId)
 {
-  L7_uint32 intfNum;
+  L7_uint32       routingIntfNum;
+  NIM_INTF_MASK_t rootIntfList;
+  L7_uint32       firstRootIntfnum;
+  L7_BOOL         hasRootIntf = L7_FALSE;
 
-  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &routingIntfNum))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
     return L7_FAILURE;
@@ -471,20 +475,48 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* intf, L7_uint16 routingVlanId, L7_
 
 #if PTIN_BOARD_IS_MATRIX //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
-  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, intfNum, L7_TRUE))
+  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
 
-  /* Set interface MAC address */
-  L7_enetMacAddr_t macAddr;
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
-  if(ptin_routing_intf_macaddress_set(intf, &macAddr) != L7_SUCCESS)
+  /*
+   * Set routing interface MAC address 
+   *  
+   * - If the requested EVC has root interfaces, our MAC address should be set to be the same as the first root interface MAC address
+   * - If no root interfaces are found in this EVC then this is a loopback routing interface. Hence, our MAC address should be the same as the dtl0 interface 
+   */
+  if(L7_SUCCESS != ptin_evc_intfType_getList(internalVlanId, PTIN_EVC_INTF_ROOT, &rootIntfList))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get EVC interface list [internalVlanId:%u type:%u]", internalVlanId, PTIN_EVC_INTF_ROOT);
     return L7_FAILURE;
+  }
+  for (firstRootIntfnum = 1; firstRootIntfnum <= L7_MAX_INTERFACE_COUNT; ++firstRootIntfnum)
+  {
+    if (L7_INTF_ISMASKBITSET(rootIntfList, firstRootIntfnum))
+    {
+      hasRootIntf = L7_TRUE;
+      break;
+    }
+  }
+  if(hasRootIntf == L7_TRUE)
+  {
+    L7_enetMacAddr_t macAddr;
+
+    if(L7_SUCCESS != nimGetIntfAddress(firstRootIntfnum, L7_NULL, &macAddr.addr[0])) //I prefer this method over 'ptin_intf_portMAC_get' because I already have the intfId in intfNum format
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [firstRootIntfnum:%u]", firstRootIntfnum);
+      return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
+    if(ptin_routing_intf_macaddress_set(intf, &macAddr) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -588,9 +620,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* intf, L7_uchar8 ipFamily, L
  */
 L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr)
 {
-  static L7_uint8 offset = 1;
-  L7_uchar8       macAddr_tmp[L7_ENET_MAC_ADDR_LEN];
-  L7_uint32       intfNum;
+  L7_uint32 intfNum;
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
   {
@@ -604,17 +634,8 @@ L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* ma
     return L7_ERROR;
   }
 
-  /* Set MAC address */
-  macAddr_tmp[0] = 0x00;
-  macAddr_tmp[1] = 0x06;
-  macAddr_tmp[2] = 0x91;
-  macAddr_tmp[3] = 0x55;
-  macAddr_tmp[4] = 0x55;
-  macAddr_tmp[5] = offset++;
-  memcpy(macAddr->addr, macAddr_tmp, L7_ENET_MAC_ADDR_LEN * sizeof(L7_uchar8));
-
   /* Configure the routing interface with the given MAC address */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
             intfNum, macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
   nimSetIntfAddress(intfNum, L7_NULL, (void*)macAddr->addr); //Necessário?
   nimSetIntfL3MacAddress(intfNum, L7_NULL, (void*)macAddr->addr);
@@ -1904,7 +1925,7 @@ void ptin_routing_routetablesnapshot_dump(void)
  * 
  * @param index : Ping session index. Use -1 to dump all sessions
  */
-void ptin_routing_pingsession_dump(L7_uint8 index)
+void ptin_routing_pingsession_dump(L7_uint32 index)
 {
   L7_uint8 i;
 
@@ -1914,7 +1935,7 @@ void ptin_routing_pingsession_dump(L7_uint8 index)
     return;
   }
 
-  if(index != (L7_uint8)-1)
+  if(index != (L7_uint32)-1)
   {
     printf("Index[%u]--------------------\n", index);
     printf("Configurations:\n");
@@ -1956,9 +1977,9 @@ void ptin_routing_pingsession_dump(L7_uint8 index)
  * 
  * @param index : Traceroute session index. Use -1 to dump all sessions
  */
-void ptin_routing_traceroutesession_dump(L7_uint8 index)
+void ptin_routing_traceroutesession_dump(L7_uint32 index)
 {
-  L7_uint8 i;
+  L7_uint32 i;
 
   if(index > __traceroute_sessions_max)
   {
@@ -2026,7 +2047,7 @@ void ptin_routing_traceroutehopssnapshot_dump(void)
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__traceroutehops_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    printf("There are not hops for this traceroute session");
     return;
   }
 

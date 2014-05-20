@@ -1752,10 +1752,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: First root ports = %u,%u   First leaf port = %u", evc_ext_id, root_port1, root_port2, leaf_port1);
 
   /* Do not accept:
-   *   1. no roots
-   *   2. leafs in EVC# PTIN_EVC_INBAND */
-  if ((n_roots == 0) ||
-      (evc_ext_id == PTIN_EVC_INBAND && n_leafs != 0))
+   *   1. leafs in EVC# PTIN_EVC_INBAND */
+  if (evc_ext_id == PTIN_EVC_INBAND && n_leafs != 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: combination of roots/leafs is invalid! [roots=%u leafs=%u]",
             evc_ext_id, n_roots, n_leafs);
