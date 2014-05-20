@@ -468,7 +468,7 @@ static int clone_proc_msg (void* canal_id)
                    "Recebeu comando no canal %d (msgid=%08X, Dim=%d, size=%d).", canal, inbuffer.msgId, inbuffer.infoDim, bytes);
          //envia pacote para a rotina de processamento de pacotes (definida no metodo <open_ipc>,
          //e que devera ser definida pelo utilizador
-         if(ipc_canais[canal].processa_msg_handler(&inbuffer,&outbuffer)==0)
+         if(ipc_canais[canal].processa_msg_handler(&inbuffer,&outbuffer) == IPC_OK)
          {
             // se o valor de retorno for ==0 entao e enviada um pacote outbuffer para 
             // a origem do pacote que veio no inbuffer
