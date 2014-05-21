@@ -1154,23 +1154,24 @@ L7_RC_t ipsgVerifySourceSet(L7_uint32 intIfNum,
 /*********************************************************************
 * @purpose  Get the next source binding for IP source guard.
 *
-* @param    intIfNum   @b((input/output)) internal interface number
-* @param    vlanId     @b((input/output)) VLAN ID
-* @param    ipAddr     @b((input/output)) authorized source IP address
-* @param    macAddr    @b((input/output)) authorized source MAC address
+* @param    intIfNum     @b((input/output)) internal interface number
+* @param    vlanId       @b((input/output)) VLAN ID
+* @param    ipAddr       @b((input/output)) authorized source IP address
+* @param    macAddr      @b((input/output)) authorized source MAC address
+* @param    entryType    @b((input/output)) Entry type of the row
 *
 * @returns  L7_SUCCESS
 *           L7_FAILURE when no more entries
 *
-* @notes    none
+* @notes    Entry type will be populated. Entry type from the caller 
+*           function will not be used while getting the next entry.
 *
 * @end
 *********************************************************************/
 L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId, 
                            L7_inet_addr_t *ipAddr, L7_enetMacAddr_t *macAddr,
-                           L7_uint32 *entryType, L7_uint32 matchType);
-
-
+                           L7_uint32 *entryType,
+                           L7_uint32 matchType);
 
 /*********************************************************************
 * @purpose  Query IPSG to find out if a source MAC address is valid. 
@@ -1191,5 +1192,43 @@ L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
 *********************************************************************/
 L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
                              L7_ushort16 vlanId, L7_uint32 intIfNum);
+
+/*********************************************************************
+* @purpose  Add a static entry to the IPSG entries database.
+*
+* @param    intIfNum      @b((input))  internal interface number.
+* @param    vlanId        @b((input))  client VLAN ID.
+* @param    ipv4Addr      @b((input))  client IP address.
+* @param    macAddr       @b((input))  client MAC address.
+*
+* @returns  L7_SUCCESS if entry added.
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
+                           L7_ushort16 vlanId,                           
+                           L7_enetMacAddr_t *macAddr,
+                           L7_inet_addr_t* ipAddr);
+
+/*********************************************************************
+* @purpose  Remove a static entry to the IPSG entries database.
+*
+* @param    intIfNum @b((input))  internal interface number.
+* @param    vlanId   @b((input))  client VLAN ID.
+* @param    ipAddr   @b((input))  client IP address.
+* @param    macAddr  @b((input))  client MAC address.
+*
+* @returns  L7_SUCCESS if entry added.
+*
+* @notes    
+*
+* @end
+*********************************************************************/
+L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
+                           L7_ushort16 vlanId,
+                           L7_enetMacAddr_t *macAddr,
+                           L7_inet_addr_t *ipAddr);
 
 #endif /* DHCP_SNOOPING_API_H */

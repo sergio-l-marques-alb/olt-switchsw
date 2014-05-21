@@ -189,11 +189,11 @@ L7_RC_t ipsgVerifySourceSet(L7_uint32 intIfNum,
 /*********************************************************************
 * @purpose  Get the next source binding for IP source guard.
 *
-* @param    intIfNum   @b((input/output)) internal interface number
-* @param    vlanId     @b((input/output)) VLAN ID
-* @param    ipAddr     @b((input/output)) authorized source IP address
-* @param    macAddr    @b((input/output)) authorized source MAC address
-* @param    entryType  @b((input/output)) Entry type of the row
+* @param    intIfNum     @b((input/output)) internal interface number
+* @param    vlanId       @b((input/output)) VLAN ID
+* @param    ipAddr       @b((input/output)) authorized source IP address
+* @param    macAddr      @b((input/output)) authorized source MAC address
+* @param    entryType    @b((input/output)) Entry type of the row
 *
 * @returns  L7_SUCCESS
 *           L7_FAILURE when no more entries
@@ -227,7 +227,7 @@ L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
     {
       /* IPSG is enabled on interface associated with binding. */
       *intIfNum = ipsgEntry->ipsgEntryKey.intIfNum;
-      *vlanId = ipsgEntry->ipsgEntryKey.vlanId;      
+      *vlanId = ipsgEntry->ipsgEntryKey.vlanId;  
       memcpy(ipAddr, &ipsgEntry->ipsgEntryKey.ipAddr, sizeof(L7_inet_addr_t));
       memcpy( macAddr->addr, 
               ipsgEntry->ipsgEntryKey.macAddr.addr,
@@ -262,12 +262,13 @@ L7_RC_t ipsgBindingGetNext(L7_uint32 *intIfNum, L7_ushort16 *vlanId,
 L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
                              L7_ushort16 vlanId, L7_uint32 intIfNum)
 {
-  L7_BOOL auth = L7_FALSE;
-  L7_uint32 entryType;
-  L7_inet_addr_t ipAddr;
+  L7_BOOL          auth = L7_FALSE;
+  L7_uint32        entryType;
+  L7_inet_addr_t   ipAddr;
   L7_enetMacAddr_t tmpMacAddr;
-  L7_ushort16 tmpVlanId;
-  L7_uint32 tmpIntIfNum;
+  L7_ushort16      tmpVlanId;
+  L7_uint32        tmpIntIfNum;
+  
   
   memset(&ipAddr, 0x00, sizeof(ipAddr));
 
@@ -284,7 +285,7 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
   tmpIntIfNum = intIfNum;
  
   while ( ipsgBindingGetNext(&intIfNum,
-                          &vlanId,
+                          &vlanId,                          
                           &ipAddr,
                           macAddr,
                           &entryType,
@@ -320,7 +321,7 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
+L7_RC_t ipv4sgStaticEntryAdd(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
                            L7_uint32 ipv4Addr)
@@ -365,6 +366,69 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 }
 
 /*********************************************************************
+* @purpose  Add a static entry to the IPSG entries database.
+*
+* @param    intIfNum      @b((input))  internal interface number.
+* @param    vlanId        @b((input))  client VLAN ID.
+* @param    ipv4Addr      @b((input))  client IP address.
+* @param    macAddr       @b((input))  client MAC address.
+*
+* @returns  L7_SUCCESS if entry added.
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
+                           L7_ushort16 vlanId,                           
+                           L7_enetMacAddr_t *macAddr,
+                           L7_inet_addr_t* ipAddr)
+{
+  L7_RC_t        rc;  
+
+  if(ipAddr->family == L7_AF_INET)
+  {
+    /* Validate IP address. Don't allow 0, mcast or above, loopback. */
+    if ((ipAddr->addr.ipv4.s_addr == 0) ||
+        (ipAddr->addr.ipv4.s_addr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
+        (((ipAddr->addr.ipv4.s_addr & 0xff000000) >> 24) == 127))
+    {
+      return L7_ERROR;
+    }
+  }
+  else
+  {
+    return L7_NOT_IMPLEMENTED_YET;
+  }
+
+  /* Validate MAC address */
+  if (/*(memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||*/
+      ((macAddr->addr[0] & 1) == 1))
+  {
+    /* Don't allow the following invalid MAC addresses:
+     * (a) Address 00:00:00:00:00:00 @PTIN: Allowed to support dynamic MAC binding
+     * (b) Any multicast address (the first bit in the first byte being 1)
+     *     It includes the broadcast address FF:FF:FF:FF:FF:FF
+     */
+    return L7_ERROR;
+  }
+
+  /* Validate VLAN ID */
+  if ((vlanId == 0) || (vlanId > L7_PLATFORM_MAX_VLAN_ID))
+  {
+    return L7_ERROR;
+  }
+  if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
+    return L7_FAILURE;
+
+ 
+  rc = ipsgEntryAdd(IPSG_ENTRY_STATIC, intIfNum, vlanId, macAddr, ipAddr);
+
+  osapiWriteLockGive(dsCfgRWLock);
+  return rc;
+}
+
+/*********************************************************************
 * @purpose  Remove a static entry to the IPSG entries database.
 *
 * @param    intIfNum @b((input))  internal interface number.
@@ -378,7 +442,7 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
+L7_RC_t ipv4sgStaticEntryRemove(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
                            L7_uint32 ipv4Addr)
@@ -422,4 +486,74 @@ L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
   return rc;
 }
 
+/*********************************************************************
+* @purpose  Remove a static entry to the IPSG entries database.
+*
+* @param    intIfNum @b((input))  internal interface number.
+* @param    vlanId   @b((input))  client VLAN ID.
+* @param    ipv4Addr @b((input))  client IP address.
+* @param    macAddr  @b((input))  client MAC address.
+*
+* @returns  L7_SUCCESS if entry added.
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
+                           L7_ushort16 vlanId,
+                           L7_enetMacAddr_t *macAddr,
+                           L7_inet_addr_t* ipAddr)
+{
+  L7_RC_t        rc;
+ 
+  if(ipAddr->family == L7_AF_INET)
+  {
+    /* Validate IP address. Don't allow 0, mcast or above, loopback. */
+    if ((ipAddr->addr.ipv4.s_addr == 0) ||
+        (ipAddr->addr.ipv4.s_addr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
+        (((ipAddr->addr.ipv4.s_addr & 0xff000000) >> 24) == 127))
+    {
+      return L7_ERROR;
+    }
+  }
+  else
+  {
+    return L7_NOT_IMPLEMENTED_YET;
+  }
+
+  /* Validate MAC address */
+  if (/*(memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||*/
+      ((macAddr->addr[0] & 1) == 1))
+  {
+    /* Don't allow the following invalid MAC addresses:
+     * (a) Address 00:00:00:00:00:00 @PTIN: Allowed to support dynamic MAC Binding
+     * (b) Any multicast address (the first bit in the first byte being 1)
+     *     It includes the broadcast address FF:FF:FF:FF:FF:FF
+     */
+    return L7_ERROR;
+  }
+
+  /* Validate VLAN ID */
+  if ((vlanId == 0) || (vlanId > L7_PLATFORM_MAX_VLAN_ID))
+  {
+    return L7_ERROR;
+  }
+  if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  LOG_ERR(LOG_CTX_IPSG, "Aqui.");
+  rc = ipsgEntryRemove(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, ipAddr);
+  LOG_ERR(LOG_CTX_IPSG, "rc=%u",rc);
+  osapiWriteLockGive(dsCfgRWLock);
+  return rc;
+}
+
+L7_uint32 ipsgGetDropped(L7_uint32 intIfNum)
+{
+  L7_uint32 pDropped=(L7_uint32)-1;
+  dtlIpsgDroppedPktsGet(intIfNum,&pDropped);
+
+  return pDropped;
+}
 #endif

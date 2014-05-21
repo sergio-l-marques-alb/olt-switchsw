@@ -39,7 +39,7 @@ typedef struct ipsgEntryKey_s
   L7_ushort16 vlanId;
 
   /* IP address assigned to the station */
-#if 1 /* PTin modified: IPSGv6 */
+#if 1 /* PTin modified: IPv6 Support */
   L7_inet_addr_t ipAddr;
 #else
   L7_uint32 ipAddr;
@@ -83,7 +83,7 @@ L7_RC_t ipsgEntryTableDelete(void);
 L7_RC_t ipsgEntryTreeSearch(L7_uint32 intIfNum, L7_uint32 vlanId,
                                    L7_enetMacAddr_t *macAddr,L7_inet_addr_t* ipAddr,
                                    L7_uint32 matchType,ipsgEntryTreeNode_t **ipsgEntry);
-L7_RC_t ipsgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
+L7_RC_t ipv4sgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
                                L7_uint32 n,
                                ipsgEntryType_t type);
 L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
@@ -112,11 +112,11 @@ L7_RC_t _ipsgEntryClear(L7_uint32 intIfNum);
 *
 * @returns  L7_SUCCESS if entry added.
 *
-* @notes
+* @notes    Only supports IPv4
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
+L7_RC_t ipv4sgStaticEntryAdd(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
                            L7_uint32 ipv4Addr);
@@ -126,20 +126,18 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 *
 * @param    intIfNum @b((input))  internal interface number.
 * @param    vlanId   @b((input))  client VLAN ID.
-* @param    ipv4Addr @b((input))  client IP address.
+* @param    ipAddr   @b((input))  client IP address.
 * @param    macAddr  @b((input))  client MAC address.
 *
 * @returns  L7_SUCCESS if entry added.
 *
-* @notes
+* @notes    Only supports IPv4
 *
 * @end
 *********************************************************************/
-L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
+L7_RC_t ipv4sgStaticEntryRemove(L7_uint32 intIfNum,
                            L7_ushort16 vlanId,
                            L7_enetMacAddr_t *macAddr,
                            L7_uint32 ipv4Addr);
-
-
 
 #endif

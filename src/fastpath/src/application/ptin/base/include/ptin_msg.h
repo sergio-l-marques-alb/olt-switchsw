@@ -738,6 +738,36 @@ extern L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *in
  */
 extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table);
 
+/* IPSG Management Functions **************************************************/
+
+/**
+ * Configure IP Source Guard on Ptin Port
+ * 
+ * @param msgIpsgVerifySource Structure with config parameters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_verify_source_t* msgIpsgVerifySource);
+
+/**
+ * Configure an IP Source Guard  static entry
+ * 
+ * @param msg_IPSG_static_entry_t Structure with config 
+ *                                parameters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry);
+
+/**
+ * Get IP Source Guard binding table
+ *
+ * @param table: bind table entries
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input, msg_ipsg_binding_table_response_t *output);
+
 /* IGMP Management Functions **************************************************/
 /**
  * Applies IGMP Proxy configuration

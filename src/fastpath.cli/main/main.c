@@ -138,6 +138,10 @@ void help_oltBuga(void)
         "m 1630 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Show absolute evc statistics\n\r"
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
+        "--------------------------------------------IP Source Guard---------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
+        "m 1701 eEvcId[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] addOrRemove[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
+        "--------------------------------------------End IP Source Guard-----------------------------------------------------------------------------------------------------------\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
 
         "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
@@ -4528,7 +4532,100 @@ int main (int argc, char *argv[])
           comando.infoDim = sizeof(msg_evcStats_t);
         }
         break;
+      case 1700:      
+        {
+          msg_IPSG_verify_source_t *ptr;
+          int                       type;
+          int                       intf;
+          
+          // Validate number of arguments
+          if (argc<3+2)  {
+            help_oltBuga();
+            exit(0);
+          }
+          
+          // Pointer to data array
+          ptr = (msg_IPSG_verify_source_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_IPSG_verify_source_t));
+    
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
 
+          // verifySource
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+          }
+          ptr->verifySource = (uint8) valued;
+
+          comando.msgId = CCMSG_ETH_IPSG_VERIFY_SOURCE;
+          comando.infoDim = sizeof(msg_IPSG_verify_source_t);          
+        }
+        break;      
+      case 1701:
+        {
+          msg_IPSG_static_entry_t *ptr;
+          int                      type;
+          int                      intf;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_IPSG_static_entry_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_IPSG_static_entry_t));
+
+         // Extended EVC Id
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evc_idx = (uint32) valued;
+
+          // Ptin Port
+          if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // MAC address
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }          
+          memcpy(ptr->macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
+
+          /* IPv4 Address */          
+          if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ipAddr.addr.ipv4 = (uint32) valued;
+          ptr->ipAddr.family = PTIN_AF_INET;
+         
+          // Static Entry Action: 0 -Remove | 1 - Add           
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+          }
+          ptr->action = (uint8) valued;
+
+          comando.msgId = CCMSG_ETH_IPSG_STATIC_ENTRY;
+          comando.infoDim = sizeof(msg_IPSG_static_entry_t); 
+        }
+        break;
       default:
         printf("A mensagem %d nao esta implementada!!\n\r", msg);
         exit(0);
@@ -6156,7 +6253,18 @@ int main (int argc, char *argv[])
         else
           printf(" Switch: EVC counters not removed - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
-
+      case 1700:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" IP Source Guard Correctly Configured\n\r");
+        else
+          printf(" IP Source Guard not Configured\n\r");          
+        break;
+      case 1701:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" IP Source Guard Static Entry Correctly Configured\n\r");
+        else
+          printf(" IP Source Guard Static Entry not Configured\n\r");          
+        break;
       default:
         printf(" Resposta a mensagem %u\n\r",msg);
         break;

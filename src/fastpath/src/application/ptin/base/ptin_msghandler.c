@@ -2710,6 +2710,64 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
+    /************************************************************************** 
+    *                     IP Source Guard
+    **************************************************************************/
+   
+    case CCMSG_ETH_IPSG_VERIFY_SOURCE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_VERIFY_SOURCE);
+
+      CHECK_INFO_SIZE(msg_IPSG_verify_source_t);
+
+      msg_IPSG_verify_source_t *ptr;
+      ptr = (msg_IPSG_verify_source_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_ipsg_verify_source_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while configuring IP Source Guard");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break; 
+    }
+    case CCMSG_ETH_IPSG_STATIC_ENTRY:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_VERIFY_SOURCE);
+
+      CHECK_INFO_SIZE(msg_IPSG_static_entry_t);
+
+      msg_IPSG_static_entry_t *ptr;
+      ptr = (msg_IPSG_static_entry_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_ipsg_static_entry_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while configuring an IP Source Guard Static Entry");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break; 
+    }
 
     /************************************************************************** 
      * IGMP Proxy Config

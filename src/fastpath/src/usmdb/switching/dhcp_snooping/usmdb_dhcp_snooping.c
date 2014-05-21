@@ -1053,7 +1053,7 @@ L7_RC_t usmDbIpsgStaticEntryAdd(L7_uint32 intIfNum,
   inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
 #endif
 
-  return ipsgStaticEntryAdd(intIfNum,
+  return ipv4sgStaticEntryAdd(intIfNum,
                                vlanId,
                                macAddr,
                                ipv4Addr);
@@ -1122,7 +1122,7 @@ L7_RC_t usmDbIpsgStaticEntryRemove(L7_uint32 intIfNum,
   inetAddressSet(L7_AF_INET, &ipv4Addr, &ipAddr);
 #endif
 
-  return ipsgStaticEntryRemove(intIfNum,
+  return ipv4sgStaticEntryRemove(intIfNum,
                                vlanId,
                                macAddr,
                                ipv4Addr);
@@ -1256,7 +1256,7 @@ L7_RC_t usmDbIpsgBindingNthEntryGet(ipsgBinding_t *ipsgBinding,
                                L7_uint32 n,
                                ipsgEntryType_t type)
 {
-  return ipsgBindingNthEntryGet(ipsgBinding,n,type);
+  return ipv4sgBindingNthEntryGet(ipsgBinding,n,type);
 }
 
 #endif

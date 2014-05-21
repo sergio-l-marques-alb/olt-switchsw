@@ -38,7 +38,13 @@
 #include "ptin_acl.h"
 #include "ptin_routing.h"
 
-#include "snooping_api.h"
+#ifndef SNOOPING_API_H
+#include "snooping_api.h" //To interact with SNOOP
+#endif
+
+#ifndef DHCP_SNOOPING_API_H
+#include "dhcp_snooping_api.h"//To interact with IPSG
+#endif
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
@@ -3638,7 +3644,7 @@ L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID     = %u",    msg_evcStats->service_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= 0x%08x",    msg_evcStats->channel_ip);
 
   /* Extract EVC id */
   evcId = msg_evcStats->evc_id;
@@ -4788,6 +4794,184 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
   return L7_SUCCESS;
 }
 
+
+/*IP Source Guard Management Functions **************************************************/
+
+L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr)
+{
+   if ( fpIpAddr->family == L7_AF_INET)
+   {
+      ptinIpAddr->family = PTIN_AF_INET;
+      ptinIpAddr->addr.ipv4 = fpIpAddr->addr.ipv4.s_addr;      
+
+      return L7_SUCCESS;
+   }
+   else if ( fpIpAddr->family == L7_AF_INET6)
+   {
+      ptinIpAddr->family = PTIN_AF_INET6;
+      memcpy(ptinIpAddr->addr.ipv6, fpIpAddr->addr.ipv6.in6.addr8, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));
+
+      return L7_SUCCESS;
+   }
+   else
+   {
+     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of FP not Supported:%u",fpIpAddr->family);
+     return L7_NOT_SUPPORTED;
+   }   
+}
+
+L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr)
+{
+   if ( ptinIpAddr->family == PTIN_AF_INET )
+   {      
+      inetAddressSet(L7_AF_INET, &ptinIpAddr->addr.ipv4, fpIpAddr);          
+      return L7_SUCCESS;
+   }
+   else if ( ptinIpAddr->family == PTIN_AF_INET6 )
+   {
+      fpIpAddr->family = L7_AF_INET6;
+      inetAddressSet(L7_AF_INET6, &ptinIpAddr->addr.ipv6, fpIpAddr);                
+      return L7_SUCCESS;
+   }
+   else
+   {
+     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of PTIN not Supported:%u",fpIpAddr->family);
+     return L7_NOT_SUPPORTED;
+   }   
+}
+
+/**
+ * Configure IP Source Guard on Ptin Port
+ * 
+ * @param msgIpsgVerifySource Structure with config parameters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_verify_source_t* msgIpsgVerifySource)
+{
+  ptin_intf_t  ptin_intf;
+  L7_uint32    intIfNum;
+   
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinPort       = %u/%u",msgIpsgVerifySource->intf.intf_type,msgIpsgVerifySource->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "verifySource   = %s"   ,msgIpsgVerifySource->verifySource==L7_FALSE?"No":"Yes");
+ 
+  /* Get intIfNum */
+  ptin_intf.intf_id=msgIpsgVerifySource->intf.intf_id;
+  ptin_intf.intf_type=msgIpsgVerifySource->intf.intf_type;
+
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
+
+#ifdef L7_IPSG_PACKAGE
+  /*Despite the IPSG API having two input parameters: IP filtering and MAC filtering. 
+    It does not supports enabling just one!
+    */
+  if(msgIpsgVerifySource->verifySource == L7_FALSE)
+  {
+    return (ipsgVerifySourceSet(intIfNum, L7_FALSE, L7_FALSE));
+  }
+  else
+  {
+    return (ipsgVerifySourceSet(intIfNum, L7_TRUE, L7_TRUE));
+  }  
+#else
+  LOG_ERR(LOG_CTX_PTIN_MSG, "IP Source Guard not Supported!");
+  return L7_FAILURE;
+#endif
+}
+
+/**
+ * Configure an IP Source Guard  static entry
+ * 
+ * @param msg_IPSG_static_entry_t Structure with config 
+ *                                parameters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry)
+{  
+  ptin_intf_t       ptin_intf;
+  L7_uint32         intIfNum;
+  L7_uint16         vlanId;
+  L7_inet_addr_t    ipAddr;
+  L7_uchar8         ipAddrStr[IPV6_DISP_ADDR_LEN]; 
+  L7_enetMacAddr_t  macAddr;
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "eEvcId        = %u"  , msgIpsgStaticEntry->evc_idx);  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinP         = %u/%u", msgIpsgStaticEntry->intf.intf_type,msgIpsgStaticEntry->intf.intf_id);  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "action        = %s"  , msgIpsgStaticEntry->action==L7_FALSE?"Remove":"Add");  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "MAC Addr      = %02X:%02X:%02X:%02X:%02X:%02X",msgIpsgStaticEntry->macAddr[0],msgIpsgStaticEntry->macAddr[1],
+            msgIpsgStaticEntry->macAddr[2],msgIpsgStaticEntry->macAddr[3],msgIpsgStaticEntry->macAddr[4],msgIpsgStaticEntry->macAddr[5]);
+  
+  if (ptin_to_fp_ip_notation(&msgIpsgStaticEntry->ipAddr,&ipAddr) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  memcpy(&macAddr, msgIpsgStaticEntry->macAddr, sizeof(macAddr));
+  
+  inetAddrPrint(&ipAddr, ipAddrStr);    
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IP Address    = %s",ipAddrStr);
+   
+  /* Get intIfNum */
+  ptin_intf.intf_id   = msgIpsgStaticEntry->intf.intf_id;
+  ptin_intf.intf_type = msgIpsgStaticEntry->intf.intf_type;
+
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
+
+  /* Get Internal root vlan */
+  if (ptin_evc_intRootVlan_get(msgIpsgStaticEntry->evc_idx, &vlanId)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting internal root vlan for eEVCId=%u");
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry->evc_idx,vlanId);
+
+#ifdef L7_IPSG_PACKAGE
+  if (msgIpsgStaticEntry->action==L7_FALSE)
+  {
+    return (ipsgStaticEntryRemove(intIfNum, vlanId, &macAddr, &ipAddr));  
+  }
+  else
+  {
+    return (ipsgStaticEntryAdd(intIfNum, vlanId, &macAddr, &ipAddr));
+  }   
+#else
+  LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
+  return L7_FAILURE;
+#endif
+}
+
+/**
+ * Get IP Source Guard binding table
+ *
+ * @param table: bind table entries
+ *
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input, msg_ipsg_binding_table_response_t *output)
+{
+#ifdef L7_IPSG_PACKAGE
+  LOG_NOTICE(LOG_CTX_IPSG, "Not Implemented Yet!");
+  return L7_NOT_IMPLEMENTED_YET;
+#else
+  LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
+  return L7_FAILURE;
+#endif
+
+}
+
+/*End IP Source Guard Management Functions **************************************************/
 
 /* IGMP Management Functions **************************************************/
 /**
@@ -6459,13 +6643,13 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
  */
 L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
-  LOG_INFO(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
 
   ptin_igmp_mgmd_port_sync(port_sync_data->admin, port_sync_data->serviceId, port_sync_data->portId, port_sync_data->groupAddr, port_sync_data->sourceAddr, port_sync_data->groupType);
 

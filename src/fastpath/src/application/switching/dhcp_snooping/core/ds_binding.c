@@ -206,8 +206,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
       return L7_FAILURE;                  /* node not inserted in table */
     }
     pNode->bindingType = bindingType;
-    pNode->ipAddr.family = L7_AF_INET;
-    pNode->ipAddr.addr.ipv4.s_addr = ipv4Addr;
+    inetAddressSet(L7_AF_INET, &ipv4Addr, &pNode->ipAddr);    
     pNode->vlanId = vlanId;
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
     pNode->intIfNum = intIfNum;
@@ -959,9 +958,8 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
 #endif
 
     /* ipsgBindingHwRemove(binding->intIfNum, binding->ipAddr);*/
-  }
-  binding->ipAddr.family = L7_AF_INET;
-  binding->ipAddr.addr.ipv4.s_addr = ipAddr;
+  }  
+  inetAddressSet(L7_AF_INET, &ipAddr, &binding->ipAddr); 
   if (ipAddr)
   {
    dsInfo->dsDbDataChanged = L7_TRUE;
@@ -1341,9 +1339,9 @@ void dsBindingTableShow(void)
     return;
   }
 
-  printf("\nDHCP snooping bindings table (contains %u entries): ", count);
-  printf("\n   MAC Address                      IP Address                     VLAN     Port        Type           Status        Lease (min) \n");
-  printf("-----------------  ---------------------------------------------  ------ ----------- ----------- ------------------ -------------\n");
+  printf("\nDHCP snooping bindings table (contains %u entries): \n", count);
+  printf("  MAC Address                      IP Address                     VLAN    innerVLAN  Port        Type           Status          Lease (min) \n");
+  printf("-----------------  ---------------------------------------------  ------  ---------  ----------- ----------- ------------------ -------------\n");
 
   memset(&macAddr, 0, sizeof(macAddr));
   while (dsBindingTreeSearch(&macAddr, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
@@ -1369,8 +1367,8 @@ void dsBindingTableShow(void)
       remainingLease = 0;
     }
 
-    printf("%17s  %-45s  %6u %10s %11s %18s %13u\n",
-           macStr, ipAddrStr, binding->vlanId, ifName,
+    printf("%17s  %-45s  %6u  %9u  %10s %11s %18s %13u\n",
+           macStr, ipAddrStr, binding->vlanId, binding->innerVlanId, ifName,
            dsBindingTypeNames[binding->bindingType], 
            dsLeaseStatusNames[binding->leaseStatus], 
            remainingLease / 60);

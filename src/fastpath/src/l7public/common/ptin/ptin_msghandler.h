@@ -131,6 +131,10 @@
 
 #define CCMSG_ETH_DHCP_EVC_RECONF           0x90CB  // struct msg_DhcpEvcReconf_t
 
+#define CCMSG_ETH_IPSG_VERIFY_SOURCE        0x90D0  // struct msg_IPSG_verify_source_t
+#define CCMSG_ETH_IPSG_STATIC_ENTRY         0x90D1  // struct msg_IPSG_static_entry_t
+#define CCMSG_ETH_IPSG_BINDING_TABLE_GET    0x90D2  // struct msg_IPSG_binding_table_request_t
+
 #define CCMSG_ETH_PORT_COS_GET              0x9090  // struct msg_QoSConfiguration_t
 #define CCMSG_ETH_PORT_COS_SET              0x9091  // struct msg_QoSConfiguration_t
 
@@ -1093,6 +1097,42 @@ typedef struct {
   L7_uint8  mask;       // Mask
   L7_uint16 page;       // [mask = 0x01] Page index
 } __attribute__((packed)) msg_DHCP_bind_table_request_t;
+
+
+/***************************************************** 
+ * IP Source Guard  configuration messages
+ ****************************************************/
+
+/* Message to enable/disable IPSG in a given Interface  */
+typedef struct {  
+  msg_HwEthInterface_t  intf;             //Interface 
+  L7_uint8              verifySource;     //True or False  
+} __attribute__((packed)) msg_IPSG_verify_source_t;
+
+typedef struct {
+  L7_uint32             evc_idx;           // EVCid      
+  msg_HwEthInterface_t  intf;             // Interface
+  L7_uint8              macAddr[6];       // MAC Address
+  L7_uint8              action;           // Remove: 0 | Add: 1
+  chmessage_ip_addr_t   ipAddr;           // IP address  
+} __attribute__((packed)) msg_IPSG_static_entry_t;
+
+typedef struct {  
+  L7_uint16             entryId;
+} __attribute__((packed)) msg_ipsg_binding_table_request_t;
+
+/* IPSG Binding table IPv6 compatible */
+typedef struct {
+  L7_uint32             evc_idx;                // EVCid                          
+  L7_uint16             entryId;                // Entry Id 
+  L7_uint16             outer_vlan;             // Service vlan: not used yet
+  L7_uint16             inner_vlan;             // Client vlanId
+  L7_uint8              macAddr[6];             // MAC Address
+  msg_HwEthInterface_t  intf;                   // Interface
+  chmessage_ip_addr_t   ipAddr;                 // IP address  
+  L7_uint8              bindingType;            // Binding type: 0=Static, 1=Dynamic
+  L7_uint8              hwStatus;                // HW Status: 0=Disabled, 1=Enabled
+} __attribute__((packed)) msg_ipsg_binding_table_response_t;
 
 /***************************************************** 
  * IGMP PROXY

@@ -93,6 +93,12 @@ L7_RC_t ipsgEntryTableCreate(void)
 
   return L7_SUCCESS;
 }
+
+L7_uint32 ptinIpsgMaxBindings(void)
+{
+return (ipsgInfo->ipsgEntryTable.maxBindings);
+}
+
 /*********************************************************************
 * @purpose  Delete the IPSG entries table
 *
@@ -241,7 +247,6 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
   else if (pNode != &ipsgEntry)
   {
     /* A binding for this key already exists. We need to check for static entries */
-
     if ( (pNode->ipsgEntryType == IPSG_ENTRY_DYNAMIC) &&
          (entryType == IPSG_ENTRY_STATIC))
 
@@ -274,6 +279,69 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
 }
 
 
+
+/*********************************************************************
+* @purpose  Get the nth source binding for IP source guard.
+*
+* @param    ipsgBinding @b((output)) nth IPSG entry in the IPSG table
+* @param    n           @b((input))  nth row
+* @param    type        @b((input/output)) Entry type of the row
+*
+* @returns  L7_SUCCESS
+*           L7_NOT_IMPLEMENTED_YET when IPv6 entries is found
+*           L7_FAILURE when no more entries
+*
+*
+* @end
+*********************************************************************/
+L7_RC_t ipv4sgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
+                               L7_uint32 n,
+                               ipsgEntryType_t type)
+
+{
+
+  ipsgEntryTreeNode_t *pNode, key;
+  L7_uint32 count = 0;
+
+  memset((L7_uchar8 *)&key, 0, sizeof(ipsgEntryTreeNode_t));
+
+  while (1)
+  {
+    pNode = avlSearchLVL7(&ipsgInfo->ipsgEntryTable.treeData, &key,
+                          AVL_NEXT);
+
+    if (pNode == L7_NULLPTR)
+        return L7_FAILURE;                  /* node not found */
+    else if (pNode->ipsgEntryType == type)
+    {
+      count++;
+      if (count == n)
+      {
+        break;
+      }
+    }
+    memcpy(&key.ipsgEntryKey.macAddr, &pNode->ipsgEntryKey.macAddr,
+                                              L7_ENET_MAC_ADDR_LEN);
+    key.ipsgEntryKey.intIfNum = pNode->ipsgEntryKey.intIfNum;
+    key.ipsgEntryKey.vlanId = pNode->ipsgEntryKey.vlanId;
+    memcpy(&key.ipsgEntryKey.ipAddr, &pNode->ipsgEntryKey.ipAddr, sizeof(L7_inet_addr_t));    
+  }
+
+
+  if (L7_AF_INET != pNode->ipsgEntryKey.ipAddr.family)
+  {
+    L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DHCP_SNOOPING_COMPONENT_ID,
+              "INET_ADDR: FamilyType Not Implemented Yet- %d", pNode->ipsgEntryKey.ipAddr.family);
+    return L7_NOT_IMPLEMENTED_YET;
+  }
+  memcpy(&ipsgBinding->macAddr, &pNode->ipsgEntryKey.macAddr,
+                                           L7_ENET_MAC_ADDR_LEN);
+  ipsgBinding->intIfNum = pNode->ipsgEntryKey.intIfNum;
+  ipsgBinding->vlanId = pNode->ipsgEntryKey.vlanId;
+  ipsgBinding->ipAddr = pNode->ipsgEntryKey.ipAddr.addr.ipv4.s_addr;
+
+  return L7_SUCCESS;
+}
 
 /*********************************************************************
 * @purpose  Get the nth source binding for IP source guard.
@@ -337,7 +405,6 @@ L7_RC_t ipsgBindingNthEntryGet (ipsgBinding_t *ipsgBinding,
 
   return L7_SUCCESS;
 }
-
 
 /*********************************************************************
 * @purpose  Search the entries table for a specific entry
@@ -1156,8 +1223,9 @@ void ipsgEntryTableShow(void)
   }
 
   printf("\n IPSG entries table contains (%u) entries: ", count);
-  printf("\nMAC Address        IP Address                                    VLAN      Port      Type     HW Status\n");
-  printf("-----------------  ---------------------------------------------  ------ ----------- ---------  -----------\n");
+  printf("\n"
+         "MAC Address        IP Address                                     VLAN    intIfNum  Type    HW Status\n");
+  printf("-----------------  ---------------------------------------------  ------  --------  -------  ---------\n");
 
   memset((L7_uchar8 *)&key, 0, sizeof(key));
 
@@ -1182,9 +1250,9 @@ void ipsgEntryTableShow(void)
       remainingLease = 0;
     }
 
-    printf("%17s  %-45s  %6u  %10s %12d  %u\n",
-           macStr, ipAddrStr, entry->ipsgEntryKey.vlanId, ifName,
-           entry->ipsgEntryType, entry->ipsgEntryHwStatus);
+    printf("%17s  %-45s  %6u  %8u  %7s  %9s\n",
+           macStr, ipAddrStr, entry->ipsgEntryKey.vlanId, entry->ipsgEntryKey.intIfNum,
+           entry->ipsgEntryType==IPSG_ENTRY_STATIC?"Static":"Dynamic", entry->ipsgEntryHwStatus==L7_TRUE?"Enable":"Disable");
    ipsgEntryCopy (&key, entry);
   }
   printf("\n\n");

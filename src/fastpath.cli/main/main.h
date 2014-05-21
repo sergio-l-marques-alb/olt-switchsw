@@ -131,6 +131,10 @@ extern int canal_buga;
 #define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
 #define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
 
+#define CCMSG_ETH_IPSG_VERIFY_SOURCE        0x90D0  // struct msg_IPSG_verify_source_t
+#define CCMSG_ETH_IPSG_STATIC_ENTRY         0x90D1  // struct msg_IPSG_static_entry_t
+#define CCMSG_ETH_IPSG_BINDING_TABLE_GET    0x90D2  // struct msg_IPSG_binding_table_request_t
+
 #define CCMSG_ETH_IGMP_PROXY_GET            0x9070  // struct msg_IgmpProxyCfg_t
 #define CCMSG_ETH_IGMP_PROXY_SET            0x9071  // struct msg_IgmpProxyCfg_t
 #define CCMSG_ETH_IGMP_ENTRY_ADD            0x9073  // struct msg_IgmpMultcastUnicastLink_t
@@ -1265,6 +1269,50 @@ typedef struct
   uint8 port;                 // Port index
   uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
 } __attribute__ ((packed)) msg_uplinkProtCmd;
+
+
+/**************************************************************************** 
+ * IP Source Guard
+ ****************************************************************************/
+
+/* Message to enable/disable IPSG in a given Interface  */
+typedef struct {  
+  msg_HwEthInterface_t  intf;             //Interface 
+  L7_uint8              verifySource;     //Verify: 1 | Not Verify: 0 
+} __attribute__((packed)) msg_IPSG_verify_source_t;
+
+typedef struct {
+  L7_uint32             evc_idx;           // eEvcId      
+  msg_HwEthInterface_t  intf;             // Interface
+  L7_uint8              macAddr[6];       // MAC Address
+  L7_uint8              action;           // Remove: 0 | Add: 1                                             
+  chmessage_ip_addr_t   ipAddr;           // IP address  
+} __attribute__((packed)) msg_IPSG_static_entry_t;
+
+typedef struct {  
+  L7_uint16             entry_index;
+} __attribute__((packed)) msg_ipsg_binding_table_request_t;
+
+typedef struct {
+  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint32             evc_idx;                // EVCid                          
+  L7_uint16             outer_vlan;             // Service vlan: not used yet
+  L7_uint16             inner_vlan;             // Client vlanId
+  msg_HwEthInterface_t  intf;                   // Interface
+  L7_uint8              macAddr[6];             // MAC Address
+  chmessage_ip_addr_t   ipAddr;                 // IP address  
+  L7_uint8              bindingType;            // Binding type: 0=Static, 1=Dynamic
+  L7_uint8              hwStatus;                // HW Status: 0=Disabled, 1=Enabled
+} __attribute__((packed)) msg_IPSG_binding_entry;
+
+/* IPSG Binding table IPv6 compatible */
+typedef struct {
+  uint8                   slotId;                         // slot
+  uint16                  page;                           // Page index
+  L7_uint16               binding_table_total_entries;    // Total entries in Bind table
+  L7_uint16               binding_table_msg_size;         // Number of entries in this message: up to 128
+  msg_IPSG_binding_entry  binding_table[128];                // Binding table
+} __attribute__((packed)) msg_ipsg_binding_table_response_t;
 
 #endif //_MAIN_H_
 
