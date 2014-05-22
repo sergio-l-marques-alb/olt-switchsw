@@ -41,6 +41,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 static void* ptin_mgmd_event_handle(void*);
 static RC_t  ptin_mgmd_timers_create(void);
@@ -48,6 +51,14 @@ static RC_t  ptin_mgmd_memAlloc(void);
 static RC_t  ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr);
 
 extern unsigned long     ptin_mgmd_number_of_timers;
+
+uint32_t                 ptin_mgmd_thread_pid=(uint32_t) -1;
+
+
+uint32_t ptin_mgmd_thread_pid_get(void)
+{
+  return ptin_mgmd_thread_pid;
+}
 
 RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
 {
@@ -69,6 +80,7 @@ RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
     return FAILURE;
   }
 
+  ptin_mgmd_thread_pid=syscall(SYS_gettid);
   return SUCCESS;
 }
 
