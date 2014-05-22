@@ -3305,7 +3305,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Sync MGMD open ports between different cards/interfaces*/
     case CCMSG_MGMD_PORT_SYNC:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_HwMgmdPortSync);
 
@@ -3317,7 +3317,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       rc = ptin_msg_mgmd_sync_ports(ptr);
       outbuffer->infoDim = 1;
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with rc:%d", rc);
     }
     break;

@@ -6497,13 +6497,13 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
  */
 L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
-  LOG_INFO(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
-  LOG_INFO(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
 
   ptin_igmp_mgmd_port_sync(port_sync_data->admin, port_sync_data->serviceId, port_sync_data->portId, port_sync_data->groupAddr, port_sync_data->sourceAddr, port_sync_data->groupType);
 
