@@ -654,7 +654,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   bcmx_lport_t      lport_prev= -1, lport = -1;
   L7_BOOL           port_prev_is_lag = L7_FALSE, port_is_lag = L7_FALSE;
   bcmx_l2_addr_t    bcmx_l2_addr;
-  bcm_error_t rv;
+  //bcm_error_t rv;
 
   /* Prepare switch-over */
   memset(&bcmx_l2_addr, 0x00, sizeof(bcmx_l2_addr));
