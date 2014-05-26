@@ -4133,6 +4133,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 
       for (sourcePtr=groupEntry->ports[portId].firstSource, sourceIdx = 0; sourcePtr!=PTIN_NULLPTR && sourceIdx<groupEntry->ports[portId].numberOfSources  ;sourcePtr=sourcePtr->next, ++sourceIdx)
       {
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Reading information of sourceIdx  %u of numberOfSources %u",sourceIdx, groupEntry->ports[portId].numberOfSources);
         //Only consider sources for which traffic forwarding is enabled
         if (sourcePtr->status == PTIN_MGMD_SOURCESTATE_ACTIVE &&
             (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE || sourcePtr->isStatic==TRUE))
@@ -4140,7 +4141,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
           //Filter by client (if requested)
           if ((clientId == (uint32)-1) || (PTIN_MGMD_CLIENT_IS_MASKBITSET(sourcePtr->clients, clientId)))
           {
-            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\t\tSource: %s", ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr, debug_buf));
+            PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\tFound Source: %s", ptin_mgmd_inetAddrPrint(&sourcePtr->sourceAddr, debug_buf));
 
             ptin_mgmd_inetCopy(&channelList[*numChannels].groupAddr,  &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr);
             ptin_mgmd_inetCopy(&channelList[*numChannels].sourceAddr, &sourcePtr->sourceAddr);
@@ -4164,7 +4165,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
       //Add an entry for clients that have requested this group but with no source in particular (or for PTIN_MGMD_MANAGEMENT_CLIENT_ID).
       if (channelAdded == FALSE && ((clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID) || (PTIN_MGMD_CLIENT_IS_MASKBITSET(groupEntry->ports[portId].clients, clientId))))
       {
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\t\tSource: ANY_SOURCE");
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "\t\tFound Source: ANY_SOURCE");
 
         ptin_mgmd_inetCopy(&channelList[*numChannels].groupAddr, &groupEntry->ptinMgmdGroupInfoDataKey.groupAddr);
         ptin_mgmd_inetAddressReset(&channelList[*numChannels].sourceAddr);
