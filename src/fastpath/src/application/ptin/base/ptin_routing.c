@@ -246,6 +246,16 @@ static L7_int __ioctl_intf_rename_dtl2rt(L7_uint16 intfId, L7_uint16 vlanId);
 static L7_int __ioctl_intf_rename_rt2dtl(L7_uint16 intfId, L7_uint16 vlanId);
 
 /**
+ * Set routing interface's MAC address.
+ * 
+ * @param intfId  : Routing interface
+ * @param macAddr : MAC address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+static L7_RC_t __intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr);
+
+/**
  * Initialize the current ARP table snapshot. 
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
@@ -418,12 +428,9 @@ L7_RC_t ptin_routing_deinit(void)
  */
 L7_RC_t ptin_routing_intf_create(ptin_intf_t* intf, L7_uint16 routingVlanId, L7_uint16 internalVlanId)
 {
-  L7_uint32       routingIntfNum;
-  NIM_INTF_MASK_t rootIntfList;
-  L7_uint32       firstRootIntfnum;
-  L7_BOOL         hasRootIntf = L7_FALSE;
+  L7_uint32 intfNum;
 
-  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &routingIntfNum))
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
     return L7_FAILURE;
@@ -475,49 +482,12 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* intf, L7_uint16 routingVlanId, L7_
 
 #if PTIN_BOARD_IS_MATRIX //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
-  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
+  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, intfNum, L7_TRUE))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
-
-  /*
-   * Set routing interface MAC address 
-   *  
-   * - If the requested EVC has root interfaces, our MAC address should be set to be the same as the first root interface MAC address
-   * - If no root interfaces are found in this EVC then this is a loopback routing interface. Hence, our MAC address should be the same as the dtl0 interface 
-   */
-  if(L7_SUCCESS != ptin_evc_intfType_getList(internalVlanId, PTIN_EVC_INTF_ROOT, &rootIntfList))
-  {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get EVC interface list [internalVlanId:%u type:%u]", internalVlanId, PTIN_EVC_INTF_ROOT);
-    return L7_FAILURE;
-  }
-  for (firstRootIntfnum = 1; firstRootIntfnum <= L7_MAX_INTERFACE_COUNT; ++firstRootIntfnum)
-  {
-    if (L7_INTF_ISMASKBITSET(rootIntfList, firstRootIntfnum))
-    {
-      hasRootIntf = L7_TRUE;
-      break;
-    }
-  }
-  if(hasRootIntf == L7_TRUE)
-  {
-    L7_enetMacAddr_t macAddr;
-
-    if(L7_SUCCESS != nimGetIntfAddress(firstRootIntfnum, L7_NULL, &macAddr.addr[0])) //I prefer this method over 'ptin_intf_portMAC_get' because I already have the intfId in intfNum format
-    {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [firstRootIntfnum:%u]", firstRootIntfnum);
-      return L7_FAILURE;
-    }
-
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
-    if(ptin_routing_intf_macaddress_set(intf, &macAddr) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intf->intf_id);
-      return L7_FAILURE;
-    }
-  }
 
   return L7_SUCCESS;
 }
@@ -611,34 +581,45 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* intf, L7_uchar8 ipFamily, L
 }
 
 /**
- * Set routing interface's MAC address.
+ * Set routing interface's physical port.
  * 
- * @param intfId  : Routing interface
- * @param macAddr : MAC address
+ * @param routingIntf  : Routing interface
+ * @param intfType     : Routing interface type
+ * @param physicalIntf : Physical interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note This should only be used for uplink routing interfaces. 
  */
-L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr)
+L7_RC_t ptin_routing_intf_physicalport_set(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf)
 {
-  L7_uint32 intfNum;
+  L7_uint32        routingIntfNum;
+  L7_enetMacAddr_t macAddr;
+  ptin_HWPortMac_t hwPortMac;
 
-  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
+  if(intfType == PTIN_ROUTING_INTF_TYPE_UPLINK)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
-    return L7_FAILURE;
+    if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+      return L7_FAILURE;
+    }
+
+    if(L7_SUCCESS != ptin_intf_portMAC_get(physicalIntf, &hwPortMac))
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf->intf_type, physicalIntf->intf_id);
+      return L7_FAILURE;
+    }
+    memcpy(&macAddr.addr[0], &hwPortMac.macAddr[0], sizeof(L7_enetMacAddr_t));
+
+    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    if(__intf_macaddress_set(routingIntf, &macAddr) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+      return L7_FAILURE;
+    }
   }
 
-  if(macAddr == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [macAddr:%p]", macAddr);
-    return L7_ERROR;
-  }
-
-  /* Configure the routing interface with the given MAC address */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
-            intfNum, macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
-  nimSetIntfL3MacAddress(intfNum, L7_NULL, (void*)macAddr->addr);
-  
   return L7_SUCCESS;
 }
 
@@ -1432,6 +1413,39 @@ static L7_int __ioctl_intf_rename_dtl2rt(L7_uint16 intfId, L7_uint16 vlanId)
   }
 
   return res;
+}
+
+/**
+ * Set routing interface's MAC address.
+ * 
+ * @param intfId  : Routing interface
+ * @param macAddr : MAC address
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t __intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr)
+{
+  L7_uint32 intfNum;
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  if(macAddr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [macAddr:%p]", macAddr);
+    return L7_ERROR;
+  }
+
+  /* Configure the routing interface with the given MAC address */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
+            intfNum, macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
+  nimSetIntfAddress(intfNum, L7_NULL, (void*)macAddr->addr);
+  nimSetIntfL3MacAddress(intfNum, L7_NULL, (void*)macAddr->addr);
+  
+  return L7_SUCCESS;
 }
 
 /**

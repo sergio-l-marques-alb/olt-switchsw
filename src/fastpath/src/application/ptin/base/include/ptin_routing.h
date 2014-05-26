@@ -18,10 +18,12 @@
 /*********************************************************** 
  * Defines
  ***********************************************************/
-#define PTIN_ROUTING_ARPTABLE_TYPE_STATIC   1
-#define PTIN_ROUTING_ARPTABLE_TYPE_DYNAMIC  2
-#define PTIN_ROUTING_ARPTABLE_TYPE_LOCAL    3
-#define PTIN_ROUTING_ARPTABLE_TYPE_GATEWAY  4
+#define PTIN_ROUTING_ARPTABLE_TYPE_STATIC   CCMSG_ROUTING_ARPTABLE_TYPE_STATIC 
+#define PTIN_ROUTING_ARPTABLE_TYPE_DYNAMIC  CCMSG_ROUTING_ARPTABLE_TYPE_DYNAMIC
+#define PTIN_ROUTING_ARPTABLE_TYPE_LOCAL    CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL  
+#define PTIN_ROUTING_ARPTABLE_TYPE_GATEWAY  CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY
+
+#define PTIN_ROUTING_INTF_TYPE_UPLINK       CCMSG_ROUTING_INTF_TYPE_UPLINK
 
 /***********************************************************
  * Typedefs
@@ -79,14 +81,17 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* intf, L7_uint16 routingVlanId);
 L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* intf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask);
 
 /**
- * Set routing interface's MAC address.
+ * Set routing interface's physical port.
  * 
- * @param intfId  : Routing interface
- * @param macAddr : MAC address
+ * @param routingIntf  : Routing interface
+ * @param intfType     : Routing interface type
+ * @param physicalIntf : Physical interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note This should only be used for uplink routing interfaces. 
  */
-L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr);
+L7_RC_t ptin_routing_intf_physicalport_set(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf);
 
 /**
  * Get ARP table.

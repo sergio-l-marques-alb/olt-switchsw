@@ -1226,7 +1226,16 @@ extern void ptin_msg_protection_matrix_configuration_flush_end(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntfCreate* data);
+L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data);
+
+/**
+ * Modify an existing routing interface.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data);
 
 /**
  * Remove an existing routing interface.
@@ -1235,7 +1244,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntfCreate* data);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data);
+L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntf* data);
 
 /**
  * Get ARP table.

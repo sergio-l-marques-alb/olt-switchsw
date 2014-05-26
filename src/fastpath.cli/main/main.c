@@ -95,7 +95,7 @@ void help_oltBuga(void)
         "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
         "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
         "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
-        "m 1440 intf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
+        "m 1440 type[0-uplink,1-loopback] routingIntf[2-Rtr]/[intf#] physicalIntf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
         "m 1441 intf[2-Rtr]/[intf#] routingVID[1-4095] - Remove routing interface\r\n"
         "m 1442 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
         "m 1443 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
@@ -2976,66 +2976,83 @@ int main (int argc, char *argv[])
 
       case 1440:
         {
-          msg_RoutingIntfCreate *ptr;
+          msg_RoutingIntf *ptr;
           int type, intf;
 
           // Validate number of arguments
-          if (argc<3+5)  {
+          if (argc<3+7)  {
             help_oltBuga();
             exit(0);
           }
 
           // Pointer to data array
-          ptr = (msg_RoutingIntfCreate *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntfCreate));
+          ptr = (msg_RoutingIntf *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntf));
 
           ptr->slotId = (uint8)-1;
+          ptr->mask   = 0;
 
-          // Port
-          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          // Type
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->type = (uint8) valued;
+
+          // Routing port
+          if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->routingIntf.intf_type = (uint8) type;
+          ptr->routingIntf.intf_id   = (uint8) intf;
+
+          // Physical port
+          if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->physicalIntf.intf_type = (uint8) type;
+          ptr->physicalIntf.intf_id   = (uint8) intf;
 
           // Routing vlan
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->routingVlanId = (uint16) valued;
 
           // EVC ID
-          if (StrToLongLong(argv[3+2],&valued)<0)  {
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->evcId = (uint16) valued;
 
           // IP address
-          if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+5],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->ipAddress = valued;
 
           // Subnet Mask
-          if (convert_ipaddr2uint64(argv[3+4],&valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+6],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->subnetMask = valued;
 
           comando.msgId = CCMSG_ROUTING_INTF_CREATE;
-          comando.infoDim = sizeof(msg_RoutingIntfCreate);
+          comando.infoDim = sizeof(msg_RoutingIntf);
         }
         break;
 
       case 1441:
         {
-          msg_RoutingIntfRemove *ptr;
+          msg_RoutingIntf *ptr;
           int type, intf;
 
           // Validate number of arguments
@@ -3045,19 +3062,19 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_RoutingIntfRemove *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntfRemove));
+          ptr = (msg_RoutingIntf *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntf));
 
           ptr->slotId = (uint8)-1;
 
-          // port
+          // Routing port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->routingIntf.intf_type = (uint8) type;
+          ptr->routingIntf.intf_id   = (uint8) intf;
 
           // Routing vlan
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -3067,7 +3084,7 @@ int main (int argc, char *argv[])
           ptr->routingVlanId = (uint16) valued;
 
           comando.msgId = CCMSG_ROUTING_INTF_REMOVE;
-          comando.infoDim = sizeof(msg_RoutingIntfRemove);
+          comando.infoDim = sizeof(msg_RoutingIntf);
         }
         break;
 
