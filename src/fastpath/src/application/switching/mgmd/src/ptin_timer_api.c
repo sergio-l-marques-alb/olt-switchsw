@@ -397,6 +397,7 @@ void* __controlblock_handler(void *param)
     /* If there are no timers in the running list, sleep for 10 seconds or until interrupted */
     if(cbPtr->firstRunningTimer == NULL)
     {
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "No running timers on CB %p. Sleeping for 10 seconds", cbPtr);
       pthread_mutex_unlock(&cbPtr->lock);
       sleep(10);
       continue; //Either we slept until the end or we were waken. Either way, check the first running timer
@@ -508,6 +509,7 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   } 
   else 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Invalid Control Block Id: %u", numCBs);
     return -1;
   }
 
@@ -531,6 +533,7 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
     PTIN_TIMER_STRUCT *newTimer = (PTIN_TIMER_STRUCT*) malloc(sizeof(PTIN_TIMER_STRUCT));  
     if(0 != ptin_fifo_push(cbEntry[cbIdx].availableTimersPool, (PTIN_FIFO_ELEMENT_t)newTimer))
     {
+      PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed to get timer element from fifo");
       return -1;
     }
   }
@@ -538,23 +541,28 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   /* Thread setup */
   if (0 != pthread_attr_init(&cbEntry[cbIdx].attr)) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_attr_init");
     return -1;
   }
   if(0 != cbEntry[cbIdx].timerStackSize)
   {
     if (0 != pthread_attr_setstacksize(&cbEntry[cbIdx].attr, cbEntry[cbIdx].timerStackSize)) 
     {
+      PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed to set thread stack size: %u",cbEntry[cbIdx].timerStackSize);
       return -1;
     }
   }
   if (0 != pthread_mutex_init(&cbEntry[cbIdx].lock, NULL)) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_mutex_init");
     return -1;
   }
   if (0 != pthread_create(&cbEntry[cbIdx].thread_id, &cbEntry[cbIdx].attr, &__controlblock_handler, &cbEntry[cbIdx])) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_create");
     return -1;
   }
+  PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "cbIdx=%u thread_id=%p",cbIdx, cbEntry[cbIdx].thread_id);
 
   numCBs++;
   *controlBlock = &cbEntry[cbIdx];
