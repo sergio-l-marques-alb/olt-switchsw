@@ -574,6 +574,8 @@ RC_t ptin_mgmd_ctrl_client_activegroups_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       response.sourceIP    = groupList[i].sourceAddr.addr.ipv4.s_addr;
       response.sourceTimer = groupList[i].sourceTimer;
 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Coping...[Entry Id:%u groupIP:0x%04X groupType:%u filterMode:%u groupTimer:%u sourceIP:0x%04X sourceTimer:%u]", response.entryId, response.groupIP,response.groupType,
+                          response.filterMode, response.groupTimer, response.sourceIP, response.sourceTimer);
       memcpy(eventData->data+j*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
       ++j;
     }
