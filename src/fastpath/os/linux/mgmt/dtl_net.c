@@ -988,7 +988,12 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     */
    SYSAPI_NET_MBUF_GET_DATASTART(handle,data);
    SYSAPI_NET_MBUF_GET_DATALENGTH(handle,data_length);
-   
+
+   if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
+   {
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Tagged Packet...\n\r");
+   }
+
    /* PTin added: Is this a 802.1Q packet? */
    if (memcmp(&data[12], etype_8021q, 2) == 0)
    {
@@ -1216,9 +1221,12 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                /* Search for this key: if not found, return success */
                if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
                {
-                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
-                               keyToFind[0], keyToFind[1],
-                               keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+                 if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
+                 {
+                   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                                 keyToFind[0], keyToFind[1],
+                                 keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+                 }
                }
             
                if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)

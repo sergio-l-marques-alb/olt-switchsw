@@ -73,15 +73,6 @@ extern int canal_buga;
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_REMOVE       0x9042  // struct msg_evcStats_t
 
-#define CCMSG_ROUTING_INTF_CREATE           0x9043  // struct msg_RoutingIntfCreate
-#define CCMSG_ROUTING_INTF_REMOVE           0x9044  // struct msg_RoutingIntfRemove
-#define CCMSG_ROUTING_ARPTABLE_GET          0x9045  // struct msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
-#define CCMSG_ROUTING_ARPENTRY_PURGE        0x9046  // struct msg_RoutingArpEntryPurge
-#define CCMSG_ROUTING_ROUTETABLE_GET        0x9047  // struct msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
-#define CCMSG_ROUTING_PINGSESSION_CREATE    0x9048  // struct msg_RoutingPingSessionCreate
-#define CCMSG_ROUTING_PINGSESSION_QUERY     0x9049  // struct msg_RoutingPingSessionQuery
-#define CCMSG_ROUTING_PINGSESSION_FREE      0x904A  // struct msg_RoutingPingSessionFree
-
 #define CCMSG_ETH_BW_PROFILE_SET            0x9050  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
@@ -146,6 +137,20 @@ extern int canal_buga;
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
+
+/* Routing */
+#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntfCreate
+#define CCMSG_ROUTING_INTF_REMOVE             0x9152  // msg_RoutingIntfRemove
+#define CCMSG_ROUTING_ARPTABLE_GET            0x9153  // msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
+#define CCMSG_ROUTING_ARPENTRY_PURGE          0x9154  // msg_RoutingArpEntryPurge
+#define CCMSG_ROUTING_ROUTETABLE_GET          0x9155  // msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
+#define CCMSG_ROUTING_PINGSESSION_CREATE      0x9156  // msg_RoutingPingSessionCreate
+#define CCMSG_ROUTING_PINGSESSION_QUERY       0x9157  // msg_RoutingPingSessionQuery
+#define CCMSG_ROUTING_PINGSESSION_FREE        0x9158  // msg_RoutingPingSessionFree
+#define CCMSG_ROUTING_TRACERTSESSION_CREATE   0x9159  // msg_RoutingTracertSessionCreate
+#define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915A  // msg_RoutingTracertSessionQuery
+#define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915B  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
+#define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915C  // msg_RoutingTracertSessionFree
 
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
@@ -599,7 +604,7 @@ typedef struct
 typedef struct
 {
    L7_uint16 slotId;
-   L7_uint16 index;
+   L7_uint16 sessionIdx;
    L7_uint32 dstIpAddr; 
    L7_uint16 probeCount; 
    L7_uint16 probeSize; 
@@ -610,7 +615,7 @@ typedef struct
 typedef struct
 {
    L7_uint16 slotId;
-   L7_uint16 index;
+   L7_uint16 sessionIdx;
    L7_uint8  isRunning;
    L7_uint16 probeSent;
    L7_uint16 probeSucc;
@@ -624,8 +629,63 @@ typedef struct
 typedef struct
 {
    L7_uint16 slotId;
-   L7_uint16 index;
+   L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingPingSessionFree;
+
+//CCMSG_ROUTING_TRACERTSESSION_CREATE
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint16 sessionIdx;
+  L7_uint32 dstIpAddr; 
+  L7_uint16 probePerHop; 
+  L7_uint16 probeSize; 
+  L7_uint32 probeInterval;
+  L7_uint8  dontFrag;
+  L7_uint16 port;
+  L7_uint16 maxTtl;
+  L7_uint16 initTtl;
+  L7_uint16 maxFail;
+} __attribute__((packed)) msg_RoutingTracertSessionCreate;
+
+//CCMSG_ROUTING_TRACERTSESSION_QUERY
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint16 sessionIdx;
+  L7_uint8  isRunning;
+  L7_uint16 currTtl;
+  L7_uint16 currHopCount;
+  L7_uint16 currProbeCount;
+  L7_uint16 testAttempt; 
+  L7_uint16 testSuccess; 
+} __attribute__((packed)) msg_RoutingTracertSessionQuery;
+
+//CCMSG_ROUTING_TRACERTSESSION_GETHOPS
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint16 sessionIdx;
+  L7_uint16 lastIndex;
+} __attribute__((packed)) msg_RoutingTracertSessionHopsRequest;
+typedef struct
+{
+  L7_uint16 hopIdx;
+  L7_uint16 ttl;
+  L7_uint32 ipAddr;
+  L7_uint32 minRtt;
+  L7_uint32 maxRtt;
+  L7_uint32 avgRtt;
+  L7_uint16 probeSent;
+  L7_uint16 probeRecv;
+} __attribute__((packed)) msg_RoutingTracertSessionHopsResponse;
+
+//CCMSG_ROUTING_TRACERTSESSION_FREE
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint16 sessionIdx;
+} __attribute__((packed)) msg_RoutingTracertSessionFree;
 
 
 /***************************************************** 

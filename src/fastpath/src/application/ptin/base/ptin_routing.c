@@ -637,7 +637,6 @@ L7_RC_t ptin_routing_intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* ma
   /* Configure the routing interface with the given MAC address */
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
             intfNum, macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
-  nimSetIntfAddress(intfNum, L7_NULL, (void*)macAddr->addr); //Necessário?
   nimSetIntfL3MacAddress(intfNum, L7_NULL, (void*)macAddr->addr);
   
   return L7_SUCCESS;

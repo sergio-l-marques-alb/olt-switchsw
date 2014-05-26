@@ -103,6 +103,10 @@ void help_oltBuga(void)
         "m 1445 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
         "m 1446 index[0-15] - Query ping session\r\n"
         "m 1447 index[0-15] - Free ping session\r\n"
+        "m 1448 index[0-15] ipaddr[ddd.ddd.ddd.ddd] probes[1-10] size[0-65507] interval[1-60] dontFrag[0/1] port[0-65535] maxTtl[1-255] initTtl[1-255] maxFails[0-255] - Create traceroute session\r\n"
+        "m 1449 index[0-15] - Query traceroute session\r\n"
+        "m 1450 index[0-15] - Get traceroute session hops\r\n"
+        "m 1451 index[0-15] - Free traceroute session\r\n"
         "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
         "m 1501 lag_index[0-17] static_mode[0/1] load_balance[0..6] port_bmp[XXXXXh] - Create LAG\r\n"
         "m 1502 lag_index[0-17] - Destroy LAG\r\n"
@@ -3192,7 +3196,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->index = valued;
+          ptr->sessionIdx = valued;
 
           // Dst IP address
           if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
@@ -3248,7 +3252,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->index = valued;
+          ptr->sessionIdx = valued;
 
           comando.msgId   = CCMSG_ROUTING_PINGSESSION_QUERY;
           comando.infoDim = sizeof(msg_RoutingPingSessionQuery);
@@ -3276,10 +3280,187 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->index = valued;
+          ptr->sessionIdx = valued;
 
           comando.msgId   = CCMSG_ROUTING_PINGSESSION_FREE;
           comando.infoDim = sizeof(msg_RoutingPingSessionFree);
+        }
+        break;
+
+      case 1448:
+        {
+          msg_RoutingTracertSessionCreate *ptr;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingTracertSessionCreate *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingTracertSessionCreate));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sessionIdx = valued;
+
+          // Dst IP address
+          if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dstIpAddr = valued;
+
+          // Probe per Hop count
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probePerHop = valued;
+
+          // Probe size
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probeSize = valued;
+
+          // Probe interval
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->probeInterval = valued;
+
+          // Dont frag flag
+          if (StrToLongLong(argv[3+5],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dontFrag = valued;
+
+          // Port
+          if (StrToLongLong(argv[3+6],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->port = valued;
+
+          // Max Ttl
+          if (StrToLongLong(argv[3+7],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->maxTtl = valued;
+
+          // Init Ttl
+          if (StrToLongLong(argv[3+8],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->initTtl = valued;
+
+          // Max fails
+          if (StrToLongLong(argv[3+9],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->maxFail = valued;
+
+          comando.msgId   = CCMSG_ROUTING_TRACERTSESSION_CREATE;
+          comando.infoDim = sizeof(msg_RoutingTracertSessionCreate);
+        }
+        break;
+
+      case 1449:
+        {
+          msg_RoutingTracertSessionQuery *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingTracertSessionQuery *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingTracertSessionQuery));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sessionIdx = valued;
+
+          comando.msgId   = CCMSG_ROUTING_TRACERTSESSION_QUERY;
+          comando.infoDim = sizeof(msg_RoutingTracertSessionQuery);
+        }
+        break;
+
+      case 1450:
+        {
+          msg_RoutingTracertSessionHopsRequest *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingTracertSessionHopsRequest *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingTracertSessionHopsRequest));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sessionIdx = valued;
+
+          ptr->lastIndex = (L7_uint16)-1;
+
+          comando.msgId   = CCMSG_ROUTING_TRACERTSESSION_GETHOPS;
+          comando.infoDim = sizeof(msg_RoutingTracertSessionHopsRequest);
+        }
+        break;
+
+      case 1451:
+        {
+          msg_RoutingTracertSessionFree *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingTracertSessionFree *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingTracertSessionFree));
+
+          ptr->slotId = (uint8)-1;
+
+          // index
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sessionIdx = valued;
+
+          comando.msgId   = CCMSG_ROUTING_TRACERTSESSION_FREE;
+          comando.infoDim = sizeof(msg_RoutingTracertSessionFree);
         }
         break;
 
@@ -3615,7 +3796,7 @@ int main (int argc, char *argv[])
           int i;
 
           // Validate number of arguments
-          if (argc<3+8)  {
+          if (argc<3+6)  {
             help_oltBuga();
             exit(0);
           }
@@ -5761,14 +5942,14 @@ int main (int argc, char *argv[])
 
       case 1440:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Sucessefully created new routing interface\n\r");
+          printf(" Successfully created new routing interface\n\r");
         else
           printf(" Error %08x while creating new routing interface\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1441:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Sucessefully removed routing interface\n\r");
+          printf(" Successfully removed routing interface\n\r");
         else
           printf(" Error %08x while removing routing interface\n\r", *(unsigned int*)resposta.info);
         break;
@@ -5803,7 +5984,7 @@ int main (int argc, char *argv[])
 
       case 1443:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Sucessefully removed ARP entry\n\r");
+          printf(" Successfully removed ARP entry\n\r");
         else
           printf(" Error %08x while removing ARP entry\n\r", *(unsigned int*)resposta.info);
         break;
@@ -5840,7 +6021,7 @@ int main (int argc, char *argv[])
 
       case 1445:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Sucessefully created ping session\n\r");
+          printf(" Successfully created ping session\n\r");
         else
           printf(" Error %08x while creating ping session\n\r", *(unsigned int*)resposta.info);
         break;
@@ -5860,14 +6041,12 @@ int main (int argc, char *argv[])
 
           ptr = (msg_RoutingPingSessionQuery *) &(resposta.info[0]);
           printf("------------------------\r\n");
-          printf("  Index     = %u\r\n",  ptr->index);
-          printf("  isRunning = %u\r\n",  ptr->isRunning);
-          printf("  probeSent = %u\r\n",  ptr->probeSent);
-          printf("  probeSucc = %u\r\n",  ptr->probeSucc);
-          printf("  probeFail = %u\r\n",  ptr->probeFail);
-          printf("  minRtt    = %lu\r\n", ptr->minRtt);
-          printf("  maxRtt    = %lu\r\n", ptr->maxRtt);
-          printf("  avgRtt    = %lu\r\n", ptr->avgRtt);
+          printf("  SessionIdx        = %u\r\n",          ptr->sessionIdx);
+          printf("  Is Running        = %u\r\n",          ptr->isRunning);
+          printf("  Probes Sent       = %u\r\n",          ptr->probeSent);
+          printf("  Probes Succ       = %u\r\n",          ptr->probeSucc);
+          printf("  Probes Fail       = %u\r\n",          ptr->probeFail);
+          printf("  RTT (min/avg/max) = %lu/%lu/%lu\r\n", ptr->minRtt, ptr->avgRtt, ptr->maxRtt);
         }
         else
           printf(" Ping session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
@@ -5878,6 +6057,76 @@ int main (int argc, char *argv[])
           printf(" Sucessefully freed ping session\n\r");
         else
           printf(" Error %08x while freeing ping session\n\r", *(unsigned int*)resposta.info);
+        break;
+
+
+      case 1448:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Successfully created Traceroute session\n\r");
+        else
+          printf(" Error %08x while creating Traceroute session\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1449:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {  
+          msg_RoutingTracertSessionQuery *ptr;
+          uint8 entries;
+
+          entries = resposta.infoDim/sizeof(msg_RoutingTracertSessionQuery);
+
+          if (entries==0) {
+            printf(" Traceroute session query: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingTracertSessionQuery));
+            break;
+          }
+
+          ptr = (msg_RoutingTracertSessionQuery *) &(resposta.info[0]);
+          printf("------------------------\r\n");
+          printf("  sessionIdx   = %u\r\n", ptr->sessionIdx);
+          printf("  Is Running   = %u\r\n", ptr->isRunning);
+          printf("  TTL          = %u\r\n", ptr->currTtl);
+          printf("  Hop Count    = %u\r\n", ptr->currHopCount);
+          printf("  Probe Count  = %u\r\n", ptr->currProbeCount);
+          printf("  Test Attempt = %u\r\n", ptr->testAttempt);
+          printf("  Test Success = %u\r\n", ptr->testSuccess);
+        }
+        else
+          printf(" Traceroute session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1450:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {  
+          msg_RoutingTracertSessionHopsResponse *ptr;
+          uint8 entries, i;
+
+          entries = resposta.infoDim/sizeof(msg_RoutingTracertSessionHopsResponse);
+
+          if (entries==0) {
+            printf(" Traceroute hops: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingTracertSessionHopsResponse));
+            break;
+          }
+
+          for (i=0; i<entries; ++i) {
+            ptr = &((msg_RoutingTracertSessionHopsResponse *) &resposta.info[0])[i];
+            printf("------------------------\r\n");
+            printf("  HopIdx            = %u\r\n",          ptr->hopIdx);
+            printf("  TTL               = %u\r\n",          ptr->ttl);
+            printf("  Ip Address        = %08X\r\n",        (unsigned int)ptr->ipAddr);
+            printf("  RTT (min/avg/max) = %lu/%lu/%lu\r\n", ptr->minRtt, ptr->avgRtt, ptr->maxRtt);
+            printf("  Probes Sent       = %u\r\n",          ptr->probeSent);
+            printf("  Probes Recvd      = %u\r\n",          ptr->probeRecv);
+          }
+        }
+        else
+          printf(" Traceroute hops: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1451:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Successfully freed traceroute session\n\r");
+        else
+          printf(" Error %08x while freeing traceroute session\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1500:
