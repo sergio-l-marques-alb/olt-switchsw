@@ -735,47 +735,67 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return FAILURE;
   }
 
-  //Validate packet
-  if ( (PTIN_NULLPTR == payload) || (0 == payloadLength) )
-  {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
-    return FAILURE;
-  }
-
   //Validate portId
   if ( (portId==0) || (portId > PTIN_MGMD_MAX_PORT_ID) )
-  {   
+  { 
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid portID [%u]", portId);    
     return FAILURE;
   }
 
-
-  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
-
   //Validate serviceId
-  if (serviceId > PTIN_MGMD_MAX_SERVICE_ID)
+  if (serviceId == 0 || serviceId > PTIN_MGMD_MAX_SERVICE_ID)
   {    
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid serviceID [%u]", serviceId);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return FAILURE;
   }
-
   
-  
+  //Obtain Internal Service Identifier to Increment Statistics
   if (ptin_mgmd_position_service_identifier_get_or_set(serviceId, &mcastPacket.posId) != SUCCESS 
          || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", mcastPacket.posId);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return FAILURE;
+  }
+  
+  //Validate packet
+  if ( (PTIN_NULLPTR == payload) || (0 == payloadLength) )
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return FAILURE;
   }  
 
+  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
+
   ptin_measurement_timer_start(33,"externalApi.portType_get"); 
   //Validate clientId (only for leaf ports)
-  if( (SUCCESS == externalApi.portType_get(serviceId, portId, &mcastPacket.portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == mcastPacket.portType) )
+  if(SUCCESS == externalApi.portType_get(serviceId, portId, &mcastPacket.portType))
   {
-    ptin_measurement_timer_stop(33);
-    if (/*clientId==0  ||*/ clientId >= PTIN_MGMD_MAX_CLIENTS)
-    {    
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
+    if(PTIN_MGMD_PORT_TYPE_LEAF == mcastPacket.portType) 
+    {
+      ptin_measurement_timer_stop(33);
+      if (clientId >= PTIN_MGMD_MAX_CLIENTS)
+      {    
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u] for leaf port", clientId);
+        ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        return FAILURE;
+      }
+    }
+    else if (PTIN_MGMD_PORT_TYPE_ROOT == mcastPacket.portType) 
+    {
+      if (PTIN_MGMD_MANAGEMENT_CLIENT_ID != clientId)
+      {
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u] for root port", clientId);
+        ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        return FAILURE;
+      }       
+    }
+    else
+    {      
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid port Type [%u]", mcastPacket.portType);
+      ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return FAILURE;
     }
   }
@@ -2270,7 +2290,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
   {
     case PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t))
@@ -2287,7 +2307,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET]        [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET]        [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t))
@@ -2304,7 +2324,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2321,7 +2341,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR]  [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR]  [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2338,7 +2358,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2355,7 +2375,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2372,7 +2392,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATICGROUP_t))
@@ -2389,7 +2409,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE] [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE] [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATICGROUP_t))
@@ -2406,7 +2426,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GROUPS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUPS_GET]          [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUPS_GET]          [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t))
@@ -2423,7 +2443,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t))
@@ -2440,7 +2460,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
@@ -2456,7 +2476,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
@@ -2472,7 +2492,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET]     [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET]     [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t))
@@ -2488,7 +2508,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }  
     case PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD]         [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD]         [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t))
@@ -2504,7 +2524,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     } 
     case PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t))
@@ -2520,7 +2540,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     } 
     case PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t))
@@ -2536,7 +2556,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t))
@@ -2552,14 +2572,14 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     default:
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X] [ID: 0x%08X] - Unknown message", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X] [ID: 0x%08X] - Unknown message", eventData->msgCode, eventData->msgId);
       res = FAILURE;
       break;
     }
   }
 
   eventData->res = res;
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Returning to CTRL with res[%u]", eventData->res);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Returning to CTRL with res[%u]", eventData->res);
   return res;
 }
 
@@ -2576,7 +2596,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
       {
         if((BOOL)eventData->param[1]==TRUE || (BOOL)(eventData->param[1])==FALSE)
         {
-          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting ptin_mgmd_extendedDebug to :%u", eventData->param[1]);
+          PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting ptin_mgmd_extendedDebug to :%u", eventData->param[1]);
           ptin_mgmd_extended_debug = (BOOL)(eventData->param[1]);
         }
         else
@@ -2643,7 +2663,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     }    
     default:
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown request received");
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown Debug Event Request Received:%u",eventData->type);
 
       break;
     }
