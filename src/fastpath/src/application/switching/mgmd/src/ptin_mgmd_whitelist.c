@@ -191,7 +191,7 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
       if (pData == PTIN_NULL)  
       {
         //Ensure that the new entry was correcly added
-        if ((pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR, AVL_EXACT)) == PTIN_NULLPTR)
+        if ((pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR)) == PTIN_NULLPTR)
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find inserted entry");
           return FAILURE;
@@ -214,7 +214,7 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
         if (pData == PTIN_NULL)  
         {
           //Ensure that the new entry was correcly added
-          if ((pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR, AVL_EXACT)) == PTIN_NULLPTR)
+          if ((pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR)) == PTIN_NULLPTR)
           {
             PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find inserted entry");
             return FAILURE;
@@ -283,7 +283,7 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
     {
       ptin_mgmd_inetAddressZeroSet(groupCIDR.family,&sourceCIDR);
       //Search
-      pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR, AVL_EXACT);
+      pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR);
       if (pData != PTIN_NULLPTR)
       { 
         //Delete   
@@ -294,7 +294,7 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
     {
       while (maxSourceAddresses>0)
       {
-        pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR, AVL_EXACT);
+        pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR);
         if (pData != PTIN_NULLPTR)
         { 
           //Delete   
@@ -326,7 +326,7 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
  *  
  * @return Pointer to searched item or PTIN_NULLPTR if not found.
  */
-mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ptin_mgmd_inet_addr_t *sourceAddr, uint32 flag)
+mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr)
 {
   mgmdPTinWhitelistData_t     *entry;
   mgmdPtinWhitelistDataKey_t  key;
@@ -349,15 +349,8 @@ mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_ine
   ptin_mgmd_inetCopy(&key.sourceAddr, sourceAddr);
 
   //Search
-  entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->mgmdPTinWhitelistAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (entry)
-    {
-      memcpy(&key, &entry->key, sizeof(key));
-      entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->mgmdPTinWhitelistAvlTree, &key, flag);
-    }
-  }
+  entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->mgmdPTinWhitelistAvlTree, &key, AVL_EXACT);
+  
   if (entry == PTIN_NULL)
   {
     return PTIN_NULLPTR;

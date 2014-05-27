@@ -1207,7 +1207,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
             return FAILURE;
           }
           /*Let us verify if this group is registered by any IGMP Host*/            
-          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
+          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr))==PTIN_NULLPTR || 
               avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)               
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
@@ -1272,7 +1272,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
           }
 
           /*Let us verify if this group is registered by any IGMPv3 Host*/            
-          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
+          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr))==PTIN_NULLPTR || 
               avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)              
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
@@ -1733,7 +1733,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
     }
    
     /* Create new entry in AVL tree for VLAN+IP if necessary */
-    if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr, AVL_EXACT)))
+    if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr)))
     {
       //If the Record Type is equal to ToIn{} or Block{S} we ignore this Group Record
       if ( (recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES) )
@@ -1771,7 +1771,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
         flagNewGroup=TRUE;
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Added new group[%s]/service[%u])", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
       }
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr)))
       {
         ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
@@ -2057,7 +2057,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
        */      
 
       ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &groupAddr, &groupInetAddr);
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr)))
       {
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report for a non-existing group[%s]. Silently ignored", ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf));
         return SUCCESS;
@@ -2080,7 +2080,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
        * IGMPv2 Membership-Reports are converted to IGMPv3 To-Exclude Reports without sources (see RFC 3376 7.3.2) 
        */      
 
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr)))
       {
         if (mcastPacket->ebHandle->ptinMgmdGroupAvlTree.count>=PTIN_MGMD_MAX_GROUPS ||  SUCCESS != ptinMgmdL3EntryAdd(mcastPacket->serviceId, &mcastPacket->destAddr))
         {
@@ -2093,7 +2093,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
           flagNewGroup = TRUE;
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Added new group[%s]/service[%u])", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
         }
-        if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
+        if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr)))
         {
           ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);

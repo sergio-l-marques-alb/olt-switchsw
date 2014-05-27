@@ -848,7 +848,7 @@ RC_t ptinMgmdQuerierAdminModeApply(PTIN_MGMD_EVENT_CTRL_t *eventData)
   case PTIN_MGMD_DISABLE:
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Going to disable Query (serviceId:%u family:%u)",data.serviceId,data.family); 
-      if ((pMgmdEntry=ptinMgmdQueryEntryFind(data.serviceId,data.family,AVL_EXACT))==PTIN_NULLPTR)
+      if ((pMgmdEntry=ptinMgmdQueryEntryFind(data.serviceId,data.family))==PTIN_NULLPTR)
       {
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"No Query found for this serviceId %u family %u:",data.serviceId,data.family); 
         return rc;

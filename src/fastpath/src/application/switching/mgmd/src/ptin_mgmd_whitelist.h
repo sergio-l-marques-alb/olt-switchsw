@@ -75,7 +75,7 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
  *  
  * @return Pointer to searched item or PTIN_NULLPTR if not found.
  */
-mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ptin_mgmd_inet_addr_t *sourceAddr, uint32 flag);
+mgmdPTinWhitelistData_t* ptinMgmdWhitelistSearch(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, ptin_mgmd_inet_addr_t* sourceAddr);
 
 /**
  * Dump the current white-list.

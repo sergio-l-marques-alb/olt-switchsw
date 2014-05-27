@@ -2295,9 +2295,9 @@ RC_t ptinMgmdGroupRecordFind(uint32 serviceId, ptin_mgmd_inet_addr_t   *groupAdd
     return FAILURE;
   }
 
-  if ((interfacePtr = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT)) != PTIN_NULLPTR)
+  if ((interfacePtr = ptinMgmdProxyInterfaceEntryFind(serviceId)) != PTIN_NULLPTR)
   {
-    if ((group_entry = ptinMgmdProxyGroupEntryFind(serviceId, groupAddr, recordType, AVL_EXACT)) != PTIN_NULLPTR)
+    if ((group_entry = ptinMgmdProxyGroupEntryFind(serviceId, groupAddr, recordType)) != PTIN_NULLPTR)
     {
       return SUCCESS;
     }
@@ -2372,7 +2372,7 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
   }
 
   
-  if (PTIN_NULLPTR==(groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, groupAddr, recordType, AVL_EXACT)))
+  if (PTIN_NULLPTR==(groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, groupAddr, recordType)))
   {    
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Entry not found or failed to remove");
     return SUCCESS;
@@ -2463,7 +2463,7 @@ RC_t ptinMgmdGroupRecordSourceRemove(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet
     return FAILURE;
   }
 
-  if (PTIN_NULLPTR==(sourcePtr=ptinMgmdProxySourceEntryFind(groupPtr,sourceAddr,AVL_EXACT)))
+  if (PTIN_NULLPTR==(sourcePtr=ptinMgmdProxySourceEntryFind(groupPtr,sourceAddr)))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinProxySourceEntryDelete()");
     return SUCCESS;
@@ -2923,7 +2923,7 @@ static mgmdGroupRecord_t* snoopPTinPendingReport2GroupQuery(ptinMgmdGroupInfoDat
     }
 #endif
   }
-  if ((groupPtr = ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr, recordType, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((groupPtr = ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr, recordType)) == PTIN_NULLPTR)
   {
     if ((groupPtr = ptinMgmdGroupRecordAdd(interfacePtr, recordType, &avlTreeEntry->ptinMgmdGroupInfoDataKey.groupAddr, &newEntry)) == PTIN_NULLPTR)
     {
@@ -3069,14 +3069,14 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
   //End Initialization
 
   /* Create new entry in AVL tree for VLAN+IP if necessary */
-  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr)))
   {
     if (SUCCESS != ptinMgmdL3EntryAdd(serviceId, groupAddr))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
       return FAILURE;
     }
-    if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+    if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr)))
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
       return FAILURE;
@@ -3166,7 +3166,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
   }
 
   //Create new entry in AVL tree for VLAN+IP if necessary
-  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (avlTreeEntry = ptinMgmdL3EntryFind(serviceId, groupAddr)))
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinL3EntryFind()");
     return SUCCESS;
@@ -3235,7 +3235,7 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
 *
  * @return  Matching entry or NULL on failure
  */
-ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint32 flag)
+ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr)
 {
   ptinMgmdGroupInfoData_t    *snoopEntry;
   ptinMgmdGroupInfoDataKey_t key;
@@ -3255,16 +3255,8 @@ ptinMgmdGroupInfoData_t* ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_ad
   memcpy(&key.groupAddr, groupAddr, sizeof(ptin_mgmd_inet_addr_t));
   memcpy(&key.serviceId, &serviceId, sizeof(uint32));
 
-  snoopEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (snoopEntry)
-    {
-      memcpy(&key, &snoopEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
-      snoopEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &key, flag);
-    }
-  }
-
+  snoopEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &key, AVL_EXACT);
+  
   if (snoopEntry == PTIN_NULL)
   {
     return PTIN_NULLPTR;
@@ -3307,7 +3299,7 @@ RC_t ptinMgmdL3EntryAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
   if (pData == PTIN_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pData = ptinMgmdL3EntryFind(serviceId, groupAddr)) == PTIN_NULLPTR)
     {
       return FAILURE;
     }
@@ -3347,7 +3339,7 @@ RC_t ptinMgmdL3EntryDelete(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
   }
 
   pSnoopEB = mgmdEBGet();
-  pData = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT);
+  pData = ptinMgmdL3EntryFind(serviceId, groupAddr);
   if (pData == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -3393,7 +3385,7 @@ RC_t ptinMgmdL3EntryDelete(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr)
 *
  * @return  Matching entry or NULL on failure
  */
-snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t *groupPtr, ptin_mgmd_inet_addr_t *sourceAddr, uint32 flag)
+snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr)
 {
   snoopPTinSourceRecord_t    *pData;
   snoopPTinSourceRecordKey_t key;
@@ -3420,18 +3412,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t *groupPt
 #endif
   memcpy(&key.sourceAddr, sourceAddr, sizeof(ptin_mgmd_inet_addr_t));
 
-  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxySourceAvlTree, &key, flag);
-
-  if (flag == AVL_NEXT)
-  {
-    while (pData)
-    {
-      memcpy(&key, &pData->key, sizeof(snoopPTinSourceRecordKey_t));
-
-      pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxySourceAvlTree, &key, flag);
-
-    }
-  }
+  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxySourceAvlTree, &key, AVL_EXACT);
 
   if (pData == PTIN_NULL)
   {
@@ -3492,7 +3473,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryAdd(mgmdGroupRecord_t* groupPtr
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Address added to the AVL Tree (groupAddr:%s sourceAddr:%s)", ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
     /*entry was added into the avl tree*/
-    if ((pData = ptinMgmdProxySourceEntryFind(groupPtr, sourceAddr, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pData = ptinMgmdProxySourceEntryFind(groupPtr, sourceAddr)) == PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find Source Address in the AVL Tree, after adding it! (groupAddr:%s sourceAddr:%s)", ptin_mgmd_inetAddrPrint(&groupPtr->key.groupAddr, debug_buf), ptin_mgmd_inetAddrPrint(sourceAddr, debug_buf2));
       return PTIN_NULLPTR;
@@ -3538,7 +3519,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryDelete(mgmdGroupRecord_t *group
   }
 
   pSnoopEB = mgmdEBGet();
-  pData = ptinMgmdProxySourceEntryFind(groupPtr, sourceAddr, AVL_EXACT);
+  pData = ptinMgmdProxySourceEntryFind(groupPtr, sourceAddr);
   if (pData == PTIN_NULLPTR)
   {
 //  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unable to Source Addressfind requested entry");
@@ -3584,7 +3565,7 @@ snoopPTinSourceRecord_t* ptinMgmdProxySourceEntryDelete(mgmdGroupRecord_t *group
 *
  * @return  Matching entry or NULL on failure
  */
-mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, uint8 recordType, uint32 flag)
+mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr, uint8 recordType)
 {
   mgmdGroupRecord_t    *pData;
   mgmdGroupRecordKey_t key;
@@ -3608,18 +3589,8 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_
   memcpy(&key.serviceId, &serviceId, sizeof(uint32));
   memcpy(&key.groupAddr, groupAddr, sizeof(ptin_mgmd_inet_addr_t));
   memcpy(&key.recordType, &recordType, sizeof(uint8));
-  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (pData)
-    {
-      memcpy(&key, &pData->key, sizeof(mgmdGroupRecordKey_t));
-
-      pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, flag);
-
-    }
-  }
-
+  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyGroupAvlTree, &key, AVL_EXACT);
+  
   if (pData == PTIN_NULL)
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find Group Record in the AVL Tree (serviceId:%u groupAddr:%s recordtype:%u)", serviceId, ptin_mgmd_inetAddrPrint(groupAddr, debug_buf), recordType);
@@ -3672,7 +3643,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryAdd(mgmdProxyInterface_t* interfacePtr
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Record added to the AVL Tree(serviceId:%u groupAddr:%s recordtype:%u)", interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(groupAddr, debug_buf), recordType);
     /*entry was added into the avl tree*/
-    if ((pData = ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, groupAddr, recordType, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pData = ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, groupAddr, recordType)) == PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find Group Record in the AVL Tree, after adding it! (serviceId:%u groupAddr:%s recordtype:%u)", interfacePtr->key.serviceId, ptin_mgmd_inetAddrPrint(groupAddr, debug_buf), recordType);
       return PTIN_NULLPTR;
@@ -3724,7 +3695,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
   }
 
   pSnoopEB = mgmdEBGet();
-  pData = ptinMgmdProxyGroupEntryFind(serviceId, groupAddr, recordType, AVL_EXACT);
+  pData = ptinMgmdProxyGroupEntryFind(serviceId, groupAddr, recordType);
   if (pData == PTIN_NULLPTR)
   {
     return PTIN_NULLPTR;
@@ -3771,7 +3742,7 @@ mgmdGroupRecord_t* ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_ine
 *
  * @return  Matching entry or NULL on failure
  */
-mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 flag)
+mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId)
 {
   mgmdProxyInterface_t    *pData;
   snoopPTinProxyInterfaceKey_t key;
@@ -3783,16 +3754,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 f
 
 
   memcpy(&key.serviceId, &serviceId, sizeof(uint32));
-  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (pData)
-    {
-      memcpy(&key, &pData->key, sizeof(snoopPTinProxyInterfaceKey_t));
-      pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &key, flag);
-
-    }
-  }
+  pData = ptin_mgmd_avlSearchLVL7(&pSnoopEB->snoopPTinProxyInterfaceAvlTree, &key, AVL_EXACT);
 
   if (pData == PTIN_NULL)
   {
@@ -3840,7 +3802,7 @@ mgmdProxyInterface_t* ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL *new
   {
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Root vlan added to the AVL Tree(serviceId:%u)", serviceId);
     /*entry was added into the avl tree*/
-    if ((pData = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pData = ptinMgmdProxyInterfaceEntryFind(serviceId)) == PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find root vlan in the AVL Tree, after adding it! (serviceId:%u)", serviceId);
       return PTIN_NULLPTR;
@@ -3876,7 +3838,7 @@ RC_t ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId)
   ptin_mgmd_eb_t       *pSnoopEB;
 
   pSnoopEB = mgmdEBGet();
-  pData = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
+  pData = ptinMgmdProxyInterfaceEntryFind(serviceId);
   if (pData == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
@@ -3910,15 +3872,12 @@ RC_t ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId)
 /**
  * @purpose Finds an entry with the given Service Identifier
  *
-  * @param SId            Service Identifier
- * @param flag            Flag type for search
-*                                L7_MATCH_EXACT   - Exact match
-*                                L7_MATCH_GETNEXT - Next entry greater
-*                                                   than this one
+  * @param serviceId        Service Identifier
+ * @param family            IP Family Address
 *
  * @return  Matching entry or NULL on failure
  */
-ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 family, uint32 flag)
+ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 family)
 {
   ptinMgmdQuerierInfoData_t    *pMgmdEntry;
   ptinMgmdQuerierInfoDataKey_t key;
@@ -3934,17 +3893,8 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 famil
   memset((void*)&key, 0x00, sizeof(key));
   memcpy(&key.serviceId, &serviceId, sizeof(serviceId));
 
-  pMgmdEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (pMgmdEntry)
-    {
-      memcpy(&key, &pMgmdEntry->key, sizeof(key));
-      pMgmdEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, flag);
-
-    }
-  }
-
+  pMgmdEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &key, AVL_EXACT);
+  
   if (pMgmdEntry == PTIN_NULL)
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find Service Identifier in the AVL Tree (serviceId:%u family:%u)", serviceId, family);
@@ -3995,7 +3945,7 @@ ptinMgmdQuerierInfoData_t* ptinMgmdQueryEntryAdd(uint32 serviceId, uchar8 family
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Service Identifier added to the AVL Tree(serviceId:%u family:%u)", serviceId, family);
     /*entry was added into the avl tree*/
-    if ((pMgmdEntry = ptinMgmdQueryEntryFind(serviceId, family, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pMgmdEntry = ptinMgmdQueryEntryFind(serviceId, family)) == PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find Service Identifier in the AVL Tree, after adding it! (serviceId:%u family:%u)", serviceId, family);
       return PTIN_NULLPTR;
@@ -4036,7 +3986,7 @@ RC_t ptinMgmdQueryEntryDelete(uint32 serviceId, uchar8 family)
     return ERROR;
   }
 
-  if ((pMgmdEntry = ptinMgmdQueryEntryFind(serviceId, family, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((pMgmdEntry = ptinMgmdQueryEntryFind(serviceId, family)) == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
     return NOT_EXIST;
@@ -4133,7 +4083,7 @@ RC_t ptinMgmdactivegroups_get(uint32 serviceId, uint32 portId, uint32 clientId, 
 
       for (sourcePtr=groupEntry->ports[portId].firstSource, sourceIdx = 0; sourcePtr!=PTIN_NULLPTR && sourceIdx<groupEntry->ports[portId].numberOfSources  ;sourcePtr=sourcePtr->next, ++sourceIdx)
       {
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Reading information of sourceIdx  %u of numberOfSources %u",sourceIdx, groupEntry->ports[portId].numberOfSources);
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Reading information of sourceIdx  %u of numberOfSources %u",sourceIdx, sourceIdx<groupEntry->ports[portId].numberOfSources);
         //Only consider sources for which traffic forwarding is enabled
         if (sourcePtr->status == PTIN_MGMD_SOURCESTATE_ACTIVE &&
             (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE || sourcePtr->isStatic==TRUE))
@@ -4213,7 +4163,7 @@ RC_t ptinMgmdgroupclients_get(uint32 serviceId, uint32 portId, ptin_mgmd_inet_ad
   }
 
   //Search for entry in AVL tree
-  if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)) ||
+  if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr)) ||
       groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == FALSE ||
       groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients == 0)
   {

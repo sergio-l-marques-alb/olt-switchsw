@@ -65,7 +65,7 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void);
 /**
  * Group-Source Specific Query AVLTree manipulation
  */
-groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, uint32 flag);
+groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId);
 groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId);
 RC_t                             ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId);
 

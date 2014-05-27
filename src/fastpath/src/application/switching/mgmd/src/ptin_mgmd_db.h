@@ -15,19 +15,19 @@
 /******************************************************************************
  * API methods for the AVLs used in MGMD
  ******************************************************************************/
-ptinMgmdGroupInfoData_t*      ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* mcastGroupAddr,uint32 flag);
+ptinMgmdGroupInfoData_t*    ptinMgmdL3EntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* mcastGroupAddr);
 RC_t                        ptinMgmdL3EntryAdd(uint32 serviceId,ptin_mgmd_inet_addr_t* mcastGroupAddr);
 RC_t                        ptinMgmdL3EntryDelete(uint32 serviceId,ptin_mgmd_inet_addr_t* mcastGroupAddr);
-snoopPTinSourceRecord_t*    ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr,uint32 flag);
+snoopPTinSourceRecord_t*    ptinMgmdProxySourceEntryFind(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr);
 snoopPTinSourceRecord_t*    ptinMgmdProxySourceEntryAdd(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr, BOOL* newEntry);
 snoopPTinSourceRecord_t*    ptinMgmdProxySourceEntryDelete(mgmdGroupRecord_t* groupPtr, ptin_mgmd_inet_addr_t* sourceAddr);
-mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr,uint8 recordType, uint32 flag);
+mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryFind(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr,uint8 recordType);
 mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryAdd(mgmdProxyInterface_t* interfacePtr, ptin_mgmd_inet_addr_t* groupAddr,uint8 recordType, BOOL* newEntry);
 mgmdGroupRecord_t*          ptinMgmdProxyGroupEntryDelete(uint32 serviceId, ptin_mgmd_inet_addr_t* groupAddr,uint8 recordType);
-mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryFind(uint32 serviceId, uint32 flag);
+mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryFind(uint32 serviceId);
 mgmdProxyInterface_t*       ptinMgmdProxyInterfaceEntryAdd(uint32 serviceId, BOOL* newEntry);
 RC_t                        ptinMgmdProxyInterfaceEntryDelete(uint32 serviceId);
-ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 family,uint32 flag);
+ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryFind(uint32 serviceId, uchar8 family);
 ptinMgmdQuerierInfoData_t*  ptinMgmdQueryEntryAdd(uint32 serviceId,uchar8 family, BOOL* newEntry);
 RC_t                        ptinMgmdQueryEntryDelete(uint32 serviceId,uchar8 family);
 

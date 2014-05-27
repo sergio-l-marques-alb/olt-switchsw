@@ -282,7 +282,7 @@ RC_t ptin_mgmd_groupspecifictimer_start(ptinMgmdGroupInfoData_t* groupEntry, uin
     }
   }  
   
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId)))
   {
     if(igmpCfg->querier.last_member_query_count>1)
     {
@@ -380,7 +380,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
   //Saving igmpCfg
   queryPckt.cbHandle->mgmdProxyCfg=*igmpCfg;
 
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId)))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Nothing to be done for this Q(G,S) [groupAddr=0x%08X serviceId=%u portId=%u]", 
             groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
@@ -480,7 +480,7 @@ RC_t  ptin_mgmd_groupsourcespecifictimer_restart(groupSourceSpecificQueriesAvlKe
     return FAILURE;
   }
 
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&timerKey->groupAddr, timerKey->serviceId, timerKey->portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&timerKey->groupAddr, timerKey->serviceId, timerKey->portId)))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested AVL entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
             timerKey->groupAddr.addr.ipv4.s_addr, timerKey->serviceId, timerKey->portId);
@@ -530,7 +530,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
   lmqt = igmpGlobalCfg.querier.last_member_query_interval/10 * igmpGlobalCfg.querier.last_member_query_count;//dS -> S
 
   //Find entry in the AVL
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId)))
   {
     //Add new entry to the AVL tree with the parameters in groupData
     if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd(groupAddr, serviceId, portId)))
@@ -588,7 +588,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
   }
 
   //Set source-timer to LMQT. If this is the only interface in the root port, set the root port source-timer to LMQT as well
-  if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (groupEntry = ptinMgmdL3EntryFind(serviceId, groupAddr)))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error: Unable to find group entry [groupAddr=0x%08X serviceId=%u]", groupAddr->addr.ipv4.s_addr, serviceId);
     return FAILURE;
@@ -629,7 +629,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
             groupAddr->addr.ipv4.s_addr, serviceId, portId, sourceAddr->addr.ipv4.s_addr);
 
   //Find entry in the AVL
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId)))
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
               groupAddr->addr.ipv4.s_addr, serviceId, portId);
@@ -684,7 +684,7 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* group
             groupAddr->addr.ipv4.s_addr, serviceId, portId);
 
   //Find entry in the AVL
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId)))
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
               groupAddr->addr.ipv4.s_addr, serviceId, portId);
@@ -772,7 +772,7 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group & Source Specific Timer Expired [groupAddr=0x%08X serviceId=%u portId=%u]", eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);
 
-  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&eventData->groupAddr, eventData->serviceId, eventData->portId, AVL_EXACT)))
+  if(PTIN_NULLPTR == (timerData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(&eventData->groupAddr, eventData->serviceId, eventData->portId)))
   {
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested AVL entry [groupAddr=0x%08X serviceId=%u portId=%u]", 
             eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);

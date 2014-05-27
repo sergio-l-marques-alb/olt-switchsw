@@ -182,7 +182,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
       if (igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
       {
         /*Let us verify if this group still has any clients*/
-        if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT))==PTIN_NULLPTR || 
+        if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr))==PTIN_NULLPTR || 
             avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)            
         {
           PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
@@ -967,7 +967,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
 
   printf("-----------------------------------------\n");
   /* Search for the requested multicast group */
-  if (PTIN_NULLPTR != (groupEntry = ptinMgmdL3EntryFind(serviceId, &groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR != (groupEntry = ptinMgmdL3EntryFind(serviceId, &groupAddr)))
   {
     uint32 portId;
 
@@ -1064,7 +1064,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
   mgmdGroupRecord_t *groupPtr;    
   snoopPTinSourceRecord_t *sourcePtr;    
 
-  if ((interfacePtr=ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((interfacePtr=ptinMgmdProxyInterfaceEntryFind(serviceId)) == PTIN_NULLPTR)
   {
     printf("Interface not initialized for serviceId: %d", serviceId);  
     return;
@@ -1072,7 +1072,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
 
   groupAddr.addr.ipv4.s_addr=groupAddrText;
 
-  if ((groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &groupAddr,recordType, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &groupAddr,recordType)) == PTIN_NULLPTR)
   {
     printf("Group Record not initialized: (groupAddr: %s recordType:%u)", ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf), recordType);  
     return;
@@ -2418,7 +2418,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing pending reports...", serviceId);
   {
-    proxy_interface = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
+    proxy_interface = ptinMgmdProxyInterfaceEntryFind(serviceId);
     if(PTIN_NULLPTR != proxy_interface)
     {
       mgmdGroupRecord_t *group_record;

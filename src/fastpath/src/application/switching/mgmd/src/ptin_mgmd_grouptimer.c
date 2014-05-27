@@ -172,7 +172,7 @@ RC_t ptin_mgmd_event_grouptimer(ptinMgmdGroupTimer_t *timerData)
   mgmdProxyInterface_t    *proxyInterfacePtr;
   BOOL                     newEntry=FALSE;
 
-  if (PTIN_NULLPTR == (portEntry = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (portEntry = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr)))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Group Timer to process (serviceId:[%u] groupAddr:[0x%X]), but we were unable to find the entry in the AVL tree",timerData->groupKey.serviceId,timerData->groupKey.groupAddr.addr.ipv4.s_addr);
     return SUCCESS;

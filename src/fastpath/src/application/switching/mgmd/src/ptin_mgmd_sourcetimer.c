@@ -173,7 +173,7 @@ RC_t ptin_mgmd_event_sourcetimer(ptinMgmdSourcetimer_t *timerData)
   BOOL                       newEntry;
   RC_t                       rc;
 
-  if (PTIN_NULLPTR == (portData = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR == (portData = ptinMgmdL3EntryFind(timerData->groupKey.serviceId, &timerData->groupKey.groupAddr)))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Source Timer to process (serviceId:[%u] groupAddr:[0x%X]), but we were unable to find the entry in the AVL tree",timerData->groupKey.serviceId,timerData->groupKey.groupAddr.addr.ipv4.s_addr);
     return SUCCESS;

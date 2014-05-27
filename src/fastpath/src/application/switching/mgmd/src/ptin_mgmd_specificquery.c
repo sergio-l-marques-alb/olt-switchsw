@@ -60,7 +60,7 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
 /**
  * Group-Source Specific Query AVLTree manipulation
  */
-groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId, uint32 flag)
+groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(ptin_mgmd_inet_addr_t* groupAddr, uint32 serviceId, uint16 portId)
 {
   groupSourceSpecificQueriesAvl_t    *entry;
   groupSourceSpecificQueriesAvlKey_t key;
@@ -80,16 +80,8 @@ groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFin
   memcpy(&key.serviceId, &serviceId, sizeof(key.serviceId));
   memcpy(&key.portId, &portId, sizeof(key.portId));
 
-  entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &key, flag);
-  if (flag == AVL_NEXT)
-  {
-    while (entry)
-    {
-      memcpy(&key, &entry->key, sizeof(key));
-      entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &key, flag);
-    }
-  }
-
+  entry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &key, AVL_EXACT);
+  
   if (entry == PTIN_NULL)
   {
     return PTIN_NULLPTR;
@@ -125,7 +117,7 @@ groupSourceSpecificQueriesAvl_t* ptinMgmdGroupSourceSpecificQueryAVLTreeEntryAdd
   if (pData == PTIN_NULL)
   {
     /*entry was added into the avl tree*/
-    if ((pData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT)) == PTIN_NULLPTR)
+    if ((pData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId)) == PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find inserted entry");
       return PTIN_NULLPTR;
@@ -158,7 +150,7 @@ RC_t ptinMgmdGroupSourceSpecificQueryAVLTreeEntryDelete(ptin_mgmd_inet_addr_t* g
 
   pSnoopEB = mgmdEBGet();
 
-  pData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId, AVL_EXACT);
+  pData = ptinMgmdGroupSourceSpecificQueryAVLTreeEntryFind(groupAddr, serviceId, portId);
   if (pData == PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested entry");
