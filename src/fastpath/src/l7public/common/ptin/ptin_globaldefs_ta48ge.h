@@ -6,7 +6,7 @@
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 /* Querier will be active for Multicast services */
-#define IGMP_QUERIER_IN_MC_EVC
+#define IGMP_QUERIER_IN_UC_EVC
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define PTIN_SYS_LC_SLOT_MIN        2
