@@ -2202,6 +2202,13 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   return rc;
 }
 
+uint8_t ptin_mgmd_last_msg_type = (uint8_t) -1;
+
+uint8_t ptin_mgmd_last_processed_msg_type_get(void) 
+{
+return ptin_mgmd_last_msg_type;
+}
+
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
@@ -2223,6 +2230,7 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 
 RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData)
 {
+  ptin_mgmd_last_msg_type=eventData->type;
   switch(eventData->type)
   {
     case PTIN_MGMD_EVENT_TIMER_TYPE_GROUP:
@@ -2285,6 +2293,8 @@ RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData)
 RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
 {
   RC_t res = SUCCESS;
+
+  ptin_mgmd_last_msg_type=eventData->msgCode;
 
   switch (eventData->msgCode)
   {
@@ -2586,6 +2596,8 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
 RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
 {
   RC_t res = SUCCESS;
+
+  ptin_mgmd_last_msg_type = eventData->type;
 
   switch(eventData->type)
   {

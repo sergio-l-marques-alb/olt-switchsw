@@ -446,12 +446,13 @@ void ptin_mgmd_logredirect(uint8 logOutput, char8* logFile)
   ptin_mgmd_log_redirect(logOutput, logFile);
 }
 
-uint8_t ptin_mgmd_last_msg_id = (uint8_t) -1;
+uint8_t ptin_mgmd_last_msg_id   = (uint8_t) -1;
 
 uint8_t ptin_mgmd_last_processed_msg_get(void) 
 {
 return ptin_mgmd_last_msg_id;
 }
+
 void* ptin_mgmd_event_handle(void *param)
 {
   _UNUSED_(param);
