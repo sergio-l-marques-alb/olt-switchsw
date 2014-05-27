@@ -192,6 +192,9 @@ RC_t ptin_mgmd_event_grouptimer(ptinMgmdGroupTimer_t *timerData)
     /* Remove every source whose timer has expired */
     for (sourcePtr=portEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtrAux)
     { 
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);
+
       sourcePtrAux=sourcePtr->next;
       if ((sourcePtr->status == PTIN_MGMD_SOURCESTATE_ACTIVE) && (ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == FALSE) && sourcePtr->isStatic==FALSE)
       {        

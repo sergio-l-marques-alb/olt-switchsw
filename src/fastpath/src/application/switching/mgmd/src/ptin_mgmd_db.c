@@ -248,6 +248,9 @@ static BOOL snoopPTinZeroSourceClients(ptinMgmdGroupInfoData_t *groupEntry, ptin
 
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);
+
     if (groupEntry->ports[portId].active == TRUE &&
         (sourcePtr=ptinMgmdSourceFind(groupEntry, portId,sourceAddr))!= PTIN_NULLPTR &&
         ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer) == TRUE &&
@@ -385,6 +388,9 @@ ptinMgmdSource_t* ptinMgmdSourceFind(ptinMgmdGroupInfoData_t *groupEntry, uint32
   
   for (sourceId = 0, sourcePtr=groupEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR &&  sourceId<groupEntry->ports[portId].numberOfSources; ++sourceId)  
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceId:%u sourcePtr:%p | numberOfSources:%u", sourceId, sourcePtr, groupEntry->ports[portId].numberOfSources);
+
     if (PTIN_MGMD_INET_IS_ADDR_EQUAL(&(sourcePtr->sourceAddr),sourceAddr)==TRUE )
     {
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source Found: Source Address: %s", ptin_mgmd_inetAddrPrint(&(sourcePtr->sourceAddr), debug_buf));      
@@ -791,6 +797,9 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
   /* Remove every source */  
   for (sourcePtr=groupEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtrAux)
   { 
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);
+
     sourcePtrAux=sourcePtr->next;
     ptinMgmdSourceRemove(groupEntry,portId, sourcePtr);
   }
@@ -834,6 +843,9 @@ RC_t ptinMgmdInterfaceRemove(ptinMgmdGroupInfoData_t *groupEntry, uint32 portId)
   {
     for (portIdAux=1;groupEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients!=0 && portIdAux<=PTIN_MGMD_MAX_PORT_ID ;portIdAux++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portIdAux:%u | PTIN_MGMD_MAX_PORT_ID=%u",portIdAux, PTIN_MGMD_MAX_PORT_ID);
+
       if(groupEntry->ports[portIdAux].active==TRUE)
       {
         ptinMgmdInterfaceRemove(groupEntry,portIdAux);
@@ -1265,6 +1277,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   {
     for (sourcePtr=groupEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtr->next)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);
+
       if(sourcePtr->status != PTIN_MGMD_SOURCESTATE_ACTIVE)
       {
         continue;
@@ -1286,6 +1301,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     /* Add new sources */
     while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
       /* Search for this source in the current source list */
       if ((rc = ptinMgmdSourceAdd(groupEntry,portId, sourceAddr, &sourcePtr, &externalApi)) == FAILURE)
       {
@@ -1367,6 +1385,9 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       //Remove the client from any source in which it may be
       for (sourcePtr=groupEntry->ports[portId].firstSource, sourceId = 0; sourceId<groupEntry->ports[portId].numberOfSources && sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next, ++sourceId)      
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceId:%u sourcePtr:%p | numberOfSources:%u", sourceId, sourcePtr, sourceId<groupEntry->ports[portId].numberOfSources);
+
         if (ERROR == snoopPTinClientRemove(sourcePtr, clientId))
         {
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Failed to snoopPTinClientRemove()");
@@ -1472,6 +1493,9 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
    */
   for (sourcePtr=groupEntry->ports[portId].firstSource, sourceId = 0; sourceId<groupEntry->ports[portId].numberOfSources && sourcePtr!=PTIN_NULLPTR; ++sourceId)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceId:%u sourcePtr:%p | numberOfSources:%u", sourceId, sourcePtr, sourceId<groupEntry->ports[portId].numberOfSources);
+
     sourcePtr->status=PTIN_MGMD_SOURCESTATE_TOREMOVE;
     sourcePtr=sourcePtr->next;      
   }
@@ -1484,6 +1508,9 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       sourceAddr = sourceList;
       while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
         /* Search for this source in the current source list */
         if ((rc = ptinMgmdSourceAdd(groupEntry,portId, sourceAddr, &sourcePtr, &externalApi)) == FAILURE)
         {
@@ -1619,6 +1646,9 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
       sourceAddr = sourceList;
       while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
         /* Search for this source in the current source list */
         if ((rc = ptinMgmdSourceAdd(groupEntry,portId, sourceAddr, &sourcePtr, &externalApi)) == FAILURE)
         {
@@ -1765,6 +1795,9 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
   /* Remove every source still marked as toremove */ 
   for (sourcePtr=groupEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
   {      
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p", sourcePtr);
+
     sourcePtrAux=sourcePtr->next;
     if(sourcePtr->status==PTIN_MGMD_SOURCESTATE_TOREMOVE)
     { 
@@ -1859,6 +1892,9 @@ RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroup
   sourceAddr = sourceList;
   while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
     /* Add  this source in the current source list */
     if ((rc = ptinMgmdSourceAdd(groupEntry,portId, sourceAddr, &sourcePtr, &externalApi)) == FAILURE)    
     {
@@ -1985,6 +2021,9 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
     sourceAddr = sourceList;
     while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
       /* Search for this source in the current source list */
       if ((sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR)
       {
@@ -2052,6 +2091,9 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
 
     while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
       /* Add this source in the current source list */
       if ((rc = ptinMgmdSourceAdd(groupEntry,portId, sourceAddr, &sourcePtr, &externalApi)) == FAILURE)
       {
@@ -2382,6 +2424,9 @@ RC_t ptinMgmdGroupRecordRemove(mgmdProxyInterface_t *interfacePtr, ptin_mgmd_ine
     PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "noOfGroupRecords:[%u] p:[%p] pFirst:[%p] pLast:[%p] next:[%p] previous:[%p]",interfacePtr->numberOfGroupRecords,groupPtr,interfacePtr->firstGroupRecord,interfacePtr->lastGroupRecord,groupPtr->nextGroupRecord,groupPtr->previousGroupRecord);  
   for (sourcePtr=groupPtr->firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
   {      
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);
+
     sourcePtrAux=sourcePtr->next;    
     ptinMgmdGroupRecordSourceRemove(groupPtr,&sourcePtr->key.sourceAddr);    
   }
@@ -2687,6 +2732,9 @@ pending report and the selected delay.*/
       *sendReport = TRUE;
       for (sourcePtr=groupPtr->firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
       {      
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);
+
         sourcePtrAux=sourcePtr->next;        
         ptinMgmdGroupRecordSourceRemove(groupPtr,&sourcePtr->key.sourceAddr);        
       }   
@@ -2783,6 +2831,9 @@ pending report and the selected delay.*/
   sourceAddr = sourceList;
   while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
   {
+    if (ptin_mgmd_loop_trace)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Number of Sources:%u", noOfSources);
+
     /* Search for this source in the current source list */
     if ( (sourcePtr=ptinMgmdSourceFind(groupEntry,portId, sourceAddr))!=PTIN_NULLPTR  && 
          sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && 
@@ -2991,6 +3042,8 @@ static RC_t snoopPTinActiveGroups(uint32 serviceId, BOOL *activeGroups)
   memset(&avlTreeKey, 0x00, sizeof(avlTreeKey));
   while ((avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT)) != PTIN_NULLPTR)
   {
+    if (ptin_mgmd_loop_trace)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Multicast Group AVL Tree of serviceId:%u", serviceId);
 
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
@@ -3085,6 +3138,9 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
 
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
+
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
       /* If leaf interface is not used, initialize it */
@@ -3201,6 +3257,9 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
 
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
+
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {      
       if (avlTreeEntry->ports[portId].active == TRUE && avlTreeEntry->ports[portId].isStatic==TRUE)
@@ -4186,6 +4245,9 @@ RC_t ptinMgmdgroupclients_get(uint32 serviceId, uint32 portId, ptin_mgmd_inet_ad
 
           for (idx = 0; idx < PTIN_MGMD_CLIENT_BITMAP_SIZE; idx++)
           {
+            if (ptin_mgmd_loop_trace) 
+              PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | PTIN_MGMD_CLIENT_BITMAP_SIZE=%u",idx, PTIN_MGMD_CLIENT_BITMAP_SIZE);
+
             clientList[idx] |= groupEntry->ports[portId].clients[idx];
           }
           *numClients += groupEntry->ports[portId].numberOfClients;
@@ -4199,6 +4261,9 @@ RC_t ptinMgmdgroupclients_get(uint32 serviceId, uint32 portId, ptin_mgmd_inet_ad
 
             for (clientId = 0; clientId < PTIN_MGMD_CLIENT_BITMAP_SIZE; clientId++)
             {
+              if (ptin_mgmd_loop_trace) 
+                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | PTIN_MGMD_CLIENT_BITMAP_SIZE:%u",clientId, PTIN_MGMD_CLIENT_BITMAP_SIZE);
+
               clientList[clientId] |= sourcePtr->clients[clientId];
             }
             *numClients += groupEntry->ports[portId].numberOfClients;

@@ -24,6 +24,7 @@ ptin_IGMP_Statistics_t mgmd_stat_service[PTIN_MGMD_MAX_SERVICES][PTIN_MGMD_MAX_P
 ptin_IGMP_Statistics_t mgmd_stat_client[PTIN_MGMD_MAX_PORT_ID][PTIN_MGMD_MAX_CLIENTS]   = {{{0}}};
 
 extern unsigned long     ptin_mgmd_memory_allocation;
+extern unsigned char     ptin_mgmd_loop_trace;
 
 
 void ptin_mgmd_statistics_memory_allocation(void)
@@ -66,6 +67,9 @@ static RC_t ptin_mgmd_stats_service_find(uint32 serviceId, int16 *arrayIdx)
   *arrayIdx = 0;
   for(*arrayIdx = 0; *arrayIdx < PTIN_MGMD_MAX_SERVICES; ++(*arrayIdx))
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", *arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[*arrayIdx][0].serviceId == serviceId)
     {
       return SUCCESS;
@@ -98,6 +102,9 @@ static RC_t ptin_mgmd_stats_service_find_or_getfree(uint32 serviceId, int16 *arr
   *arrayIdx = 0;
   for(*arrayIdx = 0; *arrayIdx < PTIN_MGMD_MAX_SERVICES; ++(*arrayIdx))
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", *arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[*arrayIdx][0].serviceId == serviceId)
     {
       return SUCCESS;
@@ -113,6 +120,9 @@ static RC_t ptin_mgmd_stats_service_find_or_getfree(uint32 serviceId, int16 *arr
     *arrayIdx=firstFreeIdx;
     for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", portIdx, PTIN_MGMD_MAX_PORT_ID );
+
       memset(&mgmd_stat_service[*arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
       mgmd_stat_service[*arrayIdx][portIdx].used      = TRUE;
       mgmd_stat_service[*arrayIdx][portIdx].serviceId = serviceId;
@@ -137,10 +147,16 @@ RC_t ptin_mgmd_stats_service_clear(uint32 serviceId)
 
   for(arrayIdx = 0; arrayIdx < PTIN_MGMD_MAX_SERVICES; ++arrayIdx)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[arrayIdx][0].serviceId == serviceId)
     {
       for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", portIdx, PTIN_MGMD_MAX_PORT_ID );
+
         memset(&mgmd_stat_service[arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
         mgmd_stat_service[arrayIdx][portIdx].used = FALSE;
       }

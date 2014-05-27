@@ -52,8 +52,9 @@
 
 
 /*********************Global Variables******************/
-BOOL              ptin_mgmd_extended_debug = FALSE;
-BOOL              ptin_mgmd_packet_trace   = FALSE;
+uint8              ptin_mgmd_extended_debug = FALSE;
+uint8              ptin_mgmd_packet_trace   = FALSE;
+uint8              ptin_mgmd_loop_trace     = FALSE;
 
 /*********************End Global Variables******************/
 
@@ -102,6 +103,7 @@ static RC_t ptin_mgmd_mld_packet_process(void);
 /*********************Debug Routines******************/
 void ptin_mgmd_packet_trace_enable(BOOL enable){ptin_mgmd_packet_trace=enable;};
 void ptin_mgmd_extended_debug_enable(BOOL enable){ptin_mgmd_extended_debug=enable;};
+void ptin_mgmd_loop_trace_enable(BOOL enable){ptin_mgmd_loop_trace=enable;};
 /*********************End Debug Routines******************/
 
 /************************************************************************************************************/
@@ -121,6 +123,9 @@ RC_t  ptin_mgmd_position_service_identifier_set(uint32 serviceId, uint32 *posId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==FALSE)
     {
       pMgmdCB->proxyCM[iterator].inUse=TRUE;
@@ -147,6 +152,9 @@ RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
     {      
       (*posId)=iterator;
@@ -172,6 +180,9 @@ RC_t  ptin_mgmd_position_service_identifier_get_or_set(uint32 serviceId, uint32 
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE)
     {
       if(pMgmdCB->proxyCM[iterator].serviceId==serviceId)
@@ -217,6 +228,9 @@ RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
     {
       pMgmdCB->proxyCM[iterator].inUse=FALSE;       
@@ -1331,6 +1345,9 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
     /* Add new source */
     for (sourceIdx=0;sourceIdx<noOfSources;sourceIdx++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceIdx:%u | noOfSources:%u",sourceIdx, noOfSources);
+
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
       {
         PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
@@ -1349,6 +1366,9 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
     /* Add new source */
     for (sourceIdx=0;sourceIdx<noOfSources;sourceIdx++)
     {
+      if (ptin_mgmd_loop_debug) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceIdx:%u",sourceIdx);
+
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_inet_addr_t));
       /* IPv6 MCAST Address */
       SNOOP_GET_ADDR6(&ipv6Addr, dataPtr);
@@ -1678,6 +1698,9 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
       validSources = noOfSources;
       for (i=0, srcIdx=0; i<noOfSources; ++i)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u and srcIdx:%u | noOfSources:%u",i ,srcIdx, noOfSources);
+
         memset(&sourceList[i], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
         PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[srcIdx]);

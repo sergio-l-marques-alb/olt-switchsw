@@ -409,6 +409,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_start(ptinMgmdGroupInfoData_t* groupEntr
     //For each source with active retransmissions, add them to the IGMP Query header
     for(iterator=timerData->firstSource; iterator!=PTIN_NULLPTR; iterator=auxSourcePtr)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p", iterator);
+
       auxSourcePtr = iterator->next;
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Adding source[%08X] to Q(G,S) [groupAddr=0x%08X serviceId=%u portId=%u]", 
                 iterator->sourceAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.groupAddr.addr.ipv4.s_addr, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, portId);
@@ -569,6 +572,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_addsource(ptin_mgmd_inet_addr_t* groupAd
     //First search for this source. If not found, add a new source
     for(iterator=timerData->firstSource, i=0; iterator!=PTIN_NULLPTR && i<timerData->numberOfSources; iterator=iterator->next, ++i)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p i:%u | numberOfSources", iterator, i, timerData->numberOfSources);
+
       if(TRUE == PTIN_MGMD_INET_IS_ADDR_EQUAL(&iterator->sourceAddr, sourceAddr))
       {
         iterator->retransmissions = igmpGlobalCfg.querier.last_member_query_count-1; //Reset retransmissions counter
@@ -645,6 +651,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removesource(ptin_mgmd_inet_addr_t* grou
       //Search for the requested source
       for(iterator=timerData->firstSource, i=0; iterator!=PTIN_NULLPTR && i<timerData->numberOfSources; iterator=iterator->next, ++i)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p i:%u | numberOfSources", iterator, i, timerData->numberOfSources);
+
         if(TRUE == PTIN_MGMD_INET_IS_ADDR_EQUAL(&iterator->sourceAddr, sourceAddr))
         {
           ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
@@ -701,6 +710,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_removegroup(ptin_mgmd_inet_addr_t* group
     //Search for the requested source
     for(iterator=timerData->firstSource, i=0; iterator!=PTIN_NULLPTR && i<timerData->numberOfSources; iterator=iterator->next, ++i)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p i:%u | numberOfSources", iterator, i, timerData->numberOfSources);
+
       ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
       iterator->retransmissions = 0;
       --timerData->numberOfSources;
@@ -726,6 +738,9 @@ RC_t ptin_mgmd_groupsourcespecifictimer_remove_entry(groupSourceSpecificQueriesA
   //Search for the requested source
   for(iterator=avlTreeEntry->firstSource, i=0; iterator!=PTIN_NULLPTR && i<avlTreeEntry->numberOfSources; iterator=iterator->next, ++i)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p i:%u | numberOfSources", iterator, i, avlTreeEntry->numberOfSources);
+
     ptin_mgmd_inetAddressZeroSet(iterator->sourceAddr.family, &iterator->sourceAddr);
     iterator->retransmissions = 0;
     --avlTreeEntry->numberOfSources;
@@ -804,6 +819,10 @@ RC_t ptin_mgmd_event_groupsourcespecifictimer(groupSourceSpecificQueriesAvlKey_t
   //For each source with active retransmissions, add them to the IGMP Query header
   for(iterator=timerData->firstSource; iterator!=PTIN_NULLPTR; iterator=auxSourcePtr)
   {
+
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%p", iterator);
+
     auxSourcePtr = iterator->next;
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Adding source[%08X] to Q(G,S) [groupAddr=0x%08X serviceId=%u portId=%u]", 
               iterator->sourceAddr.addr.ipv4.s_addr, eventData->groupAddr.addr.ipv4.s_addr, eventData->serviceId, eventData->portId);

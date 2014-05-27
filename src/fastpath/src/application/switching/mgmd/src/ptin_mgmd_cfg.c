@@ -384,6 +384,9 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
      uint32 i;   
      for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
      {
+       if (ptin_mgmd_loop_trace) 
+         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u | PTIN_MGMD_MAX_SERVICES:%u", i, PTIN_MGMD_MAX_SERVICES);
+
        pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
      }
     }

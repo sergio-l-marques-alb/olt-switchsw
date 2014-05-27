@@ -574,7 +574,7 @@ RC_t ptin_mgmd_ctrl_client_activegroups_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       response.sourceIP    = groupList[i].sourceAddr.addr.ipv4.s_addr;
       response.sourceTimer = groupList[i].sourceTimer;
 
-      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Coping...[Entry Id:%u groupIP:0x%04X groupType:%u filterMode:%u groupTimer:%u sourceIP:0x%04X sourceTimer:%u]", response.entryId, response.groupIP,response.groupType,
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Copying...[Entry Id:%u groupIP:0x%04X groupType:%u filterMode:%u groupTimer:%u sourceIP:0x%04X sourceTimer:%u]", response.entryId, response.groupIP,response.groupType,
                           response.filterMode, response.groupTimer, response.sourceIP, response.sourceTimer);
       memcpy(eventData->data+j*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
       ++j;
@@ -626,6 +626,9 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     memset(numberOfClientsPerPort, 0x00, sizeof(numberOfClientsPerPort));
     for (portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u", portId, PTIN_MGMD_MAX_PORT_ID);  
+
       if (SUCCESS != (res = ptinMgmdgroupclients_get(request.serviceId, portId, &groupAddr, &sourceAddr, portClientList[portId], &numberOfClientsPerPort[portId])))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to update clientList");
@@ -650,6 +653,9 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
   entryId            = 0;
   for (portId=1; portId<=PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u", portId, PTIN_MGMD_MAX_PORT_ID);  
+
     //Ignore this interface if the requested entryId is higher than the number os clients for this interface
     numberOfClientsAux += numberOfClientsPerPort[portId];
     if(numberOfClientsAux < request.entryId)
@@ -662,6 +668,9 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     //Check each client in this interface
     for (clientId=0; entryId<maxNumberOfEntries && entryId<numberOfClients && clientId<PTIN_MGMD_MAX_CLIENTS && numberOfClientsPerPort[portId]!=0; ++clientId)
     {      
+      if (ptin_mgmd_extended_debug) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | numberOfClients:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientId, numberOfClients, PTIN_MGMD_MAX_CLIENTS);  
+
       //Move forward 8 bits if this byte is 0 (no clients)
       if(portClientList[portId][clientId/8] == 0)
       {

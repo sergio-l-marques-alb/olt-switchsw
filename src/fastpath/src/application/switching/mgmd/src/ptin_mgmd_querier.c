@@ -1002,6 +1002,9 @@ RC_t addSourceToGroupRecord(uchar8* reportHeader, uint32* headerLength, ptin_mgm
   tempPtr = reportHeader + 8; //Point to the first group record
   while(--numberOfRecords)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over numberOfRecords:%u",numberOfRecords);
+
     tempPtr += 2;
     PTIN_MGMD_GET_SHORT(numberOfSources, tempPtr);
 

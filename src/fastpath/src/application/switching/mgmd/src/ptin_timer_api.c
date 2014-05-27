@@ -89,6 +89,7 @@ PTIN_MEASUREMENT_TIMER_T  measurement_timers[PTIN_MEASUREMENT_TIMERS_NUM_MAX] = 
 
 /* Extern variables */
 extern unsigned char      ptin_mgmd_extended_debug;
+extern unsigned char      ptin_mgmd_loop_trace;
 
 
 /* Static methods */
@@ -242,6 +243,9 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     lowerNeighbor = (cb->lastTimerBelowThreshold==NULL)?(NULL):(cb->lastTimerBelowThreshold->prev);
     while(upperNeighbor != NULL)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over upperNeighbor");
+
       if(upperNeighbor->absoluteTimeout > timer->absoluteTimeout)
       {
         break;
@@ -268,6 +272,9 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     lowerNeighbor = cb->lastRunningTimer;
     while(lowerNeighbor != NULL)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over lowerNeighbor");
+
       if(lowerNeighbor->absoluteTimeout <= timer->absoluteTimeout)
       {
         break;
@@ -499,6 +506,9 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Initializing all control blocks");
     for (cbIdx=1;cbIdx<MGMD_MAX_NUM_CONTROL_BLOCKS;cbIdx++) 
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over cbIdx:%u | MGMD_MAX_NUM_CONTROL_BLOCKS:%u",cbIdx, MGMD_MAX_NUM_CONTROL_BLOCKS);
+
       cbEntry[cbIdx].state = PTIN_CONTROL_BLOCK_STATE_FREE;
     }
     cbIdx=0;
@@ -530,6 +540,9 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   ptin_fifo_create(&cbEntry[cbIdx].availableTimersPool, cbEntry[cbIdx].timersNumMax);
   for(i=0; i<cbEntry[cbIdx].timersNumMax; i++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over i:%u | cbEntry[cbIdx].timersNumMax:%u",i, cbEntry[cbIdx].timersNumMax);
+
     PTIN_TIMER_STRUCT *newTimer = (PTIN_TIMER_STRUCT*) malloc(sizeof(PTIN_TIMER_STRUCT));  
     if(0 != ptin_fifo_push(cbEntry[cbIdx].availableTimersPool, (PTIN_FIFO_ELEMENT_t)newTimer))
     {
@@ -608,16 +621,25 @@ int ptin_mgmd_timer_controlblock_destroy(PTIN_MGMD_TIMER_CB_t controlBlock)
   pthread_mutex_lock(&cbPtr->lock);
   while((timer = cbPtr->firstRunningTimer) != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over __running_list_remove");
+
     __running_list_remove(cbPtr, timer);
     free(timer);
   }
   while((timer = cbPtr->firstInitializedTimer) != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over __initialized_list_remove");
+
     __initialized_list_remove(cbPtr, timer);
     free(timer);
   }
   while(ptin_fifo_pop(cbPtr->availableTimersPool, (PTIN_FIFO_ELEMENT_t*)&timer) == 0)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over ptin_fifo_pop");
+
     free(timer);
   }
 

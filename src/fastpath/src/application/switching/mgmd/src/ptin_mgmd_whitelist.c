@@ -178,6 +178,9 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
 
   while (maxGroupAddresses>0)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over maxSourceAddresses:%u",maxSourceAddresses);
+
     ptin_mgmd_inetCopy(&entry.key.groupAddr, &groupCIDR);
 
     //Empty Source List
@@ -207,6 +210,9 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
     {
       while (maxSourceAddresses>0)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over maxSourceAddresses:%u",maxSourceAddresses);
+
         ptin_mgmd_inetCopy(&entry.key.sourceAddr, &sourceCIDR);
 
         //Search
@@ -279,6 +285,9 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
 
   while (maxGroupAddresses>0)
   {    
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over maxGroupAddresses:%u",maxSourceAddresses);
+
     if(sourceMaskLen==0) //Empty Source List
     {
       ptin_mgmd_inetAddressZeroSet(groupCIDR.family,&sourceCIDR);
@@ -294,6 +303,9 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
     {
       while (maxSourceAddresses>0)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over maxSourceAddresses:%u",maxSourceAddresses);
+
         pData = ptinMgmdWhitelistSearch(serviceId, &groupCIDR, &sourceCIDR);
         if (pData != PTIN_NULLPTR)
         { 

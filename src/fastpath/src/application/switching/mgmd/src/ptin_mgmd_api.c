@@ -360,6 +360,9 @@ RC_t ptin_mgmd_deinit(pthread_t thread_id)
 
       for (ifIdx=0; ifIdx<PTIN_MGMD_MAX_PORTS; ++ifIdx)
       {
+        if (ptin_mgmd_extended_debug) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ifIdx:%u",ifIdx);
+
         if (snoopEntry->interfaces[ifIdx].active == TRUE)
         {
           uint32 sourceIdx; 

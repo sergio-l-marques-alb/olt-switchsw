@@ -48,6 +48,8 @@ RC_t ptinMgmdSpecificQueryAVLTreeInit(void)
   ptin_fifo_create(&pSnoopEB->specificQuerySourcesQueue, PTIN_MGMD_MAX_SOURCES);
   for(i=0; i<PTIN_MGMD_MAX_SOURCES; ++i)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u | PTIN_MGMD_MAX_SOURCES:%u", i, PTIN_MGMD_MAX_SOURCES);
     groupSourceSpecificQueriesSource_t *new_source = (groupSourceSpecificQueriesSource_t*) ptin_mgmd_malloc(sizeof(groupSourceSpecificQueriesSource_t));
 
     ptin_fifo_push(pSnoopEB->specificQuerySourcesQueue, (PTIN_FIFO_ELEMENT_t)new_source);

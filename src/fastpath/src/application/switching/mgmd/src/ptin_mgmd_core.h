@@ -38,6 +38,7 @@
 //Global Variables
 extern uint8                    ptin_mgmd_extended_debug;
 extern uint8                    ptin_mgmd_packet_trace;
+extern uint8                    ptin_mgmd_loop_trace;
 extern unsigned long            ptin_mgmd_memory_allocation;
 //End Global Variables
 
