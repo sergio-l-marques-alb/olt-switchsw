@@ -30,6 +30,7 @@ typedef enum {
  *       and to log_ctx_str[] !!! */
 typedef enum {
     PTIN_MGMD_LOG_CTX_LOGGER = 0,       /* Used to log logger config functions */
+    PTIN_MGMD_LOG_CTX_PTIN_MSG,
     PTIN_MGMD_LOG_CTX_PTIN_IGMP,
     PTIN_MGMD_LOG_CTX_PTIN_TIMER,
     PTIN_MGMD_LOG_CTX_PTIN_FIFO,
