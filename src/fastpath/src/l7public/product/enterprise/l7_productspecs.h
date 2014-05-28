@@ -65,7 +65,7 @@
 #define PROD_VLAN_MAC_MAX_VLANS                           256
 #define PROD_MAX_NUM_LAG_INTF                             36      /* PTin modified: 64 => 36 (CXP360G) */
 #define PROD_MAX_MEMBERS_PER_LAG                          8
-#define PROD_MAX_FDB_MAC_ENTRIES                          32768
+#define PROD_MAX_FDB_MAC_ENTRIES                          131072  /* PTin modified: 32768 => 131072 */
 #define PROD_MIN_FRAME_SIZE                               1518
 #define PROD_MAX_FRAME_SIZE                               9216
 #define PROD_DOT1P_NUM_TRAFFIC_CLASSES                    8

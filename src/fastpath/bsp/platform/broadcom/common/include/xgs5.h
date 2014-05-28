@@ -60,10 +60,14 @@
 
 
 /* Max the FDB size for STDL packages only. Performance issues with Stacking */
-#ifdef L7_STACKING_PACKAGE
-#define PLAT_MAX_FDB_MAC_ENTRIES                  32768
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G )          /* PTin added */
+ #define PLAT_MAX_FDB_MAC_ENTRIES                  131072
 #else
-#define PLAT_MAX_FDB_MAC_ENTRIES                  32768
+#ifdef L7_STACKING_PACKAGE
+ #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
+#else
+ #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
+#endif
 #endif
 
 #ifdef L7_WIRELESS_PACKAGE

@@ -4664,8 +4664,8 @@ static ptin_DHCPv4v6_bind_entry dhcpv4v6_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
 
 L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, msg_DHCPv4v6_bind_table_t *output)
 {
-  L7_ushort16 i, page, first, entries, size;
-  L7_RC_t     rc;
+  L7_uint32 i, page, first, entries, size;
+  L7_RC_t   rc;
 
   /* Debug */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Binding table get:");

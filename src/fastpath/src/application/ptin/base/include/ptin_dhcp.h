@@ -303,7 +303,7 @@ extern L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *clie
  * 
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
-L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_entries);
+L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_entries);
 
 /**
  * Get DHCP Binding table
@@ -315,7 +315,7 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_en
  *
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
-L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint16 *max_entries);
+L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *max_entries);
 
 /**
  * Removes an entry from the DHCP binding table

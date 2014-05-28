@@ -1678,13 +1678,13 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
  * 
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
-L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_entries)
+L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_entries)
 {
   dhcpSnoopBinding_t  dsBinding;
-  L7_uint16           index, i;
+  L7_uint32           index, i;
   ptin_intf_t         ptin_intf;
   L7_uint32           evc_idx;
-  L7_uint16           n_max;
+  L7_uint32           n_max;
 
   n_max = (max_entries!=L7_NULLPTR && *max_entries<PLAT_MAX_FDB_MAC_ENTRIES) ? (*max_entries) : PLAT_MAX_FDB_MAC_ENTRIES;
 
@@ -1729,13 +1729,13 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint16 *max_en
  *
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
-L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint16 *max_entries)
+L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *max_entries)
 {
   dhcpSnoopBinding_t  dsBinding;
-  L7_uint16           index, i;
+  L7_uint32           index, i;
   ptin_intf_t         ptin_intf;
   L7_uint32           evc_idx;
-  L7_uint16           n_max;
+  L7_uint32           n_max;
 
   n_max = (max_entries!=L7_NULLPTR && *max_entries<PLAT_MAX_FDB_MAC_ENTRIES) ? (*max_entries) : PLAT_MAX_FDB_MAC_ENTRIES;
 
