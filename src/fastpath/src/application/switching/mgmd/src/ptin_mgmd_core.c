@@ -2169,15 +2169,10 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   }
   
   if (rc != SUCCESS)
-  {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));    
+  {    
     return rc;
   }
-  else 
-  {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_VALID_RX));
-  }
-
+  
   if (flagNewGroup == TRUE && snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients > 0)
   {
     ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
@@ -2236,6 +2231,8 @@ return ptin_mgmd_last_msg_type;
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
   RC_t res = SUCCESS;
+
+  ptin_mgmd_last_msg_type = (uint8_t) -1;
 
   if(ptin_mgmd_extended_debug)
   {
