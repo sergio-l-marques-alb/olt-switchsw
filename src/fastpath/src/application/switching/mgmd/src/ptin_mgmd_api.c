@@ -52,12 +52,19 @@ static RC_t  ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr);
 
 extern unsigned long     ptin_mgmd_number_of_timers;
 
-uint32_t                 ptin_mgmd_thread_pid=(uint32_t) -1;
+uint32_t                 ptin_mgmd_thread_pid = (uint32_t) -1;
+
+uint32_t                 ptin_snooping_thread_pid = (uint32_t) -1;
 
 
 uint32_t ptin_mgmd_thread_pid_get(void)
 {
   return ptin_mgmd_thread_pid;
+}
+
+uint32_t ptin_snooping_thread_pid_get(void)
+{
+  return ptin_snooping_thread_pid;
 }
 
 RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
@@ -256,6 +263,8 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
 {
   pthread_attr_t attr;
   struct timespec tm;  
+
+  ptin_snooping_thread_pid = syscall(SYS_gettid);
 
   //Validation
   if( (PTIN_NULLPTR==thread_id) || (PTIN_NULLPTR==externalApi) || ((logOutput==MGMD_LOG_FILE) && (PTIN_NULLPTR==logFile)) )
