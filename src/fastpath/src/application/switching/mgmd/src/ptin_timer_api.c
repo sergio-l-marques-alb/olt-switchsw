@@ -575,7 +575,7 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
     PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_create");
     return -1;
   }
-  PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "cbIdx=%u thread_id=%p",cbIdx, cbEntry[cbIdx].thread_id);
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "cbIdx=%u thread_id=%p",cbIdx, cbEntry[cbIdx].thread_id);
 
   numCBs++;
   *controlBlock = &cbEntry[cbIdx];
