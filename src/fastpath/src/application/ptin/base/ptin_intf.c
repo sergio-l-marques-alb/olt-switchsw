@@ -27,6 +27,7 @@
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 static L7_uint64 forcelinked_ports_bmp        = 0;
 static L7_uint64 uplink_protection_ports_bmp  = 0;
+static L7_uint64 uplink_protection_ports_active_bmp = 0;
 static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
 #endif
 
@@ -252,6 +253,7 @@ L7_RC_t ptin_intf_init(void)
   /* Clear structures */
   forcelinked_ports_bmp = 0;
   uplink_protection_ports_bmp = 0;
+  uplink_protection_ports_active_bmp = 0;
   memset(lag_uplink_protection_ports_bmp, 0x00, sizeof(lag_uplink_protection_ports_bmp));
 #endif
 
@@ -1832,6 +1834,24 @@ L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
 }
 
 /**
+ * Check if a protection port is active
+ * 
+ * @author mruas (5/28/2014)
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port)
+{
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  return (((uplink_protection_ports_active_bmp >> ptin_port) & 1) == 1); 
+  #else
+  return L7_FALSE;
+  #endif
+}
+
+/**
  * Creates a LAG 
  *  
  * NOTES: 
@@ -1912,6 +1932,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #if 1
       /* Remove port from all vlans at hardware */
       ptin_vlan_port_removeFlush(port, 0);
+      /* Inactive port */
+      uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << port);
       #endif
 
       /* Check if port is enabled */
@@ -2535,6 +2557,8 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
       #if 1
       /* Remove port from all vlans at hardware */
       ptin_vlan_port_add(port, 0);
+      /* Clear port bits */
+      uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << port);
       #endif
     }
     /* Clear lag ports at general bitmap */
@@ -4407,11 +4431,25 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       /* If downlink board, or protection port -> force link up */
       if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
       {
+        /* If protection active port, guarantee it is not associated to any vlan, before forcing link-up (to avoid loop) */
+        if (ptin_intf_is_uplinkProtection(ptin_port) &&
+            ptin_intf_is_uplinkProtectionActive(ptin_port))
+        {
+          ptin_vlan_port_removeFlush(ptin_port, 0);
+        }
+
         rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
           LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
+        }
+
+        /* If protection active port, add port to vlans again */
+        if (ptin_intf_is_uplinkProtection(ptin_port) &&
+            ptin_intf_is_uplinkProtectionActive(ptin_port))
+        {
+          ptin_vlan_port_add(ptin_port, 0);
         }
       }
       /* Enable linkscan for uplink boards */
@@ -4746,6 +4784,13 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
     return L7_FAILURE;
   }
 
+  /* Check if port is protected */
+  if (!ptin_intf_is_uplinkProtection(ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u is not a protection port", ptin_port);
+    return L7_FAILURE;
+  }
+
   /* Activate command: add port */
   if (cmd & 1)
   {
@@ -4754,6 +4799,8 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding intIfNum %u (ptin_port %u) to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
       return L7_FAILURE;
     }
+    /* Port is active */
+    uplink_protection_ports_active_bmp |= ((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) added to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
   }
   /* Innactivate command: remove port */
@@ -4764,6 +4811,8 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing intIfNum %u (ptin_port %u) from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
       return L7_FAILURE;
     }
+    /* Port inactive */
+    uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) removed from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
   }
   #endif
@@ -4793,6 +4842,13 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
     return L7_FAILURE;
   }
 
+  /* Check if port is protected */
+  if (!ptin_intf_is_uplinkProtection(ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u is not a protection port", ptin_port);
+    return L7_FAILURE;
+  }
+
   /* Activate command: add port */
   if (cmd & 1)
   {
@@ -4801,6 +4857,8 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding port %u to all vlans", ptin_port);
       return L7_FAILURE;
     }
+    /* Port is active */
+    uplink_protection_ports_active_bmp |= ((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u added to all vlans", ptin_port);
   }
   /* Innactivate command: remove port */
@@ -4812,6 +4870,8 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       return L7_FAILURE;
     }
     //fdbFlushByPort(intIfNum);
+    /* Port inactive */
+    uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u removed from all vlans", ptin_port);
   }
   #endif
@@ -4846,12 +4906,23 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     return L7_FAILURE;
   }
 
+  /* Check if ports are protection ones */
+  if (!ptin_intf_is_uplinkProtection(ptin_port_old) ||
+      !ptin_intf_is_uplinkProtection(ptin_port_new))
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u or ptin_port %u is not a protection port", ptin_port_old, ptin_port_new);
+    return L7_FAILURE;
+  }
+
   /* Switch ports */
   if (ptin_vlan_port_switch(ptin_port_old, ptin_port_new, 0) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Error switching port %u to port %u", ptin_port_old, ptin_port_new);
     return L7_FAILURE;
   }
+  /* Update active and inactive ports */
+  uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port_old);
+  uplink_protection_ports_active_bmp |=  ((L7_uint64) 1 << ptin_port_new);
   LOG_TRACE(LOG_CTX_PTIN_INTF, "port %u successfully switched to port %u", ptin_port_old, ptin_port_new);
   #endif
 
