@@ -4126,8 +4126,6 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
-  //L7_uint32 lag_intIfNum, lag_port;
-  L7_BOOL   apply_config = L7_TRUE;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate input params */
@@ -4152,30 +4150,8 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       return L7_FAILURE;
     }
 
-    /* Uplink protection */
-    #if 0
-    /* Get belonging LAG */
-    if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
-        lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
-    {
-      /* ptin port format */
-      lag_port = map_intIfNum2port[lag_intIfNum];
-
-      /* If special lag, skip procedure */
-      if (lag_port >= PTIN_SYSTEM_N_PORTS && (lag_port - PTIN_SYSTEM_N_PORTS) >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
-      {
-        apply_config = L7_FALSE;
-      }
-    }
-    #else
-    if (ptin_intf_is_uplinkProtection(ptin_port))
-    {
-      apply_config = L7_FALSE;
-    }
-    #endif
-
     /* Linkscan procedure */
-    if (!enable || apply_config)
+    if (!ptin_intf_is_uplinkProtection(ptin_port))
     {
       rc = ptin_intf_linkscan_set(intIfNum, enable); 
 
@@ -4206,28 +4182,10 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       }
 
       /* Uplink protection */
-      #if 0
-      /* Get belonging LAG */
-      if (dot3adAggGet(intIfNum, &lag_intIfNum) == L7_SUCCESS &&
-          lag_intIfNum > 0 && lag_intIfNum < L7_ALL_INTERFACES)
-      {
-        /* ptin port format */
-        lag_port = map_intIfNum2port[lag_intIfNum];
-
-        /* If special lag, skip procedure */
-        if (lag_port >= PTIN_SYSTEM_N_PORTS && (lag_port - PTIN_SYSTEM_N_PORTS) >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
-        {
-          /* Only skip, if it is to enable linkscan */
-          if (enable)
-            continue;
-        }
-      }
-      #else
-      if (ptin_intf_is_uplinkProtection(ptin_port) && enable)
+      if (ptin_intf_is_uplinkProtection(ptin_port))
       {
         continue;
       }
-      #endif
 
       /* Linkscan procedure */
       rc = ptin_intf_linkscan_set(intIfNum, enable);
@@ -4297,13 +4255,17 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       return L7_FAILURE;
     }
 
-    /* Linkscan procedure */
-    rc = ptin_intf_link_force(intIfNum, link, enable);
+    /* Only do this for non protection ports */
+    if (!ptin_intf_is_uplinkProtection(ptin_port))
+    {
+      /* Linkscan procedure */
+      rc = ptin_intf_link_force(intIfNum, link, enable);
 
-    if (rc != L7_SUCCESS)
-      LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
-    else
-      LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+      else
+        LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+    }
   }
   /* Apply to all slot ports */
   else
@@ -4323,6 +4285,12 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       {
         LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
+      }
+
+      /* Uplink protection */
+      if (ptin_intf_is_uplinkProtection(ptin_port))
+      {
+        continue;
       }
 
       /* Linkscan procedure */
@@ -4351,6 +4319,238 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 #else
   return L7_SUCCESS;
 #endif
+}
+
+/**
+ * Procedure for board insertion
+ * 
+ * @param slot_id 
+ * @param board_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
+{
+  L7_RC_t   rc_global = L7_SUCCESS;
+
+/* Only applied to CXO640G boards */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+
+  L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_uint16 board_id_current;
+  L7_RC_t   rc;
+
+  LOG_DEBUG(LOG_CTX_PTIN_API,"Inserting board %u at slot %u", board_id, slot_id);
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+  if (board_id == 0 || board_id == (L7_uint16)-1)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid board_id %d", board_id);
+    return L7_FAILURE;
+  }
+
+  /* Block board event processing */
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  /* Get current board id */
+  rc = ptin_slot_boardtype_get(slot_id, &board_id_current);
+  if (rc != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_API, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
+    return L7_FAILURE;
+  }
+  /* If board is already present, do nothing */
+  if (board_id_current != 0)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_WARNING(LOG_CTX_PTIN_API, "Card already present at slot %u (board id is %u)", slot_id, board_id_current);
+    return L7_SUCCESS;
+  }
+
+  /* Register new board id */
+  rc = ptin_slot_boardtype_set(slot_id, board_id);
+  if (rc != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_API, "Error inserting card %u at slot %u (%d)", board_id, slot_id, rc);
+    return L7_FAILURE;
+  }
+
+  /* Run all slot ports */
+  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+  {
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* If not used, skip */
+    if (ptin_port < 0)
+      continue;
+
+    /* Validate port */
+    if (ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    {
+      rc_global = max(L7_FAILURE, rc_global);
+      LOG_ERR(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port);
+      continue;
+    }
+
+    #ifdef PTIN_LINKSCAN_CONTROL
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_id))
+    {
+      /* If downlink board, or protection port -> force link up */
+      if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
+      {
+        rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
+        }
+      }
+      /* Enable linkscan for uplink boards */
+      else if (PTIN_BOARD_IS_UPLINK(board_id))
+      {
+        rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE); 
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+        }
+      }
+    }
+    #endif
+  }
+
+  /* Unblock board event processing */
+  osapiSemaGive(ptin_boardaction_sem);
+#endif
+
+  return rc_global;
+}
+
+/**
+ * Procedure for board removal
+ * 
+ * @author mruas (5/28/2014)
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
+{
+  L7_RC_t   rc_global = L7_SUCCESS;
+
+/* Only applied to CXO640G boards */
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+
+  L7_int    port_idx, ptin_port = -1;
+  L7_uint32 intIfNum = L7_ALL_INTERFACES;
+  L7_uint16 board_id;
+  L7_RC_t   rc;
+
+  LOG_DEBUG(LOG_CTX_PTIN_API,"Removing board from slot %u", slot_id);
+
+  /* Validate input params */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    return L7_FAILURE;
+  }
+
+  /* Block board event processing */
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  /* Get current board id */
+  rc = ptin_slot_boardtype_get(slot_id, &board_id);
+  if (rc != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_API, "Error getting board type for slot %u (rc=%d)", slot_id, rc);
+    return L7_FAILURE;
+  }
+  /* If board is not present, do nothing */
+  if (board_id == 0 || board_id == (L7_uint16)-1)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_WARNING(LOG_CTX_PTIN_API, "No card present at slot %u (board id is %u)", slot_id, board_id);
+    return L7_SUCCESS;
+  }
+
+  /* Register NULL board id */
+  rc = ptin_slot_boardtype_set(slot_id, L7_NULL);
+  if (rc != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_API, "Error removing card %u from slot %u (%d)", board_id, slot_id, rc);
+    return L7_FAILURE;
+  }
+
+  /* Run all slot ports */
+  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+  {
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* If not used, skip */
+    if (ptin_port < 0)
+      continue;
+
+    /* Validate port */
+    if (ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    {
+      rc_global = max(L7_FAILURE, rc_global);
+      LOG_ERR(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port);
+      continue;
+    }
+
+    #ifdef PTIN_LINKSCAN_CONTROL
+    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_id))
+    {
+      /* If downlink board, or protection port -> force link up */
+      if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
+      {
+        /* Disable force link-up */
+        rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+        }
+        /* Cause link-down */
+        rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+        }
+      }
+      /* Enable linkscan for uplink boards */
+      else if (PTIN_BOARD_IS_UPLINK(board_id))
+      {
+        rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE); 
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan (%d)", rc);
+        }
+      }
+    }
+    #endif
+  }
+
+  /* Unblock board event processing */
+  osapiSemaGive(ptin_boardaction_sem);
+#endif
+
+  return rc_global;
 }
 
 /**

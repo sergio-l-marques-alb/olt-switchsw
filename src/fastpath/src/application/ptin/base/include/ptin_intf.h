@@ -598,6 +598,27 @@ extern L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8
 extern L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7_uint8 enable);
 
 /**
+ * Procedure for board insertion
+ * 
+ * @param slot_id 
+ * @param board_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id);
+
+/**
+ * Procedure for board removal
+ * 
+ * @author mruas (5/28/2014)
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id);
+
+/**
  * Get the current slot mode list
  *  
  * @param slotmodes 
