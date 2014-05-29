@@ -464,7 +464,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   /* Should be a protection port */
-  if (ptin_intf_is_uplinkProtection(ptin_port))
+  if (!ptin_intf_is_uplinkProtection(ptin_port))
   {
     osapiSemaGive(ptin_boardaction_sem);
     LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_port %u is not a protection port", ptin_port);
@@ -501,7 +501,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
         ptin_vlan_port_add(ptin_port, 0);
       }
 
-      LOG_INFO(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
+      LOG_DEBUG(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
     }
     #endif
   }
