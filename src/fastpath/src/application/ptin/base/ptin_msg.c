@@ -33,6 +33,7 @@
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
 #include "ptin_intf.h"
+#include "ptin_xconnect_api.h"
 #include "fdb_api.h"
 
 #include "ptin_acl.h"
@@ -367,12 +368,16 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   /* insertion action */
   if (msg->type == 0x03)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u)", msg->generic_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
 
     rc = ptin_slot_action_insert(msg->generic_id, msg->param);
     if ( rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error inserting card (%d)", rc);
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Card inserted successfully");
     }
   }
   /* Board removed */
@@ -384,6 +389,10 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     if ( rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Card removed successfully");
     }
   }
   #endif
@@ -403,7 +412,6 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #if 0
   LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_link_action");
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
@@ -411,8 +419,9 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
   #if (PTIN_BOARD_IS_MATRIX)
-  #if MAP_CPLD
+  #ifdef MAP_CPLD
   L7_uint16 board_type;
+  L7_uint32 ptin_port, intIfNum;
 
   /* Only active matrix will process these messages */
   if (!cpld_map->reg.mx_is_active)
@@ -424,44 +433,104 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get board id for this interface */
-  rc = ptin_slot_boardtype_get(msg->slot_id, &board_type);
+  rc = ptin_slot_boardid_get(msg->generic_id, &board_type);
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->slot_id, rc);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->generic_id, rc);
+    return L7_FAILURE;
+  }
+
+  /* Only consider uplink boards */
+  if (!PTIN_BOARD_IS_UPLINK(board_type))
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Not an uplink board (board_id=%u)", board_type);
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port and intIfNum */
+  if (ptin_intf_slotPort2port(msg->generic_id, msg->param, &ptin_port) != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "No ptin_port related to slot/port %u/%u", msg->generic_id, msg->param);
+    return L7_FAILURE;
+  }
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "No intIfNum related to ptin_port %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Should be a protection port */
+  if (ptin_intf_is_uplinkProtection(ptin_port))
+  {
+    osapiSemaGive(ptin_boardaction_sem);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_port %u is not a protection port", ptin_port);
     return L7_FAILURE;
   }
 
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
-    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Link-up detected at ptin_port %u", ptin_port);
+
+    #ifdef PTIN_LINKSCAN_CONTROL
+    /* Linkscan control should be enabled */
+    if (linkscan_update_control)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkup detected at slot %u, slotport %u", msg->generic_id, msg->param);
-      /* Apply linkscan to all ports of slot */
-      rc = ptin_intf_linkscan(msg->generic_id, msg->mask, L7_DISABLE);
+      /* Force link-up */
+      /* It it is going to force a link up, it is importante to avoid loops during that procedure.
+         To guarantee that, this port will be removed from all vlans.
+         Only protection ports at inactive state, don't need this procedure */
+      if (ptin_intf_is_uplinkProtectionActive(ptin_port))
+      {
+        ptin_vlan_port_remove(ptin_port, 0);
+      }
+
+      rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+        LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
       }
+
+      /* Add port to vlans again */
+      if (ptin_intf_is_uplinkProtectionActive(ptin_port))
+      {
+        ptin_vlan_port_add(ptin_port, 0);
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
     }
+    #endif
   }
   else
   {
-    if (linkscan_update_control && PTIN_BOARD_LS_CTRL(board_type))
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Link-down detected at ptin_port %u", ptin_port);
+
+    #ifdef PTIN_LINKSCAN_CONTROL
+    if (linkscan_update_control)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Linkdown detected at slot %u, slotport %u", msg->generic_id, msg->param);
-      /* Apply linkscan to all ports of slot */
-      rc = ptin_slot_linkscan_set(msg->generic_id, msg->param, L7_ENABLE);
+      /* Remove forced link-up */
+      rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_linkscan ENABLE returns %d", rc);
+        LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
       }
+
+      /* Cause link-down */
+      rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+      }
+      LOG_DEBUG(LOG_CTX_PTIN_API, "Force link-up disabled for port %u", ptin_port);
     }
+    #endif
   }
 
   osapiSemaGive(ptin_boardaction_sem);
-  #endif
   #endif
   #endif
 
