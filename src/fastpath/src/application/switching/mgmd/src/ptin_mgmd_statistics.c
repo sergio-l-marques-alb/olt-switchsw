@@ -24,6 +24,7 @@ ptin_IGMP_Statistics_t mgmd_stat_service[PTIN_MGMD_MAX_SERVICES][PTIN_MGMD_MAX_P
 ptin_IGMP_Statistics_t mgmd_stat_client[PTIN_MGMD_MAX_PORT_ID][PTIN_MGMD_MAX_CLIENTS]   = {{{0}}};
 
 extern unsigned long     ptin_mgmd_memory_allocation;
+extern unsigned char     ptin_mgmd_extended_debug;
 extern unsigned char     ptin_mgmd_loop_trace;
 
 
@@ -546,7 +547,8 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
     break;
  
   default:
-    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Statistics Field not valid:%u", field);
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Statistics Field not valid:%u", field);
     break;
   }
 

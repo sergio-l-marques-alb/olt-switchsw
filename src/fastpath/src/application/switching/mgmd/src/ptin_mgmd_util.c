@@ -2560,7 +2560,8 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     }
     else
     {
-      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} ServiceId:%u does not have any proxy compatibilty timer configured yet. Silently Ignoring request.", posId);          
+      if(ptin_mgmd_extended_debug)
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} ServiceId:%u does not have any proxy compatibilty timer configured yet. Silently Ignoring request.", posId);          
     }    
   }
   return SUCCESS;
