@@ -8863,15 +8863,14 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
+L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntfCreate* data)
 {
   ptin_intf_t routingIntf;
   ptin_intf_t physicalIntf;
-  L7_uint16   internalRootVlan;
+  L7_uint16   internalVlan;
 
-  /* Output data */
+  /* Debug */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new routing interface:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask          = %08X",  data->mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  type          = %u",    data->type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  physicalIntf  = %u/%u", data->physicalIntf.intf_type, data->physicalIntf.intf_id);
@@ -8885,13 +8884,13 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   physicalIntf.intf_type = data->physicalIntf.intf_type;
   physicalIntf.intf_id   = data->physicalIntf.intf_id;
 
-  if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalRootVlan))
+  if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalVlan))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to convert evc_id to internal root vlan");
     return L7_FAILURE;
   }
 
-  if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, data->routingVlanId, internalRootVlan))
+  if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, data->type, &physicalIntf, data->routingVlanId, internalVlan))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
     return L7_FAILURE;
@@ -8900,12 +8899,6 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
-    return L7_FAILURE;
-  }
-
-  if(L7_SUCCESS != ptin_routing_intf_physicalport_set(&routingIntf, data->type, &physicalIntf))
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set routing interface physical port");
     return L7_FAILURE;
   }
 
@@ -8919,8 +8912,24 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
+L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntfModify* data)
 {
+  ptin_intf_t routingIntf;
+
+  /* Debug */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Modifying existing routing interface:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
+
+  routingIntf.intf_type  = data->routingIntf.intf_type;
+  routingIntf.intf_id    = data->routingIntf.intf_id;
+
+  if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
+    return L7_FAILURE;
+  }
 
   return L7_SUCCESS;
 }
@@ -8932,19 +8941,18 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntf* data)
+L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data)
 {
   ptin_intf_t routingIntf;
 
-  /* Output data */
+  /* Debug */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing an existing routing interface:");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingVlanId = %u",    data->routingVlanId);
 
   routingIntf.intf_type = data->routingIntf.intf_type;
   routingIntf.intf_id   = data->routingIntf.intf_id;
 
-  if(L7_SUCCESS != ptin_routing_intf_remove(&routingIntf, data->routingVlanId))
+  if(L7_SUCCESS != ptin_routing_intf_remove(&routingIntf))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove the existing routing interface");
     return L7_FAILURE;

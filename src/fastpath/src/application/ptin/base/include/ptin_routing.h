@@ -24,6 +24,7 @@
 #define PTIN_ROUTING_ARPTABLE_TYPE_GATEWAY  CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY
 
 #define PTIN_ROUTING_INTF_TYPE_UPLINK       CCMSG_ROUTING_INTF_TYPE_UPLINK
+#define PTIN_ROUTING_INTF_TYPE_LOOPBACK     CCMSG_ROUTING_INTF_TYPE_LOOPBACK
 
 /***********************************************************
  * Typedefs
@@ -41,57 +42,54 @@
 L7_RC_t ptin_routing_init(void);
 
 /**
- * Deinitialization
- *  
- * @return none
- */
-L7_RC_t ptin_routing_deinit(void);
-
-/**
  * Create a new routing interface.
  * 
- * @param intf           : Routing interface
+ * @param routingIntf    : Routing interface
+ * @param intfType       : Routing interface type
+ * @param physicalIntf   : Physical interface
  * @param routingVlanId  : Vlan ID to which the routing interface will be associated
  * @param internalVlanId : Fastpath's internal Vlan ID for the EVC
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_intf_create(ptin_intf_t* intf, L7_uint16 routingVlanId, L7_uint16 internalVlanId);
+L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf, L7_uint16 routingVlanId, L7_uint16 internalVlanId);
 
 /**
  * Remove an existing routing interface.
  * 
- * @param intfId        : ID of the routing interface (this is not the intfNum)
- * @param routingVlanId : Vlan ID of the routing interface
+ * @param routingIntf : Routing interface
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_intf_remove(ptin_intf_t* intf, L7_uint16 routingVlanId);
+L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf);
 
 /**
  * Set routing interface's ip address.
  * 
- * @param intf       : Routing interface
- * @param ipFamily   : IP address family [L7_AF_INET4; L7_AF_INET6]
- * @param ipAddr     : IP address
- * @param subnetMask : Subnet mask
+ * @param routingIntf : Routing interface
+ * @param ipFamily    : IP address family [L7_AF_INET4; L7_AF_INET6]
+ * @param ipAddr      : IP address
+ * @param subnetMask  : Subnet mask
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* intf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask);
+L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask);
 
 /**
- * Set routing interface's physical port.
+ * Get the physical interface currently associated with the requested routing interface.
  * 
- * @param routingIntf  : Routing interface
- * @param intfType     : Routing interface type
- * @param physicalIntf : Physical interface
+ * @param routingIntfNum  : Routing interface
+ * @param physicalIntfNum : Ptr to the physical intfNum
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  *  
- * @note This should only be used for uplink routing interfaces. 
+ * @note PTIN_ROUTING_INTF_TYPE_LOOPBACK routing interfaces do not have a specific physical interface associated with them.
+ *       In those cases, 'physicalIntfNum' is set to (L7_uint16)-1.
+ *  
+ * @note If this prototype is modified, do not forget to update 'l3_intf.c' file as I was required to place an extern 
+ *       prototype declaration of this method there.
  */
-L7_RC_t ptin_routing_intf_physicalport_set(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf);
+L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *physicalIntfNum);
 
 /**
  * Get ARP table.
@@ -214,6 +212,11 @@ L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx);
 /*********************************************************** 
  * Debug methods
  ***********************************************************/
+
+/**
+ * Dump the current status of the routing interfaces.
+ */
+void ptin_routing_intf_dump(void);
 
 /**
  * Dump the local ARP table snapshot.

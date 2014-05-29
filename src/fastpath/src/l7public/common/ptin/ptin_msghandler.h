@@ -186,9 +186,9 @@
 #define CCMSG_FLUSH_RMEP                    0x9148
 
 /* Routing */
-#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntf
-#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIntf
-#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIntf
+#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntfCreate
+#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIntfModify
+#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIntfRemove
 #define CCMSG_ROUTING_ARPTABLE_GET            0x9154  // msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
 #define CCMSG_ROUTING_ARPENTRY_PURGE          0x9155  // msg_RoutingArpEntryPurge
 #define CCMSG_ROUTING_ROUTETABLE_GET          0x9156  // msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
@@ -1428,16 +1428,12 @@ typedef struct
  * Routing messages
  ****************************************************/
 
-// Message CCMSG_ROUTING_INTF_CREATE / CCMSG_ROUTING_INTF_MODIFY / CCMSG_ROUTING_INTF_REMOVE
-#define CCMSG_ROUTING_INTF_MASK_PHYSICALINTF  0x0001
-#define CCMSG_ROUTING_INTF_MASK_IPADDRESS     0x0002
-#define CCMSG_ROUTING_INTF_MASK_SUBNETMASK    0x0004
+// Message CCMSG_ROUTING_INTF_CREATE
 #define CCMSG_ROUTING_INTF_TYPE_UPLINK        1
 #define CCMSG_ROUTING_INTF_TYPE_LOOPBACK      2
 typedef struct
 {
    L7_uint16            slotId;
-   L7_uint32            mask;           // Only required for modification requests
    L7_uint8             type;
    msg_HwEthInterface_t routingIntf;
    msg_HwEthInterface_t physicalIntf;
@@ -1445,7 +1441,23 @@ typedef struct
    L7_uint32            evcId;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
-} __attribute__((packed)) msg_RoutingIntf;
+} __attribute__((packed)) msg_RoutingIntfCreate;
+
+// Message CCMSG_ROUTING_INTF_MODIFY
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t routingIntf;
+   L7_uint32            ipAddress;
+   L7_uint32            subnetMask;
+} __attribute__((packed)) msg_RoutingIntfModify;
+
+// Message CCMSG_ROUTING_INTF_REMOVE
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t routingIntf;
+} __attribute__((packed)) msg_RoutingIntfRemove;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
 #define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC   1
@@ -1506,6 +1518,12 @@ typedef struct
 } __attribute__((packed)) msg_RoutingRouteTableResponse;
 
 // Message CCMSG_ROUTING_PINGSESSION_CREATE
+#define CCMSG_ROUTING_PINGSESSION_PROBECOUNT_MIN      1
+#define CCMSG_ROUTING_PINGSESSION_PROBECOUNT_MAX      15
+#define CCMSG_ROUTING_PINGSESSION_PROBESIZE_MIN       0
+#define CCMSG_ROUTING_PINGSESSION_PROBESIZE_MAX       65507
+#define CCMSG_ROUTING_PINGSESSION_PROBEINTERVAL_MIN   1
+#define CCMSG_ROUTING_PINGSESSION_PROBEINTERVAL_MAX   60
 typedef struct
 {
    L7_uint16 slotId;
@@ -1538,6 +1556,20 @@ typedef struct
 } __attribute__((packed)) msg_RoutingPingSessionFree;
 
 //CCMSG_ROUTING_TRACERTSESSION_CREATE
+#define CCMSG_ROUTING_TRACERTSESSION_PROBECOUNT_MIN     1
+#define CCMSG_ROUTING_TRACERTSESSION_PROBECOUNT_MAX     10
+#define CCMSG_ROUTING_TRACERTSESSION_PROBESIZE_MIN      0
+#define CCMSG_ROUTING_TRACERTSESSION_PROBESIZE_MAX      65507
+#define CCMSG_ROUTING_TRACERTSESSION_PROBEINTERVAL_MIN  1
+#define CCMSG_ROUTING_TRACERTSESSION_PROBEINTERVAL_MAX  60
+#define CCMSG_ROUTING_TRACERTSESSION_PORT_MIN           0
+#define CCMSG_ROUTING_TRACERTSESSION_PORT_MAX           65535
+#define CCMSG_ROUTING_TRACERTSESSION_MAXTTL_MIN         1
+#define CCMSG_ROUTING_TRACERTSESSION_MAXTTL_MAX         255
+#define CCMSG_ROUTING_TRACERTSESSION_INITTTL_MIN        1
+#define CCMSG_ROUTING_TRACERTSESSION_INITTTL_MAX        255
+#define CCMSG_ROUTING_TRACERTSESSION_MAXFAILS_MIN       0
+#define CCMSG_ROUTING_TRACERTSESSION_MAXFAILS_MAX       255
 typedef struct
 {
   L7_uint16 slotId;

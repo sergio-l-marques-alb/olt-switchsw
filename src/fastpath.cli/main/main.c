@@ -95,18 +95,6 @@ void help_oltBuga(void)
         "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
         "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
         "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
-        "m 1440 type[0-uplink,1-loopback] routingIntf[2-Rtr]/[intf#] physicalIntf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
-        "m 1441 intf[2-Rtr]/[intf#] routingVID[1-4095] - Remove routing interface\r\n"
-        "m 1442 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
-        "m 1443 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
-        "m 1444 intf[2-Rtr]/[intf#] - Get route table\r\n"
-        "m 1445 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
-        "m 1446 index[0-15] - Query ping session\r\n"
-        "m 1447 index[0-15] - Free ping session\r\n"
-        "m 1448 index[0-15] ipaddr[ddd.ddd.ddd.ddd] probes[1-10] size[0-65507] interval[1-60] dontFrag[0/1] port[0-65535] maxTtl[1-255] initTtl[1-255] maxFails[0-255] - Create traceroute session\r\n"
-        "m 1449 index[0-15] - Query traceroute session\r\n"
-        "m 1450 index[0-15] - Get traceroute session hops\r\n"
-        "m 1451 index[0-15] - Free traceroute session\r\n"
         "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
         "m 1501 lag_index[0-17] static_mode[0/1] load_balance[0..6] port_bmp[XXXXXh] - Create LAG\r\n"
         "m 1502 lag_index[0-17] - Destroy LAG\r\n"
@@ -120,7 +108,7 @@ void help_oltBuga(void)
         "m 1999 - Reset defaults, except for lag InBand\r\n"
         "m 2000 [10-1000000] - Set MAC Learning table aging time\r\n"
         "m 2001 - Get MAC Learning aging time\r\n"
-        "--- NEW COMMANDS FP6.3--------------------------------------------------------------------------\r\n"
+        "--- NEW COMMANDS FP6.3 ---------------------------------------------------------------------------------------------------------------\r\n"
         "m 1600 EVC#[0-64] - Read EVC config\r\n"
         "m 1601 EVC#[0-64] Type[0:P2MP/1:P2P/2:Q] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
         "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Create EVC\r\n"
@@ -142,10 +130,23 @@ void help_oltBuga(void)
         "m 1630 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Show absolute evc statistics\n\r"
         "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
-        "--------------------------------------------IP Source Guard---------------------------------------------------------------------------------------------------------------\n\r"
+        "--- IP Source Guard ------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
         "m 1701 eEvcId[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] addOrRemove[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
-        "--------------------------------------------End IP Source Guard-----------------------------------------------------------------------------------------------------------\n\r"
+        "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1810 type[0-uplink,1-loopback] routingIntf[2-Rtr]/[intf#] physicalIntf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
+        "m 1811 intf[2-Rtr]/[intf#] - Remove routing interface\r\n"
+        "m 1820 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
+        "m 1821 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
+        "m 1830 intf[2-Rtr]/[intf#] - Get route table\r\n"
+        "m 1840 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
+        "m 1841 index[0-15] - Query ping session\r\n"
+        "m 1842 index[0-15] - Free ping session\r\n"
+        "m 1850 index[0-15] ipaddr[ddd.ddd.ddd.ddd] probes[1-10] size[0-65507] interval[1-60] dontFrag[0/1] port[0-65535] maxTtl[1-255] initTtl[1-255] maxFails[0-255] - Create traceroute session\r\n"
+        "m 1851 index[0-15] - Query traceroute session\r\n"
+        "m 1852 index[0-15] - Get traceroute session hops\r\n"
+        "m 1853 index[0-15] - Free traceroute session\r\n"
+        "--------------------------------------------------------------------------------------------------------------------------------------\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
 
         "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
@@ -2974,9 +2975,9 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1440:
+      case 1810:
         {
-          msg_RoutingIntf *ptr;
+          msg_RoutingIntfCreate *ptr;
           int type, intf;
 
           // Validate number of arguments
@@ -2986,11 +2987,10 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_RoutingIntf *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntf));
+          ptr = (msg_RoutingIntfCreate *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntfCreate));
 
           ptr->slotId = (uint8)-1;
-          ptr->mask   = 0;
 
           // Type
           if (StrToLongLong(argv[3+0],&valued)<0)  {
@@ -3046,24 +3046,24 @@ int main (int argc, char *argv[])
           ptr->subnetMask = valued;
 
           comando.msgId = CCMSG_ROUTING_INTF_CREATE;
-          comando.infoDim = sizeof(msg_RoutingIntf);
+          comando.infoDim = sizeof(msg_RoutingIntfCreate);
         }
         break;
 
-      case 1441:
+      case 1811:
         {
-          msg_RoutingIntf *ptr;
+          msg_RoutingIntfRemove *ptr;
           int type, intf;
 
           // Validate number of arguments
-          if (argc<3+2)  {
+          if (argc<3+1)  {
             help_oltBuga();
             exit(0);
           }
 
           // Pointer to data array
-          ptr = (msg_RoutingIntf *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntf));
+          ptr = (msg_RoutingIntfRemove *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIntfRemove));
 
           ptr->slotId = (uint8)-1;
 
@@ -3076,19 +3076,12 @@ int main (int argc, char *argv[])
           ptr->routingIntf.intf_type = (uint8) type;
           ptr->routingIntf.intf_id   = (uint8) intf;
 
-          // Routing vlan
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->routingVlanId = (uint16) valued;
-
           comando.msgId = CCMSG_ROUTING_INTF_REMOVE;
-          comando.infoDim = sizeof(msg_RoutingIntf);
+          comando.infoDim = sizeof(msg_RoutingIntfRemove);
         }
         break;
 
-      case 1442:
+      case 1820:
         {
           msg_RoutingArpTableRequest *ptr;
           int type, intf;
@@ -3121,7 +3114,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1443:
+      case 1821:
         {
           msg_RoutingArpEntryPurge *ptr;
           int type, intf;
@@ -3159,7 +3152,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1444:
+      case 1830:
         {
           msg_RoutingRouteTableRequest *ptr;
           int type, intf;
@@ -3192,7 +3185,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1445:
+      case 1840:
         {
           msg_RoutingPingSessionCreate *ptr;
 
@@ -3248,7 +3241,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1446:
+      case 1841:
         {
           msg_RoutingPingSessionQuery *ptr;
 
@@ -3276,7 +3269,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1447:
+      case 1842:
         {
           msg_RoutingPingSessionFree *ptr;
 
@@ -3304,7 +3297,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1448:
+      case 1850:
         {
           msg_RoutingTracertSessionCreate *ptr;
 
@@ -3395,7 +3388,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1449:
+      case 1851:
         {
           msg_RoutingTracertSessionQuery *ptr;
 
@@ -3423,7 +3416,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1450:
+      case 1852:
         {
           msg_RoutingTracertSessionHopsRequest *ptr;
 
@@ -3453,7 +3446,7 @@ int main (int argc, char *argv[])
         }
         break;
 
-      case 1451:
+      case 1853:
         {
           msg_RoutingTracertSessionFree *ptr;
 
@@ -5957,21 +5950,21 @@ int main (int argc, char *argv[])
         break;
 
 
-      case 1440:
+      case 1810:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created new routing interface\n\r");
         else
           printf(" Error %08x while creating new routing interface\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1441:
+      case 1811:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully removed routing interface\n\r");
         else
           printf(" Error %08x while removing routing interface\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1442:
+      case 1820:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {  
           msg_RoutingArpTableResponse *ptr;
@@ -5999,14 +5992,14 @@ int main (int argc, char *argv[])
           printf(" ARP Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1443:
+      case 1821:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully removed ARP entry\n\r");
         else
           printf(" Error %08x while removing ARP entry\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1444:
+      case 1830:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {  
           msg_RoutingRouteTableResponse *ptr;
@@ -6036,14 +6029,14 @@ int main (int argc, char *argv[])
           printf(" Route Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1445:
+      case 1840:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created ping session\n\r");
         else
           printf(" Error %08x while creating ping session\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1446:
+      case 1841:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {  
           msg_RoutingPingSessionQuery *ptr;
@@ -6069,7 +6062,7 @@ int main (int argc, char *argv[])
           printf(" Ping session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1447:
+      case 1842:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Sucessefully freed ping session\n\r");
         else
@@ -6077,14 +6070,14 @@ int main (int argc, char *argv[])
         break;
 
 
-      case 1448:
+      case 1850:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created Traceroute session\n\r");
         else
           printf(" Error %08x while creating Traceroute session\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1449:
+      case 1851:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {  
           msg_RoutingTracertSessionQuery *ptr;
@@ -6111,7 +6104,7 @@ int main (int argc, char *argv[])
           printf(" Traceroute session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1450:
+      case 1852:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {  
           msg_RoutingTracertSessionHopsResponse *ptr;
@@ -6139,7 +6132,7 @@ int main (int argc, char *argv[])
           printf(" Traceroute hops: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
-      case 1451:
+      case 1853:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully freed traceroute session\n\r");
         else

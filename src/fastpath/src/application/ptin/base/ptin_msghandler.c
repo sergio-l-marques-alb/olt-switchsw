@@ -3438,12 +3438,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_RoutingIntf);
+      CHECK_INFO_SIZE(msg_RoutingIntfCreate);
 
-      msg_RoutingIntf *data;
-      data = (msg_RoutingIntf *) outbuffer->info;
+      msg_RoutingIntfCreate *data;
+      data = (msg_RoutingIntfCreate *) outbuffer->info;
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntf));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntfCreate));
 
       /* Execute command */
       rc = ptin_msg_routing_intf_create(data);
@@ -3456,7 +3456,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
+      outbuffer->infoDim = sizeof(msg_RoutingIntfCreate);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
@@ -3467,12 +3467,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_MODIFY (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_RoutingIntf);
+      CHECK_INFO_SIZE(msg_RoutingIntfModify);
 
-      msg_RoutingIntf *data;
-      data = (msg_RoutingIntf *) outbuffer->info;
+      msg_RoutingIntfModify *data;
+      data = (msg_RoutingIntfModify *) outbuffer->info;
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntf));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntfModify));
 
       /* Execute command */
       rc = ptin_msg_routing_intf_modify(data);
@@ -3485,7 +3485,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
+      outbuffer->infoDim = sizeof(msg_RoutingIntfModify);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
@@ -3496,12 +3496,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_RoutingIntf);
+      CHECK_INFO_SIZE(msg_RoutingIntfRemove);
 
-      msg_RoutingIntf *data;
-      data = (msg_RoutingIntf *) outbuffer->info;
+      msg_RoutingIntfRemove *data;
+      data = (msg_RoutingIntfRemove *) outbuffer->info;
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntf));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingIntfRemove));
 
       /* Execute command */
       rc = ptin_msg_routing_intf_remove(data);
@@ -3514,7 +3514,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
+      outbuffer->infoDim = sizeof(msg_RoutingIntfRemove);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;

@@ -2713,13 +2713,13 @@ static void  _sendARPReq(t_ADR *p_Adr, L7_BOOL rxmt)
 
 #if 1 /* PTin Added - Routing support (add the dtl0 vlan to the ARP request packet) */
    {
-     L7_uint32 internalVid = 0;
-     L7_uint16 dtl0Vid = 0;
-     L7_uint32 intfNum;
-     L7_uint16 temp;
-     L7_uint16 tpid;
+     L7_uint32   internalVid = 0;
+     L7_uint16   dtl0Vid = 0;
+     L7_uint32   routingIntfNum;
+     L7_uint16   temp;
+     L7_uint16   tpid;
 
-     intfNum = ((ipMapArpIntf_t *)(p_A->p_if[p_Adr->intfNum]->lowId))->intIfNum;
+     routingIntfNum = ((ipMapArpIntf_t *)(p_A->p_if[p_Adr->intfNum]->lowId))->intIfNum;
 
      /* set ethernet header */
      if(memcmp(p_Adr->macAddr, nullMacAddr, MACADDRLENGTH) != 0)
@@ -2738,7 +2738,7 @@ static void  _sendARPReq(t_ADR *p_Adr, L7_BOOL rxmt)
      L7_HTONS(&tpid, &temp);
      len = F_AddToEnd(p_Frame, (byte *)&temp, (word)sizeof(L7_uint16));
      ASSERT(len);
-     ipMapVlanRtrIntIfNumToVlanId(intfNum, &internalVid);
+     ipMapVlanRtrIntIfNumToVlanId(routingIntfNum, &internalVid);
      dtl0Vid = ptin_ipdtl0_getdtl0Vid(internalVid);
      L7_HTONS(&dtl0Vid, &temp);
      len = F_AddToEnd(p_Frame, (byte *)&temp, (word)sizeof(L7_uint16));

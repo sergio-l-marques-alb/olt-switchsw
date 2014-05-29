@@ -524,14 +524,12 @@ typedef struct {
  * Routing messages
  ****************************************************/
 
-// Message CCMSG_ROUTING_INTF_CREATE / CCMSG_ROUTING_INTF_MODIFY / CCMSG_ROUTING_INTF_REMOVE
-#define CCMSG_ROUTING_INTF_MASK_PHYSICALINTF  0x0001
-#define CCMSG_ROUTING_INTF_MASK_IPADDRESS     0x0002
-#define CCMSG_ROUTING_INTF_MASK_SUBNETMASK    0x0004
+// Message CCMSG_ROUTING_INTF_CREATE
+#define CCMSG_ROUTING_INTF_TYPE_UPLINK        1
+#define CCMSG_ROUTING_INTF_TYPE_LOOPBACK      2
 typedef struct
 {
    L7_uint16            slotId;
-   L7_uint32            mask;           // Only required for modification requests
    L7_uint8             type;
    msg_HwEthInterface_t routingIntf;
    msg_HwEthInterface_t physicalIntf;
@@ -539,7 +537,23 @@ typedef struct
    L7_uint32            evcId;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
-} __attribute__((packed)) msg_RoutingIntf;
+} __attribute__((packed)) msg_RoutingIntfCreate;
+
+// Message CCMSG_ROUTING_INTF_MODIFY
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t routingIntf;
+   L7_uint32            ipAddress;
+   L7_uint32            subnetMask;
+} __attribute__((packed)) msg_RoutingIntfModify;
+
+// Message CCMSG_ROUTING_INTF_REMOVE
+typedef struct
+{
+   L7_uint16            slotId;
+   msg_HwEthInterface_t routingIntf;
+} __attribute__((packed)) msg_RoutingIntfRemove;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
 #define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC   1

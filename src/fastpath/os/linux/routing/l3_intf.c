@@ -51,6 +51,8 @@ extern L7_uint32 ip6ForwardNotRtrIntf;    /* packets received on non-routing int
 extern L7_uint32 ip6ForwardRxIfDown;      /* packets received on down interface */
 extern L7_uint32 ip6ForwardPktsToStack;   /* packets to IP stack */
 
+extern L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *physicalIntfNum); /* I am unable to include ptin_routing here */
+
 
 /*********************************************************************
 *
@@ -125,6 +127,34 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
 
    ifInfo = &l3intfInfo[rtrIntf];
 
+#if 1 /* PTin Added - Routing support (ensure uplink routing interfaces send ARPs through a single (previously determined) physical interface) */
+{
+  L7_uint16 physicalIntfNum;
+
+  /* To avoid broadcast on uplink routing interfaces we get here the physical interface associated with this routing interface. */
+  ptin_routing_intf_physicalport_get(intIfNum, &physicalIntfNum);
+
+  if(physicalIntfNum != (L7_uint16)-1)
+  {
+    intIfNum = physicalIntfNum;
+  }
+  else
+  {
+    intIfNum = ifInfo->intIfNum;
+  }
+
+  dtlCmd.intfNum = intIfNum;
+  dtlCmd.priority = 0;
+  dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
+
+  if (ipMapVlanRtrIntIfNumToVlanId(ifInfo->intIfNum, &vlanId) == L7_SUCCESS) {
+    dtlCmd.cmdType.L2.domainId = vlanId;
+  } else {
+    dtlCmd.cmdType.L2.domainId = 0;
+  }
+  dtlCmd.cmdType.L2.flags = 0;
+}
+#else
    dtlCmd.intfNum = ifInfo->intIfNum;
    dtlCmd.priority = 0;
    dtlCmd.typeToSend = DTL_NORMAL_UNICAST;
@@ -139,6 +169,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
 
    }
    dtlCmd.cmdType.L2.flags = 0;
+#endif
 
    SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, datalen);
 
