@@ -139,19 +139,21 @@ extern int canal_buga;
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
 /* Routing */
-#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntf
-#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIntf
-#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIntf
+#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntfCreate
+#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIntfModify
+#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIntfRemove
 #define CCMSG_ROUTING_ARPTABLE_GET            0x9154  // msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
 #define CCMSG_ROUTING_ARPENTRY_PURGE          0x9155  // msg_RoutingArpEntryPurge
 #define CCMSG_ROUTING_ROUTETABLE_GET          0x9156  // msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
-#define CCMSG_ROUTING_PINGSESSION_CREATE      0x9157  // msg_RoutingPingSessionCreate
-#define CCMSG_ROUTING_PINGSESSION_QUERY       0x9158  // msg_RoutingPingSessionQuery
-#define CCMSG_ROUTING_PINGSESSION_FREE        0x9159  // msg_RoutingPingSessionFree
-#define CCMSG_ROUTING_TRACERTSESSION_CREATE   0x915A  // msg_RoutingTracertSessionCreate
-#define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915B  // msg_RoutingTracertSessionQuery
-#define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915C  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
-#define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915D  // msg_RoutingTracertSessionFree
+#define CCMSG_ROUTING_STATICROUTE_ADD         0x9157  // msg_RoutingStaticRoute
+#define CCMSG_ROUTING_STATICROUTE_DELETE      0x9158  // msg_RoutingStaticRoute
+#define CCMSG_ROUTING_PINGSESSION_CREATE      0x9159  // msg_RoutingPingSessionCreate
+#define CCMSG_ROUTING_PINGSESSION_QUERY       0x915A  // msg_RoutingPingSessionQuery
+#define CCMSG_ROUTING_PINGSESSION_FREE        0x915B  // msg_RoutingPingSessionFree
+#define CCMSG_ROUTING_TRACERTSESSION_CREATE   0x915C  // msg_RoutingTracertSessionCreate
+#define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915D  // msg_RoutingTracertSessionQuery
+#define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915E  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
+#define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915F  // msg_RoutingTracertSessionFree
 
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
@@ -612,6 +614,17 @@ typedef struct
    L7_uint32            preference;
    L7_uint32            metric;
 } __attribute__((packed)) msg_RoutingRouteTableResponse;
+
+//CCMSG_ROUTING_STATICROUTE_ADD / CCMSG_ROUTING_STATICROUTE_DELETE
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint32 dstIpAddr; 
+  L7_uint32 subnetMask;
+  L7_uint32 nextHopRtr;
+  L7_uint8  pref;
+  L7_uint8  isNullRoute;
+} __attribute__((packed)) msg_RoutingStaticRoute;
 
 // Message CCMSG_ROUTING_PINGSESSION_CREATE
 typedef struct

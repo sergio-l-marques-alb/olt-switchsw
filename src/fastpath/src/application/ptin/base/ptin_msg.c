@@ -9097,6 +9097,70 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
 }
 
 /**
+ * Configure a static route.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring static route:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask  = %08X", data->subnetMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  pref        = %u",   data->pref);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  isNullRoute = %u",   data->isNullRoute);
+
+  if(L7_SUCCESS != ptin_routing_staticroute_add(data->dstIpAddr, data->subnetMask, data->nextHopRtr, data->pref, (L7_BOOL)data->isNullRoute))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to configure static route");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Delete an existing static route.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_staticroute_delete(msg_RoutingStaticRoute* data)
+{
+  if( (data == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    return L7_FAILURE;
+  }
+
+  /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing an existing static route:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask  = %08X", data->subnetMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  pref        = %u",   data->pref);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  isNullRoute = %u",   data->isNullRoute);
+
+  if(L7_SUCCESS != ptin_routing_staticroute_delete(data->dstIpAddr, data->subnetMask, data->nextHopRtr, (L7_BOOL)data->isNullRoute))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove static route");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Start a ping request.
  * 
  * @param data

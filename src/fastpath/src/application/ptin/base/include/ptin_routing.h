@@ -128,6 +128,35 @@ L7_RC_t ptin_routing_arpentry_purge(L7_uint32 intfNum, L7_uint32 ipAddr);
 L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_uint32 maxEntries, L7_uint32* readEntries, msg_RoutingRouteTableResponse* buffer);
 
 /**
+ * Configure a static route.
+ * 
+ * @param dstIpAddr   : Destination IP address
+ * @param subnetMask  : Subnet mask
+ * @param nextHopRtr  : Gateway router
+ * @param pref        : Route preference value
+ * @param isNullRoute : Set to L7_TRUE to redirect all traffic that matches this route to the null0 interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note If a static route with the same destination IP address, subnet mask and next hop router exists, its preference will be updated to the provided value. 
+ */
+L7_RC_t ptin_routing_staticroute_add(L7_uint32 dstIpAddr, L7_uint32 subnetMask, L7_uint32 nextHopRtr, L7_uint8 pref, L7_BOOL isNullRoute);
+
+/**
+ * Delete an existing static route.
+ * 
+ * @param dstIpAddr   : Destination IP address
+ * @param subnetMask  : Subnet mask
+ * @param nextHopRtr  : Gateway router
+ * @param isNullRoute : Set to L7_TRUE if this static route is a null route
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note Next hop router is not a mandatory parameter (use the 0 when none is specified). 
+ */
+L7_RC_t ptin_routing_staticroute_delete(L7_uint32 dstIpAddr, L7_uint32 subnetMask, L7_uint32 nextHopRtr, L7_BOOL isNullRoute);
+
+/**
  * Start a ping request.
  * 
  * @param sessionIdx    : Ping session index

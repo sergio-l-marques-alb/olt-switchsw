@@ -192,13 +192,15 @@
 #define CCMSG_ROUTING_ARPTABLE_GET            0x9154  // msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
 #define CCMSG_ROUTING_ARPENTRY_PURGE          0x9155  // msg_RoutingArpEntryPurge
 #define CCMSG_ROUTING_ROUTETABLE_GET          0x9156  // msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
-#define CCMSG_ROUTING_PINGSESSION_CREATE      0x9157  // msg_RoutingPingSessionCreate
-#define CCMSG_ROUTING_PINGSESSION_QUERY       0x9158  // msg_RoutingPingSessionQuery
-#define CCMSG_ROUTING_PINGSESSION_FREE        0x9159  // msg_RoutingPingSessionFree
-#define CCMSG_ROUTING_TRACERTSESSION_CREATE   0x915A  // msg_RoutingTracertSessionCreate
-#define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915B  // msg_RoutingTracertSessionQuery
-#define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915C  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
-#define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915D  // msg_RoutingTracertSessionFree
+#define CCMSG_ROUTING_STATICROUTE_ADD         0x9157  // msg_RoutingStaticRoute
+#define CCMSG_ROUTING_STATICROUTE_DELETE      0x9158  // msg_RoutingStaticRoute
+#define CCMSG_ROUTING_PINGSESSION_CREATE      0x9159  // msg_RoutingPingSessionCreate
+#define CCMSG_ROUTING_PINGSESSION_QUERY       0x915A  // msg_RoutingPingSessionQuery
+#define CCMSG_ROUTING_PINGSESSION_FREE        0x915B  // msg_RoutingPingSessionFree
+#define CCMSG_ROUTING_TRACERTSESSION_CREATE   0x915C  // msg_RoutingTracertSessionCreate
+#define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915D  // msg_RoutingTracertSessionQuery
+#define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915E  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
+#define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915F  // msg_RoutingTracertSessionFree
 
 
 /* ERPS Configuration */
@@ -1517,6 +1519,17 @@ typedef struct
    L7_uint32            metric;
 } __attribute__((packed)) msg_RoutingRouteTableResponse;
 
+//CCMSG_ROUTING_STATICROUTE_ADD / CCMSG_ROUTING_STATICROUTE_DELETE
+typedef struct
+{
+  L7_uint16 slotId;
+  L7_uint32 dstIpAddr; 
+  L7_uint32 subnetMask;
+  L7_uint32 nextHopRtr;
+  L7_uint8  pref;
+  L7_uint8  isNullRoute;
+} __attribute__((packed)) msg_RoutingStaticRoute;
+
 // Message CCMSG_ROUTING_PINGSESSION_CREATE
 #define CCMSG_ROUTING_PINGSESSION_PROBECOUNT_MIN      1
 #define CCMSG_ROUTING_PINGSESSION_PROBECOUNT_MAX      15
@@ -1562,11 +1575,11 @@ typedef struct
 #define CCMSG_ROUTING_TRACERTSESSION_PROBESIZE_MAX      65507
 #define CCMSG_ROUTING_TRACERTSESSION_PROBEINTERVAL_MIN  1
 #define CCMSG_ROUTING_TRACERTSESSION_PROBEINTERVAL_MAX  60
-#define CCMSG_ROUTING_TRACERTSESSION_PORT_MIN           0
+#define CCMSG_ROUTING_TRACERTSESSION_PORT_MIN           1
 #define CCMSG_ROUTING_TRACERTSESSION_PORT_MAX           65535
 #define CCMSG_ROUTING_TRACERTSESSION_MAXTTL_MIN         1
 #define CCMSG_ROUTING_TRACERTSESSION_MAXTTL_MAX         255
-#define CCMSG_ROUTING_TRACERTSESSION_INITTTL_MIN        1
+#define CCMSG_ROUTING_TRACERTSESSION_INITTTL_MIN        0
 #define CCMSG_ROUTING_TRACERTSESSION_INITTTL_MAX        255
 #define CCMSG_ROUTING_TRACERTSESSION_MAXFAILS_MIN       0
 #define CCMSG_ROUTING_TRACERTSESSION_MAXFAILS_MAX       255

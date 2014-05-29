@@ -1280,6 +1280,24 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data);
 L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, msg_RoutingRouteTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries);
 
 /**
+ * Configure a static route.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data);
+
+/**
+ * Delete an existing static route.
+ * 
+ * @param data
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_routing_staticroute_delete(msg_RoutingStaticRoute* data);
+
+/**
  * Start a ping request.
  * 
  * @param data

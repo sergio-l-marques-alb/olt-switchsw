@@ -3450,7 +3450,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating new routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3479,7 +3479,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating new routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3508,7 +3508,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3541,7 +3541,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3569,7 +3569,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing arp entry");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3602,7 +3602,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3611,6 +3611,64 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingRouteTableResponse);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
       break;    
+    }
+
+    /* CCMSG_ROUTING_STATICROUTE_ADD ****************************************/
+    case CCMSG_ROUTING_STATICROUTE_ADD:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_ADD (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingStaticRoute);
+
+      msg_RoutingStaticRoute *data;
+      data = (msg_RoutingStaticRoute *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingStaticRoute));
+
+      /* Execute command */
+      rc = ptin_msg_routing_staticroute_add(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+    }
+
+    /* CCMSG_ROUTING_STATICROUTE_DELETE ****************************************/
+    case CCMSG_ROUTING_STATICROUTE_DELETE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_DELETE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_RoutingStaticRoute);
+
+      msg_RoutingStaticRoute *data;
+      data = (msg_RoutingStaticRoute *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_RoutingStaticRoute));
+
+      /* Execute command */
+      rc = ptin_msg_routing_staticroute_delete(data);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
     }
 
     /* CCMSG_ROUTING_PINGSESSION_CREATE ****************************************/
@@ -3630,7 +3688,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3659,7 +3717,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3688,7 +3746,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing routing interface");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3717,7 +3775,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating traceroute session");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3746,7 +3804,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while querying traceroute session");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3779,7 +3837,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -3807,7 +3865,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while querying traceroute session");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;

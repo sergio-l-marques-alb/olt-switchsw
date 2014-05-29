@@ -139,6 +139,8 @@ void help_oltBuga(void)
         "m 1820 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
         "m 1821 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
         "m 1830 intf[2-Rtr]/[intf#] - Get route table\r\n"
+        "m 1831 ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] gateway[ddd.ddd.ddd.ddd] pref[1-255] isNullRoute[0/1] - Add static route\r\n"
+        "m 1832 ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] gateway[ddd.ddd.ddd.ddd] isNullRoute[0/1] - Delete static route\r\n"
         "m 1840 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
         "m 1841 index[0-15] - Query ping session\r\n"
         "m 1842 index[0-15] - Free ping session\r\n"
@@ -3185,6 +3187,111 @@ int main (int argc, char *argv[])
         }
         break;
 
+      case 1831:
+        {
+          msg_RoutingStaticRoute *ptr;
+
+          // Validate number of arguments
+          if (argc<3+5)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingStaticRoute *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingStaticRoute));
+
+          ptr->slotId = (uint8)-1;
+
+          // IP Address
+          if (convert_ipaddr2uint64(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dstIpAddr = valued;
+
+          // Subnet Mask
+          if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->subnetMask = valued;
+
+          // Gateway
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->nextHopRtr = valued;
+
+          // Preference
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->pref = (uint16) valued;
+
+          // Is null route
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->isNullRoute = (uint16) valued;
+
+          comando.msgId = CCMSG_ROUTING_STATICROUTE_ADD;
+          comando.infoDim = sizeof(msg_RoutingStaticRoute);
+        }
+        break;
+
+      case 1832:
+        {
+          msg_RoutingStaticRoute *ptr;
+
+          // Validate number of arguments
+          if (argc<3+4)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingStaticRoute *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_RoutingStaticRoute));
+
+          ptr->slotId = (uint8)-1;
+
+          // IP Address
+          if (convert_ipaddr2uint64(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dstIpAddr = valued;
+
+          // Subnet Mask
+          if (convert_ipaddr2uint64(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->subnetMask = valued;
+
+          // Gateway
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->nextHopRtr = valued;
+
+          // Is null route
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->isNullRoute = (uint16) valued;
+
+          comando.msgId = CCMSG_ROUTING_STATICROUTE_DELETE;
+          comando.infoDim = sizeof(msg_RoutingStaticRoute);
+        }
+        break;
+
       case 1840:
         {
           msg_RoutingPingSessionCreate *ptr;
@@ -6027,6 +6134,20 @@ int main (int argc, char *argv[])
         }
         else
           printf(" Route Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1831:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Successfully configure static route\n\r");
+        else
+          printf(" Error %08x while configuring static route\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1832:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Successfully removed static route\n\r");
+        else
+          printf(" Error %08x while removing static route\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1840:

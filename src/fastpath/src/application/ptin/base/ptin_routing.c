@@ -33,8 +33,9 @@
 /*********************************************************** 
  * Defines
  ***********************************************************/
-#define PTIN_DTL0_INTERFACE_NAME            "dtl0"
-#define PTIN_DTL0_MTU_DEFAULT               2500
+#define PTIN_ROUTING_USMDB_UNITINDEX        1
+#define PTIN_ROUTING_DTL0_INTERFACE_NAME    "dtl0"
+#define PTIN_ROUTING_DTL0_MTU_DEFAULT       2500
 #define PTIN_ROUTING_INTERFACE_NAME_PREFIX  "rt1_2_"  /* This is derived from rt$UNIT_$SLOT_ */
 #define PTIN_ROUTING_TRACEROUTE_MAX_HOPS    (TRACEROUTE_DEFAULT_MAX_TTL - TRACEROUTE_DEFAULT_INIT_TTL)  /* This is a copy from traceroute.h, which I'm not able to include here */
 
@@ -370,16 +371,16 @@ L7_RC_t ptin_routing_init(void)
   }
 
   /* Set dtl0 MTU */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting %s mtu to %u", PTIN_DTL0_INTERFACE_NAME, PTIN_DTL0_MTU_DEFAULT);
-  if(__ioctl_dtl0_mtu_set(PTIN_DTL0_MTU_DEFAULT) != 0)
+  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting %s mtu to %u", PTIN_ROUTING_DTL0_INTERFACE_NAME, PTIN_ROUTING_DTL0_MTU_DEFAULT);
+  if(__ioctl_dtl0_mtu_set(PTIN_ROUTING_DTL0_MTU_DEFAULT) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to set %s mtu", errno, PTIN_DTL0_INTERFACE_NAME);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to set %s mtu", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
   /* Enable routing on Fastpath */
   LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting Fastpath's routing admin mode to L7_ENABLE");
-  if(usmDbIpRtrAdminModeSet(1, L7_ENABLE) != L7_SUCCESS)
+  if(usmDbIpRtrAdminModeSet(PTIN_ROUTING_USMDB_UNITINDEX, L7_ENABLE) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set Fastpath's routing admin mode to L7_ENABLE");
     return L7_FAILURE;
@@ -430,28 +431,28 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, pt
   /* Ensure that the dtl0 interface is up */
   if(__is_dtl0_enabled == L7_FALSE)
   {
-    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Enabling %s interface", PTIN_DTL0_INTERFACE_NAME);
+    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
     if(__ioctl_dtl0_enable() != 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_DTL0_INTERFACE_NAME);
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
       return L7_FAILURE;
     }
     __is_dtl0_enabled = L7_TRUE;
   }
 
   /* Create a new routing interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_DTL0_INTERFACE_NAME);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
   if(__ioctl_vlanintf_add(routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_DTL0_INTERFACE_NAME);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
   /* Rename the new routing interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
   if(__ioctl_intf_rename_dtl2rt(routingIntf->intf_id, routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
@@ -465,7 +466,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, pt
   
   /* Associate the new interface with the given vlanId in Fastpath's routing tables */
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Associating %s%u with vlan %u on fastpath's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
-  if(usmDbIpVlanRoutingIntfCreate(1, internalVlanId, routingIntf->intf_id+1) != 0)
+  if(usmDbIpVlanRoutingIntfCreate(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId, routingIntf->intf_id+1) != 0)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to associate %s%u with vlan %u on fastpath's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
     return L7_FAILURE;
@@ -557,23 +558,23 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Disabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
   if(__ioctl_vlanintf_disable(routingIntf->intf_id) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to disable %s.%u interface", errno, PTIN_DTL0_INTERFACE_NAME, routingVlanId);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to disable %s.%u interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
     return L7_FAILURE;
   }
 
   /* Change the interface name to match the vconfig standards */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the routing interface from %s%u to %s.%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_DTL0_INTERFACE_NAME, routingVlanId);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the routing interface from %s%u to %s.%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
   if(__ioctl_intf_rename_rt2dtl(routingIntf->intf_id, routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the routing interface from %s%u to %s.%u", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_DTL0_INTERFACE_NAME, routingVlanId);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the routing interface from %s%u to %s.%u", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
     return L7_FAILURE;
   }
 
   /* Delete the vlan interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Removing vlan %u from interface %s", routingVlanId, PTIN_DTL0_INTERFACE_NAME);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Removing vlan %u from interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
   if(__ioctl_vlanintf_remove(routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to remove a vlan %u from the %s interface", errno, routingVlanId, PTIN_DTL0_INTERFACE_NAME);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to remove a vlan %u from the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
@@ -614,7 +615,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
   /* Configure the routing interface with the given IP address */
   inetAddressSet(ipFamily, &ipAddr, &inetIpAddr);
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %s%u IP address to %s", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr));
-  if(usmDbIpRtrIntfIPAddressSet(1, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG) != 0)
+  if(usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG) != 0)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr));
     return L7_FAILURE;
@@ -763,7 +764,7 @@ L7_RC_t ptin_routing_arpentry_purge(L7_uint32 intfNum, L7_uint32 ipAddr)
     intfNum = L7_INVALID_INTF;
   }
 
-  usmDbIpArpEntryPurge(1, ipAddr, intfNum);
+  usmDbIpArpEntryPurge(PTIN_ROUTING_USMDB_UNITINDEX, ipAddr, intfNum);
 
   return L7_SUCCESS;
 }
@@ -847,6 +848,55 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
   *readEntries = currentIndex;
 
   return L7_SUCCESS;
+}
+
+/**
+ * Configure a static route.
+ * 
+ * @param dstIpAddr   : Destination IP address
+ * @param subnetMask  : Subnet mask
+ * @param nextHopRtr  : Gateway router
+ * @param pref        : Route preference value
+ * @param isNullRoute : Set to L7_TRUE to redirect all traffic that matches this route to the null0 interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note If a static route with the same destination IP address, subnet mask and next hop router exists, its preference will be updated to the provided value. 
+ */
+L7_RC_t ptin_routing_staticroute_add(L7_uint32 dstIpAddr, L7_uint32 subnetMask, L7_uint32 nextHopRtr, L7_uint8 pref, L7_BOOL isNullRoute)
+{
+  L7_RT_ENTRY_FLAGS_t routeFlags = 0;
+
+  if(isNullRoute == L7_TRUE)
+  {
+    routeFlags |= L7_RTF_REJECT;
+  }
+
+  return usmDbIpStaticRouteAdd(PTIN_ROUTING_USMDB_UNITINDEX, dstIpAddr, subnetMask, nextHopRtr, pref, L7_INVALID_INTF, routeFlags);
+}
+
+/**
+ * Delete an existing static route.
+ * 
+ * @param dstIpAddr   : Destination IP address
+ * @param subnetMask  : Subnet mask
+ * @param nextHopRtr  : Gateway router
+ * @param isNullRoute : Set to L7_TRUE if this static route is a null route
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note Next hop router is not a mandatory parameter (use the 0 when none is specified). 
+ */
+L7_RC_t ptin_routing_staticroute_delete(L7_uint32 dstIpAddr, L7_uint32 subnetMask, L7_uint32 nextHopRtr, L7_BOOL isNullRoute)
+{
+  L7_RT_ENTRY_FLAGS_t routeFlags = 0;
+
+  if(isNullRoute == L7_TRUE)
+  {
+    routeFlags |= L7_RTF_REJECT;
+  }
+
+  return usmDbIpStaticRouteDelete(PTIN_ROUTING_USMDB_UNITINDEX, dstIpAddr, subnetMask, nextHopRtr, L7_INVALID_INTF, routeFlags);
 }
 
 /**
@@ -1229,7 +1279,7 @@ static L7_int __ioctl_dtl0_enable(void)
 
   memset(&request, 0x00, sizeof(request));
 
-  strncpy(&request.ifr_name[0], PTIN_DTL0_INTERFACE_NAME, IFNAMSIZ);
+  strncpy(&request.ifr_name[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, IFNAMSIZ);
   request.ifr_flags |= IFF_UP;
 
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFFLAGS");
@@ -1255,7 +1305,7 @@ static L7_int __ioctl_dtl0_mtu_set(L7_uint32 mtu)
 
   memset(&request, 0x00, sizeof(request));
 
-  snprintf(request.ifr_name, IFNAMSIZ, "%s", PTIN_DTL0_INTERFACE_NAME);
+  snprintf(request.ifr_name, IFNAMSIZ, "%s", PTIN_ROUTING_DTL0_INTERFACE_NAME);
   request.ifr_addr.sa_family = AF_INET;
   request.ifr_mtu            = mtu;
   
@@ -1354,7 +1404,7 @@ static L7_int __ioctl_vlanintf_add(L7_uint16 vlanId)
   memset(&request, 0x00, sizeof(request));
   
   request.cmd = ADD_VLAN_CMD;
-  strncpy(&request.device1[0], PTIN_DTL0_INTERFACE_NAME, 24);
+  strncpy(&request.device1[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, 24);
   request.u.VID = vlanId;
 
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCGIFVLAN");
@@ -1386,7 +1436,7 @@ static L7_int __ioctl_vlanintf_remove(L7_uint16 vlanId)
   memset(&request, 0x00, sizeof(request));
   
   request.cmd = DEL_VLAN_CMD;
-  snprintf(&request.device1[0], 24, "%s.%u", PTIN_DTL0_INTERFACE_NAME, vlanId);
+  snprintf(&request.device1[0], 24, "%s.%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, vlanId);
   request.u.VID = vlanId;
 
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCGIFVLAN");
@@ -1420,7 +1470,7 @@ static L7_int __ioctl_intf_rename_dtl2rt(L7_uint16 intfId, L7_uint16 vlanId)
 
   memset(&request, 0x00, sizeof(request));
 
-  snprintf(oldIfName, IFNAMSIZ, "%s.%u", PTIN_DTL0_INTERFACE_NAME, vlanId);
+  snprintf(oldIfName, IFNAMSIZ, "%s.%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, vlanId);
   snprintf(newIfName, IFNAMSIZ, "%s%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intfId);
   
   strncpy(&request.ifr_name[0],    &oldIfName[0], IFNAMSIZ);
@@ -1490,7 +1540,7 @@ static L7_int __ioctl_intf_rename_rt2dtl(L7_uint16 intfId, L7_uint16 vlanId)
   memset(&request, 0x00, sizeof(request));
 
   snprintf(oldIfName, IFNAMSIZ, "%s%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, intfId);
-  snprintf(newIfName, IFNAMSIZ, "%s.%u", PTIN_DTL0_INTERFACE_NAME, vlanId);
+  snprintf(newIfName, IFNAMSIZ, "%s.%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, vlanId);
   
   strncpy(&request.ifr_name[0],    &oldIfName[0], IFNAMSIZ);
   strncpy(&request.ifr_newname[0], &newIfName[0], IFNAMSIZ);
@@ -1570,7 +1620,7 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
-  while(L7_ERROR != usmDbIpArpEntryNext(1, arpTablepEntry.ipAddr, arpTablepEntry.intIfNum, &arpTablepEntry))
+  while(L7_ERROR != usmDbIpArpEntryNext(PTIN_ROUTING_USMDB_UNITINDEX, arpTablepEntry.ipAddr, arpTablepEntry.intIfNum, &arpTablepEntry))
   {
     /* If filtering is active, ensure we only accept entries with the desired intfNum */
     if( (intfNum != (L7_uint32)-1) && (arpTablepEntry.intIfNum != intfNum) )
@@ -1677,7 +1727,7 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
 
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
   currentTime = simSystemUpTimeGet();
-  while(L7_ERROR != usmDbNextRouteEntryGet(1, &routeTablepEntry, L7_FALSE))
+  while(L7_ERROR != usmDbNextRouteEntryGet(PTIN_ROUTING_USMDB_UNITINDEX, &routeTablepEntry, L7_FALSE))
   {
     /* If filtering is active, ensure we only accept entries with the desired intfNum */
     if(routeTablepEntry.ecmpRoutes.numOfRoutes == 0)
