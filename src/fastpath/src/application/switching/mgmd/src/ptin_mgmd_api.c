@@ -323,7 +323,7 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   }
 
   //Set log to ERROR by default after the init phase has been completed
-  ptin_mgmd_log_sev_set(1 << PTIN_MGMD_LOG_CTX_PTIN_IGMP, PTIN_MGMD_LOG_SEV_INFO);
+  ptin_mgmd_log_sev_set(1 << PTIN_MGMD_LOG_CTX_PTIN_IGMP, PTIN_MGMD_LOG_SEV_ERROR);
 
   return SUCCESS;
 }
