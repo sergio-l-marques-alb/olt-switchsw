@@ -1954,6 +1954,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u is already enabled", port);
       }
 
+      #if 0
       /* Force Link-up */
       if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
       {
@@ -1966,6 +1967,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         continue;
       }
       LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
+      #endif
 
       /* Save port to lag bitmap */
       lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] |= (L7_uint64) 1 << port;
@@ -2354,6 +2356,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       lagConf_data[lag_idx].members_pbmp64 |= (L7_uint64)1 << port;
       LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u added", port);
 
+      #if 0
       /* Uplink protection */
       #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
       if (newLag && lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
@@ -2372,6 +2375,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
           LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
         }
       }
+      #endif
       #endif
     }
     /* Port not member (is it to be removed ?) */
@@ -2538,12 +2542,13 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
         continue;
       }
 
+      #if 0
       /* Disable link force */
       if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_INTF,"Error disabling link force for intIfNum %u", intIfNum);
       }
-
+      #endif
       /* Disable linkscan */
       if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
       {
@@ -4839,10 +4844,12 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
 {
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  L7_uint32 ptin_port /*, intIfNum*/;
+  L7_uint32 ptin_port, intIfNum;
+  L7_RC_t rc;
 
   /* Get intIfNum from slot/port */
-  if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot, port);
     return L7_FAILURE;
@@ -4866,6 +4873,14 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
     /* Port is active */
     uplink_protection_ports_active_bmp |= ((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u added to all vlans", ptin_port);
+
+    /* Enable linkscan for newly active port */
+    rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+    }
+    LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
   }
   /* Innactivate command: remove port */
   else
@@ -4879,6 +4894,23 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
     /* Port inactive */
     uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u removed from all vlans", ptin_port);
+
+    /* Deactivate linkscan, and force link up for newly inactive port */
+    rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
+    }
+    LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
+    if (rc == L7_SUCCESS)
+    {
+      rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE); 
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API, "Error forcing linkup for port %u (%d)", ptin_port, rc);
+      }
+      LOG_TRACE(LOG_CTX_PTIN_API, "Forced link-up for port %u", ptin_port);
+    }
   }
   #endif
 
@@ -4899,14 +4931,18 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 {
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   L7_uint32 ptin_port_old, ptin_port_new;
+  L7_uint32 intIfNum_old, intIfNum_new;
+  L7_RC_t rc;
 
   /* Get intIfNum from slot/port */
-  if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS ||
+      ptin_intf_port2intIfNum(ptin_port_old, &intIfNum_old) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_old, port_old);
     return L7_FAILURE;
   }
-  if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS ||
+      ptin_intf_port2intIfNum(ptin_port_new, &intIfNum_new) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_new, port_new);
     return L7_FAILURE;
@@ -4930,6 +4966,34 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port_old);
   uplink_protection_ports_active_bmp |=  ((L7_uint64) 1 << ptin_port_new);
   LOG_TRACE(LOG_CTX_PTIN_INTF, "port %u successfully switched to port %u", ptin_port_old, ptin_port_new);
+
+  /* Wait 200ms, to stabilise traffic flow */
+  osapiSleepMSec(200);
+
+  /* Deactivate linkscan, and force link up for newly inactive port */
+  rc = ptin_intf_linkscan_set(intIfNum_old, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
+  }
+  LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port_old);
+  if (rc == L7_SUCCESS)
+  {
+    rc = ptin_intf_link_force(intIfNum_old, L7_TRUE, L7_ENABLE); 
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
+    }
+    LOG_TRACE(LOG_CTX_PTIN_API, "Forced link-up for port %u", ptin_port_old);
+  }
+
+  /* Enable linkscan for newly active port */
+  rc = ptin_intf_linkscan_set(intIfNum_new, L7_ENABLE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
+  }
+  LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port_new);
   #endif
 
   return L7_SUCCESS;

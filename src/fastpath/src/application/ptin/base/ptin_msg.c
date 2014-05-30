@@ -418,6 +418,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
+  #if 0
   #if (PTIN_BOARD_IS_MATRIX)
   #ifdef MAP_CPLD
   L7_uint16 board_type;
@@ -531,6 +532,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   osapiSemaGive(ptin_boardaction_sem);
+  #endif
   #endif
   #endif
 

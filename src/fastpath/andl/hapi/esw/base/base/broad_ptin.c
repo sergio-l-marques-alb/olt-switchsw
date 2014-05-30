@@ -635,7 +635,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   return rc;
 }
 
-#define PTIN_UPLINK_PROTECTION_MACMOVE  1
+#define PTIN_UPLINK_PROTECTION_MACMOVE  0
 
 /**
  * Define vlan port settings
