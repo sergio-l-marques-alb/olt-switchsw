@@ -1909,7 +1909,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* For Uplink ports, only disable linkscan and force link */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
   {
-    L7_uint16 board_id;
+    //L7_uint16 board_id;
 
     members_pbmp = lagInfo->members_pbmp64;
 
@@ -1952,12 +1952,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         continue;
       }
 
+      #if 0
       /* Check if this port can be a protection port */
       if (ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_IS_UPLINK(board_id))
       {
         LOG_ERR(LOG_CTX_PTIN_INTF,"Port %u does not belong to an uplink board (board id %u)", port, board_id);
         continue;
       }
+      #endif
 
       /* If this is already a protection port... */
       if ((uplink_protection_ports_bmp >> port) & 1)
@@ -5075,6 +5077,13 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u or ptin_port %u is not a protection port", ptin_port_old, ptin_port_new);
     return L7_FAILURE;
+  }
+
+  /* Check if ports are protection ones */
+  if (ptin_intf_is_uplinkProtectionActive(ptin_port_new))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "ptin_port %u is already the active port", ptin_port_new);
+    return L7_SUCCESS;
   }
 
   /* Switch ports */
