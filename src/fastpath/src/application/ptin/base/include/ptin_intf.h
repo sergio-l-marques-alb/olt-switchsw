@@ -143,17 +143,17 @@ extern L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portA
  */ 
 
 /**
- * Get board type for a particular interface
+ * Get board id for a particular interface
  *  
  * @param ptin_port
  * @param board_id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_boardtype_get(L7_int ptin_port, L7_uint16 *board_id);
+extern L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id);
 
 /**
- * Set board type for a particular interface (will override 
+ * Set board id for a particular interface (will override 
  * board_id of other interfaces, if they belong to the same 
  * slot) 
  *  
@@ -162,10 +162,10 @@ extern L7_RC_t ptin_intf_boardtype_get(L7_int ptin_port, L7_uint16 *board_id);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id);
+extern L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id);
 
 /**
- * Get board type for a particular slot
+ * Get board id for a particular slot
  *  
  * @param slot_id
  * @param board_id
@@ -175,7 +175,7 @@ extern L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id);
 extern L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id);
 
 /**
- * Set board type
+ * Set board id
  *  
  * @param slot_id
  * @param board_id

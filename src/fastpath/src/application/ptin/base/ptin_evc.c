@@ -7792,6 +7792,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   if (ptin_intf_is_uplinkProtection(root_intf))
   {
     ptin_vlan_port_removeFlush(root_intf, int_vlan);
+    LOG_INFO(LOG_CTX_PTIN_EVC,"Root intf %u removed from all vlans", root_intf);
   }
   #endif
 

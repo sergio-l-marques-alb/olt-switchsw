@@ -423,7 +423,7 @@ void ptin_intf_dump(void)
 #if (PTIN_BOARD_IS_MATRIX)
     L7_uint16 board_type;
 
-    if (ptin_intf_boardtype_get(port, &board_type) == L7_SUCCESS && board_type != 0)
+    if (ptin_intf_boardid_get(port, &board_type) == L7_SUCCESS && board_type != 0)
     {
       switch (board_type)
       {
