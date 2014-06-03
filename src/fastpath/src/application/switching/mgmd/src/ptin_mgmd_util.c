@@ -531,8 +531,17 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
     if (ptin_mgmd_loop_trace) 
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
 
+    //Move forward 8 bits if this byte is 0 (no ports)
+    if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+    {
+      portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+      continue;
+    }               
+
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+    {
       ptin_mgmd_stat_increment_field(portId, serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
+    }    
   }  
   
 
@@ -1156,10 +1165,17 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
       if (ptin_mgmd_loop_trace) 
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
 
+      //Move forward 8 bits if this byte is 0 (no ports)
+      if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+      {
+        portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+        continue;
+      }      
+             
       if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
-      }
+      }      
     }
     /*End Stats*/
   
@@ -2195,12 +2211,19 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
         if (ptin_mgmd_loop_trace) 
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientIdx:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientIdx,PTIN_MGMD_MAX_CLIENTS);  
 
+        //Move forward 8 bits if this byte is 0 (no clients)
+        if(! (PTIN_MGMD_CLIENT_IS_MASKBYTESET(clientBitmap.value, clientIdx)))
+        {
+          clientIdx += PTIN_MGMD_CLIENT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+          continue;
+        }
+
         if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
         {          
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
 
           //Break if all clients were already found
-          if(noOfClientsFound++>=noOfClients)
+          if(++noOfClientsFound>=noOfClients)
           {
             break;
           }
@@ -2264,6 +2287,13 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
       if (ptin_mgmd_loop_trace) 
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
 
+      //Move forward 8 bits if this byte is 0 (no ports)
+      if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+      {
+        portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+        continue;
+      }             
+
       if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         /* Send packet */  
@@ -2272,7 +2302,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
         ptin_measurement_timer_stop(31);
         if(packetSent==FALSE)
           packetSent=TRUE;
-      }
+      }         
     }
     if(packetSent==FALSE)
     {

@@ -671,12 +671,14 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       if (ptin_mgmd_extended_debug) 
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | numberOfClients:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientId, numberOfClients, PTIN_MGMD_MAX_CLIENTS);  
 
+      
       //Move forward 8 bits if this byte is 0 (no clients)
-      if(portClientList[portId][clientId/8] == 0)
+      if(! (PTIN_MGMD_CLIENT_IS_MASKBYTESET(portClientList[portId],clientId)))
       {
-        clientId += 8; 
+        clientId += PTIN_MGMD_CLIENT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
         continue;
-      }             
+      } 
+                  
       //Move forward 1 bit if the requested entryId is still higher
       ++numberOfClientsAux;
       if(numberOfClientsAux <= request.entryId)

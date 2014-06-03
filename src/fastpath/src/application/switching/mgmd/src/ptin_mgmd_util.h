@@ -24,7 +24,9 @@
 #define PTIN_MGMD_PORT_IS_MASKBITSET(array, id)                                  \
         (array[((id-1)/(8*sizeof(uint8)))]                          \
                          & ( 1 << ((id-1) % (8*sizeof(uint8)))) )
-
+/* PTIN_MGMD_IS_MASKBITSET returns 0 if the byte id is not set mask array */
+#define PTIN_MGMD_PORT_IS_MASKBYTESET(array, id)                                  \
+        (array[((id-1)/(8*sizeof(uint8)))] == 0 ? 0 : 1)                                                   
 
 /* PTIN_MGMD_SET_MASKBIT turns on bit index # id in mask array. */
 #define PTIN_MGMD_PORT_SET_MASKBIT(array, id)                                    \
@@ -37,6 +39,7 @@
                         &= ~(1 << ((id-1) % (8*sizeof(uint8)))))
 
 #define PTIN_MGMD_CLIENT_IS_MASKBITSET(array,idx) ((array[(idx)/(sizeof(uint8)*8)] >> ((idx)%(sizeof(uint8)*8))) & 1)
+#define PTIN_MGMD_CLIENT_IS_MASKBYTESET(array, idx)  (array[((idx)/(8*sizeof(uint8)))] == 0 ? 0 : 1)                           
 #define PTIN_MGMD_CLIENT_SET_MASKBIT(array,idx)   { array[(idx)/(sizeof(uint8)*8)] |=   (uint8) 1 << ((idx)%(sizeof(uint8)*8)) ; }
 #define PTIN_MGMD_CLIENT_UNSET_MASKBIT(array,idx) { array[(idx)/(sizeof(uint8)*8)] &= ~((uint8) 1 << ((idx)%(sizeof(uint8)*8))); }
 

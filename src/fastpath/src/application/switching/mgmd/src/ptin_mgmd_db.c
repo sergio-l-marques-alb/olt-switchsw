@@ -3141,6 +3141,13 @@ RC_t ptinMgmdAddStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, 
     if (ptin_mgmd_loop_trace) 
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
 
+    //Move forward 8 bits if this byte is 0 (no ports)
+    if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+    {
+      portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+      continue;
+    }      
+
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {
       /* If leaf interface is not used, initialize it */
@@ -3259,6 +3266,13 @@ RC_t ptinMgmdRemoveStaticGroup(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAdd
   {
     if (ptin_mgmd_loop_trace) 
       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
+
+    //Move forward 8 bits if this byte is 0 (no ports)
+    if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+    {
+      portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+      continue;
+    }      
 
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
     {      
