@@ -448,8 +448,9 @@ L7_RC_t garpCnfgrInitPhase1Process(L7_CNFGR_CMD_DATA_t *pCmdData)
     gipInitMultipleGIP();
 
 
+  /* PTin modified: it looks arm compiler does not handle with floating point numbers... */
   /* Initialize Timers values in milliseconds  */
-  GARPCB->GarpCB_leaveAllTimeCeiling = 1.5*GARPCB->GarpCB_leaveAllTime;
+  GARPCB->GarpCB_leaveAllTimeCeiling = (GARPCB->GarpCB_leaveAllTime*3)/2;
 
   /* Initialize Application Values    */
   GARPCB->GarpCB_gvrpSupported       = L7_FALSE;
