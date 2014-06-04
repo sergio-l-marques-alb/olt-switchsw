@@ -272,7 +272,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Stdout redirected to here :-)");
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
+               "Message processed: response with %"
+               "d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_APP_CHANGE_STDOUT */
     }
