@@ -46,7 +46,7 @@ export FP_SHELL_PATH := ../fastpath.shell
 
 .PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
 
-all: welcome mgmdconfig cli_clean shell_clean cli shell
+all: welcome cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\

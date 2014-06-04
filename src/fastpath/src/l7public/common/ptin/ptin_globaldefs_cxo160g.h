@@ -200,7 +200,11 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 //# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
 # define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
+#ifdef MAP_CPLD
+# define IPC_SERVER_IPADDR             ((cpld_map->reg.slot_id == 0) ? IPC_SERVER_IPADDR_WORKING : IPC_SERVER_IPADDR_PROTECTION)
+#else
 # define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
+#endif
 
 // MX IP address
 # define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */

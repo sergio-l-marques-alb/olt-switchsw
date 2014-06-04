@@ -200,7 +200,12 @@ extern volatile st_fpga_map_t *fpga_map;
 #endif
 
 //# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
+#ifdef MAP_CPLD
+/* Depends of active matrix */
+# define IPC_SERVER_IPADDR             ((cpld_map->reg.slot_matrix & 1) ? 0xC0A8C865 : 0xC0A8C866)
+#else
 # define IPC_SERVER_IPADDR             0xC0A8C865  /* 192.168.200.101 Hardcoded!!! */
+#endif
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */
 
 #endif /* _PTIN_GLOBALDEFS_TG16G_H */
