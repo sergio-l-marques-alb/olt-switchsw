@@ -93,7 +93,7 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_TENGIG_4_GIG_REV_
   {0, 24}
 };
 
-/* PTin added: new switch BCM56843 (trident) */
+/* PTin added: new switch 56843 (Trident) */
 /*******************************************************************************
  * Broadcom reference platform with 40 10GB fixed ports on a single slot.      *
  *                                                                             *
@@ -106,7 +106,7 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1[
 { 3,  L7_TRUE,   8, 51}    /* logical Router card */
 };
 
-/* PTin added: new platform BCM56846 (CXO640G) (trident) */
+/* PTin added: new switch 56846 (Trident-plus) */
 /*******************************************************************************
  * Broadcom reference platform with 64 10GB fixed ports on a single slot.      *
  *                                                                             *
@@ -403,7 +403,7 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1[] =
 }
 };
 
-/* PTin added: new switch BCM56843 (trident) */
+/* PTin added: new switch 56843 (trident) */
 /*******************************************************************************
  * Broadcom Trident unit with 40 10GB fixed ports on a single slot.   *
  *                                                                             *
@@ -431,6 +431,7 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
 }
 };
 
+/* PTin added: New switch 56846 (Trident-plus) */
 /*******************************************************************************
  * Broadcom Trident unit with 64 10GB fixed ports on a single slot.   *
  *                                                                             *
@@ -718,7 +719,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_SINGLE_
 {       0,      27,          0,      27},
 };
 
-// PTin added: new platform
+/* PTin added: new switch 56689 (Valkyrie2) */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port *
  * -------  ------- ----------- -------- */
@@ -813,7 +814,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 #endif
 };
 
-/* 56843/56844 in CXO360G (OLT360) */
+/* PTin added: new switch 56843 (Trident) */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port *
  * -------  ------- ----------- -------- */
@@ -861,7 +862,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1[]
 {       0,      40,          0,      38},
 };
 
-/* 56846 in CXO640G (OLT1T3) */
+/* PTin added: New switch 56846 (Trident-plus) */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port *
  * -------  ------- ----------- -------- */
@@ -934,7 +935,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[]
 };
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-/* 56846 in CXO640G (OLT1T3) */
+/* PTin added: new switch 56846 (Trident-plus) */
 HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK[] =
 /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
  * --------- --------- ---------  -------  -------*/
@@ -979,6 +980,7 @@ HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT[
 {        16,        3,        0,       0,       2 },  /* Lanes inverted for WC 16: slot 14 */ 
 {        17,        3,        0,       0,       6 }}; /* Lanes inverted for WC 17: slot 15 */
 
+/* PTin added: New switch 56846 (Trident-plus) */
 L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[]=
 /*  Port mode / slot  *
  * ------------------ */
@@ -1003,7 +1005,7 @@ L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[]=
   WC_SLOT_MODE_2x10G,   /* Slot 19 */
   WC_SLOT_MODE_NONE  }; /* Slot 20 */
 
-/* 56846 in CXO640G (OLT1T3) */
+/* PTin added: New switch 56846 (Trident-plus) */
 HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 /* portNum slotIdx  WC idx  WCLane Speed *
  * ------- ------- ------- ------- ----- */
@@ -1395,7 +1397,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[]
 {    51},
 };
 
-/* PTin added: new switch BCM56843 (trident) */
+/* PTin added: new switch 56843 (trident) */
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1[] =
 /*portNum
  *------- */
@@ -1442,7 +1444,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1[] =
 {    40}, /* PTP interface */
 };
 
-/* PTin added: new platform BCM56846 (trident) */
+/* PTin added: new switch 56846 (Trident-plus) */
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1[] =
 /*portNum
  *------- */
@@ -1651,21 +1653,21 @@ dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseC
 0, NULL, 0,
 };
 
-// PTin added: new platform
+/* PTin added: new switch 56689 (Valkyrie2) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
-/* 56843 */
+/* PTin added: new switch 56843 (Trident) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
-/* 56846 (OLT1T3) */
+/* PTin added: New switch 56846 (Trident-plus) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
@@ -1763,7 +1765,7 @@ dapiBroadBaseCardPortMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1, sizeof(dapiBroadBaseC
 *  Line Card Init Variables
 *
 ****************************************************************/
-/* PTin added: new switch BCM56843 */
+/* PTin added: new switch 56843 (Trident) */
 DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_40_TENGIG_REV_1 = {
 
 hapiBroadCpuCardInsert,hapiBroadCardRemove,
@@ -1772,7 +1774,7 @@ dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1,
 NULL, 0,
 0, NULL, 0
 };
-/* PTin added: new platform BCM56846 (OLT1T3) */
+/* PTin added: new switch 56846 (Trident-plus) */
 DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1 = {
 
 hapiBroadCpuCardInsert,hapiBroadCardRemove,
@@ -1808,7 +1810,7 @@ NULL, 0,
 
 
 
-/* PTin added (2.5G) */
+/* PTin added: New switch 56689 (Valkyrie2) */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1[]= 
 {
 #if (PTIN_BOARD == PTIN_BOARD_TOLT8G)
@@ -1840,7 +1842,7 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 {L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
 #endif
 };
-/* 56843 */
+/* PTin added: new switch 56843 (Trident) */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_40_TENGIG_56843_REV_1[]= 
 {
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
@@ -1856,6 +1858,7 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_40_TENGIG_56843_REV_1[]
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, /* PTP interface with FPGA */
 };
 
+/* PTin added: New switch 56846 (Trident-plus) */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[]= 
 {
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},

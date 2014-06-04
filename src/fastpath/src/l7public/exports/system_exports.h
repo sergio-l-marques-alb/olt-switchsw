@@ -253,9 +253,9 @@ typedef enum
   __BROADCOM_53314_ID,
   __BROADCOM_56636_ID,
   __BROADCOM_56334_ID,
-  __BROADCOM_56685_ID,  /* PTin added: new switch */
-  __BROADCOM_56843_ID,  /* PTin added: new switch 56843 */
-  __BROADCOM_56643_ID,  /* PTin added: new switch 56643 */
+  __BROADCOM_56685_ID,  /* PTin added: new switch 56689 (Valkyrie2) */
+  __BROADCOM_56843_ID,  /* PTin added: new switch 56843 (Trident) */
+  __BROADCOM_56643_ID,  /* PTin added: new switch 56643 (Triumph3) */
   __MASTER_DRIVER_ID,
 } L7_NPD_ID_t;
 
@@ -307,7 +307,7 @@ typedef enum
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x, /* triumph */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x, /* scorpion */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520, /* triumph2 family */
-  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x, /* PTin added: new switch: trident */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5684x, /* PTin added: new switch 56843 (Trident) */
   L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115,  /* vulcan */
   L7_BASE_TECHNOLOGY_SUBTYPE_MASTERDRIVER_NETAPPL,  /* network appliance */
   L7_BASE_TECHNOLOGY_SUBTYPE_UNKNOWN,      /* unidentified technology type */

@@ -167,7 +167,7 @@
   }
 }
 ,
-/* PTin added: new platform */
+/* PTin added: new switch 56689 (Valkyrie2) */
 {
   {
     CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID,   /* cardtypeID */
@@ -180,11 +180,11 @@
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1,
     /* portInfo, refers to table declared above for each card type */
-    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 /* dapiCardInfo */   // PTin modified: new switch
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 /* dapiCardInfo */
   }
 }
 ,
-/* PTin added: new platform */
+/* PTin added: new switch 56643 (Triumph3) */
 {
   {
     CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,   /* cardtypeID */
@@ -197,11 +197,11 @@
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1,
     /* portInfo, refers to table declared above for each card type */
-    &dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 /* dapiCardInfo */   // PTin modified: new switch
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 /* dapiCardInfo */
   }
 }
 ,
-/* 56843 */
+/* PTin added: new switch 56843 (Trident) */
 {
   {
     CARD_BROAD_40_TENGIG_56843_REV_1_ID,   /* cardtypeID */
@@ -214,11 +214,11 @@
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_BROAD_40_TENGIG_56843_REV_1,
     /* portInfo, refers to table declared above for each card type */
-    &dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 /* dapiCardInfo */   // PTin modified: new switch
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 /* dapiCardInfo */
   }
 }
 ,
-/* 56846 (CXO640G - OLT1T3) */
+/* PTin added: new switch 56846 (Trident-plus) */
 {
   {
     CARD_BROAD_64_TENGIG_56846_REV_1_ID,   /* cardtypeID */
@@ -231,7 +231,7 @@
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1,
     /* portInfo, refers to table declared above for each card type */
-    &dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1 /* dapiCardInfo */   // PTin modified: new switch
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1 /* dapiCardInfo */
   }
 }
 ,
@@ -413,7 +413,7 @@
   }
 }
 ,
-/* PTin added: new switch BCM56843 */
+/* PTin added: new switch 56843 (Trident) */
 {
   /* Logical CPU Card */
   {
@@ -430,7 +430,7 @@
   }
 }
 ,
-/* PTin added: new switch BCM56846 */
+/* PTin added: new switch 56846 (Trident-plus) */
 {
   /* Logical CPU Card */
   {

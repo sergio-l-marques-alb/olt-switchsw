@@ -308,7 +308,7 @@
    },
    hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1        /* pointer to hpc platform specific data */
 },
-/* PTin added: new platform */
+/* PTin added: new switch 56689 (Valkyrie2) */
 {
   {     
      UNIT_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID,      /* unitTypeID */
@@ -399,7 +399,7 @@
    },
    hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1        /* pointer to hpc platform specific data */
 },
-/* PTin added: new platform BCM56643 */
+/* PTin added: new switch 56643 (Triumph3) */
 {
   {     
      UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,      /* unitTypeID */

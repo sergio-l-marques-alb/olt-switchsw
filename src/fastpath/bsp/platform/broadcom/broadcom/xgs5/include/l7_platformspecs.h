@@ -36,9 +36,9 @@
 #define L7_BCM_TRIUMPH2                            3
 #define L7_BCM_APOLLO                              4
 #define L7_BCM_ENDURO                              5
-#define L7_BCM_VALKYRIE2                           6  /* PTin added: new switch */
-#define L7_BCM_TRIDENT                             7  /* PTin added: new switch */
-#define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch */
+#define L7_BCM_VALKYRIE2                           6  /* PTin added: new switch 56689 (Valkyrie2) */
+#define L7_BCM_TRIDENT                             7  /* PTin added: new switch 56843 (Trident) */
+#define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch 56643 (Triumph3) */
 
 /* PTin added: boards definition */
 #define PTIN_BOARD_OLT7_8CH_B                      0x01
@@ -80,37 +80,43 @@
 /*********************************************************************
 **  Start of  Base parameters
 **********************************************************************/
-/* PTin added: new switch */
+/* PTin added: new switch 56689 (Valkyrie2) */
 #if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    18    
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           18  
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           18
 
+/* PTin added: new switch 56689 (Valkyrie2) */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    12
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           12
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           12
 
+/* PTin added: new switch 56689 (Valkyrie2) */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    20
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           20
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           20
 
+/* PTin added: new switch 56643 (Triumph3) */
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    52
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           52
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           52
 
+/* PTin added: new switch 56843 (Trident) */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    (36+1)
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           (36+1)
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           (36+1)
 
+/* PTin added: new switch 56843 (Trident) */
+/* PTin added: new switch 56846 (Trident-plus) */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    64
