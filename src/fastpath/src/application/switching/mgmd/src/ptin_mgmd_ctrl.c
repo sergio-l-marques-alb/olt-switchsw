@@ -668,7 +668,7 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     //Check each client in this interface
     for (clientId=0; entryId<maxNumberOfEntries && entryId<numberOfClients && clientId<PTIN_MGMD_MAX_CLIENTS && numberOfClientsPerPort[portId]!=0; ++clientId)
     {      
-      if (ptin_mgmd_extended_debug) 
+      if (ptin_mgmd_loop_trace) 
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | numberOfClients:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientId, numberOfClients, PTIN_MGMD_MAX_CLIENTS);  
 
       
