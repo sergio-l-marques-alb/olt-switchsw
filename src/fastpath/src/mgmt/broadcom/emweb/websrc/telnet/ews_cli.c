@@ -3196,7 +3196,7 @@ void ewsCliAddSameAsCondtion(EwsCliCommandP node, EwsCliCommandP sameAsNode)
       for(k = 0; k < MAX_SAME_AS_PER_NODE; k++)
       {
         /*set the nodes in target, break if end of list reached*/
-        if (sameAsNode->sameAsNodes[k] != NULL)
+        if (sameAsNode->sameAsNodes[k] != NULL && (i+k+1) < MAX_SAME_AS_PER_NODE)
         {
           node->sameAsNodes[i + k + 1]  = sameAsNode->sameAsNodes[k];
         }

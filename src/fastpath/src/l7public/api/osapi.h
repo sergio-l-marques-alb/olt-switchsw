@@ -4285,7 +4285,12 @@ typedef struct
 #ifdef __i386__
 #define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
 #else
+/* PTin added: ARM processor */
+#ifdef __arm__
+#define osapiGetpid()  (unsigned long) syscall(224) /* __NR_gettid */
+#else
 #define osapiGetpid()  (unsigned long) gettid()
+#endif /* arm */
 #endif /* i386 */
 #endif /* mips */
 #endif /* powerpc */

@@ -167,6 +167,11 @@ struct stack_frame_intro_s
  * we can get a core dump and use gdb on it with current x86 platforms
  * (i.e. LinuxHost).
  */
+#elif defined(__arm__)
+/* 
+ * PTin added: ARM processor 
+ * Missing code for ARM processor
+ */
 #elif defined(__mips__)
 
 register unsigned int *sigsegv_stack asm("$29");
