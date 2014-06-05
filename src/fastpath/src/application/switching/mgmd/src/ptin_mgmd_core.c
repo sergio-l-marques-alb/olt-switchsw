@@ -1595,7 +1595,6 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
   BOOL                      flagNewGroup = FALSE, 
                             flagAddClient = FALSE, 
                             flagRemoveClient = FALSE;
-  BOOL                      groupAlreadyExists=FALSE;
   ptin_mgmd_externalapi_t   externalApi; 
 
   memset(&sourceList, 0x00, sizeof(sourceList));
@@ -1800,16 +1799,9 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
         return ERROR;
       }
-      groupAlreadyExists=FALSE;  
     }
     else
     { 
-      if((numberOfClients=snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients)>0 && 
-            (mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3))
-        groupAlreadyExists=TRUE;
-      else    
-        groupAlreadyExists=FALSE;
-      
       //If the Record Type is equal to ToIn{} or Block{S} we ignore this Group Record. 
       //If we are in v2 compatibility mode in this interface and the record type is Block{S} we also ignore this Group Record.
       if ( ((snoopEntry->ports[mcastPacket->portId].numberOfClients==0) && ((recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES))) ||

@@ -864,7 +864,6 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
 {
   PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
-  pthread_t                  cbThreadId;
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
@@ -875,7 +874,6 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Stoping timer %p for control block %p", timerPtr, controlBlock);
 
   /* Is the timer running? */
-  cbThreadId = cbPtr->thread_id;
   pthread_mutex_lock(&cbPtr->lock);
   if(tmrPtr->state != PTIN_TIMER_STATE_RUNNING)
   {

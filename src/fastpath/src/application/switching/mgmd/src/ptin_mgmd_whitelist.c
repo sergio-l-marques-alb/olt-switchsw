@@ -150,8 +150,8 @@ RC_t ptinMgmdWhitelistAdd(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr, ui
   mgmdPTinWhitelistData_t *pData;
   ptin_mgmd_inet_addr_t    groupCIDR, //Group Address Classless Inter Domain Routing                           
                            sourceCIDR; //Source Address Classless Inter Domain Routing  
-  uint32                   maxGroupAddresses,
-                           maxSourceAddresses;
+  uint32                   maxGroupAddresses = 0,
+                           maxSourceAddresses = 0;
   ptin_mgmd_eb_t          *pSnoopEB; 
   
   // Argument validation
@@ -261,8 +261,8 @@ RC_t ptinMgmdWhitelistRemove(uint32 serviceId, ptin_mgmd_inet_addr_t *groupAddr,
   mgmdPTinWhitelistData_t *pData;
   ptin_mgmd_inet_addr_t    groupCIDR, //Group Address Classless Inter Domain Routing                           
                            sourceCIDR; //Source Address Classless Inter Domain Routing  
-  uint32                   maxGroupAddresses,
-                           maxSourceAddresses;
+  uint32                   maxGroupAddresses = 0,
+                           maxSourceAddresses = 0;
   ptin_mgmd_eb_t          *pSnoopEB; 
   
   // Argument validation
