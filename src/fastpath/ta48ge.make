@@ -48,7 +48,7 @@ export FP_SHELL_PATH := ../fastpath.shell
 
 .PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
 
-all: welcome mgmdconfig cli_clean shell_clean cli shell
+all: welcome cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -69,9 +69,6 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
 	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
-
-mgmdconfig:
-	@sh mgmd_config_$(CARD).sh
 
 install:
 	sh ta48ge.install
