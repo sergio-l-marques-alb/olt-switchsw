@@ -215,7 +215,8 @@
 /* PTin added: Speed 10G */
 #define L7_PORT_DESC_BCOM_10G_KR       L7_IANA_10G_ETHERNET,                \
                                        L7_PORTCTRL_PORTSPEED_FULL_10GSX,    \
-                                       (L7_PHY_CAP_PORTSPEED_FULL_10G),     \
+                                       (L7_PHY_CAP_PORTSPEED_AUTO_NEG |     \
+                                       L7_PHY_CAP_PORTSPEED_FULL_10G),      \
                                        L7_CONNECTOR_NONE
 
 /* PTin added: Speed 40G */
