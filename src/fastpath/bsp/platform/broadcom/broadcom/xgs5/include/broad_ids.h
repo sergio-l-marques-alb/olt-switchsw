@@ -68,10 +68,10 @@
 #define CARD_BROAD_48_GIG_4_TENGIG_56538_REV_1_ID  0x56538101
 #define CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID  0x56689001   /* PTin added: new switch 56689 (Valjyrie2) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID  0x56643001   /* PTin added: new switch 56643 (Triumph3) */
+#define CARD_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID  0x56340001   /* PTin added: new switch 56340 (Helix4) */
 #define CARD_BROAD_40_TENGIG_56843_REV_1_ID        0x56843001   /* PTin added: new switch 56843 (Trident) */
 #define CARD_BROAD_64_TENGIG_56846_REV_1_ID        0x56846001   /* PTin added: new switch 56846 (Trident-plus) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56646_REV_1_ID  0x56646001   /* PTin added: new switch 56646 (?) */
-#define CARD_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID  0x56340001   /* PTin added: new switch 56340 (Helix4) */
 
 /* Logical CPU cards */
 #define L7_LOGICAL_CARD_CPU_24_GIG_4_TENGIG_REV_1_ID 0xFF010008
