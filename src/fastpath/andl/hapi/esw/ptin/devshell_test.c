@@ -1300,7 +1300,7 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
 }
 
 /* BER tests only for the CXO640G */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
 #include <bcm/port.h>
 #include <unistd.h>
