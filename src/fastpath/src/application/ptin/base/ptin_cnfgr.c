@@ -500,7 +500,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 /* Only make interface state management, if CXO board */
 #ifdef PTIN_LINKSCAN_CONTROL
 #if (PTIN_BOARD_IS_MATRIX)
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   ptin_switchover_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_switchover_sem == L7_NULLPTR)
   {

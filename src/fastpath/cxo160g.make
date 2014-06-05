@@ -28,7 +28,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= /home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
+export KERNEL_PATH	= /home/devtools/dev-QorIQ/dev-P204x/cxo160g/kernel_3_0_51
 #$(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
 
 #CC='${COMPILER}gcc'
