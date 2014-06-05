@@ -210,7 +210,7 @@ RC_t ptin_mgmd_event_proxytimer(mgmdProxyInterfaceTimer_t *timerData)
             ((mgmdProxyInterface_t *) timerData->groupData)->key.serviceId);    
     interfacePtr    = (mgmdProxyInterface_t *) timerData->groupData;
 
-    if(ptinMgmdProxyInterfaceEntryFind(interfacePtr->key.serviceId,AVL_EXACT)==PTIN_NULLPTR)
+    if(ptinMgmdProxyInterfaceEntryFind(interfacePtr->key.serviceId)==PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to find Interface Entry!");
       return SUCCESS;
@@ -230,8 +230,8 @@ RC_t ptin_mgmd_event_proxytimer(mgmdProxyInterfaceTimer_t *timerData)
       return SUCCESS;
     }
       
-    if(ptinMgmdProxyInterfaceEntryFind(interfacePtr->key.serviceId,AVL_EXACT)==PTIN_NULLPTR 
-       || ptinMgmdProxyGroupEntryFind(groupPtr->key.serviceId, &groupPtr->key.groupAddr, groupPtr->key.recordType, AVL_EXACT)==PTIN_NULLPTR)
+    if(ptinMgmdProxyInterfaceEntryFind(interfacePtr->key.serviceId)==PTIN_NULLPTR 
+       || ptinMgmdProxyGroupEntryFind(groupPtr->key.serviceId, &groupPtr->key.groupAddr, groupPtr->key.recordType)==PTIN_NULLPTR)
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to find Interface or Group Entry!");
       return SUCCESS;

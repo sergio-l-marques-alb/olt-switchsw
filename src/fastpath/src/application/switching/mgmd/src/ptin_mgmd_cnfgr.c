@@ -73,6 +73,9 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   ptin_fifo_create(&pSnoopEB->sourcesQueue, (PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES);//Plus 1 for the root port
   for(i=0; i<((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES); ++i) //Plus 1 for the root port
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", i, ((PTIN_MGMD_MAX_PORTS+1)*PTIN_MGMD_MAX_SOURCES));
+
     ptinMgmdSource_t *new_source = (ptinMgmdSource_t*) ptin_mgmd_malloc(sizeof(ptinMgmdSource_t));    
     
     ptin_fifo_push(pSnoopEB->sourcesQueue, (PTIN_FIFO_ELEMENT_t)new_source);
@@ -82,6 +85,9 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   ptin_fifo_create(&pSnoopEB->leafClientBitmap, PTIN_MGMD_MAX_PORTS+PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES);
   for(i=0; i<(PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS); ++i) 
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", i, (PTIN_MGMD_MAX_PORTS*PTIN_MGMD_MAX_SOURCES+PTIN_MGMD_MAX_PORTS) );
+
     ptinMgmdLeafClient_t *new_element = (ptinMgmdLeafClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdLeafClient_t));   
     
     ptin_fifo_push(pSnoopEB->leafClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
@@ -91,6 +97,9 @@ RC_t ptinMgmdGroupAVLTreeInit(void)
   ptin_fifo_create(&pSnoopEB->rootClientBitmap, 1+PTIN_MGMD_MAX_SOURCES);
   for(i=0; i<(1+PTIN_MGMD_MAX_SOURCES); ++i) 
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", i, PTIN_MGMD_MAX_SOURCES );
+
     ptinMgmdRootClient_t *new_element = (ptinMgmdRootClient_t*) ptin_mgmd_malloc(sizeof(ptinMgmdRootClient_t));
        
     ptin_fifo_push(pSnoopEB->rootClientBitmap, (PTIN_FIFO_ELEMENT_t)new_element);
@@ -251,6 +260,9 @@ RC_t ptinMgmdEBInit(void)
   
   for (cbIndex=0;cbIndex<PTIN_MGMD_MAX_CB_INSTANCES && cbIndex<mgmdEB.maxMgmdInstances;cbIndex++)
   {    
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over cbIndex:%u | PTIN_MGMD_MAX_CB_INSTANCES:%u", cbIndex, PTIN_MGMD_MAX_CB_INSTANCES);
+
     if(ptinMgmdCBInit(cbIndex,family[cbIndex])!=SUCCESS)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed ptinMgmdCBInit cbIndex:%u , family:%u",cbIndex,family[cbIndex]);  
@@ -299,6 +311,9 @@ RC_t     ptinMgmdCBInit(uint32 cbIndex, uchar8 family)
    //ProxyCM initialization
    for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
    {
+     if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", i, PTIN_MGMD_MAX_SERVICES );
+
      pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V3;
    }
 
@@ -510,6 +525,9 @@ ptin_mgmd_cb_t *mgmdCBGet(uchar8 family)
 
   for (cbIndex = 0; cbIndex < mgmdEB.maxMgmdInstances; cbIndex++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over cbIndex:%u | mgmdEB.maxMgmdInstances:%u",cbIndex, mgmdEB.maxMgmdInstances);
+
      pMgmdCB = (mgmdCB + cbIndex);
      if (family == pMgmdCB->family)
      {

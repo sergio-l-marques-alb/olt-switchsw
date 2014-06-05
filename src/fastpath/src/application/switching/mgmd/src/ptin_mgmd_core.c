@@ -52,8 +52,9 @@
 
 
 /*********************Global Variables******************/
-BOOL              ptin_mgmd_extended_debug = FALSE;
-BOOL              ptin_mgmd_packet_trace   = FALSE;
+uint8              ptin_mgmd_extended_debug = FALSE;
+uint8              ptin_mgmd_packet_trace   = FALSE;
+uint8              ptin_mgmd_loop_trace     = FALSE;
 
 /*********************End Global Variables******************/
 
@@ -102,6 +103,7 @@ static RC_t ptin_mgmd_mld_packet_process(void);
 /*********************Debug Routines******************/
 void ptin_mgmd_packet_trace_enable(BOOL enable){ptin_mgmd_packet_trace=enable;};
 void ptin_mgmd_extended_debug_enable(BOOL enable){ptin_mgmd_extended_debug=enable;};
+void ptin_mgmd_loop_trace_enable(BOOL enable){ptin_mgmd_loop_trace=enable;};
 /*********************End Debug Routines******************/
 
 /************************************************************************************************************/
@@ -121,6 +123,9 @@ RC_t  ptin_mgmd_position_service_identifier_set(uint32 serviceId, uint32 *posId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==FALSE)
     {
       pMgmdCB->proxyCM[iterator].inUse=TRUE;
@@ -147,6 +152,9 @@ RC_t  ptin_mgmd_position_service_identifier_get(uint32 serviceId, uint32 *posId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
     {      
       (*posId)=iterator;
@@ -172,6 +180,9 @@ RC_t  ptin_mgmd_position_service_identifier_get_or_set(uint32 serviceId, uint32 
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE)
     {
       if(pMgmdCB->proxyCM[iterator].serviceId==serviceId)
@@ -217,6 +228,9 @@ RC_t  ptin_mgmd_position_service_identifier_unset(uint32 serviceId)
 
   for (iterator=0;iterator<PTIN_MGMD_MAX_SERVICES;iterator++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over iterator:%u | PTIN_MGMD_MAX_SERVICES:%u",iterator, PTIN_MGMD_MAX_SERVICES);
+
     if(pMgmdCB->proxyCM[iterator].inUse==TRUE && pMgmdCB->proxyCM[iterator].serviceId==serviceId)
     {
       pMgmdCB->proxyCM[iterator].inUse=FALSE;       
@@ -278,18 +292,21 @@ RC_t ptin_mgmd_igmp_packet_process(ptinMgmdControlPkt_t *mcastPacket)
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} This is not a root port (ServiceId=%u portId=%u portType=%u igmpType=%u)! Packet silently discarded.",mcastPacket->serviceId,mcastPacket->portId,mcastPacket->portType,igmpType);
         return ERROR;
       }
-      
+      /*RFC 2236 of IGMPv2 Section 2.5 "Other Fields" - states that IGMP messages may be longer than 8 octect, especially future backwards-compatible.
+      As long as the type is recognized, an IGMPv2 implementation MUST process the first 8 octets of the packet.*/
+      /* According to RFC 3376 of IGMPv3 - Query messages MUST be sent using type 0x11, which is a known type of IGMPv2, and with a minimum packet length of 12 octets.
+      Therefore any device supporting IGMPv2 MUST support processing also Query packets with a size of 12 octets.*/
+
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion!=PTIN_IGMP_VERSION_3 && mcastPacket->ipPayloadLength>IGMP_PKT_MIN_LENGTH)
       { 
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"MEMBERSHIP_QUERYv3: Silently ignored...we are configured to operate at IGMPv2 only!");        
-        rc=ERROR;//We are configured to operate at IGMPv2         
+        PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Received a Membership Queryv3, while configured to operate at IGMPv2. Processing only the first 8 octets of the packet");               
+        mcastPacket->ipPayloadLength=IGMP_PKT_MIN_LENGTH;
       }
-      else
-      {
-        ptin_measurement_timer_start(22,"ptin_mgmd_membership_query_process");
-        rc = ptin_mgmd_membership_query_process(mcastPacket);
-        ptin_measurement_timer_stop(22);
-      }      
+      
+      ptin_measurement_timer_start(22,"ptin_mgmd_membership_query_process");
+      rc = ptin_mgmd_membership_query_process(mcastPacket);
+      ptin_measurement_timer_stop(22);
+            
       break;
     case PTIN_IGMP_V3_MEMBERSHIP_REPORT:
      //Port must be leaf
@@ -732,47 +749,67 @@ RC_t ptin_mgmd_packet_process(uchar8 *payload, uint32 payloadLength, uint32 serv
     return FAILURE;
   }
 
-  //Validate packet
-  if ( (PTIN_NULLPTR == payload) || (0 == payloadLength) )
-  {
-    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
-    return FAILURE;
-  }
-
   //Validate portId
   if ( (portId==0) || (portId > PTIN_MGMD_MAX_PORT_ID) )
-  {   
+  { 
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid portID [%u]", portId);    
     return FAILURE;
   }
 
-
-  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
-
   //Validate serviceId
-  if (serviceId > PTIN_MGMD_MAX_SERVICE_ID)
+  if (serviceId == 0 || serviceId > PTIN_MGMD_MAX_SERVICE_ID)
   {    
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid serviceID [%u]", serviceId);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return FAILURE;
   }
-
   
-  
+  //Obtain Internal Service Identifier to Increment Statistics
   if (ptin_mgmd_position_service_identifier_get_or_set(serviceId, &mcastPacket.posId) != SUCCESS 
          || mcastPacket.posId>=PTIN_MGMD_MAX_SERVICES)
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Internal Service Identifier [%u]", mcastPacket.posId);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return FAILURE;
+  }
+  
+  //Validate packet
+  if ( (PTIN_NULLPTR == payload) || (0 == payloadLength) )
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid packet payload:[%08X] length:[%u]", payload, payloadLength);    
+    ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
     return FAILURE;
   }  
 
+  memset(&mcastPacket, 0x00, sizeof(mcastPacket));
+
   ptin_measurement_timer_start(33,"externalApi.portType_get"); 
   //Validate clientId (only for leaf ports)
-  if( (SUCCESS == externalApi.portType_get(serviceId, portId, &mcastPacket.portType)) && (PTIN_MGMD_PORT_TYPE_LEAF == mcastPacket.portType) )
+  if(SUCCESS == externalApi.portType_get(serviceId, portId, &mcastPacket.portType))
   {
-    ptin_measurement_timer_stop(33);
-    if (/*clientId==0  ||*/ clientId >= PTIN_MGMD_MAX_CLIENTS)
-    {    
-      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u]", clientId);
+    if(PTIN_MGMD_PORT_TYPE_LEAF == mcastPacket.portType) 
+    {
+      ptin_measurement_timer_stop(33);
+      if (clientId >= PTIN_MGMD_MAX_CLIENTS)
+      {    
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u] for leaf port", clientId);
+        ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        return FAILURE;
+      }
+    }
+    else if (PTIN_MGMD_PORT_TYPE_ROOT == mcastPacket.portType) 
+    {
+      if (PTIN_MGMD_MANAGEMENT_CLIENT_ID != clientId)
+      {
+        PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid clientID [%u] for root port", clientId);
+        ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        return FAILURE;
+      }       
+    }
+    else
+    {      
+      PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid port Type [%u]", mcastPacket.portType);
+      ptin_mgmd_stat_increment_field(portId, serviceId, clientId, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return FAILURE;
     }
   }
@@ -1184,7 +1221,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
             return FAILURE;
           }
           /*Let us verify if this group is registered by any IGMP Host*/            
-          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
+          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr))==PTIN_NULLPTR || 
               avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)               
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
@@ -1249,7 +1286,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
           }
 
           /*Let us verify if this group is registered by any IGMPv3 Host*/            
-          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr,AVL_EXACT))==PTIN_NULLPTR || 
+          if ((avlTreeEntry=ptinMgmdL3EntryFind(mcastPacket->serviceId,&groupAddr))==PTIN_NULLPTR || 
               avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)              
           {
             PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Failed to find group for which grp-query is rx'ed: %s. Packet silently ignored.",ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf));
@@ -1308,6 +1345,9 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
     /* Add new source */
     for (sourceIdx=0;sourceIdx<noOfSources;sourceIdx++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceIdx:%u | noOfSources:%u",sourceIdx, noOfSources);
+
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
       {
         PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
@@ -1326,6 +1366,9 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
     /* Add new source */
     for (sourceIdx=0;sourceIdx<noOfSources;sourceIdx++)
     {
+      if (ptin_mgmd_loop_debug) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourceIdx:%u",sourceIdx);
+
       memset(&sourceList[sourceIdx], 0x00, sizeof(ptin_inet_addr_t));
       /* IPv6 MCAST Address */
       SNOOP_GET_ADDR6(&ipv6Addr, dataPtr);
@@ -1552,6 +1595,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
   BOOL                      flagNewGroup = FALSE, 
                             flagAddClient = FALSE, 
                             flagRemoveClient = FALSE;
+  BOOL                      groupAlreadyExists=FALSE;
   ptin_mgmd_externalapi_t   externalApi; 
 
   memset(&sourceList, 0x00, sizeof(sourceList));
@@ -1654,6 +1698,9 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
       validSources = noOfSources;
       for (i=0, srcIdx=0; i<noOfSources; ++i)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u and srcIdx:%u | noOfSources:%u",i ,srcIdx, noOfSources);
+
         memset(&sourceList[i], 0x00, sizeof(ptin_mgmd_inet_addr_t));             
         PTIN_MGMD_GET_ADDR(&ipv4Addr, dataPtr);
         ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &ipv4Addr, &sourceList[srcIdx]);
@@ -1709,7 +1756,7 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
     }
    
     /* Create new entry in AVL tree for VLAN+IP if necessary */
-    if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr, AVL_EXACT)))
+    if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr)))
     {
       //If the Record Type is equal to ToIn{} or Block{S} we ignore this Group Record
       if ( (recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES) )
@@ -1747,15 +1794,22 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
         flagNewGroup=TRUE;
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Added new group[%s]/service[%u])", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
       }
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupAddr)))
       {
         ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(recType,SNOOP_STAT_FIELD_DROPPED_RX)); 
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&groupAddr, debug_buf), mcastPacket->serviceId);
         return ERROR;
       }
+      groupAlreadyExists=FALSE;  
     }
     else
     { 
+      if((numberOfClients=snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients)>0 && 
+            (mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode!=PTIN_MGMD_COMPATIBILITY_V3))
+        groupAlreadyExists=TRUE;
+      else    
+        groupAlreadyExists=FALSE;
+      
       //If the Record Type is equal to ToIn{} or Block{S} we ignore this Group Record. 
       //If we are in v2 compatibility mode in this interface and the record type is Block{S} we also ignore this Group Record.
       if ( ((snoopEntry->ports[mcastPacket->portId].numberOfClients==0) && ((recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES))) ||
@@ -2026,7 +2080,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
        */      
 
       ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &groupAddr, &groupInetAddr);
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr)))
       {
         PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report for a non-existing group[%s]. Silently ignored", ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf));
         return SUCCESS;
@@ -2049,7 +2103,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
        * IGMPv2 Membership-Reports are converted to IGMPv3 To-Exclude Reports without sources (see RFC 3376 7.3.2) 
        */      
 
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr)))
       {
         if (mcastPacket->ebHandle->ptinMgmdGroupAvlTree.count>=PTIN_MGMD_MAX_GROUPS ||  SUCCESS != ptinMgmdL3EntryAdd(mcastPacket->serviceId, &mcastPacket->destAddr))
         {
@@ -2062,7 +2116,7 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
           flagNewGroup = TRUE;
           PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Added new group[%s]/service[%u])", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
         }
-        if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr, AVL_EXACT)))
+        if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &mcastPacket->destAddr)))
         {
           ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));
           PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Something went wrong..Unable to find the newly added group[%s]/service[%u] entry!", ptin_mgmd_inetAddrPrint(&mcastPacket->destAddr, debug_buf), mcastPacket->serviceId);
@@ -2115,15 +2169,10 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   }
   
   if (rc != SUCCESS)
-  {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_DROPPED_RX));    
+  {    
     return rc;
   }
-  else 
-  {
-    ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, ptinMgmdRecordType2IGMPStatField(igmpType, SNOOP_STAT_FIELD_VALID_RX));
-  }
-
+  
   if (flagNewGroup == TRUE && snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients > 0)
   {
     ptin_mgmd_stat_increment_field(mcastPacket->portId, mcastPacket->serviceId, mcastPacket->clientId, SNOOP_STAT_FIELD_ACTIVE_GROUPS);
@@ -2171,10 +2220,19 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
   return rc;
 }
 
+uint8_t ptin_mgmd_last_msg_type = (uint8_t) -1;
+
+uint8_t ptin_mgmd_last_processed_msg_type_get(void) 
+{
+return ptin_mgmd_last_msg_type;
+}
+
 
 RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 {
   RC_t res = SUCCESS;
+
+  ptin_mgmd_last_msg_type = (uint8_t) -1;
 
   if(ptin_mgmd_extended_debug)
   {
@@ -2192,6 +2250,7 @@ RC_t ptin_mgmd_event_packet(PTIN_MGMD_EVENT_PACKET_t* eventData)
 
 RC_t ptin_mgmd_event_timer(PTIN_MGMD_EVENT_TIMER_t* eventData)
 {
+  ptin_mgmd_last_msg_type=eventData->type;
   switch(eventData->type)
   {
     case PTIN_MGMD_EVENT_TIMER_TYPE_GROUP:
@@ -2255,11 +2314,13 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
 {
   RC_t res = SUCCESS;
 
+  ptin_mgmd_last_msg_type=eventData->msgCode;
+
   switch (eventData->msgCode)
   {
     case PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t))
@@ -2276,7 +2337,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET]        [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET]        [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_MGMD_CONFIG_t))
@@ -2293,7 +2354,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2310,7 +2371,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR]  [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_CLEAR]  [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2327,7 +2388,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2344,7 +2405,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t))
@@ -2361,7 +2422,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_ADD]    [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATICGROUP_t))
@@ -2378,7 +2439,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE] [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATIC_GROUP_REMOVE] [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_STATICGROUP_t))
@@ -2395,7 +2456,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GROUPS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUPS_GET]          [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUPS_GET]          [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t))
@@ -2412,7 +2473,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t))
@@ -2429,7 +2490,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
@@ -2445,7 +2506,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET]   [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t))
@@ -2461,7 +2522,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET]     [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_GROUP_CLIENTS_GET]     [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t))
@@ -2477,7 +2538,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }  
     case PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD]         [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_ADD]         [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t))
@@ -2493,7 +2554,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     } 
     case PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_WHITELIST_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_WHITELIST_CONFIG_t))
@@ -2509,7 +2570,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     } 
     case PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_SERVICE_REMOVE]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_SERVICE_REMOVE_t))
@@ -2525,7 +2586,7 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     case PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS:
     {
-      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_RESET_DEFAULTS]      [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
 
       //Validate message size
       if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_RESET_DEFAULTS_t))
@@ -2541,20 +2602,22 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
     }
     default:
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X] [ID: 0x%08X] - Unknown message", eventData->msgCode, eventData->msgId);
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X] [ID: 0x%08X] - Unknown message", eventData->msgCode, eventData->msgId);
       res = FAILURE;
       break;
     }
   }
 
   eventData->res = res;
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Returning to CTRL with res[%u]", eventData->res);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Returning to CTRL with res[%u]", eventData->res);
   return res;
 }
 
 RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
 {
   RC_t res = SUCCESS;
+
+  ptin_mgmd_last_msg_type = eventData->type;
 
   switch(eventData->type)
   {
@@ -2565,7 +2628,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
       {
         if((BOOL)eventData->param[1]==TRUE || (BOOL)(eventData->param[1])==FALSE)
         {
-          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting ptin_mgmd_extendedDebug to :%u", eventData->param[1]);
+          PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Setting ptin_mgmd_extendedDebug to :%u", eventData->param[1]);
           ptin_mgmd_extended_debug = (BOOL)(eventData->param[1]);
         }
         else
@@ -2632,7 +2695,7 @@ RC_t ptin_mgmd_event_debug(PTIN_MGMD_EVENT_DEBUG_t* eventData)
     }    
     default:
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown request received");
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unknown Debug Event Request Received:%u",eventData->type);
 
       break;
     }

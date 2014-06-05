@@ -228,7 +228,7 @@ RC_t ptin_mgmd_event_querytimer(mgmdPtinQuerierTimerKey_t* eventData)
   memcpy(&querierTimerKey, eventData, sizeof(querierTimerKey));  
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Processing Event Query Timer (serviceId:%u family:%u)",querierTimerKey.querierKey.serviceId,querierTimerKey.family);
 
-  if ((mgmdPTinQuerierPtr=ptinMgmdQueryEntryFind(querierTimerKey.querierKey.serviceId,querierTimerKey.family,AVL_EXACT))==PTIN_NULLPTR)
+  if ((mgmdPTinQuerierPtr=ptinMgmdQueryEntryFind(querierTimerKey.querierKey.serviceId,querierTimerKey.family))==PTIN_NULLPTR)
   {
     PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Query type to process (serviceId:%u family:%u), but we were unable to find the timer!",querierTimerKey.querierKey.serviceId,querierTimerKey.family);
     return SUCCESS;

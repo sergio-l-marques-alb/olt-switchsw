@@ -34,6 +34,7 @@ static BOOL                 ctrlTimerHasExpired = FALSE;
 static RC_t  ptin_mgmd_event_create(PTIN_MGMD_EVENT_t* eventMsg, PTIN_MGMD_EVENT_CODE_t type, void* data, uint32 dataLength);
 static void* ptin_mgmd_ctrlTimer_timeout(void* param);
 
+extern unsigned char        ptin_mgmd_loop_trace;
 
 /**
 * @purpose This method is called if the ctrlTimer expires before the sendCtrlEvent receives a response from MGMD
@@ -358,6 +359,9 @@ RC_t ptin_mgmd_sendCtrlEvent(PTIN_MGMD_EVENT_t* inEventMsg, PTIN_MGMD_EVENT_t* o
   ptin_mgmd_event_ctrl_parse(inEventMsg, &inCtrlMsg);
   do
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over Message Received msgQueueId:%u", inCtrlMsg.msgQueueId);
+
     msgrcv(inCtrlMsg.msgQueueId, &auxEvent, PTIN_MGMD_EVENT_MSG_SIZE_MAX, 0, MSG_NOERROR | IPC_NOWAIT);
   } while(errno != ENOMSG);
 

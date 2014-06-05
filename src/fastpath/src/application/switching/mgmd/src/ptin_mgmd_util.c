@@ -182,7 +182,7 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
       if (igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY || igmpType==PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY)
       {
         /*Let us verify if this group still has any clients*/
-        if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr, AVL_EXACT))==PTIN_NULLPTR || 
+        if ((avlTreeEntry=ptinMgmdL3EntryFind(serviceId, groupAddr))==PTIN_NULLPTR || 
             avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==FALSE)            
         {
           PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Membership Response to Group Query silenty discarded, once this group is no longer active");
@@ -205,6 +205,9 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
   /*We need to split the report if the number of records is higher then igmpCfg.host.max_records_per_report*/
   for (noOfPendingRecords=noOfRecords;noOfPendingRecords>0 && newgroupPtr!=PTIN_NULLPTR;noOfPendingRecords-=igmpCfg.host.max_records_per_report)
   {    
+    if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over noOfPendingRecords:%u newgroupPtr:%p | max_records_per_report",noOfPendingRecords, newgroupPtr, igmpCfg.host.max_records_per_report);  
+
     if (noOfPendingRecords>igmpCfg.host.max_records_per_report)
     {
       if (snoopPTinReportSend(serviceId,newgroupPtr,igmpCfg.host.max_records_per_report,&igmpCfg)!=SUCCESS)
@@ -218,6 +221,9 @@ RC_t ptinMgmdScheduleReportMessage(uint32 serviceId, ptin_mgmd_inet_addr_t* grou
       uint32 numberOfRecords;
       for (numberOfRecords=0;numberOfRecords<igmpCfg.host.max_records_per_report && newgroupPtr!=PTIN_NULLPTR ;numberOfRecords++)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over numberOfRecords:%u newgroupPtr:%p | max_records_per_report:%u",numberOfRecords, igmpCfg.host.max_records_per_report);  
+
         newgroupPtr=newgroupPtr->nextGroupRecord;
       }
 #endif
@@ -332,7 +338,11 @@ static RC_t snoopPTinReportFrameV3Build(uint32 noOfRecords, mgmdGroupRecord_t* g
   groupPtrAux=groupPtr;
   for (i=0;i<noOfRecords && groupPtrAux != PTIN_NULLPTR; i++)
   {
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Record (groupAddr: %s  recordType: 0x%x)", ptin_mgmd_inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
+    if (ptin_mgmd_loop_trace)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u groupPtrAux:%p | noOfRecords:%u",i, groupPtrAux, noOfRecords);  
+
+    if (ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Group Record (groupAddr: %s  recordType: 0x%x)", ptin_mgmd_inetAddrPrint(&groupPtrAux->key.groupAddr, debug_buf),groupPtrAux->recordType);
 
     if ( (dataPtr=snoopPTinGroupRecordV3Build(groupPtr->key.serviceId,&groupPtrAux->key.groupAddr,groupPtrAux->recordType,groupPtrAux->numberOfSources,groupPtrAux->firstSource,dataPtr, &groupRecordLength))== PTIN_NULLPTR)
     {
@@ -479,14 +489,18 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Number of Sources :%u", numberOfSources);
   sourcePtr=source;  
   for (i=0;i<numberOfSources && sourcePtr != PTIN_NULLPTR;i++)
-  {
+  {    
+    if (ptin_mgmd_loop_trace)
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u sourcePtr:%p | numberOfSources:%u",i, sourcePtr, numberOfSources);  
+
     /*Source Address*/
     if (groupAddr->family!=PTIN_MGMD_AF_INET)
     {
       PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid IP Family");
       return PTIN_NULLPTR;
     }
-    PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source (sourceAddr: %s)", ptin_mgmd_inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
+    if (ptin_mgmd_extended_debug) 
+      PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Source (sourceAddr: %s)", ptin_mgmd_inetAddrPrint(&sourcePtr->key.sourceAddr, debug_buf));
 
     ptin_mgmd_inetAddressGet(PTIN_MGMD_AF_INET, &sourcePtr->key.sourceAddr,  &ipv4Addr );  
     PTIN_MGMD_PUT_DATA(&ipv4Addr, PTIN_IP_ADDR_LEN, dataPtr);
@@ -514,8 +528,20 @@ static uchar8* snoopPTinGroupRecordV3Build(uint32 serviceId, ptin_mgmd_inet_addr
   /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
   for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
+
+    //Move forward 8 bits if this byte is 0 (no ports)
+    if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+    {
+      portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+      continue;
+    }               
+
     if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+    {
       ptin_mgmd_stat_increment_field(portId, serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(recordType,SNOOP_STAT_FIELD_TX));
+    }    
   }  
   
 
@@ -869,6 +895,9 @@ RC_t snoopPTinReportSend(uint32 serviceId, mgmdGroupRecord_t *groupPtr, uint32 n
     }
     for(i=0;i<noOfGroupRecords && groupPtrAux!=PTIN_NULLPTR;i++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u groupPtrAux:%p | noOfGroupRecords:%u", i, groupPtrAux, noOfGroupRecords);
+
       mcastPacket.destAddr.family = PTIN_MGMD_AF_INET;
       mcastPacket.destAddr.addr.ipv4.s_addr = groupPtrAux->key.groupAddr.addr.ipv4.s_addr;
      
@@ -967,7 +996,7 @@ void ptinMgmdMcastgroupPrint(int32 serviceId,uint32 groupAddrText)
 
   printf("-----------------------------------------\n");
   /* Search for the requested multicast group */
-  if (PTIN_NULLPTR != (groupEntry = ptinMgmdL3EntryFind(serviceId, &groupAddr, AVL_EXACT)))
+  if (PTIN_NULLPTR != (groupEntry = ptinMgmdL3EntryFind(serviceId, &groupAddr)))
   {
     uint32 portId;
 
@@ -1064,7 +1093,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
   mgmdGroupRecord_t *groupPtr;    
   snoopPTinSourceRecord_t *sourcePtr;    
 
-  if ((interfacePtr=ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((interfacePtr=ptinMgmdProxyInterfaceEntryFind(serviceId)) == PTIN_NULLPTR)
   {
     printf("Interface not initialized for serviceId: %d", serviceId);  
     return;
@@ -1072,7 +1101,7 @@ void ptinMgmdGroupRecordPrint(uint32 serviceId,uint32 groupAddrText,uint8 record
 
   groupAddr.addr.ipv4.s_addr=groupAddrText;
 
-  if ((groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &groupAddr,recordType, AVL_EXACT)) == PTIN_NULLPTR)
+  if ((groupPtr=ptinMgmdProxyGroupEntryFind(interfacePtr->key.serviceId, &groupAddr,recordType)) == PTIN_NULLPTR)
   {
     printf("Group Record not initialized: (groupAddr: %s recordType:%u)", ptin_mgmd_inetAddrPrint(&groupAddr,debug_buf), recordType);  
     return;
@@ -1124,16 +1153,29 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
 
   for (newgroupPtr=groupPtrAux=groupPtr, groupRecordId=0, *newNoOfRecords=0; groupRecordId<noOfRecords && groupPtrAux!=PTIN_NULLPTR; groupRecordId++, groupPtrAux=groupPtrAux2)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over groupRecordId:%u newgroupPtr:%p | noOfRecords:%u", groupRecordId, newgroupPtr, noOfRecords);  
+
     groupPtrAux2=groupPtrAux->nextGroupRecord;
 
 //This eventually needs to be moved to where the packet is been constructed
     /*Increment IGMPv3 Stats*/
     for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
+
+      //Move forward 8 bits if this byte is 0 (no ports)
+      if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+      {
+        portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+        continue;
+      }      
+             
       if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
-      }
+      }      
     }
     /*End Stats*/
   
@@ -1179,6 +1221,9 @@ static RC_t snoopPTinGroupRecordSourceIncrementTransmissions(mgmdGroupRecord_t* 
 
   for (sourcePtr=groupPtr->firstSource; sourcePtr!=PTIN_NULLPTR ;sourcePtr=sourcePtrAux)  
   {      
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);  
+
     sourcePtrAux=sourcePtr->next;
     if (++sourcePtr->retransmissions>=robustnessVariable)
     {
@@ -1235,6 +1280,8 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( groupEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
 
     /* Prepare next key */
     memcpy(&avlTreeKey, &groupEntry->ptinMgmdGroupInfoDataKey, sizeof(ptinMgmdGroupInfoDataKey_t));
@@ -1289,6 +1336,9 @@ static mgmdGroupRecord_t* mgmdBuildIgmpv3CSR(mgmdProxyInterface_t* interfacePtr,
       uint16 portId=PTIN_MGMD_ROOT_PORT;
       for (sourcePtr=groupEntry->ports[portId].firstSource, sourceId = 0; sourcePtr!=PTIN_NULLPTR && sourceId<groupEntry->ports[portId].numberOfSources  ;sourcePtr=sourcePtr->next, ++sourceId)                 
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p sourceId:%u | numberOfSources:%u",sourcePtr, sourceId, groupEntry->ports[portId].numberOfSources);  
+
         if (sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE &&  
             ptin_mgmd_sourcetimer_isRunning(&sourcePtr->sourceTimer)==TRUE)
         {
@@ -1348,6 +1398,9 @@ RC_t mgmdBuildIgmpv2CSR(uint32 serviceId,uint32 maxResponseTime)
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
 
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
@@ -1440,6 +1493,9 @@ void ptinMgmdCleanAllGeneralQuery(void)
   
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over mgmdPTinQuerierAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     //Stop Query Timer   
@@ -1516,6 +1572,9 @@ void ptinMgmdStartAllGeneralQuery(void)
    
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdCB->mgmdPTinQuerierAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {    
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over mgmdPTinQuerierAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
 
@@ -1665,11 +1724,17 @@ void ptinMgmdStaticGroupPortOpen(void)
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to open ports for static entries");  
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
     if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==TRUE)
     {
       uint32 portId;
       for(portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);
+
         if(avlTreeEntry->ports[portId].active==TRUE && avlTreeEntry->ports[portId].isStatic==TRUE)
         {
           if (avlTreeEntry->ports[portId].numberOfSources==0)
@@ -1686,6 +1751,9 @@ void ptinMgmdStaticGroupPortOpen(void)
             ptinMgmdSource_t    *sourcePtr;            
             for (sourcePtr=avlTreeEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next)
             { 
+              if (ptin_mgmd_loop_trace) 
+                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);  
+
               if(sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && sourcePtr->isStatic==TRUE)
               {
                /*Open L2 Port on Switch*/
@@ -1736,11 +1804,17 @@ void ptinMgmdStaticGroupPortClose(void)
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Going to close ports for static entries");  
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
     if(avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==TRUE)
     {
       uint32 portId;
       for(portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);
+
         if(avlTreeEntry->ports[portId].active==TRUE && avlTreeEntry->ports[portId].isStatic==TRUE)
         {
           if (avlTreeEntry->ports[portId].numberOfSources==0)
@@ -1757,6 +1831,9 @@ void ptinMgmdStaticGroupPortClose(void)
             ptinMgmdSource_t    *sourcePtr;           
             for (sourcePtr=avlTreeEntry->ports[portId].firstSource; sourcePtr!=PTIN_NULLPTR; sourcePtr=sourcePtr->next)
             { 
+              if (ptin_mgmd_loop_trace) 
+                PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over sourcePtr:%p",sourcePtr);  
+
               if(sourcePtr->status==PTIN_MGMD_SOURCESTATE_ACTIVE && sourcePtr->isStatic==TRUE)
               {
                /*Open L2 Port on Switch*/
@@ -1799,6 +1876,9 @@ void ptinMgmdDumpL3AvlTree(void)
   PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "snoopPTinDumpL3AvlTree");  
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
@@ -1831,6 +1911,9 @@ void ptinMgmdGroupRemoveAll(void)
   printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
@@ -1864,6 +1947,9 @@ void ptinMgmdStaticOrDynamicGroupRemoveAll(BOOL isStatic)
   printf("Number of used sources: %u\n", ptin_fifo_numFreeElements(pSnoopEB->sourcesQueue));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_extended_debug) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
     if (avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].active==TRUE && avlTreeEntry->ports[PTIN_MGMD_ROOT_PORT].isStatic==isStatic)
@@ -1935,6 +2021,9 @@ void ptinMgmdGroupRecordRemoveAll(void)
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over snoopPTinProxyGroupAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     ptinMgmdGroupRecordRemove(avlTreeEntry->interfacePtr,&avlTreeEntry->key.groupAddr,avlTreeEntry->key.recordType);    
@@ -1966,6 +2055,9 @@ void ptinMgmdGroupSpecificQueriesRemoveAll(void)
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pMgmdEB->groupSourceSpecificQueryAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over groupSourceSpecificQueryAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     ptin_mgmd_groupsourcespecifictimer_remove_entry(avlTreeEntry);    
@@ -2000,6 +2092,9 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
   memset(&avlTreeKey,0x00,sizeof(avlTreeKey));
   while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(& pSnoopEB->snoopPTinProxyGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over snoopPTinProxyGroupAvlTree");
+
     /* Prepare next key */
     memcpy(&avlTreeKey, &avlTreeEntry->key, sizeof(avlTreeKey));
     if(serviceId==avlTreeEntry->key.serviceId)
@@ -2030,7 +2125,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   RC_t                    rc = SUCCESS;
   uint8                   igmp_stat_field;
   BOOL                    clientListGet=FALSE;
-
+  
   /* Send packet */        
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Packet will be transmited to client_idx=%u in portIdx=%u serviceId=%u family=%u", 
             mcastPacket->clientId, portId, mcastPacket->serviceId,mcastPacket->family);
@@ -2068,16 +2163,16 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
   switch (igmp_type)
   {
     case PTIN_IGMP_MEMBERSHIP_QUERY:
-      igmp_stat_field=SNOOP_STAT_FIELD_GENERAL_QUERY_TX;
-      clientListGet=TRUE;      
+      igmp_stat_field=SNOOP_STAT_FIELD_GENERAL_QUERY_TX;    
+      clientListGet=TRUE;  
       break;
     case PTIN_IGMP_MEMBERSHIP_GROUP_SPECIFIC_QUERY:
-      igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
+      igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;      
       clientListGet=TRUE;
       break;
-    case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:
-      igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;
-      clientListGet=TRUE;
+    case PTIN_IGMP_MEMBERSHIP_GROUP_AND_SOURCE_SCPECIFC_QUERY:      
+        igmp_stat_field=SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX;        
+        clientListGet=TRUE;
       break;
     case PTIN_IGMP_V1_MEMBERSHIP_REPORT:
     case PTIN_IGMP_V2_MEMBERSHIP_REPORT:
@@ -2094,7 +2189,7 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
       return FAILURE;  
   }
 
-  if (clientListGet==TRUE) 
+  if (mcastPacket->clientId == PTIN_MGMD_MANAGEMENT_CLIENT_ID && clientListGet == TRUE) 
   {
     PTIN_MGMD_CLIENT_MASK_t clientBitmap = {{0}};
     uint32                  noOfClients=0;
@@ -2113,12 +2208,22 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
     {
       for (clientIdx = 0; clientIdx < PTIN_MGMD_MAX_CLIENTS; ++clientIdx)
       {        
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientIdx:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientIdx,PTIN_MGMD_MAX_CLIENTS);  
+
+        //Move forward 8 bits if this byte is 0 (no clients)
+        if(! (PTIN_MGMD_CLIENT_IS_MASKBYTESET(clientBitmap.value, clientIdx)))
+        {
+          clientIdx += PTIN_MGMD_CLIENT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+          continue;
+        }
+
         if (PTIN_MGMD_CLIENT_IS_MASKBITSET(clientBitmap.value, clientIdx))
         {          
           ptin_mgmd_stat_increment_clientOnly(portId, clientIdx, igmp_stat_field);
 
           //Break if all clients were already found
-          if(noOfClientsFound++>=noOfClients)
+          if(++noOfClientsFound>=noOfClients)
           {
             break;
           }
@@ -2179,6 +2284,16 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Preparing to transmit packet to port type:%u with payload length: %u",portType,mcastPacket->frameLength);
     for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId,PTIN_MGMD_MAX_PORT_ID);  
+
+      //Move forward 8 bits if this byte is 0 (no ports)
+      if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+      {
+        portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+        continue;
+      }             
+
       if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
       {
         /* Send packet */  
@@ -2187,7 +2302,7 @@ RC_t ptinMgmdPacketSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, ucha
         ptin_measurement_timer_stop(31);
         if(packetSent==FALSE)
           packetSent=TRUE;
-      }
+      }         
     }
     if(packetSent==FALSE)
     {
@@ -2393,6 +2508,9 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     memset(&avlTreeKey, 0x00, sizeof(avlTreeKey));
     while ( ( avlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->ptinMgmdGroupAvlTree, &avlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ptinMgmdGroupAvlTree");
+
       // Prepare next key
       memcpy(&avlTreeKey, &avlTreeEntry->ptinMgmdGroupInfoDataKey, sizeof(avlTreeKey));
 
@@ -2418,7 +2536,7 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Clearing pending reports...", serviceId);
   {
-    proxy_interface = ptinMgmdProxyInterfaceEntryFind(serviceId, AVL_EXACT);
+    proxy_interface = ptinMgmdProxyInterfaceEntryFind(serviceId);
     if(PTIN_NULLPTR != proxy_interface)
     {
       mgmdGroupRecord_t *group_record;
@@ -2438,6 +2556,9 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     memset(&queriesAvlTreeKey, 0x00, sizeof(queriesAvlTreeKey));
     while ( ( queriesAvlTreeEntry = ptin_mgmd_avlSearchLVL7(&pSnoopEB->groupSourceSpecificQueryAvlTree, &queriesAvlTreeKey, AVL_NEXT) ) != PTIN_NULLPTR )
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over queriesAvlTreeEntry");
+
       // Prepare next key
       memcpy(&queriesAvlTreeKey, &queriesAvlTreeEntry->key, sizeof(queriesAvlTreeKey));
 
@@ -2469,7 +2590,8 @@ RC_t ptinMgmdServiceRemove(uint32 serviceId)
     }
     else
     {
-      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} Invalid Position Identifier [%u]", posId);          
+      if(ptin_mgmd_extended_debug)
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "} ServiceId:%u does not have any proxy compatibilty timer configured yet. Silently Ignoring request.", posId);          
     }    
   }
   return SUCCESS;
@@ -2514,6 +2636,9 @@ RC_t ptinMgmdResetDefaults(uint8 family)
   //Stop all proxy CM timers
   for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over serviceId:%u | PTIN_MGMD_MAX_SERVICES:%u",i, PTIN_MGMD_MAX_SERVICES);
+
     ptin_mgmd_proxycmtimer_stop(&pMgmdCB->proxyCM[i]); //The stop method also frees the timer
   }
 

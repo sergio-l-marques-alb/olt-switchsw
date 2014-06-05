@@ -41,6 +41,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 static void* ptin_mgmd_event_handle(void*);
 static RC_t  ptin_mgmd_timers_create(void);
@@ -48,6 +51,21 @@ static RC_t  ptin_mgmd_memAlloc(void);
 static RC_t  ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr);
 
 extern unsigned long     ptin_mgmd_number_of_timers;
+
+uint32_t                 ptin_mgmd_thread_pid = (uint32_t) -1;
+
+uint32_t                 ptin_snooping_thread_pid = (uint32_t) -1;
+
+
+uint32_t ptin_mgmd_thread_pid_get(void)
+{
+  return ptin_mgmd_thread_pid;
+}
+
+uint32_t ptin_snooping_thread_pid_get(void)
+{
+  return ptin_snooping_thread_pid;
+}
 
 RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
 {
@@ -68,7 +86,7 @@ RC_t ptin_mgmd_threadInit(pthread_t *thread_id, pthread_attr_t *attr)
     PTIN_MGMD_LOG_CRITICAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to start MGMD thread");
     return FAILURE;
   }
-
+  
   return SUCCESS;
 }
 
@@ -88,6 +106,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Source Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -101,6 +120,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Group Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -114,6 +134,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Proxy Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -127,6 +148,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized General Query Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -141,6 +163,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Group-Source Specific Query Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -154,6 +177,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Router Compatibility Mode Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -167,6 +191,7 @@ RC_t ptin_mgmd_timers_create(void)
   }
   else
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Failed to Initialized Proxy Compatibility Mode Timers | Nº of Timers: %u | RC=%u", num_timers,res);
     return res;
   }
 
@@ -239,6 +264,8 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   pthread_attr_t attr;
   struct timespec tm;  
 
+  ptin_snooping_thread_pid = syscall(SYS_gettid);
+
   //Validation
   if( (PTIN_NULLPTR==thread_id) || (PTIN_NULLPTR==externalApi) || ((logOutput==MGMD_LOG_FILE) && (PTIN_NULLPTR==logFile)) )
   {
@@ -296,11 +323,10 @@ RC_t ptin_mgmd_init(pthread_t *thread_id, ptin_mgmd_externalapi_t* externalApi, 
   }
 
   //Set log to ERROR by default after the init phase has been completed
-  ptin_mgmd_log_sev_set(1 << PTIN_MGMD_LOG_CTX_PTIN_IGMP, 4);
+  ptin_mgmd_log_sev_set(1 << PTIN_MGMD_LOG_CTX_PTIN_IGMP, PTIN_MGMD_LOG_SEV_ERROR);
 
   return SUCCESS;
 }
-
 
 /**
  * Used to uninitialize MGMD
@@ -343,6 +369,9 @@ RC_t ptin_mgmd_deinit(pthread_t thread_id)
 
       for (ifIdx=0; ifIdx<PTIN_MGMD_MAX_PORTS; ++ifIdx)
       {
+        if (ptin_mgmd_extended_debug) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over ifIdx:%u",ifIdx);
+
         if (snoopEntry->interfaces[ifIdx].active == TRUE)
         {
           uint32 sourceIdx; 
@@ -429,11 +458,20 @@ void ptin_mgmd_logredirect(uint8 logOutput, char8* logFile)
   ptin_mgmd_log_redirect(logOutput, logFile);
 }
 
+uint8_t ptin_mgmd_last_msg_id   = (uint8_t) -1;
+
+uint8_t ptin_mgmd_last_processed_msg_get(void) 
+{
+return ptin_mgmd_last_msg_id;
+}
+
 void* ptin_mgmd_event_handle(void *param)
 {
   _UNUSED_(param);
   PTIN_MGMD_EVENT_t   eventMsg;
   ptin_IgmpProxyCfg_t igmpCfg;
+
+  ptin_mgmd_thread_pid = syscall(SYS_gettid);
 
   while (1)
   {
@@ -449,6 +487,8 @@ void* ptin_mgmd_event_handle(void *param)
     {
       PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
     }
+
+    ptin_mgmd_last_msg_id = eventMsg.type;
 
     switch (eventMsg.type)
     {

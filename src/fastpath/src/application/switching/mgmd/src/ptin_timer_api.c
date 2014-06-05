@@ -89,6 +89,7 @@ PTIN_MEASUREMENT_TIMER_T  measurement_timers[PTIN_MEASUREMENT_TIMERS_NUM_MAX] = 
 
 /* Extern variables */
 extern unsigned char      ptin_mgmd_extended_debug;
+extern unsigned char      ptin_mgmd_loop_trace;
 
 
 /* Static methods */
@@ -242,6 +243,9 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     lowerNeighbor = (cb->lastTimerBelowThreshold==NULL)?(NULL):(cb->lastTimerBelowThreshold->prev);
     while(upperNeighbor != NULL)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over upperNeighbor");
+
       if(upperNeighbor->absoluteTimeout > timer->absoluteTimeout)
       {
         break;
@@ -268,6 +272,9 @@ void __running_list_insert(PTIN_CONTROL_BLOCK_STRUCT *cb, PTIN_TIMER_STRUCT *tim
     lowerNeighbor = cb->lastRunningTimer;
     while(lowerNeighbor != NULL)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over lowerNeighbor");
+
       if(lowerNeighbor->absoluteTimeout <= timer->absoluteTimeout)
       {
         break;
@@ -397,6 +404,7 @@ void* __controlblock_handler(void *param)
     /* If there are no timers in the running list, sleep for 10 seconds or until interrupted */
     if(cbPtr->firstRunningTimer == NULL)
     {
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "No running timers on CB %p. Sleeping for 10 seconds", cbPtr);
       pthread_mutex_unlock(&cbPtr->lock);
       sleep(10);
       continue; //Either we slept until the end or we were waken. Either way, check the first running timer
@@ -498,6 +506,9 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
     PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Initializing all control blocks");
     for (cbIdx=1;cbIdx<MGMD_MAX_NUM_CONTROL_BLOCKS;cbIdx++) 
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over cbIdx:%u | MGMD_MAX_NUM_CONTROL_BLOCKS:%u",cbIdx, MGMD_MAX_NUM_CONTROL_BLOCKS);
+
       cbEntry[cbIdx].state = PTIN_CONTROL_BLOCK_STATE_FREE;
     }
     cbIdx=0;
@@ -508,6 +519,7 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   } 
   else 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Invalid Control Block Id: %u", numCBs);
     return -1;
   }
 
@@ -528,9 +540,13 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   ptin_fifo_create(&cbEntry[cbIdx].availableTimersPool, cbEntry[cbIdx].timersNumMax);
   for(i=0; i<cbEntry[cbIdx].timersNumMax; i++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over i:%u | cbEntry[cbIdx].timersNumMax:%u",i, cbEntry[cbIdx].timersNumMax);
+
     PTIN_TIMER_STRUCT *newTimer = (PTIN_TIMER_STRUCT*) malloc(sizeof(PTIN_TIMER_STRUCT));  
     if(0 != ptin_fifo_push(cbEntry[cbIdx].availableTimersPool, (PTIN_FIFO_ELEMENT_t)newTimer))
     {
+      PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed to get timer element from fifo");
       return -1;
     }
   }
@@ -538,23 +554,28 @@ int ptin_mgmd_timer_controlblock_create(L7_TIMER_GRAN_t tickGranularity, unsigne
   /* Thread setup */
   if (0 != pthread_attr_init(&cbEntry[cbIdx].attr)) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_attr_init");
     return -1;
   }
   if(0 != cbEntry[cbIdx].timerStackSize)
   {
     if (0 != pthread_attr_setstacksize(&cbEntry[cbIdx].attr, cbEntry[cbIdx].timerStackSize)) 
     {
+      PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed to set thread stack size: %u",cbEntry[cbIdx].timerStackSize);
       return -1;
     }
   }
   if (0 != pthread_mutex_init(&cbEntry[cbIdx].lock, NULL)) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_mutex_init");
     return -1;
   }
   if (0 != pthread_create(&cbEntry[cbIdx].thread_id, &cbEntry[cbIdx].attr, &__controlblock_handler, &cbEntry[cbIdx])) 
   {
+    PTIN_MGMD_LOG_FATAL(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Failed pthread_create");
     return -1;
   }
+  PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "cbIdx=%u thread_id=%p",cbIdx, cbEntry[cbIdx].thread_id);
 
   numCBs++;
   *controlBlock = &cbEntry[cbIdx];
@@ -600,16 +621,25 @@ int ptin_mgmd_timer_controlblock_destroy(PTIN_MGMD_TIMER_CB_t controlBlock)
   pthread_mutex_lock(&cbPtr->lock);
   while((timer = cbPtr->firstRunningTimer) != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over __running_list_remove");
+
     __running_list_remove(cbPtr, timer);
     free(timer);
   }
   while((timer = cbPtr->firstInitializedTimer) != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over __initialized_list_remove");
+
     __initialized_list_remove(cbPtr, timer);
     free(timer);
   }
   while(ptin_fifo_pop(cbPtr->availableTimersPool, (PTIN_FIFO_ELEMENT_t*)&timer) == 0)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Iterating over ptin_fifo_pop");
+
     free(timer);
   }
 
@@ -834,6 +864,7 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
 {
   PTIN_CONTROL_BLOCK_STRUCT *cbPtr = (PTIN_CONTROL_BLOCK_STRUCT*)controlBlock;
   PTIN_TIMER_STRUCT         *tmrPtr = (PTIN_TIMER_STRUCT*)timerPtr;
+  pthread_t                  cbThreadId;
 
   if((controlBlock == NULL) || (timerPtr == NULL))
   {
@@ -844,6 +875,7 @@ int ptin_mgmd_timer_stop(PTIN_MGMD_TIMER_CB_t controlBlock, PTIN_MGMD_TIMER_t ti
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_TIMER, "Stoping timer %p for control block %p", timerPtr, controlBlock);
 
   /* Is the timer running? */
+  cbThreadId = cbPtr->thread_id;
   pthread_mutex_lock(&cbPtr->lock);
   if(tmrPtr->state != PTIN_TIMER_STATE_RUNNING)
   {

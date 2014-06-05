@@ -1140,11 +1140,15 @@ int main(int argc, char **argv)
     }
     case 22:
     {
-      if(argc < 2)
+      uint8 family;
+
+      if(argc < 3)
       {
         printHelpMenu();
         return 0;
       }
+
+      family = strtoul(argv[2], PTIN_NULLPTR, 10);
 
       sendMgmdQuerierReset(PTIN_MGMD_AF_INET);
       break;

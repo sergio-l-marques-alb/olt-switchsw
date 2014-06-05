@@ -574,6 +574,8 @@ RC_t ptin_mgmd_ctrl_client_activegroups_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       response.sourceIP    = groupList[i].sourceAddr.addr.ipv4.s_addr;
       response.sourceTimer = groupList[i].sourceTimer;
 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Copying...[Entry Id:%u groupIP:0x%04X groupType:%u filterMode:%u groupTimer:%u sourceIP:0x%04X sourceTimer:%u]", response.entryId, response.groupIP,response.groupType,
+                          response.filterMode, response.groupTimer, response.sourceIP, response.sourceTimer);
       memcpy(eventData->data+j*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
       ++j;
     }
@@ -599,7 +601,7 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
   uint16                                 portId;
   uint16                                 numberOfClientsAux = 0;
   uint32                                 maxNumberOfEntries = PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
-  uint32                                 clientId, entryId, numOfClientsInMsg;
+  uint32                                 clientId, entryId, numOfClientsInMsg, numberOfClientsPerPortFound;
   PTIN_MGMD_CTRL_GROUPCLIENTS_REQUEST_t  request            = {0};
   PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t response           = {0};
   ptin_mgmd_inet_addr_t                  groupAddr, sourceAddr;
@@ -624,6 +626,9 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
     memset(numberOfClientsPerPort, 0x00, sizeof(numberOfClientsPerPort));
     for (portId=1;portId<=PTIN_MGMD_MAX_PORT_ID;portId++)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u", portId, PTIN_MGMD_MAX_PORT_ID);  
+
       if (SUCCESS != (res = ptinMgmdgroupclients_get(request.serviceId, portId, &groupAddr, &sourceAddr, portClientList[portId], &numberOfClientsPerPort[portId])))
       {
         PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to update clientList");
@@ -648,6 +653,9 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
   entryId            = 0;
   for (portId=1; portId<=PTIN_MGMD_MAX_PORT_ID; portId++)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u", portId, PTIN_MGMD_MAX_PORT_ID);  
+
     //Ignore this interface if the requested entryId is higher than the number os clients for this interface
     numberOfClientsAux += numberOfClientsPerPort[portId];
     if(numberOfClientsAux < request.entryId)
@@ -656,16 +664,22 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
       continue;
     }      
     
-    //
+    numberOfClientsPerPortFound = 0;
+
     //Check each client in this interface
     for (clientId=0; entryId<maxNumberOfEntries && entryId<numberOfClients && clientId<PTIN_MGMD_MAX_CLIENTS && numberOfClientsPerPort[portId]!=0; ++clientId)
     {      
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over clientId:%u | numberOfClients:%u | PTIN_MGMD_MAX_CLIENTS:%u",clientId, numberOfClients, PTIN_MGMD_MAX_CLIENTS);  
+
+      
       //Move forward 8 bits if this byte is 0 (no clients)
-      if(portClientList[portId][clientId/8] == 0)
+      if(! (PTIN_MGMD_CLIENT_IS_MASKBYTESET(portClientList[portId],clientId)))
       {
-        clientId += 8; 
+        clientId += PTIN_MGMD_CLIENT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
         continue;
-      }             
+      } 
+                  
       //Move forward 1 bit if the requested entryId is still higher
       ++numberOfClientsAux;
       if(numberOfClientsAux <= request.entryId)
@@ -683,13 +697,18 @@ RC_t ptin_mgmd_ctrl_clientList_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
         memcpy(eventData->data+entryId*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), &response, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
         ++entryId;
-        ++numOfClientsInMsg;
-        //All Clients have been already found
-        if(numOfClientsInMsg>=numberOfClientsPerPort[portId])
-        {
-          break;
-        }
+        ++numOfClientsInMsg;    
+
+        //All Clients of this port have been already found
+        if(++numberOfClientsPerPortFound >= numberOfClientsPerPort[portId])
+          break;    
       }
+    }
+
+    //All Clients have been already found
+    if(numOfClientsInMsg >= numberOfClients)
+    {
+      break;
     }
   }
   eventData->dataLength = numOfClientsInMsg*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);

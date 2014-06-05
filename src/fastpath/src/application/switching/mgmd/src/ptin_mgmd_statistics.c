@@ -24,6 +24,8 @@ ptin_IGMP_Statistics_t mgmd_stat_service[PTIN_MGMD_MAX_SERVICES][PTIN_MGMD_MAX_P
 ptin_IGMP_Statistics_t mgmd_stat_client[PTIN_MGMD_MAX_PORT_ID][PTIN_MGMD_MAX_CLIENTS]   = {{{0}}};
 
 extern unsigned long     ptin_mgmd_memory_allocation;
+extern unsigned char     ptin_mgmd_extended_debug;
+extern unsigned char     ptin_mgmd_loop_trace;
 
 
 void ptin_mgmd_statistics_memory_allocation(void)
@@ -66,6 +68,9 @@ static RC_t ptin_mgmd_stats_service_find(uint32 serviceId, int16 *arrayIdx)
   *arrayIdx = 0;
   for(*arrayIdx = 0; *arrayIdx < PTIN_MGMD_MAX_SERVICES; ++(*arrayIdx))
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", *arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[*arrayIdx][0].serviceId == serviceId)
     {
       return SUCCESS;
@@ -98,6 +103,9 @@ static RC_t ptin_mgmd_stats_service_find_or_getfree(uint32 serviceId, int16 *arr
   *arrayIdx = 0;
   for(*arrayIdx = 0; *arrayIdx < PTIN_MGMD_MAX_SERVICES; ++(*arrayIdx))
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", *arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[*arrayIdx][0].serviceId == serviceId)
     {
       return SUCCESS;
@@ -113,6 +121,9 @@ static RC_t ptin_mgmd_stats_service_find_or_getfree(uint32 serviceId, int16 *arr
     *arrayIdx=firstFreeIdx;
     for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
     {
+      if (ptin_mgmd_loop_trace) 
+        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", portIdx, PTIN_MGMD_MAX_PORT_ID );
+
       memset(&mgmd_stat_service[*arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
       mgmd_stat_service[*arrayIdx][portIdx].used      = TRUE;
       mgmd_stat_service[*arrayIdx][portIdx].serviceId = serviceId;
@@ -137,10 +148,16 @@ RC_t ptin_mgmd_stats_service_clear(uint32 serviceId)
 
   for(arrayIdx = 0; arrayIdx < PTIN_MGMD_MAX_SERVICES; ++arrayIdx)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", arrayIdx, PTIN_MGMD_MAX_SERVICES );
+
     if(mgmd_stat_service[arrayIdx][0].serviceId == serviceId)
     {
       for(portIdx = 0; portIdx <= PTIN_MGMD_MAX_PORT_ID; ++portIdx)
       {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating %u over %u", portIdx, PTIN_MGMD_MAX_PORT_ID );
+
         memset(&mgmd_stat_service[arrayIdx][portIdx], 0x00, sizeof(ptin_IGMP_Statistics_t));
         mgmd_stat_service[arrayIdx][portIdx].used = FALSE;
       }
@@ -165,364 +182,373 @@ RC_t ptin_mgmd_stat_increment_field(uint32 portId, uint32 serviceId, uint32 clie
   int16 arrayIdx;
 
   // Validations
-  if ( (portId > PTIN_MGMD_MAX_PORT_ID) || (serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
+  if ( (portId > PTIN_MGMD_MAX_PORT_ID) || ((serviceId != (uint32)-1) && serviceId > PTIN_MGMD_MAX_SERVICE_ID) || ((clientId != ((uint32)-1)) && (clientId > PTIN_MGMD_MAX_CLIENTS)) )
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Abnormal context [portId:%u serviceId:%u clientId:%u]", portId, serviceId, clientId);
     return FAILURE;
   }
 
-  // Get the index that holds the requested service ID. If not found, get a free index
-  if(SUCCESS != ptin_mgmd_stats_service_find_or_getfree(serviceId, &arrayIdx))
-  {    
-    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u] and there are no free indexes left", serviceId);
-    return FAILURE;    
+  if(serviceId != ((uint32)-1))
+  {
+    // Get the index that holds the requested service ID. If not found, get a free index
+    if(SUCCESS != ptin_mgmd_stats_service_find_or_getfree(serviceId, &arrayIdx))
+    {    
+      PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to find requested service[%u] and there are no free indexes left", serviceId);
+      return FAILURE;    
+    }
+  }
+  else
+  {
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Incrementing Statistics for portId %u only!", portId);
   }
 
   switch (field) {
   case SNOOP_STAT_FIELD_ACTIVE_GROUPS:
     ++mgmd_stat_port[portId].active_groups;
-    ++mgmd_stat_service[arrayIdx][portId].active_groups;
-    if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].active_groups;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].active_groups;
+    if((clientId != ((uint32)-1)))  ++mgmd_stat_client[portId][clientId].active_groups;
     break;
 
   case SNOOP_STAT_FIELD_ACTIVE_CLIENTS:
     ++mgmd_stat_port[portId].active_clients;
-    ++mgmd_stat_service[arrayIdx][portId].active_clients;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].active_clients;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].active_clients;
     break;
   
 
   case SNOOP_STAT_FIELD_IGMP_DROPPED:
     ++mgmd_stat_port[portId].igmp_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmp_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID:
     ++mgmd_stat_port[portId].igmp_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmp_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmp_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmp_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERIC_QUERY_INVALID_RX:  
     ++mgmd_stat_port[portId].igmpquery.generic_query_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.generic_query_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.generic_query_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.generic_query_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     ++mgmd_stat_port[portId].igmpquery.general_query_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.general_query_tx;
     break;
 
   case SNOOP_STAT_FIELD_GENERAL_QUERY_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpquery.general_query_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.general_query_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERAL_QUERY_VALID_RX:
     ++mgmd_stat_port[portId].igmpquery.general_query_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.general_query_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GENERAL_QUERY_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpquery.general_query_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.general_query_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.general_query_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TX:
     ++mgmd_stat_port[portId].igmpquery.group_query_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.group_query_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpquery.group_query_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.group_query_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_VALID_RX:
     ++mgmd_stat_port[portId].igmpquery.group_query_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.group_query_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_SPECIFIC_QUERY_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpquery.group_query_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.group_query_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.group_query_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TX:
     ++mgmd_stat_port[portId].igmpquery.source_query_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.source_query_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpquery.source_query_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.source_query_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_VALID_RX:
     ++mgmd_stat_port[portId].igmpquery.source_query_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.source_query_valid_rx;
     break;
 
    case SNOOP_STAT_FIELD_GROUP_AND_SOURCE_SPECIFIC_QUERY_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpquery.source_query_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpquery.source_query_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpquery.source_query_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_JOIN_TX:
     ++mgmd_stat_port[portId].igmpv2.join_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_tx;
     break;
 
   case SNOOP_STAT_FIELD_JOIN_VALID_RX:
     ++mgmd_stat_port[portId].igmpv2.join_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_JOIN_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv2.join_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv2.join_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.join_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_LEAVE_TX:
     ++mgmd_stat_port[portId].igmpv2.leave_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_tx ;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_tx ;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.leave_tx ;
     break;
 
   case SNOOP_STAT_FIELD_LEAVE_VALID_RX:
     ++mgmd_stat_port[portId].igmpv2.leave_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv2.leave_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv2.leave_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX:
     ++mgmd_stat_port[portId].igmpv3.membership_report_tx;    
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_tx;    
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_tx;    
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.membership_report_tx;    
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.membership_report_total_rx;    
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_total_rx;    
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_total_rx;    
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.membership_report_total_rx;    
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.membership_report_valid_rx;    
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.membership_report_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.membership_report_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.membership_report_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_DROPPED_RX:
     ++mgmd_stat_port->igmpv3.membership_report_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.membership_report_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.membership_report_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.allow_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.allow_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.allow_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.allow_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.allow_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.allow_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.allow_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.allow_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_ALLOW_NEW_SOURCES_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.allow_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.allow_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.allow_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.block_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.block_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.block_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.block_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.block_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.block_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.block_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.block_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_BLOCK_OLD_SOURCES_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.block_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.block_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.block_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_include_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_include_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_include_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_include_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_include_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_include_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_include_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_include_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_INCLUDE_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_include_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_include_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_include_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_exclude_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_exclude_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_exclude_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_exclude_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_exclude_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_exclude_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_exclude_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_exclude_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_TO_EXCLUDE_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.to_exclude_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.to_exclude_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.to_exclude_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_include_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_include_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_include_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_include_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_include_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_include_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_include_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_include_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_INCLUDE_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_include_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_include_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_include_dropped_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_exclude_tx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_tx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_tx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_exclude_tx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_TOTAL_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_exclude_total_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_total_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_total_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_exclude_total_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_VALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_exclude_valid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_valid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_valid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_exclude_valid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_INVALID_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_exclude_invalid_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_invalid_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_invalid_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_exclude_invalid_rx;
     break;
 
   case SNOOP_STAT_FIELD_GROUP_RECORD_IS_EXCLUDE_DROPPED_RX:
     ++mgmd_stat_port[portId].igmpv3.group_record.is_exclude_dropped_rx;
-    ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_dropped_rx;
+    if((serviceId != ((uint32)-1))) ++mgmd_stat_service[arrayIdx][portId].igmpv3.group_record.is_exclude_dropped_rx;
     if((clientId != ((uint32)-1))) ++mgmd_stat_client[portId][clientId].igmpv3.group_record.is_exclude_dropped_rx;
     break;
  
   default:
+    if(ptin_mgmd_extended_debug)
+      PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Statistics Field not valid:%u", field);
     break;
   }
 

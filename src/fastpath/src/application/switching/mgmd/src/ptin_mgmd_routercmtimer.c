@@ -151,7 +151,7 @@ RC_t ptin_mgmd_event_routercmtimer(ptinMgmdLeafCMtimer_t **timerData)
 {
   ptin_IgmpProxyCfg_t igmpGlobalCfg;
 
-  if (PTIN_NULLPTR == ptinMgmdL3EntryFind((*timerData)->groupKey.serviceId, &(*timerData)->groupKey.groupAddr, AVL_EXACT))
+  if (PTIN_NULLPTR == ptinMgmdL3EntryFind((*timerData)->groupKey.serviceId, &(*timerData)->groupKey.groupAddr))
   {
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "We have an event Router Compatibility Mode Timer to process (serviceId:[%u] groupAddr:[0x%X]), but we were unable to find the entry in the AVL tree",(*timerData)->groupKey.serviceId,(*timerData)->groupKey.groupAddr.addr.ipv4.s_addr);
     return SUCCESS;

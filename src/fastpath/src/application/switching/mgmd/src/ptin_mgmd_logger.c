@@ -41,9 +41,11 @@ static const char *log_sev_str[PTIN_MGMD_LOG_SEV_LAST] = {
 /* Context strings */
 static const char *log_ctx_str[PTIN_MGMD_LOG_CONTEXT_LAST] = {
     "LOG  ",
+    "MSG  ",
     "MGMD ",
     "TIMER",
     "FIFO ",
+    "START",
 };
 
 /* Severity color */
@@ -104,8 +106,9 @@ static char *log_colors_str[PTIN_MGMD_LOG_COLOR_LAST] = {
 
 /* Logger default configuration
  * NOTE: it is assumed that entries are sorted by context indexes! */
-static struct ptin_mgmd_log_cfg_entry_s log_cfg[PTIN_MGMD_LOG_CONTEXT_LAST] = {
+static struct ptin_mgmd_log_cfg_entry_s log_cfg[PTIN_MGMD_LOG_CONTEXT_LAST] = {    
     {PTIN_MGMD_LOG_CTX_LOGGER,            PTIN_MGMD_LOG_SEV_DEBUG,       PTIN_MGMD_LOG_COLOR_DEFAULT},
+    {PTIN_MGMD_LOG_CTX_PTIN_MSG,          PTIN_MGMD_LOG_SEV_DEBUG,       PTIN_MGMD_LOG_COLOR_DEFAULT},
     {PTIN_MGMD_LOG_CTX_PTIN_IGMP,         PTIN_MGMD_LOG_SEV_DEBUG,       PTIN_MGMD_LOG_COLOR_DEFAULT},
     {PTIN_MGMD_LOG_CTX_PTIN_TIMER,        PTIN_MGMD_LOG_SEV_ERROR,       PTIN_MGMD_LOG_COLOR_DEFAULT},
     {PTIN_MGMD_LOG_CTX_PTIN_FIFO,         PTIN_MGMD_LOG_SEV_TRACE,       PTIN_MGMD_LOG_COLOR_DEFAULT},

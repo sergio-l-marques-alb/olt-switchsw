@@ -36,6 +36,7 @@ typedef struct
 } FIFO_QUEUE_t;
 
 
+extern unsigned char  ptin_mgmd_loop_trace;
 /**
  * Dump the contents of the FIFO queue
  * 
@@ -96,6 +97,9 @@ unsigned int ptin_fifo_numUsedElements(PTIN_FIFO_t fifoQueue)
   curr_element = queue->first_used;
   while(curr_element != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over Fifo Element");
+
     ++num_elements;
     curr_element = curr_element->next;
   }
@@ -119,6 +123,9 @@ unsigned int ptin_fifo_numFreeElements(PTIN_FIFO_t fifoQueue)
   curr_element = queue->first_free;
   while(curr_element != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over Fifo Element");
+
     ++num_elements;
     curr_element = curr_element->next;
   }
@@ -156,6 +163,9 @@ int ptin_fifo_create(PTIN_FIFO_t* fifoQueue, unsigned int numElements)
   queue->last_free  = NULL;
   for (i=0; i<numElements; ++i)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over i:%u | numElements:%u", i, numElements);
+
     ELEMENT_t *new_element = (ELEMENT_t*) malloc(sizeof(ELEMENT_t));
     memset(new_element, 0x00, sizeof(ELEMENT_t));
 
@@ -208,6 +218,9 @@ int ptin_fifo_destroy(PTIN_FIFO_t fifoQueue)
   //Free allocated elements
   while((element = queue->first_free) != NULL)
   {
+    if (ptin_mgmd_loop_trace) 
+      PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_FIFO, "Iterating over Fifo Element");
+
     queue->first_free = element->next;
     free(element);
   }
