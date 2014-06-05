@@ -47,7 +47,7 @@
 
 #define PTIN_IGMP_DEFAULT_QUERYINTERVAL                 125 /* (s) */
 
-#define PTIN_IGMP_MIN_QUERYINTERVAL                     10 /* (s) */
+#define PTIN_IGMP_MIN_QUERYINTERVAL                     2 /* (s) */
 #define PTIN_IGMPv2_MAX_QUERYINTERVAL                   255 /* (s) */
 #define PTIN_IGMPv3_MAX_QUERYINTERVAL                   31744 /* (s) */
 
