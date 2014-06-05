@@ -129,8 +129,5 @@ extern uint8 ptin_board_slotId;
 // ----------------------------------------------------
 
    EXTERN_C int  GetMsgCounter     (void);
-
-   // Set a new server ipaddr
-   EXTERN_C void ipc_server_ipaddr_set(uint32 ipaddr);
 #endif // EMILOX16_CONTROLO_IPC_H
 

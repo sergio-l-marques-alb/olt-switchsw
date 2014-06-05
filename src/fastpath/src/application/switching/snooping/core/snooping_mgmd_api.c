@@ -100,7 +100,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     *slotId = backupMatrixSlotId;
   }
 #elif PTIN_BOARD_IS_LINECARD
-  *slotId = (cpld_map->reg.slot_matrix==0)?(PTIN_SYS_LC_SLOT_MAX+1):(PTIN_SYS_LC_SLOT_MIN-1);
+  *slotId = ((cpld_map->reg.slot_matrix>>4)==0)?(PTIN_SYS_LC_SLOT_MAX+1):(PTIN_SYS_LC_SLOT_MIN-1);
 #endif
 
   return L7_SUCCESS;

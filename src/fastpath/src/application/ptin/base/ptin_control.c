@@ -633,7 +633,7 @@ static void monitor_matrix_commutation(void)
   memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
   phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
 
-  cx_work_slot = (L7_int) cpld_map->reg.slot_matrix & 1;
+  cx_work_slot = (L7_int) ((cpld_map->reg.slot_matrix >> 4) & 1);
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
