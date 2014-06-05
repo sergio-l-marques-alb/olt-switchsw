@@ -184,7 +184,26 @@
   }
 }
 ,
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) SF */
+/* Board 56640 */
+{
+  {
+    CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID,   /* cardtypeID */
+    "BCM56640-4x10GE-4x40GE-1GIG",              /* cardModel  */
+    "Broadcom BCM56640 - 4x10G + 4x40G + 1GIG Ethernet Switch-Fabric",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    8,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1 /* dapiCardInfo */
+  }
+}
+,
+/* PTin added: new switch 5664x (Triumph3) */
+/* Board 56643 */
 {
   {
     CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,   /* cardtypeID */

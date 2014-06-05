@@ -79,7 +79,23 @@
         __BROADCOM_56685_ID,
         NO_CONNECTION_LIST
     },
-    /* PTin added: new switch 56643 (Triumph3) */
+    /* PTin added: new switch 5664x (Triumph3) SF */
+    /* 56640 board */
+    {
+        BCM_SYS_BOARD_56640,
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56640_DEVICE_ID,
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID,
+        __BROADCOM_56640_ID,
+        NO_CONNECTION_LIST
+    },
+    /* PTin added: new switch 5664x (Triumph3) */
     /* 56643 board */
     {
         BCM_SYS_BOARD_56643,

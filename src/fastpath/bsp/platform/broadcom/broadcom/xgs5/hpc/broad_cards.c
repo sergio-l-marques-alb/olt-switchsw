@@ -147,6 +147,15 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[
 { 3,  L7_TRUE,   8, 38}    /* logical Router card */
 };
 
+/* PTin added: new switch 5664x (Triumph3) SF */
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1[] =
+{
+{ 0,  L7_TRUE,   8,  1},   /* physical slot with 8 port card (4x10G + 4x40G) */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
 /* PTin added: new switch 56340 (Helix4) */
 HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
 {
@@ -192,7 +201,16 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_SING
   {0, 31}
 };
 
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) SF */
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0,  5},
+  {0,  9},
+  {0, 13}
+};
+
+/* PTin added: new switch 5664x (Triumph3) */
 HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
 {
  /* bcm_unit, bcm_port */
@@ -305,7 +323,33 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1[] =
 }
 };
 
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) SF */
+/*******************************************************************************
+ * Broadcom Triumph3 unit with 4 10GB & 3 40GB fixed ports on a single slot.   *
+ *                                                                             *
+ ******************************************************************************/
+HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+{
+{
+  mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1,
+  sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1),
+
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
+  0,                                                  /* slot_id       */
+  1,                                                  /* num_units     */
+  0,                                                  /* dest_unit     */
+  0,                                                  /* dest_port     */
+#ifdef L7_STACKING_PACKAGE
+  sizeof(stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
+  stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1     /* stk_port_list */
+#else
+  0,
+  L7_NULLPTR
+#endif
+}
+};
+
+/* PTin added: new switch 5664x (Triumph3) */
 /*******************************************************************************
  * Broadcom Valkyrie unit with 48GB & 4 10GB fixed ports on a single slot.   *
  *                                                                             *
@@ -895,7 +939,22 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 #endif
 };
 
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) SF */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port *
+ * -------  ------- ----------- -------- */
+{
+{       0,       0,          0,      17}, /* 10G ETH */
+{       0,       1,          0,      21},
+{       0,       2,          0,      25},
+{       0,       3,          0,      29},
+{       0,       4,          0,       5}, /* 40G ETH */
+{       0,       5,          0,       9},
+{       0,       6,          0,      13},
+{       0,       7,          0,       1}, /* 1G ETH */
+};
+
+/* PTin added: new switch 5664x (Triumph3) */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port *
  * -------  ------- ----------- -------- */
@@ -1560,6 +1619,20 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[]
 {    51},
 };
 
+/* PTin added: new switch 5664x (Triumph3) SF */
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1[] =
+/*portNum
+ *------- */
+{{    0},
+{     1},
+{     2},
+{     3},
+{     4},
+{     5},
+{     6},
+{     7},
+};
+
 /* PTin added: new switch 56340 (Helix4) */
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
 /*portNum
@@ -1846,7 +1919,14 @@ dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1, sizeof(dapiBroa
 dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) SF */
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+/* PTin added: new switch 5664x (Triumph3) */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
@@ -2043,7 +2123,16 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 #endif
 };
 
-/* PTin added: new switch 56643 (Triumph3) */
+/* PTin added: new switch 5664x (Triumph3) */
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
+{L7_PORT_DESC_BCOM_1G_AN},
+};
+
+/* PTin added: new switch 5664x (Triumph3) */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[]= 
 {
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
