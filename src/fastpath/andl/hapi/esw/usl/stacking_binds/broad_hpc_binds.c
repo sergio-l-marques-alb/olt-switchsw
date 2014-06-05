@@ -136,6 +136,11 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
 }
 #endif
 
+/* PTin added: application control */
+void hpcHardwareFini(void)
+{
+  sal_core_term();
+}
 
 /**************************************************************************
 *

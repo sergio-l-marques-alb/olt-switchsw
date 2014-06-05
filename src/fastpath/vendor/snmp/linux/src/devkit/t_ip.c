@@ -108,7 +108,7 @@ SR_FILENAME
 /* LVL7 end */
 
 static SR_UINT32       LocalIPAddress = (SR_UINT32)0;
-char *send_port_range = NULL;
+static char *send_port_range = NULL;
 
 #define SA_CAST(x) (struct sockaddr *)x
 

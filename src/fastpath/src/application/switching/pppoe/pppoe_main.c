@@ -45,7 +45,8 @@ extern osapiRWLock_t pppoeCfgRWLock;
 extern void *pppoeMsgQSema;
 extern void *pppoe_Event_Queue;
 extern void *pppoe_Packet_Queue;
-extern ptinPppoeBindingAvlTree_t pppoeBindingTable;
+
+ptinPppoeBindingAvlTree_t pppoeBindingTable;
 
 
 /********************************************************************* 

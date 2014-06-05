@@ -157,7 +157,7 @@ static L7_uint32 dhcp_quattro_p2p_evcs = 0;
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
 
 /* Global DHCP statistics at interface level */
-ptin_DHCP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
+static ptin_DHCP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
 /* Semaphores */
 void *dhcp_sem = NULL;
