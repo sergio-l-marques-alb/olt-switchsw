@@ -26,6 +26,7 @@
 #include "dtlapi.h"
 #include "buff_api.h"
 #include "ptin_intf.h"
+#include "ptin_control.h"
 #include "fw_shm.h"
 #include "logger.h"
 
@@ -970,7 +971,7 @@ L7_RC_t ssmCodesInit(void)
 L7_RC_t ssmTimersUpdate(void)
 {
   L7_uint16 slot, intf;
-  L7_uint32 intIfNum;
+  L7_uint32 intIfNum, ptin_port;
   L7_uint32 linkState;
 
   osapiSemaTake(ssmTimersSyncSema, L7_WAIT_FOREVER);
@@ -987,10 +988,18 @@ L7_RC_t ssmTimersUpdate(void)
       }
 
       /* Update link status */
-      if (ptin_intf_slotPort2IntIfNum(slot+1,intf,&intIfNum)==L7_SUCCESS &&
-          nimGetIntfLinkState(intIfNum,&linkState)==L7_SUCCESS)
+      if (ptin_intf_slotPort2port(slot+1, intf, &ptin_port) == L7_SUCCESS &&
+          ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS &&
+          nimGetIntfLinkState(intIfNum, &linkState) == L7_SUCCESS)
       {
-        pfw_shm->intf[slot][intf].link = (linkState==L7_UP);
+        pfw_shm->intf[slot][intf].link  = (linkState==L7_UP);
+
+        /* Update activity status (only for SF local ports -> slot 0) */
+        if (((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1) && slot == 0)
+        {
+          pfw_shm->intf[slot][intf].link |= 
+            ((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1;
+        }
       }
       else
       {
