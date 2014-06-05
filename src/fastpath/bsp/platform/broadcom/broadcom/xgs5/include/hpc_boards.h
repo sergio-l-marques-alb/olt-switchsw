@@ -95,6 +95,23 @@
         __BROADCOM_56643_ID,
         NO_CONNECTION_LIST
     },
+    /* PTin added: new switch 56340 (Helix4) */
+    /* 56340 board */
+    {
+        BCM_SYS_BOARD_56340,
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56340_DEVICE_ID,
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID,
+        __BROADCOM_56340_ID,
+        NO_CONNECTION_LIST
+    },
+    /* PTin added: new switch 56843 (Trident) */
     /* 56843 board */
     {
         BCM_SYS_BOARD_56843,
@@ -111,6 +128,7 @@
         NO_CONNECTION_LIST
     },
 #if (PTIN_BOARD == PTIN_BOARD_CXP360G)
+    /* PTin added: new switch 56843 (Trident) */
     /* 56844 board */
     {
         BCM_SYS_BOARD_56844,
@@ -127,6 +145,7 @@
         NO_CONNECTION_LIST
     },
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    /* PTin added: new switch 56846 (Trident-plus) */
     /* 56846 board */
     {
         BCM_SYS_BOARD_56846,	/* XXXX */

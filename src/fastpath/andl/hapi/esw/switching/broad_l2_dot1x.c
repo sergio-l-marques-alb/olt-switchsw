@@ -351,6 +351,7 @@ L7_BOOL hapiBroadDot1xVFPTableSupported()
   case __BROADCOM_56524_ID:
   case __BROADCOM_56636_ID:
   case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
+  case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
     supported = L7_TRUE;
     break;
   default:
@@ -406,7 +407,7 @@ L7_BOOL hapiBroadDot1xVlanAssignmentSupported()
   case __BROADCOM_56636_ID:
   case __BROADCOM_56304_ID:
   case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
-
+  case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
     supported = L7_TRUE;
     break;
   default:
@@ -463,7 +464,7 @@ L7_BOOL hapiBroadDot1xPolicySupported()
   case __BROADCOM_56524_ID:
   case __BROADCOM_56636_ID:
   case __BROADCOM_56643_ID:   /* PTin added: new switch 56643 (Triumph3) */
-
+  case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
     supported = L7_TRUE;
     break;
   default:

@@ -24,6 +24,7 @@ KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 
+#export TOOLCHAIN_BASE_DIR = /opt/broadcom
 export TOOLCHAIN_BASE_DIR = /opt/broadcom
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
