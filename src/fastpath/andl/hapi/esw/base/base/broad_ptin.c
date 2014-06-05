@@ -159,7 +159,7 @@ L7_RC_t hapiBroadPtinSlotMode(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  #if (PTIN_BOARD==PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   ptin_slotmode_t *slotmode;
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;

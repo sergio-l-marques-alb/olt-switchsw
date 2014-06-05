@@ -651,5 +651,136 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 
   return L7_SUCCESS;
 }
+
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+/**
+ * Build a WC map from the array of port modes
+ * 
+ * @param slot_mode : Slot modes
+ * @param retMap    : Map to be returned
+ * 
+ * @return L7_RC_t : L7_SUCCESS - Valid map 
+ *                   L7_NOT_SUPPORTED - Map not valid
+ *                   L7_FAILURE - Error processing file
+ */
+L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
+{
+  L7_int  slot, port, i;
+  L7_uint speedG, total_lanes;
+  HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
+
+  /* Validate arguments */
+  if (slot_mode == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Initialzie port map */
+  memset(wcMap, 0x00, sizeof(wcMap));
+  for (i=0; i < L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
+  {
+    wcMap[i].portNum  =  0;
+    wcMap[i].slotNum  = -1;
+    wcMap[i].wcIdx    = -1;
+    wcMap[i].wcLane   = -1;
+    wcMap[i].wcSpeedG =  0;
+  }
+
+  /* Frontal ports */
+  for (port=0; port < CXO160G_FRONTAL_PORTS && port < L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
+  {
+    wcMap[port].portNum  = port;
+    wcMap[port].slotNum  = -1;
+    wcMap[port].wcIdx    = -1;
+    wcMap[port].wcLane   =  0;
+    wcMap[port].wcSpeedG = 10;    /* frontal ports at 10G */
+    LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
+              wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+  }
+
+  /* Run all provided slots */
+  for (slot = PTIN_SYS_LC_SLOT_MIN; slot <= PTIN_SYS_LC_SLOT_MAX && port < L7_MAX_PHYSICAL_PORTS_PER_UNIT; slot++)
+  {
+    switch (slot_mode[slot-1])
+    {
+      case WC_SLOT_MODE_1x1G:
+      case WC_SLOT_MODE_2x1G:
+      case WC_SLOT_MODE_3x1G:
+      case WC_SLOT_MODE_4x1G:
+        speedG = 1;   total_lanes = 4;
+        slot_mode[slot-1] = WC_SLOT_MODE_4x1G;
+        break;
+      case WC_SLOT_MODE_1x10G:
+      case WC_SLOT_MODE_2x10G:
+      case WC_SLOT_MODE_3x10G:
+      case WC_SLOT_MODE_4x10G:
+        speedG = 10;  total_lanes = 4;
+        slot_mode[slot-1] = WC_SLOT_MODE_4x10G;
+        break;
+      case WC_SLOT_MODE_1x20G:
+      case WC_SLOT_MODE_2x20G:
+        speedG = 20;  total_lanes = 2;
+        slot_mode[slot-1] = WC_SLOT_MODE_2x20G;
+        break;
+      default:
+        speedG = 40;  total_lanes = 1;
+        slot_mode[slot-1] = WC_SLOT_MODE_1x40G;
+        break;
+    }
+
+    if (speedG==0 || total_lanes==0)
+    {
+      continue;
+    }
+
+    /* Run all lanes of each slot */
+    for (i=0; i<total_lanes && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
+    {
+      /* We have a valid WC, and a valid lane */
+      wcMap[port].portNum  = port;
+      wcMap[port].slotNum  = slot;
+      wcMap[port].wcIdx    = -1;
+      wcMap[port].wcLane   =  i;
+      wcMap[port].wcSpeedG = speedG;
+      LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
+                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+      port++;
+    }
+  }
+
+  /* Check if we have available ports */
+  if (port >= L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"All ports used up");
+    return L7_FAILURE;
+  }
+
+  /* Last port is a 1G port */
+  /* We have a valid WC, and a valid lane */
+  wcMap[port].portNum  = port;
+  wcMap[port].slotNum  = -1;
+  wcMap[port].wcIdx    = -1;
+  wcMap[port].wcLane   =  0;
+  wcMap[port].wcSpeedG =  1;
+  LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
+            wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+  port++;
+
+  /* Return port map */
+  if (retMap!=L7_NULLPTR)
+  {
+    /* print allocated ports */
+    if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+    {
+      LOG_WARNING(LOG_CTX_STARTUP,"Less than %u allocated ports: %u !",L7_MAX_PHYSICAL_PORTS_PER_UNIT, port);
+    }
+
+    memcpy(retMap, &wcMap, sizeof(wcMap));
+  }
+
+  return L7_SUCCESS;
+}
 #endif
 

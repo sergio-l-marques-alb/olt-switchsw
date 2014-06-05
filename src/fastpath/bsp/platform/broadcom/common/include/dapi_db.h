@@ -50,7 +50,9 @@ typedef struct
 } HAPI_CARD_SLOT_MAP_t ;
 
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+
+#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
 #define WC_MAX_NUMBER          18
 #define WC_MAX_LANES            4
@@ -62,6 +64,8 @@ typedef struct
 #define WC_SEGMENT_N_GROUPS     2
 #define WC_SEGMENT_MAX_PORTS   32
 
+#define CXO160G_FRONTAL_PORTS     4
+#define CXO160G_BACKPLANE_PORTS  12    /* Maximum number of backplane ports */
 
 #define WC_SLOT_MODE_NONE   0
 #define WC_SLOT_MODE_2x10G  1
@@ -76,7 +80,9 @@ typedef struct
 #define WC_SLOT_MODE_2x1G   10
 #define WC_SLOT_MODE_3x1G   11
 #define WC_SLOT_MODE_4x1G   12
-#define WC_SLOT_MODE_MAX    13
+#define WC_SLOT_MODE_1x20G  13
+#define WC_SLOT_MODE_2x20G  14
+#define WC_SLOT_MODE_MAX    15
 
 /*******************************************************************************
 *
@@ -89,21 +95,21 @@ typedef struct
 *******************************************************************************/
 typedef struct
 {
-  L7_ulong32 wcIndex;
-  L7_ulong32 wcGroup;
-  L7_uint8   invert_lanes;
-  L7_uint8   invert_polarities;
-  L7_long32  slotIdx;
+  L7_ulong32  wcIndex;
+  L7_ulong32  wcGroup;
+  L7_uint8    invert_lanes;
+  L7_uint8    invert_polarities;
+  L7_long32   slotIdx;
 
 } HAPI_WC_SLOT_MAP_t;
 
 typedef struct
 {
-  L7_ulong32 portNum;
-  L7_long32  slotNum;
-  L7_ulong32 wcIdx;
-  L7_ulong32 wcLane;
-  L7_ulong32 wcSpeedG;
+  L7_ulong32  portNum;
+  L7_long32   slotNum;
+  L7_long32   wcIdx;
+  L7_long32   wcLane;
+  L7_long32   wcSpeedG;
 
 } HAPI_WC_PORT_MAP_t;
 #endif
@@ -165,7 +171,7 @@ typedef struct
   void                   *npInfo;
   L7_ushort16             npInfoSlot;
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   L7_uint32              *wcSlotMode;
   L7_ushort16             numOfWCSlotModeEntries;
 
@@ -196,7 +202,7 @@ typedef struct
 L7_RC_t dapiBroadCardInfoInit(SYSAPI_HPC_CARD_DESCRIPTOR_t *cardDesc);
 
 /* PTin added */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 /**
  * Build a WC map from the array of port modes
  * 
