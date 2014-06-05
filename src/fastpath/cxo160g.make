@@ -28,7 +28,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= /home/peter/kernel_3_0_51.test
+export KERNEL_PATH	= /home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
 #$(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
 
 #CC='${COMPILER}gcc'
@@ -165,15 +165,11 @@ clean-platform:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	$(RM) -f $(TMP_FILE)
 
-clean-andl:
+clean-andl clean-base clean-ptin:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
 clean-notandl:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-base clean-emweb clean-ip_mcast clean-os clean-ptin clean-routing clean-security clean-snmp clean-switching clean-plat_bsp clean-cpu_bsp clean-ipstack clean-binds clean-qos clean-cli clean-nls clean-ipl
-	$(RM) -f $(TMP_FILE)
-
-clean-base:
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-base
 	$(RM) -f $(TMP_FILE)
 
