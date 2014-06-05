@@ -82,7 +82,7 @@ extern int ptin_sys_number_of_ports;
 
 /* OLT10 */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-#include "ptin_globaldefs_olt7-8ch-b.h"
+#include "ptin_globaldefs_olt1t0.h"
 
 /* OLT7-8CH */
 #elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
