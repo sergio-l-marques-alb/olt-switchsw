@@ -107,15 +107,16 @@
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN    (PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MAX + 1)
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MAX    (PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN + PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK - 1)
 
-
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXONUS                 512   /* 512 ONUs per IGMP instance */
+# define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF        128   /* 128 ONUs per port */
+# define PTIN_SYSTEM_IGMP_MAXONUS                 (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU      8     /* Settop boxes connected to ONUs */
-# define PTIN_SYSTEM_IGMP_MAXCLIENTS              1024  /* Maximum number of settop-boxes */
+# define PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF     PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF
+# define PTIN_SYSTEM_IGMP_MAXCLIENTS              PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_IGMP_MAXCLIENTS/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
-# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         1   /* Maximum number of entries in Query queue */
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
@@ -133,14 +134,6 @@
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */
-//# define CPLD_ID                       0x0849
-//# define CPLD_ID0_REG                  0x0005
-//# define CPLD_ID1_REG                  0x0004
-//# define CPLD_VER_REG                  0x0006
-//# define CPLD_HW_ID_REG                0x0008
-//# define CPLD_CHASSIS_ID_REG           0x0006
-//# define CPLD_SLOT_ID_REG              0x0050
-
 # define CPLD_ID                       0x1195
 # define CPLD_ID0_REG                  0x0000
 # define CPLD_ID1_REG                  0x0001
@@ -205,6 +198,10 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR             IPC_LOCALHOST_IPADDR
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */
+
+// MX IP address
+# define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
+# define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
 
 #endif /* _PTIN_GLOBALDEFS_OLT1T0_H */
 
