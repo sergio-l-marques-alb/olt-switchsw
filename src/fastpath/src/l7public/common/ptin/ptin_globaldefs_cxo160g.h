@@ -9,7 +9,7 @@
 #define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
-//#define SYNC_SSM_IS_SUPPORTED
+#define SYNC_SSM_IS_SUPPORTED
 #define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
 
 
@@ -29,14 +29,15 @@
 # define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            0
 # define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_LOCAL_PORTS     4
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   (PTIN_SYSTEM_N_PORTS/2-1)
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x0000ULL
-# define PTIN_SYSTEM_ETH_PORTS_MASK    0x0080ULL
-# define PTIN_SYSTEM_10G_PORTS_MASK    0x007FULL
+# define PTIN_SYSTEM_ETH_PORTS_MASK    0x000FULL
+# define PTIN_SYSTEM_10G_PORTS_MASK    0xFFFFULL
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            129   /* Maximum nr of EVCs allowed in this equipment */

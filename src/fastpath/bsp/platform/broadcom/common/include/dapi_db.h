@@ -67,7 +67,7 @@ typedef struct
 
 /* Maximum number of ports */
 #define CXO160G_GIGA_PORTS        1
-#define CXO160G_FRONTAL_PORTS     4
+#define CXO160G_FRONTAL_PORTS     PTIN_SYSTEM_N_LOCAL_PORTS
 #define CXO160G_BACKPLANE_PORTS   12
 
 /* Number of local frontal ports */

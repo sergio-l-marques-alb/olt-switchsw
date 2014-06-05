@@ -1143,41 +1143,68 @@ L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_port)
+L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_port_ret)
 {
-  /* Validate slot and port */
-  if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
-  {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is out of range",slot,port);
-    return L7_FAILURE;
-  }
-
-  /* Determine ptin_intf */
+  #if (PTIN_BOARD_IS_MATRIX)
+  L7_int ptin_port = -1;
 
   /* Calculate slot and port */
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
-  /* Check if interface is valid */
-  if ( ptin_sys_slotport_to_intf_map[slot][port] < 0 ||
-       ptin_sys_slotport_to_intf_map[slot][port] >= ptin_sys_number_of_ports)
+  /* Only CXO160G have frontal ports */
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (slot == 0)
   {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is not mapped",slot,port);
+    /* Use port reference */
+    ptin_port = port;
+  }
+  else
+  #endif
+  {
+    /* Validate slot and port */
+    if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+    {
+      //LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u / port %u is out of range",slot,port);
+      return L7_FAILURE;
+    }
+
+    ptin_port = ptin_sys_slotport_to_intf_map[slot][port];
+  }
+
+  #elif (PTIN_BOARD == PTIN_BOARD_CXO360G)
+  /* Do not allow slot below PTIN_SYS_LC_SLOT_MIN */
+  if (slot < 2)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u is invalid", slot);
     return L7_FAILURE;
   }
 
-  if (ptin_port!=L7_NULLPTR)
-  {
-    *ptin_port = ptin_sys_slotport_to_intf_map[slot][port];
-  }
+  ptin_port = (port==0) ? (slot-2) : (slot+18-2);
 
   #else
-  if (ptin_port!=L7_NULLPTR)
-  {
-    *ptin_port = (port==0) ? (slot-2) : (slot+18-2);
-  }
+  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
+  return L7_FAILURE;
   #endif
 
+  /* Validate ptin_port */
+  if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports)
+  {
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %u derived from slot %u / port %u", ptin_port, slot, port);
+    return L7_FAILURE;
+  }
+
+  /* Return result */
+  if (ptin_port_ret != L7_NULLPTR)
+  {
+    *ptin_port_ret = ptin_port;
+  }
+
   return L7_SUCCESS;
+
+  #else
+  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
+  return L7_FAILURE;
+  #endif
 }
 
 /**
@@ -1193,28 +1220,39 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
  */
 L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
 {
+  #if (PTIN_BOARD_IS_MATRIX)
   L7_uint slot, port;
   L7_uint16 board_id;
 
   /* Validate arguments */
   if (ptin_port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid port id (%u)", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid port id (%u)", ptin_port);
     return L7_FAILURE;
   }
 
   /* Calculate slot and port */
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
-  /* Check if interface is used */
-  if ( ptin_sys_intf_to_slot_map[ptin_port] < 0 ||
-       ptin_sys_intf_to_port_map[ptin_port] < 0 )
+  /* Only CXO160G have the local port concept */
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (ptin_port < PTIN_SYSTEM_N_LOCAL_PORTS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"ptin_intf=%u/%u is not mapped!", ptin_intf->intf_type, ptin_intf->intf_id);
-    return L7_FAILURE;
+    slot = 0;
+    port = ptin_port;
   }
-  slot = ptin_sys_intf_to_slot_map[ptin_port];
-  port = ptin_sys_intf_to_port_map[ptin_port];
+  else
+  #endif
+  {
+    /* Check if interface is used */
+    if ( ptin_sys_intf_to_slot_map[ptin_port] < 0 || ptin_sys_intf_to_port_map[ptin_port] < 0 )
+    {
+      //LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf=%u/%u is not mapped!", ptin_intf->intf_type, ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
+    slot = ptin_sys_intf_to_slot_map[ptin_port];
+    port = ptin_sys_intf_to_port_map[ptin_port];
+  }
 
   #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
   slot = ptin_port + 2;
@@ -1224,15 +1262,26 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
     slot -= (PTIN_SYSTEM_N_PORTS-1)/2;
     port  = 1;
   }
+
   #else
-  LOG_ERR(LOG_CTX_PTIN_SSM,"Not in a matrix board");
+  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
   return L7_FAILURE;
   #endif
 
   /* Validate slot and port */
-  if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (slot == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
+    if (port >= ptin_sys_number_of_ports)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
+    }
+  }
+  else
+  #endif
+  if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
     return L7_FAILURE;
   }
 
@@ -1247,6 +1296,11 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   if (board_type!= L7_NULLPTR)  *board_type = board_id;
 
   return L7_SUCCESS;
+
+  #else
+  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
+  return L7_FAILURE;
+  #endif
 }
 
 /**
@@ -1266,14 +1320,14 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
   /* Validate slot and port */
   if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"slot %u / port %u is out of range",slot,port);
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u / port %u is out of range",slot,port);
     return L7_FAILURE;
   }
 
   /* Determine ptin_port */
   if (ptin_intf_slotPort2port(slot,port,&ptin_port)!=L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"Error converting slot %u / port %u to ptin_port",slot,port);
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting slot %u / port %u to ptin_port",slot,port);
     return L7_FAILURE;
   }
 
@@ -1302,21 +1356,21 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid arguments");
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Do not accept non physical interfaces */
   if (ptin_intf->intf_type!=PTIN_EVC_INTF_PHYSICAL)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Validate interface id */
   if (ptin_intf->intf_id >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid interface id (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface id (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
