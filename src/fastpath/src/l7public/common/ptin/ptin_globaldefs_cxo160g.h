@@ -6,6 +6,9 @@
 /* To manage linkscan, uncomment this line */
 //#define PTIN_LINKSCAN_CONTROL
 
+/* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
+#define LAG_DIRECT_CONTROL_FEATURE  1
+
 #define __Y1731_802_1ag_OAM_ETH__
 
 /* If SSM is not supported, comment this line */
@@ -34,6 +37,9 @@
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
+
+# define PTIN_SYSTEM_INTERNAL_LAGID_BASE    18
+# define PTIN_SYSTEM_PROTECTION_LAGID_BASE  40
 
 # define PTIN_SYSTEM_PON_PORTS_MASK    0x0000ULL
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x000FULL
@@ -123,12 +129,14 @@
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES             8     /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP      (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXONUS                 PTIN_SYSTEM_MAXINTERFACES_PER_GROUP    /* 20 clients per IGMP instance (20 slots) */
+# define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF        1
+# define PTIN_SYSTEM_IGMP_MAXONUS                 (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)  /* 20 clients per IGMP instance (20 slots) */
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU      1     /* Settop boxes connected to ONUs */
-# define PTIN_SYSTEM_IGMP_MAXCLIENTS              PTIN_SYSTEM_MAXINTERFACES_PER_GROUP
+# define PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF     PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF
+# define PTIN_SYSTEM_IGMP_MAXCLIENTS              PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP    5     /* Maximum number of sources per multicast/interface group */
-# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_IGMP_MAXCLIENTS/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
-# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         100   /* Maximum number of entries in Query queue */
+# define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
+# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE         1   /* Maximum number of entries in Query queue */
 
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
@@ -137,6 +145,7 @@
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 
+#define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
 #define SNOOP_PTIN_IGMPv3_ROUTER 1//Change to 0 if you want to disable  IGMPv3 Router SubModule
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
@@ -197,7 +206,7 @@ extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PE
 extern int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
 extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 
-//# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
+# define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
 # define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
 # define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */

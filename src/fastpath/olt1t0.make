@@ -23,6 +23,7 @@ TMP_FILE	= /tmp/$(USER_NAME)_fp_compiled_$(FP_FOLDER)_$(CPU)_$(BOARD)
 KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
+DEVSHSYM_FILE	= devshell_symbols.gz
 
 #export TOOLCHAIN_BASE_DIR = /opt/broadcom
 export TOOLCHAIN_BASE_DIR = /opt/broadcom
@@ -71,6 +72,9 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 		echo "Stripping $(BIN_FILE) binary...";\
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
+	@echo "Copying mgmd.cli to ipl directory..."
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
 
 andl os: welcome

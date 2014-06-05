@@ -29,6 +29,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
 export KERNEL_PATH	= /home/devtools/dev-QorIQ/dev-P204x/cxo160g/kernel_3_0_51
+#/home/devtools/dev-QorIQ/dev-P204x/cxo160g/
 #$(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
 
 #CC='${COMPILER}gcc'
@@ -70,7 +71,7 @@ export FP_SHELL_PATH := ../fastpath.shell
 
 .PHONY: welcome all install clean cleanall help h kernel cli shell cli_clean shell_clean
 
-all: welcome cli_clean shell_clean cli shell
+all: welcome mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -87,7 +88,13 @@ all: welcome cli_clean shell_clean cli shell
 		echo "Stripping $(BIN_FILE) binary...";\
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
+	@echo "Copying mgmd.cli to ipl directory..."
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
+	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
+
+mgmdconfig:
+	@sh mgmd_config_$(CARD).sh
 
 kernel:
 	cd $(KERNEL_PATH) && ./build_cxo160g.sh
