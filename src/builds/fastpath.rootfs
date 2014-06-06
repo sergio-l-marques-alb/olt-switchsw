@@ -1,0 +1,179 @@
+#!/bin/sh
+
+# These variables are defined by the calling script
+#MODULE=fastpath-olt
+#PLATFORMS="CXO640G-MX CXO360G-MX TG16G TOLT8G"
+#APPLICATION=fastpath
+
+BUILDS_FOLDER=./output
+APPS_PATH=./apps
+TMP_PATH=./tmp
+
+USERNAME=olt
+DST_IPADDR=10.112.15.243
+DST_PATH=/home/olt/fastpath_builds/fastpath
+
+n_args=$#
+
+svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+version=$1-r$svn_rev
+
+rootfs_tgz=$MODULE.rootfs-v$version.tgz
+backup_7z=$MODULE.backup-v$version.7z
+relnotes_file=$MODULE.releasenotes-v$version.txt
+
+colorNotice="\033[1m\033[34m"
+colorWarn="\033[1m\033[33m"
+colorOk="\033[1m\033[32m"
+colorKo="\033[1m\033[31m"
+colorReq="\033[1m\033[7m"
+colorTitle="\033[1m\033[4m"
+colorWhite="\033[1m\033[1m"
+colorReset="\033[0m"
+
+if [ $n_args -lt 1 ]
+  then
+  echo -en $colorKo
+  echo "Erro de parametros: $0 <version>"
+  echo -en $colorReset
+  exit;
+fi
+
+mkdir $BUILDS_FOLDER
+
+echo -en $colorTitle
+echo "Building $MODULE version $version ..."
+echo -en $colorReset
+
+DATE=`date`
+
+# Check for folder existence
+if [ ! -e $APPS_PATH/image ]; then
+  echo -en $colorKo
+  echo "$APPS_PATH folder is missing!"
+  echo -en $colorReset
+  exit 1;
+fi
+if [ ! -e $APPS_PATH/image/$PLATFORM/rootfs ]; then
+  echo -en $colorKo
+  echo "Missing platform ($APPS_PATH/image/$PLATFORM/rootfs)"
+  echo -en $colorReset
+  exit 1;
+fi
+
+echo echo Modular OLT $MODULE $version > ./$APPLICATION.ver
+echo echo $DATE >> ./$APPLICATION.ver
+chmod 777 ./$APPLICATION.ver
+
+if [ -e ./$APPLICATION.releasenotes ]; then
+  echo "=== FASTPATH $version RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
+  cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
+  echo "============================================================================" >> ./$APPLICATION.releasenotes.txt
+  echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
+  chmod 666 ./$APPLICATION.releasenotes.txt
+elif [ ! -e ./$APPLICATION.releasenotes.txt ]; then
+  echo -en $colorKo
+  echo "Release Notes file is missing! ($APPLICATION.releasenotes)"
+  echo -en $colorReset
+  exit 1;
+fi
+
+echo -en $colorNotice
+echo "Transferring release notes to matrix board files..."
+echo -en $colorReset
+
+cp ./$APPLICATION.ver $APPS_PATH/image/$PLATFORM/rootfs/usr/local/ptin/sbin
+
+echo -en $colorNotice
+echo "Replacing some files by backup ones..."
+echo -en $colorReset
+
+cp -r $TMP_PATH/$PLATFORM/* $APPS_PATH/image/$PLATFORM
+
+sync
+
+echo -en $colorNotice
+echo "Saving binaries..."
+echo -en $colorReset
+
+rm -f $BUILDS_FOLDER/$rootfs_tgz
+sync
+cd $APPS_PATH/image/$PLATFORM/rootfs
+rm -f *.tgz
+tar czpvf $rootfs_tgz * --owner=root --group=root
+cd -
+mv $APPS_PATH/image/$PLATFORM/rootfs/$rootfs_tgz $BUILDS_FOLDER
+
+echo -en $colorNotice
+echo "Saving release notes..."
+echo -en $colorReset
+
+rm -f $BUILDS_FOLDER/$relnotes_file
+cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
+
+echo -en $colorNotice
+echo "Transferring rootfs tarball to final destination..."
+echo -en $colorReset
+echo -en $colorReq
+echo -en "What is your username on $DST_IPADDR machine?"
+echo -en $colorReset
+echo -en " "
+read USERNAME
+if [ -z $USERNAME ]; then
+  USERNAME=`whoami`
+  echo -en $colorReq
+  echo "Using '$USERNAME' user name."
+  echo -en $colorReset
+fi
+
+scp $BUILDS_FOLDER/$rootfs_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
+
+
+# Only if backup exists
+if [ -e $APPS_PATH/backup/$PLATFORM ]; then
+  echo -en $colorNotice
+  echo "Saving unstripped binaries..."
+  echo -en $colorReset
+
+  rm -f $BUILDS_FOLDER/$backup_7z
+  rm -f $APPS_PATH/backup/$PLATFORM/*.ver $APPS_PATH/backup/$PLATFORM/*.releasenotes.txt
+  cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$PLATFORM
+  sync
+
+  cd $APPS_PATH/backup/$PLATFORM
+  rm -f *.tgz *.7z
+  7z a $backup_7z *
+  cd -
+  mv $APPS_PATH/backup/$PLATFORM/$backup_7z $BUILDS_FOLDER
+fi
+
+echo -en $colorNotice
+echo "Cleaning..."
+echo -en $colorReset
+rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
+
+echo -en $colorNotice
+echo "Transferring backup tarball to final destination..."
+echo -en $colorReset
+echo -en $colorReq
+echo -en "What is your username on $DST_IPADDR machine?"
+echo -en $colorReset
+echo -en " "
+read USERNAME
+if [ -z $USERNAME ]; then
+  USERNAME=`whoami`
+  echo -en $colorReq
+  echo "Using '$USERNAME' user name."
+  echo -en $colorReset
+fi
+
+scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
+
