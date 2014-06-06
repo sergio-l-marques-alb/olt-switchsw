@@ -1,0 +1,10 @@
+#!/bin/sh
+
+export MODULE=fastpath-cxo160g
+export PLATFORMS="CXO160G"
+
+export APPLICATION=fastpath
+
+make -C ../fastpath -f cxo160g.make install
+
+. ./fastpath.build $1
