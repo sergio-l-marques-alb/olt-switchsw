@@ -943,6 +943,8 @@ void ptin_control_switchover_monitor(void)
     return;
   }
 
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
   /* Update list of active interfaces */
   for (port=0; port<ports_info.number_of_ports; port++)
   {
@@ -954,7 +956,16 @@ void ptin_control_switchover_monitor(void)
         interfaces_active[port] = 1;
       }
     }
+    /* Save board_id */
+    ptin_intf_boardid_get(port, &board_id);
+    if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
+    {
+      ptin_intf_boardid_set(port, ports_info.port[port].board_id);
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+    }
   }
+
+  osapiSemaGive(ptin_boardaction_sem);
 
   /* Update port settings */
   if (linkscan_update_control)
