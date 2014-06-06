@@ -5,6 +5,11 @@ export PLATFORM=CXO160G
 
 export APPLICATION=fastpath
 
+echo "Compiling CXO160G..."
+make -C ../fastpath -f cxo160g.make
+echo "Copying binaries to apps..."
 make -C ../fastpath -f cxo160g.make install
+echo "Done... Going to prepare tarball."
+echo
 
 . ./fastpath.rootfs $1
