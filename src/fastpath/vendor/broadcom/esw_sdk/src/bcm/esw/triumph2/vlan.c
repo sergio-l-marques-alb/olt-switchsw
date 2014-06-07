@@ -150,12 +150,6 @@ bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
     {
       return L7_FAILURE;
     }
-    #if 0
-    rv = _bcm_tr_mpls_check_init (unit);
-    if (rv < 0) {
-        return rv;
-    }
-    #endif
 
     cml = 0;
     if (!(flags & BCM_PORT_LEARN_FWD)) {
@@ -185,11 +179,10 @@ bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
     if (rv < 0) {
         return rv;
     }
-    #if 0
-    if (soc_SOURCE_VPm_field32_get(unit, &svp, ENTRY_TYPEf) != 1) { /* VPLS */
+    if (soc_SOURCE_VPm_field32_get(unit, &svp, ENTRY_TYPEf) != 3) { /* VLAN PORT (GPON) */
         return BCM_E_NOT_FOUND;
     }
-    #endif
+
     soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_MOVEf, cml);
     soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_NEWf, cml);
     rv = WRITE_SOURCE_VPm(unit, MEM_BLOCK_ALL, vp, &svp);
