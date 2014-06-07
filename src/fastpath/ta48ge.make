@@ -46,9 +46,12 @@ export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 export FP_CLI_PATH   := ../fastpath.cli
 export FP_SHELL_PATH := ../fastpath.shell
 
+export LVL7_MAKEFILE_LOGGING := N
+export LVL7_MAKEFILE_DISPLAY_MODE := S
+
 .PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
 
-all: welcome cli_clean shell_clean cli shell
+all: welcome mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -70,11 +73,14 @@ all: welcome cli_clean shell_clean cli shell
 	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
 
-install:
-	sh ta48ge.install
+mgmdconfig:
+	@sh mgmd_config_$(CARD).sh
 
 kernel:
 	cd $(KERNEL_PATH) && ./build_ta48ge.sh
+
+install:
+	sh ta48ge.install
 
 help h:
 	@echo ""
