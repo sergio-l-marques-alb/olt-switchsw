@@ -219,7 +219,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
  */
 void _10msTask(void)
 {
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"10ms Task started");
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   {
@@ -236,28 +236,10 @@ void _10msTask(void)
    ptin_intf_Lag_create(&lagInfo);
   }
 
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"Internal LAG created");
 
-  //{
-  // ptin_msg_ShellCommand_run("fp.shell port xe0 STP=Forward");
-  // ptin_msg_ShellCommand_run("fp.shell port xe1 STP=Forward");
-  // ptin_msg_ShellCommand_run("fp.shell port xe2 STP=Forward");
-  // ptin_msg_ShellCommand_run("fp.shell port xe3 STP=Forward");
-  //}
-
-
-  //{
-  // ptin_HWEthPhyConf_t phyConf;
-  //
-  // memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
-  // phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
-  // phyConf.PortEnable  = L7_TRUE;
-  // for (phyConf.Port=PTIN_SYSTEM_N_ETH; phyConf.Port<PTIN_SYSTEM_N_ETH+4; phyConf.Port++) {
-  //     if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS) {
-  //        LOG_ERR(LOG_CTX_PTIN_CONTROL,"Error setting port %u to enable=%u",phyConf.Port,phyConf.PortEnable);
-  //        //continue;//rc = L7_FAILURE;
-  //     }
-  // }//for
-  //}
+  /* Wait one second, before starting high speed process */
+  osapiSleep(1);
 #endif
 
   if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS)
@@ -626,12 +608,13 @@ static void monitor_matrix_commutation(void)
 #if ( PTIN_BOARD==PTIN_BOARD_TOLT8G || PTIN_BOARD==PTIN_BOARD_TA48GE )
 
   L7_int              cx_work_slot;
-  ptin_HWEthPhyConf_t phyConf;
   L7_RC_t             rc = L7_SUCCESS;
   static int          cx_work_slot_h = -1;
 
-  memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
-  phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
+  #if ( PTIN_BOARD == PTIN_BOARD_TOLT8G )
+
+  ptin_HWEthPhyConf_t phyConf;
+  L7_uint             port, port_border;
 
   cx_work_slot = (L7_int) ((cpld_map->reg.slot_matrix >> 4) & 1);
 
@@ -641,8 +624,8 @@ static void monitor_matrix_commutation(void)
     return;
   }
 
-  #if ( PTIN_BOARD == PTIN_BOARD_TOLT8G )
-  L7_uint             port, port_border;
+  memset(&phyConf,0x00,sizeof(ptin_HWEthPhyConf_t));
+  phyConf.Mask = PTIN_PHYCONF_MASK_PORTEN;
 
   /* port that delimits working and protection ports */
   port_border = (PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_PORTS)/2;
@@ -665,80 +648,70 @@ static void monitor_matrix_commutation(void)
   }
 
   #elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  #if 1
+
   L7_uint32 lag_intf, intIfNum, intIfNum_del;
 
   rc = ptin_intf_lag2intIfNum(0, &lag_intf);
 
-  if (rc == L7_SUCCESS)
+  /* Cannot retrieve lag intIfNum: reset commutation machine */
+  if (rc != L7_SUCCESS)
   {
-    if (cx_work_slot)
-    {
-      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
-      {
-        rc = L7_FAILURE;
-      }
-    }
-    else
-    {
-      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
-      {
-        rc = L7_FAILURE;
-      }
-    }
-
-    /* Only proceed to switchover, if intIfNum values were successfully retrieved */
-    if (rc == L7_SUCCESS)
-    {
-      // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-      if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
-          dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
-      {
-        rc = L7_FAILURE;
-      }
-    }
+    cx_work_slot_h = -1;
+    //LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Machine reseted");
+    return;
   }
 
-  #elif 1
-  ptin_LACPLagConfig_t lagInfo;
+  cx_work_slot = (L7_int) ((cpld_map->reg.slot_matrix >> 4) & 1);
 
-  lagInfo.lagId=            0;
-  lagInfo.admin=            1;
-  lagInfo.stp_enable=       0;
-  lagInfo.static_enable=    1;
-  lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-  //ptin_intf_LagConfig_get(&lagInfo);
-
-  //lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;
-  //ptin_intf_Lag_create(&lagInfo);
-  lagInfo.members_pbmp64=   cx_work_slot?   1ULL<<(PTIN_SYSTEM_N_ETH+1):   1ULL<<PTIN_SYSTEM_N_ETH;
-  ptin_intf_Lag_create(&lagInfo);
-  //LOG_INFO(LOG_CTX_PTIN_CONTROL, "in %s, %s(%d):\tptin_intf_Lag_create()=%u", __FILE__, __FUNCTION__, __LINE__,
-  //         ptin_intf_Lag_create(&lagInfo)
-  //         );
-
-  #else
-  L7_uint             port;
-
-  /* Run all internal ports to change its admin state */
-  for (port = PTIN_SYSTEM_N_ETH; port < PTIN_SYSTEM_N_PORTS; port++)
+  /* Nothing to do if no change happened */
+  if (cx_work_slot == cx_work_slot_h)
   {
-    /* Set port enable */
-    if (cx_work_slot)
-      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_ETH+1)) ? L7_TRUE : L7_FALSE;  /* Only port 1 will be active */
-    else
-      phyConf.PortEnable  = (port==(PTIN_SYSTEM_N_ETH+0)) ? L7_TRUE : L7_FALSE;  /* Only port 0 will be active */
+    return;
+  }
 
-    phyConf.Port = port;
-    if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS)
+  LOG_INFO(LOG_CTX_PTIN_CONTROL,"Something is going to be done (cx_work_slot_h=%d, cx_work_slot=%d)", cx_work_slot_h, cx_work_slot);
+  LOG_INFO(LOG_CTX_PTIN_CONTROL,"intIfNum of lag 0 is %u", lag_intf);
+
+  if (cx_work_slot)
+  {
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"CX is working");
+
+    if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
+        ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Error setting port %u to enable=%u",port,phyConf.PortEnable);
+      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Failure");
       rc = L7_FAILURE;
     }
   }
-  #endif
+  else
+  {
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"CX is protection");
+
+    if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
+        ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Failure");
+      rc = L7_FAILURE;
+    }
+  }
+
+  /* Only proceed to switchover, if intIfNum values were successfully retrieved */
+  if (rc == L7_SUCCESS)
+  {
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Everyhing is ok... going to apply change (intIfNum_del=%u, intIfNum_new=%u)", intIfNum_del, intIfNum);
+
+    // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+    if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
+        dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Failure");
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_CONTROL,"Success");
+    }
+  }
   #endif    //#elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
 
   /* Any error? */
