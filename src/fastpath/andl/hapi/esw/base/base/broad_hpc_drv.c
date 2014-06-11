@@ -2550,6 +2550,8 @@ L7_RC_t hpcXeHgSetup(void)
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"Starting hpcXeHgSetup (%u slots)...", L7_MAX_PHYSICAL_SLOTS_PER_UNIT);
+
   /* clear the bitmaps */
   for (i = 0; i < BCM_LOCAL_UNITS_MAX;i++)
   {
@@ -2611,6 +2613,8 @@ extern L7_RC_t hpcStackingXeHgSetup(pbmp_t *pbmp_xport_xe);
       sal_config_set(configString,pbmp_xport_xe_str);
     }
   }
+
+  LOG_TRACE(LOG_CTX_STARTUP,"Finished hpcXeHgSetup successfully!");
 
   return L7_SUCCESS;
 }

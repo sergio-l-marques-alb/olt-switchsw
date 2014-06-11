@@ -602,12 +602,16 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
     return result;
 
+#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
   /* Install dot1x violation policy next, as it needs to have higher priority than other system policies. For
      example, we need to ensure that DHCP packets received on an unauthorized port get trapped to the CPU, rather
      than have their priority elevated. */
   result = hapiBroadDot1xViolationPolicyCreate(dapi_g);
   if (L7_SUCCESS != result)
     return result;
+#else
+  LOG_WARNING(LOG_CTX_STARTUP,"dot1x violation policy not installed on OLT1T0");
+#endif
 
   /* DHCP packets on ports must go to the CPU and be rate limited to 64 kbps */
   result = hapiBroadDhcpPolicyInstall(dapi_g);
@@ -1483,6 +1487,8 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
   usp.unit = dapiUsp->unit;
   usp.slot = dapiUsp->slot;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"PhysicalCardInsert starting...");
+
   /*
    * Retrieve the Database Info Pointers
    */
@@ -1498,6 +1504,8 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       break;
     }
 
+    LOG_TRACE(LOG_CTX_STARTUP,"unitKey=%02x:%02x:%02x:%02x:%02x:%02x",
+              unitKey.addr[0],unitKey.addr[1],unitKey.addr[2],unitKey.addr[3],unitKey.addr[4],unitKey.addr[5]);
 #ifdef L7_STACKING_PACKAGE
 
     dapiTraceStackEvent("Starting to wait for unit %d to be discovered\n",
@@ -1717,12 +1725,15 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
   
   if (result != L7_SUCCESS)
   {
+    LOG_TRACE(LOG_CTX_STARTUP,"Error inserting card!");
     usl_card_remove(usp.unit, usp.slot);     
 
     L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID,
             "Driver: Card insertion for unit %d, slot %d failed. Wait for retry.\n",
             usp.unit, usp.slot);
   }
+
+  LOG_NOTICE(LOG_CTX_STARTUP,"Complete: result=%d",result);
 
   return result;
 }
@@ -2685,6 +2696,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
   L7_uint32                     mgmtUnit;
   L7_enetMacAddr_t              mgrKey;
 
+  LOG_TRACE(LOG_CTX_STARTUP,"CpuCardInsert starting (slot=%d)...", dapiUsp->slot);
 
   usp.unit = dapiUsp->unit;
   usp.slot = dapiUsp->slot;
@@ -2715,6 +2727,8 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
       
   }
 
+  LOG_TRACE(LOG_CTX_STARTUP,"mgmtUnit=%u",mgmtUnit);
+
   if (sysapiHpcUnitIdentifierKeyGet(mgmtUnit, &mgrKey) != L7_SUCCESS)
   {
     SYSAPI_PRINTF( SYSAPI_LOGGING_DAPI_ERROR,
@@ -2722,6 +2736,9 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
                    __FILE__, __LINE__, __FUNCTION__);
     return L7_FAILURE;
   }
+
+  LOG_TRACE(LOG_CTX_STARTUP,"mgrKey=%02x:%02x:%02x:%02x:%02x:%02x",
+         mgrKey.addr[0],mgrKey.addr[1],mgrKey.addr[2],mgrKey.addr[3],mgrKey.addr[4],mgrKey.addr[5]);
 
 #ifdef L7_STACKING_PACKAGE
   /* Wait for modid assignment of the manager */
@@ -2796,6 +2813,8 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
   {
     return L7_FAILURE;
   }
+
+  LOG_NOTICE(LOG_CTX_STARTUP,"Complete!");
 
   return L7_SUCCESS;
 }

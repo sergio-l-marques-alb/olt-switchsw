@@ -31,6 +31,9 @@
 #include "simapi.h"
 #include <soc/drv.h>
 
+/* PTin added: logger */
+#include "logger.h"
+
 HPC_CARD_DESCRIPTOR_t *hpcCardDbLookup(L7_uint32 cardTypeId);
 extern HPC_BROAD_INTF_TYPE_MAC_ALLOCATION_t uni_mac_allocation_table[];
 extern L7_uint32 uni_mac_allocation_table_num_entries;
@@ -250,11 +253,17 @@ L7_RC_t hpcLocalCardIdDiscover(void)
           localPortCnt[i] = card_descriptor_ptr->cardTypeDescriptor.numOfNiPorts;
           localPhysicalPortCount += localPortCnt[i];
         }
+        LOG_TRACE(LOG_CTX_STARTUP,"Card id 0x%x present!",cardId);
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_STARTUP,"Card not present!");
       }
     }
   }
   else
   {
+    LOG_ERR(LOG_CTX_STARTUP,"Cannot find board");
     return(L7_FAILURE);
   }
 
