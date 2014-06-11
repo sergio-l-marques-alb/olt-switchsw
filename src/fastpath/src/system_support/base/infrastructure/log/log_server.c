@@ -879,6 +879,17 @@ void l7_log_event(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
  * @end
  *********************************************************************/
 
+/* PTin added: debug */
+#if 1
+static L7_BOOL logf_debug = L7_TRUE;
+
+void l7_logf_enable(L7_BOOL enable)
+{
+  logf_debug = enable;
+  printf("l7_logf enable set to %u!\r\n", enable);
+}
+#endif
+
 void l7_logf(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
              L7_char8 * fileName, L7_uint32 lineNum, L7_char8 * format, ...)
 {
@@ -886,7 +897,7 @@ void l7_logf(L7_LOG_SEVERITY_t severity, L7_COMPONENT_IDS_t component,
   va_list ap;
   L7_int32 rc;
 
-  va_start(ap, format);
+  va_start(ap, format); 
   rc = osapiVsnprintf(buf, sizeof(buf), format, ap);
   va_end(ap);
 
@@ -1042,6 +1053,11 @@ void logmsg(L7_LOG_FACILITY_t facility, L7_LOG_SEVERITY_t severity,
   struct     logMsg_s msg;
   L7_BOOL    freeBuf = L7_FALSE;
   const L7_int32   bufsiz = L7_LOG_MESSAGE_LENGTH;
+
+  if (logf_debug)	/* PTin added: debug */
+  {
+    printf("L7_LOGF: cid=%u stk=%u tid=%u file=%s line=%u msg=\"%s\"\r\n",component,stk,tid,fileName,lineNum,nfo);
+  }
 
   /* NOTE: This function uses the fileName parm as is (caller is responsible
    *       for stripping off path info, if desired).
@@ -1699,6 +1715,7 @@ static void logTask()
 
       }
 
+    printf("LOGF: \"%s\"\r\n",(L7_char8 *) (logMsg.buffer + LOG_STACK_HEADER_LEN));
 
     /* Log to console? And yes, we do allow mgmt to
      * change things while writing to slow devices.
