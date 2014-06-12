@@ -1106,12 +1106,13 @@ typedef struct {
  * IP Source Guard  configuration messages
  ****************************************************/
 
-/* Message to enable/disable IPSG in a given Interface  */
+/* Message to enable/disable IP Source Guard (IPSG) on a given Interface  */
 typedef struct {  
   msg_HwEthInterface_t  intf;             //Interface 
   L7_uint8              verifySource;     //True or False  
 } __attribute__((packed)) msg_IPSG_verify_source_t;
 
+/* Message to add/remove IP Source Guard (IPSG) on a given Interface  */
 typedef struct {
   L7_uint32             evc_idx;           // EVCid      
   msg_HwEthInterface_t  intf;             // Interface
