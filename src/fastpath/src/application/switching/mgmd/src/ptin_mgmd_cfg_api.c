@@ -25,7 +25,7 @@
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_igmp_admin_set(uint8 admin)
+unsigned int ptin_mgmd_cfg_igmp_admin_set(uint8 admin)
 {
   _UNUSED_(admin);
   return SUCCESS;
@@ -40,7 +40,7 @@ RC_t ptin_mgmd_cfg_igmp_admin_set(uint8 admin)
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_mld_admin_set(uint8 admin)
+unsigned int ptin_mgmd_cfg_mld_admin_set(uint8 admin)
 {
   _UNUSED_(admin);
   return SUCCESS;
@@ -55,7 +55,7 @@ RC_t ptin_mgmd_cfg_mld_admin_set(uint8 admin)
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_cos_set(uint8 cos)
+unsigned int ptin_mgmd_cfg_cos_set(uint8 cos)
 {
   _UNUSED_(cos);
   return SUCCESS;

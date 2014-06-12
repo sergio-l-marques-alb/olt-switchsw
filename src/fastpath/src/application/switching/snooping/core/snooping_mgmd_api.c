@@ -24,7 +24,8 @@
 #include "ipc.h"
 #include "ptin_msghandler.h"
 #include "ptin_intf.h"
-
+#include "ptin_cnfgr.h"
+#include "ptin_mgmd_inet_defs.h"
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -489,6 +490,16 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
    */
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+
+  /*In L2 we do not support forwarding multicast packets based on the Source Address. 
+    To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
+    If not we ignore the request*/
+  if(sourceAddr == PTIN_MGMD_ANY_IPv4_HOST)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
+    return rc;
+  }
 
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
@@ -1163,3 +1174,44 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
 }
 
 #endif//!PTIN_BOARD_IS_MATRIX 
+
+/**
+* @purpose This method is used to verify  if the
+*          Mgmd Lib is alive or not
+*
+* @return RC_t
+*
+* @notes If Mgmd is alive L7_SUCCESS is returned. If not it is
+*        returned an error code (e.g. L7_FAILURE).
+*/
+L7_RC_t ptin_igmp_mgmd_status_get(void)
+{
+  PTIN_MGMD_EVENT_t            inEventMsg  = {0}, outEventMsg = {0};
+  PTIN_MGMD_EVENT_CTRL_t       ctrlResMsg  = {0};
+  PTIN_MGMD_CTRL_MGMD_STATUS_t mgmdStatus  = {0};;
+
+  /* Create and send a PTIN_MGMD_EVENT_CTRL_STATUS_GET event to MGMD */
+  ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_STATUS_GET, rand(), 0, ptinMgmdTxQueueId, (void*) &mgmdStatus, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+  ptin_mgmd_sendCtrlEvent(&inEventMsg, &outEventMsg);
+
+  /* Parse the received reply */
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "MGMD replied");
+  ptin_mgmd_event_ctrl_parse(&outEventMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+ 
+  /* Copy the response contents to igmpProxy */
+  if(sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t) != ctrlResMsg.dataLength)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unexpected size in the MGMD response [dataLength:%u/%u]", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+    return L7_FAILURE;
+  }
+  else
+  {
+    memcpy(&mgmdStatus, ctrlResMsg.data, ctrlResMsg.dataLength);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  Mgmd Status  : %s",   mgmdStatus.mgmdStatus == PTIN_MGMD_STATUS_WORKING ? "Alive":"Dead");
+  }
+
+  return ctrlResMsg.res;
+}

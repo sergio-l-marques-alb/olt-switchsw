@@ -42,7 +42,7 @@
  *  
  * @notes: none 
  */
-RC_t ptin_mgmd_port_getList(uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
+unsigned int ptin_mgmd_port_getList(uint32 serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList);
  
 /**
  * Get port type associated to the given serviceID
@@ -55,7 +55,7 @@ RC_t ptin_mgmd_port_getList(uint32 serviceId, ptin_mgmd_port_type_t portType, PT
  *  
  * @notes: none
  */
-RC_t ptin_mgmd_port_getType(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);
+unsigned int ptin_mgmd_port_getType(uint32 serviceId, uint32 portId, ptin_mgmd_port_type_t *portType);
 
 /**
  * Get client list associated to the given portID/serviceId
@@ -68,7 +68,7 @@ RC_t ptin_mgmd_port_getType(uint32 serviceId, uint32 portId, ptin_mgmd_port_type
  *  
  * @notes: none 
  */
-RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_MASK_t *clientList);
+unsigned int ptin_mgmd_client_getList(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients);
  
 /**
  *  Open Port Id for a given Multicast IP Address and Source IP
@@ -85,7 +85,7 @@ RC_t ptin_mgmd_client_getList(uint32 serviceId, uint32 portId, PTIN_MGMD_CLIENT_
  *  @notes: If the Source Address is equal to zero. Then it is
  *        considered to be any source
  */
-RC_t ptin_mgmd_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
+unsigned int ptin_mgmd_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr, BOOL isStatic);
  
 /**
  *  Close Port Id for a given Multicast IP Address and Source IP
@@ -101,7 +101,7 @@ RC_t ptin_mgmd_port_open(uint32 serviceId, uint32 portId, uint32 groupAddr, uint
  *  @notes: If the Source Address is equal to zero. Then it is
  *        considered to be any source
  */
-RC_t ptin_mgmd_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
+unsigned int ptin_mgmd_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uint32 sourceAddr);
 
 /**
 * @purpose Send IGMP/MLD packet
@@ -117,7 +117,7 @@ RC_t ptin_mgmd_port_close(uint32 serviceId, uint32 portId, uint32 groupAddr, uin
 *
 * @notes none
 */
-RC_t ptin_mgmd_tx_packet(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
+unsigned int ptin_mgmd_tx_packet(uchar8 *payLoad, uint32 payloadLength, uint32 serviceId, uint32 portId, uint32 clientId, uchar8 family);
 
 #endif //_COMPILE_AS_BINARY_
   

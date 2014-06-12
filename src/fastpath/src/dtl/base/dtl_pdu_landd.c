@@ -243,6 +243,13 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   return rc;
 }
 
+unsigned int dapiCpuUspGet_in = (unsigned int) -1;
+unsigned int dapiCpuUspGet_in_get(void){return dapiCpuUspGet_in;};
+
+unsigned int dapiCtl_in = (unsigned int) -1;
+unsigned int dapiCtl_in_get(void){return dapiCtl_in;};
+
+
 /*********************************************************************
 * @purpose  Transmits the PDU
 *
@@ -270,13 +277,15 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   /* PTin added: Default flags */
   sendData.cmdData.send.flags = 0;
 
+  
   switch (dtlCmd)
   {
   case DTL_CMD_TX_L2:
-    {
+    {      
 
       if (dtlCmdInfo->typeToSend == DTL_VLAN_MULTICAST || dtlCmdInfo->typeToSend == DTL_L2RAW_VLAN_MULTICAST)
       {
+        dapiCpuUspGet_in = 1; //Added by MMELO
         /* send to all ports */
         if (dtlCmdInfo->typeToSend == DTL_L2RAW_VLAN_MULTICAST)
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_NO_L2_EGRESS_MCAST_DOMAIN;
@@ -284,6 +293,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_MCAST_DOMAIN;
 
         dr = dapiCpuUspGet (&ddUsp);
+        dapiCpuUspGet_in = 0; //Added by MMELO
         if (dr != L7_SUCCESS)
         {
           SYSAPI_NET_MBUF_FREE(bufHandle);
@@ -323,9 +333,12 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
   SYSAPI_NET_MBUF_SET_LOC(bufHandle, MBUF_LOC_PDU_TX);
 
+  dapiCtl_in = 1; //Added by MMELO
   dr = dapiCtl(&ddUsp, DAPI_CMD_FRAME_SEND, &sendData);
+  dapiCtl_in = 0; //Added by MMELO
+
   if (dr == L7_SUCCESS)
-  {
+  {   
     return L7_SUCCESS;
   }
   else

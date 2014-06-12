@@ -27,7 +27,7 @@
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_igmp_admin_set(uint8 admin);
+unsigned int ptin_mgmd_cfg_igmp_admin_set(uint8 admin);
 
 /**
 * @purpose Enable/Disable MLD packets to be captures by the HW
@@ -38,7 +38,7 @@ RC_t ptin_mgmd_cfg_igmp_admin_set(uint8 admin);
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_mld_admin_set(uint8 admin);
+unsigned int ptin_mgmd_cfg_mld_admin_set(uint8 admin);
 
 /**
 * @purpose Set CoS in the FW for the packets sent by MGMD
@@ -49,7 +49,7 @@ RC_t ptin_mgmd_cfg_mld_admin_set(uint8 admin);
 *
 * @notes none
 */
-RC_t ptin_mgmd_cfg_cos_set(uint8 cos);
+unsigned int ptin_mgmd_cfg_cos_set(uint8 cos);
 
 #endif //_COMPILE_AS_BINARY_
 

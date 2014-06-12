@@ -91,6 +91,28 @@ RC_t ptin_mgmd_ctrl_mgmd_config_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
 
 
 /**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_PROXY_STATUS_GET 
+*          message
+*  
+* @param  eventMsg[out] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_mgmd_status_get(PTIN_MGMD_EVENT_CTRL_t *eventData)
+{
+  PTIN_MGMD_CTRL_MGMD_STATUS_t      data          = {0};
+  RC_t                         res           = SUCCESS; 
+
+  data.mgmdStatus = PTIN_MGMD_STATUS_WORKING;
+   
+  memcpy(eventData->data, &data, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));   
+
+  return res;
+}
+
+/**
 * @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET message
 *  
 * @param  eventMsg[in] : Pointer to CTRL data

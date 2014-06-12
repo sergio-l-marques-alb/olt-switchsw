@@ -1264,13 +1264,20 @@ RC_t ptinMgmdMembershipReportToIncludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     return FAILURE;
   }
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+
+  if (groupEntry->ports[portId].active == FALSE || groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == FALSE)
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "[groupAddr:0x%08x] | Either the root or leaf port are inactive [rootPortStatus:%s | leafportStatus:%s]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ports[PTIN_MGMD_ROOT_PORT].active?"Active":"Inactive",groupEntry->ports[portId].active?"Active":"Inactive");
+    return FAILURE;
+  }
+
   if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
     return FAILURE;
   }
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
 
   /* Start by adding all current sources to the Q(G,S). All incoming sources will be removed later */
   if (PTIN_MGMD_ROOT_PORT != portId)
@@ -1474,14 +1481,21 @@ RC_t ptinMgmdMembershipReportToExcludeProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdG
     return FAILURE;
   }
 
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+
+  if (groupEntry->ports[portId].active == FALSE || groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == FALSE)
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "[groupAddr:0x%08x] | Either the root or leaf port are inactive [rootPortStatus:%s | leafportStatus:%s]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ports[PTIN_MGMD_ROOT_PORT].active?"Active":"Inactive",groupEntry->ports[portId].active?"Active":"Inactive");
+    return FAILURE;
+  }
+
   if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
     return FAILURE;
   }
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
-  
+ 
   /*
    * Mark every current source as toremove
    *
@@ -1881,13 +1895,20 @@ RC_t ptinMgmdMembershipReportAllowProcess(ptin_mgmd_eb_t *pMgmdEB, ptinMgmdGroup
     return FAILURE;
   }
  
+  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+
+  if (groupEntry->ports[portId].active == FALSE || groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == FALSE)
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "[groupAddr:0x%08x] | Either the root or leaf port are inactive [rootPortStatus:%s | leafportStatus:%s]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ports[PTIN_MGMD_ROOT_PORT].active?"Active":"Inactive",groupEntry->ports[portId].active?"Active":"Inactive");
+    return FAILURE;
+  }
+
   if (SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
     return FAILURE;
   }
-
-  PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
 
   sourceAddr = sourceList;
   while (noOfSources > 0 && sourceAddr != PTIN_NULLPTR)
@@ -2016,6 +2037,13 @@ RC_t ptinMgmdMembershipReportBlockProcess(ptinMgmdGroupInfoData_t *groupEntry, u
 
   PTIN_MGMD_LOG_DEBUG(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
   
+  if (groupEntry->ports[portId].active == FALSE || groupEntry->ports[PTIN_MGMD_ROOT_PORT].active == FALSE)
+  {
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "GroupAddress:[%s] PortId:[%u] clientId:[%u] ServiceId:[%u] noOfSources:[%u]", ptin_mgmd_inetAddrPrint(&(groupEntry->ptinMgmdGroupInfoDataKey.groupAddr), debug_buf), portId, clientId, groupEntry->ptinMgmdGroupInfoDataKey.serviceId, noOfSourcesInput);
+    PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "[groupAddr:0x%08x] | Either the root or leaf port are inactive [rootPortStatus:%s | leafportStatus:%s]", groupEntry->ptinMgmdGroupInfoDataKey.groupAddr, groupEntry->ports[PTIN_MGMD_ROOT_PORT].active?"Active":"Inactive",groupEntry->ports[portId].active?"Active":"Inactive");
+    return FAILURE;
+  }
+
   if (groupEntry->ports[portId].filtermode == PTIN_MGMD_FILTERMODE_INCLUDE)
   {
     sourceAddr = sourceList;

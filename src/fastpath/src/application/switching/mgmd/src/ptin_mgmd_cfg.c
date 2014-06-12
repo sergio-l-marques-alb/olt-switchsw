@@ -642,6 +642,12 @@ RC_t ptin_mgmd_igmp_proxy_config_get(ptin_IgmpProxyCfg_t *igmpProxy)
   igmpProxy->querier.mask = 0xFFFF;
   igmpProxy->host.mask    = 0xFF;
 
+  if(igmpProxy->networkVersion == PTIN_IGMP_VERSION_2 && igmpProxy->querier.query_response_interval>PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL)
+  {
+    PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Invalid Query Response Interval when Operating in IGMPv2[%u]. Using Instead [%u]", igmpProxy->querier.query_response_interval, PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL);
+    igmpProxy->querier.query_response_interval = PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL;
+  }
+
   return SUCCESS;
 }
 

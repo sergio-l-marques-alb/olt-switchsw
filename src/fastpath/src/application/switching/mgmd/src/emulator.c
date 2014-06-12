@@ -23,11 +23,12 @@
 
 static int32 ctrlQueueId = -1;
 
-static void sendEmulatedBurst(uint32 pcktpsec);
+static void sendEmulatedBurst(uint32 pcktpsec, uint32 serviceId, uint32 portId);
 static void sendEmulatedGeneralQuery(uint16 serviceId, uint16 portId);
 static void sendEmulatedIsInclude(uint16 serviceId, uint16 portId, uint32 clientId);
 static void sendMgmdConfigGet(void);
 static void sendMgmdConfigSet(void);
+static void sendMgmdStatusGet(void);
 static void sendMgmdClientStatsGet(uint16 portId, uint32 clientId);
 static void sendMgmdClientStatsClear(uint16 portId, uint32 clientId);
 static void sendMgmdInterfaceStatsGet(uint16 serviceId, uint32 portId);
@@ -92,14 +93,12 @@ void sendEmulatedIsInclude(uint16 serviceId, uint16 portId, uint32 clientId)
   }
 }
 
-void sendEmulatedBurst(uint32 pcktpsec)
+void sendEmulatedBurst(uint32 pcktpsec, uint32 serviceId, uint32 portId)
 {
   PTIN_MGMD_EVENT_t reqMsg     = {0};
   uint32            i, j       = 0;
   uint32            groupIp;
-  uint32            sourceIp;
-  uint32            serviceId;
-  uint32            portId;
+  uint32            sourceIp;  
   uint8             randomGroupIpIncrement;
   uint8             recordType;
   uchar8            igmpHeader[PTIN_MGMD_MAX_FRAME_SIZE],igmpFrame[PTIN_MGMD_MAX_FRAME_SIZE];
@@ -144,9 +143,12 @@ void sendEmulatedBurst(uint32 pcktpsec)
       buildIgmpFrame(igmpFrame, &igmpFrameLength, igmpHeader, igmpHeaderLength);
 
       //Random ServiceId and PortId
-      serviceId = randomNumber(1, PTIN_MGMD_MAX_SERVICES-1);
-      portId    = randomNumber(1, PTIN_MGMD_MAX_PORT_ID-1);
+      if (serviceId == (uint32) -1)
+        serviceId = randomNumber(1, PTIN_MGMD_MAX_SERVICE_ID-1);
 
+      if (portId == (uint32) -1)
+        portId = randomNumber(1, PTIN_MGMD_MAX_PORT_ID-1);
+      
       //Send packet
       ptin_mgmd_event_packet_create(&reqMsg, serviceId, portId, 0, (void*) igmpFrame, igmpFrameLength);
       if (SUCCESS != ptin_mgmd_eventQueue_tx(&reqMsg))
@@ -206,6 +208,26 @@ void sendMgmdConfigGet(void)
   PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Max Group Records per Packet   = %u",          mgmdConfigMsg.host.maxRecordsPerReport);
 }
 
+void sendMgmdStatusGet(void)
+{
+  PTIN_MGMD_EVENT_t            reqMsg        = {0}, resMsg = {0};
+  PTIN_MGMD_EVENT_CTRL_t       ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_MGMD_STATUS_t mgmdConfigMsg = {0};
+  uint32                       msgId         = rand(); 
+
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_STATUS_GET, msgId, 0, ctrlQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Response");
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
+
+  memcpy(&mgmdConfigMsg, ctrlResMsg.data, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+  PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "   Mgmd Status  = %s",   mgmdConfigMsg.mgmdStatus==PTIN_MGMD_STATUS_WORKING?"Alive":"Dead");
+    
+}
 void sendMgmdConfigSet(void)
 {
   PTIN_MGMD_EVENT_t            reqMsg        = {0};
@@ -856,7 +878,7 @@ void sendGeneralQueryDump(void)
 void printHelpMenu(void)
 {
   printf("-------------PACKETS-----                                                                                      \n");    
-  printf("\t 0   - BURST_TEST               - $pkts/sec                                                                  \n");    
+  printf("\t 0   - BURST_TEST               - $pkts/sec  [$serviceId $portId]                                            \n");    
   printf("\t 1   - GENERAL_QUERY            - $serviceId $portId                                                         \n");    
   printf("\t 2   - IS_INCLUDE               - $serviceId $portId $clientId                                               \n");    
                                                                                                                          
@@ -878,6 +900,7 @@ void printHelpMenu(void)
   printf("\t 24  - WHITELIST_REMOVE         - $serviceId $groupAddr(hex) $groupMaskLen $sourceAddr(hex)  $sourceMaskLen  \n");
   printf("\t 25  - SERVICE_REMOVE           - $serviceId                                                                 \n");
   printf("\t 26  - RESET_DEFAULTS           - $family                                                                    \n");
+  printf("\t 27  - MGMD_STATUS_GET          -                                                                            \n");
                                                                                                                    
   printf("\n-------------DEBUG-------                                                                                    \n");    
   printf("\t 101 - IGMP_LOG_LEVEL           - $logLevel $advancedDebug                                                   \n"); 
@@ -915,15 +938,28 @@ int main(int argc, char **argv)
     case 0:
     {
       uint32 pcktpsec;
+      uint32 serviceId;
+      uint32 portId;
 
       if(argc < 3)
       {
         printHelpMenu();
         return 0;
       }
-
+      
       pcktpsec = strtoul(argv[2], PTIN_NULLPTR, 10);
-      sendEmulatedBurst(pcktpsec);
+
+      if(argc == 4 || argc == 5)
+        serviceId = strtoul(argv[3], PTIN_NULLPTR, 10);
+      else
+        serviceId = (uint32) -1;
+
+      if(argc == 5)
+        portId = strtoul(argv[4], PTIN_NULLPTR, 10);
+      else
+        portId = (uint32) -1;
+
+      sendEmulatedBurst(pcktpsec, serviceId, portId);
       break;
     }
     case 1:
@@ -1217,6 +1253,11 @@ int main(int argc, char **argv)
       family = strtoul(argv[2], PTIN_NULLPTR, 10);
 
       sendMgmdResetDefaults(family);
+      break;
+    }
+    case 27:
+    {
+      sendMgmdStatusGet();
       break;
     }
     case 101:

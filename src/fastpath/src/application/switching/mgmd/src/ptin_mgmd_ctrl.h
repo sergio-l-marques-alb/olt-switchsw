@@ -136,6 +136,19 @@ typedef struct
   uint8      whiteList;                         // Channel white-list admin [PTIN_MGMD_DISABLE/PTIN_MGMD_ENABLE]
 } __attribute__((packed)) PTIN_MGMD_CTRL_MGMD_CONFIG_t; 
 
+// PTIN_MGMD_EVENT_CTRL_STATUS_GET
+typedef enum
+{
+  PTIN_MGMD_STATUS_UNKNOWN   = 0, 
+  PTIN_MGMD_STATUS_BOOTING , 
+  PTIN_MGMD_STATUS_WORKING 
+} PTIN_MGMD_STATUS_TYPE_t;
+
+typedef struct
+{
+  uint8 mgmdStatus;  //PTIN_MGMD_STATUS_TYPE_t         
+} __attribute__((packed)) PTIN_MGMD_CTRL_MGMD_STATUS_t;
+
 // ----------------------------------------------
 // PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET
 // PTIN_MGMD_EVENT_CTRL_INTF_STATS_CLEAR
@@ -327,6 +340,18 @@ typedef struct
 * @notes none
 */
 RC_t ptin_mgmd_ctrl_mgmd_config_get(PTIN_MGMD_EVENT_CTRL_t *eventData);
+
+/**
+* @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_STATUS_GET 
+*          message
+*  
+* @param  eventMsg[out] : Pointer to CTRL data
+*
+* @return RC_t
+*
+* @notes none
+*/
+RC_t ptin_mgmd_ctrl_mgmd_status_get(PTIN_MGMD_EVENT_CTRL_t *eventData);
 
 /**
 * @purpose Process a CTRL PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_SET message

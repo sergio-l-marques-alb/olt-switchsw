@@ -2106,7 +2106,8 @@ RC_t ptinMgmdCleanUpGroupRecordAvlTree(uint32 serviceId)
 }
 
 
-
+uint8 ptin_mgmd_tx_packet_status = (uint8) -1;
+inline uint8 ptin_mgmd_tx_packet_status_get(void){return  ptin_mgmd_tx_packet_status;};
 /**********************************************************************
 * @purpose Send packet to a specific interfaces
 *
@@ -2142,12 +2143,15 @@ RC_t ptinMgmdPacketPortSend(ptinMgmdControlPkt_t *mcastPacket, uint8 igmp_type, 
     return FAILURE;
   }
   
+  ptin_mgmd_tx_packet_status = 1;
   if(SUCCESS != (rc = externalApi.tx_packet(mcastPacket->framePayload, mcastPacket->frameLength, mcastPacket->serviceId, portId, mcastPacket->clientId,mcastPacket->family)))
   {
+    ptin_mgmd_tx_packet_status = 0;
     PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Unable to transmit packet [client_idx=%u portIdx=%u serviceId=%u family=%u]", 
             mcastPacket->clientId, portId, mcastPacket->serviceId, mcastPacket->family);
     return rc;
   }
+  ptin_mgmd_tx_packet_status = 0;
 
   if(ptin_mgmd_packet_trace)
   {    

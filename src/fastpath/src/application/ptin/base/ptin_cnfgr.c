@@ -61,6 +61,12 @@ void *ptin_ready_sem = L7_NULLPTR;
 /* MGMD TxQueueId */
 L7_int32 ptinMgmdTxQueueId = -1;
 
+/* Get MGMD TxQueueId */
+inline L7_int32 ptin_mgmd_txqueue_id_get(void){return ptinMgmdTxQueueId;};
+/* Reinit MGMD TxQueue */
+inline RC_t ptin_mgmd_txqueue_reinit(void) {return ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);};
+
+
 #if (PTIN_BOARD_IS_MATRIX)
 void *ptin_switchover_sem  = L7_NULLPTR;
 void *ptin_boardaction_sem = L7_NULLPTR;
