@@ -1802,9 +1802,10 @@ RC_t ptin_mgmd_membership_report_v3_process(ptinMgmdControlPkt_t *mcastPacket)
     }
     else
     { 
-      //If the Record Type is equal to ToIn{} or Block{S} we ignore this Group Record. 
-      //If we are in v2 compatibility mode in this interface and the record type is Block{S} we also ignore this Group Record.
-      if ( ((snoopEntry->ports[mcastPacket->portId].numberOfClients==0) && ((recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES))) ||
+      //If this port is inactive Or we do not have any client And the Record Type is equal to ToIn{} or Block{S}. We silently discard this Group Record. 
+      //Or if we are in v2 compatibility mode on this port  and the record type is Block{S} we also ignore this Group Record.
+      if ( ((snoopEntry->ports[mcastPacket->portId].active != TRUE || snoopEntry->ports[mcastPacket->portId].numberOfClients==0) && 
+            ((recType==PTIN_MGMD_CHANGE_TO_INCLUDE_MODE && noOfSources==0) || (recType==PTIN_MGMD_BLOCK_OLD_SOURCES))) ||
            ((snoopEntry->ports[mcastPacket->portId].groupCMTimer.compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2) && (recType==PTIN_MGMD_BLOCK_OLD_SOURCES)) )
       {         
         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"Received a group record type:[%u] (clients=%u routerCM=%u). Silently discarded.", 
@@ -2072,12 +2073,18 @@ RC_t ptin_mgmd_membership_report_v2_process(ptinMgmdControlPkt_t *mcastPacket)
        */      
 
       ptin_mgmd_inetAddressSet(PTIN_MGMD_AF_INET, &groupAddr, &groupInetAddr);
-      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr)))
+      if (PTIN_NULLPTR == (snoopEntry = ptinMgmdL3EntryFind(mcastPacket->serviceId, &groupInetAddr)) )
       {
-        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report for a non-existing group[%s]. Silently ignored", ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf));
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report on Service Id [%u] for a non-existing group[%s]. Silently ignored",mcastPacket->serviceId,  ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf));
         return SUCCESS;
       }
 
+      if(snoopEntry->ports[mcastPacket->portId].active != TRUE || snoopEntry->ports[mcastPacket->portId].numberOfClients == 0)
+      {
+        PTIN_MGMD_LOG_NOTICE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received a Leave-Report on Service Id [%u] of group[%s] for a inactive port [%u]. Silently ignored",mcastPacket->serviceId, ptin_mgmd_inetAddrPrint(&groupInetAddr, debug_buf), mcastPacket->portId);
+        return SUCCESS;
+      }
+      
       numberOfClients = snoopEntry->ports[PTIN_MGMD_ROOT_PORT].numberOfClients;
     
       ptin_measurement_timer_start(25,"ptinMgmdMembershipReportToIncludeProcess");   
@@ -2310,6 +2317,23 @@ RC_t ptin_mgmd_event_ctrl(PTIN_MGMD_EVENT_CTRL_t* eventData)
 
   switch (eventData->msgCode)
   {
+    case PTIN_MGMD_EVENT_CTRL_STATUS_GET:
+    {
+      PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_STATUS_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
+
+      //Validate message size
+      if(eventData->dataLength != sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t))
+      {
+        PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Received message[%u bytes] does not have the expected size[%u bytes]", eventData->dataLength, sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
+        res = FAILURE;
+      }
+     
+      if(SUCCESS == res)
+      {
+        res = ptin_mgmd_ctrl_mgmd_status_get(eventData);
+      }
+      break;
+    }
     case PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET:
     {
       PTIN_MGMD_LOG_INFO(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "CTRL Msg [Code: 0x%04X - PTIN_MGMD_EVENT_CTRL_PROXY_CONFIG_GET]       [ID: 0x%08X]", eventData->msgCode, eventData->msgId);
