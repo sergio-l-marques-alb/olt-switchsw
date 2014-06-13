@@ -389,6 +389,17 @@ extern inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx);
  */
 extern L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port);
 
+/**
+ * Check if a protection port is active
+ * 
+ * @author mruas (5/28/2014)
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_BOOL 
+ */
+extern L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port);
+
 /*
  * LAGs Manipulation Functions
  */ 
