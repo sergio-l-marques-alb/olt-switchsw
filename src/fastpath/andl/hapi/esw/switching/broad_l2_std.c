@@ -3467,6 +3467,9 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: New MAC with VID %d, GPORT 0x%08X, flags 0x%x",
+            bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
   /* only process learns on Native(front panel) ports */
   if ((~bcmx_l2_addr->flags & BCM_L2_NATIVE) && !BCM_GPORT_IS_WLAN_PORT(bcmx_l2_addr->lport))
   {
@@ -3681,9 +3684,15 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: Aged MAC with VID %d, GPORT 0x%08X, flags 0x%x",
+            bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
   /* If move, it will be handled in the Learn Callback */
   if (bcmx_l2_addr->flags & BCM_L2_MOVE)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: BCM_L2_MOVE flag causes event drop");
     return;
+  }
 
   /* Special handling for addresses learned on a trunk.
   ** Issue the age to application only if the mac has
@@ -3751,6 +3760,9 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* Do not check return code, no guarentee that the address will be present in all devices */
       if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
       {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
+                  bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
         rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
         /* PTin added: MAC learning limit */
         ptin_hapi_macaddr_dec(bcmx_l2_addr);
