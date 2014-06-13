@@ -135,6 +135,7 @@ L7_RC_t ptin_intf_init(void)
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
   ptin_intf_t ptin_intf;
+  L7_uint32 mtu_size;
 
   /* Reset structures (everything is set to 0xFF) */
   memset(map_port2intIfNum,   0xFF, sizeof(map_port2intIfNum));
@@ -196,7 +197,9 @@ L7_RC_t ptin_intf_init(void)
       return L7_FAILURE;
     }
 
-    rc = usmDbIfConfigMaxFrameSizeSet(map_port2intIfNum[i], PTIN_SYSTEM_MTU_SIZE);
+    mtu_size = ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1) ? PTIN_SYSTEM_PON_MTU_SIZE : PTIN_SYSTEM_ETH_MTU_SIZE;
+
+    rc = usmDbIfConfigMaxFrameSizeSet(map_port2intIfNum[i], mtu_size);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", i);
