@@ -69,6 +69,9 @@ export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 export FP_CLI_PATH   := ../fastpath.cli
 export FP_SHELL_PATH := ../fastpath.shell
 
+export LVL7_MAKEFILE_LOGGING := N
+export LVL7_MAKEFILE_DISPLAY_MODE := S
+
 .PHONY: welcome all install clean cleanall help h kernel cli shell cli_clean shell_clean
 
 all: welcome mgmdconfig cli_clean shell_clean cli shell
