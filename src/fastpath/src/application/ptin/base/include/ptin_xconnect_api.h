@@ -43,6 +43,17 @@ extern L7_RC_t ptin_vlan_port_remove(L7_uint32 ptin_port, L7_uint16 vlanId);
 extern L7_RC_t ptin_vlan_port_removeFlush(L7_uint32 ptin_port, L7_uint16 vlanId);
 
 /**
+ * Remove port from a specific vlan, and flush mac table
+ *  
+ * @param ptin_port_old : Previous port 
+ * @param ptin_port_new : New port 
+ * @param vlanId : Vlan Id (0 to apply to all existent)
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, L7_uint16 vlanId);
+
+/**
  * Create a multicast group
  * 
  * @param mcast_group : Multicast group id to be returned.

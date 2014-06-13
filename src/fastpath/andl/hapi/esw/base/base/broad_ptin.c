@@ -648,16 +648,48 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
 L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_vlan_mode_t  *vlan_mode = (ptin_vlan_mode_t *) data;
-  DAPI_PORT_t       *dapiPortPtr;
-  BROAD_PORT_t      *hapiPortPtr;
+  DAPI_PORT_t       *dapiPortPtr, *dapiPortPtr_prev;
+  BROAD_PORT_t      *hapiPortPtr, *hapiPortPtr_prev;
   bcm_trunk_t       tgid  = -1;
   bcmx_lport_t      lport = -1;
   L7_BOOL           port_is_lag;
+  bcmx_l2_addr_t    bcmx_l2_addr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Prepare switch-over */
+  memset(&bcmx_l2_addr, 0x00, sizeof(bcmx_l2_addr));
 
   /* Get the port info */
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
+  /* Previous port (Must be physical) */
+  if (vlan_mode->ddUsp.unit >= 0 &&
+      vlan_mode->ddUsp.slot >= 0 &&
+      vlan_mode->ddUsp.port >= 0)
+  {
+    dapiPortPtr_prev = DAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
+    hapiPortPtr_prev = HAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
+
+    if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
+    {
+      bcmx_l2_addr.flags = 0; 
+      bcmx_l2_addr.lport = hapiPortPtr_prev->bcmx_lport;
+      bcmx_l2_addr.tgid  = -1;
+    }
+    else
+    {
+      dapiPortPtr_prev = L7_NULLPTR;
+      hapiPortPtr_prev = L7_NULLPTR;
+    }
+  }
+  else
+  {
+    dapiPortPtr_prev = L7_NULLPTR;
+    hapiPortPtr_prev = L7_NULLPTR;
+  }
+
+  /* Given Port is LAG? */
   if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
   {
     if (hapiPortPtr->hapiModeparm.lag.tgid == -1)
@@ -682,13 +714,26 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     port_is_lag = L7_FALSE;
   }
 
-  //LOG_INFO(LOG_CTX_PTIN_HAPI, "Nothing done to port {%d,%d,%d}", usp->unit, usp->slot, usp->port);
-  //return L7_SUCCESS;
-
+  /* Only use switching procedure for the SET command */
   if (vlan_mode->oper == DAPI_CMD_SET)
   {
+    /* All vlans */
     if (vlan_mode->vlanId == 0 || vlan_mode->vlanId > 4095)
     {
+      /* In case of switch-over, move MAC addresses */
+      if (hapiPortPtr_prev != L7_NULLPTR)
+      {
+        /* Remove old port from vlan */
+        hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
+
+        /* Move MACs to newer port */
+        if (bcmx_l2_replace(BCM_L2_REPLACE_MATCH_DEST, &bcmx_l2_addr, hapiPortPtr->bcmx_lport, -1) != BCM_E_NONE)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying bcm_l2_replace\r\n");
+          rc = L7_FAILURE;
+        }
+      }
+
       /* Add the port to all vlans */
       hapiBroadAddRemovePortFromVlans(usp, 1, dapi_g);
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} added to all VLANS", usp->unit, usp->slot, usp->port);
@@ -748,7 +793,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     }
   }
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**

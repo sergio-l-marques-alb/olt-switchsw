@@ -4656,8 +4656,47 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   return L7_SUCCESS;
 }
 
-int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
+/**
+ * Protection command
+ * 
+ * @param slot_old : board slot
+ * @param port_old : board port
+ * @param slot_new : board slot
+ * @param port_new : board port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new)
 {
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  L7_uint32 ptin_port_old, ptin_port_new;
+
+  /* Get intIfNum from slot/port */
+  if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_old, port_old);
+    return L7_FAILURE;
+  }
+  if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_new, port_new);
+    return L7_FAILURE;
+  }
+
+  /* Switch ports */
+  if (ptin_vlan_port_switch(ptin_port_old, ptin_port_new, 0) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error switching port %u to port %u", ptin_port_old, ptin_port_new);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "port %u successfully switched to port %u", ptin_port_old, ptin_port_new);
+  #endif
+
+  return L7_SUCCESS;
+}
+
+
+int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
    /* Internal LAG */

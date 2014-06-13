@@ -6610,28 +6610,67 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
  */
 L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
 {
-  L7_int i;
-  L7_RC_t rc, rc_global = L7_SUCCESS;
+  L7_int i, i2rem, i2add;
+  L7_RC_t rc = L7_SUCCESS;
 
-  /* Apply all commands */
-  for (i = 0; i < n; i++)
+  i2add = i2rem = -1;
+
+  /* Verify plan to be followed */
+  for (i = 0; i < n; i++) 
   {
     LOG_INFO(LOG_CTX_PTIN_MSG, "Received protection command: "); 
     LOG_INFO(LOG_CTX_PTIN_MSG, " slot = %u", cmd[i].slotId);
     LOG_INFO(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
     LOG_INFO(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
 
-    //rc = ptin_intf_protection_cmd(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
-    rc = ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd);
-
-    /* Update status error */
-    if (rc != L7_SUCCESS)
+    if (n > 1)
     {
-      rc_global = rc;
+      if      ( (cmd[i].protCmd & 1) && i2add < 0)  i2add = i;
+      else if (!(cmd[i].protCmd & 1) && i2rem < 0)  i2rem = i;
     }
   }
-  
-  return rc_global;
+
+  /* If provided a port to be removed, and to be added, follow plan D for those ports */
+  if (i2add >= 0 && i2rem >= 0)
+  {
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
+             cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
+    /* PLAN D */
+    if (ptin_intf_protection_cmd_planD(cmd[i2rem].slotId, cmd[i2rem].port,
+                                       cmd[i2add].slotId, cmd[i2add].port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Plan D failed for slot/ports %d/%d -> %d/%d",
+              cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
+      rc = L7_FAILURE;
+    }
+  }
+
+  /* Apply plan C for other ports */
+  for (i = 0; i < n; i++) 
+  {
+    /* Skip ports used for plan D */
+    if (i == i2rem || i == i2add)  continue;
+
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+    /* PLAN C */
+    if (ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Plan C failed for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+      rc = L7_FAILURE;
+    }
+  }
+
+  /* Check for result */
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed!"); 
+  }
+  else
+  {
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Successfull protection switch!"); 
+  }
+
+  return rc;
 }
 
 /**
