@@ -363,14 +363,6 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
 
   #if (PTIN_BOARD_IS_MATRIX)
-  #ifdef MAP_CPLD
-
-  /* Only active matrix will process these messages */
-  if (!cpld_map->reg.mx_is_active)
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
-    return L7_SUCCESS;
-  }
 
   /* insertion action */
   if (msg->type == 0x03)
@@ -402,7 +394,6 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
       LOG_INFO(LOG_CTX_PTIN_MSG, "Card removed successfully");
     }
   }
-  #endif
   #endif
 
   return rc;
@@ -6647,11 +6638,11 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Check for result */
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed from slot/ports %d/%d -> %d/%d!"); 
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed"); 
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfull protection switch from !"); 
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfull protection switch!"); 
   }
 
   return rc;
