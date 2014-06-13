@@ -428,7 +428,7 @@ void ptin_intf_dump(void)
     {
       sprintf(board_id_str,"local");
     }
-    else if (ptin_intf_boardtype_get(port, &board_type) == L7_SUCCESS && board_type != 0)
+    else if (ptin_intf_boardid_get(port, &board_type) == L7_SUCCESS && board_type != 0)
     {
       switch (board_type)
       {
