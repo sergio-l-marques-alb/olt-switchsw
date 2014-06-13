@@ -26,6 +26,7 @@ ptin_hapi_database_t *bwp_db = &bw_policer_database;
 
 static void bwPolicy_clear_data(void *policy_ptr);
 static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr);
+static L7_BOOL bwPolicy_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage);
 static L7_BOOL bwPolicy_inUse(void *policy_ptr);
 
 
@@ -48,6 +49,7 @@ L7_RC_t hapi_ptin_bwPolicer_init(void)
   bwp_db->database_index_first_free  = 0;
   bwp_db->policy_inUse               = bwPolicy_inUse;
   bwp_db->policy_compare             = bwPolicy_compare;
+  bwp_db->policy_check_conflicts     = bwPolicy_check_conflicts;
   bwp_db->policy_clear_data          = bwPolicy_clear_data;
 
   for (policer=bw_policer_data; FP_POLICY_VALID_PTR(policer,bwp_db); policer++)
@@ -706,6 +708,22 @@ static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
   if (profile->cos !=ptr->cos)  return L7_FALSE;
 
   return L7_TRUE;
+}
+
+/**
+ * Function used for conflicts detection between different 
+ * policies 
+ * 
+ * @param profile_ptr : Profile data
+ * @param policy_ptr : Pointer to database 
+ * @param stage: ingress or egress 
+ * 
+ * @return L7_BOOL : L7_TRUE if there is conflict / L7_FALSE if 
+ *         not
+ */
+static L7_BOOL bwPolicy_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage)
+{
+  return L7_FALSE;
 }
 
 /**

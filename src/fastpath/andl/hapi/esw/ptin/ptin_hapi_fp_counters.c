@@ -28,6 +28,7 @@ ptin_hapi_database_t *cnt_db = &fp_counters_database;
 
 static void fpCounters_clear_data(void *policy_ptr);
 static L7_BOOL fpCounters_compare(void *profile_ptr, const void *policy_ptr);
+static L7_BOOL fpCounters_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage);
 static L7_BOOL fpCounters_inUse(void *policy_ptr);
 
 
@@ -50,6 +51,7 @@ L7_RC_t hapi_ptin_fpCounters_init(void)
   cnt_db->database_index_first_free  = 0;
   cnt_db->policy_inUse               = fpCounters_inUse;
   cnt_db->policy_compare             = fpCounters_compare;
+  cnt_db->policy_check_conflicts     = fpCounters_check_conflicts;
   cnt_db->policy_clear_data          = fpCounters_clear_data;
 
   for (counter=fp_counters_data; FP_POLICY_VALID_PTR(counter,cnt_db); counter++)
@@ -374,6 +376,13 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     {
       if (profile->outer_vlan_out<=0 || profile->outer_vlan_out>=4096)
         continue;
+
+      /* Check for conflicts */
+      if (ptin_hapi_policy_check_conflicts(profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_EGRESS) != L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at egress stage)");
+        continue;
+      }
 
       /* Define policy type */
       if (profile->inner_vlan_out<=0 || profile->inner_vlan_out>=4096)
@@ -810,6 +819,54 @@ static L7_BOOL fpCounters_compare(void *profile_ptr, const void *policy_ptr)
   if (profile->dst_ip!=ptr->dip)  return L7_FALSE;
 
   return L7_TRUE;
+}
+
+/**
+ * Function used for conflicts detection
+ * 
+ * @param profile_ptr : Profile data
+ * @param policy_ptr : Pointer to database 
+ * @param state: ingress or egress 
+ * 
+ * @return L7_BOOL : L7_TRUE if confictuous / L7_FALSE if not
+ */
+static L7_BOOL fpCounters_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage)
+{
+  ptin_evcStats_profile_t *profile = (ptin_evcStats_profile_t *) profile_ptr;
+  const ptin_evcStats_policy_t *ptr = (const ptin_evcStats_policy_t *) policy_ptr;
+
+  /* Skip empty elements */
+  if (!ptr->inUse)  return L7_FALSE;
+
+  /* Verify interface */
+  if (profile->ddUsp_src.unit == ptr->ddUsp_src.unit &&
+      profile->ddUsp_src.slot == ptr->ddUsp_src.slot &&
+      profile->ddUsp_src.port == ptr->ddUsp_src.port)
+  {
+    /* Verify OVID */
+    if (stage == BROAD_POLICY_STAGE_EGRESS)
+    {
+      if (profile->outer_vlan_out == ptr->outer_vlan_out)
+      {
+        if ((profile->inner_vlan_out == ptr->inner_vlan_out) ||             /* Vlans are the same */
+            (profile->inner_vlan_out == 0 && ptr->inner_vlan_out != 0) ||   /* one is EVC counter, and the other is client counter */
+            (profile->inner_vlan_out != 0 && ptr->inner_vlan_out == 0))
+          return L7_TRUE;
+      }
+    }
+    else if (stage == BROAD_POLICY_STAGE_INGRESS)
+    {
+      if (profile->outer_vlan_in == ptr->outer_vlan_in)
+      {
+        if ((profile->inner_vlan_in == ptr->inner_vlan_in) ||               /* Vlans are the same */
+            (profile->inner_vlan_in == 0 && ptr->inner_vlan_in != 0) ||     /* one is EVC counter, and the other is client counter */
+            (profile->inner_vlan_in != 0 && ptr->inner_vlan_in == 0))
+          return L7_TRUE;
+      }
+    }
+  }
+
+  return L7_FALSE;
 }
 
 /**

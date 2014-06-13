@@ -240,6 +240,44 @@ void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t 
   return ptr;
 }
 
+/**
+ * Find element in database with conflict
+ * 
+ * @param profile : Reference data to search for
+ * @param base_ptr : Pointer to first element to look for 
+ *                 (L7_NULLPTR to start looking from the
+ *                 beginning).
+ * @param db : Database descriptor 
+ * @param state: ingress or egress 
+ * 
+ * @return void* : Pointer to the found element (L7_NULLPTR if 
+ *         not found or error)
+ */
+void *ptin_hapi_policy_check_conflicts(void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage)
+{
+  void *ptr;
+
+  /* Run all elements */
+  for (ptr = ( base_ptr==L7_NULLPTR ) ? FP_POLICY_GET_DATABASE_PTR(db) : FP_POLICY_GET_PTR_NEXT(base_ptr,db);
+       FP_POLICY_VALID_PTR(ptr,db);
+       FP_POLICY_INC_PTR(ptr,db) /*ptr = GET_POLICY_PTR_NEXT(ptr)*/ )
+  {
+    /* Is some comparison parameter differ, skip to the next element */
+    if (db->policy_check_conflicts(profile, ptr, stage))  break;
+  }
+
+  /* Check if all elements were checked without success: not found situation */
+  if (!FP_POLICY_VALID_PTR(ptr,db))
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Cell not found");
+    return L7_NULLPTR;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Cell found in conflict!");
+
+  /* At this point a match has ocurred (index points to that match) */
+  return ptr;
+}
 
 /**
  * Find first free element in database

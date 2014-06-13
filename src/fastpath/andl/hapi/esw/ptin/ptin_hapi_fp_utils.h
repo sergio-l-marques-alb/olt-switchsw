@@ -16,9 +16,10 @@ typedef struct {
 
   L7_int database_index_first_free;         /* First free element in database */
 
-  void (*policy_clear_data)(void *policy);                      /* Function to clear element */
-  L7_BOOL (*policy_inUse)(void *policy);                        /* Function to check if element is in use */
-  L7_BOOL (*policy_compare)(void *profile, const void *policy); /* Function to compare data */
+  void (*policy_clear_data)(void *policy);                          /* Function to clear element */
+  L7_BOOL (*policy_inUse)(void *policy);                            /* Function to check if element is in use */
+  L7_BOOL (*policy_compare)(void *profile, const void *policy);     /* Function to compare data */
+  L7_BOOL (*policy_check_conflicts)(void *profile, const void *policy, int stage);  /* Function to compare data */
 } ptin_hapi_database_t;
 
 /*********************************
@@ -79,6 +80,21 @@ extern void *ptin_hapi_policy_next(void *base_ptr, ptin_hapi_database_t *db);
  *         not found or error)
  */
 extern void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t *db);
+
+/**
+ * Find element in database with conflict
+ * 
+ * @param profile : Reference data to search for
+ * @param base_ptr : Pointer to first element to look for 
+ *                 (L7_NULLPTR to start looking from the
+ *                 beginning).
+ * @param db : Database descriptor 
+ * @param state: ingress or egress 
+ * 
+ * @return void* : Pointer to the found element (L7_NULLPTR if 
+ *         not found or error)
+ */
+extern void *ptin_hapi_policy_check_conflicts(void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage);
 
 /**
  * Find first free element in database
