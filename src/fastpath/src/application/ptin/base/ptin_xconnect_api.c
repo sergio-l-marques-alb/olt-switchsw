@@ -59,6 +59,7 @@ L7_RC_t ptin_vlan_port_add(L7_uint32 ptin_port, L7_uint16 vlanId)
   vlan_mode.oper = DAPI_CMD_SET;
   vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
   vlan_mode.cpu_include = 0;
+  vlan_mode.ddUsp.unit = vlan_mode.ddUsp.slot = vlan_mode.ddUsp.port = -1;
 
   return dtlPtinVlanPortControl(intIfNum, &vlan_mode);
 }
@@ -159,6 +160,9 @@ L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, 
   vlan_mode.oper = DAPI_CMD_SET;
   vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
   vlan_mode.cpu_include = 0;
+
+  LOG_TRACE(LOG_CTX_PTIN_API, "ptin_port_old %u / usp={%d,%d,%d}", ptin_port_old,
+            vlan_mode.ddUsp.unit, vlan_mode.ddUsp.slot, vlan_mode.ddUsp.port);
 
   return dtlPtinVlanPortControl(intIfNum_new, &vlan_mode);
 }

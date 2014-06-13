@@ -663,10 +663,14 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
+  LOG_TRACE(LOG_CTX_PTIN_API, "usp_old={%d,%d,%d}, usp_new={%d,%d,%d}",
+            vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port,
+            usp->unit, usp->slot, usp->port);
+
   /* Previous port (Must be physical) */
-  if (vlan_mode->ddUsp.unit >= 0 &&
-      vlan_mode->ddUsp.slot >= 0 &&
-      vlan_mode->ddUsp.port >= 0)
+  if (vlan_mode->ddUsp.unit == 1 &&     /* Unit 0 */
+      vlan_mode->ddUsp.slot == 0 &&     /* Physical port */
+      vlan_mode->ddUsp.port >= 0 && vlan_mode->ddUsp.port < PTIN_SYSTEM_N_PORTS)
   {
     dapiPortPtr_prev = DAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
     hapiPortPtr_prev = HAPI_PORT_GET(&vlan_mode->ddUsp, dapi_g);
@@ -682,6 +686,8 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       dapiPortPtr_prev = L7_NULLPTR;
       hapiPortPtr_prev = L7_NULLPTR;
     }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Previous port {%d,%d,%d}", vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port);
   }
   else
   {
@@ -724,7 +730,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       if (hapiPortPtr_prev != L7_NULLPTR)
       {
         /* Remove old port from vlan */
-        hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
+        hapiBroadAddRemovePortFromVlans(&vlan_mode->ddUsp, 0, dapi_g);
 
         /* Move MACs to newer port */
         if (bcmx_l2_replace(BCM_L2_REPLACE_MATCH_DEST, &bcmx_l2_addr, hapiPortPtr->bcmx_lport, -1) != BCM_E_NONE)
@@ -732,6 +738,8 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
           LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying bcm_l2_replace\r\n");
           rc = L7_FAILURE;
         }
+
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from all VLANS", vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port);
       }
 
       /* Add the port to all vlans */
