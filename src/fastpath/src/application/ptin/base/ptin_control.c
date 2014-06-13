@@ -28,6 +28,7 @@
 #include "ptin_msghandler.h"
 #include "ptin_msg.h"
 
+#include "ptin_fpga_api.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE )
 #include "fw_shm.h"
@@ -776,10 +777,10 @@ void ptin_control_switchover_monitor(void)
   static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
   L7_uint8 matrix_is_active;
 
-  matrix_is_active = cpld_map->reg.mx_is_active;
+  matrix_is_active = ptin_fgpa_mx_is_active();
 
   /* First time procedure (after switchover) */
-  if (cpld_map->reg.mx_is_active != matrix_is_active_h)
+  if (ptin_fgpa_mx_is_active() != matrix_is_active_h)
   {
     //if (!matrix_is_active && 0xFF!=matrix_is_active_h) tx_dot3ad_matrix_sync_t();
     
@@ -872,7 +873,7 @@ void ptin_control_switchover_monitor(void)
   }
 
   /* Do nothing for active matrix */
-  if (cpld_map->reg.mx_is_active)
+  if (ptin_fgpa_mx_is_active())
   {
     return;
   }
@@ -910,7 +911,7 @@ void ptin_control_switchover_monitor(void)
   #endif
 
   /* Do nothing for active matrix */
-  if (cpld_map->reg.mx_is_active)
+  if (ptin_fgpa_mx_is_active())
   {
     LOG_ERR(LOG_CTX_PTIN_CONTROL, "I am active matrix");
     return;
@@ -944,7 +945,7 @@ void ptin_control_switchover_monitor(void)
   if (linkscan_update_control)
   {
     /* Do nothing for active matrix */
-    if (cpld_map->reg.mx_is_active)
+    if (ptin_fgpa_mx_is_active())
     {
       LOG_ERR(LOG_CTX_PTIN_CONTROL, "I am active matrix");
       return;
@@ -1420,7 +1421,7 @@ static dot3ad_matrix_sync2_t stat;
 uint32 ip, len, i;
 
 #ifdef MAP_CPLD
-    if (!cpld_map->reg.mx_is_active) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (!ptin_fgpa_mx_is_active()) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     {       //rate limit synchronizing LACPDUs between the 2 CXOs
@@ -1485,7 +1486,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     dot3ad_matrix_sync2_t *p2;
 
 #ifdef MAP_CPLD
-    if (cpld_map->reg.mx_is_active) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (ptin_fgpa_mx_is_active()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     p2= (dot3ad_matrix_sync2_t *) pbuf;
