@@ -350,31 +350,6 @@ static void monitor_throughput(void)
   #endif
 }
 
-#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
-#define LED_COLOR_OFF     0
-#define LED_COLOR_GREEN   1
-#define LED_COLOR_RED     2
-#define LED_COLOR_YELLOW  3
-
-void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink)
-{
-  #ifdef MAP_FPGA
-  if (port >= PTIN_SYSTEM_N_ETH || port >= 64)
-    return;
-
-  if (port%2==0)  /* Pair ports */
-  {
-    fpga_map->reg.led_color_pairports[port/2] = color;
-    fpga_map->reg.led_blink_pairports[port/2] = blink;
-  }
-  else
-  {
-    fpga_map->reg.led_color_oddports[(port-1)/2] = color;
-    fpga_map->reg.led_blink_oddports[(port-1)/2] = blink;
-  }
-  #endif
-}
-#endif
 
 /**
  * Monitor alarms

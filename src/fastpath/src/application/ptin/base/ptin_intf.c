@@ -568,6 +568,11 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
       return L7_FAILURE;
     }
 
+    #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+    /* Control txdisable for TA48GE */
+    ptin_ta48ge_txdisable_control(port, !phyConf->PortEnable);
+    #endif
+
     #if ( PTIN_BOARD_IS_STANDALONE )
     /* Update shared memory */
     pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
@@ -4706,6 +4711,42 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
  return 0;
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink)
+{
+  #ifdef MAP_FPGA
+  if (port >= PTIN_SYSTEM_N_ETH || port >= 64)
+    return;
+
+  if (port%2==0)  /* Pair ports */
+  {
+    fpga_map->reg.led_color_pairports[port/2] = color;
+    fpga_map->reg.led_blink_pairports[port/2] = blink;
+  }
+  else
+  {
+    fpga_map->reg.led_color_oddports[(port-1)/2] = color;
+    fpga_map->reg.led_blink_oddports[(port-1)/2] = blink;
+  }
+  #endif
+}
+
+void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
+{
+  #ifdef MAP_FPGA
+  uint16 base_addr, offset_addr;
+
+  if (port >= PTIN_SYSTEM_N_ETH || port >= 48)
+    return;
+
+  base_addr  = port / 8;
+  offset_addr= port % 8;
+
+  fpga_map->reg.sfp_txdisable[base_addr] = ~((uint8) 1 << offset_addr);
+  #endif
+}
+#endif
 
 #if 0
 /**

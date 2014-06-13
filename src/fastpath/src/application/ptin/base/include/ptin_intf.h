@@ -654,6 +654,31 @@ extern L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uin
 extern L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum);
 extern int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp);
 
+#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+#define LED_COLOR_OFF     0
+#define LED_COLOR_GREEN   1
+#define LED_COLOR_RED     2
+#define LED_COLOR_YELLOW  3
+
+/**
+ * Control board leds
+ * 
+ * @param port 
+ * @param color 
+ * @param blink 
+ */
+extern void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink);
+
+/**
+ * Control laser txdisable
+ * 
+ * @param port 
+ * @param state 
+ */
+extern void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state);
+
+#endif
+
 #endif  /* _PTIN_INTERFACE_H */
 
 
