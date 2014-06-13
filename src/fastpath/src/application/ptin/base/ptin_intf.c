@@ -1015,7 +1015,7 @@ L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_slot_boardtype_get(L7_int slot_id, L7_uint16 *board_id)
+L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
 {
   /* Only applied to CXO640G boards */
   #if (PTIN_BOARD_IS_MATRIX)
@@ -1074,7 +1074,7 @@ L7_RC_t ptin_intf_boardtype_dump(void)
   for (i=PTIN_SYS_LC_SLOT_MIN; i<=PTIN_SYS_LC_SLOT_MAX; i++)
   {
     printf("   Slot %2u: ", i);
-    if (ptin_slot_boardtype_get(i, &board_id) != L7_SUCCESS)
+    if (ptin_slot_boardid_get(i, &board_id) != L7_SUCCESS)
       printf("Error!\r\n");
     else if (board_id == 0)
       printf("empty\r\n");
@@ -1316,7 +1316,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   }
 
   /* Get board_id */
-  if (ptin_slot_boardtype_get(slot, &board_id) != L7_SUCCESS)
+  if (ptin_slot_boardid_get(slot, &board_id) != L7_SUCCESS)
   {
     board_id = L7_NULL;
   }
@@ -4490,7 +4490,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get current board id */
-  rc = ptin_slot_boardtype_get(slot_id, &board_id_current);
+  rc = ptin_slot_boardid_get(slot_id, &board_id_current);
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
@@ -4538,11 +4538,13 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       /* If downlink board, or protection port -> force link up */
       if (PTIN_BOARD_IS_DOWNLINK(board_id) || ptin_intf_is_uplinkProtection(ptin_port))
       {
-        /* If protection active port, guarantee it is not associated to any vlan, before forcing link-up (to avoid loop) */
-        if (ptin_intf_is_uplinkProtection(ptin_port) &&
+        /* It it is going to force a link up, it is importante to avoid loops during that procedure.
+           To guarantee that, this port will be removed from all vlans.
+           Only protection ports at inactive state, don't need this procedure */
+        if (!ptin_intf_is_uplinkProtection(ptin_port) ||
             ptin_intf_is_uplinkProtectionActive(ptin_port))
         {
-          ptin_vlan_port_removeFlush(ptin_port, 0);
+          ptin_vlan_port_remove(ptin_port, 0);
         }
 
         rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
@@ -4552,12 +4554,13 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
           LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
         }
 
-        /* If protection active port, add port to vlans again */
-        if (ptin_intf_is_uplinkProtection(ptin_port) &&
+        /* Add port to vlans again */
+        if (!ptin_intf_is_uplinkProtection(ptin_port) ||
             ptin_intf_is_uplinkProtectionActive(ptin_port))
         {
           ptin_vlan_port_add(ptin_port, 0);
         }
+        LOG_INFO(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -4568,6 +4571,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
           rc_global = max(rc, rc_global);
           LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
         }
+        LOG_INFO(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
       }
     }
     #endif
@@ -4614,7 +4618,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get current board id */
-  rc = ptin_slot_boardtype_get(slot_id, &board_id);
+  rc = ptin_slot_boardid_get(slot_id, &board_id);
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
@@ -4676,6 +4680,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
           rc_global = max(rc, rc_global);
           LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
+        LOG_INFO(LOG_CTX_PTIN_API, "Force link-up disabled for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -4686,6 +4691,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
           rc_global = max(rc, rc_global);
           LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan (%d)", rc);
         }
+        LOG_INFO(LOG_CTX_PTIN_API, "Linkscan disabled for port %u", ptin_port);
       }
     }
     #endif

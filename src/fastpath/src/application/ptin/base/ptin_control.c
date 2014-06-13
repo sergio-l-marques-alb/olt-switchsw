@@ -797,7 +797,7 @@ void ptin_control_switchover_monitor(void)
 
       osapiSleep(10);
 
-      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Goig to process switchover init (active=%d)", matrix_is_active);
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
 
       osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
@@ -808,13 +808,14 @@ void ptin_control_switchover_monitor(void)
         for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
         {
           /* Nothing to do for non uplink boards */
-          if (ptin_slot_boardtype_get(slot_id, &board_id) != L7_SUCCESS ||
+          if (ptin_slot_boardid_get(slot_id, &board_id) != L7_SUCCESS ||
               !PTIN_BOARD_LS_CTRL(board_id) ||
               !PTIN_BOARD_IS_UPLINK(board_id))
             continue;
 
           /* Disable force link-up, and enable linkscan for uplink boards */
-          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Goig to disable force link-up to slot %u", slot_id);
+          /* ... except for protected ports */
+          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
           ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
           LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
           ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);

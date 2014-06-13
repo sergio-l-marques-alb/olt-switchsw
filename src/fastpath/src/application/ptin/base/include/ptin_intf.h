@@ -172,7 +172,7 @@ extern L7_RC_t ptin_intf_boardtype_set(L7_int ptin_port, L7_uint16 board_id);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_slot_boardtype_get(L7_int slot_id, L7_uint16 *board_id);
+extern L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id);
 
 /**
  * Set board type
