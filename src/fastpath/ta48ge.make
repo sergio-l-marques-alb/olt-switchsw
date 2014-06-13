@@ -126,7 +126,7 @@ clean-ptin clean-switching clean-andl:
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean cleanall: welcome cli_clean shell_clean
+clean cleanall clean-ptin clean-switching: welcome cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

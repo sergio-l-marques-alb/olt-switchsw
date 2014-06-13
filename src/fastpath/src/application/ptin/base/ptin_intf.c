@@ -1656,6 +1656,13 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
     return L7_FAILURE;
   }
 
+  /* Valid entry */
+  if (map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx] == 0 ||
+      map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx] >= L7_ALL_INTERFACES)
+  {
+    return L7_FAILURE;
+  }
+
   *intIfNum = map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx];
   return L7_SUCCESS;
 }
@@ -2644,7 +2651,11 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     return L7_SUCCESS;
   }
 
-  ptin_intf_lag2intIfNum(lag_idx, &lag_intIfNum);
+  if (ptin_intf_lag2intIfNum(lag_idx, &lag_intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
+    return L7_FAILURE;
+  }
 
   /* Check if LAG is being used in any EVC */
   if (ptin_evc_is_intf_in_use(lag_port))
@@ -2781,7 +2792,11 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
 #endif
   /* Normal LAGs */
   {
-    ptin_intf_lag2intIfNum(lag_idx, &lag_intf); 
+    if (ptin_intf_lag2intIfNum(lag_idx, &lag_intf) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
+      return L7_FAILURE;
+    }
 
     /* LAG admin */
     lagStatus->admin = lagConf_data[lag_idx].admin;
@@ -5138,18 +5153,15 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 }
 
 
-int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
+int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
+{
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-#if 0
-L7_uint32 intIfNum;
-   if (L7_SUCCESS==usmDbIntIfNumFromUSPGet(dusp->unit, dusp->slot, dusp->port+1, &intIfNum)
-       &&
-       L7_TRUE==ptin_intf_is_internal_lag_member(intIfNum)) return 1;
-#else
-   if (1==dusp->unit && 0==dusp->slot && dusp->port>=PTIN_SYSTEM_N_ETH && dusp->port<PTIN_SYSTEM_N_ETH+4) return 1;
-   // (check usmDbIntIfNumFromUSPGet() call in ptin_intf_init())
-#endif
+   /* Internal LAG */
+   if (1 == dusp->unit && 1 == dusp->slot && dusp->port == 0)
+   {
+     return L7_TRUE;
+   }
 #elif ( PTIN_BOARD == PTIN_BOARD_CXO640G )
    nimUSP_t usp;
    L7_uint32 intIfNum;
