@@ -1164,7 +1164,7 @@ L7_RC_t ptin_hapi_macaddr_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       /* Enable the use of Pending Mechanism but disable FWD */
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
-      bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+      bcm_port_learn_set(0, bcmx_l2_addr->lport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
 
   }
@@ -1235,6 +1235,10 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* if BCM_L2_PENDING is cleared, it means it is a aging of a learned MAC in the L2 table */
     if ( ((bcmx_l2_addr->flags & BCM_L2_PENDING) && !(bcmx_l2_addr->flags & BCM_L2_MOVE)) )
     {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x/VID %d with PENDING flag",__FUNCTION__,
+                bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+                bcmx_l2_addr->vid);
+
       /* Decrement, but only if greater than 0 */
       if ((macLearn_info_flow[vport_id].mac_total > macLearn_info_flow[vport_id].mac_counter) && (macLearn_info_flow[vport_id].mac_total > 0))
       {
@@ -1267,7 +1271,7 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       /* Enable the use of Pending Mechanism and enable FWD */
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Enabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
-      bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+      bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
     #endif
   }
@@ -1418,12 +1422,12 @@ L7_RC_t ptin_hapi_macaddr_setmax(bcm_vlan_t vlan_id, bcm_gport_t gport, L7_uint8
     if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_maximum)
     {
       /* Enable the use of Pending Mechanism but disable FWD*/
-      bcm_port_learn_set(0, gport, BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+      bcm_port_learn_set(0, gport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
     else
     {
       /* Enable the use of Pending Mechanism and enable FWD */
-      bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | BCM_PORT_LEARN_CPU | BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+      bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
 
     #if 0
