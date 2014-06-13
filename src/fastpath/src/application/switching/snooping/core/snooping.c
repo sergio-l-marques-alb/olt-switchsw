@@ -563,6 +563,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
         grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
       }
     }
+    //Ignore All IGMP Packets which have an Reserved Group Address equal to one of those: 224.0.0.1 (All Multicast Routers, 224.0.0.2 (All Multicast Hosts), and 224.0.0.22 (All Multicast Hosts IGMPv3 )
+    if(grpAddr.addr.ipv4.s_addr == L7_IP_ALL_RTRS_ADDR || grpAddr.addr.ipv4.s_addr == L7_IP_IGMPV3_REPORT_ADDR || grpAddr.addr.ipv4.s_addr == L7_IP_ALL_HOSTS_ADDR)    
+    {
+      if(ptin_debug_igmp_snooping)
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u grpAddr=%s srcAddr=%s]: Packet Silently ignored...",
+                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));      
+      return L7_SUCCESS;
+    }
   }
   else
   {
