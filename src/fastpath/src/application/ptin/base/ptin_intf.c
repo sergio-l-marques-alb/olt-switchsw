@@ -25,7 +25,8 @@
 
 /* Uplink protection */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-static L7_uint64 uplink_protection_ports_bmp = 0;
+static L7_uint64 forcelinked_ports_bmp        = 0;
+static L7_uint64 uplink_protection_ports_bmp  = 0;
 static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
 #endif
 
@@ -249,6 +250,13 @@ L7_RC_t ptin_intf_init(void)
       return L7_FAILURE;
     }
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Clear structures */
+  forcelinked_ports_bmp = 0;
+  uplink_protection_ports_bmp = 0;
+  memset(lag_uplink_protection_ports_bmp, 0x00, sizeof(lag_uplink_protection_ports_bmp));
+#endif
 
   return L7_SUCCESS;
 }
@@ -558,30 +566,42 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
 
   /* PortEnable */
-  if ((phyConf->Mask & PTIN_PHYCONF_MASK_PORTEN) &&
-      (usmDbIfAdminStateGet(1, intIfNum, &value) == L7_SUCCESS) &&
-      (value != phyConf->PortEnable))
+  if ( (phyConf->Mask & PTIN_PHYCONF_MASK_PORTEN) )     /* Enable mask bit */
   {
-    if (usmDbIfAdminStateSet(1, intIfNum, phyConf->PortEnable & 1) != L7_SUCCESS)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    /* Port should not have force link scheme applied */
+    if ( (forcelinked_ports_bmp >> port) & 1 )
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set enable state on port# %u", port);
-      return L7_FAILURE;
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Port %u in forced link state... nothing to be done!");
     }
+    else
+  #endif
+    {
+      if (usmDbIfAdminStateGet(1, intIfNum, &value) == L7_SUCCESS && 
+          (value != phyConf->PortEnable))
+      {
+        if (usmDbIfAdminStateSet(1, intIfNum, phyConf->PortEnable & 1) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set enable state on port# %u", port);
+          return L7_FAILURE;
+        }
 
-    #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-    /* Control txdisable for TA48GE */
-    ptin_ta48ge_txdisable_control(port, !phyConf->PortEnable);
-    #endif
+        #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+        /* Control txdisable for TA48GE */
+        ptin_ta48ge_txdisable_control(port, !phyConf->PortEnable);
+        #endif
 
-    #if ( PTIN_BOARD_IS_STANDALONE )
-    /* Update shared memory */
-    pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
-    #endif
+        #if ( PTIN_BOARD_IS_STANDALONE )
+        /* Update shared memory */
+        pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
+        #endif
 
-    phyConf_data[port].PortEnable = phyConf->PortEnable & 1; /* update buffered conf data */
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
+        phyConf_data[port].PortEnable = phyConf->PortEnable & 1; /* update buffered conf data */
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
+      }
+    }
   }
-
+  
   /* MaxFrame */
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_MAXFRAME) &&
       (usmDbIfConfigMaxFrameSizeGet(intIfNum, &value) == L7_SUCCESS) &&
@@ -1993,18 +2013,36 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       ptin_vlan_port_removeFlush(port, 0);
       #endif
 
-      if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
+      /* Check if port is enabled */
+      if (!phyConf_data[port].PortEnable)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
-      }
-      else if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
+        if (usmDbIfAdminStateSet(0, intIfNum, L7_ENABLE) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF,"Error enabling port %u", port);
+          ptin_vlan_port_add(port, 0);
+          continue;
+        }
+
+        phyConf_data[port].PortEnable = L7_TRUE;
+        LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u enabled", port);
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
+        LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u is already enabled", port);
       }
+
+      /* Force Link-up */
+      if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+        continue;
+      }
+      if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
+        continue;
+      }
+      LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
 
       /* Save port to lag bitmap */
       lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] |= (L7_uint64) 1 << port;
@@ -2570,14 +2608,20 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     {
       if (!(ptin_pbmp & 1))
         continue;
-
-      /* Disable linkscan */
+      
       if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting port %u to intIfNum", port);
         continue;
       }
 
+      /* Disable link force */
+      if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error disabling link force for intIfNum %u", intIfNum);
+      }
+
+      /* Disable linkscan */
       if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_INTF,"Error enabling linkscan for intIfNum %u", intIfNum);
@@ -4101,11 +4145,14 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
+  {
     LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
-  else
-    LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to intIfNum=%u", intIfNum);
+    return rc;
+  }
 
-  return rc;
+  LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to intIfNum=%u", intIfNum);
+
+  return L7_SUCCESS;
 }
 
 /**
@@ -4119,6 +4166,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
  */
 L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 {
+  L7_uint32 ptin_port;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
 
@@ -4126,6 +4174,13 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port format */
+  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
     return L7_FAILURE;
   }
 
@@ -4141,9 +4196,24 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
+  {
     LOG_ERR(LOG_CTX_PTIN_API,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
+    return rc;
+  }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Track force link state for each port */
+  if (link && enable)
+  {
+    forcelinked_ports_bmp |= (1ULL << ptin_port);
+  }
   else
-    LOG_TRACE(LOG_CTX_PTIN_API,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  {
+    forcelinked_ports_bmp &= ~(1ULL << ptin_port);
+  }
+#endif
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
   return rc;
 }
