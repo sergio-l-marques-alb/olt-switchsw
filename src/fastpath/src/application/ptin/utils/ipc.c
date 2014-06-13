@@ -398,11 +398,11 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
 
 
   /* Check info */
-  if (infoDimAnswer==NULL)    
+  if (infoDimAnswer == NULL)
   {
     if  (resposta.infoDim != infoDimRequest)
     {
-      LOG_ERR(LOG_CTX_IPC,"Wrong infodim (received %u bytes VS expected %u bytes)", infoDimRequest, resposta.infoDim);    
+      LOG_ERR(LOG_CTX_IPC,"Wrong infodim (expected %u bytes VS received %u bytes)", infoDimRequest, resposta.infoDim);    
       return -1;
     }
      /* Return answer */
