@@ -936,7 +936,7 @@ void ptin_control_switchover_monitor(void)
     }
     /* Save board_id */
     ptin_intf_boardtype_get(port, &board_id);
-    if (board_id != ports_info.port[port].board_id )
+    if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
     {
       ptin_intf_boardtype_set(port, ports_info.port[port].board_id);
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
@@ -1012,6 +1012,26 @@ void ptin_control_switchover_monitor(void)
     }
     osapiSemaGive(ptin_boardaction_sem);
   }
+
+
+  /* Update board id */
+  /* When board is removed, board_id is '0' and the force link down process was not triggered */
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  /* Update list of active interfaces */
+  for (port=0; port<ports_info.number_of_ports; port++)
+  {
+    /* Save board_id */
+    ptin_intf_boardid_get(port, &board_id);
+    if (board_id != ports_info.port[port].board_id )
+    {
+      ptin_intf_boardid_set(port, ports_info.port[port].board_id);
+      LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+    }
+  }
+
+  osapiSemaGive(ptin_boardaction_sem);
+
   #endif
 }
 #endif

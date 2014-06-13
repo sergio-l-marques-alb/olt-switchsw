@@ -562,6 +562,29 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
+#if PTIN_BOARD_IS_MATRIX
+  /* Do nothing for slave matrix */
+  if (!cpld_map->reg.mx_is_active)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
+    return SUCCESS;
+  }
+#else
+#if PTIN_BOARD_IS_LINECARD
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+  /* Get  the protection status of this switch port */
+  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+  if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
+    return SUCCESS;
+  }
+#endif
+#endif
+
   //Ignore if the port has link down
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
