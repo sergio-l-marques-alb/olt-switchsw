@@ -59,6 +59,7 @@
 
 #include <string.h>
 
+#include "logger.h"
 
 #include "sr_snmp.h"
 #include "compat.h"
@@ -92,6 +93,8 @@ SR_FILENAME
 int
 GetSNMPPort()
 {
+  /* PTin removed: SNMP */
+  #if 0
     FNAME("GetSNMPPort")
     static int      snmp_port;
     struct servent *snmp_serv;
@@ -129,6 +132,9 @@ GetSNMPPort()
     }
 
     return snmp_port;
+  #endif
+  LOG_WARNING(LOG_CTX_MISC, "Returning SNMP_PORT=%u",SNMP_PORT);
+  return SNMP_PORT;
 }
 
 
@@ -148,6 +154,8 @@ GetSNMPPort()
 int
 GetSNMPTrapPort()
 {
+  /* PTin removed: SNMP */
+  #if 0
     FNAME("GetSNMPTrapPort")
     static int      trap_port;
     static int      called = 0;
@@ -189,6 +197,9 @@ GetSNMPTrapPort()
     }
 
     return trap_port;
+  #endif
+  LOG_WARNING(LOG_CTX_MISC, "Returning SNMP_TRAP_PORT=%u",SNMP_TRAP_PORT);
+  return SNMP_TRAP_PORT;
 }
 
 #ifdef WANT_SETUPENVIRON
