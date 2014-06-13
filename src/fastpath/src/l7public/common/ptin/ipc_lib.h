@@ -28,6 +28,12 @@ Historico:  CL 2003.02.19 - Criacao do modulo V1.0.0.0
    #define DEBUGTRACE(...)	;
 #endif
 
+/* Return values */
+#define IPC_OK        0
+#define IPC_NO_REPLY  1
+#define IPC_FAIL     -1
+
+
 #define SIR_IPCPROTOCOL_ID       1
 
 #define IPCLIB_MAX_PORTNUMBER	   65500    // 

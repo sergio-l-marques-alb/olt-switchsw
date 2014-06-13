@@ -17,6 +17,7 @@
 #include "ptin_control.h"
 #include "ptin_mgmd_api.h"
 #include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
+#include "ipc.h"
 
 /* Message processing time measuring */
 
@@ -203,7 +204,7 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
  */
 int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  int res = S_OK;
+  int ret = IPC_OK, res = S_OK;
   L7_RC_t rc = L7_SUCCESS;
   L7_uint64 time_start, time_end;
   L7_uint32 time_delta;
@@ -233,7 +234,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
               "Message processed: response with %d bytes", outbuffer->infoDim);
 
-    return S_OK;
+    return IPC_OK;
   }
 
   /* PTin module is still loading or crashed ? */
@@ -242,7 +243,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
     res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
     SetIPCNACK(outbuffer, res);
-    return S_OK;
+    return IPC_OK;
   }
 
   /* If reached here, means PTin module is loaded and ready to process messages */
@@ -363,17 +364,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       rc = ptin_msg_uplink_protection_cmd(ptr, n);
 
+      /* No answer */
+      ret = IPC_NO_REPLY;
+
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error processing command");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: no response necessary");
     }
     break;
 
@@ -4449,7 +4452,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     CHMessage_runtime_meter_update(inbuffer->msgId, time_delta);
   }
 
-  return S_OK;
+  return ret;
 }
 
 
