@@ -6618,10 +6618,10 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Verify plan to be followed */
   for (i = 0; i < n; i++) 
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Received protection command: "); 
-    LOG_INFO(LOG_CTX_PTIN_MSG, " slot = %u", cmd[i].slotId);
-    LOG_INFO(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
-    LOG_INFO(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Received protection command: "); 
+    LOG_TRACE(LOG_CTX_PTIN_MSG, " slot = %u", cmd[i].slotId);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
 
     if (n > 1)
     {
@@ -6633,8 +6633,8 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* If provided a port to be removed, and to be added, follow plan D for those ports */
   if (i2add >= 0 && i2rem >= 0)
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
-             cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
+              cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
     /* PLAN D */
     if (ptin_intf_protection_cmd_planD(cmd[i2rem].slotId, cmd[i2rem].port,
                                        cmd[i2add].slotId, cmd[i2add].port) != L7_SUCCESS)
@@ -6651,7 +6651,7 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
     /* Skip ports used for plan D */
     if (i == i2rem || i == i2add)  continue;
 
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
     /* PLAN C */
     if (ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd) != L7_SUCCESS)
     {
@@ -6663,11 +6663,11 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Check for result */
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed!"); 
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed from slot/ports %d/%d -> %d/%d!"); 
   }
   else
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Successfull protection switch!"); 
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfull protection switch from !"); 
   }
 
   return rc;
