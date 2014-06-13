@@ -2407,9 +2407,9 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
 
           memcpy(&mgmdGroupsRes, ctrlResMsg.data + pageClientCount*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]",   mgmdGroupsRes.entryId);
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Port:   %u", mgmdGroupsRes.portId);
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Client: %u", mgmdGroupsRes.clientId);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  EntryId [%u]",   mgmdGroupsRes.entryId);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    PortId:   %u", mgmdGroupsRes.portId);
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    ClientId: %u", mgmdGroupsRes.clientId);
 
           if (ptin_intf_intIfNum2port(mgmdGroupsRes.portId,&ptinPort) != L7_SUCCESS)
           {
@@ -2518,7 +2518,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channe
       return L7_FAILURE;
     }
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "      Idx:   %u",      clientBufferIdx);
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Mask:  %02X",  tempKey.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Mask:  0x%02X",  tempKey.mask);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        Intf:  %u/%u", tempKey.ptin_intf.intf_type, tempKey.ptin_intf.intf_id);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        oVlan: %u",    tempKey.outerVlan);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "        iVlan: %u",    tempKey.innerVlan);
@@ -6119,14 +6119,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
     return L7_FAILURE;
   }
 
-  /* Validate number of channels */
-  if ( n_groups > IGMPASSOC_CHANNELS_MAX ||
-       n_sources > IGMPASSOC_CHANNELS_MAX ||
-       (igmpPairDB.number_of_entries + n_groups*n_sources) > IGMPASSOC_CHANNELS_MAX )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot add more than %u channels (already present: %u)", IGMPASSOC_CHANNELS_MAX, igmpPairDB.number_of_entries);
-    return L7_TABLE_IS_FULL;
-  }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be added: %u", n_groups*n_sources);
 
@@ -6555,13 +6547,6 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   ptinIgmpPairDataKey_t  avl_key;
   ptinIgmpPairInfoData_t *avl_infoData;
 
-  /* Check if there is enough room for one more channels */
-  if (igmpPairDB.number_of_entries >= IGMPASSOC_CHANNELS_MAX)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free entries!");
-    return L7_FAILURE;
-  }
-
   /* Prepare key */
   memset( &avl_key, 0x00, sizeof(ptinIgmpPairDataKey_t) );
 
@@ -6581,6 +6566,13 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x already exists",
                 node->igmpPairDataKey.channel_group.addr.ipv4.s_addr);
     return L7_SUCCESS;
+  }
+
+  /* Check if there is enough room for one more channels */
+  if (igmpPairDB.number_of_entries >= IGMPASSOC_CHANNELS_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free entries!");
+    return L7_FAILURE;
   }
 
   /* Add key */
