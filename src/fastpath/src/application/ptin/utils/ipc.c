@@ -15,10 +15,6 @@
 /* Slot id */
 uint8 ptin_board_slotId = 0;
 
-/* Default server ip */
-uint32 server_ipaddr = IPC_SERVER_IPADDR;
-uint32 mx_ipaddr = IPC_MX_IPADDR;
-
 static int g_iInterfaceSW  = -1;      // Canal de dados com as aplicacoes cliente
 static int g_iInterfaceHW  = -1;      // Canal de dados com as aplicacoes firmware
 static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmware
@@ -187,7 +183,7 @@ int send_trap(int porto, int trap_type, int arg)
       *((int *)comando.info) = arg;
   }
 
-  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x, arg = 0x%08x (%d): ERROR = %d", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg, ret);
   else
@@ -226,7 +222,7 @@ int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status
   alarm->param1      = param;
   alarm->param2      = 0;
 
-  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
   return(ret);
@@ -260,7 +256,7 @@ int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status,
   alarm->param1      = param1;
   alarm->param2      = param2;
 
-  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
   return(ret);
@@ -295,7 +291,7 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
 
   LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret);
 
-  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, ret);
   return(ret);
@@ -326,7 +322,7 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
     return -1;
   }
   /* Which ipaddr? */
-  ipaddr = (server_ipaddr & (~((L7_uint32) 0xff))) | ((slot_to_send+2) & 0xff);
+  ipaddr = (IPC_SERVER_IPADDR & (~((L7_uint32) 0xff))) | ((slot_to_send+2) & 0xff);
 
   comando.protocolId= SIR_IPCPROTOCOL_ID;
   comando.flags		= IPCLIB_FLAGS_CMD;
@@ -457,7 +453,7 @@ int send_trap_ETH_OAM(void *param, int param_size)
    p->SlotId=   ptin_board_slotId;  //this field's structure agnostic
   }
 
-  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, server_ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, ret);
   return(ret);
@@ -1065,40 +1061,19 @@ int send_trap_ETH_OAM(void *param, int param_size)
 
 
 /**
- * Set a new server ipaddr
- * 
- * @author mruas (12/8/2012)
- * 
- * @param ipaddr 
- */
-void ipc_server_ipaddr_set(uint32 ipaddr)
-{
-  if (ipaddr==0 || ipaddr==(uint32)-1)
-    ipaddr = IPC_SERVER_IPADDR;
-
-  server_ipaddr = ipaddr;
-}
-
-/**
  * Init server ipaddr
  */
 static void ipc_server_ipaddr_init(void)
 {
-  server_ipaddr = IPC_SERVER_IPADDR;
-
 #ifdef MAP_CPLD
   #if (PTIN_BOARD_IS_MATRIX)
   if (cpld_map->reg.slot_id==0)
   {
-    server_ipaddr = IPC_SERVER_IPADDR_WORKING;
-    mx_ipaddr = IPC_MX_IPADDR_WORKING;
     /* Slot id */
     ptin_board_slotId = 1;
   }
   else
   {
-    server_ipaddr = IPC_SERVER_IPADDR_PROTECTION;
-    mx_ipaddr = IPC_MX_IPADDR_PROTECTION;
     /* Slot id */
     ptin_board_slotId = 20;
   }
