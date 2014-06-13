@@ -726,7 +726,7 @@ typedef struct {
 
 /* DHCP Binding Table */
 typedef struct {
-  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint32             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
   L7_uint32             evc_idx;                // EVCid      /* L7_uint32 */
   ptin_intf_t           ptin_intf;              // Interface
   L7_uint16             outer_vlan;             // Outer vlan
@@ -739,7 +739,7 @@ typedef struct {
 
 /* DHCP Binding Table - IPv6 Compatible */
 typedef struct {
-  L7_uint16             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
+  L7_uint32             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
   L7_uint32             evc_idx;                // EVCid      /* L7_uint32 */
   L7_uint16             outer_vlan;             // Service vlan: not used yet
   L7_uint16             inner_vlan;             // Client clanId

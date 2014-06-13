@@ -65,7 +65,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
 {
   L7_uchar8         keyNext[L7_FDB_KEY_SIZE];
   dot1dTpFdbData_t  fdbEntry;
-  L7_uint16         index, i;
+  L7_uint32         index, i;
   ptin_intf_t       ptin_intf;
   L7_uint16         vlan;
   L7_INTF_TYPES_t   intfType;
