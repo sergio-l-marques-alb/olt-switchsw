@@ -577,8 +577,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       if(ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u grpAddr=%s srcAddr=%s]: Packet Silently ignored...",
-                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));      
-      return L7_SUCCESS;
+                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));  
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);    
+      return L7_FAILURE;
     }
   }
   else
