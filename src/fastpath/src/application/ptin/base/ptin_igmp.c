@@ -7135,6 +7135,8 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
       return L7_FAILURE;
     }
 
+    /* Remove devices number validation for Active ETH boards */
+    #if (!PTIN_BOARD_IS_ACTIVETH)
     /* Check if can be added more devices */
     if (igmp_clientDevice_get_devices_number(clientGroup) >= PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU)
     {
@@ -7143,6 +7145,7 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot be added more than %u devices!", PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU);
       return L7_FAILURE;
     }
+    #endif
     #endif
 
     /* Check if there is free clients to be allocated (look to free clients queue) */
