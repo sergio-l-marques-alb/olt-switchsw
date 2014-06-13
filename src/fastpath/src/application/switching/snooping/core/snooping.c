@@ -439,7 +439,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
             "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
             pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
 
-
   /* Ensure snooping is enabled on the switch */
   if (pSnoopCB->snoopCfgData->snoopAdminMode != L7_ENABLE)
   {
@@ -487,6 +486,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
               data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
+
+  if (ptin_debug_igmp_packet_trace)
+  {    
+    L7_uint32 i;
+    printf("Rx:PayloadLength:%d\n",dataLength);
+    for (i=0;i<dataLength;i++)
+      printf("%02x ",data[i]);
+    printf("\n");
+  }
 
   /* PTin added: IGMP snooping */
 #if 1
