@@ -17,8 +17,8 @@
 #		- $2 -> Desired MGMD SVN repository revision
 #
 # Examples:
-#   - sh mgmd_update trunk 467          -> Update local mgmd folder with the contents of the trunk folder of the MGMD repository in revision 467
-#   - sh mgmd_update branches/1.0 300   -> Update local mgmd folder with the contents of the branches/1.0 folder of the MGMD repository in revision 300
+#   - sh mgmd_update.sh trunk 467          -> Update local mgmd folder with the contents of the trunk folder of the MGMD repository in revision 467
+#   - sh mgmd_update.sh branches/1.0 300   -> Update local mgmd folder with the contents of the branches/1.0 folder of the MGMD repository in revision 300
 
 MGMD_PATH=$1
 MGMD_REV=$2
