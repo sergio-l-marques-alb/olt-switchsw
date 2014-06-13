@@ -53,7 +53,7 @@
 
 #define PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL         100 /* (1/10s - 10s) (ds)*/
 
-#define PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL             10 /* (ds) */
+#define PTIN_IGMP_MIN_QUERYRESPONSEINTERVAL             1 /* (ds) */
 #define PTIN_IGMPv2_MAX_QUERYRESPONSEINTERVAL           255 /* (ds) */
 #define PTIN_IGMPv3_MAX_QUERYRESPONSEINTERVAL           31744 /* (ds) */
 
