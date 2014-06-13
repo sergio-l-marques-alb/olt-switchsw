@@ -2652,7 +2652,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
-  if (ivid != 0 && ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS &&
+  if ( ivid != 0 && ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS &&
       !(flags & PTIN_EVC_MASK_QUATTRO) &&
       !(flags & PTIN_EVC_MASK_STACKED))
   {
@@ -2660,7 +2660,7 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
-  if (ivid != 0 && ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS)
+  if ( ivid != 0 && ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS)
   {
     if ( ( (flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED) && (ptin_igmp_rootIntfVlan_validate(intIfNum, intOVlan)==L7_SUCCESS) ) ||
          (!(flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED)) )
@@ -11472,6 +11472,22 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
 
   igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
 }
+
+/**
+ * Get outer vlan from Client Id
+ */
+L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_idx, L7_uint16 *outerVlan)
+{
+  if (igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client == L7_NULLPTR)
+  {
+    *outerVlan = (L7_uint16) -1;
+    return L7_FAILURE;
+  }
+  *outerVlan=igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->igmpClientDataKey.outerVlan;
+  return L7_SUCCESS;
+}
+
+
 
 /**
  * Unmark a client device as being free
