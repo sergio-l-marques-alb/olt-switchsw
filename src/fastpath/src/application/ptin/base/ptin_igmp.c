@@ -11167,7 +11167,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_IGMP, "Received request to sync port");
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Received request to sync port");
 
 #if PTIN_BOARD_IS_MATRIX
   L7_uint32 slotId;
@@ -11187,19 +11187,19 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 
   if(admin == L7_ENABLE)
   {
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);
     rc = snooping_port_open(serviceId, portId, groupAddr, sourceAddr, groupType);
     return rc;
   }
   else if(admin == L7_DISABLE)
   {
-    LOG_INFO(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId);
     rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
     return rc;
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
     return L7_FAILURE;
   }
 
