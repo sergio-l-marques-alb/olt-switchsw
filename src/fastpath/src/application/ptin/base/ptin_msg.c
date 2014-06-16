@@ -35,6 +35,7 @@
 #include "ptin_intf.h"
 #include "ptin_xconnect_api.h"
 #include "fdb_api.h"
+#include "usmdb_ip_api.h"
 
 #include "ptin_acl.h"
 #include "ptin_routing.h"
@@ -2229,6 +2230,17 @@ L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
     else
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting aging time to %u seconds",switch_config->aging_time);
+    }
+
+    /* Set ARP timeout to be the same as MAC age time */
+    if(L7_SUCCESS != usmDbIpArpAgeTimeSet(1, switch_config->aging_time))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting ARP timeout to %u seconds", switch_config->aging_time);
+      return L7_FAILURE;
+    }
+    else
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting ARP timeout to %u seconds", switch_config->aging_time);
     }
   }
 

@@ -47,6 +47,7 @@ typedef struct ptin_routing_intf_s
 {
   L7_uint8  type;
   L7_uint16 routingVlanId;
+  L7_uint16 internalVlanId;
   L7_uint16 physicalIntfNum;
 } ptin_routing_intf_t;
 
@@ -481,8 +482,13 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, pt
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
 
-  /* For uplink routing interfaces, set the MAC address to match the MAC address of the physical interface */
-  __routing_interfaces[routingIntf->intf_id].type = intfType;
+  /* 
+     For uplink routing interfaces, set the MAC address to match the MAC address of the physical interface.
+     For loopback routing interfaces, set the MAC address to match the MAC address of the dtl0 interface.
+  */
+  __routing_interfaces[routingIntf->intf_id].type           = intfType;
+  __routing_interfaces[routingIntf->intf_id].routingVlanId  = routingVlanId;
+  __routing_interfaces[routingIntf->intf_id].internalVlanId = internalVlanId;
   if(intfType == PTIN_ROUTING_INTF_TYPE_UPLINK)
   {
     L7_enetMacAddr_t macAddr;
@@ -525,6 +531,7 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 {
   L7_uint32 intfNum;
   L7_uint16 routingVlanId;
+  L7_uint16 internalVlanId;
 
   if( (routingIntf == L7_NULLPTR) )
   {
@@ -537,7 +544,8 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
     return L7_FAILURE;
   }
-  routingVlanId = __routing_interfaces[routingIntf->intf_id].routingVlanId;
+  routingVlanId  = __routing_interfaces[routingIntf->intf_id].routingVlanId;
+  internalVlanId = __routing_interfaces[routingIntf->intf_id].internalVlanId;
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &intfNum))
   {
@@ -545,11 +553,20 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
     return L7_FAILURE;
   }
 
+  /* Delete vlan routing interface */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Deleting routing interface associated with internal vlan %u", internalVlanId);
+  if(usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId) != 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to delete routing interface associated with internal vlan %u", internalVlanId);
+    return L7_FAILURE;
+  }
+
+
 #if PTIN_BOARD_IS_MATRIX
-  /* Allow IP/ARP packets through dtl0 for this vlan */
+  /* Disable IP/ARP packets through dtl0 for this vlan */
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, L7_FALSE))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan [routingVlanId:%u intfNum:%u]", routingVlanId, intfNum);
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */

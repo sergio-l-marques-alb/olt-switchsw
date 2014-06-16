@@ -1132,12 +1132,12 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                /* Vlan+MAC to search for */
                memcpy(&keyToFind[0], &vid, sizeof(L7_uint16));
-               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[6], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
+               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
             
                /* Search for this key: if not found, return success */
                if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
                {
-                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                keyToFind[0], keyToFind[1],
                                keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
                }
@@ -1194,7 +1194,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          }
       }/*end if(ether_type...*/
       else if(etype == L7_ETYPE_IP)
-      {        
+      {
           /* Find the physical port where the destination MAC address is. If
           * that port is not active, clear the ARP cache in the IP stack. It may
           * be that the port mapping is stale and we need to ARP again to update
@@ -1212,18 +1212,18 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                dot1dTpFdbData_t      fdbEntry;
                L7_enetMacAddr_t      mac;
 
-               memcpy(mac.addr, data, 6);
+               memcpy(mac.addr, &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
 
                /* Vlan+MAC to search for */
                memcpy(&keyToFind[0], &vid, sizeof(L7_uint16));
-               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[6], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
+               memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
             
                /* Search for this key: if not found, return success */
                if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
                {
                  if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
                  {
-                   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                  keyToFind[0], keyToFind[1],
                                  keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
                  }

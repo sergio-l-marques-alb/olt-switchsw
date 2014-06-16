@@ -570,7 +570,7 @@ void      sysapiMbufFree( L7_uint32 *mbuf );
 void sysapiPrintf(const char *format, ...);
 #define SYSAPI_PRINTF(FLG,format,args...)        \
 {                                                \
-  printf("%s(%d) sysapiPrintf: \"%s\"\r\n",__FUNCTION__,__LINE__,format); \
+  /*printf("%s(%d) sysapiPrintf: \"%s\"\r\n",__FUNCTION__,__LINE__,format);*/ \
   if (( SYSAPI_LOGGING_MASK & FLG) || ( SYSAPI_APPLICATION_LOGGING_MASK & FLG)) \
   {                                              \
     sysapiPrintf(format, ##args);                \

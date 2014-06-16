@@ -1521,6 +1521,8 @@ typedef struct
 } __attribute__((packed)) msg_RoutingRouteTableResponse;
 
 //CCMSG_ROUTING_STATICROUTE_ADD / CCMSG_ROUTING_STATICROUTE_DELETE
+#define CCMSG_ROUTING_STATICROUTE_PREF_MIN   1
+#define CCMSG_ROUTING_STATICROUTE_PREF_MAX   255
 typedef struct
 {
   L7_uint16 slotId;
