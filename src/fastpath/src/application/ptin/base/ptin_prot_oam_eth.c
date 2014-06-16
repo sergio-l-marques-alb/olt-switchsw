@@ -20,6 +20,7 @@
 
 
 #include "ptin_xlate_api.h"
+#include "ptin_fpga_api.h"
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
 
@@ -76,6 +77,8 @@ typedef struct {
 } T_UPLINKPROT_TRAPS;
 static T_UPLINKPROT_TRAPS uplinkprot_traps[PTIN_SYS_SLOTS_MAX][PTIN_SYS_INTFS_PER_SLOT_MAX];
 
+static unsigned short int ptin_debug_oam = 0;
+inline void ptin_debug_oam_set(unsigned short int enable){ptin_debug_oam = enable;};
 
 void dump_uplinkprot_traps(void) {
 L7_uint32 s, p;
@@ -261,23 +264,41 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
                   L7_uint64 vid, L7_uint8 prior, L7_uint8 CoS, L7_uint8 color, L7_uint16 ETHtype, L7_uint8 *pDMAC) {
     L7_INTF_TYPES_t   sysIntfType;
     L7_uint32         intIfNum;//=port+1;
+    L7_uint32         activeState;  
 #ifdef RAW_MODE
     L7_netBufHandle   bufHandle;
     L7_uchar8        *dataStart;
     DTL_CMD_TX_INFO_t dtlCmd;
 #else
-    L7_uint16         vidInternal;
+    L7_uint16         vidInternal;    
 #endif
     L7_uint8 buff[1600];//={1,0,0,0,2,3,   0,1,2,3,4,5,    0x88,9,   3,  16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,};
     //length=70;
 
-
+#if PTIN_BOARD_IS_MATRIX  
+  /* Do nothing for slave matrix */
+  if (!ptin_fgpa_mx_is_active())
+  {
+    if (ptin_debug_oam)
+      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. I'm a Slave Matrix");
+    return L7_SUCCESS;
+  }
+#endif
 
     ptin_intf_port2intIfNum(port, &intIfNum);
 
     // If outgoing interface is CPU interface, don't send it
     if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
          (sysIntfType == L7_CPU_INTF) )     return 1;
+
+    //Ignore if the port has link down
+    if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+    {
+      if (ptin_debug_oam)
+        LOG_NOTICE(LOG_CTX_OAM,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",intIfNum);    
+      return L7_SUCCESS;
+    }
+
 
 #ifdef RAW_MODE
     SYSAPI_NET_MBUF_GET(bufHandle);

@@ -42,6 +42,7 @@
 #include "dapi_struct.h"
 #include "l7_socket.h"
 #include "logger.h"
+#include "ptin_fpga_api.h"
 
 extern ptin_debug_pktTimer_t debug_pktTimer;
 
@@ -59,6 +60,9 @@ void pdu_receive_debug_enable(L7_BOOL enable)
 {
   pdu_receive_debug = enable;
 }
+
+static L7_uint8  ptin_debug_dtl = 0;
+inline void ptin_debug_dtl_set(L7_uint8 enable){ptin_debug_dtl = enable;};
 #endif
 
 
@@ -243,13 +247,6 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   return rc;
 }
 
-unsigned int dapiCpuUspGet_in = (unsigned int) -1;
-unsigned int dapiCpuUspGet_in_get(void){return dapiCpuUspGet_in;};
-
-unsigned int dapiCtl_in = (unsigned int) -1;
-unsigned int dapiCtl_in_get(void){return dapiCtl_in;};
-
-
 /*********************************************************************
 * @purpose  Transmits the PDU
 *
@@ -268,16 +265,33 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
                         DTL_CMD_t dtlCmd,
                         DTL_CMD_TX_INFO_t *dtlCmdInfo )
 {
-
-  DAPI_USP_t ddUsp;
-  nimUSP_t usp;
+  DAPI_USP_t       ddUsp;
+  nimUSP_t         usp;
   DAPI_FRAME_CMD_t sendData;
+  L7_uint32        activeState;  
   L7_RC_t dr;
 
   /* PTin added: Default flags */
   sendData.cmdData.send.flags = 0;
 
-  
+#if PTIN_BOARD_IS_MATRIX  
+  /* Do nothing for slave matrix */
+  if (!ptin_fgpa_mx_is_active())
+  {
+    if (ptin_debug_dtl)
+      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. I'm a Slave Matrix");
+    return L7_SUCCESS;
+  }
+#endif
+
+  //Ignore if the port has link down
+  if ( (nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  {
+    if (ptin_debug_dtl)
+      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    
+    return L7_SUCCESS;
+  }
+
   switch (dtlCmd)
   {
   case DTL_CMD_TX_L2:
@@ -285,7 +299,6 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
       if (dtlCmdInfo->typeToSend == DTL_VLAN_MULTICAST || dtlCmdInfo->typeToSend == DTL_L2RAW_VLAN_MULTICAST)
       {
-        dapiCpuUspGet_in = 1; //Added by MMELO
         /* send to all ports */
         if (dtlCmdInfo->typeToSend == DTL_L2RAW_VLAN_MULTICAST)
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_NO_L2_EGRESS_MCAST_DOMAIN;
@@ -293,7 +306,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
           sendData.cmdData.send.type = DAPI_FRAME_TYPE_MCAST_DOMAIN;
 
         dr = dapiCpuUspGet (&ddUsp);
-        dapiCpuUspGet_in = 0; //Added by MMELO
+        
         if (dr != L7_SUCCESS)
         {
           SYSAPI_NET_MBUF_FREE(bufHandle);
@@ -333,9 +346,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
   SYSAPI_NET_MBUF_SET_LOC(bufHandle, MBUF_LOC_PDU_TX);
 
-  dapiCtl_in = 1; //Added by MMELO
   dr = dapiCtl(&ddUsp, DAPI_CMD_FRAME_SEND, &sendData);
-  dapiCtl_in = 0; //Added by MMELO
 
   if (dr == L7_SUCCESS)
   {   
