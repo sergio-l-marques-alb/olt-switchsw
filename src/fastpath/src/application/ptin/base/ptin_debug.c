@@ -357,6 +357,20 @@ void ptin_intf_dump(void)
     }
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        strcpy(speed, "A-NEG");
+        break;
+
+      case L7_PORTCTRL_PORTSPEED_HALF_10T:
+      case L7_PORTCTRL_PORTSPEED_FULL_10T:
+        strcpy(speed, "10T");
+        break;
+
+      case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+      case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        strcpy(speed, "100T");
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         strcpy(speed, "100M");
         break;
@@ -383,6 +397,18 @@ void ptin_intf_dump(void)
       /* PTin added: Speed 100G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
         strcpy(speed, "100G");
+        break;
+
+      case L7_PORTCTRL_PORTSPEED_AAL5_155:
+        strcpy(speed, "AAL5");
+        break;
+
+      case L7_PORTCTRL_PORTSPEED_LAG:
+        strcpy(speed, "LAG");
+        break;
+
+      case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        strcpy(speed, "Unkwn");
         break;
 
       default:

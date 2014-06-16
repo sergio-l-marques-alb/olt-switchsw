@@ -1537,20 +1537,22 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
         if (fport_idx < CXO160G_FRONTAL_PORTS_LOCAL)
         {
           if (!is_matrix_protection())
-            offset = CXO160G_FRONTAL_BCMPORT_BASE;
+            offset = CXO160G_FRONTAL_BCMPORT_BASE
+                     + (fport_idx * CXO160G_FRONTAL_PORT_LANES);
           else
-            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES);
-
-          offset += (fport_idx * CXO160G_FRONTAL_PORT_LANES);
+            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES)
+                     + ((CXO160G_FRONTAL_PORTS_LOCAL - fport_idx - 1) * CXO160G_FRONTAL_PORT_LANES);
+          //offset += (fport_idx * CXO160G_FRONTAL_PORT_LANES);
         }
         else
         {
           if (!is_matrix_protection())
-            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES);
+            offset = CXO160G_FRONTAL_BCMPORT_BASE + (CXO160G_FRONTAL_PORTS_LOCAL * CXO160G_FRONTAL_PORT_LANES)
+                     + ((2*CXO160G_FRONTAL_PORTS_LOCAL - fport_idx - 1) * CXO160G_FRONTAL_PORT_LANES);
           else
-            offset = CXO160G_FRONTAL_BCMPORT_BASE;
-
-          offset += ((fport_idx - CXO160G_FRONTAL_PORTS_LOCAL) * CXO160G_FRONTAL_PORT_LANES);
+            offset = CXO160G_FRONTAL_BCMPORT_BASE
+                     + ((fport_idx - CXO160G_FRONTAL_PORTS_LOCAL) * CXO160G_FRONTAL_PORT_LANES);
+          //offset += ((fport_idx - CXO160G_FRONTAL_PORTS_LOCAL) * CXO160G_FRONTAL_PORT_LANES);
         }
 
         dapiBroadBaseCardSlotMap[port_idx].bcm_port = offset + lane;

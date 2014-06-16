@@ -1979,7 +1979,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   L7_char8  lag_name[DOT3AD_MAX_NAME];
   L7_RC_t   rc=L7_SUCCESS, res;
   L7_BOOL   newLag;
-  L7_uint32 ifSpeed;
+  //L7_uint32 ifSpeed;
   L7_uint16 lagEtherType;
   ptin_intf_t ptin_intf;
   #if 0
@@ -2143,7 +2143,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
   /* Check if members have all the same interface speed, EtherType and MaxFrame size */
   members_pbmp = lagInfo->members_pbmp64 >> PTIN_SYSTEM_N_PONS;
-  ifSpeed      = 0;
+  //ifSpeed      = 0;
   lagEtherType = 0;
   maxFrame     = 0;
   for (port = PTIN_SYSTEM_N_PONS; port < ptin_sys_number_of_ports; port++, members_pbmp>>=1)
@@ -2152,6 +2152,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       ptin_intf_port2intIfNum(port, &intIfNum);
   
+      #if 0
       /* check to find the speed of the interface about to join a portChannel */
       if (usmDbIfSpeedGet(1, intIfNum, &value) != L7_SUCCESS)
       {
@@ -2167,6 +2168,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: there are members with different if speed", lag_idx);
         return L7_FAILURE;
       }
+      #endif
 
       if (lagEtherType == 0)
         lagEtherType = phyExt_data[port].outer_tpid;
