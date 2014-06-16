@@ -1515,6 +1515,8 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR)
           != L7_SUCCESS)
       {
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP client options [intIfNum:%u vlanId:%u innerVlanId:%u]",
+                intIfNum, vlanId, innerVlanId);
         return L7_FAILURE;
       }
       if (isActiveOp82)
@@ -1561,6 +1563,11 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                      == L7_SUCCESS)
   {
     dsInfo->debugStats.msgsForwarded++;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to forward DHCP packet [intIfNum:%u vlanId:%u frame:%p frameLen:%u innerVlanId:%u client_idx:%u relayOptIntIfNum:%u]",
+            intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx, relayOptIntIfNum);
   }
 
   return L7_SUCCESS;
@@ -4258,6 +4265,9 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
         L7_uchar8 clientHwStr[DS_MAC_STR_LEN + 1];
         static L7_uint32 lastMsg = 0;
 
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to add new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]", 
+                dsBinding.macAddr[0], dsBinding.macAddr[1], dsBinding.macAddr[2], dsBinding.macAddr[3], dsBinding.macAddr[4], dsBinding.macAddr[5], yiaddr, vlanId, innerVlanId, intIfNum);
+
         dsInfo->debugStats.bindingAddFail++;
         if (osapiUpTimeRaw() > lastMsg)
         {
@@ -4270,6 +4280,9 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
         }
         return L7_FAILURE;
       }
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Successfully added new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]",
+                dsBinding.macAddr[0], dsBinding.macAddr[1], dsBinding.macAddr[2], dsBinding.macAddr[3], dsBinding.macAddr[4], dsBinding.macAddr[5], yiaddr, vlanId, innerVlanId, intIfNum);
+
       break;
 
     case L7_DHCP_REQUEST:

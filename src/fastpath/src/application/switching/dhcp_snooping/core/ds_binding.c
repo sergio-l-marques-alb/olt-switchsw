@@ -888,6 +888,9 @@ static L7_RC_t dsLeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint inetFamily
     return L7_SUCCESS;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_DHCP, "Updating lease status [macAddr:%02x:%02x:%02x:%02x:%02x:%02x messageType:%u]",
+            macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5], messageType);
+
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
 
