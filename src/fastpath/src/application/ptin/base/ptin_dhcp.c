@@ -36,10 +36,13 @@ void ptin_debug_dhcp_enable(L7_BOOL enable)
   ptin_debug_dhcp_snooping = enable;
 }
 
-
 /* Parameters to identify the client */
 #define DHCP_CLIENT_INTERF_SUPPORTED    1
-#define DHCP_CLIENT_OUTERVLAN_SUPPORTED 0
+#if (PTIN_BOARD_IS_ACTIVETH)
+ #define DHCP_CLIENT_OUTERVLAN_SUPPORTED 1
+#else
+ #define DHCP_CLIENT_OUTERVLAN_SUPPORTED 0
+#endif
 #define DHCP_CLIENT_INNERVLAN_SUPPORTED 1
 #define DHCP_CLIENT_IPADDR_SUPPORTED    0
 #define DHCP_CLIENT_MACADDR_SUPPORTED   0
