@@ -39,7 +39,7 @@ void ptin_debug_pppoe_enable(L7_BOOL enable)
 
 /* Parameters to identify the client */
 #define PPPOE_CLIENT_INTERF_SUPPORTED    1
-#define PPPOE_CLIENT_OUTERVLAN_SUPPORTED 0
+#define PPPOE_CLIENT_OUTERVLAN_SUPPORTED 1
 #define PPPOE_CLIENT_INNERVLAN_SUPPORTED 1
 #define PPPOE_CLIENT_IPADDR_SUPPORTED    0
 #define PPPOE_CLIENT_MACADDR_SUPPORTED   0

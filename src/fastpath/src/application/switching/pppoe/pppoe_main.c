@@ -249,12 +249,18 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
     /* Client information */
     client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-    client.innerVlan = innerVlanId;
-    client.mask = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    client.outerVlan = vlanId;
+    client.innerVlan = (innerVlanId>0 && innerVlanId<4095) ? innerVlanId : 0;
+    client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    client.mask |= (innerVlanId>0 && innerVlanId<4095) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
     /* Only search for a client, if inner vlan is valid */
     /* Otherwise, use dynamic DHCP */
+    #if (PTIN_BOARD_IS_GPON)
     if (innerVlanId>0 && innerVlanId<4096)
+    #else
+    if (1)
+    #endif
     {
       /* Find client index, and validate it */
       if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
