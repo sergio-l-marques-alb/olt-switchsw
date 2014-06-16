@@ -4280,7 +4280,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
         }
         return L7_FAILURE;
       }
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Successfully added new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]",
+      LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Successfully added new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]",
                 dsBinding.macAddr[0], dsBinding.macAddr[1], dsBinding.macAddr[2], dsBinding.macAddr[3], dsBinding.macAddr[4], dsBinding.macAddr[5], yiaddr, vlanId, innerVlanId, intIfNum);
 
       break;
