@@ -1183,7 +1183,7 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
 
   /* Only CXO160G have frontal ports */
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (slot == 0)
+  if (slot <= 1)
   {
     /* Use port reference */
     ptin_port = port;
@@ -1300,7 +1300,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
 
   /* Validate slot and port */
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (slot == 0)
+  if (slot <= 1)
   {
     if (port >= ptin_sys_number_of_ports)
     {
@@ -1830,12 +1830,11 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
  */
 inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
 {
-
   L7_uint32 aux;
 
   if ( (slot < PTIN_SYS_LC_SLOT_MIN) || (slot > PTIN_SYS_LC_SLOT_MAX) )
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot %u is out of range [%u..%u]", slot);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot %u is out of range [%u..%u]", slot, PTIN_SYS_LC_SLOT_MIN, PTIN_SYS_LC_SLOT_MAX);
     return L7_FAILURE;
   }
 

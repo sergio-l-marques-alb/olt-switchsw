@@ -103,6 +103,7 @@ rm -f *.tgz
 tar czpvf $rootfs_tgz * --owner=root --group=root
 cd -
 mv $APPS_PATH/image/$PLATFORM/rootfs/$rootfs_tgz $BUILDS_FOLDER
+cp $BUILDS_FOLDER/$rootfs_tgz $BUILDS_FOLDER/$MODULE.rootfs.tgz
 
 echo -en $colorNotice
 echo "Saving release notes..."

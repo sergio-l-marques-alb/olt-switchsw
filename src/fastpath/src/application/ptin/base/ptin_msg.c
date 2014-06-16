@@ -2648,8 +2648,7 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
-
-    #if (PTIN_BOARD_IS_MATRIX)
+    #if (0)
     /* PTP: Workaround */
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
