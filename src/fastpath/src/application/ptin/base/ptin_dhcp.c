@@ -189,6 +189,9 @@ static L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 d
 static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macAddr, L7_char8 *circuitId, L7_char8 *remoteId);
 #endif
 
+static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
+//static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client);
+
 /*********************************************************** 
  * INLINE FUNCTIONS
  ***********************************************************/
@@ -440,7 +443,7 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
   /* Save direct referencing to dhcp index from evc ids */
   if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -506,7 +509,7 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
   /* Save direct referencing to dhcp index from evc ids */
   if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -609,7 +612,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   /* Save direct referencing to dhcp index from evc ids */
   if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -718,7 +721,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
   /* Remove EVC index referencing */
   if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -1110,17 +1113,12 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD_IS_GPON)
-  #if DHCP_CLIENT_INNERVLAN_SUPPORTED
-  /* Do not process null cvlans */
-  if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
-      (client->innerVlan==0 || client->innerVlan>4095))
+  /* Validate and rearrange clientId info */
+  if (ptin_dhcp_clientId_convert(evc_idx, client) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_SUCCESS;
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    return L7_FAILURE;
   }
-  #endif
-#endif
 
   /* Get ptin_port value */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -1472,17 +1470,12 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
     return L7_NOT_EXIST;
   }
 
-#if (PTIN_BOARD_IS_GPON)
-  #if DHCP_CLIENT_INNERVLAN_SUPPORTED
-  /* Do not process null cvlans */
-  if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
-      (client->innerVlan==0 || client->innerVlan>4095))
+  /* Validate and rearrange clientId info */
+  if (ptin_dhcp_clientId_convert(evc_idx, client) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
-    return L7_SUCCESS;
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    return L7_FAILURE;
   }
-  #endif
-#endif
 
   /* Convert interface to ptin_port format */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -1941,6 +1934,13 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, p
     return L7_FAILURE;
   }
 
+  /* Validate and rearrange clientId info */
+  if (ptin_dhcp_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    return L7_FAILURE;
+  }
+
   /* Get client */
   if (ptin_dhcp_client_find(dhcp_idx, client, &clientInfo)!=L7_SUCCESS)
   {
@@ -2217,6 +2217,13 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Validate and rearrange clientId info */
+  if (ptin_dhcp_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
     return L7_FAILURE;
   }
 
@@ -2574,7 +2581,6 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   }
 
   /* If the inner vlan is not valid, return -1 as client index */
-#if (PTIN_BOARD_IS_GPON)
   #if DHCP_CLIENT_INNERVLAN_SUPPORTED
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
       (client->innerVlan==0 || client->innerVlan>4095))
@@ -2583,7 +2589,6 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
     return L7_SUCCESS;
   }
   #endif
-#endif
 
   /* Get ptin_port format for the interface number */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -2735,8 +2740,11 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   client->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   #endif
   #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
-  client->innerVlan = clientInfo->dhcpClientDataKey.innerVlan;
-  client->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+  if (clientInfo->dhcpClientDataKey.innerVlan > 0 && clientInfo->dhcpClientDataKey.innerVlan < 4096)
+  {
+    client->innerVlan = clientInfo->dhcpClientDataKey.innerVlan;
+    client->mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+  }
   #endif
   #if (DHCP_CLIENT_IPADDR_SUPPORTED)
   client->ipv4_addr = clientInfo->dhcpClientDataKey.ipv4_addr;
@@ -2796,7 +2804,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   }
 
 #if (PTIN_BOARD_IS_GPON)
-  if (innerVlanId>0 && innerVlanId<4096)
+  if (innerVlan > 0 && innerVlan < 4096)
 #else
   if (1)
 #endif
@@ -2817,8 +2825,11 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     #endif
     #if DHCP_CLIENT_INNERVLAN_SUPPORTED
-    client.innerVlan = innerVlan;
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    if (innerVlan > 0 && innerVlan < 4096)
+    {
+      client.innerVlan = innerVlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
     #endif
 
     /* Find client information */
@@ -2960,7 +2971,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    }
 
 #if (PTIN_BOARD_IS_GPON)
-   if (innerVlanId>0 && innerVlanId<4096)
+   if (innerVlan>0 && innerVlan<4096)
 #else
    if (1)
 #endif
@@ -2981,8 +2992,11 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
 #endif
 #if DHCP_CLIENT_INNERVLAN_SUPPORTED
-      client.innerVlan = innerVlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      if (innerVlan > 0 && innerVlan < 4095)
+      {
+        client.innerVlan = innerVlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
 #endif
 
       /* Find client information */
@@ -4380,6 +4394,174 @@ static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macA
       sprintf(remoteId,"%s","Unknown");
     }
   }
+
+  return L7_SUCCESS;
+}
+#endif
+
+/**
+ * Validate and rearrange client id info. 
+ * This should only be applied for client infos coming from 
+ * manager. 
+ * 
+ * @author mruas (8/6/2013)
+ * 
+ * @param client : client info
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client)
+{
+  L7_uint16 intVlan, innerVlan;
+
+  /* Validate evc index  */
+  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
+    return L7_FAILURE;
+  }
+  /* This evc must be active */
+  if (!ptin_evc_is_in_use(evc_idx))
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: evc_idx=%u",evc_idx);
+    return L7_FAILURE;
+  }
+  /* Validate client */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client pointer");
+    return L7_FAILURE;
+  }
+
+  /* Check mask */
+  if (DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Client mask is null");
+    return L7_FAILURE;
+  }
+
+  innerVlan = 0;
+  /* Validate inner vlan */
+  #if DHCP_CLIENT_INNERVLAN_SUPPORTED
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+  {
+    /* Validate inner vlan */
+    if (client->innerVlan>4095)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
+      return L7_FAILURE;
+    }
+    innerVlan = client->innerVlan;
+  }
+  #endif
+
+  /* Update outer vlan */
+  #if defined(DHCP_CLIENT_INTERF_SUPPORTED) && defined(DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
+      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+  {
+    /* Validate outer vlan, only if provided */
+    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    {
+      /* Obtain intVlan */
+      if (ptin_evc_intVlan_get(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining internal vlan for evc_idx=%u, ptin_intf=%u/%u",
+                evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      /* Obtain intVlan from the outer vlan */
+      if (ptin_evc_intVlan_get_fromOVlan(&client->ptin_intf, client->outerVlan, innerVlan, &intVlan)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining internal vlan for OVid=%u, IVid=%u, ptin_intf=%u/%u",
+                client->outerVlan, innerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+        return L7_FAILURE;
+      }
+    }
+    /* Replace outer vlan with the internal one */
+    client->outerVlan = intVlan;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+#if 0
+/**
+ * Restore client id structure to values which manager 
+ * understands.
+ * 
+ * @param client : client id
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
+{
+  L7_uint32 intIfNum;
+  L7_uint16 extVlan, innerVlan;
+
+  /* Validate client */
+  if (client==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments or no parameters provided");
+    return L7_FAILURE;
+  }
+
+  /* Check mask */
+  if (DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Client mask is null");
+    return L7_FAILURE;
+  }
+
+  innerVlan = 0;
+  #if DHCP_CLIENT_INNERVLAN_SUPPORTED
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
+  {
+    /* Validate inner vlan */
+    if (client->innerVlan>4095)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
+      return L7_FAILURE;
+    }
+    innerVlan = client->innerVlan;
+  }
+  #endif
+
+  #if defined(DHCP_CLIENT_INTERF_SUPPORTED) && defined(DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+  /* Is interface and outer vlan provided? If so, replace it with the internal vlan */
+  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF &&
+      client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
+  {
+    /* Convert to intIfNum format */
+    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client intf %u/%u to intIfNum format",
+              client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+
+    /* Validate outer vlan */
+    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid outer vlan (%u)",client->outerVlan);
+      return L7_FAILURE;
+    }
+    /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
+              client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
+      return L7_FAILURE;
+    }
+    /* Replace outer vlan with the internal one */
+    client->outerVlan = extVlan;
+  }
+  #endif
 
   return L7_SUCCESS;
 }

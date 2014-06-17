@@ -722,28 +722,6 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     #endif
   }
 
-  /* If either DHCP snooping or the L2 Relay is not enabled on
-     rx interface, ignore packet. */
-  if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
-  {
-    #ifdef L7_DHCP_L2_RELAY_PACKAGE
-    if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
-    {
-      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
-      {
-        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                    "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
-                      __FUNCTION__);
-        dsTraceWrite(traceMsg);
-      }
-      return SYSNET_PDU_RC_IGNORED;
-    }
-    #else
-    return SYSNET_PDU_RC_IGNORED;
-    #endif
-  }
-
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
   ethHeaderSize = sysNetDataOffsetGet(data);
@@ -752,6 +730,28 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
   if (((ipHeader->iph_versLen & 0xF0) == (L7_IP_VERSION << 4)) &&
       (ipHeader->iph_prot == IP_PROT_UDP))
   {
+    /* If either DHCP snooping or the L2 Relay is not enabled on
+       rx interface, ignore packet. */
+    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+    {
+      #ifdef L7_DHCP_L2_RELAY_PACKAGE
+      if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                      "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
+                        __FUNCTION__);
+          dsTraceWrite(traceMsg);
+        }
+        return SYSNET_PDU_RC_IGNORED;
+      }
+      #else
+      return SYSNET_PDU_RC_IGNORED;
+      #endif
+    }
+
     if (((osapiNtohl(ipHeader->iph_src) & L7_CLASS_D_ADDR_NETWORK) == L7_CLASS_D_ADDR_NETWORK) ||
         ((osapiNtohl(ipHeader->iph_src) & L7_CLASS_E_ADDR_NETWORK) == L7_CLASS_E_ADDR_NETWORK))
     {
@@ -768,13 +768,16 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       __FUNCTION__, ipHeader->iph_src);
         dsTraceWrite(traceMsg);
       }
+
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored, because of ip source (0x%08x)", ipHeader->iph_src);
+
       return SYSNET_PDU_RC_IGNORED;
     }
 
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipHeader + dsIpHdrLen(ipHeader));
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_CLNT))
-
     {
       /* This is used only when the packet comes double tagged.*/
       vlanId = pduInfo->vlanId;
@@ -828,25 +831,18 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         memset(&client, 0x00, sizeof(client));
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
         client.outerVlan = vlanId;
-        client.innerVlan = (innerVlanId>0 && innerVlanId<4095) ? innerVlanId : 0;
+        client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
         client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        client.mask |= (innerVlanId>0 && innerVlanId<4095) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
+        client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
         #if (PTIN_BOARD_IS_GPON)
-        if (innerVlanId>0 && innerVlanId<4096)
+        if (innerVlanId > 0 && innerVlanId < 4096)
         #else
         if (1)
         #endif
         {
-          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
-          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(pduInfo->intIfNum, client.outerVlan, client.innerVlan, &client.outerVlan, &client.innerVlan))
-          {
-            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", pduInfo->intIfNum, client.outerVlan, client.innerVlan);
-            return SYSNET_PDU_RC_IGNORED;
-          }
-
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
@@ -939,6 +935,8 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       __FUNCTION__, udpHeader->destPort);
         dsTraceWrite(traceMsg);
       }
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is neither server nor client (%u)", udpHeader->destPort);
     }
   }
   else
@@ -951,6 +949,8 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                     __FUNCTION__, ipHeader->iph_prot, ipHeader->iph_versLen);
       dsTraceWrite(traceMsg);
     }
+    if (ptin_debug_dhcp_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Invalid protocol received (%u), or invalid versLen (0x%02x)", ipHeader->iph_prot, ipHeader->iph_versLen);
   }
 
   return SYSNET_PDU_RC_IGNORED;
@@ -1029,28 +1029,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     #endif
   }
 
-  /* If either DHCP snooping or the L2 Relay is not enabled on
-     rx interface, ignore packet. */
-  if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
-  {
-    #ifdef L7_DHCP_L2_RELAY_PACKAGE
-    if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
-    {
-      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
-      {
-        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                    "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
-                      __FUNCTION__);
-        dsTraceWrite(traceMsg);
-      }
-      return SYSNET_PDU_RC_IGNORED;
-    }
-    #else
-    return SYSNET_PDU_RC_IGNORED;
-    #endif
-  }
-
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
   ethHeaderSize = sysNetDataOffsetGet(data);
@@ -1059,11 +1037,32 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   if (((ipv6Header->ver_class_flow & 0xF0000000) == (L7_IP6_VERSION << 28)) &&
       (ipv6Header->next == IP_PROT_UDP))
   {
+    /* If either DHCP snooping or the L2 Relay is not enabled on
+       rx interface, ignore packet. */
+    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+    {
+      #ifdef L7_DHCP_L2_RELAY_PACKAGE
+      if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                      "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
+                        __FUNCTION__);
+          dsTraceWrite(traceMsg);
+        }
+        return SYSNET_PDU_RC_IGNORED;
+      }
+      #else
+      return SYSNET_PDU_RC_IGNORED;
+      #endif
+    }
+
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipv6Header + L7_IP6_HEADER_LEN);
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_CLNT))
-
-      {
+    {
       /* This is used only when the packet comes double tagged.*/
       vlanId = pduInfo->vlanId;
       innerVlanId = pduInfo->innerVlanId;
@@ -1107,25 +1106,18 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
         client.outerVlan = vlanId;
-        client.innerVlan = (innerVlanId>0 && innerVlanId<4095) ? innerVlanId : 0;
+        client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
         client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        client.mask |= (innerVlanId>0 && innerVlanId<4095) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
+        client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
         #if (PTIN_BOARD_IS_GPON)
-        if (innerVlanId>0 && innerVlanId<4096)
+        if (innerVlanId > 0 && innerVlanId < 4096)
         #else
         if (1)
         #endif
         {
-          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
-          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(pduInfo->intIfNum, client.outerVlan, client.innerVlan, &client.outerVlan, &client.innerVlan))
-          {
-            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", pduInfo->intIfNum, client.outerVlan, client.innerVlan);
-            return SYSNET_PDU_RC_IGNORED;
-          }
-
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
@@ -1202,8 +1194,16 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
       }
-   }
- }
+    }
+    else
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"DHCP Packet is not server nor client");
+    }
+  }
+
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is not DHCP");
 
   return SYSNET_PDU_RC_IGNORED;
 }
@@ -1949,13 +1949,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      client.innerVlan = dhcp_binding.innerVlanId;
      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
      client.mask |= (dhcp_binding.innerVlanId !=0 ) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
-
-     /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
-     if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &client.outerVlan, &client.innerVlan))
-     {
-       LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
-       return SYSNET_PDU_RC_IGNORED;
-     }
 
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
@@ -3779,21 +3772,18 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
         client.mask |= (dhcp_binding.innerVlanId != 0) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
 
+        #if (PTIN_BOARD_IS_GPON)
         if (dhcp_binding.innerVlanId!=0)
+        #else
+        if (1)
+        #endif
         {
-          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
-          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(dhcp_binding.intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &client.outerVlan, &client.innerVlan))
-          {
-            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
-            return SYSNET_PDU_RC_IGNORED;
-          }
-
           /* Find client index, and validate it */
-#if 1 /* PTin modified: flexible circuit-id */
+        #if 1 /* PTin modified: flexible circuit-id */
           if (ptin_dhcp_clientIndex_get(dhcp_binding.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
-#else
+        #else
           if (ptin_dhcp_clientIndex_get(relayAgentInfo.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
-#endif
+        #endif
               client_index<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
           {
             *client_idx = client_index;   /* Update to new client index */
