@@ -2718,15 +2718,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     *                     IP Source Guard
     **************************************************************************/
    
-    case CCMSG_ETH_IPSG_VERIFY_SOURCE:
+    case CCMSG_ETH_IPSG_ENABLE:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_VERIFY_SOURCE);
+               "Message received: CCMSG_ETH_IPSG_ENABLE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
 
-      CHECK_INFO_SIZE(msg_IPSG_verify_source_t);
+      CHECK_INFO_SIZE(msg_IPSG_set_t);
 
-      msg_IPSG_verify_source_t *ptr;
-      ptr = (msg_IPSG_verify_source_t *) inbuffer->info;
+      msg_IPSG_set_t *ptr;
+      ptr = (msg_IPSG_set_t *) inbuffer->info;
 
       /* Execute command */
       rc = ptin_msg_ipsg_verify_source_set(ptr);
@@ -2748,7 +2748,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_IPSG_STATIC_ENTRY:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_VERIFY_SOURCE);
+               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
 
       CHECK_INFO_SIZE(msg_IPSG_static_entry_t);
 

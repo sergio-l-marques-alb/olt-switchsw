@@ -131,7 +131,7 @@
 
 #define CCMSG_ETH_DHCP_EVC_RECONF           0x90CB  // struct msg_DhcpEvcReconf_t
 
-#define CCMSG_ETH_IPSG_VERIFY_SOURCE        0x90D0  // struct msg_IPSG_verify_source_t
+#define CCMSG_ETH_IPSG_ENABLE               0x90D0  // struct msg_IPSG_set_t
 #define CCMSG_ETH_IPSG_STATIC_ENTRY         0x90D1  // struct msg_IPSG_static_entry_t
 #define CCMSG_ETH_IPSG_BINDING_TABLE_GET    0x90D2  // struct msg_IPSG_binding_table_request_t
 
@@ -1108,16 +1108,18 @@ typedef struct {
 
 /* Message to enable/disable IP Source Guard (IPSG) on a given Interface  */
 typedef struct {  
-  msg_HwEthInterface_t  intf;             //Interface 
-  L7_uint8              verifySource;     //True or False  
-} __attribute__((packed)) msg_IPSG_verify_source_t;
+  L7_uint8              slotId;           // Slot ID
+  msg_HwEthInterface_t  intf;             //Interface   
+  L7_uint8              enable;           //1=True | 0=False  
+} __attribute__((packed)) msg_IPSG_set_t;
 
 /* Message to add/remove IP Source Guard (IPSG) on a given Interface  */
 typedef struct {
-  L7_uint32             evc_idx;           // EVCid      
+  L7_uint8              slotId;           // Slot ID
+  L7_uint32             evc_idx;          // eEVCid      
   msg_HwEthInterface_t  intf;             // Interface
-  L7_uint8              macAddr[6];       // MAC Address
   L7_uint8              action;           // Remove: 0 | Add: 1
+  L7_uint8              macAddr[6];       // MAC Address  
   chmessage_ip_addr_t   ipAddr;           // IP address  
 } __attribute__((packed)) msg_IPSG_static_entry_t;
 

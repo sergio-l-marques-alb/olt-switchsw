@@ -4833,13 +4833,13 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_verify_source_t* msgIpsgVerifySource)
+L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
 {
   ptin_intf_t  ptin_intf;
   L7_uint32    intIfNum;
    
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinPort       = %u/%u",msgIpsgVerifySource->intf.intf_type,msgIpsgVerifySource->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "verifySource   = %s"   ,msgIpsgVerifySource->verifySource==L7_FALSE?"No":"Yes");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "verifySource   = %s"   ,msgIpsgVerifySource->enable==L7_FALSE?"No":"Yes");
  
   /* Get intIfNum */
   ptin_intf.intf_id=msgIpsgVerifySource->intf.intf_id;
@@ -4856,7 +4856,7 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_verify_source_t* msgIpsgVerifyS
   /*Despite the IPSG API having two input parameters: IP filtering and MAC filtering. 
     It does not supports enabling just one!
     */
-  if(msgIpsgVerifySource->verifySource == L7_FALSE)
+  if(msgIpsgVerifySource->enable == L7_FALSE)
   {
     return (ipsgVerifySourceSet(intIfNum, L7_FALSE, L7_FALSE));
   }

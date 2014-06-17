@@ -4832,7 +4832,7 @@ int main (int argc, char *argv[])
         break;
       case 1700:      
         {
-          msg_IPSG_verify_source_t *ptr;
+          msg_IPSG_set_t *ptr;
           int                       type;
           int                       intf;
           
@@ -4843,8 +4843,8 @@ int main (int argc, char *argv[])
           }
           
           // Pointer to data array
-          ptr = (msg_IPSG_verify_source_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_IPSG_verify_source_t));
+          ptr = (msg_IPSG_set_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_IPSG_set_t));
     
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -4860,10 +4860,10 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
           }
-          ptr->verifySource = (uint8) valued;
+          ptr->enable = (uint8) valued;
 
-          comando.msgId = CCMSG_ETH_IPSG_VERIFY_SOURCE;
-          comando.infoDim = sizeof(msg_IPSG_verify_source_t);          
+          comando.msgId = CCMSG_ETH_IPSG_ENABLE;
+          comando.infoDim = sizeof(msg_IPSG_set_t);          
         }
         break;      
       case 1701:

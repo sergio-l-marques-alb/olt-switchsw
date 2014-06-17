@@ -747,7 +747,7 @@ extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_verify_source_t* msgIpsgVerifySource);
+L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource);
 
 /**
  * Configure an IP Source Guard  static entry
