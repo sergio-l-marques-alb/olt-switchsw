@@ -1110,6 +1110,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD_IS_GPON)
   #if DHCP_CLIENT_INNERVLAN_SUPPORTED
   /* Do not process null cvlans */
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
@@ -1119,6 +1120,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
     return L7_SUCCESS;
   }
   #endif
+#endif
 
   /* Get ptin_port value */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -1470,6 +1472,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
     return L7_NOT_EXIST;
   }
 
+#if (PTIN_BOARD_IS_GPON)
   #if DHCP_CLIENT_INNERVLAN_SUPPORTED
   /* Do not process null cvlans */
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
@@ -1479,6 +1482,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
     return L7_SUCCESS;
   }
   #endif
+#endif
 
   /* Convert interface to ptin_port format */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -2570,6 +2574,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   }
 
   /* If the inner vlan is not valid, return -1 as client index */
+#if (PTIN_BOARD_IS_GPON)
   #if DHCP_CLIENT_INNERVLAN_SUPPORTED
   if ((client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
       (client->innerVlan==0 || client->innerVlan>4095))
@@ -2578,6 +2583,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
     return L7_SUCCESS;
   }
   #endif
+#endif
 
   /* Get ptin_port format for the interface number */
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -2789,7 +2795,11 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     return L7_FAILURE;
   }
 
-  if (innerVlan>0 && innerVlan<4096)
+#if (PTIN_BOARD_IS_GPON)
+  if (innerVlanId>0 && innerVlanId<4096)
+#else
+  if (1)
+#endif
   {
     /* Build client structure */
     memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -2797,6 +2807,14 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     client.ptin_intf.intf_type = ptin_intf.intf_type;
     client.ptin_intf.intf_id   = ptin_intf.intf_id;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    #endif
+    #if DHCP_CLIENT_OUTERVLAN_SUPPORTED
+      if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(intIfNum, intVlan, innerVlan, &client.outerVlan, L7_NULLPTR))
+      {
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u intVlan=%u innerVlan=%u]", intIfNum, intVlan, innerVlan);
+        return L7_FAILURE;
+      }
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     #endif
     #if DHCP_CLIENT_INNERVLAN_SUPPORTED
     client.innerVlan = innerVlan;
