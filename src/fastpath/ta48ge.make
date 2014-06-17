@@ -58,7 +58,6 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
 		echo "";\
 	fi;
-	#@$(MAKE) -C src/application/switching/mgmd
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
@@ -74,6 +73,10 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 	@echo ""
 
 mgmdconfig:
+	@if [ ! -d src/application/switching/mgmd ]; then\
+		echo "MGMD source-code not found! Please update your working copy.";\
+		false;\
+	fi;
 	@sh mgmd_config_$(CARD).sh
 
 kernel:

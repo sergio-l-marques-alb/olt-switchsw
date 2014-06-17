@@ -97,6 +97,10 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 	@echo ""
 
 mgmdconfig:
+	@if [ ! -d src/application/switching/mgmd ]; then\
+		echo "MGMD source-code not found! Please update your working copy.";\
+		false;\
+	fi;
 	@sh mgmd_config_$(CARD).sh
 
 kernel:
