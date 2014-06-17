@@ -30,7 +30,7 @@
 /* The initial release will not support IPv6 addresses for IPSG.
    Setting this to 1 will use more memory because the search keys
    will grow in size. */
-#define HAPI_BROAD_IPSG_IPV6_SUPPORTED 0
+#define HAPI_BROAD_IPSG_IPV6_SUPPORTED 1
 
 #if L7_FEAT_IPSG_ON_IFP
 /* In theory this value would be the sum of all
