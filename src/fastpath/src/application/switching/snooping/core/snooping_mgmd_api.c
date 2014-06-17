@@ -76,7 +76,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     return L7_FAILURE;
   }
 
-#if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX  
   if((matrixType != 1) && (matrixType != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix type [%u]", matrixType);
@@ -495,7 +495,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
     To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
     If not we ignore the request*/
-  if(sourceAddr == PTIN_MGMD_ANY_IPv4_HOST)
+  if(sourceAddr != PTIN_MGMD_ANY_IPv4_HOST)
   {
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
@@ -593,7 +593,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   //Ignore if the port has link down
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",portId,serviceId );    
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",portId,serviceId );    
     return SUCCESS;
   }
 
