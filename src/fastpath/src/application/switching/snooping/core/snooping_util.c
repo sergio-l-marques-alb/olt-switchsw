@@ -1361,8 +1361,6 @@ void snoopFrameTransmit(L7_uint32 intIfNum, L7_uint32 vlanId,
   DTL_CMD_TX_INFO_t  dtlCmd;
   snoop_cb_t     *pSnoopCB;
 
-  dtlPduTransmit_in = 1;//Added by MMELO
-
   memset((L7_uchar8 *)&dtlCmd, 0, sizeof(DTL_CMD_TX_INFO_t));
 
   #if 0
@@ -1392,7 +1390,6 @@ void snoopFrameTransmit(L7_uint32 intIfNum, L7_uint32 vlanId,
 
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
-  dtlPduTransmit_in = 0;//Added by MMELO
   return;
 }
 
