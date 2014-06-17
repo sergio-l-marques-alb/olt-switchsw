@@ -19,9 +19,7 @@
 * @end
 **********************************************************************/
 
-
-#include "l7_platformspecs.h"
-#include "ptin_globaldefs.h"
+#include "ptin_fpga_api.h"
 
 #if PTIN_BOARD_IS_MATRIX
 

@@ -34,6 +34,7 @@
 #ifdef L7_NSF_PACKAGE
  #include "dot3ad_nsf.h"
 #endif
+#include "ptin_fpga_api.h"
 
 #ifdef DOT3AD_COMPONENT_LACP
 
@@ -91,6 +92,9 @@ static dot3ad_mux_machine_state_t muxStateTable[lacpMuxEvents-lacpPerEvents][MUX
 };
 
 extern L7_uint32 dot3adBufferPoolId;
+
+static unsigned short int ptin_debug_lacp = 0;
+inline void ptin_debug_lacp_set(unsigned short int enable){ptin_debug_lacp = enable;};
 
 /**************************************************************************
 *
@@ -1689,6 +1693,25 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
   L7_uchar8 *data;
   L7_RC_t rc;
   dot3ad_agg_t *agg;
+  L7_uint32 activeState;
+
+#if PTIN_BOARD_IS_MATRIX
+  /* Do nothing for slave matrix */
+  if (!ptin_fgpa_mx_is_active())
+  {
+    if (ptin_debug_lacp)
+      LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. I'm a Slave Matrix");
+    return L7_SUCCESS;
+  }
+#endif
+
+  //Ignore if the port has link down
+  if ( (nimGetIntfActiveState(p->actorPortNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  {
+    if (ptin_debug_lacp)
+      LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",p->actorPortNum);    
+    return L7_SUCCESS;
+  }
 
   /* check explicitly for static lag */
   agg = dot3adAggKeyFind(p->actorOperPortKey);

@@ -21,7 +21,8 @@
 #ifndef _PTIN_FPGA_API_H
 #define _PTIN_FPGA_API_H
 
-#include "datatypes.h"
+#include "l7_platformspecs.h"
+#include "ptin_globaldefs.h"
 
 #if PTIN_BOARD_IS_MATRIX
 
