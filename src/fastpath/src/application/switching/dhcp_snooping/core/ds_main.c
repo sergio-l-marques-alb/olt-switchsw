@@ -1113,8 +1113,19 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 
         /* Only search for a client, if inner vlan is valid */
         /* Otherwise, use dynamic DHCP */
+        #if (PTIN_BOARD_IS_GPON)
         if (innerVlanId>0 && innerVlanId<4096)
+        #else
+        if (1)
+        #endif
         {
+          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
+          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(pduInfo->intIfNum, client.outerVlan, client.innerVlan, &client.outerVlan, &client.innerVlan))
+          {
+            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", pduInfo->intIfNum, client.outerVlan, client.innerVlan);
+            return SYSNET_PDU_RC_IGNORED;
+          }
+
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
@@ -1938,6 +1949,13 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      client.innerVlan = dhcp_binding.innerVlanId;
      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
      client.mask |= (dhcp_binding.innerVlanId !=0 ) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
+
+     /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
+     if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &client.outerVlan, &client.innerVlan))
+     {
+       LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
+       return SYSNET_PDU_RC_IGNORED;
+     }
 
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
@@ -3763,6 +3781,13 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         if (dhcp_binding.innerVlanId!=0)
         {
+          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
+          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(dhcp_binding.intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, &client.outerVlan, &client.innerVlan))
+          {
+            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
+            return SYSNET_PDU_RC_IGNORED;
+          }
+
           /* Find client index, and validate it */
 #if 1 /* PTin modified: flexible circuit-id */
           if (ptin_dhcp_clientIndex_get(dhcp_binding.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
