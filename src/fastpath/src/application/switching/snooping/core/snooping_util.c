@@ -1201,10 +1201,6 @@ L7_BOOL snoopMapIntfConfigEntryGet(L7_uint32 intIfNum,
   return L7_FALSE;
 }
 
-L7_uint8 snoopFrameTransmit_in = (L7_uint8) -1;
-
-inline L7_uint8 snoopFrameTransmit_get(void){return snoopFrameTransmit_in;};
-
 /*********************************************************************
 * @purpose  Send a multicast packet on a specified interface and vlan
 *
@@ -1234,7 +1230,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
   /* Do nothing for slave matrix */
   if (!ptin_fgpa_mx_is_active())
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [intIfNum=%u vlanId=%u]",intIfNum, vlanId );
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [intIfNum=%u vlanId=%u]",intIfNum, vlanId );
     return;
   }
 #endif
@@ -1320,9 +1317,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
   snoopDebugPacketTxTrace(intIfNum, vlanId, payload, family);
   ptin_timer_start(33,"snoopPacketSend-snoopFrameTransmit");
-  snoopFrameTransmit_in = 1;
   snoopFrameTransmit(intIfNum, vlanId, bufHandle, SNOOP_VLAN_INTF_SEND);
-  snoopFrameTransmit_in = 0;
   ptin_timer_stop(33);
   ptin_timer_stop(32);
 
@@ -1342,9 +1337,6 @@ void snoopPacketSend(L7_uint32 intIfNum,
     printf("\n");
   }
 }
-
-L7_uint8 dtlPduTransmit_in = (L7_uint8) -1;
-L7_uint8 dtlPduTransmit_in_get(void){return snoopFrameTransmit_in;};
 
 /*********************************************************************
 * @purpose  Transmit a frame
