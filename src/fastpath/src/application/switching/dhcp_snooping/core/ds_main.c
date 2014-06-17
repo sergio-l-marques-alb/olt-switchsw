@@ -840,13 +840,19 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         if (1)
         #endif
         {
+          /* Client was created with the outer vlan. Thus, we must convert the current internal vlan to the desired vlan before searching for the client */
+          if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(pduInfo->intIfNum, client.outerVlan, client.innerVlan, &client.outerVlan, &client.innerVlan))
+          {
+            LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u client.outerVlan=%u client.innerVlan=%u]", pduInfo->intIfNum, client.outerVlan, client.innerVlan);
+            return SYSNET_PDU_RC_IGNORED;
+          }
+
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
           {
-            if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
-                    pduInfo->intIfNum, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
+            LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
+                    pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
             return SYSNET_PDU_RC_IGNORED;

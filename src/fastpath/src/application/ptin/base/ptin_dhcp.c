@@ -2914,8 +2914,11 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
   }
 
    /* Validate arguments */
-   if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX ||
-    innerVlan==0 || innerVlan>=4096)
+   if (intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX
+#if (PTIN_BOARD_IS_GPON)
+       || innerVlan==0 || innerVlan>=4096
+#endif
+       )
    {
       if (ptin_debug_dhcp_snooping)
          LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments");
@@ -2938,7 +2941,11 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
       return L7_FAILURE;
    }
 
-   if (innerVlan > 0 && innerVlan < 4096)
+#if (PTIN_BOARD_IS_GPON)
+   if (innerVlanId>0 && innerVlanId<4096)
+#else
+   if (1)
+#endif
    {
       /* Build client structure */
       memset(&client, 0x00, sizeof(ptin_client_id_t));
@@ -2946,6 +2953,14 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
       client.ptin_intf.intf_type = ptin_intf.intf_type;
       client.ptin_intf.intf_id = ptin_intf.intf_id;
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+#endif
+#if DHCP_CLIENT_OUTERVLAN_SUPPORTED
+      if (L7_SUCCESS != ptin_evc_extVlans_get_fromIntVlan(intIfNum, intVlan, innerVlan, &client.outerVlan, L7_NULLPTR))
+      {
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get external vlans [intIfNum=%u intVlan=%u innerVlan=%u]", intIfNum, intVlan, innerVlan);
+        return L7_FAILURE;
+      }
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
 #endif
 #if DHCP_CLIENT_INNERVLAN_SUPPORTED
       client.innerVlan = innerVlan;
