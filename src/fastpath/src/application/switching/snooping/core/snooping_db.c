@@ -1015,6 +1015,14 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     /* Clear only clients which are using this interface */
     for (i=0; i<PTIN_SYSTEM_IGMP_MAXCLIENTS; i++)
     {
+      /*Check if this position is free*/
+      if(snoopEntry->channel_list[channel_index].clients_list[i] == 0)
+      {
+        /*Move to Next Position -1 because of the for*/
+        i += (sizeof(snoopEntry->channel_list[channel_index].clients_list[i])*8) -1;
+        continue;
+      }
+
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,i))  continue;
 
       /* Get client information */
@@ -1204,6 +1212,14 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   /* Run all interfaces, and update number of channels for each interface */
   for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
+    /*Check if this position is free*/
+    if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+    {
+      /*Move to Next Position -1 because of the for*/
+      i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+      continue;
+    }
+
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
       continue;
     /* One less interface for this channel */
@@ -1416,6 +1432,14 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
     {
       for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
       {
+        /*Check if this position is free*/
+        if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+        {
+          /*Move to Next Position -1 because of the for*/
+          i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+          continue;
+        }
+
         if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
           continue;
 
@@ -2512,6 +2536,14 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   /* Update number of clients, at the interface level */
   for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
+    /*Check if this position is free*/
+    if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+    {
+      /*Move to Next Position -1 because of the for*/
+      i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+      continue;
+    }
+
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
       continue;
     PTIN_DECREMENT_COUNTER(snoopEntry->port_list[i].number_of_clients, snoopEntry->channel_list[channel_index].intf_number_of_clients[i]);
@@ -2522,6 +2554,14 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   /* Run all clients, and update number of active channels for each one */
   for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
   {
+    /*Check if this position is free*/
+    if(snoopEntry->channel_list[channel_index].clients_list[client] == 0)
+    {
+      /*Move to Next Position -1 because of the for*/
+      client += (sizeof(snoopEntry->channel_list[channel_index].clients_list[client])*8) -1;
+      continue;
+    }
+
     if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,client))  continue;
 
     /* Decrement number of active channels for this client */
@@ -2579,6 +2619,14 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     /* Update number of clients, at the interface level */
     for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
     {
+      /*Check if this position is free*/
+      if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+      {
+        /*Move to Next Position -1 because of the for*/
+        i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+        continue;
+      }
+
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,i))
         continue;
       PTIN_DECREMENT_COUNTER(snoopEntry->port_list[i].number_of_clients, snoopEntry->channel_list[channel_index].intf_number_of_clients[i]);
@@ -2589,6 +2637,14 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     /* Run all clients, and update number of active channels for each one */
     for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
     {
+      /*Check if this position is free*/
+      if(snoopEntry->channel_list[channel_index].clients_list[client] == 0)
+      {
+        /*Move to Next Position -1 because of the for*/
+        client += (sizeof(snoopEntry->channel_list[channel_index].clients_list[client])*8) -1;
+        continue;
+      }
+
       if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].clients_list,client))  continue;
 
       /* Decrement number of active channels for this client */
