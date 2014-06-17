@@ -3149,8 +3149,10 @@ static L7_RC_t snoopDot1sTCNProcess(L7_uint32 mstID, L7_ushort16 *vidList,
             if ((L7_SUCCESS == dot1qVlanMemberGet(vidList[idx], intIfNum, &mode))
                 && (L7_DOT1Q_FIXED == mode))
             {
+              #ifndef PTIN_SNOOP_USE_MGMD              
               (void)snoopQuerySend(intIfNum, (L7_uint32)(vidList[idx]),
                                           pSnoopCB, SNOOP_TCN_QUERY, L7_NULLPTR);
+              #endif
             } /* End of vlan participation check */
           } /* End of snoop operational mode check */
         } /* End of interfaces loop */
