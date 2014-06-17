@@ -27,6 +27,8 @@
 #include "ptin_cnfgr.h"
 #include "ptin_mgmd_inet_defs.h"
 
+#define PTIN_SNOOPING_MGMD_MATRIX_ACTIVE
+
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
@@ -146,13 +148,18 @@ L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr)
     return L7_FAILURE;
   }
 
-  if(matrixSlotId == 1)
+  if(matrixSlotId == (PTIN_SYS_LC_SLOT_MIN-1))
   {
     *ipAddr = IPC_MX_IPADDR_WORKING;
   }
-  else if(matrixSlotId == 20)
+  else if(matrixSlotId == (PTIN_SYS_LC_SLOT_MAX+1))
   {
     *ipAddr = IPC_MX_IPADDR_PROTECTION;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix slot id [matrixSlotId:%u]", ipAddr);
+    return L7_FAILURE;
   }
 
   return L7_SUCCESS;
@@ -501,7 +508,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
     To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
     If not we ignore the request*/
-  if(sourceAddr == PTIN_MGMD_ANY_IPv4_HOST)
+  if(sourceAddr != PTIN_MGMD_ANY_IPv4_HOST)
   {
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");

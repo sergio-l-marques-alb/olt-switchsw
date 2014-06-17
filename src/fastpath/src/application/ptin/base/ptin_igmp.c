@@ -11175,8 +11175,16 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   if(cpld_map->reg.mx_is_active == 1)
   {
     slotId = portId;
-    ptin_intf_slot2lagIdx(slotId, &lagId);
-    ptin_intf_lag2intIfNum(lagId, &portId);
+    if(L7_SUCCESS != ptin_intf_slot2lagIdx(slotId, &lagId))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get lag index from slot ID [slotId:%u]", slotId);
+      return L7_FAILURE;
+    }
+    if(L7_SUCCESS != ptin_intf_lag2intIfNum(lagId, &portId))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get intfnum from lag index [lagId:%u]", lagId);
+      return L7_FAILURE;
+    }
   }
 #endif
 
@@ -11194,7 +11202,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
     return L7_FAILURE;
   }
 
