@@ -18,17 +18,8 @@ BOARD=$2
 if [ $BOARD == "tg16g" ]; then
  echo -n "Updating TG16G board..."
  cd output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
- cp ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG16G/rootfs/usr/local/ptin/sbin/
- cp ipl/libmgmd.so $MKBOARDS/TG16G/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
-
-if [ $BOARD == "cxo160g" ]; then
- echo -n "Updating CXO160G board..."
- cd output/FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO160G
- cp ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO160G/files
- cp ipl/libmgmd.so $MKBOARDS/CXO160G/rootfs/usr/local/ptin/lib/
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG16G/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TG16G/rootfs/usr/local/ptin/lib/
  cd - > /dev/null 2>&1
  echo "OK!"
 fi
@@ -36,8 +27,8 @@ fi
 if [ $BOARD == "cxo640g" ]; then
  echo -n "Updating CXO640G board..."
  cd output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
- cp ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/sbin/
- cp ipl/libmgmd.so $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/lib/
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/lib/
  cd - > /dev/null 2>&1
  echo "OK!"
 fi
@@ -45,8 +36,8 @@ fi
 if [ $BOARD == "ta48ge" ]; then
  echo -n "Updating TA48GE board..."
  cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
- cp ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA48GE/rootfs/usr/local/ptin/sbin/
- cp ipl/libmgmd.so $MKBOARDS/TA48GE/rootfs/usr/local/ptin/lib/
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA48GE/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TA48GE/rootfs/usr/local/ptin/lib/
  cd - > /dev/null 2>&1
  echo "OK!"
 fi

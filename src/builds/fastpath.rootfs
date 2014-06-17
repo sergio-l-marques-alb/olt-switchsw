@@ -16,11 +16,16 @@ DST_PATH=/home/olt/fastpath_builds/fastpath
 n_args=$#
 
 svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
-version=$1-r$svn_rev
 
-rootfs_tgz=$MODULE.rootfs-v$version.tgz
-backup_7z=$MODULE.backup-v$version.7z
-relnotes_file=$MODULE.releasenotes-v$version.txt
+if [ $n_args -lt 1 ]; then
+  version=r$svn_rev
+else
+  version=v$1-r$svn_rev
+fi
+
+rootfs_tgz=$MODULE.rootfs-$version.tgz
+backup_7z=$MODULE.backup-$version.7z
+relnotes_file=$MODULE.releasenotes-$version.txt
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -30,14 +35,6 @@ colorReq="\033[1m\033[7m"
 colorTitle="\033[1m\033[4m"
 colorWhite="\033[1m\033[1m"
 colorReset="\033[0m"
-
-if [ $n_args -lt 1 ]
-  then
-  echo -en $colorKo
-  echo "Erro de parametros: $0 <version>"
-  echo -en $colorReset
-  exit;
-fi
 
 mkdir $BUILDS_FOLDER
 
@@ -103,7 +100,6 @@ rm -f *.tgz
 tar czpvf $rootfs_tgz * --owner=root --group=root
 cd -
 mv $APPS_PATH/image/$PLATFORM/rootfs/$rootfs_tgz $BUILDS_FOLDER
-cp $BUILDS_FOLDER/$rootfs_tgz $BUILDS_FOLDER/$MODULE.rootfs.tgz
 
 echo -en $colorNotice
 echo "Saving release notes..."
@@ -111,6 +107,10 @@ echo -en $colorReset
 
 rm -f $BUILDS_FOLDER/$relnotes_file
 cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
+
+
+if [ $n_args -ge 1 ]; then
+# Only if version argument is given
 
 echo -en $colorNotice
 echo "Transferring rootfs tarball to final destination..."
@@ -173,6 +173,11 @@ if [ -z $USERNAME ]; then
 fi
 
 scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+
+# if version argument is not given, rename ouput tarball
+else
+mv $BUILDS_FOLDER/$rootfs_tgz $BUILDS_FOLDER/$MODULE.rootfs.tgz
+fi
 
 echo -en $colorOk
 echo "DONE!"
