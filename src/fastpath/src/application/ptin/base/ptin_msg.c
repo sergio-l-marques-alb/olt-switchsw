@@ -7150,6 +7150,10 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   msg_generic_prefix_t      *po;
   L7_uint16                 r = S_OK;
   L7_uint32                 porta;
+  //L7_uint8                  changing_trap;
+  //L7_uint16                 old_prt=-1, old_vid=-1, old_level=-1;
+  T_MEP                     *p;
+
 
   pi=(msg_bd_mep_t *)inbuff->info;
   po=(msg_generic_prefix_t *)outbuff->info;
@@ -7165,12 +7169,26 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
         LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_port=%lu => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
         //return L7_FAILURE;
     }
-    if (send_also_uplinkprot_traps(1, slot, port, pi[i].bd.vid)) return L7_FAILURE;
+    if (send_also_uplinkprot_traps(1, slot, port, pi[i].bd.vid));// return L7_FAILURE;
   }
+
+
+  if (valid_mep_index(pi[i].index)) {
+      p = &oam.mep_db[pi[i].index];
+      if (EMPTY_T_MEP(*p)) ;//changing_trap=0;
+      else {
+          //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
+          //changing_trap=1;  //if (old_prt!=porta || old_vid!=pi[i].bd.vid || old_level!=pi[i].bd.level) changing_trap=1;    else changing_trap=0;
+          ptin_msg_del_MEP(inbuff, outbuff, i);
+      }
+  }
+  //else changing_trap=0;
+
 
   switch (wr_mep(pi[i].index, (T_MEP_HDR*)&pi[i].bd, &oam))
   {
   case 0:    r=S_OK;
+    //if (changing_trap)  ptin_ccm_packet_trap(old_prt, old_vid, old_level, 0);
     ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
