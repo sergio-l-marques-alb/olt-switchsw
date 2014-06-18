@@ -51,7 +51,7 @@ fi
 
 # 2 - Compilation
 if [ "$SWITCHING_COMPILE_TARGET" = "switching" ]; then
-	make all && make install >/dev/null 2>&1
+	make -j1 all && make install >/dev/null 2>&1
 elif [ "$SWITCHING_COMPILE_TARGET" = "clean-switching" ]; then
 	make clean distclean >/dev/null 2>&1
 fi
