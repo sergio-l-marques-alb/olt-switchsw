@@ -750,14 +750,20 @@ dont_txrx_oam_criterion_t *p;
          iMEP=  tbl_erps[i].protParam.port0CfmIdx;  //not using "iMEP" parameter
          if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
          if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
-         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) return 1;      //ERP protected VID
+         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) {              //ERP protected VID
+             if (ERPS_PORT_BLOCKING==tbl_erps[i].portState[0]) return 1;                            //RPL position
+             else return 0;
+         }
      }
      else
      if (prt==tbl_erps[i].protParam.port1.idx) {
          iMEP=  tbl_erps[i].protParam.port1CfmIdx;  //not using "iMEP" parameter
          if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
          if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
-         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) return 1;      //ERP protected VID
+         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) {              //ERP protected VID
+             if (ERPS_PORT_BLOCKING==tbl_erps[i].portState[1]) return 1;                            //RPL position
+             else return 0;
+         }
      }
  }//for
 #endif
