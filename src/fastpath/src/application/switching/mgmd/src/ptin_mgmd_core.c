@@ -992,15 +992,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
         PTIN_MGMD_LOG_WARNING(PTIN_MGMD_LOG_CTX_PTIN_IGMP,"} Invalid IGMPv2 Membership Query Message Length %u, packet silently discarded", mcastPacket->ipPayloadLength);
         return FAILURE;
       }
-      incomingVersion = PTIN_IGMP_VERSION_3;
-
-      //Switch interface compatibility mode
-      if(mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode == PTIN_MGMD_COMPATIBILITY_V2 && 
-         ptin_mgmd_proxycmtimer_isRunning(&mcastPacket->cbHandle->proxyCM[mcastPacket->posId])==PTIN_MGMD_FALSE)      
-      {
-        //If we are here, it means that we were configured to operate at IGMPv3.
-        mcastPacket->cbHandle->proxyCM[mcastPacket->posId].compatibilityMode=PTIN_MGMD_COMPATIBILITY_V3;        
-      }   
+      incomingVersion = PTIN_IGMP_VERSION_3;      
     }
     else 
     {
@@ -1042,11 +1034,7 @@ RC_t ptin_mgmd_membership_query_process(ptinMgmdControlPkt_t *mcastPacket)
       if(mcastPacket->cbHandle->mgmdProxyCfg.networkVersion==PTIN_IGMP_VERSION_3)
       {
         ptin_mgmd_proxycmtimer_start(mcastPacket->posId, mcastPacket->cbHandle, &mcastPacket->cbHandle->mgmdProxyCfg);
-      }
-      else
-      {
-        ptin_mgmd_proxycmtimer_stop(&mcastPacket->cbHandle->proxyCM[mcastPacket->posId]);
-      }
+      }      
     }     
   }/* End IGMP pkt check */
 #if 0//Snooping

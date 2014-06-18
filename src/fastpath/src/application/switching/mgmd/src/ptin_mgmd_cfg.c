@@ -377,19 +377,17 @@ RC_t ptin_mgmd_igmp_proxy_config_set(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_NETWORKVERSION && mgmdProxyCfg.networkVersion != igmpProxy->networkVersion)
   {    
     mgmdProxyCfg.networkVersion = igmpProxy->networkVersion;
-    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMP Network Version:                     %u", mgmdProxyCfg.networkVersion);
+    PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "  IGMP Network Version:                     %u", mgmdProxyCfg.networkVersion);   
 
-    if(igmpProxy->networkVersion == PTIN_MGMD_COMPATIBILITY_V2)
-    {   
-     uint32 i;   
-     for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
-     {
-       if (ptin_mgmd_loop_trace) 
-         PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u | PTIN_MGMD_MAX_SERVICES:%u", i, PTIN_MGMD_MAX_SERVICES);
+    uint32 i;   
+    for(i=0; i<PTIN_MGMD_MAX_SERVICES; ++i)
+    {
+     if (ptin_mgmd_loop_trace) 
+       PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over i:%u | PTIN_MGMD_MAX_SERVICES:%u", i, PTIN_MGMD_MAX_SERVICES);
 
-       pMgmdCB->proxyCM[i].compatibilityMode = PTIN_MGMD_COMPATIBILITY_V2;
-     }
+     pMgmdCB->proxyCM[i].compatibilityMode = igmpProxy->networkVersion;
     }
+    
   }
 
   /* Client Version */
