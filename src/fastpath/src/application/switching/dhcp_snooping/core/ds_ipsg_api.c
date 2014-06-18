@@ -542,9 +542,8 @@ L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
     return L7_FAILURE;
 
-  LOG_ERR(LOG_CTX_IPSG, "Aqui.");
   rc = ipsgEntryRemove(IPSG_ENTRY_STATIC,intIfNum,vlanId, macAddr, ipAddr);
-  LOG_ERR(LOG_CTX_IPSG, "rc=%u",rc);
+  
   osapiWriteLockGive(dsCfgRWLock);
   return rc;
 }
