@@ -36,9 +36,9 @@ static void* ptin_mgmd_ctrlTimer_timeout(void* param);
 
 extern unsigned char        ptin_mgmd_loop_trace;
 
-/* Get MGMD TxQueueId */
+/* Get MGMD RxQueueId */
 inline int32 ptin_mgmd_rxMessageQueueId_get(void){return rxMessageQueueId;};
-/* Reinit MGMD TxQueue */
+/* Reinit MGMD RxQueue */
 inline RC_t ptin_mgmd_rxMessageQueueId_reinit(void){rxMessageQueueId = -1;return (ptin_mgmd_eventqueue_init());};
 /**
 * @purpose This method is called if the ctrlTimer expires before the sendCtrlEvent receives a response from MGMD
