@@ -17,6 +17,7 @@
 #include <ethsrv_oam.h>
 #include <ptin_oam_packet.h>
 #include <ptin_packet.h>
+#include <ptin_prot_oam_eth.h>
 
 
 #include "ptin_xlate_api.h"
@@ -284,6 +285,8 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     return L7_SUCCESS;
   }
 #endif
+
+    //if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
 
     ptin_intf_port2intIfNum(port, &intIfNum);
 
@@ -667,6 +670,122 @@ L7_RC_t ptin_oam_eth_init(void)
 
   return L7_SUCCESS;
 }//ptin_oam_eth_init
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/************************************************************************************************************* 
+  Cisco needs CCMs belonging to OLT-BNG control plane MEPs not to pass over ERPs' RPLs.
+  This is the fix
+*************************************************************************************************************/
+#include <ptin_prot_erps.h>
+typedef struct {
+    unsigned char vid_bmp[(1<<12)/(sizeof(unsigned char)*8)];  //For each port, the relevant VIDs
+    unsigned short iMEP;            //For each port, the MEP used in ERP (none, if >=N_MEPs)...
+    unsigned short vidMEP;          //...and its VID
+} dont_txrx_oam_criterion_t;
+
+
+
+
+int dont_txrx_oam_criterion(unsigned char init0_setbmp1_clrbmp2_rd3, unsigned short prt, unsigned short iMEP,
+                            unsigned short vid,      //just on read
+                            unsigned char *vid_bmp   //always but on read
+                               ) {
+unsigned long i;
+#if 0
+//PLAN B
+static
+dont_txrx_oam_criterion_t db[PTIN_SYSTEM_N_PORTS];
+dont_txrx_oam_criterion_t *p;
+
+
+ switch (init0_setbmp1_clrbmp2_rd3) {
+ case 0:    //INIT
+     if (prt>=PTIN_SYSTEM_N_PORTS) {        //undefined port resets all DB
+         for (i=0; i<PTIN_SYSTEM_N_PORTS; i++) {
+             p= &db[i];
+             p->iMEP=   -1;
+             p->vidMEP= -1;
+             memset(p->vid_bmp, 0, sizeof(p->vid_bmp));
+         }
+         return 0;
+     }
+
+     p= &db[prt];
+     if (NULL==vid_bmp) memset(p->vid_bmp, 0, sizeof(p->vid_bmp));  //undefined vid_bmp resets bit map
+     else
+     for (i=0; i<sizeof(p->vid_bmp); i++) p->vid_bmp[i] &= ~vid_bmp[i]; //defined vid_bmp resets just VIDs that are 1
+
+     if (iMEP>=N_MEPs) {        //undefined iMEP
+         p->iMEP=     -1;
+         p->vidMEP=   -1;
+     }
+
+     return 0;
+ case 1:    //SET
+ case 2:    //CLR
+     if (NULL==vid_bmp) return 1;
+     if (prt>=PTIN_SYSTEM_N_PORTS) return 2;
+     p= &db[prt];
+
+     if (1==init0_setbmp1_clrbmp2_rd3)  for (i=0; i<sizeof(p->vid_bmp); i++) p->vid_bmp[i] |= vid_bmp[i];
+     else                               for (i=0; i<sizeof(p->vid_bmp); i++) p->vid_bmp[i] &= ~vid_bmp[i];
+
+     if (iMEP>=N_MEPs);
+     else {
+         p= &db[prt];
+         p->iMEP=iMEP;
+         p->vidMEP=oam.mep_db[iMEP].vid;
+     }
+     return 0;
+ case 3:    //RD
+     if (prt>=PTIN_SYSTEM_N_PORTS) return 0;
+     p= &db[prt];
+     if (vid==p->vidMEP) return 0;
+     return p->vid_bmp[vid/8] & 1<<(vid%8)?    1:0;
+ }//switch
+#else
+//PLAN A
+//Only prt and vid parameters are valid
+ for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
+     if (!tbl_erps[i].admin) continue;
+
+     if (prt==tbl_erps[i].protParam.port0.idx) {
+         iMEP=  tbl_erps[i].protParam.port0CfmIdx;  //not using "iMEP" parameter
+         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
+         if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
+         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) return 1;      //ERP protected VID
+     }
+     else
+     if (prt==tbl_erps[i].protParam.port1.idx) {
+         iMEP=  tbl_erps[i].protParam.port1CfmIdx;  //not using "iMEP" parameter
+         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
+         if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
+         if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) return 1;      //ERP protected VID
+     }
+ }//for
+#endif
+ return 0;
+}//dont_txrx_oam_criterion_DB
 #else
 void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {}
