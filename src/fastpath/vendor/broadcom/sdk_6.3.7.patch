@@ -8132,61 +8132,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/appl/diag/Makefile esw_sdk_6.3.4/sr
  lib = libdiag
  include ${SDK}/make/Make.lib
  
-diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/appl/diag/port.c esw_sdk_6.3.4/src/appl/diag/port.c
---- sdk-xgs-robo-6.3.4/src/appl/diag/port.c	2013-12-21 01:02:02.000000000 +0000
-+++ esw_sdk_6.3.4/src/appl/diag/port.c	2014-06-19 17:53:22.046738990 +0100
-@@ -2008,10 +2008,12 @@ if_esw_port(int u, args_t *a)
-     int                 eee_tx_idle_time=0, eee_tx_wake_time=0, eee_state, i;
-     int                 eee_tx_ev_cnt, eee_tx_dur, eee_rx_ev_cnt, eee_rx_dur;
-     char                *eee_enable=NULL, *stats=NULL, *str=NULL;
-     uint32              flags;
- 
-+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
-+
-     if (!sh_check_attached(ARG_CMD(a), u)) {
-         return CMD_FAIL;
-     }
- 
-     if (bcm_port_config_get(u, &pcfg) != BCM_E_NONE) {
-@@ -2430,10 +2432,12 @@ if_esw_port(int u, args_t *a)
-      * back all port information.  That prevents a problem with loopback
-      * cables where setting one port's info throws another into autoneg
-      * causing it to return info in flux (e.g. suddenly go half duplex).
-      */
- 
-+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
-+
-     DPORT_BCM_PBMP_ITER(u, pbm, dport, p) {
-         port_info_init(u, p, &info_all[p], parsed_adj);
-         if ((r = bcm_port_selective_get(u, p, &info_all[p])) < 0) {
-             printk("%s: Error: Could not get port %s information: %s\n",
-                    ARG_CMD(a), BCM_PORT_NAME(u, p), bcm_errmsg(r));
-@@ -2441,10 +2445,12 @@ if_esw_port(int u, args_t *a)
-             sal_free(ability_all);
-             return (CMD_FAIL);
-         }
-     }
- 
-+    printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
-+
-     /*
-      * Loop through all the specified ports, changing whatever field
-      * values were actually given.  This avoids copying unaffected
-      * information from one port to another and prevents having to
-      * re-parse the arguments once per port.
-@@ -2494,10 +2500,12 @@ if_esw_port(int u, args_t *a)
-                     continue;
-                 }
-             }
-         }
- 
-+        printf("%s(%d) Hello\r\n", __FUNCTION__, __LINE__);
-+
-         if ((r = bcm_port_selective_set(u, p, &info_all[p])) < 0) {
-             printk("%s: Error: Could not set port %s information: %s\n",
-                    ARG_CMD(a), BCM_PORT_NAME(u, p), bcm_errmsg(r));
-             cmd_rv = CMD_FAIL;
-             continue;
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/appl/diag/rc_soc.c esw_sdk_6.3.4/src/appl/diag/rc_soc.c
 --- sdk-xgs-robo-6.3.4/src/appl/diag/rc_soc.c	1970-01-01 01:00:00.000000000 +0100
 +++ esw_sdk_6.3.4/src/appl/diag/rc_soc.c	2014-06-19 17:53:22.050919128 +0100
@@ -12348,37 +12293,9 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/firebolt/vlan.c esw_sdk_6.3
  
  #if defined(BCM_TRIDENT_SUPPORT) && defined(INCLUDE_L3)
      if (soc_feature(unit, soc_feature_trill)) {
-diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/l2.c esw_sdk_6.3.4/src/bcm/esw/l2.c
---- sdk-xgs-robo-6.3.4/src/bcm/esw/l2.c	2013-12-21 01:02:05.000000000 +0000
-+++ esw_sdk_6.3.4/src/bcm/esw/l2.c	2014-06-19 17:53:22.150483672 +0100
-@@ -4681,10 +4681,11 @@ _bcm_esw_l2_replace(int unit, uint32 fla
-                                  match_addr->tgid,
-                                  match_addr->flags & BCM_L2_TRUNK_MEMBER,
-                                  &rep_st.match_dest));
-             if (rep_st.match_dest.vp != -1) {
-                 if (!BCM_GPORT_IS_WLAN_PORT(match_addr->port) &&
-+                    !BCM_GPORT_IS_VLAN_PORT(match_addr->port) &&
-                      !BCM_GPORT_IS_NIV_PORT(match_addr->port) &&
-                      !BCM_GPORT_IS_TRILL_PORT(match_addr->port)) {
-                      /* Note: For MPLS, MiM, L2GRE, VXLAN VFI types only */
-                      rep_st.key_type = 3; /* VFI Type */
-                 }
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/link.c esw_sdk_6.3.4/src/bcm/esw/link.c
 --- sdk-xgs-robo-6.3.4/src/bcm/esw/link.c	2013-12-21 01:02:05.000000000 +0000
 +++ esw_sdk_6.3.4/src/bcm/esw/link.c	2014-06-19 17:53:22.130917380 +0100
-@@ -168,10 +168,12 @@
- 
- #ifdef BCM_WARM_BOOT_SUPPORT
- #include <bcm_int/esw/switch.h>
- #endif /* BCM_WARM_BOOT_SUPPORT */
- 
-+#include <stdio.h>
-+
- typedef struct ls_handler_s {
-     struct ls_handler_s         *lh_next;
-     bcm_linkscan_handler_t      lh_f;
- } ls_handler_t;
- 
 @@ -1031,10 +1033,18 @@ _bcm_esw_link_fault_get(int unit, int po
          }
      }
@@ -12398,37 +12315,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/link.c esw_sdk_6.3.4/src/bc
  
  #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
  /*
-@@ -2345,23 +2355,29 @@ _bcm_esw_linkscan_update_port(int unit, 
-                          SOC_PORT_NAME(unit, port),
-                          info.speed,
-                          info.duplex ? "Full Duplex" : "Half Duplex",
-                          PHY_FIBER_MODE(unit, port) ?
-                          "Fiber" : "Copper");
-+            printf("Port %d/%s: link up\n", port, SOC_PORT_NAME(unit, port));
- #if defined(BCM_LINK_CHANGE_BENCHMARK)
-             soc_cm_debug(DK_LINK, "Link up processing took %d usecs\n",
-                          SAL_USECS_SUB(time_end, time_start));
-+            printf("Link up processing took %d usecs (port %d)\n",
-+                    SAL_USECS_SUB(time_end, time_start), port);
- #endif /* BCM_LINK_CHANGE_BENCHMARK */
-  
-         } else {
-             soc_cm_debug(DK_LINK,
-                          "Port %s: link down\n",
-                          SOC_PORT_NAME(unit, port));
--
-+            printf("Port %s: link down\n",
-+                    SOC_PORT_NAME(unit, port));
- #if defined(BCM_LINK_CHANGE_BENCHMARK)
-             soc_cm_debug(DK_LINK, "Link down processing took %d usecs\n",
-                          SAL_USECS_SUB(time_end, time_start));
-+            printf("Link down processing took %d usecs (port=%d)\n",
-+                         SAL_USECS_SUB(time_end, time_start), port);
- #endif /* BCM_LINK_CHANGE_BENCHMARK */
-         }
-     }
- 
-     if (new_fault) {
 @@ -2719,10 +2735,74 @@ _bcm_esw_link_force(int unit, bcm_port_t
      }
  
@@ -12536,19 +12422,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/port.c esw_sdk_6.3.4/src/bc
  #ifdef BCM_KATANA2_SUPPORT
          if (SOC_IS_KATANA2(unit)) {
              return _bcm_kt2_vlan_port_default_action_set(unit, port, &action);
-@@ -8235,11 +8242,11 @@ bcm_esw_port_loopback_set(int unit, bcm_
-      }
- 
-     PORT_UNLOCK(unit);                  /* unlock before link call */
- 
-     if ((loopback == BCM_PORT_LOOPBACK_NONE) || !BCM_SUCCESS(rv)) {
--        _bcm_esw_link_force(unit, port, FALSE, DONT_CARE);
-+      _bcm_esw_link_force(unit, port, FALSE, DONT_CARE);
-     } else {
-         /* Enable only MAC instead of calling bcm_port_enable_set so
-          * that this API doesn't silently enable the port if the 
-          * port is disabled by application.
-          */ 
 @@ -8310,10 +8317,140 @@ bcm_esw_port_loopback_set(int unit, bcm_
                       unit, port, loopback, rv));
  
@@ -12691,10 +12564,10 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/port.c esw_sdk_6.3.4/src/bc
   * Purpose:
   *      Recover the current loopback operation for the specified port.
 @@ -9435,10 +9572,17 @@ int
- bcm_esw_port_learn_set(int unit, bcm_port_t port, uint32 flags)
- {
-     bcm_port_cfg_t      pcfg;
      int                 rv;
+ 
+     /* Make sure port module is initialized. */
+     PORT_INIT(unit);
  
 +/* PTin added: MAC learn */
 +#if defined(BCM_TRIUMPH2_SUPPORT)
@@ -12708,12 +12581,13 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/port.c esw_sdk_6.3.4/src/bc
          if (SOC_IS_SCORPION(unit)) {
               return BCM_E_UNAVAIL;
          } else {
-@@ -17904,10 +18048,21 @@ int
- bcm_esw_port_medium_config_set(int unit, bcm_port_t port,
-                            bcm_port_medium_t medium,
-                            bcm_phy_config_t  *config)
+@@ -17904,10 +18048,23 @@ int
  {
      int rv;
+ 
+     /* Make sure port module is initialized. */
+     PORT_INIT(unit);
++
 +#ifdef LVL7_FIXUP
 +    bcm_phy_config_t currentConfig;
 +    rv = bcm_esw_port_medium_config_get(unit, port, medium, &currentConfig);
@@ -12725,6 +12599,7 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/port.c esw_sdk_6.3.4/src/bc
 +      }
 +    }
 +#endif
++
      BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
      
      PORT_LOCK(unit);
@@ -13331,38 +13206,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/triumph3/hashing.c esw_sdk_
  #define RTAG7_UNKNOWN_HIGIG   0x1
  #define RTAG7_MPLS            0x2
  #define RTAG7_MIM             0x3
-diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/triumph3/l2.c esw_sdk_6.3.4/src/bcm/esw/triumph3/l2.c
---- sdk-xgs-robo-6.3.4/src/bcm/esw/triumph3/l2.c	2013-12-21 01:02:06.000000000 +0000
-+++ esw_sdk_6.3.4/src/bcm/esw/triumph3/l2.c	2014-06-19 17:53:22.170918360 +0100
-@@ -7504,13 +7504,13 @@ bcm_tr3_l2_learn_port_class_set(int unit
-                                 &gport_id));
- 
-     BCM_L2_LEARN_CLASSID_VALID(lclass);
- 
-     if (BCM_GPORT_IS_TRUNK(port)) {
--        BCM_IF_ERROR_RETURN
--            (soc_mem_field32_modify(unit, TRUNK_CBL_TABLEm, trunk_id,
--                                    PORT_LEARNING_CLASSf, lclass));
-+        rv = soc_mem_field32_modify(unit, TRUNK_CBL_TABLEm, trunk_id,
-+                                    PORT_LEARNING_CLASSf, lclass);
-+        return rv;
-     } else if (BCM_GPORT_IS_MODPORT(port)) {
-         BCM_IF_ERROR_RETURN
-             (soc_mem_field32_modify(unit, PORT_CBL_TABLEm, 
-                                     (mod_out << 6) | port_out,
-                                     PORT_LEARNING_CLASSf, lclass));
-@@ -7610,10 +7610,11 @@ bcm_tr3_l2_learn_port_class_get(int unit
-         trunk_cbl_table_entry_t tr_entry;
-         BCM_IF_ERROR_RETURN(READ_TRUNK_CBL_TABLEm(unit, MEM_BLOCK_ALL,
-                                                   trunk_id, &tr_entry));
-         *lclass = soc_TRUNK_CBL_TABLEm_field32_get(unit, &tr_entry,
-                                                    PORT_LEARNING_CLASSf);
-+        return BCM_E_NONE;
-     } else if (BCM_GPORT_IS_MODPORT(port)) {
-         port_cbl_table_entry_t entry;
- 
-         BCM_IF_ERROR_RETURN
-             (READ_PORT_CBL_TABLEm(unit, MEM_BLOCK_ALL,
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/vlan.c esw_sdk_6.3.4/src/bcm/esw/vlan.c
 --- sdk-xgs-robo-6.3.4/src/bcm/esw/vlan.c	2013-12-21 01:02:05.000000000 +0000
 +++ esw_sdk_6.3.4/src/bcm/esw/vlan.c	2014-06-19 17:53:22.142919983 +0100
@@ -14195,22 +14038,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/common/dma.c esw_sdk_6.3.4/src/
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/common/mem.c esw_sdk_6.3.4/src/soc/common/mem.c
 --- sdk-xgs-robo-6.3.4/src/soc/common/mem.c	2013-12-21 01:02:09.000000000 +0000
 +++ esw_sdk_6.3.4/src/soc/common/mem.c	2014-06-19 17:53:24.794775403 +0100
-@@ -4042,13 +4042,13 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t me
-         } while(!(soc_timeout_check(&to)));
-     }
- 
-     if (rv < 0) {
-         if (rv != SOC_E_TIMEOUT) {
--            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK)\n",
-+            soc_cm_debug(DK_ERR, "%s: %s.%s failed(NAK) rv=%d\n",
-                          __FUNCTION__, SOC_MEM_UFNAME(unit, mem),
--                         SOC_BLOCK_NAME(unit, copyno));
-+                         SOC_BLOCK_NAME(unit, copyno),rv);
- #ifdef BCM_TRIUMPH2_SUPPORT
-             if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || 
-                 SOC_IS_VALKYRIE2(unit)) {
-                 /* SCHAN nack */
-                 soc_triumph2_mem_nack(INT_TO_PTR(unit),
 @@ -11630,17 +11630,29 @@ _soc_mem_dual_hash_insert(int unit,
              /* Can't juggle the entries */
              return SOC_E_FULL;
@@ -14311,7 +14138,7 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/esw/hash.c esw_sdk_6.3.4/src/so
      static soc_field_t field_list[] = {
          KEY_TYPEf,
 @@ -1418,13 +1453,31 @@ if (SOC_IS_KATANA2(unit)) {
- #endif
+   {
      switch (soc_mem_field32_get(unit, L2Xm, entry, KEY_TYPEf)) {
      case TR_L2_HASH_KEY_TYPE_BRIDGE:
          return _soc_tr_l2x_bridge_entry_to_key(unit, entry, key);
@@ -14918,9 +14745,9 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/phy/phy8706.c esw_sdk_6.3.4/src
  /*
   * Function:
 @@ -4289,10 +4350,14 @@ phy_8706_probe(int unit, phy_ctrl_t *pc)
- 
      case PHY_BCM8747_MODEL:
-         if (soc_property_port_get(unit, pc->port, spn_PORT_PHY_MODE_REVERSE, 0)) {
+         if (soc_property_port_suffix_num_get(unit, pc->port, 8706,
+                                     spn_PORT_PHY_MODE_REVERSE, "phy", 0 )) {
              pi->phy_name = "BCM5942";
              PHY_FLAGS_SET(pc->unit, pc->port, PHY_FLAGS_SECONDARY_SERDES);
 +//            ///ltx: hack to set the speed
@@ -14971,38 +14798,38 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/phy/phyident.c esw_sdk_6.3.4/sr
      if (my_entry->myNum == _phy_ident_type_get(phy_id0, phy_id1) ||
          soc_property_port_get(unit, port, spn_PHY_8706, FALSE)) {
 @@ -6025,10 +6034,35 @@ _ext_phy_probe(int unit, soc_port_t port
-                 ext_pc->phy_rev = rev_id;
-             }
+                     ext_pc->phy_rev = rev_id;
+                 }
  #endif /* BCM_NORTHSTAR_SUPPORT */
  
-             PHY_FLAGS_SET(unit, port, PHY_FLAGS_EXTERNAL_PHY);
+                 PHY_FLAGS_SET(unit, port, PHY_FLAGS_EXTERNAL_PHY);
 +#ifdef LVL7_FIXUP
 +#if L7_FEAT_SF10GBT
-+            /* SDK only provides a way to configure a single phy address for 
-+             * each port, whereas some of the customer boxes have different
-+             * phy addresses for same port. So we use the custom driver 
-+             * (registered in FP application) checkphy fuction to look for
-+             * device ids at the secondary phy addresses, and return SUCESS
-+             * if match is successful). _ext_phy_probe() uses two pointer 
-+             * variables - pi and ext_pc. We manage to run our own custom 
-+             * _check_phy function, which does the OUI check for us. But 
-+             * our requirement is to change the phy addresses and other 
-+             * parameters maintained in structures pointed to by pi 
-+             * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match 
-+             * is successful.  We don't have a way to do that unless we run 
-+             * our custom function below, or SDK functions are re-designed 
-+             * to facilitate this operation.
-+             */
-+            soc_phy_cust_t* fixPhySet = NULL;
-+            if (phy_table[i]->cookie != NULL)
-+            {
-+              fixPhySet = (soc_phy_cust_t*)(phy_table[i]->cookie);
-+              (fixPhySet->custPhySettings)(unit, port, phy_table[i], pi, ext_pc);
-+            }
++                /* SDK only provides a way to configure a single phy address for 
++                 * each port, whereas some of the customer boxes have different
++                 * phy addresses for same port. So we use the custom driver 
++                 * (registered in FP application) checkphy fuction to look for
++                 * device ids at the secondary phy addresses, and return SUCESS
++                 * if match is successful). _ext_phy_probe() uses two pointer 
++                 * variables - pi and ext_pc. We manage to run our own custom 
++                 * _check_phy function, which does the OUI check for us. But 
++                 * our requirement is to change the phy addresses and other 
++                 * parameters maintained in structures pointed to by pi 
++                 * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match 
++                 * is successful.  We don't have a way to do that unless we run 
++                 * our custom function below, or SDK functions are re-designed 
++                 * to facilitate this operation.
++                 */
++                soc_phy_cust_t* fixPhySet = NULL;
++                if (phy_table[i]->cookie != NULL)
++                {
++                  fixPhySet = (soc_phy_cust_t*)(phy_table[i]->cookie);
++                  (fixPhySet->custPhySettings)(unit, port, phy_table[i], pi, ext_pc);
++                }
 +#endif
 +#endif
  
-             break;
+                 break;
              }
          }
      }
@@ -15907,24 +15734,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/phy/wc40_extra.h esw_sdk_6.3.4/
  #define WC40_CL37_AND_CL37BAM  1
  
  /* KR2 control */
-diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/soc/phy/wcmod/src/wcmod.c esw_sdk_6.3.4/src/soc/phy/wcmod/src/wcmod.c
---- sdk-xgs-robo-6.3.4/src/soc/phy/wcmod/src/wcmod.c	2013-12-21 01:02:19.000000000 +0000
-+++ esw_sdk_6.3.4/src/soc/phy/wcmod/src/wcmod.c	2014-06-19 17:53:22.522451125 +0100
-@@ -610,10 +610,14 @@ _phy_wcmod_config_init(int unit, soc_por
-             pc->lane_num = (phy_port - 49) % 4;
-             pc->chip_num = (phy_port) / 4;
-         } else {
-             pc->lane_num = (phy_port - 1) % 4;
-             pc->chip_num = (phy_port - 1) / 4;
-+            /* PTin added: ge48 port */
-+            if (SOC_IS_HELIX4(unit) && (phy_port == 49)) {
-+                pc->lane_num = 2;
-+            }
-         }
-     }
- 
-     if (SOC_IS_DFE(unit)) {
-         soc_info_t *si;
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/bde/linux/kernel/linux-kernel-bde.c esw_sdk_6.3.4/systems/bde/linux/kernel/linux-kernel-bde.c
 --- sdk-xgs-robo-6.3.4/systems/bde/linux/kernel/linux-kernel-bde.c	2013-12-21 01:02:20.000000000 +0000
 +++ esw_sdk_6.3.4/systems/bde/linux/kernel/linux-kernel-bde.c	2014-06-19 17:53:22.010543908 +0100
@@ -15982,10 +15791,10 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/bde/linux/kernel/linux-kernel-b
  #define BCM4716_VENDOR_ID               0x14e4
  #define BCM4716PCIE_DEVICE_ID           0x4716
 @@ -565,10 +576,21 @@ robo_spi_write(void *cookie, uint16_t re
- 
  /* Broadcom BCM58525 */
  #define BCM58525_PCI_VENDOR_ID     0x14E4
  #define BCM58525_PCI_DEVICE_ID     0x8025
+ #define BCM58522_PCI_DEVICE_ID     0x8022
  
 +/* PTin added: PCI high speed switches */
 +#if 1
