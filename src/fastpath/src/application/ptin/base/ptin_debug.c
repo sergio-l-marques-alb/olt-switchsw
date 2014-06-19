@@ -147,6 +147,9 @@ void ptin_debug(void)
   printf("  ptin_debug_igmp_packet_trace_enable <enable>              - Show IGMP Packet Trace\r\n");  
   printf("  ptin_debug_dhcp_enable <enable>                           - Show more debugging logs for the DHCP module\r\n");
   printf("  ptin_debug_xlate_enable <enable>                          - Show more debugging logs for the XLATE module\r\n");
+  printf("  ptin_debug_oam_set <enable>                               - Show more debugging logs for the OAM module\r\n");
+  printf("  ptin_debug_lacp_set <enable>                              - Show more debugging logs for the LACP module\r\n");
+  printf("  ptin_debug_dtl_set <enable>                               - Show more debugging logs for the DTL module\r\n");
   printf("\r\n");
   printf("  ptin_erps_dump <id>                                       - prints info about ERPS (use -1 to display all)\r\n");
   printf("  ptin_intf_boardtype_dump                                  - prints board ids information\r\n");

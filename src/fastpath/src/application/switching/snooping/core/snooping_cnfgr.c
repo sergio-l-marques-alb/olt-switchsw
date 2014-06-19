@@ -641,6 +641,28 @@ L7_RC_t snoopCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return snoopRC;
 }
 
+pthread_t* snoop_ptin_mgmd_thread_pointer_get(void)
+{
+  return (&snoopEB.mgmdThreadId);
+}
+
+L7_RC_t snoop_ptin_mgmd_init(void)
+{
+  return (ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT));
+}
+
+int snoop_ptin_mgmd_deinit(void)
+{  
+  return(ptin_mgmd_deinit(snoopEB.mgmdThreadId));
+}
+
+L7_RC_t snoop_ptin_mgmd_reinit(void)
+{
+  snoop_ptin_mgmd_deinit();
+
+  return(snoop_ptin_mgmd_init());  
+}
+
 /****************************************************************************
 * @purpose  This function process the configurator control commands/request
 *           pair Init Phase 3.
@@ -716,7 +738,7 @@ L7_RC_t snoopCnfgrInitPhase3Process(L7_BOOL warmRestart,
 
   /* After snooping init phase is complete, start MGMD */
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting MGMD...");
-  if ((snoopRC=ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT))!= L7_SUCCESS)
+  if ((snoopRC=snoop_ptin_mgmd_init())!= L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_IGMP,"Huge, CATASTROPHIC failure on MGMD! Run as fast as you can and don't look back!"); /* DO NOT RETURN FAILURE HERE!! */
   }
