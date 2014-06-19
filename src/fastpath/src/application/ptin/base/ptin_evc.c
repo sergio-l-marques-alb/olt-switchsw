@@ -556,6 +556,52 @@ L7_RC_t ptin_evc_init(void)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Initializes EVCs for each platform
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_evc_startup(void)
+{
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  L7_int  i;
+  L7_RC_t rc;
+  ptin_HwEthMef10Evc_t evcConf;
+
+  /* Create a new EVC */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index             = PTIN_EVC_BL2CPU;
+  evcConf.flags             = PTIN_EVC_MASK_MACLEARNING;
+  evcConf.mc_flood          = PTIN_EVC_MC_FLOOD_ALL;
+  evcConf.n_intf            = 5;
+  /* Root port */
+  evcConf.intf[0].intf_id   = 16;
+  evcConf.intf[0].intf_type = 0;
+  evcConf.intf[0].mef_type  = PTIN_EVC_INTF_ROOT;
+  evcConf.intf[0].vid       = PTIN_VLAN_BL2CPU_EXT;
+  /* Leaf ports */
+  for (i=1; i<5; i++)
+  {
+    evcConf.intf[i].intf_id   = (i-1)*2;
+    evcConf.intf[i].intf_type = 0;
+    evcConf.intf[i].mef_type  = PTIN_EVC_INTF_LEAF;
+    evcConf.intf[i].vid       = PTIN_VLAN_BL2CPU_EXT;
+  }
+
+  /* Creates EVC for Broadlights management */
+  rc = ptin_evc_create(&evcConf);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Error creating EVC# %u for Broadlight management purposes", PTIN_EVC_BL2CPU);
+    return rc;
+  }
+  #endif
+
+  return L7_SUCCESS;
+}
+
+
 /**
  * Determines if a particular EVC is in use
  * 
@@ -1863,6 +1909,22 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
       root_vlan = PTIN_VLAN_INBAND;
     }
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    /* EXCEPTION: EVC# PTIN_EVC_BL2CPU is for Broadlight management, which means a fixed root VLAN ID */
+    else if (evc_ext_id == PTIN_EVC_BL2CPU)
+    {
+      if (switching_vlan_create(PTIN_VLAN_BL2CPU) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error creating VLAN ID %u for inBand management purposes", evc_id, PTIN_VLAN_BL2CPU);
+        #if (1)   /* EVCid extended feature */
+        ptin_evc_freeVlanQueue_free(freeVlan_queue);
+        #endif
+        ptin_evc_entry_free(evc_ext_id);
+        return L7_FAILURE;
+      }
+      root_vlan = PTIN_VLAN_BL2CPU;
+    }
+    #endif
     else
     {
       #if (1)   /* EVCid extended feature */
@@ -2139,6 +2201,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* Virtual ports: Destroy multicast group */
       if (is_quattro && evcs[evc_id].multicast_group > 0)
       {
+        /* Virtual ports: Configure multicast group for the vlan */
+        if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
+          return L7_FAILURE;      
+        }
+        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
+
         if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
@@ -2149,7 +2219,15 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       #endif
 
       if (evc_ext_id == PTIN_EVC_INBAND)
+      {
         switching_vlan_delete(PTIN_VLAN_INBAND);
+      }
+      #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+      else if (evc_ext_id == PTIN_EVC_BL2CPU)
+      {
+        switching_vlan_delete(PTIN_VLAN_BL2CPU);
+      }
+      #endif
       else
       {
       #if (1)   /* EVCid extended feature */
@@ -2744,9 +2822,17 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   /* Virtual ports: Destroy Multicast group */
   if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
   {
+    /* Virtual ports: Configure multicast group for the vlan */
+    if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      return L7_FAILURE;      
+    }
+    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
       return L7_FAILURE;
     }
   }
@@ -2760,7 +2846,15 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
   if (evc_ext_id == PTIN_EVC_INBAND)
+  {
     switching_vlan_delete(PTIN_VLAN_INBAND);
+  }
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  else if (evc_ext_id == PTIN_EVC_BL2CPU)
+  {
+    switching_vlan_delete(PTIN_VLAN_BL2CPU);
+  }
+  #endif
   else
   {
   #if (1)   /* EVCid extended feature */
@@ -2962,9 +3056,17 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   /* Virtual ports: Destroy Multicast group */
   if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
   {
+    /* Virtual ports: Configure multicast group for the vlan */
+    if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      return L7_FAILURE;      
+    }
+    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evcs[evc_id].multicast_group);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
       return L7_FAILURE;
     }
   }
@@ -2978,7 +3080,15 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
   if (evc_ext_id == PTIN_EVC_INBAND)
+  {
     switching_vlan_delete(PTIN_VLAN_INBAND);
+  }
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  else if (evc_ext_id == PTIN_EVC_BL2CPU)
+  {
+    switching_vlan_delete(PTIN_VLAN_BL2CPU);
+  }
+  #endif
   else
   {
   #if (1)   /* EVCid extended feature */
@@ -3384,15 +3494,16 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 
-int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry) {
-static IfN_vp_entry_t table[N];
-static unsigned long n=0;
-static unsigned long modu=N;
-unsigned long i, j, k, _1st_empty;
+int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry)
+{
+  static IfN_vp_entry_t table[N];
+  static unsigned long n=0;
+  static unsigned long modu=N;
+  unsigned long i, j, k, _1st_empty;
 
- switch (_0init_1insert_2remove_3find) {
- default: return 1;
- case 0:
+  switch (_0init_1insert_2remove_3find) {
+  default: return 1;
+  case 0:
      n=0;
      for (i=0; i<N; i++) INVALIDATE_IfN_VP(&table[i])
 
@@ -3403,9 +3514,9 @@ unsigned long i, j, k, _1st_empty;
      }
      LOG_INFO(LOG_CTX_PTIN_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, N, modu, L7_MAX_INTERFACE_COUNT);
      break;
- case 1:
- case 2:
- case 3:
+  case 1:
+  case 2:
+  case 3:
      i=intIfNum_vport__2__i(entry->intIfNum_vport, modu%N);
      for (j=0, k=i, _1st_empty=-1;  j<N;  j++) {
          if (entry->intIfNum_vport==table[k].intIfNum_vport) {i=k; break;}
@@ -3430,16 +3541,16 @@ unsigned long i, j, k, _1st_empty;
          table[i]=*entry; //overwrite
      }
      break;
- case 4:
+  case 4:
      printf("DUMP IfN_vp_DB\n\r");
      for (i=0; i<N; i++) {
          if (EMPTY_IfN_VP(&table[i])) continue;
          printf("%lu: intIfNum_vport=%lu pon=%u/%u gem_id=%u\n\r", i, table[i].intIfNum_vport, table[i].pon.intf_type, table[i].pon.intf_id, table[i].gem_id);
      }
      break;
- }//switch
+  }//switch
 
- return 0;
+  return 0;
 }//IfN_vp_DB
 
 #undef N
@@ -10548,6 +10659,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
   printf("Total number of QUATTRO-P2P evcs: %u\r\n", n_quattro_p2p_evcs);
   printf("Total number of QUATTRO-P2P evcs with IGMP active: %u\r\n", n_quattro_p2p_igmp_evcs);
   #endif
+
+  fflush(stdout);
 }
 
 /**

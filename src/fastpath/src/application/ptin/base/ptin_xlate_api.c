@@ -906,7 +906,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   rc = ptin_xlate_egress_portgroup_add(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: intIfNum=%u, class_id=%u,  rc=%d", intIfNum, class_id, rc);
 
   return rc;
 }

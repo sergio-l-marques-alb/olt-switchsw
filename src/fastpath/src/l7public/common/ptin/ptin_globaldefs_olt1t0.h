@@ -11,9 +11,9 @@
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
 
-# define PTIN_SYSTEM_N_PORTS           16
+# define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            8 
-# define PTIN_SYSTEM_N_ETH             0
+# define PTIN_SYSTEM_N_ETH             8
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)

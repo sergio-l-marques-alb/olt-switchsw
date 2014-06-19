@@ -270,6 +270,24 @@ L7_RC_t ptin_hapi_phy_init(void)
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
   }
+  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  bcm_port_t bcm_port;
+
+  if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
+  {
+    if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_RX_POLARITY, 1) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error inverting polarity for bcm_port %d", bcm_port);
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Polarity inverted for bcm_port %d", bcm_port);
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port value for i=%d", ptin_sys_number_of_ports-1);
+  }
   #endif
 
   /* Egress port configuration, only for PON boards */

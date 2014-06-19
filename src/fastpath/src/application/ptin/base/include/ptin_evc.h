@@ -22,6 +22,14 @@
 extern L7_RC_t ptin_evc_init(void);
 
 
+/**
+ * Initializes EVCs for each platform
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_startup(void);
+
+
 /******************************************************** 
  * FOR MESSAGES PROCESSING
  ********************************************************/

@@ -961,7 +961,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   {
     if ((error=bcm_multicast_create(0, BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0,%d, &mcast_group): error=%d (\"%s\")",
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0,0x%x, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
@@ -1040,7 +1040,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
     if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
-      return L7_FAILURE;
+      //return L7_FAILURE;
     }
   }
 
@@ -1049,8 +1049,8 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   {
     if ((error=bcm_multicast_destroy(0, mcast_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(%d, &mcast_group): error=%d (\"%s\")",
-              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_destroy (mcast_group=%u): error=%d (\"%s\")",
+              mcast_group, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
   }

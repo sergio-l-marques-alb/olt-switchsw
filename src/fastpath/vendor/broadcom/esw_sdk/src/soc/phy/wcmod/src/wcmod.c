@@ -612,6 +612,10 @@ _phy_wcmod_config_init(int unit, soc_port_t port)
         } else {
             pc->lane_num = (phy_port - 1) % 4;
             pc->chip_num = (phy_port - 1) / 4;
+            /* PTin added: ge48 port */
+            if (SOC_IS_HELIX4(unit) && (phy_port == 49)) {
+                pc->lane_num = 2;
+            }
         }
     }
 
