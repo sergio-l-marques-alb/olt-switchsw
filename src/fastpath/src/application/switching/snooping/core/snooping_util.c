@@ -53,6 +53,8 @@
 #include "ptin_igmp.h"
 #include "logger.h"
 #include "ptin_debug.h"
+#include "ptin_fpga_api.h"
+#include "snooping_defs.h"
 #endif
 
 /*********************************************************************
@@ -1224,6 +1226,16 @@ void snoopPacketSend(L7_uint32 intIfNum,
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
 
+#if PTIN_BOARD_IS_MATRIX  
+  /* Do nothing for slave matrix */
+  if (!ptin_fgpa_mx_is_active())
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [intIfNum=%u vlanId=%u]",intIfNum, vlanId );
+    return;
+  }
+#endif
+
   /* Make sure this port has not been enabled for routing, is not the mirror dest port,
   ** is not a LAG member and is active.
   */
@@ -1520,6 +1532,14 @@ L7_RC_t snoopPacketFlood(mgmdSnoopControlPkt_t *mcastPacket)
 *********************************************************************/
 L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 igmp_type)
 {
+#if PTIN_SNOOP_USE_MGMD
+  /*To Prevent Warnings on Compilation*/
+  _UNUSED_(mcastPacket);
+  _UNUSED_(igmp_type);
+  if (ptin_debug_igmp_snooping)
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Root Packet Send is Disabled for Snoop Thread");
+  return L7_SUCCESS;
+#else
   L7_uint32         intf; /* Loop through internal interface numbers */
   /* PTin removed: IGMP snooping */
   #if 0
@@ -1668,6 +1688,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
     }
   } /* End of interface iterations */
   return L7_SUCCESS;
+#endif
 }
 
 /* PTin added: IGMP snooping */
@@ -1691,6 +1712,14 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
 *********************************************************************/
 L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 igmp_type)
 {
+#if PTIN_SNOOP_USE_MGMD
+  /*To Prevent Warnings on Compilation*/
+  _UNUSED_(mcastPacket);
+  _UNUSED_(igmp_type);
+  if (ptin_debug_igmp_snooping)
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Client Packet Send is Disabled for Snoop Thread");
+  return L7_SUCCESS;
+#else
   L7_uint32      intf; /* Loop through internal interface numbers */
   L7_INTF_MASK_t mcastClientAttached;
   L7_RC_t        rc;
@@ -1828,6 +1857,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
     }
   } /* End of interface iterations */
   return L7_SUCCESS;
+#endif
 }
 #endif
 
