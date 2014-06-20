@@ -1,0 +1,2014 @@
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/e500-2_6.make esw_sdk_6.3.4/e500-2_6.make
+--- sdk-xgs-robo-6.3.4/e500-2_6.make	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/e500-2_6.make	2014-06-19 18:22:30.815175459 +0100
+@@ -0,0 +1,86 @@
++# $Id: Makefile 1.15 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++PLATFORM=e500
++KERNEL_VER=2_6
++
++SDK = $(CURDIR)
++export SDK
++
++export TOOLCHAIN_BASE_DIR = /opt/eldk/usr
++export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
++export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
++
++export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
++export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-2.6.35
++#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-2.6.35
++#/home/peter/kernel_3_0_51.cxo160g
++#/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
++#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.0.51-e500mc
++
++export CROSS_COMPILE := $(COMPILER)
++export KERNEL_SRC    := $(KERNEL_PATH)
++
++export SDKBUILD=build
++
++
++SRC_PATH=$(SDK)/systems/linux/user
++DST_PATH=$(SDK)/bin
++PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
++
++.PHONY: all clean
++
++all:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
++	mkdir -p $(SDK)/$(SDKBUILD)
++	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
++	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
++
++clean:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME) clean
++	rm -f $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve
++
++cleanall: clean
++	rm -rf $(SDK)/$(SDKBUILD)/*
++	rm -rf $(DST_PATH)/$(PLATFORM_NAME)
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/e500mc-2_6.make esw_sdk_6.3.4/e500mc-2_6.make
+--- sdk-xgs-robo-6.3.4/e500mc-2_6.make	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/e500mc-2_6.make	2014-06-19 18:22:30.659167886 +0100
+@@ -0,0 +1,85 @@
++# $Id: Makefile 1.15 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++PLATFORM=e500mc
++KERNEL_VER=2_6
++
++SDK = $(CURDIR)
++export SDK
++
++export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
++export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
++export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
++
++export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
++export KERNEL_PATH        = /home/devtools/dev-QorIQ/dev-P204x/cxo160g/kernel_3_0_51
++#/home/peter/kernel_3_0_51.cxo160g
++#/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
++#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.0.51-e500mc
++
++export CROSS_COMPILE := $(COMPILER)
++export KERNEL_SRC    := $(KERNEL_PATH)
++
++export SDKBUILD=build
++
++
++SRC_PATH=$(SDK)/systems/linux/user
++DST_PATH=$(SDK)/bin
++PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
++
++.PHONY: all clean
++
++all:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
++	mkdir -p $(SDK)/$(SDKBUILD)
++	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
++	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
++
++clean:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME) clean
++	rm -f $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve
++
++cleanall: clean
++	rm -rf $(SDK)/$(SDKBUILD)/*
++	rm -rf $(DST_PATH)/$(PLATFORM_NAME)
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/helixarm-2_6.make esw_sdk_6.3.4/helixarm-2_6.make
+--- sdk-xgs-robo-6.3.4/helixarm-2_6.make	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/helixarm-2_6.make	2014-06-19 18:22:30.626404023 +0100
+@@ -0,0 +1,91 @@
++# $Id: Makefile 1.15 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++PLATFORM=helixarm
++KERNEL_VER=2_6
++
++SDK = $(CURDIR)
++export SDK
++
++export TOOLCHAIN_BASE_DIR = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
++#/home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
++#/home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
++export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
++export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
++
++export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
++export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
++#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
++export KERNDIR = $(KERNEL_PATH)
++
++export TARGET_ARCHITECTURE = arm-broadcom-linux-uclibcgnueabi
++export KFLAG_INCLD = $(TOOLCHAIN_BASE_DIR)/lib/gcc/$(TARGET_ARCHITECTURE)/4.7.2/include
++
++export CROSS_COMPILE := $(COMPILER)
++export KERNEL_SRC    := $(KERNEL_PATH)
++
++
++export SDKBUILD=build
++
++
++SRC_PATH=$(SDK)/systems/linux/user
++DST_PATH=$(SDK)/bin
++PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
++
++.PHONY: all clean
++
++all:
++	echo $(KFLAG_INCLD)
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
++	mkdir -p $(SDK)/$(SDKBUILD)
++	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
++	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
++
++clean:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME) clean
++	rm -f $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve
++
++cleanall: clean
++	rm -rf $(SDK)/$(SDKBUILD)/*
++	rm -rf $(DST_PATH)/$(PLATFORM_NAME)
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/helixarmeb-2_6.make esw_sdk_6.3.4/helixarmeb-2_6.make
+--- sdk-xgs-robo-6.3.4/helixarmeb-2_6.make	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/helixarmeb-2_6.make	2014-06-19 18:22:30.090420291 +0100
+@@ -0,0 +1,91 @@
++# $Id: Makefile 1.15 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++PLATFORM=helixarmeb
++KERNEL_VER=2_6
++
++SDK = $(CURDIR)
++export SDK
++
++export TOOLCHAIN_BASE_DIR = /home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
++#/home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
++#/home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
++export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
++export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
++
++export COMPILER           = $(TOOLCHAIN_BIN_DIR)/armeb-linux-
++export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.9-RC5/iproc/kernel/linux-3.6.5
++#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
++export KERNDIR = $(KERNEL_PATH)
++
++export TARGET_ARCHITECTURE = armeb-buildroot-linux-gnueabi
++export KFLAG_INCLD = $(TOOLCHAIN_BASE_DIR)/lib/gcc/$(TARGET_ARCHITECTURE)/4.8.2/include
++
++export CROSS_COMPILE := $(COMPILER)
++export KERNEL_SRC    := $(KERNEL_PATH)
++
++
++export SDKBUILD=build
++
++
++SRC_PATH=$(SDK)/systems/linux/user
++DST_PATH=$(SDK)/bin
++PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
++
++.PHONY: all clean
++
++all:
++	echo $(KFLAG_INCLD)
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
++	mkdir -p $(SDK)/$(SDKBUILD)
++	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
++	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
++
++clean:
++	gmake -C $(SRC_PATH)/$(PLATFORM_NAME) clean
++	rm -f $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve
++
++cleanall: clean
++	rm -rf $(SDK)/$(SDKBUILD)/*
++	rm -rf $(DST_PATH)/$(PLATFORM_NAME)
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/io.c esw_sdk_6.3.4/io.c
+--- sdk-xgs-robo-6.3.4/io.c	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/io.c	2014-06-19 18:22:30.062431057 +0100
+@@ -0,0 +1,348 @@
++/*
++ * Simple app. to do memory accesses via /dev/mem.
++ *
++ * $Id: io.c,v 1.5 2000/08/21 09:01:57 richard Exp $
++ *
++ * Copyright (c) Richard Hirst <rhirst@linuxcare.com>
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#ifndef FALSE
++#define FALSE	0
++#define TRUE	(!FALSE)
++#endif
++
++static char *argv0;
++
++static void
++usage (void)
++{
++	fprintf(stderr,
++"Raw memory i/o utility - $Revision: 1.5 $\n\n"
++"%s -v -1|2|4 -r|w [-l <len>] [-f <file>] <addr> [<value>]\n\n"
++"    -v         Verbose, asks for confirmation\n"
++"    -1|2|4     Sets memory access size in bytes (default byte)\n"
++"    -l <len>   Length in bytes of area to access (defaults to\n"
++"               one access, or whole file length)\n"
++"    -r|w       Read from or Write to memory (default read)\n"
++"    -f <file>  File to write on memory read, or\n"
++"               to read on memory write\n"
++"    <addr>     The memory address to access\n"
++"    <val>      The value to write (implies -w)\n\n"
++"Examples:\n"
++"    %s 0x1000                  Reads one byte from 0x1000\n"
++"    %s 0x1000 0x12             Writes 0x12 to location 0x1000\n"
++"    %s -2 -l 8 0x1000          Reads 8 words from 0x1000\n"
++"    %s -r -f dmp -l 100 200    Reads 100 bytes from addr 200 to file\n"
++"    %s -w -f img 0x10000       Writes the whole of file to memory\n"
++"\n"
++"Note access size (-1|2|4) does not apply to file based accesses.\n\n",
++		argv0, argv0, argv0, argv0, argv0, argv0);
++	exit(1);
++}
++
++
++static void
++memread_memory(unsigned long phys_addr, void *addr, int len, int iosize)
++{
++	int i;
++
++	while (len) {
++		printf("%08lx: ", phys_addr);
++		i = 0;
++		while (i < 16 && len) {
++			switch(iosize) {
++			case 1:
++				printf(" %02x", *(unsigned char *)addr);
++				break;
++			case 2:
++				printf(" %04x", *(unsigned short *)addr);
++				break;
++			case 4:
++				printf(" %08lx", *(unsigned long *)addr);
++				break;
++			}
++			i += iosize;
++			addr += iosize;
++			len -= iosize;
++		}
++		phys_addr += 16;
++		printf("\n");
++	}
++}
++
++
++static void
++write_memory(unsigned long phys_addr, void *addr, int len, int iosize, unsigned long value)
++{
++	switch(iosize) {
++	case 1:
++		while (len) {
++			*(unsigned char *)addr = value;
++			len -= iosize;
++			addr += iosize;
++		}
++		break;
++	case 2:
++		while (len) {
++			*(unsigned short *)addr = value;
++			len -= iosize;
++			addr += iosize;
++		}
++		break;
++	case 4:
++		while (len) {
++			*(unsigned long *)addr = value;
++			len -= iosize;
++			addr += iosize;
++		}
++		break;
++	}
++}
++
++
++int
++main (int argc, char **argv)
++{
++	int mfd, ffd = 0, req_len = 0, opt;
++	void *real_io;
++	unsigned long real_len, real_addr, req_addr, req_value = 0, offset;
++	char *endptr;
++	int memread = TRUE;
++	int iosize = 1;
++	char *filename = NULL;
++	int verbose = 0;
++
++	argv0 = argv[0];
++	opterr = 0;
++	if (argc == 1)
++		usage();
++
++	while ((opt = getopt(argc, argv, "hv124rwl:f:")) > 0) {
++		switch (opt) {
++		case 'h':
++			usage();
++		case 'v':
++			verbose = 1;
++			break;
++		case '1':
++		case '2':
++		case '4':
++			iosize = opt - '0';
++			break;
++		case 'r':
++			memread = TRUE;
++			break;
++		case 'w':
++			memread = FALSE;
++			break;
++		case 'l':
++			req_len = strtoul(optarg, &endptr, 0);
++			if (*endptr) {
++				fprintf(stderr, "Bad <size> value '%s'\n", optarg);
++				exit(1);
++			}
++			break;
++		case 'f':
++			filename = strdup(optarg);
++			break;
++		default:
++			fprintf(stderr, "Unknown option: %c\n", opt);
++			usage();
++		}
++	}
++
++	if (optind == argc) {
++		fprintf(stderr, "No address given\n");
++		exit(1);
++	}
++	req_addr = strtoul(argv[optind], &endptr, 0);
++	if (*endptr) {
++		fprintf(stderr, "Bad <addr> value '%s'\n", argv[optind]);
++		exit(1);
++	}
++	optind++;
++	if (!filename && optind < argc)
++		memread = FALSE;
++	if (filename && optind > argc) {
++		fprintf(stderr, "Filename AND value given\n");
++		exit(1);
++	}
++	if (!filename && !memread && optind == argc) {
++		fprintf(stderr, "No value given for WRITE\n");
++		exit(1);
++	}
++	if (!filename && !memread) {
++		req_value = strtoul(argv[optind], &endptr, 0);
++		if (*endptr) {
++			fprintf(stderr, "Bad <value> value '%s'\n", argv[optind]);
++			exit(1);
++		}
++		if ((iosize == 1 && (req_value & 0xffffff00)) ||
++				(iosize == 2 && (req_value & 0xffff0000))) {
++			fprintf(stderr, "<value> too large\n");
++			exit(1);
++		}
++		optind++;
++	}
++	if (filename && memread && !req_len) {
++		fprintf(stderr, "No size given for file memread\n");
++		exit(1);
++	}
++	if (optind < argc) {
++		fprintf(stderr, "Too many arguments '%s'...\n", argv[optind]);
++		exit(1);
++	}
++	if (filename && memread) {
++		ffd = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
++		if (ffd < 0) {
++			fprintf(stderr, "Failed to open destination file '%s': %s\n", filename, strerror(errno));
++			exit(1);
++		}
++	}
++	if (filename && !memread) {
++		ffd = open(filename, O_RDONLY);
++		if (ffd < 0) {
++			fprintf(stderr, "Failed to open source file '%s': %s\n", filename, strerror(errno));
++			exit(1);
++		}
++	}
++
++	if (filename && !req_len) {
++		req_len = lseek(ffd, 0, SEEK_END);
++		if (req_len < 0) {
++			fprintf(stderr, "Failed to seek on '%s': %s\n",
++					filename, strerror(errno));
++			exit(1);
++		}
++		if (lseek(ffd, 0, SEEK_SET)) {
++			fprintf(stderr, "Failed to seek on '%s': %s\n",
++					filename, strerror(errno));
++			exit(1);
++		}
++	}
++	if (!req_len)
++		req_len = iosize;
++
++	if ((iosize == 2 && (req_addr & 1)) ||
++			(iosize == 4 && (req_addr & 3))) {
++		fprintf(stderr, "Badly aligned <addr> for access size\n");
++		exit(1);
++	}
++	if ((iosize == 2 && (req_len & 1)) ||
++			(iosize == 4 && (req_len & 3))) {
++		fprintf(stderr, "Badly aligned <size> for access size\n");
++		exit(1);
++	}
++	
++	if (!verbose)
++		/* Nothing */;
++	else if (filename && memread)
++		printf("Request to memread 0x%x bytes from address 0x%08lx\n"
++			"\tto file %s, using %d byte accesses\n",
++			req_len, req_addr, filename, iosize);
++	else if (filename)
++		printf("Request to write 0x%x bytes to address 0x%08lx\n"
++			"\tfrom file %s, using %d byte accesses\n",
++			req_len, req_addr, filename, iosize);
++	else if (memread)
++		printf("Request to memread 0x%x bytes from address 0x%08lx\n"
++			"\tusing %d byte accesses\n",
++			req_len, req_addr, iosize);
++	else
++		printf("Request to write 0x%x bytes to address 0x%08lx\n"
++			"\tusing %d byte accesses of value 0x%0*lx\n",
++			req_len, req_addr, iosize, iosize*2, req_value);
++
++	real_addr = req_addr & ~4095;
++	if (real_addr == 0xfffff000) {
++		fprintf(stderr, "Sorry, cannot map the top 4K page\n");
++		exit(1);
++	}
++	offset = req_addr - real_addr;
++	real_len = req_len + offset;
++	real_len = (real_len + 4095) & ~ 4095;
++	if (real_addr + real_len < real_addr) {
++		fprintf(stderr, "Aligned addr+len exceeds top of address space\n");
++		exit(1);
++	}
++	if (verbose)
++		printf("Attempting to map 0x%lx bytes at address 0x%08lx\n",
++			real_len, real_addr);
++
++	mfd = open("/dev/mem", memread ? O_RDONLY : O_RDWR);
++	if (mfd == -1) {
++		perror("open /dev/mem");
++		exit(1);
++	}
++	if (verbose)
++		printf("open(/dev/mem) ok\n");
++	real_io = mmap(NULL, real_len,
++			memread ? PROT_READ:PROT_WRITE,
++			MAP_SHARED, mfd, real_addr);
++	if (real_io == (void *)(-1)) {
++		fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
++		exit(1);
++	}
++	if (verbose)
++		printf("mmap() ok\n");
++
++	if (verbose) {
++		int c;
++
++		printf("OK? ");
++		fflush(stdout);
++		c = getchar();
++		if (c != 'y' && c != 'Y') {
++			printf("Aborted\n");
++			exit(1);
++		}
++	}
++
++	if (filename && memread) {
++		int n = write(ffd, real_io + offset, req_len);
++
++		if (n < 0) {
++			fprintf(stderr, "File write failed: %s\n", strerror(errno));
++			exit(1);
++		}
++		else if (n != req_len) {
++			fprintf(stderr, "Only wrote %d of %d bytes to file\n",
++					n, req_len);
++			exit(1);
++		}
++	}
++	else if (filename) {
++		int n = read(ffd, real_io + offset, req_len);
++
++		if (n < 0) {
++			fprintf(stderr, "File read failed: %s\n", strerror(errno));
++			exit(1);
++		}
++		else if (n != req_len) {
++			fprintf(stderr, "Only read %d of %d bytes from file\n",
++					n, req_len);
++			exit(1);
++		}
++	}
++	else if (memread)
++		memread_memory(req_addr, real_io + offset, req_len, iosize);
++	else
++		write_memory(req_addr, real_io + offset, req_len, iosize, req_value);
++
++	if (filename)
++		close(ffd);
++	close (mfd);
++
++	return 0;
++}
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/io_compile.sh esw_sdk_6.3.4/io_compile.sh
+--- sdk-xgs-robo-6.3.4/io_compile.sh	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/io_compile.sh	2014-06-19 18:22:27.847285743 +0100
+@@ -0,0 +1,7 @@
++CROSS_COMPILER=/opt/broadcom/bin/arm-broadcom-linux-uclibcgnueabi-
++
++KFLAG_INCLD=/opt/broadcom/lib/gcc/arm-broadcom-linux-uclibcgnueabi/4.7.2/include
++
++KFLAGS="-D__LINUX_ARM_ARCH__=7 -D__KERNEL__ -isystem $KFLAG_INCLD -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -marm -mabi=aapcs-linux -fno-pic -pipe -msoft-float -ffreestanding -march=armv7-a -mfpu=vfp -mfloat-abi=softfp -fomit-frame-pointer -g -fno-stack-protector -Wdeclaration-after-statement -Wno-pointer-sign -mlong-calls"
++
++${CROSS_COMPILER}gcc ${KFLAGS} -o io io.c
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/e500-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/e500-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/e500-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/e500-2_6/Makefile	2014-06-19 18:19:20.400000469 +0100
+@@ -0,0 +1,104 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.10 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=e500-$(kernel_version)
++
++# Select build platform 
++BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 2.6.35
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/e500mc-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/e500mc-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/e500mc-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/e500mc-2_6/Makefile	2014-06-19 18:19:25.622435624 +0100
+@@ -0,0 +1,104 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.10 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=e500mc-$(kernel_version)
++
++# Select build platform 
++BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.0.51
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/helixarm-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/helixarm-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/helixarm-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/helixarm-2_6/Makefile	2014-06-19 18:19:08.960167765 +0100
+@@ -0,0 +1,104 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.10 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=helixarm-$(kernel_version)
++
++# Select build platform 
++BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.6.5
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/helixarmeb-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/helixarmeb-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/helixarmeb-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/helixarmeb-2_6/Makefile	2014-06-19 18:19:04.392163587 +0100
+@@ -0,0 +1,104 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.10 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=helixarmeb-$(kernel_version)
++
++# Select build platform 
++BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.6.5
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/pq2pro-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/pq2pro-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/pq2pro-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/pq2pro-2_6/Makefile	2014-06-19 17:53:21.846423756 +0100
+@@ -0,0 +1,84 @@
++# -*- Makefile -*-
++# $Id: Makefile,v 1.10 Broadcom SDK $
++# $Copyright: Copyright 2010 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++override kernel_version=2_6
++platform=pq2pro-$(kernel_version)
++
++# Select build platform 
++#BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++#KERN_VER = 2.6.25
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++#WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/kernel/pq3-2_6/Makefile esw_sdk_6.3.4/systems/linux/kernel/pq3-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/kernel/pq3-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/kernel/pq3-2_6/Makefile	2014-06-19 18:19:32.314433608 +0100
+@@ -0,0 +1,104 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.10 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=pq3-$(kernel_version)
++
++# Select build platform 
++BUILD_PLATFORM=WR_LINUX
++#BUILD_PLATFORM=ELDK
++
++#Select the LINUX KERNEL VERSION 
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 2.6.27
++
++#Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/e500-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/e500-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/e500-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/e500-2_6/Makefile	2014-06-19 18:20:11.518479008 +0100
+@@ -0,0 +1,108 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.9 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=e500-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 2.6.35
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/e500mc-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/e500mc-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/e500mc-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/e500mc-2_6/Makefile	2014-06-19 18:20:17.170477460 +0100
+@@ -0,0 +1,108 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.9 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=e500mc-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.0.51
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/helixarm-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/helixarm-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/helixarm-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/helixarm-2_6/Makefile	2014-06-19 18:19:59.427127525 +0100
+@@ -0,0 +1,108 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.9 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=helixarm-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.6.5
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/helixarmeb-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/helixarmeb-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/helixarmeb-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/helixarmeb-2_6/Makefile	2014-06-19 18:19:55.699675245 +0100
+@@ -0,0 +1,108 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.9 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=helixarmeb-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 3.6.5
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/pq2pro-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/pq2pro-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/pq2pro-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/pq2pro-2_6/Makefile	2014-06-19 17:53:21.850421728 +0100
+@@ -0,0 +1,90 @@
++# -*- Makefile -*-
++# $Id: Makefile,v 1.9 Broadcom SDK $
++# $Copyright: Copyright 2010 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++
++
++override kernel_version=2_6
++platform=pq2pro-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++#BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++#KERN_VER = 2.6.25
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++#WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
+diff -rpN --unified=5 sdk-xgs-robo-6.3.4/systems/linux/user/pq3-2_6/Makefile esw_sdk_6.3.4/systems/linux/user/pq3-2_6/Makefile
+--- sdk-xgs-robo-6.3.4/systems/linux/user/pq3-2_6/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ esw_sdk_6.3.4/systems/linux/user/pq3-2_6/Makefile	2014-06-19 18:20:23.215913572 +0100
+@@ -0,0 +1,108 @@
++# -*- Makefile -*-
++# $Id: Makefile 1.9 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++#
++# This make job requires the following environment variables to be set:
++#
++# SDK                - path to StrataXGS SDK root directory
++#
++# Optionally the following environment variables can be set to
++# override the default build server configuration:
++#
++# PPC_TOOLS_DIR      - path to build tools (if not in PATH already)
++# PPC_CROSS_COMPILE  - cross compile tools prefix
++# LINUX_INCLUDE      - path to Linux kernel include directory
++#
++
++SDK :=$(shell if [ -n "$$SDK" ] ; then\
++	echo $$SDK;\
++	else\
++	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
++	dir=`cd ../;pwd`;			\
++	if [ "$$dir" = "/" ] ; then		\
++	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
++	   exit 1;				\
++	fi ;					\
++	cd $$dir;				\
++	done ;					\
++	pwd;					\
++	fi)
++
++ifeq ($(SDK),)					
++$(error Please run this in a tree)		
++endif 				
++
++export SDK
++
++override kernel_version=2_6
++platform=pq3-$(kernel_version)
++LINUX_MAKE_USER=1
++export LINKER_RELAX=1
++
++# Select the build environment
++#BUILD_PLATFORM=ELDK
++BUILD_PLATFORM=WR_LINUX
++
++#Select the LINUX KERNEL VERSION
++#KERN_VER = 2.6.21.7
++#KERN_VER = 2.6.24.4
++KERN_VER = 2.7.26
++
++
++# Select the ELDK version
++#ELDK_VERSION=4.1
++#ELDK_VERSION=4.0
++
++#Select WRS Linux version
++WRS_LINUX_VERSION=2.0
++#WRS_LINUX_VERSION=3.0
++
++
++export KERN_VER
++export ELDK_VERSION
++export BUILD_PLATFORM
++export WRS_LINUX_VERSION
++
++include ${SDK}/make/Make.linux
++
