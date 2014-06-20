@@ -1145,7 +1145,11 @@ int l7_l2mcast_to_bcm_l2addr(usl_bcm_mcast_addr_t *mcAddr,
   memcpy(&(bcmAddr->vid), &(mcAddr->vid), sizeof(mcAddr->vid));
   
   bcmAddr->flags |= (BCM_L2_STATIC | BCM_L2_MCAST | BCM_L2_REPLACE_DYNAMIC);
+#if (SDK_VERSION_IS >= SDK_VERSION(6,3,5,0))
+  bcmAddr->l2mc_group = mcAddr->l2mc_index;
+#else
   bcmAddr->l2mc_index = mcAddr->l2mc_index;
+#endif
 
   return rv;
 }
@@ -1196,7 +1200,11 @@ int usl_bcm_mcast_addr_add(usl_bcm_mcast_addr_t *mcAddr)
       }
 
       flags = BCM_MULTICAST_WITH_ID;
+#if (SDK_VERSION_IS >= SDK_VERSION(6,3,5,0))
+      if (_BCM_MULTICAST_IS_WLAN(bcm_l2.l2mc_group))
+#else
       if (_BCM_MULTICAST_IS_WLAN(bcm_l2.l2mc_index))
+#endif
       {
         flags |= BCM_MULTICAST_TYPE_WLAN;
       }
@@ -1206,7 +1214,11 @@ int usl_bcm_mcast_addr_add(usl_bcm_mcast_addr_t *mcAddr)
       }
 
       /* create the group */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,3,5,0))
+      rv = bcm_multicast_create(bcm_unit, flags, &bcm_l2.l2mc_group);
+#else
       rv = bcm_multicast_create(bcm_unit, flags, &bcm_l2.l2mc_index);
+#endif
       if (L7_BCMX_OK(rv) != L7_TRUE) 
       {
         break;    
