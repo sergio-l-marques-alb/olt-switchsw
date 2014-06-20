@@ -569,22 +569,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/include/bcm_int/esw/triumph2.h esw_sdk_
                                         bcm_if_t *if_array, int check_port);
  extern int bcm_tr2_ipmc_egress_intf_get(int unit, int mc_index,
                                         bcm_port_t port,
-@@ -203,10 +208,15 @@ extern int _bcm_tr2_l3_ecmp_grp_get(int 
- extern int _bcm_tr2_l3_ecmp_grp_add(int unit, int ecmp_grp, void *buf, int max_paths);
- extern int _bcm_tr2_l3_ecmp_grp_del(int unit, int ecmp_grp, int max_grp_size);
- extern int bcm_tr2_failover_egr_check (int unit, bcm_l3_egress_t  *egr);
- extern int bcm_tr2_failover_mpls_check (int unit, bcm_mpls_port_t  *mpls_port);
- 
-+/* PTin added: virtual port */
-+#if 1
-+extern int bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags);
-+#endif
-+
- extern int bcm_tr2_vlan_virtual_init(int unit);
- extern int bcm_tr2_vlan_virtual_detach(int unit);
- extern int bcm_tr2_vlan_vp_create(int unit, bcm_vlan_port_t *vlan_vp);
- extern int bcm_tr2_vlan_vp_destroy(int unit, bcm_gport_t gport);
- extern int bcm_tr2_vlan_vp_find(int unit, bcm_vlan_port_t *vlan_vp);
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/include/bcm_int/mdebug.h esw_sdk_6.3.4/include/bcm_int/mdebug.h
 --- sdk-xgs-robo-6.3.4/include/bcm_int/mdebug.h	2013-12-21 01:01:55.000000000 +0000
 +++ esw_sdk_6.3.4/include/bcm_int/mdebug.h	2014-06-19 17:53:21.830418278 +0100
@@ -4681,7 +4665,7 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/make/makerules.pkg.vendor esw_sdk_6.3.4
 +#
 +
 +$(SDK_BUILD_FILE):
-+	@echo "======================= THIS SDK 6.3.7 ======================="
++	@echo "========================= THIS IS SDK 6.3.7 ========================="
 +	@echo "Building vendor SDK" $(HUSH)
 +	+$(DBG)[ -d $(FP_BASE)/$(out_vend_sdk) ] || mkdir -p $(FP_BASE)/$(out_vend_sdk)
 +	+$(DBG)[ -d $(FP_BASE)/$(OUT_TARGET) ] || mkdir -p $(FP_BASE)/$(OUT_TARGET)
@@ -12563,24 +12547,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/port.c esw_sdk_6.3.4/src/bc
   *      bcm_port_loopback_get
   * Purpose:
   *      Recover the current loopback operation for the specified port.
-@@ -9435,10 +9572,17 @@ int
-     int                 rv;
- 
-     /* Make sure port module is initialized. */
-     PORT_INIT(unit);
- 
-+/* PTin added: MAC learn */
-+#if defined(BCM_TRIUMPH2_SUPPORT)
-+    if (BCM_GPORT_IS_VLAN_PORT(port)) {
-+        return bcm_tr2_vlan_port_learn_set(unit, (bcm_gport_t) port, flags);
-+    }
-+#endif
-+
- #if defined(BCM_TRX_SUPPORT)  && defined(INCLUDE_L3)
-     if (BCM_GPORT_IS_SUBPORT_GROUP(port)) {
-         if (SOC_IS_SCORPION(unit)) {
-              return BCM_E_UNAVAIL;
-         } else {
 @@ -17904,10 +18048,23 @@ int
  {
      int rv;
@@ -12930,77 +12896,6 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/triumph2/cosq.c esw_sdk_6.3
 diff -rpN --unified=5 sdk-xgs-robo-6.3.4/src/bcm/esw/triumph2/vlan.c esw_sdk_6.3.4/src/bcm/esw/triumph2/vlan.c
 --- sdk-xgs-robo-6.3.4/src/bcm/esw/triumph2/vlan.c	2013-12-21 01:02:06.000000000 +0000
 +++ esw_sdk_6.3.4/src/bcm/esw/triumph2/vlan.c	2014-06-19 17:53:22.186423102 +0100
-@@ -128,10 +128,70 @@ STATIC _bcm_tr2_vlan_virtual_bookkeeping
-  * Routines for creation and deletion of VLAN virtual ports
-  *
-  * ---------------------------------------------------------------------------- 
-  */
- 
-+/* PTin added: virtual port */
-+#if 1
-+/*
-+ * Function:
-+ *      bcm_tr_vlan_port_learn_set
-+ * Purpose:
-+ *      Set the CML bits for an vlan port.
-+ * Returns:
-+ *      BCM_E_XXX
-+ */
-+int
-+bcm_tr2_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
-+{
-+    int vp, cml = 0, rv = BCM_E_NONE;
-+    source_vp_entry_t svp;
-+
-+    if (!VLAN_VIRTUAL_INFO(unit)->vlan_virtual_initialized)
-+    {
-+      return L7_FAILURE;
-+    }
-+
-+    cml = 0;
-+    if (!(flags & BCM_PORT_LEARN_FWD)) {
-+       cml |= (1 << 0);
-+    }
-+    if (flags & BCM_PORT_LEARN_CPU) {
-+       cml |= (1 << 1);
-+    }
-+    if (flags & BCM_PORT_LEARN_PENDING) {
-+       cml |= (1 << 2);
-+    }
-+    if (flags & BCM_PORT_LEARN_ARL) {
-+       cml |= (1 << 3);
-+    }
-+
-+    /* Get the VP index from the gport */
-+    vp = BCM_GPORT_VLAN_PORT_ID_GET(vlan_port_id);
-+    if (vp == -1) {
-+        return BCM_E_PARAM;
-+    }
-+
-+    /* Be sure the entry is used and is set for VPLS */
-+    if (!_bcm_vp_used_get(unit, vp, _bcmVpTypeVlan)) {
-+        return BCM_E_NOT_FOUND;
-+    }
-+    rv = READ_SOURCE_VPm(unit, MEM_BLOCK_ANY, vp, &svp);
-+    if (rv < 0) {
-+        return rv;
-+    }
-+    if (soc_SOURCE_VPm_field32_get(unit, &svp, ENTRY_TYPEf) != 3) { /* VLAN PORT (GPON) */
-+        return BCM_E_NOT_FOUND;
-+    }
-+
-+    soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_MOVEf, cml);
-+    soc_SOURCE_VPm_field32_set(unit, &svp, CML_FLAGS_NEWf, cml);
-+    rv = WRITE_SOURCE_VPm(unit, MEM_BLOCK_ALL, vp, &svp);
-+    return rv;
-+}
-+#endif
-+
- /*
-  * Function:
-  *      _bcm_tr2_vlan_vp_port_cnt_update
-  * Purpose:
-  *      Update port's VP count.
 @@ -583,10 +643,15 @@ _tr3_vlan_vp_match_add(int unit, bcm_vla
      if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_PRESERVE) {
          action.dt_outer = bcmVlanActionReplace;
