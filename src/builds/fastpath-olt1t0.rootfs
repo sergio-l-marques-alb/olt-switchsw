@@ -1,0 +1,15 @@
+#!/bin/sh
+
+export MODULE=fastpath-olt1t0
+export PLATFORM=OLT1T0
+
+export APPLICATION=fastpath
+
+echo "Compiling OLT1T0..."
+make -C ../fastpath -f olt1t0.make
+echo "Copying binaries to apps..."
+make -C ../fastpath -f olt1t0.make install
+echo "Done... Going to prepare tarball."
+echo
+
+. ./fastpath.rootfs $1

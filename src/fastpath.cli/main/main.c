@@ -4936,6 +4936,19 @@ int main (int argc, char *argv[])
       exit(0);
     }
 
+    #if 0
+    unsigned int i;
+
+    printf("Comando:\r\n");
+    for (i=0; i<sizeof(pc_type)-(sizeof(unsigned char)*PC_MsgDimMax)+comando.infoDim; i++)
+    {
+      if (i%16 == 0)  printf("0x%04x   ", i);
+
+      printf("%02x ",*(((char *) &comando)+i));
+
+      if ((i+1)%16 == 0)  printf("\r\n");
+    }
+    #endif
 
     // 2 - enviar mensagem e receber resposta
     //printf("comando.msgId %08x\n\r", comando.msgId);
@@ -4948,6 +4961,19 @@ int main (int argc, char *argv[])
       printf("Erro %llu  no send_data IPC do BUGA...\n\r", valued);
       exit(0);
     }
+
+    #if 0
+    printf("Resposta:\r\n");
+    for (i=0; i<sizeof(pc_type)-(sizeof(unsigned char)*PC_MsgDimMax)+resposta.infoDim; i++)
+    {
+      if (i%16 == 0)  printf("0x%04x   ", i);
+
+      printf("%02x ",*(((char *) &resposta)+i));
+
+      if ((i+1)%16 == 0)  printf("\r\n");
+    }
+    #endif
+
     switch (msg) {
       
       case 1998:
