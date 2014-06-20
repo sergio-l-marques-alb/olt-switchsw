@@ -4793,6 +4793,18 @@ _bcm_xgs3_vlan_control_vlan_set(int unit, bcm_vlan_t vid,
                                     (control->unknown_unicast_group));
             }
         }
+        
+        if (_BCM_MULTICAST_IS_VLAN(control->broadcast_group) || 
+            _BCM_MULTICAST_IS_VLAN(control->unknown_unicast_group) ||
+            _BCM_MULTICAST_IS_VLAN(control->unknown_unicast_group)) {
+            if (SOC_MEM_FIELD_VALID(unit, VLAN_TABm, VIRTUAL_PORT_ENf)) {
+                soc_mem_field32_set(unit, VLAN_TABm, &vt, VIRTUAL_PORT_ENf, 1);
+            }
+        } else {
+            if (SOC_MEM_FIELD_VALID(unit, VLAN_TABm, VIRTUAL_PORT_ENf)) {
+                soc_mem_field32_set(unit, VLAN_TABm, &vt, VIRTUAL_PORT_ENf, 0);
+            }
+        }
    }
 #endif /* (BCM_TRIUMPH2_SUPPORT && INCLUDE_L3 */
 

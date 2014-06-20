@@ -191,6 +191,17 @@ MKDIR	=	/bin/mkdir -p
 FOREACH	=	$(MKTOOL) -foreach
 MAKEDEP =	/bin/echo
 ECHO	=	/bin/echo
+ifdef LVL7_FIXUP
+ifeq "$(HOSTTYPE)" "Windows2000PC"
+RM	=	rm -rf
+CP	=	cp
+MKDIR	=	mkdir -p
+MAKEDEP =	echo
+ECHO	=	echo
+TOUCH   =	touch
+endif
+endif
+
 MKBEEP	=	$(MKTOOL) -beep
 endif
 

@@ -768,6 +768,16 @@ typedef struct{
 	int (*led_mode_set)(int unit,int port,uint32 led_mode);
 	int (*igmp_mld_snoop_mode_get)(int unit,int type,int *mode);
 	int (*igmp_mld_snoop_mode_set)(int unit,int type,int mode);
+    /* Egress vlan tranlation */
+#ifdef LVL7_FIXUP
+    int (*vlan_evt_entry_add)(int unit, int port, int *evr_id, int out_op, uint16 out_vid,
+                              int in_op, uint16 in_vid);
+    int (*vlan_evt_entry_delete)(int unit, int port, int evr_id);
+    int (*vlan_evt_entry_get)(int unit, int port, int evr_id, int *out_op, uint16 *out_vid,
+                              int *in_op, uint16 *in_vid);
+    int (*vlan_evt_entry_modify)(int unit, int port, int evr_id, int out_op, uint16 out_vid,
+                              int in_op, uint16 in_vid);
+#endif
 	int (*wred_init)(int unit);
 	int (*wred_config_create)(int unit,uint32 flags,drv_wred_config_t *config,int *wred_id);
 	int (*wred_config_set)(int unit,int wred_id,drv_wred_config_t *config);

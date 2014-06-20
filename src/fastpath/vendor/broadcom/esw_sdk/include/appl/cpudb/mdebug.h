@@ -117,9 +117,25 @@ extern int (*tks_mdebug_print)(const char *format, ...)
 #define TKS_DEBUG_CHECK(enc_) \
     soc_cm_mdebug_check(&tks_mdebug_config, enc_)
 
+#ifndef LVL7_FIXUP
 #define TKS_DEBUG(enc_, stuff_) \
     if (TKS_DEBUG_CHECK(enc_) && tks_mdebug_print != 0) \
 	(*tks_mdebug_print) stuff_
+#else
+extern int (*tks_mdebug_error)(const char *format, ...);
+extern int (*tks_mdebug_warn)(const char *format, ...);
+extern int (*tks_mdebug_debug)(const char *format, ...);
+
+#define TKS_DEBUG(flags, stuff) \
+    do { \
+    if (TKS_DEBUG_CHECK(flags) && tks_mdebug_print != 0) \
+      { \
+        if ((flags) & TKS_DBG_ERR) (*tks_mdebug_error) stuff ; \
+        else if ((flags) & TKS_DBG_WARN)(*tks_mdebug_warn) stuff ; \
+        else (*tks_mdebug_debug) stuff ; \
+      } \
+    } while(0) 
+#endif
 
 /*
  * Option-specific debug print macros.

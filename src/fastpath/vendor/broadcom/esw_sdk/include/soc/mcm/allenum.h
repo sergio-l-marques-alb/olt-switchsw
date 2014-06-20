@@ -74,6 +74,8 @@
  *		bcm56524_b0
  *		bcm56685_a0
  *		bcm56685_b0
+ *		bcm56689_a0     PTin added: new switch 56689 (Valkyrie2)
+ *		bcm56689_b0     PTin added: new switch 56689 (Valkyrie2)
  *		bcm56334_a0
  *		bcm56334_b0
  *		bcm88230_a0
@@ -296,6 +298,28 @@
 #  define BCM_56685_B0
 # endif
 #endif
+
+/* PTin added: new switch 56689 (Valkyrie2) */
+#ifdef BCM_ESW_SUPPORT
+# if !defined(NO_BCM_56689_A0)
+#  define BCM_56685_A0
+#  define BCM_56689_A0
+# endif
+#endif
+
+#ifdef BCM_ESW_SUPPORT
+# if !defined(NO_BCM_56689_B0)
+#  define BCM_56685_B0
+#  define BCM_56689_B0
+# endif
+#endif
+
+#ifdef BCM_ESW_SUPPORT
+# if !defined(NO_BCM_56643_B0)
+#  define BCM_56643_B0
+# endif
+#endif
+/* PTin end */
 
 #ifdef BCM_ESW_SUPPORT
 # if !defined(NO_BCM_56334_A0)

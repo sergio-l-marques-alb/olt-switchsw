@@ -78,10 +78,12 @@
 #define NO_CONTROL_C
 #endif
 
+#ifndef LVL7_FIXUP
 static pthread_mutex_t _sal_thread_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #define THREAD_LOCK() pthread_mutex_lock(&_sal_thread_lock)
 #define THREAD_UNLOCK() pthread_mutex_unlock(&_sal_thread_lock)
+#endif
 
 #if defined(BROADCOM_DEBUG) && defined(INCLUDE_BCM_SAL_PROFILE)
 static unsigned int _sal_thread_count_curr;
@@ -143,6 +145,11 @@ sal_thread_resource_usage_get(unsigned int *sal_thread_count_curr,
 #    define PTHREAD_STACK_MIN 0
 #  endif
 #endif
+
+#ifdef LVL7_FIXUP
+#include <l7_common.h>
+#include <osapi.h>
+#else
 
 /*
  * Function:
@@ -214,6 +221,7 @@ thread_boot(void *ti_void)
     /* Will never get here */
     return NULL;
 }
+#endif /* LVL7_FIXUP */
 
 /*
  * Function:
@@ -233,6 +241,16 @@ thread_boot(void *ti_void)
 sal_thread_t
 sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 {
+#ifdef LVL7_FIXUP
+    L7_int32 salTaskHandle;
+
+    salTaskHandle = osapiTaskCreate(name, f, (L7_uint32) arg,
+                                    L7_NULLPTR, ss,
+                                    L7_DEFAULT_TASK_PRIORITY,
+                                    L7_DEFAULT_TASK_SLICE);
+
+    return (sal_thread_t) salTaskHandle;
+#else
     pthread_attr_t	attribs;
     thread_info_t	*ti;
     pthread_t		id;
@@ -303,6 +321,7 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
     sal_sem_destroy(sem);
 
     return ((sal_thread_t)id);
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -328,6 +347,13 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 int
 sal_thread_destroy(sal_thread_t thread)
 {
+#ifdef LVL7_FIXUP
+    L7_int32 salTaskHandle = (L7_int32) thread;
+
+    osapiTaskDelete(salTaskHandle);
+
+    return 0;
+#else
 #ifdef netbsd
     /* not supported */
     return -1;
@@ -365,6 +391,7 @@ sal_thread_destroy(sal_thread_t thread)
 
     return 0;
 #endif
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -381,7 +408,11 @@ sal_thread_destroy(sal_thread_t thread)
 sal_thread_t
 sal_thread_self(void)
 {
+#ifdef LVL7_FIXUP
+    return (sal_thread_t) osapiTaskIdSelf();
+#else
     return (sal_thread_t) pthread_self();
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -398,9 +429,19 @@ sal_thread_self(void)
  *	NULL, if name not available
  *	thread_name, if name available
  */
+#ifdef LVL7_FIXUP
+extern pthread_key_t osapi_name_key;
+#endif /* LVL7_FIXUP */
 char *
 sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
 {
+#ifdef LVL7_FIXUP
+    char *task_name;
+
+    task_name = (char *) pthread_getspecific(osapi_name_key);
+    strncpy(thread_name, task_name, thread_name_size);
+    return thread_name;
+#else
     thread_info_t	*ti;
     char                *name;
 
@@ -422,6 +463,7 @@ sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
     }
 
     return name;
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -438,6 +480,14 @@ sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
 void
 sal_thread_exit(int rc)
 {
+#ifdef LVL7_FIXUP
+  L7_int32 salTaskHandler = osapiTaskIdSelf();
+
+  osapiTaskDelete(salTaskHandler);
+
+  return;
+
+#else
     thread_info_t	*ti, **tp;
     pthread_t		id = pthread_self();
 
@@ -466,6 +516,7 @@ sal_thread_exit(int rc)
     }
 
     pthread_exit(INT_TO_PTR(rc));
+#endif /* LVL7_FIXUP */
 }
 
 /*

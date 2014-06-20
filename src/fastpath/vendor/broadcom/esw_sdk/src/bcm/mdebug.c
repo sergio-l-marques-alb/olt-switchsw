@@ -64,6 +64,12 @@ soc_cm_mdebug_config_t bcm_mdebug_config = {
 
 int (*bcm_mdebug_print)(const char *format, ...) = soc_cm_print;
 
+#ifdef LVL7_FIXUP
+int		(*bcm_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
+int		(*bcm_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
+int		(*bcm_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
+#endif
+
 int
 bcm_mdebug_init(void)
 {

@@ -614,6 +614,11 @@ _tr3_vlan_vp_match_add(int unit, bcm_vlan_port_t *vlan_vp, int vp)
         action.dt_outer_prio = bcmVlanActionReplace;
         action.dt_inner = bcmVlanActionNone;
         action.dt_inner_prio = bcmVlanActionNone;
+    } else if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_REPLACE) {
+        action.dt_outer = bcmVlanActionReplace;
+        action.dt_outer_prio = bcmVlanActionReplace;
+        action.dt_inner = bcmVlanActionReplace;
+        action.dt_inner_prio = bcmVlanActionNone;
     } else {
         if (soc_feature(unit, soc_feature_vlan_copy_action)) {
             action.dt_outer = bcmVlanActionCopy;
@@ -939,6 +944,11 @@ _tr2_vlan_vp_match_add(int unit, bcm_vlan_port_t *vlan_vp, int vp)
         action.dt_outer = bcmVlanActionReplace;
         action.dt_outer_prio = bcmVlanActionReplace;
         action.dt_inner = bcmVlanActionNone;
+        action.dt_inner_prio = bcmVlanActionNone;
+    } else if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_REPLACE) {
+        action.dt_outer = bcmVlanActionReplace;
+        action.dt_outer_prio = bcmVlanActionReplace;
+        action.dt_inner = bcmVlanActionReplace;
         action.dt_inner_prio = bcmVlanActionNone;
     } else {
         if (soc_feature(unit, soc_feature_vlan_copy_action)) {

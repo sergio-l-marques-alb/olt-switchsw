@@ -1386,9 +1386,22 @@ soc_dma_process_done_desc(int unit, dv_t *dv_chain, dv_t *dv)
     for (; dv != NULL; dv = dv->dv_chain) {
         /* Process all DCBs in the current DV. */
 
+/* (brr) - The BMW platforms are cache coherant processors so */
+/* call is unnecessary. Unfortunately the BSP for the 8541 does not      */
+/* resolve the value to sinval correctly so it is necessary to commnet   */
+/* this call out */
+
+#ifdef LVL7_FIXUP	    
+#ifndef BMW
         /* Clean cache of any dirty data */
         soc_cm_sinval(unit, dv->dv_dcb,
                       dv->dv_vcnt * SOC_DCB_SIZE(unit));
+#endif	
+#else
+        /* Clean cache of any dirty data */
+        soc_cm_sinval(unit, dv->dv_dcb,
+                      dv->dv_vcnt * SOC_DCB_SIZE(unit));
+#endif	
 
         for (i = dv->dv_dcnt; i < dv->dv_vcnt; i++) {
             dcb = SOC_DCB_IDX2PTR(unit, dv->dv_dcb, i);

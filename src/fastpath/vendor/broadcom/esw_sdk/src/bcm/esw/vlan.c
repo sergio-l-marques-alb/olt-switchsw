@@ -5640,6 +5640,7 @@ bcm_esw_vlan_translate_egress_action_add(int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit);
     VLAN_CHK_ID(unit, outer_vlan);
@@ -5659,6 +5660,7 @@ bcm_esw_vlan_translate_egress_action_add(int unit, int port_class,
                                        &tgid, &id));
         }
         if ((-1 != tgid || -1 != id) && !BCM_GPORT_IS_TUNNEL(port_class) &&
+            !BCM_GPORT_IS_VLAN_PORT(orig_port_class) &&
             !BCM_GPORT_IS_MIM_PORT(port_class) && 
             !BCM_GPORT_IS_NIV_PORT(port_class) && 
             !BCM_GPORT_IS_MPLS_PORT(port_class)) {
@@ -5672,6 +5674,9 @@ bcm_esw_vlan_translate_egress_action_add(int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_add(unit, port_class, 
                                              outer_vlan, inner_vlan, 
                                              action);
@@ -5702,6 +5707,7 @@ bcm_esw_vlan_translate_egress_action_get (int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit);
     VLAN_CHK_ID(unit, outer_vlan);
@@ -5720,6 +5726,7 @@ bcm_esw_vlan_translate_egress_action_get (int unit, int port_class,
                                        &tgid, &id));
         }
         if ((-1 != tgid || -1 != id) && !BCM_GPORT_IS_TUNNEL(port_class) &&
+            !BCM_GPORT_IS_VLAN_PORT(orig_port_class) &&
             !BCM_GPORT_IS_MIM_PORT(port_class) &&
             !BCM_GPORT_IS_MPLS_PORT(port_class)) {
             return BCM_E_PORT;
@@ -5732,6 +5739,9 @@ bcm_esw_vlan_translate_egress_action_get (int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_get(unit, port_class, 
                                                         outer_vlan, inner_vlan, 
                                                         action);
@@ -5760,6 +5770,7 @@ bcm_esw_vlan_translate_egress_action_delete(int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit);
     VLAN_CHK_ID(unit, outer_vlan);
@@ -5775,6 +5786,7 @@ bcm_esw_vlan_translate_egress_action_delete(int unit, int port_class,
                                        &tgid, &id));
         }
         if ((-1 != tgid || -1 != id) && !BCM_GPORT_IS_TUNNEL(port_class) &&
+            !BCM_GPORT_IS_VLAN_PORT(orig_port_class) &&
             !BCM_GPORT_IS_MIM_PORT(port_class) &&
             !BCM_GPORT_IS_NIV_PORT(port_class) &&
             !BCM_GPORT_IS_MPLS_PORT(port_class)) {
@@ -5788,6 +5800,9 @@ bcm_esw_vlan_translate_egress_action_delete(int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_delete(unit, port_class, 
                                                            outer_vlan, 
                                                            inner_vlan);

@@ -1324,6 +1324,41 @@ _soc_tr_l2x_dcc_entry_to_key(int unit, uint32 *entry, uint8 *key)
     return _soc_hash_generic_entry_to_key(unit, entry, key, L2Xm, field_list);
 }
 
+#ifdef LVL7_FIXUP
+static int
+_soc_tr2_l2x_scc_entry_to_key(int unit, uint32 *e, uint8 *key)
+{
+    int ovid, key_type = 1;
+
+    /* Key type 0x1 (SINGLE_CROSS_CONNECT) Key = {OVID} */
+    ovid = soc_L2Xm_field32_get(unit, e, OVIDf);
+
+    /* key[0] has 2 bits of padding of byte alignment */
+    key[0] = ((ovid << 4) & 0xf0) | ((key_type << 2) & 0x0c);
+    key[1] = (ovid >> 4) & 0xff;
+
+    return (64);
+}
+
+static int
+_soc_tr2_l2x_dcc_entry_to_key(int unit, uint32 *e, uint8 *key)
+{
+    int ivid, ovid, key_type = 2;
+
+    /* Key type 0x2 (DOUBLE_CROSS_CONNECT) Key = {OVID, IVOD} */
+    ovid = soc_L2Xm_field32_get(unit, e, OVIDf);
+    ivid = soc_L2Xm_field32_get(unit, e, IVIDf);
+
+    /* key[0] has 2 bits of padding of byte alignment */
+    key[0] = ((key_type << 2)& 0xc) | ((ovid << 4) & 0xf0);
+    key[1] = ((ovid >> 4) & 0xff); 
+    key[2] = (ivid & 0xff);
+    key[3] = ((ivid >> 8) & 0xf);
+
+    return (64);
+}
+#endif
+
 STATIC int
 _soc_tr_l2x_vfi_entry_to_key(int unit, uint32 *entry, uint8 *key)
 {
@@ -1463,9 +1498,27 @@ if (SOC_IS_KATANA(unit)) {
     case TR_L2_HASH_KEY_TYPE_BRIDGE:
         return _soc_tr_l2x_bridge_entry_to_key(unit, entry, key);
     case TR_L2_HASH_KEY_TYPE_SINGLE_CROSS_CONNECT:
+#ifndef LVL7_FIXUP
         return _soc_tr_l2x_scc_entry_to_key(unit, entry, key);
+#else
+            if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit)/* || SOC_IS_VALKYRIE2(unit)*/) {    /* PTin modified */
+                return _soc_tr2_l2x_scc_entry_to_key(unit, entry, key);
+            }
+            else {
+                return _soc_tr_l2x_scc_entry_to_key(unit, entry, key);
+            }
+#endif
     case TR_L2_HASH_KEY_TYPE_DOUBLE_CROSS_CONNECT:
+#ifndef LVL7_FIXUP
         return _soc_tr_l2x_dcc_entry_to_key(unit, entry, key);
+#else
+            if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit)/* || SOC_IS_VALKYRIE2(unit)*/) {    /* PTin modified */
+                return _soc_tr2_l2x_dcc_entry_to_key(unit, entry, key);
+            }
+            else {
+                return _soc_tr_l2x_dcc_entry_to_key(unit, entry, key);
+            }
+#endif
     case TR_L2_HASH_KEY_TYPE_VFI:
         return _soc_tr_l2x_vfi_entry_to_key(unit, entry, key);
 #ifdef BCM_TRIDENT_SUPPORT

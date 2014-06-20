@@ -70,4 +70,10 @@ extern int bcm_stack_attach_running(void);
 extern int bcm_stack_attach(cpudb_ref_t db_ref);
 extern int bcm_stack_detach(cpudb_ref_t db_ref);
 
+#ifdef LVL7_FIXUP
+int bcm_stack_attach_manager_set(int manager);
+void bcm_stack_attach_fn(cpudb_ref_t topology_db, int local_cpu_only, 
+			 int detach_only);
+#endif
+
 #endif /* _STKTASK_ATTACH_H */

@@ -372,11 +372,22 @@ bcmx_mcast_join(bcm_mac_t mac,
     BCM_IF_ERROR_RETURN
         (_bcmx_dest_to_unit_port(port, &bcm_unit, &bcm_port,
                                  BCMX_DEST_CONVERT_DEFAULT));
+#ifdef LVL7_FIXUP
+
+  /* If we pass NULL then code below will try to dereference
+  ** address 0.
+  */
+  rv = bcm_mcast_join(bcm_unit, mac, vid,
+                        bcm_port,
+                      &bcm_mca ,
+                      &pbmp );
+#else
 
     rv = bcm_mcast_join(bcm_unit, mac, vid,
                         bcm_port,
                         mcaddr ? &bcm_mca : NULL,
                         allrtr ? &pbmp : NULL);
+#endif
     if (BCM_SUCCESS(rv)) {
         if (mcaddr) {
             bcmx_mcast_addr_t_init(mcaddr, mac, vid);
