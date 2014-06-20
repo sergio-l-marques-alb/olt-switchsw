@@ -7295,6 +7295,11 @@ _bcm_vlan_port_learn_set(int unit, bcm_gport_t vlan_port_id, uint32 flags)
   int vp, cml = 0, rv = BCM_E_NONE;
   source_vp_entry_t svp;
 
+  if (!VLAN_VIRTUAL_INFO(unit)->vlan_virtual_initialized)
+  {
+    return L7_FAILURE;
+  }
+
   cml = 0;
   if (!(flags & BCM_PORT_LEARN_FWD)) {
      cml |= (1 << 0);
