@@ -3933,7 +3933,7 @@ diff -rpN --unified=5 sdk-xgs-robo-6.3.4/make/makerules.pkg.vendor esw_sdk_6.3.4
 +#
 +
 +$(SDK_BUILD_FILE):
-+	@echo "========================= THIS IS SDK 6.3.7 ========================="
++	@echo "============================== THIS IS SDK 6.3.7 =============================="
 +	@echo "Building vendor SDK" $(HUSH)
 +	+$(DBG)[ -d $(FP_BASE)/$(out_vend_sdk) ] || mkdir -p $(FP_BASE)/$(out_vend_sdk)
 +	+$(DBG)[ -d $(FP_BASE)/$(OUT_TARGET) ] || mkdir -p $(FP_BASE)/$(OUT_TARGET)

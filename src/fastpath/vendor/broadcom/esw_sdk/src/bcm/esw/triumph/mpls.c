@@ -14005,7 +14005,7 @@ int
 bcm_tr_mpls_tunnel_switch_add(int unit, bcm_mpls_tunnel_switch_t *info)
 {
     mpls_entry_entry_t ment;
-    int mode=0, nh_index = -1, vrf, rv, num_pw_term, old_pw_cnt = -1, pw_cnt = -1;
+    int mode=0, nh_index = -1, vrf=-1, rv, num_pw_term, old_pw_cnt = -1, pw_cnt = -1;
     int index, action = -1, old_nh_index = -1, old_ecmp_index = -1;
     int  tunnel_switch_update=0;
     uint32 mpath_flag=0;
