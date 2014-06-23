@@ -1131,6 +1131,8 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
   PTIN_MGMD_PORT_MASK_t     portList;
   uchar8                    portId;
   ptin_mgmd_externalapi_t   externalApi; 
+  ptin_mgmd_cb_t           *pMgmdCB;
+  ptin_IgmpProxyCfg_t       igmpCfg;
 
   /* Argument validation */
   if (groupPtr == PTIN_NULLPTR || newNoOfRecords==PTIN_NULLPTR || noOfRecords==0 || (interfacePtr=groupPtr->interfacePtr)==PTIN_NULLPTR)
@@ -1142,6 +1144,19 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
   if(SUCCESS != ptin_mgmd_externalapi_get(&externalApi))
   {
     PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Unable to get external API");
+    return PTIN_NULLPTR;
+  }
+
+ if (ptin_mgmd_igmp_proxy_config_get(&igmpCfg) != SUCCESS)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting MGMD Proxy configurations");
+    return PTIN_NULLPTR;
+  }
+
+  /* Get Mgmd Control Block */
+  if ((pMgmdCB = mgmdCBGet(PTIN_MGMD_AF_INET)) == PTIN_NULLPTR)
+  {
+    PTIN_MGMD_LOG_ERR(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Error getting pMgmdCB");
     return PTIN_NULLPTR;
   }
 
@@ -1158,24 +1173,26 @@ static mgmdGroupRecord_t* snoopPTinGroupRecordIncrementTransmissions(uint32 noOf
 
     groupPtrAux2=groupPtrAux->nextGroupRecord;
 
-//This eventually needs to be moved to where the packet is been constructed
-    /*Increment IGMPv3 Stats*/
-    for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
+    /*Increment IGMPv3 Stats only if we are configured for IGMPv3 and the compatibility mode is on IGMPv3*/
+    if(igmpCfg.networkVersion == PTIN_IGMP_VERSION_3 && pMgmdCB->proxyCM[groupPtrAux->key.serviceId].compatibilityMode == PTIN_IGMP_VERSION_3)
     {
-      if (ptin_mgmd_loop_trace) 
-        PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
+      for (portId = 1; portId <= PTIN_MGMD_MAX_PORT_ID; portId++)
+      {
+        if (ptin_mgmd_loop_trace) 
+          PTIN_MGMD_LOG_TRACE(PTIN_MGMD_LOG_CTX_PTIN_IGMP, "Iterating over portId:%u | PTIN_MGMD_MAX_PORT_ID:%u",portId, PTIN_MGMD_MAX_PORT_ID);  
 
-      //Move forward 8 bits if this byte is 0 (no ports)
-      if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
-      {
-        portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
-        continue;
-      }      
-             
-      if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
-      {
-        ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
-      }      
+        //Move forward 8 bits if this byte is 0 (no ports)
+        if( !(PTIN_MGMD_PORT_IS_MASKBYTESET(portList.value,portId)) )
+        {
+          portId += PTIN_MGMD_PORT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+          continue;
+        }      
+               
+        if (PTIN_MGMD_PORT_IS_MASKBITSET(portList.value,portId))
+        {
+          ptin_mgmd_stat_increment_field(portId, groupPtrAux->key.serviceId, (uint32)-1, ptinMgmdRecordType2IGMPStatField(groupPtrAux->recordType,SNOOP_STAT_FIELD_TX));          
+        }      
+      }
     }
     /*End Stats*/
   
