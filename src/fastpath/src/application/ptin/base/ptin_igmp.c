@@ -25,6 +25,7 @@
 #include "ptin_mgmd_eventqueue.h"
 #include "ptin_mgmd_ctrl.h"
 #include "ptin_cnfgr.h"
+#include "ptin_fpga_api.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -9572,6 +9573,14 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
 
   for(clientId=0; clientId<(sizeof(clientInfo->client_bmp_list)*8); ++clientId)
   {
+    /*Check if this position on the Client Array is Empty*/
+    if(clientInfo->client_bmp_list[clientId] == 0)
+    {
+      //Next Position on the Array of Clients -1 since the for adds 1 unit.
+      clientId += (sizeof(clientInfo->client_bmp_list[clientId]) * 8) - 1;      
+      continue;
+    }
+
     if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
     {
       /* Request client statistics to MGMD */
