@@ -132,7 +132,7 @@ void help_oltBuga(void)
         "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
         "--- IP Source Guard ------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
-        "m 1701 eEvcId[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] addOrRemove[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
+        "m 1701 idType[1-eEVCId; 2-rootVLAN] iD[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] addOrRemove[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
         "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1810 type[0-uplink,1-loopback] routingIntf[2-Rtr]/[intf#] physicalIntf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
         "m 1811 intf[2-Rtr]/[intf#] - Remove routing interface\r\n"
@@ -4860,7 +4860,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
           }
-          ptr->enable = (uint8) valued;
+          ptr->enable = (uint8) (IPSG_ENABLE & valued);
 
           comando.msgId = CCMSG_ETH_IPSG_ENABLE;
           comando.infoDim = sizeof(msg_IPSG_set_t);          
@@ -4873,7 +4873,7 @@ int main (int argc, char *argv[])
           int                      intf;
 
           // Validate number of arguments
-          if (argc<3+5)  {
+          if (argc<3+6)  {
             help_oltBuga();
             exit(0);
           }
@@ -4882,15 +4882,22 @@ int main (int argc, char *argv[])
           ptr = (msg_IPSG_static_entry_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_IPSG_static_entry_t));
 
-         // Extended EVC Id
+          // IdType: idType=1 [evcId]; idType=2 [rootVlan]
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_idx = (uint32) valued;
+          ptr->idType = (uint8) (IPSG_ID_ALL & valued);
+
+         // Id
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->id = (uint32) valued;
 
           // Ptin Port
-          if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
+          if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
@@ -4899,14 +4906,14 @@ int main (int argc, char *argv[])
           ptr->intf.intf_id   = (uint8) intf;
 
           // MAC address
-          if (StrToLongLong(argv[3+2],&valued)<0)  {
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }          
           memcpy(ptr->macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           /* IPv4 Address */          
-          if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+4],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
@@ -4914,11 +4921,11 @@ int main (int argc, char *argv[])
           ptr->ipAddr.family = PTIN_AF_INET;
          
           // Static Entry Action: 0 -Remove | 1 - Add           
-          if (StrToLongLong(argv[3+4],&valued)<0)  {
+          if (StrToLongLong(argv[3+5],&valued)<0)  {
               help_oltBuga();
               exit(0);
           }
-          ptr->action = (uint8) valued;
+          ptr->action = (uint8) (valued & IPSG_ACTION_ADD);
 
           comando.msgId = CCMSG_ETH_IPSG_STATIC_ENTRY;
           comando.infoDim = sizeof(msg_IPSG_static_entry_t); 

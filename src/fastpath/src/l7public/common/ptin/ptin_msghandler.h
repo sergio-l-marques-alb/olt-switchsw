@@ -1105,10 +1105,34 @@ typedef struct {
 /***************************************************** 
  * IP Source Guard  configuration messages
  ****************************************************/
+typedef enum
+{
+  IPSG_DISABLE       = 0,
+  IPSG_ENABLE        = 1
+} IPSG_ENABLE_t;
+
+typedef enum
+{  
+  IPSG_ACTION_REMOVE    = 0,
+  IPSG_ACTION_ADD       = 1
+} IPSG_ACTION_t;
+
+typedef enum
+{
+  IPSG_EVC_ID     = 1,
+  IPSG_ROOT_VLAN  = 2,
+  IPSG_ID_ALL     = 3
+} IPSG_ID_TYPE_t;
+
+typedef enum
+{  
+  IPSG_STATIC_BINDING       = 0,
+  IPSG_DYNAMIC_BINDING      = 1
+} IPSG_BINDING_TYPE_t;
 
 /* Message to enable/disable IP Source Guard (IPSG) on a given Interface  */
 typedef struct {  
-  L7_uint8              slotId;           // Slot ID
+  L7_uint8              slotId;           //Slot ID
   msg_HwEthInterface_t  intf;             //Interface   
   L7_uint8              enable;           //1=True | 0=False  
 } __attribute__((packed)) msg_IPSG_set_t;
@@ -1116,9 +1140,10 @@ typedef struct {
 /* Message to add/remove IP Source Guard (IPSG) on a given Interface  */
 typedef struct {
   L7_uint8              slotId;           // Slot ID
-  L7_uint32             evc_idx;          // eEVCid      
+  L7_uint8              idType;           // idType=1 [evcId]; idType=2 [rootVlan]       
+  L7_uint32             id;               // idType=1 [evcId]; idType=2 [rootVlan]         
   msg_HwEthInterface_t  intf;             // Interface
-  L7_uint8              action;           // Remove: 0 | Add: 1
+  L7_uint8              action;           // IPSG_ACTION_t
   L7_uint8              macAddr[6];       // MAC Address  
   chmessage_ip_addr_t   ipAddr;           // IP address  
 } __attribute__((packed)) msg_IPSG_static_entry_t;
