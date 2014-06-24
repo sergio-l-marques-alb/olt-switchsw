@@ -32,12 +32,16 @@
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
 #endif
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 static L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId);
 static L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr);
+#endif
 #if PTIN_BOARD_IS_LINECARD
 static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+#endif
 
 /* Initialization of the external API struct */
 ptin_mgmd_externalapi_t mgmd_external_api = {
@@ -52,7 +56,7 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .tx_packet      = snooping_tx_packet,
 };
 
-
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get active/backup matrix slot id.
  * 
@@ -76,7 +80,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     return L7_FAILURE;
   }
 
-#if PTIN_BOARD_IS_MATRIX  
+#if PTIN_BOARD_IS_MATRIX
   if((matrixType != 1) && (matrixType != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix type [%u]", matrixType);
@@ -103,7 +107,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     *slotId = backupMatrixSlotId;
   }
 #elif PTIN_BOARD_IS_LINECARD
-  *slotId = ((cpld_map->reg.slot_matrix & 1)==0)?(PTIN_SYS_LC_SLOT_MAX+1):(PTIN_SYS_LC_SLOT_MIN-1);
+  *slotId = ((cpld_map->reg.slot_matrix>>4)==0)?(PTIN_SYS_LC_SLOT_MAX+1):(PTIN_SYS_LC_SLOT_MIN-1);
 #endif
 
   return L7_SUCCESS;
@@ -143,17 +147,23 @@ L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr)
     return L7_FAILURE;
   }
 
-  if(matrixSlotId == 1)
+  if(matrixSlotId == (PTIN_SYS_LC_SLOT_MIN-1))
   {
     *ipAddr = IPC_MX_IPADDR_WORKING;
   }
-  else if(matrixSlotId == 20)
+  else if(matrixSlotId == (PTIN_SYS_LC_SLOT_MAX+1))
   {
     *ipAddr = IPC_MX_IPADDR_PROTECTION;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix slot id [matrixSlotId:%u]", ipAddr);
+    return L7_FAILURE;
   }
 
   return L7_SUCCESS;
 }
+#endif
 
 #if PTIN_BOARD_IS_LINECARD
 /**
@@ -199,6 +209,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 se
 }
 #endif
 
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Send CCMSG_MGMD_PORT_SYNC message to a matrix (active or backup) to open/close a port in the MFDB.
  * 
@@ -250,6 +261,7 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
 
   return L7_SUCCESS;
 }
+#endif
 
 unsigned int snooping_igmp_admin_set(unsigned char admin)
 {
