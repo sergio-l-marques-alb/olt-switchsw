@@ -25,6 +25,7 @@
 #include "ptin_mgmd_eventqueue.h"
 #include "ptin_mgmd_ctrl.h"
 #include "ptin_cnfgr.h"
+#include "ptin_fpga_api.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -348,7 +349,7 @@ L7_uint8 igmpClientsIntf[PTIN_SYSTEM_N_INTERF];
 L7_uint8 igmpRoutersIntf[PTIN_SYSTEM_N_INTERF];
 
 /* Global IGMP statistics at interface level */
-ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
+static ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
 /* Lookup tables (invalid entry: 0xFF - IGMP_INVALID_ENTRY)
  * IMPORTANT:
@@ -11207,11 +11208,19 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
    * PortId is a slot in the matrix context. We need to convert it first, but only if this is the active matrix.
    * The backup matrix only receives sync requests from the active matrix. Hence, the ports are already converted.
    */
-  if(cpld_map->reg.mx_is_active == 1)
+  if(ptin_fgpa_mx_is_active() == 1)
   {
     slotId = portId;
-    ptin_intf_slot2lagIdx(slotId, &lagId);
-    ptin_intf_lag2intIfNum(lagId, &portId);
+    if(L7_SUCCESS != ptin_intf_slot2lagIdx(slotId, &lagId))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get lag index from slot ID [slotId:%u]", slotId);
+      return L7_FAILURE;
+    }
+    if(L7_SUCCESS != ptin_intf_lag2intIfNum(lagId, &portId))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get intfnum from lag index [lagId:%u]", lagId);
+      return L7_FAILURE;
+    }
   }
 #endif
 
@@ -11229,7 +11238,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unknown admin value %u", admin);
     return L7_FAILURE;
   }
 
