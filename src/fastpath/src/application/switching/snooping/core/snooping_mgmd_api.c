@@ -26,8 +26,7 @@
 #include "ptin_intf.h"
 #include "ptin_cnfgr.h"
 #include "ptin_mgmd_inet_defs.h"
-
-#define PTIN_SNOOPING_MGMD_MATRIX_ACTIVE
+#include "ptin_fpga_api.h"
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -88,7 +87,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     return L7_FAILURE;
   }
 
-  if(cpld_map->reg.mx_is_active == 1)
+  if(ptin_fgpa_mx_is_active())
   {
     activeMatrixSlotId = (cpld_map->reg.slot_id==0)?(PTIN_SYS_LC_SLOT_MIN-1):(PTIN_SYS_LC_SLOT_MAX+1);
     backupMatrixSlotId = (PTIN_SYS_SLOTS_MAX+1) - activeMatrixSlotId;
@@ -470,7 +469,7 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
   {
 #if PTIN_BOARD_IS_MATRIX
     /* Sync the status of this switch port on the backup backup matrix, if it exists */
-    if(cpld_map->reg.mx_is_active == 1)
+    if(ptin_fgpa_mx_is_active())
     {
       __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
     }
@@ -544,7 +543,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
 
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
-  if(cpld_map->reg.mx_is_active == 1)
+  if(ptin_fgpa_mx_is_active())
   {
     __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, portId, groupAddr, sourceAddr, L7_FALSE);
   }
@@ -582,7 +581,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
 #if PTIN_BOARD_IS_MATRIX
   /* Do nothing for slave matrix */
-  if (!cpld_map->reg.mx_is_active)
+  if (!ptin_fgpa_mx_is_active())
   {
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
@@ -606,6 +605,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   //Ignore if the port has link down
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [portId=%u serviceId=%u] is down!",portId,serviceId );    
     return SUCCESS;
   }
 
@@ -876,7 +877,7 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
 
   L7_uint32                ipAddr;
   
-  if(!cpld_map->reg.mx_is_active)//I'm Protection
+  if(!ptin_fgpa_mx_is_active())//I'm Protection
   { 
     LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. I'm a protection Matrix!");
     return L7_SUCCESS;
