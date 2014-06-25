@@ -6124,7 +6124,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
  */
 L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
-  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};
   L7_uint16 i;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -6143,9 +6143,17 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-
+#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP=%u.%u.%u.%u",
+              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
+#endif
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
+#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
+    staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
+#else
+    staticGroup.sourceIp  = 0x00;
+#endif
 
     if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
@@ -6186,7 +6194,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
  */
 L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
-  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};
   L7_uint16 i;
   L7_RC_t rc;
   L7_RC_t rc_global = L7_SUCCESS;
@@ -6204,10 +6212,17 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-
+#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP=%u.%u.%u.%u",
+              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
+#endif
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
-
+#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
+    staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
+#else
+    staticGroup.sourceIp  = 0x00;
+#endif
     if ((rc = ptin_igmp_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
