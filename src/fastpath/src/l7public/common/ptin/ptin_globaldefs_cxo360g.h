@@ -1,6 +1,12 @@
 #ifndef _PTIN_GLOBALDEFS_CXO360G_H
 #define _PTIN_GLOBALDEFS_CXO360G_H
 
+/* SDK version */
+#define SDK_MAJOR_VERSION   6
+#define SDK_MINOR_VERSION   3
+#define SDK_REVISION_ID     4
+#define SDK_PATCH_ID        0
+
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
 #define __Y1731_802_1ag_OAM_ETH__

@@ -1,6 +1,12 @@
 #ifndef _PTIN_GLOBALDEFS_TOLT8G_H
 #define _PTIN_GLOBALDEFS_TOLT8G_H
 
+/* SDK version */
+#define SDK_MAJOR_VERSION   6
+#define SDK_MINOR_VERSION   3
+#define SDK_REVISION_ID     4
+#define SDK_PATCH_ID        0
+
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC

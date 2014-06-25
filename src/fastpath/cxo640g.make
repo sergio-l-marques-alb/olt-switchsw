@@ -41,6 +41,9 @@ export CROSS_COMPILE:= $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
+export SDK_LINK := vendor/broadcom
+export SDK_PATH := ../../../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
+
 export FP_CLI_PATH   := ../fastpath.cli
 export FP_SHELL_PATH := ../fastpath.shell
 
@@ -49,7 +52,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
-all: welcome mgmdconfig cli_clean shell_clean cli shell
+all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@if [ -f $(TMP_FILE) ]; then\
 		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
@@ -70,6 +73,10 @@ all: welcome mgmdconfig cli_clean shell_clean cli shell
 	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
 	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
+
+setsdk:
+	rm -f $(SDK_LINK)
+	ln -s $(SDK_PATH) $(SDK_LINK)
 
 mgmdconfig:
 	@if [ ! -d src/application/switching/mgmd ]; then\
@@ -128,10 +135,10 @@ cli_clean:
 shell_clean:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-cxo640g.make clean
 
-clean cleanall: welcome cli_clean shell_clean
+clean cleanall: welcome setsdk cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching clean-routing clean-base:
+clean-ptin clean-switching clean-routing clean-base: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
