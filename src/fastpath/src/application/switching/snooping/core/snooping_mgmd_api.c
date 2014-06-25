@@ -421,12 +421,12 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-  return L7_FALSE;
+  return L7_TRUE;
 }
 
 unsigned int snooping_client_resources_free(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-  return L7_FALSE;
+  return L7_TRUE;
 }
 
 unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic)
