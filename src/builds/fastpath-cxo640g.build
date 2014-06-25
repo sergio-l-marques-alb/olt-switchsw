@@ -3,6 +3,13 @@
 export MODULE=fastpath-cxo640g
 export PLATFORMS="CXO640G-MX"
 
-export APPLICATION=fastpath
+export APPLICATION=fp
+
+echo "Compiling fastpath for CXO640G..."
+make -C ../fastpath -f cxo640g.make
+echo "Copying binaries to apps..."
+make -C ../fastpath -f cxo640g.make install
+echo "Done... Going to prepare tarball."
+echo
 
 . ./fastpath.build $1

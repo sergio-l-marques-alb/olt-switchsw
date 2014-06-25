@@ -3,7 +3,7 @@
 export MODULE=fastpath-cxo160g
 export PLATFORM=CXO160G
 
-export APPLICATION=fastpath
+export APPLICATION=fp
 
 echo "Compiling CXO160G..."
 make -C ../fastpath -f cxo160g.make

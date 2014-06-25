@@ -3,7 +3,7 @@
 export MODULE=fastpath-olt1t0
 export PLATFORM=OLT1T0
 
-export APPLICATION=fastpath
+export APPLICATION=fp
 
 echo "Compiling OLT1T0..."
 make -C ../fastpath -f olt1t0.make

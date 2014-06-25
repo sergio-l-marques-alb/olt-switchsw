@@ -3,6 +3,13 @@
 export MODULE=fastpath-tg16g
 export PLATFORMS="TG16G"
 
-export APPLICATION=fastpath
+export APPLICATION=fp
+
+echo "Compiling fastpath for TG16G..."
+make -C ../fastpath -f tg16g.make
+echo "Copying binaries to apps..."
+make -C ../fastpath -f tg16g.make install
+echo "Done... Going to prepare tarball."
+echo
 
 . ./fastpath.build $1
