@@ -1219,8 +1219,9 @@ typedef struct _msg_MCAssocChannel_t
 typedef struct _msg_MCStaticChannel_t
 {
   L7_uint8  SlotId;                    // slot
-  L7_uint32 evc_id;                    // index: EVCid    /* XXX */
-  msg_in_addr_t channelIp;             // IP do canal a adicionar
+  L7_uint32 evc_id;                    // index: EVCid      /* L7_uint32 */
+  msg_in_addr_t channelIp;             // IP of the Multicast Group
+  msg_in_addr_t sourceIp;             //  IP of the Multicast Source
 } __attribute__((packed)) msg_MCStaticChannel_t;
 
 /* To List all channels */

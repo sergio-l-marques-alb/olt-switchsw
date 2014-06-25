@@ -93,8 +93,8 @@ void help_oltBuga(void)
 //      "m 1412 vlan1[2-4093] vlan2 ... - IGMP snooping querier: remove vlans\r\n"*/
         "m 1420 evc_id[1-127] page_idx[0..] intf[0-Phy,1-Lag]/[intf#] svid[1-4095] cvid[1-4095/0]  - List active channels for a particular EVC and client\r\n"
         "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
-        "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
-        "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
+        "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
+        "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
         "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
         "m 1501 lag_index[0-17] static_mode[0/1] load_balance[0..6] port_bmp[XXXXXh] - Create LAG\r\n"
         "m 1502 lag_index[0-17] - Destroy LAG\r\n"
@@ -2912,7 +2912,7 @@ int main (int argc, char *argv[])
           msg_MCStaticChannel_t *ptr;
 
           // Validate number of arguments
-          if (argc<3+2)  {
+          if (argc<3+3)  {
             help_oltBuga();
             exit(0);
           }
@@ -2936,6 +2936,12 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->channelIp.s_addr = valued;
+
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sourceIp.s_addr = valued;
 
           comando.msgId = CCMSG_ETH_IGMP_STATIC_GROUP_ADD;
           comando.infoDim = sizeof(msg_MCStaticChannel_t);
@@ -2971,6 +2977,12 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->channelIp.s_addr = valued;
+
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->sourceIp.s_addr = valued;
 
           comando.msgId = CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE;
           comando.infoDim = sizeof(msg_MCStaticChannel_t);
@@ -4231,7 +4243,7 @@ int main (int argc, char *argv[])
           msg_HwEthEvcFlow_t *ptr;
 
           // Validate number of arguments
-          if (argc<3+5)  {
+          if (argc<3+6)  {
             help_oltBuga();
             exit(0);
           }
