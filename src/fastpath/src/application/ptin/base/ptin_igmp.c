@@ -184,6 +184,8 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint32                 client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                queue_clientDevices;
   ptin_IGMP_Statistics_t    stats_client;
+  L7_uint32                 maxAllowedChannels;   /* Maximum number of channels allowed for this client */
+  L7_uint32                 maxAllowedBandwidth;  /* Maximum bandwidth allowed for this client */
   void *next;
 } ptinIgmpClientGroupInfoData_t;
 
@@ -1907,10 +1909,12 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * @param client      : client identification parameters 
  * @param uni_ovid    : External Outer vlan 
  * @param uni_ivid    : External Inner vlan 
+ * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
+ * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable. 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid)
+L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum;
@@ -1949,7 +1953,7 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
   }
 
   /* Create new static client */
-  rc = ptin_igmp_clientGroup_add(client, uni_ovid, uni_ivid);
+  rc = ptin_igmp_clientGroup_add(client, uni_ovid, uni_ivid, maxBandwidth, maxChannels);
 
   if (rc!=L7_SUCCESS)
   {
@@ -3096,14 +3100,16 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
 /**
  * Add a new Multicast client group
  * 
- * @param client      : client group identification parameters 
- * @param intVid      : Internal vlan
- * @param uni_ovid    : External Outer vlan 
- * @param uni_ivid    : External Inner vlan 
+ * @param client       : client group identification parameters 
+ * @param intVid       : Internal vlan
+ * @param uni_ovid     : External Outer vlan 
+ * @param uni_ivid     : External Inner vlan 
+ * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
+ * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid)
+L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels)
 {
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientGroupAvlTree_t *avl_tree;
@@ -3310,7 +3316,6 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     avl_infoData->uni_ovid = uni_ovid;
     avl_infoData->uni_ivid = uni_ivid;
 
-
     /* Clear list of device clients */
     avl_infoData->ptin_port = ptin_port;
     memset(avl_infoData->client_bmp_list, 0x00, sizeof(avl_infoData->client_bmp_list));
@@ -3322,6 +3327,10 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
     memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
     osapiSemaGive(ptin_igmp_stats_sem);
+
+    /* Save IGMP client bandwidth/channel restrictions */
+    avl_infoData->maxAllowedBandwidth = uni_ovid;
+    avl_infoData->maxAllowedChannels = uni_ivid;
 
     /* Update global data (one more group of clients) */
     igmpClientGroups.number_of_clients++;

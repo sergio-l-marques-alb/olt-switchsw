@@ -5286,7 +5286,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0);
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, (L7_uint32)-1, (L7_uint32)-1);
 
     if (rc!=L7_SUCCESS)
     {
