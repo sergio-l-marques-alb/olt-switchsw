@@ -79,7 +79,7 @@ static L7_RC_t hapi_ptin_portMap_init(void);
 
 L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
-L7_RC_t ptin_hapi_kr4_set(L7_int port);
+L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
 
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
@@ -186,8 +186,10 @@ L7_RC_t ptin_hapi_phy_init(void)
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  /* SF boards */
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   int i, rv;
+  bcm_port_t bcm_port;
   L7_uint32 preemphasis;
 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
@@ -206,70 +208,103 @@ L7_RC_t ptin_hapi_phy_init(void)
     return L7_FAILURE;
   }
 
+  /* Run all ports */
   for (i=1; i<=ptin_sys_number_of_ports; i++)
   {
-    /* 10G ports: disable linkscan */
-    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    /* For backplane ports of OLT1T1, change firmware mode to 2 */
+    if (hapiWCMapPtr[i-1].slotNum >= 0)
     {
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-      if (bcm_port_phy_control_set(0, i, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
+      if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to bcm_port %u", i);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
         rc = L7_FAILURE;
         break;
       }
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to bcm_port %u", i);
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
     #endif
+    }
 
+    /* 10G ports: disable linkscan */
+    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
+    {
       /* Use these settings for all slots */
       preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
       
-      rv = soc_phyctrl_control_set(0, i, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
+      rv = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
 
       if (!SOC_SUCCESS(rv))
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u", preemphasis, i);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u (bcm_port %u)", preemphasis, i, bcm_port);
         rc = L7_FAILURE;
         break;
       }
 
       #ifdef PTIN_LINKSCAN_CONTROL
       /* Enable linkscan */
-      if (ptin_hapi_linkscan_execute(i, L7_DISABLE) != L7_SUCCESS)
+      if (ptin_hapi_linkscan_execute(bcm_port, L7_DISABLE) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for port %u", i);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling linkscan for port %u (bcm_port %u)", i, bcm_port);
         rc = L7_FAILURE;
         break;
       }
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Linkscan disabled for port %u", i);
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Linkscan disabled for port %u (bcm_port %u)", i, bcm_port);
       #endif
     }
     /* Init 40G ports at KR4 mode */
     else if (hapiWCMapPtr[i-1].wcSpeedG == 40)
     {
-      if (ptin_hapi_kr4_set(i-1)!=L7_SUCCESS)
+      if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u in KR4", i);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
         rc = L7_FAILURE;
         continue;
       }
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
     }
   }
 
+  /* TA48GE */
   #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
   int i;
+  bcm_port_t bcm_port;
+
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
-    if (ptin_hapi_kr4_set(i)!=L7_SUCCESS)
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u in KR4", i);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    /* Firmware mode 2 for Triumph3 switch */
+    if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+      break;
+    }
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
+
+    if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
       rc = L7_FAILURE;
       continue;
     }
 
-    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u in KR4", i);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
   }
+
+  /* OLT1T0 */
   #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   bcm_port_t bcm_port;
 
@@ -277,16 +312,16 @@ L7_RC_t ptin_hapi_phy_init(void)
   {
     if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_RX_POLARITY, 1) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error inverting polarity for bcm_port %d", bcm_port);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error inverting polarity for port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
     }
     else
     {
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Polarity inverted for bcm_port %d", bcm_port);
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Polarity inverted for port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port value for i=%d", ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port value for port %d", ptin_sys_number_of_ports-1);
   }
   #endif
 
@@ -3537,15 +3572,10 @@ void teste(L7_int port)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_kr4_set(L7_int port)
+L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
 {
-  bcm_port_t bcm_port;
   bcm_error_t rc = BCM_E_NONE;
   bcm_port_ability_t port_ability, local_ability;
-
-  /* Get bcm_port format */
-  if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE)
-    return L7_FAILURE;
 
   /* Disable port */
   rc = bcm_port_enable_set(0, bcm_port, 0);
