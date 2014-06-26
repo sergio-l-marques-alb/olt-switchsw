@@ -218,8 +218,8 @@ L7_RC_t ptin_hapi_phy_init(void)
       continue;
     }
 
-    /* For backplane ports of OLT1T1, change firmware mode to 2 */
-    if (hapiWCMapPtr[i-1].slotNum >= 0)
+    /* 10G ports: disable linkscan */
+    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
     {
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
       if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
@@ -230,11 +230,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       }
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
     #endif
-    }
 
-    /* 10G ports: disable linkscan */
-    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
-    {
       /* Use these settings for all slots */
       preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
       
@@ -285,6 +281,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       continue;
     }
 
+    #if 0
     /* Firmware mode 2 for Triumph3 switch */
     if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
     {
@@ -293,6 +290,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       break;
     }
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
+    #endif
 
     if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
     {
@@ -3580,22 +3578,34 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
   /* Disable port */
   rc = bcm_port_enable_set(0, bcm_port, 0);
   if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
     return L7_FAILURE;
+  }
 
   /* Set 40G speed */
   rc = bcm_port_speed_set(0, bcm_port, 40000);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
 
   /* Set Full duplex */
   rc = bcm_port_duplex_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
 
   /* Start of 'special' code: without this, we never get KR4 links! */
   rc = bcm_port_ability_local_get(0, bcm_port, &port_ability);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
 
   memset(&local_ability,0x00,sizeof(local_ability));
 
@@ -3607,20 +3617,34 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
 
   rc = bcm_port_ability_advert_set(0, bcm_port, &local_ability);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
   /* End of 'special' code */
 
   rc = bcm_port_autoneg_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
 
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_KR4);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
 
   rc = bcm_port_enable_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
-      return L7_FAILURE;
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Success initializing bcm_port %u", bcm_port);
 
   return L7_SUCCESS;
 }
