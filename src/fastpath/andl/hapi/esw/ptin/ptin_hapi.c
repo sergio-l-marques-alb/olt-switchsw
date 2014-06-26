@@ -209,7 +209,7 @@ L7_RC_t ptin_hapi_phy_init(void)
   }
 
   /* Run all ports */
-  for (i=1; i<=ptin_sys_number_of_ports; i++)
+  for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     /* Get bcm_port format */
     if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
@@ -219,7 +219,7 @@ L7_RC_t ptin_hapi_phy_init(void)
     }
 
     /* 10G ports: disable linkscan */
-    if (hapiWCMapPtr[i-1].slotNum >= 0 && hapiWCMapPtr[i-1].wcSpeedG == 10)
+    if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
     {
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
       if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
@@ -255,7 +255,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       #endif
     }
     /* Init 40G ports at KR4 mode */
-    else if (hapiWCMapPtr[i-1].wcSpeedG == 40)
+    else if (hapiWCMapPtr[i].wcSpeedG == 40)
     {
       if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
       {
