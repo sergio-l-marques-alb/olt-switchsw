@@ -1974,12 +1974,23 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
         error = L7_TRUE;
       }
-
-      /* Virtual ports: Configure multicast group for the new leaf vlan */
-      if (ptin_vlanBridge_multicast_set(root_vlan, multicast_group)!=L7_SUCCESS)
+      else
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
-        return L7_FAILURE;      
+        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+      }
+
+      if (!error)
+      {
+        /* Virtual ports: Configure multicast group for the new leaf vlan */
+        if (ptin_vlanBridge_multicast_set(root_vlan, multicast_group)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u", evc_id, root_vlan);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u associated to vlan %u", evc_id, multicast_group, root_vlan);
+        }
       }
     }
     #endif
@@ -2205,7 +2216,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
-          return L7_FAILURE;      
+          //return L7_FAILURE;
         }
         LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
 
@@ -2826,7 +2837,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
     if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-      return L7_FAILURE;      
+      return L7_FAILURE;
     }
     LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
 
@@ -3591,7 +3602,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 {
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
-  L7_uint32 intIfNum, intIfNum_vport;
+  L7_uint32 intIfNum;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -3644,6 +3655,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   L7_uint int_ovid;
   L7_int  vport_id, multicast_group;
+  L7_uint32 intIfNum_vport;
+
   struct ptin_evc_client_s *pflow;
 
   /* Get internal vlan and inner NNI vlan */
@@ -9624,12 +9637,14 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
           if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
               (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
           {
+            #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
             if (IS_EVC_QUATTRO(evc_id))
             {
               /* profile->outer_vlan_out is the GEM id related to the flow */
               ptin_evc_find_flow(profile->outer_vlan_out, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **)&pclientFlow);
             }
             else
+            #endif
             {
               ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **)&pclientFlow); 
             }
@@ -10582,6 +10597,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
+    printf("  MC Group  = %u\n",   evcs[evc_id].multicast_group);
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
