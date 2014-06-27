@@ -9310,6 +9310,14 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
+#if !(PTIN_QUATTRO_FLOWS_FEATURE_ENABLED)
+  if (evcConf->flags & PTIN_EVC_MASK_QUATTRO)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"eEVC %u: QUATTRO EVCs are not allowed for this board!",evcConf->index);
+    return L7_FAILURE;
+  }
+#endif
+
   /* Number of interfaces */
   if (evcConf->n_intf==0 || evcConf->n_intf>=PTIN_SYSTEM_N_PORTS_AND_LAGS)
   {
