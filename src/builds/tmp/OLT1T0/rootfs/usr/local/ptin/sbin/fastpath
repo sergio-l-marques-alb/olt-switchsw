@@ -62,16 +62,16 @@ wait4cxp()
     do
         #reg=`$db $cpld_gpr 1 | awk '{print $2}'`
         reg=`$fp_status`
-        
-        if [ $reg == "1" ]; then
+
+        if [ $reg == "0" ]; then
+            sleep 1;
+        elif [ $reg == "1" ]; then
             echo "Sleeping 10 seconds before FP launch..."
             sleep 10
             echo "Hardware is configured! Launching Fastpath..."
 	    break;
-        elif [ $reg == "2" ]; then
+        else
 	    break;
-	else
-	    sleep 1;
 	fi
     done
 }
