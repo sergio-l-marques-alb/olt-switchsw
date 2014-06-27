@@ -54,6 +54,7 @@ typedef enum {
     LOG_CTX_OAM,
     LOG_CTX_ERPS,
     LOG_CTX_IPSG,
+    LOG_CTX_SDK,
     LOG_CTX_STARTUP,    
     /* Last element */
     LOG_CONTEXT_LAST,
