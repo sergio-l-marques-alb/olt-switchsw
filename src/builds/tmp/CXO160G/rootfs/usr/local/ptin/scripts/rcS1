@@ -1,0 +1,19 @@
+FASTPATH_TAR=/fastpath-cxo160g.rootfs.tgz
+
+if [ -f $FASTPATH_TAR ]; then
+ echo "Decompressing $FASTPATH_TAR"
+ cd /
+ tar xzvf $FASTPATH_TAR
+ cd -
+ echo "Done."
+ sync
+ echo "Deleting $FASTPATH_TAR file..."
+ rm -f $FASTPATH_TAR
+ echo "Done."
+ sync
+fi
+
+echo "Switch: fastpath"
+/usr/local/ptin/sbin/fastpath boot &
+echo "Switch: done!"
+
