@@ -4,7 +4,7 @@
 /* SDK version */
 #define SDK_MAJOR_VERSION   6
 #define SDK_MINOR_VERSION   3
-#define SDK_REVISION_ID     4
+#define SDK_REVISION_ID     7
 #define SDK_PATCH_ID        0
 
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */

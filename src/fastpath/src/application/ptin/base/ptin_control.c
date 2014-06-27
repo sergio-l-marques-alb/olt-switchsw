@@ -154,14 +154,12 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 #endif
 
-  #if 0
   /* Default EVCs */
   if (ptin_evc_startup() != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create default EVCs!");
     PTIN_CRASH();
   }
-  #endif
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(PTIN_LOOP_TICK, &ptin_loop_handle) != L7_SUCCESS)
