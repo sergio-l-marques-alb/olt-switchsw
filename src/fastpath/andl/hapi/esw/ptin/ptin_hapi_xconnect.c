@@ -1552,6 +1552,7 @@ void ptin_maclimit_dump(void)
   }
 
   printf("\n");
+  fflush(stdout);
 }
 
 #endif

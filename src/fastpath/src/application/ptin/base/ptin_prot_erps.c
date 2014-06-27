@@ -1070,6 +1070,8 @@ int ptin_erps_dump(L7_uint8 erps_idx)
     ptin_erps_rd_entry(erps_idx);
   }
 
+  fflush(stdout);
+
   return(ret);
 }
 

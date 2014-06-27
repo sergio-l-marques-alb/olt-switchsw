@@ -1098,6 +1098,8 @@ L7_RC_t ptin_intf_boardtype_dump(void)
   printf("Not supported!\r\n");
   #endif
 
+  fflush(stdout);
+
   return L7_SUCCESS;
 }
 

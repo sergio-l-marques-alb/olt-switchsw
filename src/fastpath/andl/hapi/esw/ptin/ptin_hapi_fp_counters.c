@@ -910,5 +910,6 @@ void ptin_fpcounters_dump_debug(void)
       }
     }
   }
+  fflush(stdout);
 }
 

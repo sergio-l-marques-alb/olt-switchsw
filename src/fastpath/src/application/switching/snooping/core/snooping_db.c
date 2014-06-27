@@ -3294,6 +3294,8 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
     /* Next entry */
     i_client++;
   }
+
+  fflush(stdout);
 }
 
 /**
@@ -3352,6 +3354,8 @@ void ptin_igmp_mfdb_dump(void)
     printf("\r\n");
     i++;
   }
+
+  fflush(stdout);
 }
 
 #endif

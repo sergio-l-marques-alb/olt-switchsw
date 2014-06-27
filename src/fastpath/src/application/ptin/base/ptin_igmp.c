@@ -11602,6 +11602,8 @@ void ptin_igmp_dump(void)
   printf("Clients are not associated to IGMP instances any more!!!\r\n");
 
   osapiSemaGive(ptin_igmp_clients_sem);
+
+  fflush(stdout);
 }
 
 /**
@@ -11682,9 +11684,10 @@ void ptin_igmp_groupclients_dump(void)
     i_client++;
   }
 
-  printf("Done!\n");
-
   osapiSemaGive(ptin_igmp_clients_sem);
+
+  printf("Done!\n");
+  fflush(stdout);
 }
 
 
@@ -12013,9 +12016,10 @@ void ptin_igmp_clients_dump(void)
     i_client++;
   }
 
-  printf("Done!\n");
-
   osapiSemaGive(ptin_igmp_clients_sem);
+
+  printf("Done!\n");
+  fflush(stdout);
 }
 
 /**
@@ -12098,6 +12102,8 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
 #else
   printf("IGMP Multi-MC not supported on this version\r\n");
 #endif
+
+  fflush(stdout);
 }
 
 /**
@@ -12138,6 +12144,8 @@ void ptin_igmp_proxy_dump(void)
   printf(" Maximum Records per Report     = %u\r\n",     igmpProxyCfg.host.max_records_per_report);
 
   printf("Done!\r\n");
+
+  fflush(stdout);
 }
 
 /**
@@ -12266,5 +12274,7 @@ void ptin_igmp_querier_dump(L7_int evc_idx)
   }
 
   printf("Done!\r\n");
+
+  fflush(stdout);
 }
 

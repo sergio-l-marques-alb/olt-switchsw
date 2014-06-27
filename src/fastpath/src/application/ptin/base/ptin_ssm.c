@@ -1089,6 +1089,8 @@ void ssm_debug_dump(void)
     }
     printf("}\r\n");
   }
+
+  fflush(stdout);
 }
 
 void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32 ssm_tx, L7_uint32 link)

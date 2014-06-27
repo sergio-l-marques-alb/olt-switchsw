@@ -763,5 +763,6 @@ void ptin_bwpolicer_dump_debug(void)
       printf("  group=%d, entry=%d, policer_id, counter_id=%d=%d\r\n",group_id,entry_id,policer_id,counter_id);
     }
   }
+  fflush(stdout);
 }
 

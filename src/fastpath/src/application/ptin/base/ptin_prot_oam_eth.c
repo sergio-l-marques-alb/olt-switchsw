@@ -88,6 +88,8 @@ L7_uint32 s, p;
      for (p=0; p<PTIN_SYS_INTFS_PER_SLOT_MAX; p++)
          if (uplinkprot_traps[s][p].active)
              printf("slot=%u\tport=%u\tvid=%llu\talarm=%x\n\r", s, p, uplinkprot_traps[s][p].vid, uplinkprot_traps[s][p].a);
+
+  fflush(stdout);
 }
 
 

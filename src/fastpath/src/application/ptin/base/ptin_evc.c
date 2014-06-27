@@ -3561,6 +3561,8 @@ int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry)
      break;
   }//switch
 
+  fflush(stdout);
+
   return 0;
 }//IfN_vp_DB
 
@@ -10714,6 +10716,8 @@ void ptin_evc_which(L7_uint int_vlan)
 
   printf("Internal vlan %u => EVC %u\r\n\n",int_vlan,evc_id);
 
+  fflush(stdout);
+
   /* Dump EVC */
   ptin_evc_dump(evcs[evc_id].extended_id);
 }
@@ -10742,7 +10746,7 @@ void ptin_evc_map(void)
 
   printf("+---------+---------+\n");
 
-  return;
+  fflush(stdout);
 }
 
 

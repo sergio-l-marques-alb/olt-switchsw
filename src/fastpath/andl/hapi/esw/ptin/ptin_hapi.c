@@ -3300,6 +3300,7 @@ void ptin_stormcontrol_dump_debug(void)
     }
   }
   printf("Done!\r\n");
+  fflush(stdout);
 }
 
 L7_RC_t hapi_ptin_stormControl_test(L7_uint enable, L7_uint32 flags, L7_uint32 rate)

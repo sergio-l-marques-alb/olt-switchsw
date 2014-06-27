@@ -91,6 +91,7 @@ void ptin_debug(void)
   printf("  ptin_evc_dump <id>                                        - prints info about eEVCs (use -1 to display all)\r\n");
   printf("  ptin_evc_map                                              - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                 - prints info about the EVC related to the given internal vlan\r\n");
+  printf("  ptin_maclimit_dump                                        - Dumps MAC limit tables (non empty)\r\n");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC (internal id)\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>        - Clean all profiles and counters of one interface of an EVC (internal id)\r\n");
@@ -156,12 +157,10 @@ void ptin_debug(void)
   printf("  ptin_linkscan_control_global <enable>                     - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
   printf("  ptin_intf_linkscan_control <port> <enable>                - Enable/disable globally linkscan control (only for boards with this feature)\r\n");
   printf("\r\n");
-  printf("  ptin_maclimit_dump                                        - Dumps MAC limit tables (non empty)\r\n");
-  printf("  l7_logf_enable <enable>             - Enable/disable L7_LOGF traces\r\n");
-  printf("\r\n");
   printf("  log_help                                                  - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity>                       - use log_help for more info\r\n");
   printf("  log_color_set <ctx_mask> <color>                          - use log_help for more info\r\n");
+  printf("  l7_logf_enable <enable>             - Enable/disable L7_LOGF traces\r\n");
   printf("\r\n");
   printf("  dump_IfN_vp_DB                                            - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
   printf("  dump_uplinkprot_traps                                     - info about ports/MEPs with uplink protection port traps triggered\r\n");
@@ -225,6 +224,8 @@ void ptin_igmptimer_show(void)
   printf(" Time taken for processing (ms) = %u\r\n",time_delta);
   printf(" Mean time for processing one packet (ms)     = %u\r\n",time_delta/n_packets_er);
   printf(" Mean number of packets processed in 1 second = %u\r\n",(n_packets_er*1000)/time_delta);
+
+  fflush(stdout);
 }
 
 void ptin_timers_clear(void)
@@ -288,6 +289,8 @@ void ptin_timers_show(void)
     delta=ptin_timer_get(i,&str);
     printf(" Timer#%2u: %6u us : %s\r\n",i,delta,str);
   }
+
+  fflush(stdout);
 }
 
 /**
@@ -308,6 +311,8 @@ void ptin_msg_runtime_init(L7_uint msg_id)
 void ptin_msg_runtime_show(void)
 {
   CHMessage_runtime_meter_print();
+
+  fflush(stdout);
 }
 
 /**
@@ -532,7 +537,7 @@ void ptin_intf_dump(void)
   printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------------------------------+-----------------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
 
-  fflsush(stdout);
+  fflush(stdout);
 
   return;
 }

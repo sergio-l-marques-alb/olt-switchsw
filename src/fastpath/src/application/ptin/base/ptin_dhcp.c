@@ -3847,6 +3847,8 @@ void ptin_dhcp_dump(void)
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   printf("Total number of QUATTRO-P2P evcs: %u\r\n", dhcp_quattro_p2p_evcs);
   #endif
+
+  fflush(stdout);
 }
 
 

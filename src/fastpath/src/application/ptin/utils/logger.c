@@ -172,7 +172,8 @@ static struct s_outFile {
 /**
  * Outputs (stdout) help on how to configure logger on-the-fly
  */
-void log_help(void) {
+void log_help(void)
+{
     int i;
 
     printf("Logger help:\n"
@@ -192,6 +193,8 @@ void log_help(void) {
     printf("\nColors list\n");
     for ( i=0; i<LOG_COLOR_LAST; i++ )
         printf("  %02d - %s%s%s\n", i, log_colors[i], log_colors_str[i], log_colors[LOG_COLOR_DEFAULT]);
+
+    fflush(stdout);
 }
 
 /**
