@@ -57,7 +57,7 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "DHCP ",
     "PPPOE",
     "PROTB",
-    "ROUTING",
+    "ROUTI",
     "SSM  ",
     "PKT  ",
     "CNFGR",
@@ -321,7 +321,7 @@ void log_redirect(log_output_t output, char* output_file_path)
     outFile.stream  = temp_stream;
     outFile.lock    = WRITE_UNLOCK;
     fprintf(stdout,"log redirected to \"%s\"\r\n", file_name );
-    LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log redirected to \"%s\"", file_name );
+    //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log redirected to \"%s\"", file_name );
   }
   else
   {
@@ -355,7 +355,7 @@ void log_redirect(log_output_t output, char* output_file_path)
     else
     {
       fprintf(stderr,"Invalid output identifier: %d \r\n", output );
-      LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "Invalid output identifier: %d", output );
+      //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "Invalid output identifier: %d", output );
     }
   }
 }
@@ -383,9 +383,12 @@ int log_sev_set(unsigned int ctx_mask, int sev)
 
         if ( ctx_mask & 1 ) {
             log_cfg[ctx].severity = sev;
-            LOG_INFO(LOG_CTX_LOGGER, "%s severity level set to %s", log_ctx_str[ctx], log_sev_str[sev]);
+            fprintf(stdout,"%s severity level set to %s\r\n", log_ctx_str[ctx], log_sev_str[sev]);
+            //LOG_INFO(LOG_CTX_LOGGER, "%s severity level set to %s", log_ctx_str[ctx], log_sev_str[sev]);
         }
     }
+
+    fflush(stdout);
 
     return 0;
 }
@@ -414,9 +417,12 @@ int log_color_set(unsigned int ctx_mask, int color)
 
         if ( ctx_mask & 1 ) {
             log_cfg[ctx].color = color;
-            LOG_INFO(LOG_CTX_LOGGER, "%s color set to '%s**** COLOR ****%s'", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
+            fprintf(stdout,"%s color set to '%s**** COLOR ****%s'\r\n", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
+            //LOG_INFO(LOG_CTX_LOGGER, "%s color set to '%s**** COLOR ****%s'", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
         }
     }
+
+    fflush(stdout);
 
     return 0;
 }
