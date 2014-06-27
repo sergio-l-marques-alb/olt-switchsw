@@ -5301,21 +5301,21 @@ int cmic_pcie_cdr_bw_adj(int unit, uint16 phy_addr)
 
     if ((rc=soc_miim_write(unit, phy_addr, 0x1f, 0x8630)) != SOC_E_NONE)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x1f via MIIM: error %d", unit, phy_addr, rc);
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x1f via MIIM: error %d", unit, phy_addr, rc);
     }
     else if ((rc=soc_miim_write(unit, phy_addr, 0x13, 0x190)) != SOC_E_NONE)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x13 via MIIM: error %d", unit, phy_addr, rc);
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x13 via MIIM: error %d", unit, phy_addr, rc);
     }
     else if ((rc=soc_miim_write(unit, phy_addr, 0x19, 0x191)) != SOC_E_NONE)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x19 via MIIM: error %d", unit, phy_addr, rc);
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x19 via MIIM: error %d", unit, phy_addr, rc);
     }
 
     /* Success */
     if (rc == SOC_E_NONE)
     {
-      LOG_NOTICE(LOG_CTX_STARTUP, "Success updating MIIM registers for PCIe bw adjustment");
+      LOG_NOTICE(LOG_CTX_SDK, "Success updating MIIM registers for PCIe bw adjustment");
     }
 #endif
 
