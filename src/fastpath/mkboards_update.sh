@@ -48,8 +48,8 @@ if [ $# -eq 4 ]; then
 	echo -n "Generating image for version $3..."
 
 	if [ $BOARD == "tg16g" ]; then
-		cd $MKBOARDS/CXO640G-MX/
-		sudo ./build_ramdisk_CXO640G-MX.sh $IMAGE_VERSION > /dev/null 2>&1
+		cd $MKBOARDS/TG16G/
+		sudo ./build_ramdisk_TG16G.sh $IMAGE_VERSION > /dev/null 2>&1
 		echo "OK!"
 	fi
 
