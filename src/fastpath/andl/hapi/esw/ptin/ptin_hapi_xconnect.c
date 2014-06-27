@@ -632,6 +632,8 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   if (virtual_gport != L7_NULLPTR)
     *virtual_gport = vlan_port.vlan_port_id;
 
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_create: vport 0x%x created", vlan_port.vlan_port_id);
+
   return L7_SUCCESS;
 }
 
@@ -748,6 +750,8 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
   }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_remove: vport 0x%x removed", vlan_port.vlan_port_id);
 
   return L7_SUCCESS;
 }
