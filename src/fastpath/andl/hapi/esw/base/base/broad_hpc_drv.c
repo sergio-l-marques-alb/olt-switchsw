@@ -94,6 +94,9 @@
 #include "soc/phyreg.h"
 #endif
 
+/* PTin added: logger */
+#include "logger.h"
+
 /* PTin added: includes */
 #if 1
 #include "logger.h" /* PTin added */
@@ -3262,11 +3265,17 @@ static soc_phy_table_t phy10GBASET_custom_entry =
 * few things that are different/additional. 
 **********************************************************************/
 
+/* PTin modified: logger */
 #define SYSTEM_INIT_CHECK(action, description)                  \
         if ((rv = (action)) < 0) {                              \
+            LOG_ERR(LOG_CTX_STARTUP,"%s: Error %d!", description, action); \
             msg = (description);                                \
             goto done;                                          \
-        }
+        }                                                       \
+        else                                                    \
+        {                                                       \
+            LOG_INFO(LOG_CTX_STARTUP,"%s: OK!", description);   \
+        }                                                       \
 
 int
 systemInit(int unit)
