@@ -1398,8 +1398,7 @@ typedef struct {
 typedef struct {
   L7_uint8              slotId;           // Slot ID
   L7_uint8              idType;           // idType=1 [evcId]; idType=2 [rootVlan]       
-  L7_uint32             id;               // idType=1 [evcId]; idType=2 [rootVlan]   
-  L7_uint32             evc_idx;          // eEVCid      
+  L7_uint32             id;               // idType=1 [evcId]; idType=2 [rootVlan]     
   msg_HwEthInterface_t  intf;             // Interface
   L7_uint8              action;           // IPSG_ACTION_t
   L7_uint8              macAddr[6];       // MAC Address  
