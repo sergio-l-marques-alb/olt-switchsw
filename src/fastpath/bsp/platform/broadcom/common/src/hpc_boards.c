@@ -224,7 +224,7 @@ L7_RC_t hpcConfigSet()
 #ifdef _L7_OS_LINUX_
   /* Use polling on Linux. Was a fixup before */
   if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0) LOG_ERROR(33); /* PTin modified: 0->1 */
-  if (sal_config_set(spn_MIIM_INTR_ENABLE, "1") != 0) LOG_ERROR(33);  /* PTin modified: 0->1 */
+  if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0) LOG_ERROR(33);  /* PTin modified: 0->1 */
 #ifdef LVL7_KEYSTONE
   if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0) LOG_ERROR(33);
 #endif
