@@ -80,6 +80,7 @@ static L7_RC_t hapi_ptin_portMap_init(void);
 L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
 L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
+L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
 
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
@@ -218,7 +219,21 @@ L7_RC_t ptin_hapi_phy_init(void)
       continue;
     }
 
-    /* 10G ports: disable linkscan */
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Local ports at 10G XAUI (Only applicable to CXO160G) */
+    if (hapiWCMapPtr[i].slotNum < 0 && hapiWCMapPtr[i].wcSpeedG == 10)
+    {
+      if (ptin_hapi_xaui_set(bcm_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) at XAUI mode", i, bcm_port);
+        rc = L7_FAILURE;
+        continue;
+      }
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) at XAUI mode", i, bcm_port);
+    }
+    /* Backplane 10G ports: disable linkscan */
+    else
+    #endif
     if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
     {
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -3656,6 +3671,71 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Change a port interface type to XAUI
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
+{
+  bcm_error_t rc = BCM_E_NONE;
+
+  #if 0
+  /* Disable port */
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  #endif
+
+  /* Set 10G speed */
+  rc = bcm_port_speed_set(0, bcm_port, 10000);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Set Full duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  rc = bcm_port_autoneg_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XAUI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  #if 0
+  rc = bcm_port_enable_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  #endif
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Success initializing bcm_port %u", bcm_port);
+
+  return L7_SUCCESS;
+}
 
 
 BROAD_POLICY_t policyId_trap = BROAD_POLICY_INVALID;
