@@ -16,6 +16,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
+//#include <stdlib.h> //Added this lib for system()
 
 #define MAX_OUTBUF_LEN          512 /* Output buffer max length */
 #define MAX_FILE_LEN            15  /* Filename max length */
@@ -23,6 +24,7 @@
 #define MAX_LINE_LEN            5   /* Line# max length */
 #define MAX_FILEFUNCLINE_LEN    30  /* Filename+function+line# max length */
 #define MAX_TIMESTAMP_LEN       24  /* Timestamp max length*/
+#define MAX_LOG_LINES         4096  /* Max File Lines */
 
 /* Severity strings */
 static const char *log_sev_str[LOG_SEV_LAST] = {
@@ -452,6 +454,7 @@ static char* get_time(char* output)
     return output;
 }
 
+static unsigned int max_log_lines = 0;
 /**
  * Prints a log message
  * 
@@ -546,6 +549,13 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
     /* fflush for files */
     if (stream!=stdout && stream!=stderr)
     {
+      if(++max_log_lines >= MAX_LOG_LINES)
+      {
+        /*To be replaced with semaphore  or signal approach*/
+        //system("/usr/local/ptin/sbin/logrotate /etc/logrotate.conf.d&"); 
+                
+        max_log_lines = 0;        
+      }
       fflush(stream);
     }
 
