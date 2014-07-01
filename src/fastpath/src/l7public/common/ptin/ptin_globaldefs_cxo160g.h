@@ -4,7 +4,7 @@
 /* SDK version */
 #define SDK_MAJOR_VERSION   6
 #define SDK_MINOR_VERSION   3
-#define SDK_REVISION_ID     7
+#define SDK_REVISION_ID     4
 #define SDK_PATCH_ID        0
 
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
@@ -30,7 +30,8 @@
 #define PTIN_SYS_LC_SLOT_MAX        4
 #define PTIN_SYS_SLOTS_MAX          5
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
-
+#define PTIN_SYS_MX1_SLOT           1
+#define PTIN_SYS_MX2_SLOT           PTIN_SYS_SLOTS_MAX
 
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
