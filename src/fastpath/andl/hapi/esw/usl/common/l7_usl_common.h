@@ -297,52 +297,107 @@ typedef struct
     LOG_ERROR(0xbadd); \
     }
 
+/* PTin added: little endian */
+#if defined LE_HOST
+/* Little endian */
 
-#ifdef __mips__
+  #ifdef __mips__
 
-#define L7_UINT32_GET(x) ({ unsigned char *c = (unsigned char *)x; \
-   ((c[0]<<24) & 0xff000000) + ((c[1]<<16) & 0x00ff0000) + ((c[2]<<8) & 0x0000ff00) + c[3]; })
-#define L7_UINT32_SET(x,v) do { \
-   ((L7_uchar8 *)(x))[0] = ((v)>>24)&0xff; \
-   ((L7_uchar8 *)(x))[1] = ((v)>>16)&0xff; \
-   ((L7_uchar8 *)(x))[2] = ((v)>>8)&0xff; \
-   ((L7_uchar8 *)(x))[3] = (v)&0xff; \
-} while(0)
+  #define L7_UINT32_GET(x) ({ unsigned char *c = (unsigned char *)x; \
+     (c[0] + ((c[1]<<8) & 0x0000ff00) + ((c[2]<<16) & 0x00ff0000) + ((c[3]<<24) & 0xff000000); })
+  #define L7_UINT32_SET(x,v) do { \
+     ((L7_uchar8 *)(x))[0] = (v)&0xff; \
+     ((L7_uchar8 *)(x))[1] = ((v)>>8)&0xff; \
+     ((L7_uchar8 *)(x))[2] = ((v)>>16)&0xff; \
+     ((L7_uchar8 *)(x))[3] = ((v)>>24)&0xff; \
+  } while(0)
+
+  #else
+
+  #define L7_UINT32_GET(x) *(L7_uint32 *)(x)
+  #define L7_UINT32_SET(x,v) *(L7_uint32 *)(x) = (v)
+
+  #endif
+
+  #define L7_UINT32_PACK(_buf, _var) \
+    do { \
+      *_buf++ = (_var) & 0xff; \
+      *_buf++ = ((_var) >> 8) & 0xff; \
+      *_buf++ = ((_var) >> 16) & 0xff; \
+      *_buf++ = ((_var) >> 24) & 0xff; \
+    } while (0)
+
+  #define L7_UINT32_UNPACK(_buf, _var) \
+    do { \
+      _var  = *_buf++; \
+      _var |= *_buf++ << 8; \
+      _var |= *_buf++ << 16; \
+      _var |= *_buf++ << 24; \
+    } while (0)
+
+  #define L7_UINT16_PACK(_buf, _var) \
+    do { \
+      *_buf++ = (_var) & 0xff; \
+      *_buf++ = ((_var) >> 8) & 0xff; \
+    } while (0)
+
+  #define L7_UINT16_UNPACK(_buf, _var) \
+    do { \
+      _var  = *_buf++; \
+      _var |= *_buf++ << 8; \
+    } while (0)
 
 #else
+/* Big endian */
 
-#define L7_UINT32_GET(x) *(L7_uint32 *)(x)
-#define L7_UINT32_SET(x,v) *(L7_uint32 *)(x) = (v)
+  #ifdef __mips__
+
+  #define L7_UINT32_GET(x) ({ unsigned char *c = (unsigned char *)x; \
+     ((c[0]<<24) & 0xff000000) + ((c[1]<<16) & 0x00ff0000) + ((c[2]<<8) & 0x0000ff00) + c[3]; })
+  #define L7_UINT32_SET(x,v) do { \
+     ((L7_uchar8 *)(x))[0] = ((v)>>24)&0xff; \
+     ((L7_uchar8 *)(x))[1] = ((v)>>16)&0xff; \
+     ((L7_uchar8 *)(x))[2] = ((v)>>8)&0xff; \
+     ((L7_uchar8 *)(x))[3] = (v)&0xff; \
+  } while(0)
+
+  #else
+
+  #define L7_UINT32_GET(x) *(L7_uint32 *)(x)
+  #define L7_UINT32_SET(x,v) *(L7_uint32 *)(x) = (v)
+
+  #endif
+
+  #define L7_UINT32_PACK(_buf, _var) \
+    do { \
+      *_buf++ = ((_var) >> 24) & 0xff; \
+      *_buf++ = ((_var) >> 16) & 0xff; \
+      *_buf++ = ((_var) >> 8) & 0xff; \
+      *_buf++ = (_var) & 0xff; \
+    } while (0)
+
+  #define L7_UINT32_UNPACK(_buf, _var) \
+    do { \
+      _var  = *_buf++ << 24; \
+      _var |= *_buf++ << 16; \
+      _var |= *_buf++ << 8; \
+      _var |= *_buf++; \
+    } while (0)
+
+  #define L7_UINT16_PACK(_buf, _var) \
+    do { \
+      *_buf++ = ((_var) >> 8) & 0xff; \
+      *_buf++ = (_var) & 0xff; \
+    } while (0)
+
+  #define L7_UINT16_UNPACK(_buf, _var) \
+    do { \
+      _var  = *_buf++ << 8; \
+      _var |= *_buf++; \
+    } while (0)
 
 #endif
 
-#define L7_UINT32_PACK(_buf, _var) \
-  do { \
-    *_buf++ = ((_var) >> 24) & 0xff; \
-    *_buf++ = ((_var) >> 16) & 0xff; \
-    *_buf++ = ((_var) >> 8) & 0xff; \
-    *_buf++ = (_var) & 0xff; \
-  } while (0)
-
-#define L7_UINT32_UNPACK(_buf, _var) \
-  do { \
-    _var  = *_buf++ << 24; \
-    _var |= *_buf++ << 16; \
-    _var |= *_buf++ << 8; \
-    _var |= *_buf++; \
-  } while (0)
-
-#define L7_UINT16_PACK(_buf, _var) \
-  do { \
-    *_buf++ = ((_var) >> 8) & 0xff; \
-    *_buf++ = (_var) & 0xff; \
-  } while (0)
-
-#define L7_UINT16_UNPACK(_buf, _var) \
-  do { \
-    _var  = *_buf++ << 8; \
-    _var |= *_buf++; \
-  } while (0)
 
 #define L7_MAC_ADDRESS_PACK(_buf, _var) \
   do { \
